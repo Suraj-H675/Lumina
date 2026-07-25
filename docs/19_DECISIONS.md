@@ -106,6 +106,15 @@ respective licences and attribution requirements.
 asset-manifest requirements remain mandatory. Licensing must be reconsidered before accepting
 outside contributions or declaring Lumina open source.
 
+## ADR-020 — Phase 0B2 PostgreSQL before worker behavior
+
+**Status:** Accepted
+**Date:** 2026-07-25
+**Decision:** Phase 0B2 provides PostgreSQL, Alembic, the initial `job` table, and readiness before
+Phase 0B3 implements database-backed worker behavior.
+**Reason:** The roadmap lists a worker before its database prerequisite, while the architecture
+requires the queue to be database-backed. This preserves dependency order without advancing worker scope.
+
 ## ADR template
 
 ```text

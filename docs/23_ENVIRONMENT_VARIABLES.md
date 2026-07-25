@@ -2,9 +2,8 @@
 
 This is the planned configuration contract. Add variables only when the related phase is implemented. `.env.example` must contain names and safe descriptions, never secrets.
 
-Phase 0A defined no Lumina runtime environment variables. Phase 0B1 activates only the
-database-independent API variables below. All other variables in this document remain planned
-until their owning roadmap phases are implemented.
+Phase 0A defined no Lumina runtime environment variables. Phase 0B2 activates the API variables
+and four database URLs below. All other variables remain planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -27,20 +26,24 @@ The `127.0.0.1` host default limits development binding to the local machine. Ex
 `0.0.0.0` or `::` is supported for intentional container or network access, but exposes the API
 to reachable interfaces and does not configure HTTPS or authentication.
 
-## Planned core variables
+## Active in Phase 0B2 database variables
 
 ```text
-LUMINA_PUBLIC_WEB_URL=http://localhost:3000
-LUMINA_PUBLIC_API_URL=http://localhost:8000
 LUMINA_DATABASE_URL=postgresql+asyncpg://...
-LUMINA_DATABASE_SYNC_URL=postgresql://...
-LUMINA_REQUEST_TIMEOUT_SECONDS=30
+LUMINA_DATABASE_SYNC_URL=postgresql+psycopg://...
+LUMINA_TEST_DATABASE_URL=postgresql+asyncpg://...
+LUMINA_TEST_DATABASE_SYNC_URL=postgresql+psycopg://...
 ```
 
-Future database URLs remain environment-only and portable standard PostgreSQL contracts through
-SQLAlchemy, Alembic, asyncpg, and Psycopg. No database or managed-host credential is introduced in
-Phase 0B1. Supabase may be evaluated later only as an optional PostgreSQL host, not as a required
+API processes load only `LUMINA_DATABASE_URL`; Alembic loads only the synchronous migration URL.
+Integration tests require all four URLs and `LUMINA_ENV=test`. The contracts remain portable
+standard PostgreSQL through SQLAlchemy, Alembic, asyncpg, and Psycopg. Supabase may be evaluated
+later only as an optional PostgreSQL host, not as a required
 SDK, browser data API, authentication, storage, realtime, or edge-function dependency.
+
+Local bootstrap generates these credentials only for a new named PostgreSQL volume. If the exact
+Compose volume exists while `.env` is absent, bootstrap stops without generating replacements;
+restore the matching `.env` or use the manual recovery procedure in deployment operations.
 
 ## Web public variables
 

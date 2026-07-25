@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import io
 import json
 import logging
 
 import anyio
 import httpx
-import pytest
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.settings import AppSettings
@@ -52,14 +52,13 @@ def test_json_formatter_emits_utc_structure_without_exception_text() -> None:
     assert "PRIVATE-EXCEPTION" not in serialized
 
 
-def test_request_log_uses_route_template_and_omits_secret_sentinels(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_request_log_uses_route_template_and_omits_secret_sentinels() -> None:
     setting_secret = "PRIVATE-SETTING-SENTINEL"
     app = create_app(
         AppSettings.model_validate(
             {
                 "LUMINA_ENV": "test",
+                "LUMINA_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1/lumina_test",
                 "LUMINA_BUILD_COMMIT": setting_secret,
             }
         )
@@ -73,12 +72,19 @@ def test_request_log_uses_route_template_and_omits_secret_sentinels(
         del item_id
         raise RuntimeError(exception_secret)
 
-    response = _request(
-        app,
-        f"/_test/failure/{route_secret}?private={query_secret}",
-    )
-    captured = capsys.readouterr()
-    log_lines = [line for line in captured.out.splitlines() if line]
+    output = io.StringIO()
+    handler = logging.StreamHandler(output)
+    handler.setFormatter(JsonFormatter())
+    logger = logging.getLogger("lumina")
+    logger.addHandler(handler)
+    try:
+        response = _request(
+            app,
+            f"/_test/failure/{route_secret}?private={query_secret}",
+        )
+    finally:
+        logger.removeHandler(handler)
+    log_lines = [line for line in output.getvalue().splitlines() if line]
 
     assert response.status_code == 500
     assert response.json()["error"]["code"] == "server.internal_error"
@@ -91,7 +97,7 @@ def test_request_log_uses_route_template_and_omits_secret_sentinels(
     assert payload["error_code"] == "server.internal_error"
     assert payload["request_id"] == response.headers["X-Request-ID"]
     assert isinstance(payload["duration_ms"], float)
-    serialized = response.text + captured.out + captured.err
+    serialized = response.text + output.getvalue()
     assert route_secret not in serialized
     assert query_secret not in serialized
     assert exception_secret not in serialized

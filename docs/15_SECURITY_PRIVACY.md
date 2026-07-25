@@ -148,6 +148,18 @@ A vulnerability is triaged by exploitability and affected path, not ignored sole
 - no public exposure;
 - raw provider payloads reviewed for unexpected personal data.
 
+Phase 0B2 local development binds PostgreSQL only to loopback, uses SCRAM password authentication,
+and separates development/test runtime and migration credentials. Readiness logs and responses omit
+URLs, credentials, hosts, ports, database names, driver details, and SQL errors.
+
+The bootstrap administrator owns the local databases. Migration roles are non-superusers with only
+database `CONNECT` and `public` schema `USAGE`/`CREATE`; they own only objects created by Alembic.
+Runtime roles receive `CONNECT` and schema `USAGE`, but no schema creation, table ownership,
+temporary-table privilege, role/database administration, or row-security bypass. `PUBLIC` is
+revoked from database `CONNECT`/`TEMPORARY` and public-schema creation.
+Integration privilege and migration connection failures are reduced to fixed safe test failures;
+their test helpers retain no password-bearing URL string in traceback-visible state.
+
 ## 10. Provider secrets
 
 - server environment/secret store;

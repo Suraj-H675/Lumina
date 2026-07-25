@@ -110,6 +110,18 @@ Include:
 
 Tests use an actual PostgreSQL instance, not SQLite, for PostgreSQL-specific behavior.
 
+Phase 0B2 verifies development/test role separation, real readiness, and guarded migration
+upgrade/downgrade/re-upgrade against local `lumina_test`; destructive helpers refuse other targets.
+The migration lifecycle compares the complete `job` catalog contract after each upgrade: columns,
+defaults, generated/identity state, constraints, and indexes, including PostgreSQL's constraint
+backing indexes. It then asserts downgrade absence of `job` before re-upgrading. Connection failures
+at that integration-test boundary are normalized without credentials or connection details in pytest
+output; schema assertions and other programming failures retain their normal diagnostics.
+Guarded migration URLs use exactly `postgresql+psycopg`, an explicit loopback host and port, the
+`lumina_test` database, and an empty query mapping. The test harness opens the connection before
+invoking Alembic, then supplies that connection to migration execution so only connection-establishing
+failures are normalized.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

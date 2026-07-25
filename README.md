@@ -19,10 +19,10 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0B1 adds a database-independent FastAPI foundation to the Phase 0A workspace. It provides
-process liveness, safe application metadata, validated configuration, structured request logs,
-request IDs, CORS, security headers, and normalized public errors. It does not yet provide a web
-application, database, readiness check, worker, provider integration, or product feature.
+Phase 0B2 adds local PostgreSQL 18.4, role-separated development/test databases, an async
+SQLAlchemy runtime, synchronous Alembic migrations, the initial `job` table, and safe database
+readiness to the Phase 0B1 API foundation. It does not add job execution, a worker, provider
+integration, Supabase, a web application, or a product feature.
 
 Before writing implementation code, read these files in order:
 
@@ -66,18 +66,20 @@ pnpm version that differs from the root `packageManager` field.
 ## API development
 
 `LUMINA_ENV` is required. The API reads a UTF-8 `.env` only from the repository root, and real
-process environment variables take precedence. `.env.example` contains the safe Phase 0B1
-configuration; `.env` remains ignored and is never generated or overwritten by bootstrap.
+process environment variables take precedence. `.env.example` contains safe placeholders;
+bootstrap atomically creates an ignored local `.env` only when absent and never overwrites it.
 
 Start the API with:
 
 ```sh
 LUMINA_ENV=development uv run lumina-api
+docker compose --env-file .env up -d db
+uv run alembic upgrade head
 ```
 
-The safe default bind address is `127.0.0.1:8000`. Development API documentation is available at
-`http://127.0.0.1:8000/docs`; liveness is at `/health/live`, and public application metadata is at
-`/api/v1/meta`.
+The database binds only to `127.0.0.1`; change `POSTGRES_HOST_PORT` explicitly in `.env` if 5432
+is occupied. Development API documentation is available at `http://127.0.0.1:8000/docs`; liveness
+is at `/health/live`, database readiness at `/health/ready`, and public metadata at `/api/v1/meta`.
 
 Set `LUMINA_API_HOST=0.0.0.0` or `LUMINA_API_HOST=::` only when intentional network or container
 access is required. An all-interface bind exposes the development API to every reachable network

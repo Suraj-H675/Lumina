@@ -7,13 +7,21 @@ import json
 import logging
 import sys
 from datetime import UTC, datetime
-from typing import Final
+from typing import Final, TextIO
 
 _REQUEST_ID: Final[contextvars.ContextVar[str | None]] = contextvars.ContextVar(
     "lumina_request_id",
     default=None,
 )
 _MANAGED_HANDLER_NAME = "lumina-json"
+
+
+class CurrentStdoutHandler(logging.StreamHandler[TextIO]):
+    """Write to the active stdout stream so test capture cannot retain a stale stream."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.stream = sys.stdout
+        super().emit(record)
 
 
 class JsonFormatter(logging.Formatter):
@@ -49,12 +57,16 @@ def configure_logging(level: str) -> None:
     logger = logging.getLogger("lumina")
     logger.setLevel(level)
     logger.propagate = False
+    for name, candidate in logging.Logger.manager.loggerDict.items():
+        if name.startswith("lumina.") and isinstance(candidate, logging.Logger):
+            candidate.disabled = False
+            candidate.setLevel(logging.NOTSET)
 
     for handler in tuple(logger.handlers):
         if handler.get_name() == _MANAGED_HANDLER_NAME:
             logger.removeHandler(handler)
 
-    handler = logging.StreamHandler(sys.stdout)
+    handler = CurrentStdoutHandler()
     handler.set_name(_MANAGED_HANDLER_NAME)
     handler.setFormatter(JsonFormatter())
     logger.addHandler(handler)

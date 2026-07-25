@@ -14,6 +14,9 @@ fail() {
 command -v git >/dev/null 2>&1 || fail "Git is required."
 command -v node >/dev/null 2>&1 || fail "Node.js 24.x active LTS is required."
 command -v uv >/dev/null 2>&1 || fail "A maintained uv version >=0.11.0 is required."
+command -v docker >/dev/null 2>&1 || fail "Docker with Compose is required for Phase 0B2."
+docker info >/dev/null 2>&1 || fail "Docker daemon access is required for Phase 0B2."
+docker compose version >/dev/null 2>&1 || fail "Docker Compose is required for Phase 0B2."
 
 NODE_VERSION=$(node -p "process.versions.node")
 NODE_MAJOR=${NODE_VERSION%%.*}
@@ -48,3 +51,4 @@ printf 'Node.js: %s\n' "$NODE_VERSION"
 printf 'pnpm: %s (%s)\n' "$PNPM_VERSION" "$PNPM_SOURCE"
 printf 'Python: %s\n' "$PYTHON_VERSION"
 printf 'uv: %s\n' "$UV_VERSION"
+printf 'Docker Compose: %s\n' "$(docker compose version --short)"

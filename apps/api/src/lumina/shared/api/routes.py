@@ -4,15 +4,26 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, ConfigDict
+from starlette.responses import JSONResponse
 
 from lumina import __version__
 from lumina.settings import AppSettings
+from lumina.shared.api.errors import error_response
+from lumina.shared.application.readiness import DatabaseReadinessService
 
 router = APIRouter()
 
 
 class LiveResponse(BaseModel):
     """Dependency-free process liveness."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: str
+
+
+class ReadyResponse(BaseModel):
+    """Public dependency readiness."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -41,6 +52,20 @@ class MetaResponse(BaseModel):
 async def live() -> LiveResponse:
     """Report process liveness without checking external dependencies."""
     return LiveResponse(status="live")
+
+
+@router.get("/health/ready", response_model=ReadyResponse)
+async def ready(request: Request) -> ReadyResponse | JSONResponse:
+    """Report whether the injected database probe can complete safely."""
+    readiness_service: DatabaseReadinessService = request.app.state.readiness_service
+    if await readiness_service.is_ready():
+        return ReadyResponse(status="ready")
+    return error_response(
+        request,
+        status_code=503,
+        code="database.unavailable",
+        message="The database is temporarily unavailable.",
+    )
 
 
 @router.get("/api/v1/meta", response_model=MetaResponse)

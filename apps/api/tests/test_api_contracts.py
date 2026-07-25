@@ -68,7 +68,10 @@ def _origins(resources: list[str]) -> set[str]:
 
 
 def _app(**overrides: object) -> FastAPI:
-    values: dict[str, object] = {"LUMINA_ENV": "test"}
+    values: dict[str, object] = {
+        "LUMINA_ENV": "test",
+        "LUMINA_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1/lumina_test",
+    }
     values.update(overrides)
     return create_app(AppSettings.model_validate(values))
 
@@ -327,13 +330,13 @@ def test_cors_preflight_allows_only_current_get_contract() -> None:
     assert post_response.status_code == 400
 
 
-def test_openapi_contains_only_phase_0b1_routes() -> None:
+def test_openapi_contains_only_phase_0b2_routes() -> None:
     response = _request(_app(), "GET", "/openapi.json")
     document: dict[str, Any] = response.json()
 
-    assert set(document["paths"]) == {"/health/live", "/api/v1/meta"}
+    assert set(document["paths"]) == {"/health/live", "/health/ready", "/api/v1/meta"}
     serialized = response.text.lower()
-    for forbidden in ("ready", "database", "provider", "/jobs", "supabase"):
+    for forbidden in ("provider", "/jobs", "supabase"):
         assert forbidden not in serialized
 
 

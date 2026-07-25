@@ -10,9 +10,10 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from pydantic_settings.sources import DotEnvSettingsSource
+from sqlalchemy.engine import make_url
 
 RuntimeEnvironment = Literal["development", "test", "staging", "production"]
 LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
@@ -30,12 +31,32 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_CORS_ORIGINS",
         "LUMINA_ENABLE_API_DOCS",
         "LUMINA_BUILD_COMMIT",
+        "LUMINA_DATABASE_URL",
+        "LUMINA_DATABASE_SYNC_URL",
+        "LUMINA_TEST_DATABASE_URL",
+        "LUMINA_TEST_DATABASE_SYNC_URL",
     }
 )
 
 
 class UnknownLuminaSettingError(ValueError):
     """Raised when a configuration source contains unsupported Lumina settings."""
+
+
+def _validate_database_url(value: SecretStr, *, drivername: str, field: str) -> SecretStr:
+    """Validate a secret PostgreSQL URL without reflecting it in validation errors."""
+    try:
+        parsed = make_url(value.get_secret_value())
+        port = parsed.port
+    except Exception as error:
+        raise ValueError(f"{field} must be a valid PostgreSQL URL") from error
+    if parsed.drivername != drivername:
+        raise ValueError(f"{field} must use {drivername}")
+    if not all((parsed.username, parsed.password, parsed.host, parsed.database)):
+        raise ValueError(f"{field} must include username, password, host, and database name")
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError(f"{field} must contain a valid port")
+    return value
 
 
 def _parse_cors_origins(value: object) -> object:
@@ -103,6 +124,7 @@ class AppSettings(BaseSettings):
         extra="ignore",
         frozen=True,
         populate_by_name=True,
+        hide_input_in_errors=True,
     )
 
     env: RuntimeEnvironment = Field(validation_alias="LUMINA_ENV")
@@ -126,6 +148,17 @@ class AppSettings(BaseSettings):
         default=None,
         validation_alias="LUMINA_BUILD_COMMIT",
     )
+    database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: SecretStr) -> SecretStr:
+        """Require the async runtime driver and complete secret connection data."""
+        return _validate_database_url(
+            value,
+            drivername="postgresql+asyncpg",
+            field="Database URL",
+        )
 
     @field_validator("log_level", mode="before")
     @classmethod
@@ -187,6 +220,78 @@ class AppSettings(BaseSettings):
         return self.env in {"development", "test"}
 
 
+class MigrationSettings(BaseSettings):
+    """Validated synchronous settings used exclusively by Alembic."""
+
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        extra="ignore",
+        frozen=True,
+        populate_by_name=True,
+        hide_input_in_errors=True,
+    )
+
+    database_sync_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_SYNC_URL")
+
+    @field_validator("database_sync_url")
+    @classmethod
+    def validate_database_sync_url(cls, value: SecretStr) -> SecretStr:
+        """Require Psycopg for migrations, independently of API settings."""
+        return _validate_database_url(
+            value,
+            drivername="postgresql+psycopg",
+            field="Database sync URL",
+        )
+
+
+class IntegrationTestSettings(BaseSettings):
+    """Guarded settings for tests that can modify the isolated local test database."""
+
+    model_config = SettingsConfigDict(
+        case_sensitive=True, extra="ignore", frozen=True, hide_input_in_errors=True
+    )
+
+    env: RuntimeEnvironment = Field(validation_alias="LUMINA_ENV")
+    database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
+    database_sync_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_SYNC_URL")
+    test_database_url: SecretStr = Field(validation_alias="LUMINA_TEST_DATABASE_URL")
+    test_database_sync_url: SecretStr = Field(validation_alias="LUMINA_TEST_DATABASE_SYNC_URL")
+
+    @field_validator("database_url", "test_database_url")
+    @classmethod
+    def validate_async_test_urls(cls, value: SecretStr) -> SecretStr:
+        return _validate_database_url(
+            value,
+            drivername="postgresql+asyncpg",
+            field="Database URL",
+        )
+
+    @field_validator("database_sync_url", "test_database_sync_url")
+    @classmethod
+    def validate_sync_test_urls(cls, value: SecretStr) -> SecretStr:
+        return _validate_database_url(
+            value,
+            drivername="postgresql+psycopg",
+            field="Database sync URL",
+        )
+
+    def model_post_init(self, __context: object) -> None:
+        """Prevent integration helpers from ever targeting a development database."""
+        if self.env != "test":
+            raise ValueError("Integration tests require LUMINA_ENV=test")
+        runtime = make_url(self.test_database_url.get_secret_value())
+        sync = make_url(self.test_database_sync_url.get_secret_value())
+        development = make_url(self.database_url.get_secret_value())
+        if runtime.database != "lumina_test" or sync.database != "lumina_test":
+            raise ValueError("Test database URLs must target lumina_test")
+        if runtime.database != sync.database or not runtime.database.endswith("_test"):
+            raise ValueError("Test database URLs must use the same _test database")
+        if development.database == runtime.database:
+            raise ValueError("Test and development database URLs must differ")
+        if runtime.username != "lumina_test_app" or sync.username != "lumina_test_migrate":
+            raise ValueError("Test database URLs must use the dedicated test roles")
+
+
 def _reject_unknown_lumina_keys(values: Mapping[str, object]) -> None:
     unknown = sorted(
         key for key in values if key.startswith("LUMINA_") and key not in _ALLOWED_ENVIRONMENT_KEYS
@@ -219,3 +324,36 @@ def load_settings(*, env_file: Path | None = _REPOSITORY_ENV_FILE) -> AppSetting
     )
 
     return AppSettings.model_validate(values)
+
+
+def load_migration_settings(*, env_file: Path | None = _REPOSITORY_ENV_FILE) -> MigrationSettings:
+    """Load only the privileged synchronous migration configuration."""
+    values = _load_environment_values(env_file)
+    return MigrationSettings.model_validate(values)
+
+
+def load_integration_test_settings(
+    *, env_file: Path | None = _REPOSITORY_ENV_FILE
+) -> IntegrationTestSettings:
+    """Load every database URL only for explicitly guarded integration tests."""
+    values = _load_environment_values(env_file)
+    return IntegrationTestSettings.model_validate(values)
+
+
+def _load_environment_values(env_file: Path | None) -> dict[str, object]:
+    """Load known Lumina values with real environment precedence."""
+    values: dict[str, object] = {}
+    if env_file is not None and env_file.is_file():
+        dotenv_source = DotEnvSettingsSource(
+            AppSettings,
+            env_file=env_file,
+            env_file_encoding="utf-8",
+            case_sensitive=True,
+        )
+        values.update(dotenv_source.env_vars)
+        _reject_unknown_lumina_keys(values)
+    _reject_unknown_lumina_keys(os.environ)
+    values.update(
+        (key, value) for key, value in os.environ.items() if key in _ALLOWED_ENVIRONMENT_KEYS
+    )
+    return values

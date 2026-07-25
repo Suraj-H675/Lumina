@@ -4,6 +4,10 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 
+if [ ! -e .env ]; then
+  python3 ./scripts/bootstrap/create_local_env.py
+fi
+
 export UV_CACHE_DIR="$ROOT_DIR/.cache/uv"
 export UV_PYTHON_INSTALL_DIR="$ROOT_DIR/.cache/uv-python"
 PINNED_PNPM=$(node -p "require('./package.json').packageManager.split('@').pop()")

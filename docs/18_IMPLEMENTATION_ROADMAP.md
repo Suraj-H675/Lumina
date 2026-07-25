@@ -4,6 +4,10 @@ This is the mandatory build order. Each phase is a vertical slice with a gate. D
 
 ## Phase 0 — Repository and engineering foundation
 
+Phase 0B2 sequencing clarification: configure PostgreSQL, Alembic, the initial `job` table, and
+`/health/ready` before the database-backed worker behavior. This resolves the queue prerequisite
+without marking Phase 0 complete.
+
 ### Goal
 
 A clean, reproducible monorepo with no false product claims.

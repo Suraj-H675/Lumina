@@ -46,6 +46,42 @@ Planned:
 
 Health checks are required. Volumes are named. Secrets are not in compose.
 
+Phase 0B2 implements only `db`: PostgreSQL 18.4 is pinned to the verified Docker Official Image
+OCI index digest `sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a`.
+Verified 2026-07-25 against `registry-1.docker.io/library/postgres` by requesting and re-requesting
+its OCI index manifest; it contains `linux/amd64` and the other supported local platforms. Buildx
+was unavailable locally, so Docker Registry v2 inspection established the same official index
+digest. The named volume is mounted at `/var/lib/postgresql` as required by PostgreSQL 18's official
+image documentation. The host port is loopback-only; normal teardown is `docker compose down`,
+never `down -v`.
+
+Lumina explicitly pins the physical PostgreSQL data volume name to
+`lumina_lumina_postgres_data`. `COMPOSE_PROJECT_NAME` and `docker compose -p` may change container
+or network names, but they do not change this canonical volume. Multiple simultaneous Lumina
+checkouts must not share this development volume unless a future isolation design explicitly
+supports that workflow.
+
+The PostgreSQL entrypoint executes `/docker-entrypoint-initdb.d` only when the named data volume is
+first initialized. Bootstrap therefore refuses to generate `.env` when the exact
+`lumina_lumina_postgres_data` volume exists but `.env` is absent: generating replacement passwords
+would not change existing role passwords. Restore the matching ignored `.env`, or perform an
+explicit manual local-development recovery: stop the service, preserve any needed data, then either
+perform a reviewed credential rotation with the existing administrator credential or intentionally
+reset the disposable local database. Neither bootstrap nor normal setup deletes volumes, guesses
+credentials, or rotates passwords.
+
+Before creating a missing `.env`, bootstrap first verifies Docker daemon access and inspects that
+exact volume. Only an authoritative exact-volume absence permits credential generation; Docker,
+context, permission, inspection, or malformed-output failures stop setup without changing `.env` or
+Docker state. Bootstrap credentials are accepted only as direct environment values of exactly 64
+ASCII hexadecimal bytes; newline-bearing or otherwise transformed values are rejected.
+Exact inspection has no absence-inference fallback: only Docker's precise response for the exact
+Compose volume being absent is accepted as `ABSENT`; every other inspection result is fail-closed.
+
+Compose health requires both an accepting PostgreSQL process and an exact true result for the
+required Lumina databases and roles. Application readiness remains independent: it uses the runtime
+role and parameter-free `SELECT 1`.
+
 ## 4. Production profiles
 
 ### Demonstration profile

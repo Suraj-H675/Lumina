@@ -110,7 +110,9 @@ Process is running. No dependency checks.
 
 Checks required dependencies. Returns non-200 when not ready.
 
-Readiness belongs to Phase 0B2 and is not exposed by the database-independent Phase 0B1 API.
+Phase 0B2 probes PostgreSQL with a bounded parameter-free `SELECT 1`. It returns exactly
+`{"status":"ready"}` with HTTP 200 or the standard safe `database.unavailable` envelope with
+HTTP 503; neither response exposes database connection details.
 
 ### `GET /api/v1/meta`
 

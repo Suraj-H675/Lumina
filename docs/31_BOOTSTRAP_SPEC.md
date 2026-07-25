@@ -107,7 +107,7 @@ No secrets or infrastructure details.
 
 ## 7. Settings
 
-Phase 0B1 typed settings:
+Phase 0B2 typed settings:
 
 - required runtime environment;
 - API host and port;
@@ -118,8 +118,9 @@ Phase 0B1 typed settings:
 
 Settings are loaded once and injected; tests can override explicitly.
 
-Database, job, feature, provider, storage, timeout, public-URL, and trusted-proxy settings are
-deferred until their owning Phase 0 tasks.
+The API requires its async runtime database URL; Alembic uses its separate synchronous migration
+URL. Integration tests require isolated test runtime/migration URLs and `LUMINA_ENV=test`. Job,
+provider, storage, timeout, public-URL, and trusted-proxy settings remain deferred.
 
 ## 8. Database baseline
 
@@ -194,8 +195,12 @@ Only implemented Phase 0 variables from `23_ENVIRONMENT_VARIABLES.md` are includ
 unused provider secrets.
 
 Phase 0A has no runtime variables, so its `.env.example` contains comments only.
-Phase 0B1 replaces that comment-only file with safe active API examples and optional commented
-overrides. Bootstrap still does not create or overwrite `.env`.
+Phase 0B2 includes safe database placeholders. Bootstrap atomically creates a mode-0600 ignored
+`.env` only when absent, with independently generated local credentials; it never overwrites one.
+Because PostgreSQL entrypoint initialization scripts run only for a new data volume, bootstrap also
+refuses to create `.env` if the exact Lumina Compose volume already exists. The developer must
+restore the matching `.env` or follow the documented explicit manual recovery path; bootstrap never
+deletes the volume, guesses old credentials, or rotates role passwords.
 
 ## 14A. Phase 0B1 server foundation
 

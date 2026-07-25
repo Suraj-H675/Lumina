@@ -6,6 +6,10 @@ Lumina uses a modular monolith. Web, API, and worker can run as separate process
 
 This minimizes operational cost, preserves transactional consistency, simplifies local development, and avoids premature distributed systems.
 
+Phase 0B2 implements the PostgreSQL prerequisite with separate least-privilege runtime and
+migration roles. The API constructs its async pool lazily; migration code uses a separate synchronous
+Psycopg connection and never imports the ASGI application.
+
 ## 2. Runtime components
 
 ```text

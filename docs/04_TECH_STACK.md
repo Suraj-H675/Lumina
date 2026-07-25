@@ -63,18 +63,20 @@ Official references:
 
 ## Backend
 
-Phase 0B1 exact runtime:
+Phase 0B2 exact runtime:
 
 - FastAPI `0.140.0`;
 - Uvicorn `0.51.0`;
 - Pydantic `2.13.4`;
 - pydantic-settings `2.14.2`;
 - HTTPX `0.28.1` for API tests.
+- SQLAlchemy `2.0.51`, Alembic `1.18.5`, asyncpg `0.31.0`, and Psycopg `3.3.4` for PostgreSQL.
 
 These packages are exact-pinned in the uv workspace lock. Their installed metadata identifies
 FastAPI, Pydantic, and pydantic-settings as MIT-licensed, and Uvicorn and HTTPX as BSD-3-Clause.
 They are local runtime or test libraries and introduce no paid service or third-party data
-transfer. Later backend dependencies remain unimplemented until their roadmap phase.
+transfer. PostgreSQL is local and self-hostable; no hosted-database SDK is used. Later backend
+dependencies remain unimplemented until their roadmap phase.
 
 Runtime:
 

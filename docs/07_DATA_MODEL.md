@@ -340,6 +340,7 @@ Unique: provider + cache key.
 - `attempts`
 - `max_attempts`
 - `available_at`
+- `claimed_by nullable`
 - `claimed_at`
 - `heartbeat_at`
 - `completed_at`
@@ -347,6 +348,10 @@ Unique: provider + cache key.
 - `created_at`
 
 Job payload/result may not contain secrets.
+
+Phase 0B2 creates only this table. Future transitions are `queued → running`,
+`running → succeeded|failed|queued|dead_letter`, and stale `running → queued`; no worker,
+claim query, repository, or transition service exists yet.
 
 ## 10. Identification
 

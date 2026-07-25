@@ -5,13 +5,20 @@ This document removes ambiguity for the first implementation phase.
 ## 1. Required local tools
 
 - Git
-- Docker with Compose
-- active-LTS Node.js compatible with selected stable Next.js
-- pnpm via Corepack
-- Python 3.12
-- uv
+- Docker with Compose when Phase 0B introduces the database service
+- compatible Node.js 24.x active-LTS release
+- pnpm pinned exactly by the root `packageManager` field, preferably activated via Corepack
+- compatible Python 3.12.x release
+- maintained uv `>=0.11.0` capable of reading the committed `uv.lock`
 
-The bootstrap scripts check versions and print actionable errors.
+The bootstrap scripts check supported Node/Python families, the exact pinned pnpm version, and
+uv lockfile compatibility. Recommended patch releases in `.node-version` and `.python-version`
+must not cause other compatible patches to fail. Corepack's own patch version is not pinned.
+
+If Corepack is unavailable, scripts first use the pinned pnpm through a repository-local,
+non-elevated method. They never silently use another pnpm version. Global npm installation,
+operating-system package changes, elevated commands, and changes outside the repository require
+approval.
 
 ## 2. Default ports
 
@@ -182,6 +189,8 @@ Scripts are idempotent where practical.
 ## 14. Initial environment example
 
 Only Phase 0 variables from `23_ENVIRONMENT_VARIABLES.md` are included. Do not add unused provider secrets.
+
+Phase 0A has no runtime variables, so its `.env.example` contains comments only.
 
 ## 15. Phase 0 non-goals
 

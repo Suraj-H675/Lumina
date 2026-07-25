@@ -10,6 +10,15 @@ Last research review: 2026-07-25.
 - Record major upgrades.
 - Scientific upgrades require numerical regression tests.
 
+Phase 0A runtime contracts:
+
+- compatible Node.js 24.x active-LTS release; `.node-version` selects a recommended patch;
+- pnpm pinned exactly through the root `packageManager` field and `pnpm-lock.yaml`;
+- compatible Python 3.12.x release; `.python-version` selects a recommended patch;
+- maintained uv `>=0.11.0` capable of reading the committed `uv.lock`;
+- Corepack is preferred for pnpm activation but its patch version is not a project runtime
+  requirement.
+
 ## Web
 
 Required:

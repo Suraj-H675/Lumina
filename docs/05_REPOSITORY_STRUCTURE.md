@@ -8,7 +8,6 @@ lumina/
 ├── PLAN.md
 ├── README.md
 ├── CONTRIBUTING.md
-├── LICENSE
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── pnpm-lock.yaml
@@ -18,6 +17,8 @@ lumina/
 ├── .env.example
 ├── .editorconfig
 ├── .gitignore
+├── .node-version
+├── .python-version
 ├── apps/
 │   ├── web/
 │   │   ├── src/
@@ -85,6 +86,10 @@ lumina/
     ├── ISSUE_TEMPLATE/
     └── pull_request_template.md
 ```
+
+Phase 0A creates only the root workspace/tooling files, `packages/config-typescript`,
+`apps/api` package metadata and import smoke test, and `scripts/bootstrap`. All other entries
+remain future-phase structure and must not be created as empty placeholders.
 
 ## Ownership
 

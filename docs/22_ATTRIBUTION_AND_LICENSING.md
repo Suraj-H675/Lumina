@@ -2,13 +2,16 @@
 
 This document is operational guidance, not legal advice. Verify source-specific terms before public release.
 
-## 1. Project licensing intent
+## 1. Project licensing status
 
-- Code: MIT
-- Original educational content: CC BY 4.0
-- Third-party assets/data: original terms
+Lumina currently has no project licence. All rights are reserved by default. Third-party data,
+media, fonts, libraries, models, and other assets remain governed by their respective licences
+and attribution requirements.
 
-Do not place third-party material under the Lumina licence.
+Do not imply that third-party material is covered by Lumina's all-rights-reserved status.
+Scientific provenance, third-party attribution, dependency-licence review, and asset-manifest
+requirements remain mandatory. Licensing must be reconsidered before accepting outside
+contributions or declaring Lumina open source.
 
 ## 2. Asset manifest
 

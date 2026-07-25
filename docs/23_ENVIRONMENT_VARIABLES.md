@@ -2,6 +2,9 @@
 
 This is the planned configuration contract. Add variables only when the related phase is implemented. `.env.example` must contain names and safe descriptions, never secrets.
 
+Phase 0A defines no Lumina runtime environment variables. Its `.env.example` is intentionally
+comment-only; the variables below remain planned until their owning roadmap phases are implemented.
+
 ## Core
 
 ```text

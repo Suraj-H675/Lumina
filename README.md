@@ -19,6 +19,9 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
+Phase 0A establishes only the repository workspace and toolchain foundation. It does not yet
+provide a web application, API server, database, worker, or product feature.
+
 Before writing implementation code, read these files in order:
 
 1. [`AGENTS.md`](AGENTS.md)
@@ -41,12 +44,32 @@ Before writing implementation code, read these files in order:
 8. My Lumina
 9. Participate
 
-## Licensing intent
+## Local setup
 
-- Source code: MIT License, unless the repository owner changes this explicitly.
-- Original educational content: Creative Commons Attribution 4.0, unless stated otherwise.
-- Third-party data, images, fonts, models, and media retain their original licences and must be tracked individually.
-- No third-party asset may be committed without recorded source, licence, credit, and permitted use.
+Required tool families are Node.js 24.x active LTS, Python 3.12.x, and a maintained uv capable
+of reading `uv.lock`. pnpm is pinned exactly by the root `packageManager` field.
+
+```sh
+./scripts/bootstrap/setup.sh
+npm exec --yes --prefer-offline --cache .cache/npm --package=pnpm@11.17.0 -- pnpm run check
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy apps/api/src apps/api/tests
+uv run pytest
+```
+
+When Corepack is available, `corepack pnpm run check` is the preferred equivalent. Never use a
+pnpm version that differs from the root `packageManager` field.
+
+## Licensing status
+
+Lumina currently has no project licence. All rights are reserved by default. Third-party data,
+media, fonts, libraries, models, and other assets remain governed by their respective licences
+and attribution requirements.
+
+Scientific provenance, third-party attribution, dependency-licence review, and asset-manifest
+requirements still apply. Licensing must be reconsidered before accepting outside contributions
+or declaring Lumina open source.
 
 ## Implementation rule
 

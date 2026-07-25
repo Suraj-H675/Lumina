@@ -2,6 +2,13 @@
 
 This document starts with planned limitations and must be updated as implementation progresses.
 
+## Repository foundation
+
+- Phase 0A provides workspace and toolchain foundations only; it has no running web, API,
+  database, or worker service.
+- Lumina currently has no project licence and is all-rights-reserved by default. Licensing must
+  be reconsidered before accepting outside contributions or declaring the project open source.
+
 ## Product scope
 
 - Lumina is an educational/exploration platform, not a professional observatory, navigation, launch-control, hazard-warning, or mission-planning system.

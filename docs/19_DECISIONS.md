@@ -96,11 +96,15 @@ This file records accepted decisions. New decisions use the same format and must
 **Status:** Accepted
 **Decision:** Always calculate astronomical suitability; weather is optional and separately timestamped/scored.
 
-## ADR-019 — MIT code / CC BY 4.0 original content intent
+## ADR-019 — No project licence during the personal-project stage
 
-**Status:** Proposed default until licence files are committed.
-**Decision:** MIT for code; CC BY 4.0 for original educational content; third-party material retains its licence.
-**Action:** Repository owner confirms before first public release.
+**Status:** Accepted
+**Decision:** Lumina currently has no project licence. All rights are reserved by default.
+Third-party data, media, fonts, libraries, models, and other assets remain governed by their
+respective licences and attribution requirements.
+**Consequences:** Scientific provenance, third-party attribution, dependency-licence review, and
+asset-manifest requirements remain mandatory. Licensing must be reconsidered before accepting
+outside contributions or declaring Lumina open source.
 
 ## ADR template
 

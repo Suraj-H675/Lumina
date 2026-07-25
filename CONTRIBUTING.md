@@ -2,6 +2,10 @@
 
 Read `AGENTS.md` and `docs/00_SOURCE_OF_TRUTH.md` before contributing.
 
+Lumina currently has no project licence and is not accepting outside contributions under an
+open-source licence. Licensing must be reconsidered before outside contributions are accepted or
+the project is declared open source.
+
 ## Development principles
 
 - Work within the active roadmap phase.
@@ -118,7 +122,8 @@ Do not manually edit generated API client files. Update OpenAPI and regenerate.
 
 ## Local verification
 
-Exact commands are maintained in README after bootstrap. Before PR:
+Phase 0A verification commands are maintained in README. Later phases will add their applicable
+checks. Before a future PR:
 
 - web format/lint/type/test/build;
 - API Ruff/mypy/pytest;

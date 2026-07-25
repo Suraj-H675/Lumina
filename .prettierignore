@@ -1,0 +1,7 @@
+**/*.md
+.env.example
+.venv
+.cache
+node_modules
+pnpm-lock.yaml
+uv.lock

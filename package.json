@@ -1,0 +1,22 @@
+{
+  "name": "lumina",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Lumina repository workspace and toolchain foundation",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": "11.17.0"
+  },
+  "scripts": {
+    "check": "pnpm run format:check && pnpm run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@lumina/config-typescript": "workspace:*",
+    "prettier": "3.9.6",
+    "typescript": "7.0.2"
+  }
+}

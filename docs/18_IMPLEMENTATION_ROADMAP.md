@@ -10,7 +10,7 @@ A clean, reproducible monorepo with no false product claims.
 
 ### Tasks
 
-1. Initialize Git metadata and licence.
+1. Initialize Git metadata and record the current no-project-licence decision.
 2. Configure root pnpm workspace.
 3. Create Next.js App Router web app.
 4. Create Python `uv` workspace/API package.

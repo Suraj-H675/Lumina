@@ -1,0 +1,30 @@
+# Dependency and environment state
+node_modules/
+.pnpm-store/
+.venv/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build and coverage output
+dist/
+build/
+coverage/
+htmlcov/
+*.egg-info/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,4 @@
+{
+  "extends": "@lumina/config-typescript/base.json",
+  "files": []
+}

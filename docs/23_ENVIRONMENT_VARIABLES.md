@@ -2,24 +2,45 @@
 
 This is the planned configuration contract. Add variables only when the related phase is implemented. `.env.example` must contain names and safe descriptions, never secrets.
 
-Phase 0A defines no Lumina runtime environment variables. Its `.env.example` is intentionally
-comment-only; the variables below remain planned until their owning roadmap phases are implemented.
+Phase 0A defined no Lumina runtime environment variables. Phase 0B1 activates only the
+database-independent API variables below. All other variables in this document remain planned
+until their owning roadmap phases are implemented.
 
-## Core
+## Active in Phase 0B1
+
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_ENV` | Required | `development`, `test`, `staging`, or `production`. |
+| `LUMINA_LOG_LEVEL` | `INFO` | Standard `CRITICAL`, `ERROR`, `WARNING`, `INFO`, or `DEBUG` level. |
+| `LUMINA_API_HOST` | `127.0.0.1` | IP literal or hostname without scheme, path, port, whitespace, or control characters. |
+| `LUMINA_API_PORT` | `8000` | Integer from 1 through 65535. |
+| `LUMINA_CORS_ORIGINS` | Empty immutable tuple | Comma-separated exact HTTP/HTTPS origins; no wildcard, credentials, path, query, or fragment. |
+| `LUMINA_ENABLE_API_DOCS` | Environment default | Optional strict `true` or `false`. Defaults on in development/test and off in staging/production. |
+| `LUMINA_BUILD_COMMIT` | Null | Optional 1–128 character public identifier using letters, numbers, dot, underscore, or dash. |
+
+The API reads UTF-8 `.env` only from the repository root. Real process variables override matching
+dotenv values. An unknown uppercase `LUMINA_` variable in either supported source fails startup;
+unrelated process variables are ignored. `.env` remains ignored and bootstrap does not create,
+copy, overwrite, print, stage, or commit it.
+
+The `127.0.0.1` host default limits development binding to the local machine. Explicit
+`0.0.0.0` or `::` is supported for intentional container or network access, but exposes the API
+to reachable interfaces and does not configure HTTPS or authentication.
+
+## Planned core variables
 
 ```text
-LUMINA_ENV=development|test|staging|production
-LUMINA_LOG_LEVEL=INFO
-LUMINA_API_HOST=0.0.0.0
-LUMINA_API_PORT=8000
 LUMINA_PUBLIC_WEB_URL=http://localhost:3000
 LUMINA_PUBLIC_API_URL=http://localhost:8000
-LUMINA_CORS_ORIGINS=http://localhost:3000
 LUMINA_DATABASE_URL=postgresql+asyncpg://...
 LUMINA_DATABASE_SYNC_URL=postgresql://...
-LUMINA_ENABLE_API_DOCS=true
 LUMINA_REQUEST_TIMEOUT_SECONDS=30
 ```
+
+Future database URLs remain environment-only and portable standard PostgreSQL contracts through
+SQLAlchemy, Alembic, asyncpg, and Psycopg. No database or managed-host credential is introduced in
+Phase 0B1. Supabase may be evaluated later only as an optional PostgreSQL host, not as a required
+SDK, browser data API, authentication, storage, realtime, or edge-function dependency.
 
 ## Web public variables
 

@@ -102,6 +102,26 @@ Production target:
 
 CSP must account for approved visualization workers and media hosts. Avoid broad `unsafe-eval`.
 
+Phase 0B1 emits this API-only baseline on every non-documentation response:
+
+- `Content-Security-Policy: default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: no-referrer`
+- `X-Frame-Options: DENY`
+- `Permissions-Policy: camera=(), geolocation=(), microphone=()`
+
+Phase 0B1 intentionally does not emit HSTS. That header is introduced only after HTTPS
+termination and trusted-proxy behavior are explicitly configured, so local HTTP development is
+not falsely treated as a production transport boundary.
+
+When enabled, only FastAPI's built-in development documentation routes use route-local CSP
+exceptions. `/docs` permits its pinned-template jsDelivr Swagger script, stylesheet, FastAPI
+favicon, Swagger stylesheet `data:` images, same-origin OpenAPI fetch, and inline initializer.
+`/redoc` permits its jsDelivr script,
+Google Fonts stylesheet/font origins, FastAPI favicon, ReDoc `data:` images, same-origin OpenAPI
+fetch, and inline style block. Both retain `default-src 'none'`, `base-uri 'none'`, `form-action 'none'`, and
+`frame-ancestors 'none'`; no non-documentation response receives these allowances.
+
 ## 8. Dependency security
 
 CI:
@@ -186,6 +206,11 @@ Forbidden:
 - API keys;
 - database URLs;
 - full provider response containing secrets.
+
+Phase 0B1 disables Uvicorn's default access logger. Lumina emits one JSON access event with a UTC
+timestamp, level, event, canonical request ID, route template, method, status, duration, and safe
+error code when applicable. It does not log raw paths, queries, bodies, headers, configuration
+values, exception text, or stack traces.
 
 ## 14. Analytics
 

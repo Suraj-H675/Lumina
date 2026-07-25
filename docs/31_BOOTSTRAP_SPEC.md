@@ -78,11 +78,13 @@ Home includes:
 
 ## 5. Initial API
 
-Endpoints:
+Phase 0B1 endpoints:
 
 - `GET /health/live`
-- `GET /health/ready`
 - `GET /api/v1/meta`
+
+`GET /health/ready` is introduced with the Phase 0B2 database prerequisite. It is intentionally
+absent from the database-independent 0B1 application and OpenAPI contract.
 
 `/api/v1/meta` returns:
 
@@ -105,19 +107,19 @@ No secrets or infrastructure details.
 
 ## 7. Settings
 
-Typed settings categories:
+Phase 0B1 typed settings:
 
-- app;
-- HTTP;
-- database;
-- CORS;
-- logging;
-- jobs;
-- features;
-- providers;
-- storage.
+- required runtime environment;
+- API host and port;
+- CORS origins;
+- logging level;
+- API-documentation override;
+- optional public build commit.
 
 Settings are loaded once and injected; tests can override explicitly.
+
+Database, job, feature, provider, storage, timeout, public-URL, and trusted-proxy settings are
+deferred until their owning Phase 0 tasks.
 
 ## 8. Database baseline
 
@@ -188,9 +190,23 @@ Scripts are idempotent where practical.
 
 ## 14. Initial environment example
 
-Only Phase 0 variables from `23_ENVIRONMENT_VARIABLES.md` are included. Do not add unused provider secrets.
+Only implemented Phase 0 variables from `23_ENVIRONMENT_VARIABLES.md` are included. Do not add
+unused provider secrets.
 
 Phase 0A has no runtime variables, so its `.env.example` contains comments only.
+Phase 0B1 replaces that comment-only file with safe active API examples and optional commented
+overrides. Bootstrap still does not create or overwrite `.env`.
+
+## 14A. Phase 0B1 server foundation
+
+- Module-level `lumina.main:app` and the `lumina-api` command share one resolved settings object.
+- The runner passes the application object and resolved host/port to Uvicorn.
+- Uvicorn access logging is disabled and its log configuration is not allowed to replace Lumina's
+  structured logger.
+- `/docs`, `/redoc`, and `/openapi.json` share the validated environment/override policy.
+- Request IDs, exact-origin CORS, safe response headers, normalized errors, and JSON access logs
+  apply without database initialization.
+- No database, migration, readiness, worker, provider, storage, or Supabase component is created.
 
 ## 15. Phase 0 non-goals
 

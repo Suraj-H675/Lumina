@@ -1,5 +1,7 @@
-"""Lumina backend package foundation."""
+"""Lumina backend package."""
 
-__version__ = "0.0.0"
+from importlib.metadata import version
+
+__version__ = version("lumina-api")
 
 __all__ = ["__version__"]

@@ -19,8 +19,10 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0A establishes only the repository workspace and toolchain foundation. It does not yet
-provide a web application, API server, database, worker, or product feature.
+Phase 0B1 adds a database-independent FastAPI foundation to the Phase 0A workspace. It provides
+process liveness, safe application metadata, validated configuration, structured request logs,
+request IDs, CORS, security headers, and normalized public errors. It does not yet provide a web
+application, database, readiness check, worker, provider integration, or product feature.
 
 Before writing implementation code, read these files in order:
 
@@ -55,11 +57,31 @@ npm exec --yes --prefer-offline --cache .cache/npm --package=pnpm@11.17.0 -- pnp
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy apps/api/src apps/api/tests
-uv run pytest
+uv run pytest -q
 ```
 
 When Corepack is available, `corepack pnpm run check` is the preferred equivalent. Never use a
 pnpm version that differs from the root `packageManager` field.
+
+## API development
+
+`LUMINA_ENV` is required. The API reads a UTF-8 `.env` only from the repository root, and real
+process environment variables take precedence. `.env.example` contains the safe Phase 0B1
+configuration; `.env` remains ignored and is never generated or overwritten by bootstrap.
+
+Start the API with:
+
+```sh
+LUMINA_ENV=development uv run lumina-api
+```
+
+The safe default bind address is `127.0.0.1:8000`. Development API documentation is available at
+`http://127.0.0.1:8000/docs`; liveness is at `/health/live`, and public application metadata is at
+`/api/v1/meta`.
+
+Set `LUMINA_API_HOST=0.0.0.0` or `LUMINA_API_HOST=::` only when intentional network or container
+access is required. An all-interface bind exposes the development API to every reachable network
+interface; it does not add TLS, authentication, or a production proxy boundary.
 
 ## Licensing status
 

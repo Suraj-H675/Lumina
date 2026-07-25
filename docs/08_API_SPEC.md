@@ -61,6 +61,11 @@ Rules:
 - no provider secret;
 - appropriate HTTP status.
 
+Phase 0B1 normalizes framework validation, HTTP, and unexpected server failures through this
+envelope. `details` is always an object. Validation details contain only safe field-location
+categories and stable validation codes; raw input, Pydantic context, documentation URLs,
+exception text, and reflected request values are never returned.
+
 Common codes:
 
 - `request.validation_failed`
@@ -104,6 +109,26 @@ Process is running. No dependency checks.
 ### `GET /health/ready`
 
 Checks required dependencies. Returns non-200 when not ready.
+
+Readiness belongs to Phase 0B2 and is not exposed by the database-independent Phase 0B1 API.
+
+### `GET /api/v1/meta`
+
+Phase 0B1 returns exactly:
+
+```json
+{
+  "application_name": "Lumina",
+  "application_version": "installed package version",
+  "api_version": "v1",
+  "feature_flags": {},
+  "build_commit": null
+}
+```
+
+`application_version` comes from installed `lumina-api` package metadata. `build_commit` is null
+unless a validated `LUMINA_BUILD_COMMIT` is configured. The response never exposes environment,
+host, process, dependency, path, or infrastructure details.
 
 ### `GET /status/providers`
 
@@ -320,6 +345,14 @@ These power the source drawer and public attribution.
 - Upload/job endpoints use stricter limits.
 - Provider quota protection is independent from user API limiting.
 - OpenAPI docs are enabled in development and configurable in production.
+
+Phase 0B1 permits no cross-origin browser origin by default. Configured origins are exact
+HTTP/HTTPS origins, credentials remain disabled, allowed methods are currently `GET`, and
+`X-Request-ID` is an allowed and exposed header. API documentation defaults on in development and
+test and off in staging and production; an explicit strict Boolean override controls `/docs`,
+`/redoc`, and `/openapi.json` together. When enabled, only `/docs` and `/redoc` receive the
+route-local CSP allowances needed by FastAPI's generated development documentation HTML;
+`/openapi.json` and every API/error response keep the strict API CSP.
 
 ## 16. API compatibility
 

@@ -91,6 +91,11 @@ Phase 0A creates only the root workspace/tooling files, `packages/config-typescr
 `apps/api` package metadata and import smoke test, and `scripts/bootstrap`. All other entries
 remain future-phase structure and must not be created as empty placeholders.
 
+Phase 0B1 adds only the database-independent API composition files under `apps/api/src/lumina`:
+`main.py`, `bootstrap.py`, `settings.py`, and the implemented `shared/api` and logging modules,
+plus their tests. Database, migration, worker, provider, frontend, generated-client, and other
+future-phase directories remain absent.
+
 ## Ownership
 
 ### `apps/web`

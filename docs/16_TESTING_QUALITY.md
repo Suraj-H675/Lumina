@@ -1,0 +1,263 @@
+# Testing and Quality Strategy
+
+## 1. Quality layers
+
+1. Static checks
+2. Unit tests
+3. Property/numerical tests
+4. Database/repository integration
+5. Provider contract tests
+6. API integration tests
+7. Component tests
+8. End-to-end tests
+9. Accessibility tests
+10. Performance and visual checks
+11. Scientific validation
+
+No single layer replaces the others.
+
+## 2. Required commands
+
+Exact commands are added during bootstrap. The conceptual CI gates are:
+
+### Web
+
+- format check
+- ESLint
+- TypeScript
+- unit/component tests
+- generated client freshness
+- Next.js production build
+- Playwright smoke
+- accessibility smoke
+
+### API
+
+- Ruff format/check
+- mypy
+- pytest unit
+- pytest integration
+- migration upgrade
+- migration downgrade where supported
+- OpenAPI snapshot
+- dependency import/startup
+
+## 3. Coverage
+
+Coverage is a diagnostic, not the only goal.
+
+Initial thresholds after baseline code exists:
+
+- Python domain/application: 85% line coverage
+- critical astronomy calculations: near-complete branch coverage
+- provider parsers: every mapped field and missing/invalid cases
+- TypeScript calculation utilities: 90%
+- UI: behavior-focused, not arbitrary line chasing
+
+Threshold changes require decision record.
+
+## 4. Scientific numerical tests
+
+For each algorithm:
+
+- units;
+- reference input/output;
+- tolerance;
+- edge domain;
+- invalid domain;
+- source/reference;
+- algorithm version.
+
+Use `pytest.approx`, Astropy quantities, and operation-specific tolerances.
+
+Property tests:
+
+- angular separation symmetry;
+- coordinate round trips;
+- non-negative durations;
+- score bounds;
+- planner no overlap;
+- deterministic same input/version;
+- unit-conversion round trip.
+
+## 5. Time and location tests
+
+Include:
+
+- UTC;
+- half-hour and 45-minute offsets;
+- Asia/Kolkata;
+- DST transitions;
+- date line;
+- longitude ±180;
+- polar day/night;
+- leap day;
+- invalid timezone;
+- ambiguous/nonexistent local time.
+
+## 6. Database tests
+
+- migrations on empty DB;
+- upgrade from previous release;
+- constraints;
+- unique aliases;
+- idempotent ingestion;
+- source/measurement immutability;
+- canonical selection;
+- job claim concurrency;
+- search ranking;
+- transaction rollback.
+
+Tests use an actual PostgreSQL instance, not SQLite, for PostgreSQL-specific behavior.
+
+## 7. Provider tests
+
+No routine CI depends on live upstream providers.
+
+Use sanitized fixtures for:
+
+- normal response;
+- missing optional fields;
+- changed type;
+- invalid payload;
+- empty response;
+- rate limit;
+- timeout;
+- 500;
+- schema/version change;
+- duplicated record.
+
+A scheduled non-blocking provider smoke workflow may test official endpoints with respectful frequency.
+
+## 8. API tests
+
+- status and schema;
+- validation;
+- error code;
+- pagination;
+- conditional caching;
+- stale metadata;
+- rate limits;
+- unauthorized/forbidden only if auth later exists;
+- upload limits;
+- OpenAPI contract.
+
+## 9. Web tests
+
+Component:
+
+- keyboard;
+- loading/error/empty/stale;
+- units;
+- source drawer;
+- reduced motion;
+- local data failure;
+- WebGL fallback.
+
+E2E critical paths:
+
+1. search → object → source;
+2. compare;
+3. location → Sky Tonight;
+4. create plan → journal;
+5. lesson → quiz → progress;
+6. identify upload state machine with fake solver;
+7. export/import local data;
+8. provider stale/unavailable.
+
+## 10. Accessibility
+
+Automated axe plus manual:
+
+- tab sequence;
+- focus visibility;
+- dialog behavior;
+- screen-reader landmarks;
+- chart alternative;
+- canvas alternative;
+- 200% zoom;
+- reduced motion;
+- contrast;
+- touch-only interaction.
+
+Automated tools do not prove compliance.
+
+## 11. Visual regression
+
+Use sparingly for:
+
+- core design primitives;
+- object page;
+- Sky Tonight;
+- source drawer;
+- simulation layout;
+- mobile navigation.
+
+Mask timestamps and deterministic animation state.
+
+## 12. Performance
+
+Measure:
+
+- initial route JS;
+- LCP/CLS/INP;
+- API p50/p95;
+- catalog search;
+- Sky Tonight batch;
+- planner;
+- worker queue age;
+- WebGL frame rate on representative hardware;
+- memory cleanup after route leave.
+
+Performance budgets live in CI once stable.
+
+## 13. Data-quality tests
+
+- no seed record without source;
+- valid units;
+- unique slugs;
+- alias normalization;
+- media credit/licence present;
+- artist concepts labelled;
+- content source list non-empty;
+- no unresolved publication blockers;
+- no future/stale dates inconsistent with source.
+
+## 14. Content tests
+
+- front matter/schema;
+- internal links;
+- entity IDs;
+- quiz answer validity;
+- duplicate IDs;
+- learning prerequisites cycle detection;
+- required mode content;
+- source URLs format;
+- prohibited generated-content markers.
+
+## 15. Test data
+
+- fixtures are clearly fictional or source-sanitized;
+- production never imports fixtures;
+- random tests use fixed seed and report it;
+- no personal images;
+- licences permit fixture storage;
+- large binaries fetched in an opt-in script with checksum.
+
+## 16. Bug regression
+
+Every fixed bug that can recur gets a test. The test should fail before the fix where practical.
+
+## 17. Release checklist
+
+- all required checks green;
+- migrations verified;
+- source manifests valid;
+- no secrets;
+- no debug flags;
+- provider caches/fallback tested;
+- accessibility smoke;
+- production build;
+- documentation updated;
+- version/changelog updated;
+- known limitations documented.

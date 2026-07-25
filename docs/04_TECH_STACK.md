@@ -1,0 +1,157 @@
+# Technology Stack
+
+Last research review: 2026-07-25.
+
+## Version policy
+
+- Bootstrap with current stable releases.
+- Use no canary/beta/nightly dependency.
+- Lock exact versions.
+- Record major upgrades.
+- Scientific upgrades require numerical regression tests.
+
+## Web
+
+Required:
+
+- active-LTS Node.js supported by selected Next.js;
+- pnpm;
+- stable Next.js 16.x or a later stable major at bootstrap;
+- React required by Next.js;
+- strict TypeScript;
+- Tailwind CSS;
+- Radix UI primitives;
+- Motion for React;
+- TanStack Query;
+- Zustand;
+- Dexie;
+- Zod;
+- generated OpenAPI TypeScript client;
+- Three.js and React Three Fiber;
+- WorldWide Telescope WebGL in the relevant phase;
+- Apache ECharts for scientific charts.
+
+Testing:
+
+- Vitest;
+- React Testing Library;
+- Playwright;
+- axe-core.
+
+Rules:
+
+- App Router only.
+- Server Components by default.
+- No duplicate handwritten API contracts.
+- No mandatory proprietary font.
+- No analytics SDK in baseline.
+
+Official references:
+
+- https://nextjs.org/docs/app
+- https://nextjs.org/docs/app/getting-started/upgrading
+- https://docs.worldwidetelescope.org/webgl-reference/latest/
+
+## Backend
+
+Runtime:
+
+- Python 3.12 baseline;
+- uv;
+- FastAPI stable;
+- Pydantic v2;
+- SQLAlchemy 2;
+- Alembic;
+- asyncpg;
+- HTTPX;
+- PostgreSQL.
+
+Scientific:
+
+- Astropy;
+- astroquery only in controlled adapters;
+- Skyfield;
+- a documented JPL ephemeris kernel;
+- sgp4;
+- astropy-healpix;
+- NumPy;
+- SciPy only when justified;
+- Pillow/OpenCV only for deterministic image work;
+- Astropy FITS support.
+
+Quality:
+
+- pytest;
+- pytest-asyncio;
+- Hypothesis;
+- Ruff;
+- mypy;
+- coverage.py;
+- respx.
+
+Official references:
+
+- https://fastapi.tiangolo.com/
+- https://fastapi.tiangolo.com/deployment/versions/
+- https://docs.astropy.org/
+- https://rhodesmill.org/skyfield/
+
+## Database
+
+- PostgreSQL
+- `pg_trgm`
+- `timestamptz`
+- UUID canonical IDs
+- provider IDs retained separately
+- JSONB only for raw/infrequent extras, not core schema
+
+## Local personal data
+
+- IndexedDB through Dexie
+- versioned schema
+- versioned export with checksums
+- localStorage only for tiny non-sensitive flags
+
+## Assets
+
+- CSS variables for tokens
+- system font stack initially
+- approved open-source icons
+- third-party asset manifest
+- no required remote font
+
+## Automation
+
+- GitHub Actions
+- Docker Compose
+- multi-stage Docker builds
+- Next.js standalone output where supported
+- shell scripts use `set -euo pipefail`
+
+## Excluded baseline technology
+
+- LLM APIs/runtimes
+- LangChain/LlamaIndex
+- embeddings/vector databases
+- GraphQL
+- microservices
+- Kubernetes/Kafka
+- mandatory Firebase
+- proprietary mapping SDK
+- paid monitoring
+- serverless-only design
+- MongoDB for canonical records
+- browser-direct scientific providers
+
+## New dependency checklist
+
+A dependency must have:
+
+- a clear missing function;
+- active maintenance;
+- compatible licence;
+- acceptable bundle/runtime cost;
+- no paid core requirement;
+- security review;
+- tests;
+- attribution documentation when needed.

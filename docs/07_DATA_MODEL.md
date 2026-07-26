@@ -355,9 +355,15 @@ payloads, priority `-32768..32767`, and `max_attempts` `1..5`. A non-null idempo
 `[A-Za-z0-9][A-Za-z0-9._:-]{0,254}` and identifies the complete job type, JSONB-equal payload,
 priority, and maximum-attempt request for every job state.
 
-Future transitions remain `queued → running`, `running → succeeded|failed|queued|dead_letter`,
-and stale `running → queued`; no worker, claim query, lifecycle repository, or transition service
-exists in Phase 0B3A.
+Phase 0B3B1 adds only the atomic `queued → running` claim mutation using the existing columns and
+constraints. It increments attempts once and records `claimed_by`, `claimed_at`, and `heartbeat_at`
+in the same statement. Its returned domain record contains only ID, passive persisted type,
+passive persisted payload, attempts, maximum attempts, and the two timestamps. JSONB null is an
+explicit payload value; absence is the typed no-eligible-row outcome.
+
+Other future transitions remain `running → succeeded|failed|queued|dead_letter` and stale
+`running → queued`; no heartbeat update, completion, failure, retry, recovery, worker, handler, or
+transition service exists in Phase 0B3B1.
 
 ## 10. Identification
 

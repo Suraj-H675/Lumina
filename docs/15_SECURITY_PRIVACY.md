@@ -206,6 +206,15 @@ session or transaction acquisition does not disguise ACL or schema defects as co
 Any SQLAlchemy failure without confirmed contention, integrity, programming/schema, or
 connectivity evidence uses the fixed unexpected database-operation category.
 
+Phase 0B3B1 treats claimed JSONB as passive private job data. Every valid persisted JSONB form is
+deeply read-only. Persisted type, persisted payload, and the complete claimed-job representation
+are fixed redacted forms that reveal no UUID, owner, attempts, timestamps, type, or payload. Claim
+mapping does not log claim evidence, use the enqueue payload-size setting, perform dynamic imports,
+resolve handlers, or execute payload-derived behavior. Safe claim failures and fatal
+`JobClaimOutcomeUnknown` retain no raw database exception, SQL, parameters, cause, context, or
+reconciliation evidence. JSONB null is an explicit payload value and cannot be confused with the
+typed absent-row outcome.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

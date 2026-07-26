@@ -163,6 +163,13 @@ SQLAlchemy parsing, including bare or empty-valued query components. ACL precond
 table privileges and all column `SELECT`, `INSERT`, `UPDATE`, and `REFERENCES` grants for runtime,
 `PUBLIC`, and other non-owner principals.
 
+Phase 0B3B1 claim sets the same transaction-local bounds from
+`LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS`, default 5000 ms. A timeout rolls back the claim transaction
+and never persists on a returned pool connection. A lost commit acknowledgement is reconciled on a
+fresh independently bounded connection; `JobClaimOutcomeUnknown` is fatal for that claim caller
+and must not trigger an immediate second claim. The reconciliation values and database diagnostics
+must never be logged.
+
 ## 8. Backups
 
 Production:

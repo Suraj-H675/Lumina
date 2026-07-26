@@ -127,6 +127,29 @@ URL username is part of that revision's migration contract.
 Changing runtime roles requires an explicit future ACL migration. Claiming, execution, lifecycle
 mutations, workers, handlers, and CLI behavior remain outside Phase 0B3A.
 
+## ADR-022 — Phase 0B3B1 passive persisted-job claim boundary
+
+**Status:** Accepted
+**Date:** 2026-07-26
+**Decision:** Claim one eligible queued row atomically and map its type and payload as passive
+persisted values. `PersistedJobPayload` accepts every valid decoded PostgreSQL JSONB form, uses an
+explicit JSON null value, recursively freezes containers, and redacts its representation. Claim
+mapping neither receives nor reads the enqueue payload-size setting and does not apply enqueue or
+handler validation.
+**Consequences:** `ClaimedJob` contains only `id`, passive `job_type`, passive `payload`, `attempts`,
+`max_attempts`, `claimed_at`, and `heartbeat_at`. A returned row containing JSONB null is a claimed
+job; only absence of a `RETURNING` row means no job. Phase 0B3A remains unchanged, migrations 0001
+and 0002 remain unchanged, and handler selection, validation, import, dispatch, execution, and
+failure transitions remain out of scope. In future Phase 0B3C, a static registry selects a handler
+from the passive type and that handler validates the passive payload before execution.
+
+The no-row outcome is a fieldless `NoEligibleJob`. Claim uses a validated transaction-local
+operation timeout. Once claim SQL returns a candidate, commit acknowledgement is explicit and
+process-control cancellation is deferred through commit or reconciliation. Exact persisted
+ownership returns the original claim; definitely unchanged queued state is an operation failure;
+foreign ownership is a database-state failure; all other indeterminate evidence raises fatal
+`JobClaimOutcomeUnknown`. Reconciliation never claims another row and exposes no evidence.
+
 ## ADR template
 
 ```text

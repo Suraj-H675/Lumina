@@ -2,16 +2,25 @@
 
 from __future__ import annotations
 
+from dataclasses import fields
+from datetime import UTC, datetime
+from uuid import UUID
+
 import pytest
 from lumina.jobs.domain.models import (
+    ClaimedJob,
+    JobClaimValidationError,
     JobStatus,
     JobType,
     JobValidationError,
+    PersistedJobTypeName,
+    validate_claimed_by,
     validate_idempotency_key,
     validate_job_type,
     validate_max_attempts,
     validate_priority,
 )
+from lumina.jobs.domain.payload import PersistedJobPayload
 
 
 def test_exact_job_state_and_type_inventory() -> None:
@@ -98,3 +107,45 @@ def test_only_noop_job_type_is_accepted() -> None:
     assert validate_job_type("system.noop") is JobType.SYSTEM_NOOP
     with pytest.raises(JobValidationError, match="not supported"):
         validate_job_type("system.unknown")
+
+
+@pytest.mark.parametrize(
+    "claimed_by",
+    ["worker", "worker.1", "worker_1", "worker-1", "a" * 128],
+)
+def test_valid_claimant_identifiers(claimed_by: str) -> None:
+    assert validate_claimed_by(claimed_by) == claimed_by
+
+
+@pytest.mark.parametrize(
+    "claimed_by",
+    ["", "Worker", ".worker", "worker:1", "worker/1", "a" * 129],
+)
+def test_invalid_claimant_identifiers(claimed_by: str) -> None:
+    with pytest.raises(JobClaimValidationError, match="claimant identifier is invalid"):
+        validate_claimed_by(claimed_by)
+
+
+def test_claimed_job_has_exact_fields_and_redacts_payload() -> None:
+    sentinel = "CLAIMED-JOB-PAYLOAD-SENTINEL"
+    timestamp = datetime(2026, 7, 26, tzinfo=UTC)
+    claimed = ClaimedJob(
+        id=UUID("12345678-1234-4234-9234-123456789abc"),
+        job_type=PersistedJobTypeName("system.legacy"),
+        payload=PersistedJobPayload.from_decoded({"secret": sentinel}),
+        attempts=1,
+        max_attempts=5,
+        claimed_at=timestamp,
+        heartbeat_at=timestamp,
+    )
+
+    assert [field.name for field in fields(ClaimedJob)] == [
+        "id",
+        "job_type",
+        "payload",
+        "attempts",
+        "max_attempts",
+        "claimed_at",
+        "heartbeat_at",
+    ]
+    assert sentinel not in repr(claimed)

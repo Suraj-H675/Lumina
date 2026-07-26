@@ -138,6 +138,26 @@ Raw URL tests include bare and empty-valued query delimiters that SQLAlchemy wou
 discard, and repository tests require unclassified SQLAlchemy exceptions to remain operation
 failures.
 
+Phase 0B3B1 unit and guarded `lumina_test` integration tests cover object, array, string, number,
+Boolean, and JSON null payloads. They prove recursively read-only values, complete representation
+redaction, JSON null versus no returned row, passive integers beyond signed 64-bit, absence of
+enqueue canonicalization and payload-limit dependencies, and unchanged strict Phase 0B3A enqueue
+validation. Real PostgreSQL fixtures are inserted only through migration-role helpers guarded to
+the local `lumina_test` database. Tests also prove normal application-enqueued noop objects remain
+claimable, the existing 65,536-byte constraint remains unchanged, and claim performs no handler
+lookup, import, validation, dispatch, execution, or failure transition.
+
+The same gate uses synchronized separate PostgreSQL sessions to prove unique concurrent ownership,
+`SKIP LOCKED`, every eligibility and deterministic ordering field, exact attempt increments, and
+rollback restoration. Explicit relation locks prove transaction-local operation timeouts,
+contention classification, rollback, later connection-setting reset, pool release, and successful
+claim after release without timing sleeps. Controlled lifecycle doubles and persisted
+reconciliation tests cover confirmed commits, lost acknowledgements, queued/foreign/mismatched/
+unavailable evidence, process-control cancellation, fatal unknown outcomes, and absence of a
+second claim. Dedicated-pool checks cover every public exit. Representative guarded planner
+evidence records index participation, filtering, sorting, actual rows, and buffers without forcing
+a planner strategy, then removes fixtures and re-analyzes the empty test table.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

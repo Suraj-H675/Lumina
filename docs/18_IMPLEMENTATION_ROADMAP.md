@@ -9,8 +9,16 @@ Phase 0B2 sequencing clarification: configure PostgreSQL, Alembic, the initial `
 without marking Phase 0 complete.
 
 Phase 0B3 is delivered in bounded gates. Phase 0B3A adds only least-privilege job ACLs and
-idempotent enqueue. Phase 0B3B will add claiming, ownership, heartbeat, and completion only after
-risk-focused concurrency review; later worker behavior remains gated separately.
+idempotent enqueue. Phase 0B3B1 adds only atomic claim and passive persisted-row mapping after
+risk-focused review. Heartbeat updates, completion, failure, retry, recovery, worker execution,
+handlers, signals, and CLI behavior remain gated separately.
+
+The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
+read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
+explicit JSON null distinct from no returned row, unchanged Phase 0B3A enqueue validation, no
+handler behavior, bounded transaction-local waits, outcome-sensitive commit reconciliation,
+complete claim-value redaction, concurrency/ordering/rollback/pool/planner evidence, and guarded
+real-PostgreSQL coverage without constraint or migration changes.
 
 ### Goal
 

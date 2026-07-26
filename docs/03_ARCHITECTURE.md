@@ -197,6 +197,30 @@ Database access is capability-specific: 0B3A defines only an enqueue protocol. P
 SQL remains in job infrastructure; domain and application modules do not import SQLAlchemy,
 FastAPI, asyncpg, Psycopg, CLI, worker, or signal code.
 
+Phase 0B3B1 adds only atomic selection and passive mapping of one eligible queued row. The claim
+uses `FOR UPDATE SKIP LOCKED`, transitions the row to `running`, records ownership timestamps, and
+increments attempts in the same statement. `ClaimedJob` exposes exactly its identifier, passive
+persisted type name, passive payload, attempts, maximum attempts, claimed timestamp, and heartbeat
+timestamp. A persisted payload accepts every decoded PostgreSQL JSONB form, including an explicit
+JSON null representation, and recursively exposes objects and arrays as read-only values. It does
+not canonicalize, apply enqueue or handler validation, consult the application payload-size
+setting, or select/import/dispatch/execute code. No-row detection is based only on whether
+`RETURNING` produced a row and returns a typed `NoEligibleJob`.
+
+Claim transactions install bounded transaction-local statement and lock timeouts before the atomic
+statement. A returned candidate is committed explicitly. If the commit acknowledgement is
+potentially lost, the failed connection is invalidated and a fresh bounded read-only transaction
+reconciles only the job ID, owner, attempt, claimed timestamp, and heartbeat timestamp. An exact
+match returns the original fully redacted claim, a definitely unchanged queued row is a fixed
+operation failure, a foreign owner is a fixed database-state failure, and missing, terminal,
+mismatched, unreadable, or unavailable evidence raises fatal `JobClaimOutcomeUnknown`. Claim never
+issues a second claim while resolving an indeterminate outcome.
+
+The future Phase 0B3C boundary uses a static registry to select a handler from the passive type.
+Only that selected handler validates the passive payload before execution; `system.noop` requires
+an object. Unsupported types or incompatible payloads enter the future non-retryable failure path
+without rolling back their successful claim.
+
 Every runtime and migration database-settings boundary accepts one normalized DNS hostname, IPv4
 literal, or IPv6 literal with an explicit port and an empty query mapping. Multi-host, socket-path,
 implicit-host, connection-target query, fragment, and ambiguous host forms are rejected before

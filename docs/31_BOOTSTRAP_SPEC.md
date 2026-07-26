@@ -107,7 +107,8 @@ No secrets or infrastructure details.
 
 ## 7. Settings
 
-Phase 0B2 typed settings, plus the Phase 0B3A enqueue limits:
+Phase 0B2 typed settings, the Phase 0B3A enqueue limits, and the Phase 0B3B1 claim-operation
+timeout:
 
 - required runtime environment;
 - API host and port;
@@ -117,6 +118,7 @@ Phase 0B2 typed settings, plus the Phase 0B3A enqueue limits:
 - optional public build commit.
 - job payload maximum bytes;
 - default maximum attempts.
+- claim operation wait timeout.
 
 Settings are loaded once and injected; tests can override explicitly.
 
@@ -154,7 +156,11 @@ The noop job is not exposed as a product feature.
 
 Phase 0B3A implements only validated, idempotent enqueue for `system.noop`. Claim, heartbeat,
 completion, failure, retry, recovery, execution, worker process, handler, signal, and CLI behavior
-remain deferred to later Phase 0B3 gates.
+remain deferred to later Phase 0B3 gates. Phase 0B3B1 then implements only atomic claim and passive
+mapping of every PostgreSQL JSONB form. It does not add heartbeat updates, completion, failure,
+retry, recovery, execution, a worker process, handlers, signals, or CLI behavior.
+Claim returns a typed no-eligible-row outcome, bounds its transaction locally, and reconciles a
+potentially lost commit acknowledgement without issuing another claim.
 
 ## 10. Web/API contract generation
 

@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from .target import parse_database_url
+
 
 @dataclass(frozen=True)
 class DatabaseRuntime:
@@ -23,9 +25,14 @@ class DatabaseRuntime:
 
 def create_database_runtime(database_url: SecretStr) -> DatabaseRuntime:
     """Construct the bounded runtime pool without opening a database connection."""
-    engine = create_async_engine(
+    parsed_url, _ = parse_database_url(
         database_url.get_secret_value(),
+        drivername="postgresql+asyncpg",
+    )
+    engine = create_async_engine(
+        parsed_url,
         echo=False,
+        hide_parameters=True,
         pool_size=5,
         max_overflow=0,
         pool_timeout=5,

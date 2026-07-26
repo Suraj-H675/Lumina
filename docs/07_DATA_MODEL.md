@@ -349,9 +349,15 @@ Unique: provider + cache key.
 
 Job payload/result may not contain secrets.
 
-Phase 0B2 creates only this table. Future transitions are `queued → running`,
-`running → succeeded|failed|queued|dead_letter`, and stale `running → queued`; no worker,
-claim query, repository, or transition service exists yet.
+Phase 0B2 creates only this table. Phase 0B3A adds an enqueue-only PostgreSQL repository without
+changing its schema. New requests allow only `system.noop`, application UUIDv4 IDs, JSON-object
+payloads, priority `-32768..32767`, and `max_attempts` `1..5`. A non-null idempotency key matches
+`[A-Za-z0-9][A-Za-z0-9._:-]{0,254}` and identifies the complete job type, JSONB-equal payload,
+priority, and maximum-attempt request for every job state.
+
+Future transitions remain `queued → running`, `running → succeeded|failed|queued|dead_letter`,
+and stale `running → queued`; no worker, claim query, lifecycle repository, or transition service
+exists in Phase 0B3A.
 
 ## 10. Identification
 

@@ -19,10 +19,10 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0B2 adds local PostgreSQL 18.4, role-separated development/test databases, an async
-SQLAlchemy runtime, synchronous Alembic migrations, the initial `job` table, and safe database
-readiness to the Phase 0B1 API foundation. It does not add job execution, a worker, provider
-integration, Supabase, a web application, or a product feature.
+Phase 0B3A builds on the accepted PostgreSQL foundation with least-privilege runtime `job` ACLs,
+bounded `system.noop` enqueue validation, application UUIDv4 identifiers, and atomic idempotent
+enqueue/replay behavior. It does not claim, execute, retry, or expose jobs through HTTP and does not
+add a worker, provider integration, Supabase, a web application, or a product feature.
 
 Before writing implementation code, read these files in order:
 

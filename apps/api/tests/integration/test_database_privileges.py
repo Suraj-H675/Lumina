@@ -123,10 +123,24 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "ALTER TABLE public.job ADD COLUMN runtime_denied integer",
         "DROP TABLE public.job",
         "CREATE TEMPORARY TABLE lumina_runtime_denied (id integer)",
+        "DELETE FROM public.job",
+        "TRUNCATE TABLE public.job",
+        "UPDATE public.job SET priority = priority",
+        "UPDATE public.job SET payload = payload",
+        "UPDATE public.job SET max_attempts = max_attempts",
+        "INSERT INTO public.job "
+        "(id, job_type, status, priority, payload, max_attempts) "
+        "VALUES ('00000000-0000-4000-8000-000000000001', "
+        "'system.noop', 'queued', 0, '{}'::jsonb, 5)",
     ):
         _assert_runtime_denied(runtime_url, statement)
 
     assert _query(runtime_url, "SELECT 1") == [1]
+    assert _query(
+        runtime_url,
+        "SELECT pg_get_userbyid(relowner) = current_user "
+        "FROM pg_class WHERE oid = 'public.job'::regclass",
+    ) == [False]
 
 
 def test_privilege_connection_failure_is_sanitized(

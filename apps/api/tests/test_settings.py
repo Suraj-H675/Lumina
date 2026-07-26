@@ -10,7 +10,7 @@ import pytest
 from lumina.settings import AppSettings, UnknownLuminaSettingError, load_settings
 from pydantic import ValidationError
 
-_DATABASE_URL = "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1/lumina_test"
+_DATABASE_URL = "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test"
 
 
 def _settings(values: dict[str, object]) -> AppSettings:
@@ -44,7 +44,7 @@ def test_repository_style_dotenv_is_read_as_utf8(
     env_file.write_text(
         "# UTF-8 configuration note: प्रकाश\n"
         "LUMINA_ENV=development\n"
-        "LUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1/lumina\n"
+        "LUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1:5432/lumina\n"
         "LUMINA_BUILD_COMMIT=local-build\n",
         encoding="utf-8",
     )
@@ -61,7 +61,7 @@ def test_real_environment_overrides_dotenv(
 ) -> None:
     env_file = tmp_path / ".env"
     env_file.write_text(
-        "LUMINA_ENV=development\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1/lumina\nLUMINA_API_PORT=8001\n",
+        "LUMINA_ENV=development\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1:5432/lumina\nLUMINA_API_PORT=8001\n",
         encoding="utf-8",
     )
     monkeypatch.setenv("LUMINA_ENV", "test")
@@ -76,7 +76,7 @@ def test_real_environment_overrides_dotenv(
 def test_unknown_lumina_key_in_dotenv_is_rejected(tmp_path: Path) -> None:
     env_file = tmp_path / ".env"
     env_file.write_text(
-        "LUMINA_ENV=test\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1/lumina\nLUMINA_FUTURE_SETTING=forbidden\n",
+        "LUMINA_ENV=test\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1:5432/lumina\nLUMINA_FUTURE_SETTING=forbidden\n",
         encoding="utf-8",
     )
 
@@ -100,7 +100,7 @@ def test_unrelated_process_and_dotenv_keys_are_ignored(
 ) -> None:
     env_file = tmp_path / ".env"
     env_file.write_text(
-        "LUMINA_ENV=test\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_test_app:secret@127.0.0.1/lumina_test\nSHELL_THEME=dark\n",
+        "LUMINA_ENV=test\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test\nSHELL_THEME=dark\n",
         encoding="utf-8",
     )
     monkeypatch.setenv("UNRELATED_SERVICE_TOKEN", "not-lumina-owned")
@@ -113,7 +113,7 @@ def test_disabling_dotenv_loading_is_an_isolated_test_seam(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     (tmp_path / ".env").write_text(
-        "LUMINA_ENV=production\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1/lumina\n",
+        "LUMINA_ENV=production\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:secret@127.0.0.1:5432/lumina\n",
         encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -130,6 +130,40 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.api_port == 8000
     assert settings.cors_origins == ()
     assert isinstance(settings.cors_origins, tuple)
+    assert settings.job_payload_max_bytes == 61_440
+    assert settings.job_default_max_attempts == 5
+    assert settings.job_enqueue_wait_timeout_ms == 5_000
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("LUMINA_JOB_PAYLOAD_MAX_BYTES", 0),
+        ("LUMINA_JOB_PAYLOAD_MAX_BYTES", 65_537),
+        ("LUMINA_JOB_DEFAULT_MAX_ATTEMPTS", 0),
+        ("LUMINA_JOB_DEFAULT_MAX_ATTEMPTS", 6),
+        ("LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS", 99),
+        ("LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS", 30_001),
+    ],
+)
+def test_job_setting_bounds(name: str, value: int) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", name: value})
+
+
+def test_job_settings_accept_documented_overrides() -> None:
+    settings = _settings(
+        {
+            "LUMINA_ENV": "test",
+            "LUMINA_JOB_PAYLOAD_MAX_BYTES": 1_024,
+            "LUMINA_JOB_DEFAULT_MAX_ATTEMPTS": 3,
+            "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS": 750,
+        }
+    )
+
+    assert settings.job_payload_max_bytes == 1_024
+    assert settings.job_default_max_attempts == 3
+    assert settings.job_enqueue_wait_timeout_ms == 750
 
 
 @pytest.mark.parametrize("host", ["0.0.0.0", "::", "::1", "api.example.test"])

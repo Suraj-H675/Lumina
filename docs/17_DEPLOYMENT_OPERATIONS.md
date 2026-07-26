@@ -144,6 +144,25 @@ Deployment order:
 
 Avoid long table locks. Large backfills never run inside startup.
 
+Revision `0002_grant_job_runtime_dml` treats the paired runtime URL username as part of the
+database migration contract. Do not switch that username by editing configuration alone. Apply a
+future explicit ACL migration first. Revision 0002 upgrade and downgrade inspect direct/effective
+ACLs and fail before changes when role identity or grant provenance is ambiguous; downgrade never
+silently abandons grants on an earlier role. The runtime role must remain a standalone login role:
+any direct or transitive membership in either direction blocks upgrade and downgrade. Exact ACL
+identity includes the table or column, migration-role grantor, runtime-role grantee, privilege, and
+non-grantable state. A changed grantor, overlapping grant, or `WITH GRANT OPTION` must be resolved
+explicitly before reversal.
+
+Phase 0B3A enqueue sets PostgreSQL transaction-local `statement_timeout` and `lock_timeout` from
+`LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS` before request-dependent statements. The default is 5000 ms;
+contention is rolled back and reported through a fixed safe category. Multi-host, Unix-socket,
+implicit-host, fragmented, and query-overridden migration/runtime targets are rejected before an
+engine is constructed. Raw URL strings containing a literal query delimiter are rejected before
+SQLAlchemy parsing, including bare or empty-valued query components. ACL preconditions inspect
+table privileges and all column `SELECT`, `INSERT`, `UPDATE`, and `REFERENCES` grants for runtime,
+`PUBLIC`, and other non-owner principals.
+
 ## 8. Backups
 
 Production:

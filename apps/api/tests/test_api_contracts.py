@@ -70,7 +70,7 @@ def _origins(resources: list[str]) -> set[str]:
 def _app(**overrides: object) -> FastAPI:
     values: dict[str, object] = {
         "LUMINA_ENV": "test",
-        "LUMINA_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1/lumina_test",
+        "LUMINA_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test",
     }
     values.update(overrides)
     return create_app(AppSettings.model_validate(values))

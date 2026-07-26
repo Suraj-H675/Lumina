@@ -107,7 +107,7 @@ No secrets or infrastructure details.
 
 ## 7. Settings
 
-Phase 0B2 typed settings:
+Phase 0B2 typed settings, plus the Phase 0B3A enqueue limits:
 
 - required runtime environment;
 - API host and port;
@@ -115,11 +115,14 @@ Phase 0B2 typed settings:
 - logging level;
 - API-documentation override;
 - optional public build commit.
+- job payload maximum bytes;
+- default maximum attempts.
 
 Settings are loaded once and injected; tests can override explicitly.
 
 The API requires its async runtime database URL; Alembic uses its separate synchronous migration
-URL. Integration tests require isolated test runtime/migration URLs and `LUMINA_ENV=test`. Job,
+URL plus the paired runtime URL solely to derive and validate revision 0002's runtime ACL role.
+Integration tests require isolated test runtime/migration URLs and `LUMINA_ENV=test`. Worker,
 provider, storage, timeout, public-URL, and trusted-proxy settings remain deferred.
 
 ## 8. Database baseline
@@ -132,6 +135,11 @@ Tables in first migration:
 
 Do not create the entire future schema in Phase 0.
 
+The second migration is ACL-only. It grants the paired runtime role table SELECT, enqueue-column
+INSERT, and approved lifecycle-column UPDATE without transferring table ownership. Its downgrade
+fails closed unless the configured runtime role uniquely holds the exact grants introduced by the
+revision. The accepted first migration remains unchanged.
+
 ## 9. Worker baseline
 
 - `worker` command;
@@ -143,6 +151,10 @@ Do not create the entire future schema in Phase 0.
 - no external provider.
 
 The noop job is not exposed as a product feature.
+
+Phase 0B3A implements only validated, idempotent enqueue for `system.noop`. Claim, heartbeat,
+completion, failure, retry, recovery, execution, worker process, handler, signal, and CLI behavior
+remain deferred to later Phase 0B3 gates.
 
 ## 10. Web/API contract generation
 

@@ -3,17 +3,23 @@
 from __future__ import annotations
 
 import re
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
-from alembic import command
-from alembic.config import Config
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 
-from .migration_lifecycle import open_migration_connection, run_migration_operation
+from .migration_lifecycle import (
+    integration_migration_identity,
+    open_migration_connection,
+    run_alembic,
+    run_migration_operation,
+)
+
+_ACCEPTED_0001_SHA256 = "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b"
 
 _EXPECTED_COLUMNS = [
     ("id", "uuid", False, True, "<none>", "", ""),
@@ -248,7 +254,7 @@ def _assert_head_schema(url: URL) -> None:
     tables = _table_names(url)
     columns, constraints, indexes, extensions = _schema_snapshot(url)
 
-    assert revision == "0001_create_job"
+    assert revision == "0002_grant_job_runtime_dml"
     assert tables == {"alembic_version", "job"}
     assert columns == _EXPECTED_COLUMNS
     assert constraints == _EXPECTED_CONSTRAINTS
@@ -257,42 +263,31 @@ def _assert_head_schema(url: URL) -> None:
     assert extensions == {"plpgsql"}
 
 
-def _migration_config() -> Config:
-    root = Path(__file__).resolve().parents[4]
-    return Config(str(root / "alembic.ini"))
-
-
-def _run_alembic(connection: Connection, config: Config, revision: str, *, downgrade: bool) -> None:
-    config.attributes["connection"] = connection
-    try:
-        if downgrade:
-            command.downgrade(config, revision)
-        else:
-            command.upgrade(config, revision)
-    finally:
-        config.attributes.pop("connection", None)
+def test_accepted_first_migration_is_byte_for_byte_unchanged() -> None:
+    migration = Path(__file__).resolve().parents[4] / "migrations/versions/0001_create_job.py"
+    assert sha256(migration.read_bytes()).hexdigest() == _ACCEPTED_0001_SHA256
 
 
 def test_upgrade_downgrade_and_reupgrade(integration_settings: IntegrationTestSettings) -> None:
     sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    config = _migration_config()
+    identity = integration_migration_identity(integration_settings)
 
     run_migration_operation(
-        sync_url, lambda connection: _run_alembic(connection, config, "base", downgrade=True)
+        sync_url, lambda connection: run_alembic(connection, identity, "base", downgrade=True)
     )
     run_migration_operation(
-        sync_url, lambda connection: _run_alembic(connection, config, "head", downgrade=False)
+        sync_url, lambda connection: run_alembic(connection, identity, "head", downgrade=False)
     )
     _assert_head_schema(sync_url)
 
     run_migration_operation(
-        sync_url, lambda connection: _run_alembic(connection, config, "base", downgrade=True)
+        sync_url, lambda connection: run_alembic(connection, identity, "base", downgrade=True)
     )
     assert _revision(sync_url) is None
     assert _table_names(sync_url) == {"alembic_version"}
 
     run_migration_operation(
-        sync_url, lambda connection: _run_alembic(connection, config, "head", downgrade=False)
+        sync_url, lambda connection: run_alembic(connection, identity, "head", downgrade=False)
     )
     _assert_head_schema(sync_url)
 

@@ -8,6 +8,10 @@ Phase 0B2 sequencing clarification: configure PostgreSQL, Alembic, the initial `
 `/health/ready` before the database-backed worker behavior. This resolves the queue prerequisite
 without marking Phase 0 complete.
 
+Phase 0B3 is delivered in bounded gates. Phase 0B3A adds only least-privilege job ACLs and
+idempotent enqueue. Phase 0B3B will add claiming, ownership, heartbeat, and completion only after
+risk-focused concurrency review; later worker behavior remains gated separately.
+
 ### Goal
 
 A clean, reproducible monorepo with no false product claims.

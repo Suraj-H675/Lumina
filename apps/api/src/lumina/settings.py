@@ -15,6 +15,11 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from pydantic_settings.sources import DotEnvSettingsSource
 from sqlalchemy.engine import make_url
 
+from lumina.shared.infrastructure.database.target import (
+    DatabaseTargetError,
+    parse_database_url,
+)
+
 RuntimeEnvironment = Literal["development", "test", "staging", "production"]
 LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
 
@@ -35,6 +40,9 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_DATABASE_SYNC_URL",
         "LUMINA_TEST_DATABASE_URL",
         "LUMINA_TEST_DATABASE_SYNC_URL",
+        "LUMINA_JOB_PAYLOAD_MAX_BYTES",
+        "LUMINA_JOB_DEFAULT_MAX_ATTEMPTS",
+        "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS",
     }
 )
 
@@ -46,16 +54,9 @@ class UnknownLuminaSettingError(ValueError):
 def _validate_database_url(value: SecretStr, *, drivername: str, field: str) -> SecretStr:
     """Validate a secret PostgreSQL URL without reflecting it in validation errors."""
     try:
-        parsed = make_url(value.get_secret_value())
-        port = parsed.port
-    except Exception as error:
-        raise ValueError(f"{field} must be a valid PostgreSQL URL") from error
-    if parsed.drivername != drivername:
-        raise ValueError(f"{field} must use {drivername}")
-    if not all((parsed.username, parsed.password, parsed.host, parsed.database)):
-        raise ValueError(f"{field} must include username, password, host, and database name")
-    if port is not None and not 1 <= port <= 65535:
-        raise ValueError(f"{field} must contain a valid port")
+        parse_database_url(value.get_secret_value(), drivername=drivername)
+    except DatabaseTargetError:
+        raise ValueError(f"{field} is invalid") from None
     return value
 
 
@@ -149,6 +150,24 @@ class AppSettings(BaseSettings):
         validation_alias="LUMINA_BUILD_COMMIT",
     )
     database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
+    job_payload_max_bytes: int = Field(
+        default=61_440,
+        ge=1,
+        le=65_536,
+        validation_alias="LUMINA_JOB_PAYLOAD_MAX_BYTES",
+    )
+    job_default_max_attempts: int = Field(
+        default=5,
+        ge=1,
+        le=5,
+        validation_alias="LUMINA_JOB_DEFAULT_MAX_ATTEMPTS",
+    )
+    job_enqueue_wait_timeout_ms: int = Field(
+        default=5_000,
+        ge=100,
+        le=30_000,
+        validation_alias="LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS",
+    )
 
     @field_validator("database_url")
     @classmethod
@@ -231,7 +250,18 @@ class MigrationSettings(BaseSettings):
         hide_input_in_errors=True,
     )
 
+    database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
     database_sync_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_SYNC_URL")
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: SecretStr) -> SecretStr:
+        """Require the paired async runtime URL used to derive the ACL role."""
+        return _validate_database_url(
+            value,
+            drivername="postgresql+asyncpg",
+            field="Database URL",
+        )
 
     @field_validator("database_sync_url")
     @classmethod

@@ -122,6 +122,22 @@ Guarded migration URLs use exactly `postgresql+psycopg`, an explicit loopback ho
 invoking Alembic, then supplies that connection to migration execution so only connection-establishing
 failures are normalized.
 
+Phase 0B3A additionally proves the exact ACL-only 0002 upgrade/downgrade/re-upgrade contract,
+role-identity mismatch refusal without partial revocation, and the unchanged 0001 checksum. Real
+PostgreSQL tests exercise the restricted six-column INSERT and every server default, JSONB
+idempotency equivalence, terminal-key reservation, conflicting logical requests, and concurrent
+equal/different enqueues. Tests verify bounded idempotency-conflict waits and fixed, non-leaking
+repository error categories for connection, transport, contention, ACL, SQL, integrity, and
+unexpected database failures, including commit/rollback/session-exit failures. ACL tests compare
+grantor and grant-option state and reject direct or transitive runtime-role memberships in either
+direction without partial changes. They also exercise all four PostgreSQL column privileges against
+the runtime role, `PUBLIC`, and alternate principals before upgrade and downgrade. Settings tests
+reject every runtime URL query parameter before engine construction. Repository lifecycle tests
+prove concrete database subtype and SQL-state evidence takes precedence over acquisition/exit phase.
+Raw URL tests include bare and empty-valued query delimiters that SQLAlchemy would otherwise
+discard, and repository tests require unclassified SQLAlchemy exceptions to remain operation
+failures.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

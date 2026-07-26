@@ -58,7 +58,7 @@ def test_request_log_uses_route_template_and_omits_secret_sentinels() -> None:
         AppSettings.model_validate(
             {
                 "LUMINA_ENV": "test",
-                "LUMINA_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1/lumina_test",
+                "LUMINA_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test",
                 "LUMINA_BUILD_COMMIT": setting_secret,
             }
         )

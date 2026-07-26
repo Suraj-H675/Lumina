@@ -8,12 +8,30 @@ import pytest
 from lumina.settings import IntegrationTestSettings, load_integration_test_settings
 from pydantic import SecretStr
 from sqlalchemy import URL
+from sqlalchemy.engine import make_url
+
+from .migration_lifecycle import (
+    integration_migration_identity,
+    run_alembic,
+    run_migration_operation,
+)
 
 
 @pytest.fixture(scope="session")
 def integration_settings() -> IntegrationTestSettings:
     """Load the four-URL contract only when `LUMINA_ENV=test` is explicit."""
     return load_integration_test_settings()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def migrated_test_database(integration_settings: IntegrationTestSettings) -> None:
+    """Apply the accepted migration head to the guarded test database for integration tests."""
+    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
+    identity = integration_migration_identity(integration_settings)
+    run_migration_operation(
+        sync_url,
+        lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+    )
 
 
 @pytest.fixture(scope="session")

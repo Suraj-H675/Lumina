@@ -115,6 +115,18 @@ Phase 0B3 implements database-backed worker behavior.
 **Reason:** The roadmap lists a worker before its database prerequisite, while the architecture
 requires the queue to be database-backed. This preserves dependency order without advancing worker scope.
 
+## ADR-021 — Phase 0B3A capability-specific enqueue and runtime ACL
+
+**Status:** Accepted
+**Date:** 2026-07-26
+**Decision:** Introduce job behavior incrementally. Phase 0B3A defines only the enqueue capability,
+uses the existing singular `job` table, and grants the runtime role table SELECT plus exact
+column-level INSERT/UPDATE privileges through reversible ACL-only revision 0002. The paired runtime
+URL username is part of that revision's migration contract.
+**Consequences:** Idempotency covers job type, JSONB-equal payload, priority, and maximum attempts.
+Changing runtime roles requires an explicit future ACL migration. Claiming, execution, lifecycle
+mutations, workers, handlers, and CLI behavior remain outside Phase 0B3A.
+
 ## ADR template
 
 ```text

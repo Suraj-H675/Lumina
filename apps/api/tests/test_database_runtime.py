@@ -17,11 +17,12 @@ class _PoolInfo(Protocol):
 
 def test_runtime_constructs_expected_pool_without_connecting() -> None:
     runtime = create_database_runtime(
-        SecretStr("postgresql+asyncpg://lumina_test_app:private@127.0.0.1/lumina_test")
+        SecretStr("postgresql+asyncpg://lumina_test_app:private@127.0.0.1:5432/lumina_test")
     )
 
     pool = cast(_PoolInfo, runtime.engine.pool)
     assert pool.size() == 5
     assert pool.checkedout() == 0
+    assert runtime.engine.sync_engine.hide_parameters is True
 
     anyio.run(runtime.engine.dispose)

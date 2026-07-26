@@ -3,7 +3,8 @@
 This is the planned configuration contract. Add variables only when the related phase is implemented. `.env.example` must contain names and safe descriptions, never secrets.
 
 Phase 0A defined no Lumina runtime environment variables. Phase 0B2 activates the API variables
-and four database URLs below. All other variables remain planned until their owning phases.
+and four database URLs below. Phase 0B3A activates only its three enqueue settings. All other variables
+remain planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -35,11 +36,20 @@ LUMINA_TEST_DATABASE_URL=postgresql+asyncpg://...
 LUMINA_TEST_DATABASE_SYNC_URL=postgresql+psycopg://...
 ```
 
-API processes load only `LUMINA_DATABASE_URL`; Alembic loads only the synchronous migration URL.
-Integration tests require all four URLs and `LUMINA_ENV=test`. The contracts remain portable
+API processes load only `LUMINA_DATABASE_URL` and never load migration credentials. Alembic loads
+the synchronous migration URL and its paired runtime URL so ACL revision 0002 can derive and verify
+the intended runtime role; no separate role variable exists. Integration tests require all four
+URLs and `LUMINA_ENV=test`. The contracts remain portable
 standard PostgreSQL through SQLAlchemy, Alembic, asyncpg, and Psycopg. Supabase may be evaluated
 later only as an optional PostgreSQL host, not as a required
 SDK, browser data API, authentication, storage, realtime, or edge-function dependency.
+
+Every active database URL requires one decoded DNS/IPv4/IPv6 host, an explicit port, and an
+explicit database name. Query mappings and fragments are forbidden, including SSL, service,
+options, and connection-target parameters. Validation occurs before engine construction and emits
+only fixed errors without URL components or credentials. Raw URL strings containing `?` are
+rejected before parsing, including bare and empty-valued query forms; percent-encoded data does not
+count as raw query syntax.
 
 Local bootstrap generates these credentials only for a new named PostgreSQL volume. If the exact
 Compose volume exists while `.env` is absent, bootstrap stops without generating replacements;
@@ -58,14 +68,23 @@ NEXT_PUBLIC_ENABLE_IDENTIFICATION=false
 
 Do not put provider keys in public variables.
 
-## Jobs
+## Active in Phase 0B3A
+
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_JOB_PAYLOAD_MAX_BYTES` | `61440` | Integer from 1 through 65536; bounds canonical UTF-8 JSON before enqueue. |
+| `LUMINA_JOB_DEFAULT_MAX_ATTEMPTS` | `5` | Integer from 1 through 5; used when enqueue omits an explicit value. |
+| `LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS` | `5000` | Integer from 100 through 30000; transaction-local bound for enqueue statement and lock waits. |
+
+Existing `.env` files may omit all three values. Bootstrap never rewrites an existing file.
+
+## Planned later job settings
 
 ```text
-LUMINA_WORKER_ID=
+LUMINA_WORKER_ID_PREFIX=
 LUMINA_WORKER_POLL_SECONDS=2
 LUMINA_JOB_HEARTBEAT_SECONDS=30
 LUMINA_JOB_STALE_SECONDS=120
-LUMINA_JOB_MAX_ATTEMPTS=5
 ```
 
 ## Storage

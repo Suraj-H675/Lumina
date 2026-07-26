@@ -182,6 +182,27 @@ Internal values use typed quantities. Public responses always include units.
 
 Baseline queue is database-backed to avoid mandatory Redis.
 
+Phase 0B3A introduces only the enqueue boundary. Domain validation accepts the internal
+`system.noop` type, bounded JSON-object payloads, safe idempotency keys, PostgreSQL-smallint
+priorities, and one through five maximum attempts. The application assigns UUIDv4 identifiers.
+The PostgreSQL adapter performs an atomic insert or exact replay comparison across job type,
+JSONB-equal payload, priority, and maximum attempts. It exposes no public route and performs no
+claiming or execution. Each enqueue transaction sets bounded transaction-local statement and lock
+timeouts before issuing request-dependent SQL. Database failures cross the adapter boundary only as
+fixed safe categories for unavailable transport, contention, database state, SQL/schema/ACL
+programming, or otherwise unexpected database operations; raw SQLAlchemy exceptions and bound
+parameters never escape.
+
+Database access is capability-specific: 0B3A defines only an enqueue protocol. PostgreSQL-specific
+SQL remains in job infrastructure; domain and application modules do not import SQLAlchemy,
+FastAPI, asyncpg, Psycopg, CLI, worker, or signal code.
+
+Every runtime and migration database-settings boundary accepts one normalized DNS hostname, IPv4
+literal, or IPv6 literal with an explicit port and an empty query mapping. Multi-host, socket-path,
+implicit-host, connection-target query, fragment, and ambiguous host forms are rejected before
+engine construction, without DNS resolution or echoing the rejected value. Raw-string entry points
+reject a literal `?` before SQLAlchemy parsing so bare and empty-valued query forms cannot disappear.
+
 Worker rules:
 
 - claim with `FOR UPDATE SKIP LOCKED`;

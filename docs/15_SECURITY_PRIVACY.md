@@ -160,6 +160,17 @@ revoked from database `CONNECT`/`TEMPORARY` and public-schema creation.
 Integration privilege and migration connection failures are reduced to fixed safe test failures;
 their test helpers retain no password-bearing URL string in traceback-visible state.
 
+Phase 0B3A grants runtime table `SELECT`, column-level INSERT only for enqueue fields, and
+column-level UPDATE only for approved future lifecycle fields. Runtime cannot update immutable
+request fields, delete/truncate rows, perform DDL, or own `job`. Revision 0002 derives its role
+from the paired runtime URL and fails closed if ACL provenance is ambiguous or the configured role
+differs during downgrade. The runtime identity must be a standalone login role with no direct or
+transitive membership relationship in either direction. ACL identity includes object, column,
+grantor, grantee, privilege, and grant-option state; grant options and changed grantors cause
+fail-closed reversal. Ambiguity inspection covers every PostgreSQL column privilege (`SELECT`,
+`INSERT`, `UPDATE`, and `REFERENCES`) for the runtime role, `PUBLIC`, and every non-owner principal,
+including effective access. Changing the runtime username requires a later explicit ACL migration.
+
 ## 10. Provider secrets
 
 - server environment/secret store;
@@ -180,6 +191,20 @@ their test helpers retain no password-bearing URL string in traceback-visible st
 - worker uses least privilege;
 - plate solver isolated;
 - expired jobs cleaned.
+
+The enqueue boundary accepts only `system.noop`, validates JSON before persistence, limits its
+canonical UTF-8 form to 61,440 bytes by default, and retains PostgreSQL's 65,536-byte JSONB bound.
+Idempotency keys use a strict ASCII allowlist. Payloads and keys are bound SQL values and are not
+logged. Raw SQLAlchemy and driver exceptions never leave the enqueue repository: fixed exception
+types distinguish confirmed connection/transport unavailability, bounded contention, integrity or
+database-state failure, SQL/schema/ACL programming failure, and unexpected database operation
+failure. The safe replacements retain no raw exception, bound parameters, SQL state, URL, or
+connection detail. Transaction entry, commit, rollback, context exit, and connection return are all
+inside this boundary; process-control cancellation is not converted. Classification evaluates
+timeout, integrity, programming, invalidation, and SQL-state evidence before lifecycle phase, so
+session or transaction acquisition does not disguise ACL or schema defects as connectivity.
+Any SQLAlchemy failure without confirmed contention, integrity, programming/schema, or
+connectivity evidence uses the fixed unexpected database-operation category.
 
 ## 12. Local export/import
 

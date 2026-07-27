@@ -170,6 +170,13 @@ fresh independently bounded connection; `JobClaimOutcomeUnknown` is fatal for th
 and must not trigger an immediate second claim. The reconciliation values and database diagnostics
 must never be logged.
 
+Phase 0B3B2 heartbeat reuses `LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS` for transaction-local
+`statement_timeout` and `lock_timeout`. Each call owns one fresh short transaction and releases its
+session/connection before returning success, ownership loss, a safe database error, or
+process-control cancellation. A row-lock wait is bounded, rolled back, and leaves the pooled
+connection settings reset. Heartbeat is owner-guarded and repeatable, so it does not use claim
+commit reconciliation.
+
 ## 8. Backups
 
 Production:

@@ -361,9 +361,14 @@ in the same statement. Its returned domain record contains only ID, passive pers
 passive persisted payload, attempts, maximum attempts, and the two timestamps. JSONB null is an
 explicit payload value; absence is the typed no-eligible-row outcome.
 
+Phase 0B3B2 adds only `UPDATE public.job SET heartbeat_at = transaction_timestamp()` guarded by
+the exact job identifier, `status = 'running'`, and matching `claimed_by`. PostgreSQL is the sole
+heartbeat-time authority. The update changes no other column. A correct owner may repeat the
+operation, and equality with the previous timestamp is valid.
+
 Other future transitions remain `running → succeeded|failed|queued|dead_letter` and stale
-`running → queued`; no heartbeat update, completion, failure, retry, recovery, worker, handler, or
-transition service exists in Phase 0B3B1.
+`running → queued`; no completion, result persistence, failure, retry, recovery, worker, handler,
+polling, signal, CLI, route, or other transition service exists in Phase 0B3B2.
 
 ## 10. Identification
 

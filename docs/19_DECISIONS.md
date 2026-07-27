@@ -150,6 +150,20 @@ ownership returns the original claim; definitely unchanged queued state is an op
 foreign ownership is a database-state failure; all other indeterminate evidence raises fatal
 `JobClaimOutcomeUnknown`. Reconciliation never claims another row and exposes no evidence.
 
+## ADR-023 — Phase 0B3B2 owner-guarded job heartbeat
+
+**Status:** Accepted
+**Date:** 2026-07-26
+**Decision:** Add only a capability-specific heartbeat request, success value, service, and
+PostgreSQL adapter. The adapter updates only `heartbeat_at` to `transaction_timestamp()` where the
+job identifier, `running` status, and expected owner all match. Every zero-row outcome is the same
+fixed `JobOwnershipLost`, with no diagnostic query.
+**Consequences:** Each public call uses one fresh bounded transaction and releases the pool
+checkout before returning. Repeated calls and equal timestamps are valid. Migration revisions
+0001 and 0002 and the B1 claim contract remain unchanged. Completion, result persistence, failure,
+retry, recovery, handlers, execution, worker loops, polling, signals, CLI commands, public routes,
+and commit reconciliation remain outside this boundary.
+
 ## ADR template
 
 ```text

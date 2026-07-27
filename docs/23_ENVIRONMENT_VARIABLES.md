@@ -3,9 +3,9 @@
 This is the planned configuration contract. Add variables only when the related phase is implemented. `.env.example` must contain names and safe descriptions, never secrets.
 
 Phase 0A defined no Lumina runtime environment variables. Phase 0B2 activates the API variables
-and four database URLs below. Phase 0B3A activates its three enqueue settings, and Phase 0B3B1
-activates one claim-operation timeout. All other variables remain planned until their owning
-phases.
+and four database URLs below. Phase 0B3A activates its three enqueue settings, Phase 0B3B1
+activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for heartbeat. All other
+variables remain planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -79,14 +79,15 @@ Do not put provider keys in public variables.
 
 Existing `.env` files may omit all three values. Bootstrap never rewrites an existing file.
 
-## Active in Phase 0B3B1
+## Active in Phase 0B3B1 and reused in Phase 0B3B2
 
 | Variable | Required/default | Validation and behavior |
 | --- | --- | --- |
-| `LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS` | `5000` | Integer from 100 through 30000; transaction-local bound for claim statement, lock waits, and fresh read-only reconciliation. |
+| `LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS` | `5000` | Integer from 100 through 30000; transaction-local bound for claim/reconciliation and owner-guarded heartbeat statement and lock waits. |
 
-Existing `.env` files may omit this value. Bootstrap never rewrites an existing file. Claim
-construction and persisted-payload mapping do not accept or read
+Existing `.env` files may omit this value. Bootstrap never rewrites an existing file. Claim and
+heartbeat construction receive the validated setting and never read the environment directly.
+Claim construction and persisted-payload mapping do not accept or read
 `LUMINA_JOB_PAYLOAD_MAX_BYTES`; that setting remains exclusively an enqueue-time application bound.
 
 ## Planned later job settings

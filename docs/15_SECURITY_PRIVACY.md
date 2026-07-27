@@ -215,6 +215,14 @@ resolve handlers, or execute payload-derived behavior. Safe claim failures and f
 reconciliation evidence. JSONB null is an explicit payload value and cannot be confused with the
 typed absent-row outcome.
 
+Phase 0B3B2 treats the requested owner, job identifier, actual row state/owner, and returned
+heartbeat timestamp as private ownership evidence. Request, owner-token, success, ownership-loss,
+and database-failure representations are fixed and redacted. Missing rows, non-running rows, and
+owner mismatches all return the same fixed `JobOwnershipLost` without a diagnostic query. Safe
+failures retain no raw SQLAlchemy/driver exception, SQL, bound values, SQLSTATE, URL, credentials,
+cause, or context. The heartbeat adapter logs none of this evidence and exposes no mutation
+capability beyond its single owner/status-guarded heartbeat statement.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

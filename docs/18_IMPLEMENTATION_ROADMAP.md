@@ -10,8 +10,9 @@ without marking Phase 0 complete.
 
 Phase 0B3 is delivered in bounded gates. Phase 0B3A adds only least-privilege job ACLs and
 idempotent enqueue. Phase 0B3B1 adds only atomic claim and passive persisted-row mapping after
-risk-focused review. Heartbeat updates, completion, failure, retry, recovery, worker execution,
-handlers, signals, and CLI behavior remain gated separately.
+risk-focused review. Phase 0B3B2 adds only an owner- and `running`-guarded heartbeat using
+PostgreSQL-authoritative time. Completion, failure, retry, recovery, worker execution, handlers,
+polling, signals, and CLI behavior remain gated separately.
 
 The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
 read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
@@ -19,6 +20,12 @@ explicit JSON null distinct from no returned row, unchanged Phase 0B3A enqueue v
 handler behavior, bounded transaction-local waits, outcome-sensitive commit reconciliation,
 complete claim-value redaction, concurrency/ordering/rollback/pool/planner evidence, and guarded
 real-PostgreSQL coverage without constraint or migration changes.
+
+The Phase 0B3B2 gate requires one explicit `id`/`running`/owner guarded update of only
+`heartbeat_at`, PostgreSQL `transaction_timestamp()` authority, indistinguishable ownership loss,
+independent bounded transactions, unchanged non-heartbeat fields, timeout reset, pool release on
+every exit, and guarded real-PostgreSQL evidence. It adds no completion, result persistence,
+failure, retry, recovery, handler, worker-loop, polling, signal, CLI, route, or migration behavior.
 
 ### Goal
 

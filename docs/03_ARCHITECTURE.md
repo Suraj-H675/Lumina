@@ -216,6 +216,22 @@ operation failure, a foreign owner is a fixed database-state failure, and missin
 mismatched, unreadable, or unavailable evidence raises fatal `JobClaimOutcomeUnknown`. Claim never
 issues a second claim while resolving an indeterminate outcome.
 
+Phase 0B3B2 adds one separate heartbeat capability. Its application request contains only a UUID
+and a B1-compatible validated owner token. The PostgreSQL adapter executes one explicit update:
+`heartbeat_at = transaction_timestamp()` where the identifier matches, status is `running`, and
+`claimed_by` matches the expected owner. It performs no read-before-write and no diagnostic read
+after a zero-row result. Missing, queued, terminal, or foreign-owned rows all produce the same
+fixed `JobOwnershipLost`; one returned timezone-aware timestamp produces the redacted success
+value.
+
+Every public heartbeat call creates and closes a fresh session around one short transaction,
+installs transaction-local statement and lock timeouts from
+`LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS`, maps while rollback remains possible, and returns only
+after commit/rollback and pool release. Repeated correct-owner calls are valid, including equal
+PostgreSQL transaction timestamps. Heartbeat adds no completion, result persistence, failure,
+retry, recovery, handler, execution, worker loop, polling, signal, CLI, public route, migration,
+or commit reconciliation behavior.
+
 The future Phase 0B3C boundary uses a static registry to select a handler from the passive type.
 Only that selected handler validates the passive payload before execution; `system.noop` requires
 an object. Unsupported types or incompatible payloads enter the future non-retryable failure path

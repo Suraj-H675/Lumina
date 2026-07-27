@@ -107,7 +107,7 @@ No secrets or infrastructure details.
 
 ## 7. Settings
 
-Phase 0B2 typed settings, the Phase 0B3A enqueue limits, and the Phase 0B3B1 claim-operation
+Phase 0B2 typed settings, the Phase 0B3A enqueue limits, and the Phase 0B3B1/B2 job-operation
 timeout:
 
 - required runtime environment;
@@ -118,14 +118,15 @@ timeout:
 - optional public build commit.
 - job payload maximum bytes;
 - default maximum attempts.
-- claim operation wait timeout.
+- claim and heartbeat operation wait timeout.
 
 Settings are loaded once and injected; tests can override explicitly.
 
 The API requires its async runtime database URL; Alembic uses its separate synchronous migration
 URL plus the paired runtime URL solely to derive and validate revision 0002's runtime ACL role.
 Integration tests require isolated test runtime/migration URLs and `LUMINA_ENV=test`. Worker,
-provider, storage, timeout, public-URL, and trusted-proxy settings remain deferred.
+provider, storage, later operation-specific timeout, public-URL, and trusted-proxy settings remain
+deferred.
 
 ## 8. Database baseline
 
@@ -161,6 +162,13 @@ mapping of every PostgreSQL JSONB form. It does not add heartbeat updates, compl
 retry, recovery, execution, a worker process, handlers, signals, or CLI behavior.
 Claim returns a typed no-eligible-row outcome, bounds its transaction locally, and reconciles a
 potentially lost commit acknowledgement without issuing another claim.
+
+Phase 0B3B2 then implements only the internal owner-guarded heartbeat service. It updates only
+`heartbeat_at` from PostgreSQL time where job ID, `running` status, and owner match. Every
+zero-row outcome is indistinguishable ownership loss, and every call is an independent bounded
+transaction that releases its pool checkout before returning. It adds no completion, result
+persistence, failure, retry, recovery, execution, worker loop, polling, handler, signal, CLI,
+public route, migration, or claim-style commit reconciliation behavior.
 
 ## 10. Web/API contract generation
 

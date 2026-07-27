@@ -158,6 +158,17 @@ second claim. Dedicated-pool checks cover every public exit. Representative guar
 evidence records index participation, filtering, sorting, actual rows, and buffers without forcing
 a planner strategy, then removes fixtures and re-analyzes the empty test table.
 
+Phase 0B3B2 deterministic tests prove immutable/redacted heartbeat values, application validation
+before infrastructure, exact SQL and bindings, evidence-specific safe database classification,
+and rollback/close behavior. Guarded `lumina_test` tests prove correct-owner and repeated
+heartbeats, PostgreSQL-authored time, deliberately equal transaction timestamps, indistinguishable
+missing/foreign/queued/terminal rejection, no rejected write, and unchanged attempts, status,
+owner, claim time, and immutable fields. Explicit row locks and events prove bounded timeout,
+transaction-local setting reset, pool release, and a fresh successful heartbeat after release.
+Dedicated operation pools also return to baseline after success, ownership loss, timeout,
+malformed mapping, safe database failure, and cancellation, with no arbitrary correctness sleeps
+or unobserved task.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

@@ -44,6 +44,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_JOB_DEFAULT_MAX_ATTEMPTS",
         "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS",
         "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS",
+        "LUMINA_JOB_RESULT_MAX_BYTES",
     }
 )
 
@@ -174,6 +175,12 @@ class AppSettings(BaseSettings):
         ge=100,
         le=30_000,
         validation_alias="LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS",
+    )
+    job_result_max_bytes: int = Field(
+        default=61_440,
+        ge=1,
+        le=65_536,
+        validation_alias="LUMINA_JOB_RESULT_MAX_BYTES",
     )
 
     @field_validator("database_url")

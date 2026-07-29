@@ -4,8 +4,9 @@ This is the planned configuration contract. Add variables only when the related 
 
 Phase 0A defined no Lumina runtime environment variables. Phase 0B2 activates the API variables
 and four database URLs below. Phase 0B3A activates its three enqueue settings, Phase 0B3B1
-activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for heartbeat. All other
-variables remain planned until their owning phases.
+activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for heartbeat. Phase
+0B3B3 adds only the result-size setting and reuses the existing operation timeout for completion
+and reconciliation. All other variables remain planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -89,6 +90,17 @@ Existing `.env` files may omit this value. Bootstrap never rewrites an existing 
 heartbeat construction receive the validated setting and never read the environment directly.
 Claim construction and persisted-payload mapping do not accept or read
 `LUMINA_JOB_PAYLOAD_MAX_BYTES`; that setting remains exclusively an enqueue-time application bound.
+
+## Active in Phase 0B3B3
+
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_JOB_RESULT_MAX_BYTES` | `61440` | Integer from 1 through 65536; bounds canonical UTF-8 JSON before successful completion. |
+
+Existing `.env` files may omit this value. Bootstrap never rewrites an existing file. Completion
+construction receives this validated setting and never reads the environment directly. The
+application default leaves headroom below the separate accepted 65,536-byte PostgreSQL JSONB-text
+limit.
 
 ## Planned later job settings
 

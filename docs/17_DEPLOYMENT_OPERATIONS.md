@@ -177,6 +177,19 @@ process-control cancellation. A row-lock wait is bounded, rolled back, and leave
 connection settings reset. Heartbeat is owner-guarded and repeatable, so it does not use claim
 commit reconciliation.
 
+Phase 0B3B3 completion also reuses `LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS` for its transaction-local
+statement and lock timeouts and independently activates `LUMINA_JOB_RESULT_MAX_BYTES`, default
+61,440. Every call validates before persistence, owns one short transaction, checks PostgreSQL's
+JSONB textual UTF-8 size against 65,536, performs the one guarded update, and releases its
+session/connection before returning.
+
+Because successful completion is terminal and persists a result, a lost commit acknowledgement is
+not reported as ordinary retryable storage failure. The failed primary connection is discarded and
+a fresh bounded connection reconciles exact completion evidence without returning the result
+object. Exact evidence confirms success; definite same-owner running/no-write evidence is a fixed
+operation failure; indeterminate evidence raises fatal `JobCompletionOutcomeUnknown`. Operators
+and future callers must not automatically issue a second completion after that outcome.
+
 ## 8. Backups
 
 Production:

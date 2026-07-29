@@ -169,6 +169,22 @@ Dedicated operation pools also return to baseline after success, ownership loss,
 malformed mapping, safe database failure, and cancellation, with no arbitrary correctness sleeps
 or unobserved task.
 
+Phase 0B3B3 deterministic tests cover empty and nested result objects, Unicode, signed 64-bit
+boundaries, finite floats, booleans/null, canonical ordering, exact UTF-8 byte boundaries,
+32-level nesting, cycles, non-string keys, bytes, custom objects, non-finite numbers, NUL,
+surrogates, mutation isolation, and representation redaction. Application tests prove identifier,
+owner, and result validation occurs before the narrow completion store.
+
+Guarded `lumina_test` tests prove the exact owner/running successful transition, JSONB result
+equality, progress `1`, PostgreSQL-authored completion time, null error fields, retained ownership
+fields, and unchanged request/attempt/timestamp columns. Missing, queued, every terminal state,
+foreign ownership, and a second completion are indistinguishable and write nothing. Separate
+application-canonical and PostgreSQL-JSONB-text size boundaries are exercised before mutation.
+Explicit row locks and events prove bounded transaction-local timeouts, reset, pool release, and
+fresh success after release. Controlled commit-acknowledgement loss proves exact fresh-connection
+reconciliation, definite unchanged failure, fatal unknown exhaustion, no second mutation,
+post-update cancellation settlement, and no unobserved lifecycle task.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

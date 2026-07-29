@@ -232,6 +232,29 @@ PostgreSQL transaction timestamps. Heartbeat adds no completion, result persiste
 retry, recovery, handler, execution, worker loop, polling, signal, CLI, public route, migration,
 or commit reconciliation behavior.
 
+Phase 0B3B3 adds only owner-guarded successful completion. Its application boundary validates a
+UUID, the existing owner token, and an immutable top-level JSON-object result. Result validation
+uses the enqueue boundary's 32-level nesting limit but additionally requires signed 64-bit
+integers; canonical compact, sorted, UTF-8-preserving JSON is bounded by
+`LUMINA_JOB_RESULT_MAX_BYTES` before persistence. The PostgreSQL adapter independently checks the
+JSONB textual UTF-8 representation against the existing 65,536-byte constraint in the same short
+transaction.
+
+Completion performs one update guarded by identifier, `running` status, and expected owner. It
+sets `succeeded`, the bound result, progress `1`, PostgreSQL `transaction_timestamp()` completion
+time, and null error fields. Ownership and claim/heartbeat timestamps remain on the succeeded row.
+All zero-row outcomes are the existing indistinguishable `JobOwnershipLost`, without a diagnostic
+read.
+
+Once the update returns, commit acknowledgement is explicit. A potentially lost acknowledgement
+invalidates the primary connection and reconciles on a genuinely fresh, independently bounded
+connection using only status, owner, completion time, JSONB result equality, progress, and error
+nullness. Exact evidence returns success, a definitely unchanged same-owner running row is a fixed
+operation failure, and all mismatched, missing, unreadable, or indeterminate evidence raises fatal
+`JobCompletionOutcomeUnknown`. Reconciliation never performs a second completion mutation.
+Completion adds no failure transition, retry, recovery, handler, execution, worker loop, polling,
+signal, CLI, or public route.
+
 The future Phase 0B3C boundary uses a static registry to select a handler from the passive type.
 Only that selected handler validates the passive payload before execution; `system.noop` requires
 an object. Unsupported types or incompatible payloads enter the future non-retryable failure path

@@ -223,6 +223,18 @@ failures retain no raw SQLAlchemy/driver exception, SQL, bound values, SQLSTATE,
 cause, or context. The heartbeat adapter logs none of this evidence and exposes no mutation
 capability beyond its single owner/status-guarded heartbeat statement.
 
+Phase 0B3B3 treats successful job results as private data. The accepted result is copied into a
+canonical serialization and all result, request, success, ownership, reconciliation, and failure
+representations are fixed and redacted. Result contents, sizes, owners, identifiers, timestamps,
+SQL, SQLSTATE, parameters, URLs, credentials, raw exceptions, causes, and contexts are never
+logged or returned through diagnostics.
+
+Completion uses bound values for both the PostgreSQL JSONB size check and the guarded update.
+Missing, non-running, foreign-owned, and previously completed rows share the same
+`JobOwnershipLost` without a follow-up state query. A potentially ambiguous commit is reconciled
+without selecting the stored result into Python and without a second mutation.
+`JobCompletionOutcomeUnknown` reveals no reconciliation evidence and is fatal for that operation.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

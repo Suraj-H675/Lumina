@@ -134,6 +134,7 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.job_default_max_attempts == 5
     assert settings.job_enqueue_wait_timeout_ms == 5_000
     assert settings.job_operation_wait_timeout_ms == 5_000
+    assert settings.job_result_max_bytes == 61_440
 
 
 @pytest.mark.parametrize(
@@ -147,6 +148,8 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
         ("LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS", 30_001),
         ("LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS", 99),
         ("LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS", 30_001),
+        ("LUMINA_JOB_RESULT_MAX_BYTES", 0),
+        ("LUMINA_JOB_RESULT_MAX_BYTES", 65_537),
     ],
 )
 def test_job_setting_bounds(name: str, value: int) -> None:
@@ -162,6 +165,7 @@ def test_job_settings_accept_documented_overrides() -> None:
             "LUMINA_JOB_DEFAULT_MAX_ATTEMPTS": 3,
             "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS": 750,
             "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS": 900,
+            "LUMINA_JOB_RESULT_MAX_BYTES": 2_048,
         }
     )
 
@@ -169,6 +173,7 @@ def test_job_settings_accept_documented_overrides() -> None:
     assert settings.job_default_max_attempts == 3
     assert settings.job_enqueue_wait_timeout_ms == 750
     assert settings.job_operation_wait_timeout_ms == 900
+    assert settings.job_result_max_bytes == 2_048
 
 
 @pytest.mark.parametrize("host", ["0.0.0.0", "::", "::1", "api.example.test"])

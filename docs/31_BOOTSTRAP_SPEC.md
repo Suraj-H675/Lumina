@@ -107,8 +107,8 @@ No secrets or infrastructure details.
 
 ## 7. Settings
 
-Phase 0B2 typed settings, the Phase 0B3A enqueue limits, and the Phase 0B3B1/B2 job-operation
-timeout:
+Phase 0B2 typed settings, the Phase 0B3A enqueue limits, the Phase 0B3B1/B2/B3 job-operation
+timeout, and the Phase 0B3B3 result limit:
 
 - required runtime environment;
 - API host and port;
@@ -118,7 +118,8 @@ timeout:
 - optional public build commit.
 - job payload maximum bytes;
 - default maximum attempts.
-- claim and heartbeat operation wait timeout.
+- claim, heartbeat, completion, and completion-reconciliation operation wait timeout.
+- successful-result maximum bytes.
 
 Settings are loaded once and injected; tests can override explicitly.
 
@@ -169,6 +170,14 @@ zero-row outcome is indistinguishable ownership loss, and every call is an indep
 transaction that releases its pool checkout before returning. It adds no completion, result
 persistence, failure, retry, recovery, execution, worker loop, polling, handler, signal, CLI,
 public route, migration, or claim-style commit reconciliation behavior.
+
+Phase 0B3B3 then implements only internal owner-guarded successful completion. It accepts a
+validated bounded JSON-object result, sets the exact succeeded-state fields using PostgreSQL time,
+retains ownership timestamps, and makes every zero-row outcome indistinguishable ownership loss.
+A potentially lost commit acknowledgement is reconciled on a fresh bounded connection without
+retrieving the stored result or issuing a second mutation. Failure transitions, retries, stale
+recovery, execution, worker loops, polling, handlers, signals, CLI, public routes, and migrations
+remain deferred.
 
 ## 10. Web/API contract generation
 

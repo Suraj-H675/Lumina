@@ -366,9 +366,23 @@ the exact job identifier, `status = 'running'`, and matching `claimed_by`. Postg
 heartbeat-time authority. The update changes no other column. A correct owner may repeat the
 operation, and equality with the previous timestamp is valid.
 
-Other future transitions remain `running → succeeded|failed|queued|dead_letter` and stale
-`running → queued`; no completion, result persistence, failure, retry, recovery, worker, handler,
-polling, signal, CLI, route, or other transition service exists in Phase 0B3B2.
+Phase 0B3B3 adds the `running → succeeded` transition without changing the schema or ACL
+migration. The only successful-completion mutation sets `status = 'succeeded'`, stores a validated
+JSON-object result, sets `progress = 1`, authors `completed_at` with PostgreSQL
+`transaction_timestamp()`, and clears both error fields. Its predicate requires the exact job ID,
+`status = 'running'`, and the expected `claimed_by`. `claimed_by`, `claimed_at`, and `heartbeat_at`
+are intentionally retained to satisfy the accepted terminal-state constraint and preserve
+ownership evidence.
+
+The adapter does not modify ID, job type, payload, idempotency key, priority, attempts, maximum
+attempts, availability, creation time, or any claim/heartbeat timestamp. Missing, queued,
+terminal, and foreign-owned rows, including a second completion attempt, are indistinguishable
+ownership loss and receive no write.
+
+Other future transitions remain `running → failed|queued|dead_letter` and stale
+`running → queued`; Phase 0B3B3 implements only `running → succeeded` completion and result
+persistence. Failure, retry, recovery, worker, handler, polling, signal, CLI, route, and other
+transition services remain absent.
 
 ## 10. Identification
 

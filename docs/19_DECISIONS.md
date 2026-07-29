@@ -164,6 +164,24 @@ checkout before returning. Repeated calls and equal timestamps are valid. Migrat
 retry, recovery, handlers, execution, worker loops, polling, signals, CLI commands, public routes,
 and commit reconciliation remain outside this boundary.
 
+## ADR-024 — Phase 0B3B3 owner-guarded successful completion
+
+**Status:** Accepted
+**Date:** 2026-07-28
+**Decision:** Add only immutable JSON-object result validation and a capability-specific successful
+completion service/adapter. The exact update requires job ID, `running` status, and expected owner;
+sets `succeeded`, the bound result, progress `1`, PostgreSQL-authored completion time, and null
+error fields; and retains ownership and claim/heartbeat timestamps. Every zero-row outcome is the
+existing indistinguishable `JobOwnershipLost`.
+**Consequences:** Canonical application JSON is bounded by `LUMINA_JOB_RESULT_MAX_BYTES` and
+PostgreSQL JSONB text is independently bounded by the existing 65,536-byte constraint before the
+update. A potentially lost commit acknowledgement is reconciled on a genuinely fresh bounded
+connection without returning the result into Python or performing a second mutation. Exact
+evidence returns success, a definitely unchanged same-owner running row is a fixed operation
+failure, and indeterminate evidence raises fatal `JobCompletionOutcomeUnknown`. Migrations 0001
+and 0002 remain unchanged. Failure, retry, recovery, handler, execution, worker-loop, polling,
+signal, CLI, and public-route behavior remain outside this boundary.
+
 ## ADR template
 
 ```text

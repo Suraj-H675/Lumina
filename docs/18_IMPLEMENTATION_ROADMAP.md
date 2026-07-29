@@ -11,8 +11,13 @@ without marking Phase 0 complete.
 Phase 0B3 is delivered in bounded gates. Phase 0B3A adds only least-privilege job ACLs and
 idempotent enqueue. Phase 0B3B1 adds only atomic claim and passive persisted-row mapping after
 risk-focused review. Phase 0B3B2 adds only an owner- and `running`-guarded heartbeat using
-PostgreSQL-authoritative time. Completion, failure, retry, recovery, worker execution, handlers,
-polling, signals, and CLI behavior remain gated separately.
+PostgreSQL-authoritative time. At that gate, completion, failure, retry, recovery, worker
+execution, handlers, polling, signals, and CLI behavior remain gated separately.
+
+Phase 0B3B3 adds only owner- and `running`-guarded successful completion with validated bounded
+JSON-object results and PostgreSQL-authoritative completion time. Failure transitions, retry,
+recovery, worker execution, handlers, polling, signals, CLI behavior, and public routes remain
+gated separately.
 
 The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
 read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
@@ -26,6 +31,14 @@ The Phase 0B3B2 gate requires one explicit `id`/`running`/owner guarded update o
 independent bounded transactions, unchanged non-heartbeat fields, timeout reset, pool release on
 every exit, and guarded real-PostgreSQL evidence. It adds no completion, result persistence,
 failure, retry, recovery, handler, worker-loop, polling, signal, CLI, route, or migration behavior.
+
+The Phase 0B3B3 gate requires canonical immutable result validation, independent application and
+PostgreSQL JSONB-text byte bounds, one explicit `id`/`running`/owner successful-completion update,
+retained ownership fields, PostgreSQL completion time, indistinguishable ownership loss, short
+transaction-local waits, complete pool cleanup, and guarded real-PostgreSQL evidence. After a
+returned update, ambiguous commit acknowledgement is reconciled on a genuinely fresh bounded
+connection without retrieving the result or issuing a second mutation; indeterminate evidence is
+fatal `JobCompletionOutcomeUnknown`.
 
 ### Goal
 

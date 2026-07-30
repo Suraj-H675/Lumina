@@ -7,7 +7,8 @@ and four database URLs below. Phase 0B3A activates its three enqueue settings, P
 activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for heartbeat. Phase
 0B3B3 adds only the result-size setting and reuses the existing operation timeout for completion
 and reconciliation. Phase 0B3C2 adds only the stale threshold and reuses the operation timeout for
-recovery. All other variables remain planned until their owning phases.
+recovery. Phase 0B3C3 activates four worker/execution settings. All other variables remain planned
+until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -112,14 +113,36 @@ limit.
 Existing `.env` files may omit this value. Bootstrap never rewrites an existing file. Recovery
 construction receives the validated setting and never reads the environment directly. The batch
 size is the fixed internal value 100 and is not configurable. No heartbeat/stale cross-setting
-validation or recovery-cadence setting exists yet.
+validation exists before C3, and no recovery-cadence setting exists.
+
+## Active in Phase 0B3C3
+
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_WORKER_ID_PREFIX` | `worker` | Exact 1–91 character prefix matching `[a-z][a-z0-9_.-]{0,90}`. The final owner is the prefix, dot, and canonical lowercase UUIDv4. |
+| `LUMINA_JOB_HEARTBEAT_SECONDS` | `30` | Exact integer from 1 through 3600; interval between sequential attempt-fenced heartbeats. |
+| `LUMINA_JOB_HANDLER_TIMEOUT_SECONDS` | `300` | Exact integer from 1 through 86400; absolute monotonic handler execution deadline. |
+| `LUMINA_JOB_CANCELLATION_GRACE_SECONDS` | `5` | Exact integer from 1 through 60; bounded task-settlement budget. |
+
+Existing `.env` files may omit all four values. Boolean numeric coercion is rejected. Settings
+require:
+
+```text
+LUMINA_JOB_STALE_SECONDS
+>= 2 * LUMINA_JOB_HEARTBEAT_SECONDS
+   + ceil(LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS / 1000)
+
+LUMINA_JOB_CANCELLATION_GRACE_SECONDS
+<= LUMINA_JOB_HANDLER_TIMEOUT_SECONDS
+```
+
+Identity construction and execution receive validated values and never read the environment.
+Complete owner tokens, UUID suffixes, and prefix configuration are never logged.
 
 ## Planned later job settings
 
 ```text
-LUMINA_WORKER_ID_PREFIX=
 LUMINA_WORKER_POLL_SECONDS=2
-LUMINA_JOB_HEARTBEAT_SECONDS=30
 ```
 
 ## Storage

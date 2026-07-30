@@ -32,6 +32,14 @@ stale-exhaustion error. Attempts remain claim-owned. Recovery cadence, worker id
 execution, polling, heartbeating orchestration, signals, graceful shutdown, CLI, and public routes
 remain later gates.
 
+Phase 0B3C3 adds only the literal static handler registry, internal `system.noop`, validated
+process-owner identity construction, and one-claim/one-job execution orchestration. Handler and
+heartbeat tasks use monotonic deadlines, sequential attempt-fenced heartbeats, deterministic
+simultaneous-outcome precedence, fixed C1 failure mappings, and bounded cancellation settlement.
+Unknown lifecycle outcomes and settlement-unknown outcomes are fatal. Polling, repeated claims,
+no-job delay, recovery cadence, signals, graceful process shutdown, startup events, CLI, engine
+composition, process hard exit, and public routes remain later gates.
+
 The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
 read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
 explicit JSON null distinct from no returned row, unchanged Phase 0B3A enqueue validation, no
@@ -66,6 +74,14 @@ authority, canonical stale-exhaustion errors, C1 cross-attempt protection, bound
 positive transaction cleanup, fatal unreconciled `JobRecoveryOutcomeUnknown`, aggregate-only
 evidence, secrecy, and guarded real-PostgreSQL cutoff/race/batch/ACL evidence without migration or
 ACL changes.
+
+The Phase 0B3C3 gate requires exactly one production `system.noop` registration, no dynamic
+dispatch, object-only noop validation and `{}` completion, one process-owner UUIDv4 construction,
+one claim per invocation, exact attempt reuse, deadline and cancellation settlement bounds,
+non-overlapping no-burst heartbeat scheduling, deterministic handler/heartbeat precedence, fixed
+handler failure mapping, fatal unknown outcomes, secrecy, task cleanup, and guarded PostgreSQL
+execution evidence without migrations, ACLs, dependencies, routes, polling, signals, CLI, or hard
+exit.
 
 ### Goal
 

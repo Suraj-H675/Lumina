@@ -121,6 +121,10 @@ timeout, the Phase 0B3B3 result limit, and the Phase 0B3C2 stale threshold:
 - claim, heartbeat, completion, and completion-reconciliation operation wait timeout.
 - successful-result maximum bytes.
 - stale-running-job threshold.
+- worker owner prefix;
+- heartbeat interval;
+- handler timeout;
+- cancellation-settlement grace.
 
 Settings are loaded once and injected; tests can override explicitly.
 
@@ -196,6 +200,15 @@ attempts with the canonical stale-exhaustion error. Empty batches roll back; amb
 commit acknowledgement is fatal and is neither reconciled nor retried. Handler execution,
 the `system.noop` handler, worker identity/cadence, polling, heartbeat orchestration, signals,
 graceful shutdown, CLI, public routes, migrations, and ACL changes remain deferred.
+
+Phase 0B3C3 then adds only a literal static registry containing `system.noop`, object-only noop
+validation with `{}` output, redacted UUIDv4 owner construction, and one-job execution. One
+invocation claims once, creates one handler and one periodic attempt-fenced heartbeat task, uses
+monotonic deadlines and deterministic simultaneous-outcome precedence, and settles cancellation
+within the configured grace. Fixed settlement-unknown and accepted lifecycle outcome-unknown
+errors are fatal. Polling, no-job delay, repeated claims, recovery cadence, process composition,
+signals, graceful shutdown, startup events, CLI, hard exit, public routes, migrations, and ACL
+changes remain deferred.
 
 ## 10. Web/API contract generation
 

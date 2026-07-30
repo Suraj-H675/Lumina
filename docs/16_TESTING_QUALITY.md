@@ -216,6 +216,22 @@ while each current-attempt operation succeeds in a separate fixture. Existing AC
 runtime recovery transition prove revision 0002 is sufficient and prohibited columns/operations
 remain denied.
 
+Phase 0B3C3 deterministic tests cover the immutable exact registry, sole production noop
+registration, object-only noop input and `{}` result, UUIDv4 owner identity, exact timing settings,
+one-claim/no-job behavior, every handler failure mapping, completion validation rejection,
+deadline cancellation, external cancellation, uncooperative settlement, heartbeat sequencing and
+non-overlap, no catch-up burst, ownership loss, and every simultaneous handler/heartbeat
+precedence branch. Controlled events and monotonic test timing replace arbitrary correctness
+sleeps. Secrecy tests cover registry/handler/outcome/error representations and fixed exception
+boundaries.
+
+Guarded `lumina_test` tests compose the accepted claim, heartbeat, completion, and failure stores.
+They prove successful enqueued noop execution with `{}`, unsupported and incompatible terminal
+failures, retryable requeue using accepted C1 backoff, non-retryable/unexpected/invalid-result
+failures, a heartbeat during blocked execution, attempt fencing, timeout, and real heartbeat
+ownership loss with no later terminal mutation. Existing lifecycle integration suites remain the
+authoritative detailed evidence for each individual PostgreSQL capability.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

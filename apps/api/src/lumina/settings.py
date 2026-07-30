@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from pydantic_settings.sources import DotEnvSettingsSource
 from sqlalchemy.engine import make_url
@@ -27,6 +27,7 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 _REPOSITORY_ENV_FILE = _REPOSITORY_ROOT / ".env"
 _HOST_LABEL_PATTERN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?")
 _BUILD_COMMIT_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
+_WORKER_ID_PREFIX_PATTERN = re.compile(r"[a-z][a-z0-9_.-]{0,90}", re.ASCII)
 _ALLOWED_ENVIRONMENT_KEYS = frozenset(
     {
         "LUMINA_ENV",
@@ -46,6 +47,10 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS",
         "LUMINA_JOB_RESULT_MAX_BYTES",
         "LUMINA_JOB_STALE_SECONDS",
+        "LUMINA_WORKER_ID_PREFIX",
+        "LUMINA_JOB_HEARTBEAT_SECONDS",
+        "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
+        "LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
     }
 )
 
@@ -189,16 +194,62 @@ class AppSettings(BaseSettings):
         le=86_400,
         validation_alias="LUMINA_JOB_STALE_SECONDS",
     )
+    worker_id_prefix: str = Field(
+        default="worker",
+        validation_alias="LUMINA_WORKER_ID_PREFIX",
+    )
+    job_heartbeat_seconds: int = Field(
+        default=30,
+        ge=1,
+        le=3_600,
+        validation_alias="LUMINA_JOB_HEARTBEAT_SECONDS",
+    )
+    job_handler_timeout_seconds: int = Field(
+        default=300,
+        ge=1,
+        le=86_400,
+        validation_alias="LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
+    )
+    job_cancellation_grace_seconds: int = Field(
+        default=5,
+        ge=1,
+        le=60,
+        validation_alias="LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
+    )
 
-    @field_validator("job_stale_seconds", mode="before")
+    @field_validator(
+        "job_stale_seconds",
+        "job_heartbeat_seconds",
+        "job_handler_timeout_seconds",
+        "job_cancellation_grace_seconds",
+        mode="before",
+    )
     @classmethod
-    def parse_job_stale_seconds(cls, value: object) -> int:
+    def parse_exact_integer_seconds(cls, value: object) -> int:
         """Accept only an exact integer value or an exact base-10 environment string."""
         if type(value) is int:
             return value
         if isinstance(value, str) and re.fullmatch(r"-?[0-9]+", value, re.ASCII):
             return int(value)
-        raise ValueError("Job stale threshold must be an exact integer")
+        raise ValueError("Job timing setting must be an exact integer")
+
+    @field_validator("worker_id_prefix")
+    @classmethod
+    def validate_worker_id_prefix(cls, value: str) -> str:
+        """Require the exact accepted owner-token prefix grammar."""
+        if _WORKER_ID_PREFIX_PATTERN.fullmatch(value) is None:
+            raise ValueError("Worker identity prefix is invalid")
+        return value
+
+    @model_validator(mode="after")
+    def validate_job_execution_relationships(self) -> AppSettings:
+        """Validate worker timing relationships before future engine construction."""
+        operation_seconds = (self.job_operation_wait_timeout_ms + 999) // 1_000
+        if self.job_stale_seconds < 2 * self.job_heartbeat_seconds + operation_seconds:
+            raise ValueError("Job stale threshold is incompatible with heartbeat timing")
+        if self.job_cancellation_grace_seconds > self.job_handler_timeout_seconds:
+            raise ValueError("Job cancellation grace exceeds the handler timeout")
+        return self
 
     @field_validator("database_url")
     @classmethod

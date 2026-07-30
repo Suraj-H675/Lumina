@@ -136,6 +136,10 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.job_operation_wait_timeout_ms == 5_000
     assert settings.job_result_max_bytes == 61_440
     assert settings.job_stale_seconds == 120
+    assert settings.worker_id_prefix == "worker"
+    assert settings.job_heartbeat_seconds == 30
+    assert settings.job_handler_timeout_seconds == 300
+    assert settings.job_cancellation_grace_seconds == 5
 
 
 @pytest.mark.parametrize(
@@ -153,6 +157,12 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
         ("LUMINA_JOB_RESULT_MAX_BYTES", 65_537),
         ("LUMINA_JOB_STALE_SECONDS", 1),
         ("LUMINA_JOB_STALE_SECONDS", 86_401),
+        ("LUMINA_JOB_HEARTBEAT_SECONDS", 0),
+        ("LUMINA_JOB_HEARTBEAT_SECONDS", 3_601),
+        ("LUMINA_JOB_HANDLER_TIMEOUT_SECONDS", 0),
+        ("LUMINA_JOB_HANDLER_TIMEOUT_SECONDS", 86_401),
+        ("LUMINA_JOB_CANCELLATION_GRACE_SECONDS", 0),
+        ("LUMINA_JOB_CANCELLATION_GRACE_SECONDS", 61),
     ],
 )
 def test_job_setting_bounds(name: str, value: int) -> None:
@@ -170,6 +180,10 @@ def test_job_settings_accept_documented_overrides() -> None:
             "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS": 900,
             "LUMINA_JOB_RESULT_MAX_BYTES": 2_048,
             "LUMINA_JOB_STALE_SECONDS": 300,
+            "LUMINA_WORKER_ID_PREFIX": "worker.fixture",
+            "LUMINA_JOB_HEARTBEAT_SECONDS": 45,
+            "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS": 600,
+            "LUMINA_JOB_CANCELLATION_GRACE_SECONDS": 10,
         }
     )
 
@@ -179,6 +193,10 @@ def test_job_settings_accept_documented_overrides() -> None:
     assert settings.job_operation_wait_timeout_ms == 900
     assert settings.job_result_max_bytes == 2_048
     assert settings.job_stale_seconds == 300
+    assert settings.worker_id_prefix == "worker.fixture"
+    assert settings.job_heartbeat_seconds == 45
+    assert settings.job_handler_timeout_seconds == 600
+    assert settings.job_cancellation_grace_seconds == 10
 
 
 @pytest.mark.parametrize(
@@ -190,11 +208,85 @@ def test_stale_setting_requires_exact_integer_parsing(value: object) -> None:
         _settings({"LUMINA_ENV": "test", "LUMINA_JOB_STALE_SECONDS": value})
 
 
-@pytest.mark.parametrize("value", [2, 120, 86_400, "2", "120", "86400"])
+@pytest.mark.parametrize("value", [3, 120, 86_400, "3", "120", "86400"])
 def test_stale_setting_accepts_exact_integer_range(value: int | str) -> None:
-    settings = _settings({"LUMINA_ENV": "test", "LUMINA_JOB_STALE_SECONDS": value})
+    settings = _settings(
+        {
+            "LUMINA_ENV": "test",
+            "LUMINA_JOB_STALE_SECONDS": value,
+            "LUMINA_JOB_HEARTBEAT_SECONDS": 1,
+            "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS": 100,
+        }
+    )
 
     assert settings.job_stale_seconds == int(value)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "LUMINA_JOB_HEARTBEAT_SECONDS",
+        "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
+        "LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
+    ],
+)
+@pytest.mark.parametrize("value", [True, False, 1.0, "1.0", " 1", "1 ", "+1", "1e0", ""])
+def test_execution_integer_settings_reject_boolean_and_coercion(
+    name: str,
+    value: object,
+) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", name: value})
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    ["", "Worker", "1worker", "worker:", "worker secret", "a" * 92],
+)
+def test_worker_prefix_rejects_invalid_or_oversized_values(prefix: str) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_WORKER_ID_PREFIX": prefix})
+
+
+@pytest.mark.parametrize("prefix", ["a", "worker", "a" * 91, "worker.one-two_three"])
+def test_worker_prefix_accepts_exact_grammar(prefix: str) -> None:
+    settings = _settings({"LUMINA_ENV": "test", "LUMINA_WORKER_ID_PREFIX": prefix})
+
+    assert settings.worker_id_prefix == prefix
+
+
+def test_stale_threshold_must_cover_two_heartbeats_and_operation_wait() -> None:
+    valid = _settings(
+        {
+            "LUMINA_ENV": "test",
+            "LUMINA_JOB_STALE_SECONDS": 65,
+            "LUMINA_JOB_HEARTBEAT_SECONDS": 30,
+            "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS": 4_001,
+        }
+    )
+    assert valid.job_stale_seconds == 65
+
+    with pytest.raises(ValidationError):
+        _settings(
+            {
+                "LUMINA_ENV": "test",
+                "LUMINA_JOB_STALE_SECONDS": 65,
+                "LUMINA_JOB_HEARTBEAT_SECONDS": 30,
+                "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS": 4_001,
+            }
+            | {"LUMINA_JOB_STALE_SECONDS": 64}
+        )
+
+
+def test_cancellation_grace_cannot_exceed_handler_timeout() -> None:
+    with pytest.raises(ValidationError):
+        _settings(
+            {
+                "LUMINA_ENV": "test",
+                "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS": 4,
+                "LUMINA_JOB_CANCELLATION_GRACE_SECONDS": 5,
+            }
+        )
 
 
 @pytest.mark.parametrize("host", ["0.0.0.0", "::", "::1", "api.example.test"])

@@ -216,6 +216,23 @@ fences protect later same-owner attempts. Migrations, ACLs, dependencies, handle
 worker identity/cadence, polling, signals, graceful shutdown, CLI, and public routes remain
 unchanged or deferred.
 
+## ADR-027 — Phase 0B3C3 static handlers and one-job execution
+
+**Status:** Accepted
+**Date:** 2026-07-30
+**Decision:** Use an immutable explicit handler registry whose production construction is the
+literal sole mapping `system.noop`. Construct a redacted process owner as
+`<validated-prefix>.<uuid4>` outside lifecycle capabilities. One executor invocation claims at
+most one job and supervises exactly one handler task and one periodic owner/attempt-fenced
+heartbeat task with monotonic deadlines, deterministic simultaneous-outcome precedence, fixed C1
+failure mappings, and bounded cancellation settlement.
+**Consequences:** No dynamic imports, plugins, handler-selected infrastructure, payload echo, or
+caller-selected production registry exist. Lifecycle outcome-unknown and task
+settlement-unknown errors are fatal and prohibit additional terminal work. Polling, repeated
+claims, no-job delay, stale-recovery cadence, signals, graceful shutdown, startup events, CLI,
+engine composition, process hard exit, public routes, migrations, ACLs, and dependency changes
+remain deferred.
+
 ## ADR template
 
 ```text

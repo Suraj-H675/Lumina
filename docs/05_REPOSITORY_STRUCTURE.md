@@ -94,8 +94,10 @@ remain future-phase structure and must not be created as empty placeholders.
 Phase 0B2 adds the API database runtime/probe and readiness service under `apps/api/src/lumina`,
 root `migrations/` for Alembic, and `infra/docker/postgres` for the single local database script.
 Phase 0B3A adds `lumina/jobs/domain`, `lumina/jobs/application`, and the enqueue-only
-`lumina/jobs/infrastructure/postgresql` adapter. Worker, handler, provider, frontend,
-generated-client, and other future-phase directories remain absent.
+`lumina/jobs/infrastructure/postgresql` adapter. Phase 0B3C3 adds the static handler contract and
+registry plus one-job execution application service under `lumina/jobs`, and only owner-identity
+and timing support under `lumina/worker`. It does not add a worker entry point, CLI, polling loop,
+signal handling, provider, frontend, or generated-client code.
 
 ## Ownership
 

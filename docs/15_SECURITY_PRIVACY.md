@@ -262,6 +262,19 @@ Ambiguous positive-batch commit acknowledgement discards the primary connection 
 diagnosed with row reads, reconstructed from partial evidence, reconciled, or retried. Cleanup is
 bounded and quarantines or replaces unsafe pooled resources before returning.
 
+Phase 0B3C3 resolves handlers only from an immutable explicit production registry containing
+`system.noop`. Handlers receive only the deeply read-only passive payload: never sessions, owner
+tokens, attempts, lifecycle services, environment objects, import paths, or CLI arguments. Noop
+accepts a top-level object without inspecting fields and returns `{}`. Handler exception text,
+arguments, payload/type/owner/attempt values, results, identifiers, timestamps, timing evidence,
+and database diagnostics never become persisted failure data or execution-control outcomes.
+
+Worker owner identities are `<validated-prefix>.<canonical-lowercase-uuid4>` and are fully
+redacted, including prefix and suffix. Execution errors and settlement-unknown outcomes are fixed,
+cause-free, and context-free. An unknown claim/completion/failure outcome or unconfirmed task
+settlement stops lifecycle work; it is never converted to a normal processed result or followed by
+another terminal mutation.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

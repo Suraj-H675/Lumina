@@ -298,10 +298,29 @@ quarantines the connection, performs no reconciliation or second recovery, and r
 operation failure. C1 attempt fences prevent delayed work from an earlier attempt from mutating a
 later same-owner claim after recovery.
 
-The future handler-execution boundary uses a static registry to select a handler from the passive type.
-Only that selected handler validates the passive payload before execution; `system.noop` requires
-an object. Unsupported types or incompatible payloads enter the future non-retryable failure path
-without rolling back their successful claim.
+Phase 0B3C3 adds a one-invocation, one-claim execution boundary using only the accepted narrow
+claim, heartbeat, completion, and failure capabilities. A literal immutable production registry
+contains exactly `system.noop`; there is no dynamic import, module-path resolution, entry-point
+discovery, plugin loading, reflection dispatch, or payload-selected handler. The noop accepts any
+top-level persisted JSON object without inspecting or echoing its fields and returns exactly `{}`.
+Unsupported types and synchronously incompatible payloads fail without starting heartbeat
+supervision.
+
+For a valid handler, execution creates one handler task and one periodic heartbeat-supervisor task.
+Deadlines use the event loop's monotonic clock. Heartbeats are sequential, owner/status/attempt
+fenced, first occur after one interval, and reschedule from current monotonic time after each
+completed call, so delayed calls cannot create catch-up bursts. Handler success/failure and
+heartbeat results use a fixed precedence: heartbeat ownership loss always wins; an already-known
+handler outcome wins over a simultaneous non-ownership heartbeat failure; and a non-ownership
+heartbeat failure while the handler remains active cancels and settles it before recording
+`HEARTBEAT_FAILED`.
+
+Cancellation and timeout use one absolute bounded settlement deadline. A handler or heartbeat
+supervisor that cannot settle within that budget raises a fixed fatal settlement-unknown error and
+prohibits further lifecycle writes. Claim, completion, and failure outcome-unknown errors retain
+their accepted fatal category. C3 adds no polling loop, repeated claims, stale-recovery cadence,
+signals, graceful process shutdown, CLI, startup event, process hard exit, engine composition, or
+public route; those remain outside this gate.
 
 Every runtime and migration database-settings boundary accepts one normalized DNS hostname, IPv4
 literal, or IPv6 literal with an explicit port and an empty query mapping. Multi-host, socket-path,

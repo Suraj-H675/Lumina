@@ -217,6 +217,19 @@ unsafe cleanup is a fixed recovery operation failure, not an unknown database ou
 0B3C2 adds no recovery cadence, worker identity, polling, heartbeat orchestration, signals,
 graceful shutdown, or CLI.
 
+Phase 0B3C3 activates `LUMINA_WORKER_ID_PREFIX`, `LUMINA_JOB_HEARTBEAT_SECONDS`,
+`LUMINA_JOB_HANDLER_TIMEOUT_SECONDS`, and `LUMINA_JOB_CANCELLATION_GRACE_SECONDS`. A process owner
+token is constructed once from the validated prefix and UUIDv4, then injected into the one-job
+executor. Staleness must be at least two heartbeat intervals plus the rounded-up database
+operation wait; cancellation grace cannot exceed handler timeout.
+
+One executor invocation claims at most one job. It supervises one handler and one periodic
+attempt-fenced heartbeat using monotonic absolute deadlines, then calls one accepted terminal
+capability. Fixed settlement-unknown errors and accepted lifecycle outcome-unknown errors are
+fatal to that invocation. C3 deliberately adds no process composition, polling/no-job delay,
+repeated claim, recovery cadence, signals, graceful shutdown, startup event, CLI, or hard-exit
+behavior.
+
 ## 8. Backups
 
 Production:

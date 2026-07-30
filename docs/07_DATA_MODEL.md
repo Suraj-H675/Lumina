@@ -404,8 +404,15 @@ attempt becomes `dead_letter`, clears result, sets PostgreSQL completion time an
 availability, attempts, maximum attempts, and immutable/request fields. Recovery never increments
 attempts; only claim owns that transition.
 
-Handler execution, worker polling/identity, recovery cadence, heartbeating orchestration, signals,
-CLI, routes, and later Phase 0B3C services remain absent.
+Phase 0B3C3 composes the existing database capabilities without changing this schema. One
+invocation claims at most one row, uses the committed `attempts` value unchanged for every
+heartbeat and terminal mutation, and maps only fixed handler outcomes into the closed C1 failure
+catalog. Successful `system.noop` execution stores `{}` and never echoes its passive payload.
+Unsupported types and incompatible noop payloads use the canonical non-retryable failure reasons.
+Handler timeout, cancellation, and heartbeat failure use their existing retry classifications.
+
+Polling, repeated claims, stale-recovery cadence, signals, graceful process shutdown, CLI, startup
+events, engine composition, process hard exit, routes, migrations, and ACL changes remain absent.
 
 ## 10. Identification
 

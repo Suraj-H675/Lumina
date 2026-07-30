@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from dataclasses import fields
 from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID
 
 import pytest
 from lumina.jobs.domain.models import (
     ClaimedJob,
+    ExpectedJobAttempt,
+    JobAttemptValidationError,
     JobClaimValidationError,
     JobStatus,
     JobType,
@@ -149,3 +152,21 @@ def test_claimed_job_has_exact_fields_and_redacts_payload() -> None:
         "heartbeat_at",
     ]
     assert sentinel not in repr(claimed)
+
+
+@pytest.mark.parametrize("attempt", [1, 2, 3, 4, 5])
+def test_expected_attempt_matches_the_schema_and_redacts_evidence(attempt: int) -> None:
+    expected = ExpectedJobAttempt(attempt)
+
+    assert expected.value == attempt
+    assert repr(expected) == str(expected) == "ExpectedJobAttempt(<redacted>)"
+    assert str(attempt) not in repr(expected)
+
+
+@pytest.mark.parametrize("attempt", [0, 6, -1, True, False, 1.0, "1", None])
+def test_invalid_expected_attempt_is_fixed_and_rejects_boolean_coercion(attempt: object) -> None:
+    with pytest.raises(JobAttemptValidationError) as failure:
+        ExpectedJobAttempt(cast(int, attempt))
+
+    assert failure.value.args == ("Job expected attempt is invalid.",)
+    assert repr(failure.value) == "JobAttemptValidationError(<redacted>)"

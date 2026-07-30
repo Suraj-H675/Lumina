@@ -19,6 +19,12 @@ JSON-object results and PostgreSQL-authoritative completion time. Failure transi
 recovery, worker execution, handlers, polling, signals, CLI behavior, and public routes remain
 gated separately.
 
+Phase 0B3C1 adds only the closed failure/retry capability and the attempt fences required before
+requeueing. Heartbeat, completion, completion reconciliation, and failure require job ID,
+`running` status, owner, and the exact committed attempt. Failure reasons, classification, and
+backoff are catalog-derived; only claim increments attempts. Stale recovery, handlers, execution,
+worker identity, polling, signals, CLI, and public routes remain later gates.
+
 The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
 read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
 explicit JSON null distinct from no returned row, unchanged Phase 0B3A enqueue validation, no
@@ -39,6 +45,13 @@ transaction-local waits, complete pool cleanup, and guarded real-PostgreSQL evid
 returned update, ambiguous commit acknowledgement is reconciled on a genuinely fresh bounded
 connection without retrieving the result or issuing a second mutation; indeterminate evidence is
 fatal `JobCompletionOutcomeUnknown`.
+
+The Phase 0B3C1 gate requires the exact fixed failure catalog, deterministic bounded backoff,
+atomic retryable/non-retryable/exhausted transitions, PostgreSQL time authority, complete field
+policy, attempt-fenced heartbeat/completion/failure, indistinguishable ownership loss, bounded
+transaction-local waits, distinct-backend commit reconciliation returning only mutually exclusive
+Boolean evidence, fatal `JobFailureOutcomeUnknown`, no second mutation, secrecy, pool/task cleanup,
+and guarded real-PostgreSQL cross-attempt evidence without migration or ACL changes.
 
 ### Goal
 

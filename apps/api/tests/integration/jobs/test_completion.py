@@ -22,6 +22,7 @@ from lumina.jobs.domain.completion import (
     SuccessfulJobCompletion,
 )
 from lumina.jobs.domain.heartbeat import JobOwnershipLost, JobOwnerToken
+from lumina.jobs.domain.models import ExpectedJobAttempt
 from lumina.jobs.domain.result import JobResultTooLarge, validate_job_result
 from lumina.jobs.infrastructure.postgresql.completion import (
     _BACKEND_PID_SQL,
@@ -233,6 +234,7 @@ async def test_correct_owner_completes_with_postgresql_time_and_exact_field_chan
     completed = await _service(completion_runtime).complete(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
+        expected_attempt=2,
         result=_NEW_RESULT,
     )
 
@@ -291,6 +293,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         await _service(completion_runtime).complete(
             job_id=identifier,
             owner=request_owner,
+            expected_attempt=2,
             result=_NEW_RESULT,
         )
 
@@ -325,6 +328,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
         await _service(completion_runtime).complete(
             job_id=missing,
             owner=_FIXTURE_OWNER,
+            expected_attempt=2,
             result=_NEW_RESULT,
         )
     assert _row_snapshot(integration_settings, identifier) == sentinel_before
@@ -332,6 +336,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
     await _service(completion_runtime).complete(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
+        expected_attempt=2,
         result=_NEW_RESULT,
     )
     completed_snapshot = _row_snapshot(integration_settings, identifier)
@@ -339,6 +344,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
         await _service(completion_runtime).complete(
             job_id=identifier,
             owner=_FIXTURE_OWNER,
+            expected_attempt=2,
             result={"different": "SECOND-COMPLETION-EVIDENCE"},
         )
 
@@ -377,12 +383,14 @@ async def test_runtime_acl_and_adapter_capability_are_completion_scoped(
         "self",
         "job_id",
         "owner",
+        "expected_attempt",
         "result",
     ]
     assert [name for name in dir(PostgreSqlJobCompletionStore) if not name.startswith("_")] == [
         "complete"
     ]
     assert _COMPLETE_SQL.text.count("UPDATE public.job") == 1
+    assert "AND attempts = :expected_attempt" in _COMPLETE_SQL.text
 
 
 @pytest.mark.asyncio
@@ -419,6 +427,7 @@ async def test_postgresql_textually_oversized_result_is_rejected_before_update(
             ).complete(
                 job_id=identifier,
                 owner=_FIXTURE_OWNER,
+                expected_attempt=2,
                 result=result,
             )
     finally:
@@ -476,6 +485,7 @@ async def test_row_lock_timeout_resets_settings_and_fresh_completion_succeeds(
                     _service(runtime, timeout_ms=150).complete(
                         job_id=identifier,
                         owner=_FIXTURE_OWNER,
+                        expected_attempt=2,
                         result=_NEW_RESULT,
                     )
                 )
@@ -491,6 +501,7 @@ async def test_row_lock_timeout_resets_settings_and_fresh_completion_succeeds(
         completed = await _service(runtime, timeout_ms=500).complete(
             job_id=identifier,
             owner=_FIXTURE_OWNER,
+            expected_attempt=2,
             result=_NEW_RESULT,
         )
         assert completed.job_id == identifier
@@ -521,6 +532,7 @@ class _MalformedRowCompletionStore(PostgreSqlJobCompletionStore):
             {
                 "job_id": request.job_id,
                 "owner": request.owner.value,
+                "expected_attempt": request.expected_attempt.value,
                 "result": request.result.database_json,
             },
         )
@@ -547,6 +559,7 @@ async def test_malformed_returned_mapping_rolls_back_and_releases_pool(
     request = CompleteJobRequest(
         job_id=identifier,
         owner=JobOwnerToken(_FIXTURE_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
         result=validate_job_result(_NEW_RESULT, max_bytes=1_024),
     )
     try:
@@ -668,6 +681,7 @@ async def test_lost_commit_acknowledgement_reconciles_exact_persisted_completion
         ).complete(
             job_id=identifier,
             owner=_FIXTURE_OWNER,
+            expected_attempt=2,
             result=_NEW_RESULT,
         )
         row = _row_snapshot(integration_settings, identifier)
@@ -842,6 +856,7 @@ async def test_fresh_backend_exhaustion_is_unknown_without_second_mutation(
             ).complete(
                 job_id=identifier,
                 owner=_FIXTURE_OWNER,
+                expected_attempt=2,
                 result=_NEW_RESULT,
             )
 
@@ -955,6 +970,7 @@ async def test_post_update_cancellation_settles_commit_without_unobserved_task(
         ).complete(
             job_id=identifier,
             owner=_FIXTURE_OWNER,
+            expected_attempt=2,
             result=_NEW_RESULT,
         )
     )
@@ -1008,6 +1024,7 @@ async def test_ambiguous_commit_definitely_running_becomes_operation_failure(
             ).complete(
                 job_id=identifier,
                 owner=_FIXTURE_OWNER,
+                expected_attempt=2,
                 result=_NEW_RESULT,
             )
         row = _row_snapshot(integration_settings, identifier)

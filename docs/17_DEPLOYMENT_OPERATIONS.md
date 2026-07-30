@@ -190,6 +190,20 @@ object. Exact evidence confirms success; definite same-owner running/no-write ev
 operation failure; indeterminate evidence raises fatal `JobCompletionOutcomeUnknown`. Operators
 and future callers must not automatically issue a second completion after that outcome.
 
+Phase 0B3C1 failure and retry reuse `LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS`; no setting is added.
+The failure statement and all reconciliation work use transaction-local statement and lock
+timeouts. Retry delay is deterministic application policy, while PostgreSQL
+`transaction_timestamp()` remains the scheduling and completion authority. Only claim increments
+attempts.
+
+Heartbeat, completion, and failure require the committed attempt as an ownership fence. A wrong
+attempt is indistinguishable ownership loss and must not be diagnosed. After a returned failure
+mutation, commit uncertainty quarantines the primary backend and reconciles on a distinct bounded
+connection using Boolean evidence only. Exact committed state returns success, exact unchanged
+running state is a fixed operation failure, and all other evidence raises fatal
+`JobFailureOutcomeUnknown`. Operators and future worker code must never repeat the failure write
+or claim another job after that unknown outcome.
+
 ## 8. Backups
 
 Production:

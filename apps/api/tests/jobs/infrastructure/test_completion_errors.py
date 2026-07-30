@@ -19,6 +19,7 @@ from lumina.jobs.domain.completion import (
     JobCompletionStorageUnavailable,
 )
 from lumina.jobs.domain.heartbeat import JobOwnershipLost, JobOwnerToken
+from lumina.jobs.domain.models import ExpectedJobAttempt
 from lumina.jobs.domain.result import JobResultTooLarge, validate_job_result
 from lumina.jobs.infrastructure.postgresql.completion import (
     _COMPLETE_SQL,
@@ -135,6 +136,7 @@ def test_completion_sql_is_the_exact_guarded_successful_transition() -> None:
         "WHERE id = :job_id "
         "AND status = 'running' "
         "AND claimed_by = :owner "
+        "AND attempts = :expected_attempt "
         "RETURNING id, completed_at"
     )
     assert _RESULT_SIZE_SQL.text == (
@@ -254,6 +256,7 @@ def _request() -> CompleteJobRequest:
     return CompleteJobRequest(
         job_id=_JOB_ID,
         owner=JobOwnerToken(_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
         result=validate_job_result({"secret": _RESULT_SENTINEL}, max_bytes=256),
     )
 
@@ -281,6 +284,7 @@ async def test_success_maps_before_commit_and_binds_every_request_value() -> Non
     assert connection.executions[-1][1] == {
         "job_id": _JOB_ID,
         "owner": _OWNER,
+        "expected_attempt": 2,
         "result": '{"secret":"COMPLETION-RESULT-SENTINEL"}',
     }
 
@@ -506,8 +510,24 @@ class _DeadlineConnection(_Connection):
                             "status": "running",
                             "claimed_by": _OWNER,
                             "completed_at": None,
+                            "attempt_equal": True,
                             "result_equal": None,
                             "progress": 0.5,
+                            "error_code": None,
+                            "error_message": None,
+                        }
+                    ]
+                )
+            if self._reconciliation == "attempt-mismatch":
+                return _Result(
+                    rows=[
+                        {
+                            "status": "succeeded",
+                            "claimed_by": _OWNER,
+                            "completed_at": _COMPLETED_AT,
+                            "attempt_equal": False,
+                            "result_equal": True,
+                            "progress": 1.0,
                             "error_code": None,
                             "error_message": None,
                         }
@@ -519,6 +539,7 @@ class _DeadlineConnection(_Connection):
                         "status": "succeeded",
                         "claimed_by": _OWNER,
                         "completed_at": _COMPLETED_AT,
+                        "attempt_equal": True,
                         "result_equal": True,
                         "progress": 1.0,
                         "error_code": None,
@@ -927,6 +948,33 @@ async def test_hanging_commit_can_reconcile_exact_completion_once() -> None:
 
     assert completed.job_id == _JOB_ID
     assert completed.completed_at == _COMPLETED_AT
+    assert primary_connection.complete_executions == 1
+    assert reconciliation_connection.reconciliation_executions == 1
+    await _assert_deadline_cleanup(
+        pool=pool,
+        pending_before=pending_before,
+        sessions=[primary, reconciliation],
+    )
+
+
+@pytest.mark.asyncio
+async def test_completion_reconciliation_attempt_mismatch_is_fatal_unknown() -> None:
+    pool = _PoolCounter()
+    primary_connection = _DeadlineConnection(pool, backend_pid=101, primary=True)
+    primary = _DeadlineSession(primary_connection, commit="error")
+    reconciliation_connection = _DeadlineConnection(
+        pool,
+        backend_pid=202,
+        primary=False,
+        reconciliation="attempt-mismatch",
+    )
+    reconciliation = _DeadlineSession(reconciliation_connection)
+    store, _ = _deadline_store(primary, [reconciliation])
+    pending_before = _pending_tasks()
+
+    with pytest.raises(JobCompletionOutcomeUnknown):
+        await asyncio.wait_for(store.complete(_request()), timeout=1)
+
     assert primary_connection.complete_executions == 1
     assert reconciliation_connection.reconciliation_executions == 1
     await _assert_deadline_cleanup(

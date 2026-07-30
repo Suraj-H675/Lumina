@@ -22,6 +22,7 @@ from lumina.jobs.domain.heartbeat import (
     JobOwnershipLost,
     JobOwnerToken,
 )
+from lumina.jobs.domain.models import ExpectedJobAttempt
 from lumina.jobs.infrastructure.postgresql.heartbeat import (
     _HEARTBEAT_SQL,
     PostgreSqlHeartbeatJobStore,
@@ -222,6 +223,7 @@ async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
     recorded = await _service(heartbeat_runtime).heartbeat(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
+        expected_attempt=2,
     )
 
     server_after = cast(
@@ -255,11 +257,13 @@ async def test_repeated_correct_owner_heartbeat_succeeds_in_fresh_transactions(
     first = await _service(heartbeat_runtime).heartbeat(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
+        expected_attempt=2,
     )
     await _assert_pool_released(heartbeat_runtime, baseline)
     second = await _service(heartbeat_runtime).heartbeat(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
+        expected_attempt=2,
     )
 
     await _assert_pool_released(heartbeat_runtime, baseline)
@@ -277,6 +281,7 @@ async def test_equal_postgresql_transaction_timestamp_is_accepted_deliberately(
     request = HeartbeatJobRequest(
         job_id=identifier,
         owner=JobOwnerToken(_FIXTURE_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
     )
     store = _store(heartbeat_runtime)
     baseline = _pool_checked_out(heartbeat_runtime)
@@ -326,6 +331,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         await _service(heartbeat_runtime).heartbeat(
             job_id=identifier,
             owner=request_owner,
+            expected_attempt=2,
         )
 
     after = _row_snapshot(integration_settings, identifier)
@@ -364,6 +370,7 @@ async def test_missing_identifier_is_the_same_ownership_loss_and_writes_nothing(
         await _service(heartbeat_runtime).heartbeat(
             job_id=missing,
             owner=_FOREIGN_OWNER,
+            expected_attempt=2,
         )
 
     assert _row_snapshot(integration_settings, sentinel) == before
@@ -405,11 +412,13 @@ async def test_runtime_acl_and_public_capability_are_heartbeat_only_for_this_ope
         "self",
         "job_id",
         "owner",
+        "expected_attempt",
     ]
     assert _HEARTBEAT_SQL.text.count("SET ") == 1
     assert "SET heartbeat_at = transaction_timestamp()" in _HEARTBEAT_SQL.text
     assert "AND status = 'running'" in _HEARTBEAT_SQL.text
     assert "AND claimed_by = :owner" in _HEARTBEAT_SQL.text
+    assert "AND attempts = :expected_attempt" in _HEARTBEAT_SQL.text
 
 
 @pytest.mark.asyncio
@@ -458,6 +467,7 @@ async def test_row_lock_timeout_is_bounded_resets_settings_and_fresh_call_succee
                     _service(runtime, timeout_ms=150).heartbeat(
                         job_id=identifier,
                         owner=_FIXTURE_OWNER,
+                        expected_attempt=2,
                     )
                 )
                 await asyncio.wait_for(reached_update.wait(), timeout=1)
@@ -472,6 +482,7 @@ async def test_row_lock_timeout_is_bounded_resets_settings_and_fresh_call_succee
         recorded = await _service(runtime, timeout_ms=500).heartbeat(
             job_id=identifier,
             owner=_FIXTURE_OWNER,
+            expected_attempt=2,
         )
         assert recorded.job_id == identifier
         await _assert_pool_released(runtime, baseline)
@@ -501,6 +512,7 @@ class _MalformedRowHeartbeatStore(PostgreSqlHeartbeatJobStore):
             {
                 "job_id": request.job_id,
                 "owner": request.owner.value,
+                "expected_attempt": request.expected_attempt.value,
             },
         )
         return _heartbeat_recorded(
@@ -550,6 +562,7 @@ async def test_pool_release_for_malformed_mapping_and_safe_database_failure(
     request = HeartbeatJobRequest(
         job_id=identifier,
         owner=JobOwnerToken(_FIXTURE_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
     )
     try:
         malformed = _MalformedRowHeartbeatStore(
@@ -637,6 +650,7 @@ async def test_cancellation_cleans_up_without_unobserved_task_or_checkout(
                     _service(runtime, timeout_ms=10_000).heartbeat(
                         job_id=identifier,
                         owner=_FIXTURE_OWNER,
+                        expected_attempt=2,
                     )
                 )
                 await asyncio.wait_for(reached_update.wait(), timeout=1)

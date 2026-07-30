@@ -185,6 +185,22 @@ fresh success after release. Controlled commit-acknowledgement loss proves exact
 reconciliation, definite unchanged failure, fatal unknown exhaustion, no second mutation,
 post-update cancellation settlement, and no unobserved lifecycle task.
 
+Phase 0B3C1 tests the exact fixed failure catalog, intrinsically closed request factory,
+schema-compatible attempt value, deterministic delays `2, 4, 8, 16, 32`, and defensive rejection
+of forged reasons, classifications, and delays before session construction. Existing heartbeat and
+completion suites prove their SQL and completion reconciliation now require the expected attempt.
+
+Guarded PostgreSQL tests prove retry requeue field clearing, PostgreSQL-authored scheduling,
+retry exhaustion to `dead_letter`, non-retryable transition to `failed`, terminal historical-field
+retention, owner/attempt indistinguishability, transaction-local contention bounds, and ACL
+sufficiency. Same-owner requeue/reclaim evidence proves delayed attempt-one heartbeat, completion,
+and failure cannot mutate attempt two while current-attempt operations succeed. Lost commit
+acknowledgements reconcile queued, failed, and dead-letter outcomes exactly once. Exact unchanged
+running evidence requires null result and becomes a fixed operation failure; non-null result,
+malformed/non-exclusive Booleans, missing rows, and all partial evidence become fatal unknown.
+Reconciliation returns only Booleans and every exit is checked for secret-safe diagnostics and
+bounded resource cleanup.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

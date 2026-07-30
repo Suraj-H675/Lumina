@@ -7,6 +7,7 @@ from datetime import datetime
 from uuid import UUID
 
 from lumina.jobs.domain.heartbeat import JobOwnerToken
+from lumina.jobs.domain.models import ExpectedJobAttempt
 from lumina.jobs.domain.result import ValidatedJobResult
 
 _INVALID_REQUEST_MESSAGE = "Job completion request is invalid."
@@ -78,13 +79,15 @@ class CompleteJobRequest:
 
     job_id: UUID
     owner: JobOwnerToken = field(repr=False)
+    expected_attempt: ExpectedJobAttempt = field(repr=False)
     result: ValidatedJobResult = field(repr=False)
 
     def __post_init__(self) -> None:
         if (
             not isinstance(self.job_id, UUID)
-            or not isinstance(self.owner, JobOwnerToken)
-            or not isinstance(self.result, ValidatedJobResult)
+            or type(self.owner) is not JobOwnerToken
+            or type(self.expected_attempt) is not ExpectedJobAttempt
+            or type(self.result) is not ValidatedJobResult
         ):
             raise JobCompletionValidationError()
 

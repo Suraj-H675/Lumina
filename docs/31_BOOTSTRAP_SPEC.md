@@ -179,6 +179,15 @@ retrieving the stored result or issuing a second mutation. Failure transitions, 
 recovery, execution, worker loops, polling, handlers, signals, CLI, public routes, and migrations
 remain deferred.
 
+Phase 0B3C1 then adds only closed owner/status/attempt-guarded failure and retry transitions.
+Heartbeat and completion also gain the attempt fence before retry requeueing is available.
+Retryable remaining attempts requeue using deterministic delay and PostgreSQL time; exhausted
+retryable attempts become `dead_letter`, and non-retryable failures become `failed`. Failure
+codes/messages are fixed catalog values. A potentially lost failure commit acknowledgement uses a
+fresh bounded distinct backend and Boolean-only reconciliation without a second mutation. Stale
+recovery, handlers, execution, worker loops, polling, identity, signals, CLI, public routes,
+settings, and migrations remain deferred.
+
 ## 10. Web/API contract generation
 
 - API OpenAPI written deterministically;

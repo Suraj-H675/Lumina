@@ -235,6 +235,22 @@ Missing, non-running, foreign-owned, and previously completed rows share the sam
 without selecting the stored result into Python and without a second mutation.
 `JobCompletionOutcomeUnknown` reveals no reconciliation evidence and is fatal for that operation.
 
+Phase 0B3C1 treats the committed attempt as private ownership evidence. Heartbeat, completion, and
+failure require it, bind it as SQL, and expose every missing, foreign, wrong-state, or wrong-attempt
+row as the same fixed `JobOwnershipLost`. No diagnostic ownership/state/attempt query is permitted.
+
+Persisted failure errors come only from the closed production `FailureReason` catalog. Handler
+exception text and caller-provided codes, messages, classifications, or delays are never accepted.
+The request factory derives retry policy and delay, and the PostgreSQL adapter revalidates those
+derivations before opening a session. Stale exhaustion is reserved for a later recovery capability
+and cannot pass through the owner failure store.
+
+Failure commit reconciliation selects no payload, result, raw owner, or error text. PostgreSQL
+returns only mutually exclusive Boolean exact-transition and exact-unchanged facts. Unknown
+evidence raises fixed, cause-free `JobFailureOutcomeUnknown`; no second mutation is attempted.
+Request, result, catalog selection, schedule, lifecycle evidence, and database failures retain
+fixed redacted representations and are not logged.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

@@ -43,6 +43,7 @@ async def test_service_validates_then_delegates_one_narrow_request() -> None:
     completed = await CompleteJobService(store, result_max_bytes=1_024).complete(
         job_id=_JOB_ID,
         owner="worker.application",
+        expected_attempt=2,
         result={"z": 2, "a": [True, None]},
     )
 
@@ -51,21 +52,25 @@ async def test_service_validates_then_delegates_one_narrow_request() -> None:
     request = store.requests[0]
     assert request.job_id == _JOB_ID
     assert request.owner.value == "worker.application"
+    assert request.expected_attempt.value == 2
     assert request.result.database_json == '{"a":[true,null],"z":2}'
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("job_id", "owner", "result", "expected"),
+    ("job_id", "owner", "expected_attempt", "result", "expected"),
     [
-        ("not-a-uuid", "worker.application", {}, JobCompletionValidationError),
-        (_JOB_ID, "invalid:owner", {}, JobHeartbeatValidationError),
-        (_JOB_ID, "worker.application", [], JobResultInvalid),
+        ("not-a-uuid", "worker.application", 2, {}, JobCompletionValidationError),
+        (_JOB_ID, "invalid:owner", 2, {}, JobHeartbeatValidationError),
+        (_JOB_ID, "worker.application", 0, {}, ValueError),
+        (_JOB_ID, "worker.application", True, {}, ValueError),
+        (_JOB_ID, "worker.application", 2, [], JobResultInvalid),
     ],
 )
 async def test_invalid_input_never_reaches_infrastructure(
     job_id: UUID | str,
     owner: str,
+    expected_attempt: int,
     result: object,
     expected: type[Exception],
 ) -> None:
@@ -75,6 +80,7 @@ async def test_invalid_input_never_reaches_infrastructure(
         await CompleteJobService(store, result_max_bytes=128).complete(
             job_id=cast(UUID, job_id),
             owner=owner,
+            expected_attempt=expected_attempt,
             result=result,
         )
 
@@ -89,6 +95,7 @@ async def test_oversized_application_result_is_rejected_before_store() -> None:
         await CompleteJobService(store, result_max_bytes=8).complete(
             job_id=_JOB_ID,
             owner="worker.application",
+            expected_attempt=2,
             result={"value": "too-large"},
         )
 
@@ -100,11 +107,13 @@ def test_service_accepts_no_lifecycle_or_worker_configuration() -> None:
         "self",
         "job_id",
         "owner",
+        "expected_attempt",
         "result",
     ]
     assert list(inspect.signature(CompleteJobRequest).parameters) == [
         "job_id",
         "owner",
+        "expected_attempt",
         "result",
     ]
     assert list(inspect.signature(SuccessfulJobCompletion).parameters) == [

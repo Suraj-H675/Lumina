@@ -38,6 +38,7 @@ async def test_service_validates_then_delegates_one_narrow_request() -> None:
     recorded = await HeartbeatJobService(store).heartbeat(
         job_id=_JOB_ID,
         owner="worker.application",
+        expected_attempt=2,
     )
 
     assert recorded.job_id == _JOB_ID
@@ -45,19 +46,23 @@ async def test_service_validates_then_delegates_one_narrow_request() -> None:
     assert len(store.requests) == 1
     assert store.requests[0].job_id == _JOB_ID
     assert store.requests[0].owner.value == "worker.application"
+    assert store.requests[0].expected_attempt.value == 2
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("job_id", "owner"),
+    ("job_id", "owner", "expected_attempt"),
     [
-        ("not-a-uuid", "worker.application"),
-        (_JOB_ID, "invalid:owner"),
+        ("not-a-uuid", "worker.application", 2),
+        (_JOB_ID, "invalid:owner", 2),
+        (_JOB_ID, "worker.application", 0),
+        (_JOB_ID, "worker.application", True),
     ],
 )
 async def test_invalid_caller_input_never_reaches_infrastructure(
     job_id: UUID | str,
     owner: str,
+    expected_attempt: int,
 ) -> None:
     store = RecordingHeartbeatStore()
 
@@ -65,6 +70,7 @@ async def test_invalid_caller_input_never_reaches_infrastructure(
         await HeartbeatJobService(store).heartbeat(
             job_id=cast(UUID, job_id),
             owner=owner,
+            expected_attempt=expected_attempt,
         )
 
     assert store.requests == []
@@ -76,10 +82,12 @@ def test_service_exposes_no_lifecycle_or_caller_timestamp_inputs() -> None:
         "self",
         "job_id",
         "owner",
+        "expected_attempt",
     ]
     assert list(inspect.signature(HeartbeatJobRequest).parameters) == [
         "job_id",
         "owner",
+        "expected_attempt",
     ]
     assert list(inspect.signature(HeartbeatRecorded).parameters) == [
         "job_id",

@@ -255,6 +255,28 @@ operation failure, and all mismatched, missing, unreadable, or indeterminate evi
 Completion adds no failure transition, retry, recovery, handler, execution, worker loop, polling,
 signal, CLI, or public route.
 
+Phase 0B3C1 evolves every attempt-owned mutation to require the committed claim attempt as well as
+job ID, `running` status, and owner. `ExpectedJobAttempt` accepts only exact integers one through
+five. Heartbeat, successful completion, completion reconciliation, and failure all bind this value;
+a wrong attempt is the existing indistinguishable `JobOwnershipLost` and never triggers a
+diagnostic read. This prevents delayed work from an earlier attempt from mutating a later claim by
+the same process owner.
+
+Failure is a separate narrow capability. `FailJobRequest.create` accepts only the fixed production
+`FailureReason` catalog and derives retry classification and deterministic delay internally.
+Retryable failure with attempts remaining clears running ownership/lifecycle/result/error fields,
+resets progress, and schedules `queued` availability from PostgreSQL time. Exhausted retryable
+failure becomes `dead_letter`; non-retryable failure becomes `failed`. Both terminal branches
+retain historical ownership, claim, heartbeat, progress, attempts, and availability evidence,
+clear result, and use PostgreSQL completion time plus the fixed catalog error.
+
+The PostgreSQL failure adapter performs one owner/status/attempt-guarded statement. After a returned
+mutation, a potentially lost commit acknowledgement uses the accepted bounded quarantine pattern
+and a genuinely distinct backend. Reconciliation returns only two Boolean facts: exact transition
+or exact unchanged running. Exact unchanged evidence includes null result and produces a fixed
+operation failure; every missing, mismatched, malformed, overlapping, or unavailable outcome is
+fatal `JobFailureOutcomeUnknown`. Failure is never issued a second time to resolve ambiguity.
+
 The future Phase 0B3C boundary uses a static registry to select a handler from the passive type.
 Only that selected handler validates the passive payload before execution; `system.noop` requires
 an object. Unsupported types or incompatible payloads enter the future non-retryable failure path

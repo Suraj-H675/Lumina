@@ -6,7 +6,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
-from lumina.jobs.domain.models import JobClaimValidationError, validate_claimed_by
+from lumina.jobs.domain.models import (
+    ExpectedJobAttempt,
+    JobClaimValidationError,
+    validate_claimed_by,
+)
 
 _INVALID_REQUEST_MESSAGE = "Job heartbeat request is invalid."
 _OWNERSHIP_LOST_MESSAGE = "Job heartbeat ownership was lost."
@@ -96,13 +100,18 @@ class JobOwnerToken:
 
 @dataclass(frozen=True, repr=False, slots=True)
 class HeartbeatJobRequest:
-    """One validated job identifier and its expected owner."""
+    """One validated job identifier and its expected ownership attempt."""
 
     job_id: UUID
     owner: JobOwnerToken = field(repr=False)
+    expected_attempt: ExpectedJobAttempt = field(repr=False)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.job_id, UUID) or not isinstance(self.owner, JobOwnerToken):
+        if (
+            not isinstance(self.job_id, UUID)
+            or type(self.owner) is not JobOwnerToken
+            or type(self.expected_attempt) is not ExpectedJobAttempt
+        ):
             raise JobHeartbeatValidationError()
 
     def __repr__(self) -> str:

@@ -15,6 +15,7 @@ from lumina.jobs.domain.completion import (
     SuccessfulJobCompletion,
 )
 from lumina.jobs.domain.heartbeat import JobOwnerToken
+from lumina.jobs.domain.models import ExpectedJobAttempt
 from lumina.jobs.domain.result import validate_job_result
 
 _JOB_ID = UUID("12345678-1234-4234-9234-123456789abc")
@@ -28,6 +29,7 @@ def test_request_and_success_are_immutable_and_fully_redacted() -> None:
     request = CompleteJobRequest(
         job_id=_JOB_ID,
         owner=JobOwnerToken(_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
         result=result,
     )
     completed = SuccessfulJobCompletion(
@@ -37,6 +39,7 @@ def test_request_and_success_are_immutable_and_fully_redacted() -> None:
 
     assert request.job_id == _JOB_ID
     assert request.owner.value == _OWNER
+    assert request.expected_attempt.value == 2
     assert request.result is result
     assert completed.job_id == _JOB_ID
     assert completed.completed_at == _COMPLETED_AT

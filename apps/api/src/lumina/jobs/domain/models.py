@@ -16,6 +16,7 @@ _IDEMPOTENCY_ERROR = "Job idempotency key is invalid."
 _CLAIMED_BY_ERROR = "Job claimant identifier is invalid."
 _PRIORITY_ERROR = "Job priority must fit a PostgreSQL smallint."
 _MAX_ATTEMPTS_ERROR = "Job max attempts must be between 1 and 5."
+_EXPECTED_ATTEMPT_ERROR = "Job expected attempt is invalid."
 _TYPE_ERROR = "Job type is not supported."
 
 
@@ -67,6 +68,17 @@ class JobDatabaseOperationFailure(RuntimeError):
 
 class JobClaimValidationError(ValueError):
     """Raised when a claim request has an invalid claimant identifier."""
+
+
+class JobAttemptValidationError(ValueError):
+    """Raised when an attempt-owned operation receives invalid attempt evidence."""
+
+    def __init__(self) -> None:
+        super().__init__(_EXPECTED_ATTEMPT_ERROR)
+
+    def __repr__(self) -> str:
+        """Keep attempt validation diagnostics fixed and non-evidentiary."""
+        return "JobAttemptValidationError(<redacted>)"
 
 
 class JobClaimStorageUnavailable(RuntimeError):
@@ -125,6 +137,25 @@ class JobStatus(StrEnum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     DEAD_LETTER = "dead_letter"
+
+
+@dataclass(frozen=True, repr=False, slots=True)
+class ExpectedJobAttempt:
+    """Validated schema-compatible attempt fence with a redacted representation."""
+
+    value: int = field(repr=False)
+
+    def __post_init__(self) -> None:
+        if type(self.value) is not int or not 1 <= self.value <= 5:
+            raise JobAttemptValidationError()
+
+    def __repr__(self) -> str:
+        """Never expose ownership-attempt evidence through diagnostics."""
+        return "ExpectedJobAttempt(<redacted>)"
+
+    def __str__(self) -> str:
+        """Keep ordinary string conversion secret-safe."""
+        return self.__repr__()
 
 
 @dataclass(frozen=True, repr=False)

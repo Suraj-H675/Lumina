@@ -182,6 +182,24 @@ failure, and indeterminate evidence raises fatal `JobCompletionOutcomeUnknown`. 
 and 0002 remain unchanged. Failure, retry, recovery, handler, execution, worker-loop, polling,
 signal, CLI, and public-route behavior remain outside this boundary.
 
+## ADR-025 — Phase 0B3C1 closed failure transitions and attempt fencing
+
+**Status:** Accepted
+**Date:** 2026-07-30
+**Decision:** Add one narrow owner/status/attempt-guarded failure capability and require the
+committed claim attempt for heartbeat, successful completion, completion reconciliation, and
+failure. Production failure code, message, classification, and retry delay come only from a closed
+catalog and intrinsically closed request factory. Retryable remaining attempts requeue with
+deterministic exponential backoff; exhausted retryable attempts become `dead_letter`;
+non-retryable failures become `failed`. Only claim increments attempts.
+**Consequences:** Delayed work from an earlier attempt cannot mutate a later attempt even when the
+same process owner token is reused. Every zero-row mutation remains indistinguishable
+`JobOwnershipLost`. Potentially lost failure commit acknowledgement is reconciled once on a
+distinct bounded backend using only mutually exclusive Boolean exact-transition or
+exact-unchanged-running evidence. Exact unchanged evidence requires null result; all indeterminate
+evidence raises fatal `JobFailureOutcomeUnknown`. Migrations, ACLs, settings, dependencies, public
+routes, stale recovery, handlers, worker runtime, signals, and CLI remain unchanged or deferred.
+
 ## ADR template
 
 ```text

@@ -46,6 +46,7 @@ _HEARTBEAT_SQL = text(
     "WHERE id = :job_id "
     "AND status = 'running' "
     "AND claimed_by = :owner "
+    "AND attempts = :expected_attempt "
     "RETURNING heartbeat_at"
 )
 
@@ -131,6 +132,7 @@ class PostgreSqlHeartbeatJobStore:
                     {
                         "job_id": request.job_id,
                         "owner": request.owner.value,
+                        "expected_attempt": request.expected_attempt.value,
                     },
                 )
             )

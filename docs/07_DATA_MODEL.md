@@ -379,10 +379,21 @@ attempts, availability, creation time, or any claim/heartbeat timestamp. Missing
 terminal, and foreign-owned rows, including a second completion attempt, are indistinguishable
 ownership loss and receive no write.
 
-Other future transitions remain `running → failed|queued|dead_letter` and stale
-`running → queued`; Phase 0B3B3 implements only `running → succeeded` completion and result
-persistence. Failure, retry, recovery, worker, handler, polling, signal, CLI, route, and other
-transition services remain absent.
+Phase 0B3C1 adds `running → queued|failed|dead_letter` without changing the schema or ACL.
+Heartbeat, completion, and failure now require the exact committed attempt in addition to job ID,
+`running` status, and owner. Attempt values are bound integers from one through five; zero-row
+outcomes remain indistinguishable ownership loss. Completion reconciliation also confirms the
+expected attempt.
+
+Only claim increments `attempts`. Retryable failure with `attempts < max_attempts` requeues with
+`available_at = transaction_timestamp() + min(300, 2 * 2^(attempts - 1)) seconds`, clears owner,
+claim, heartbeat, completion, result, and error fields, and resets progress to zero. Exhausted
+retryable failure becomes `dead_letter`; non-retryable failure becomes `failed`. Terminal failure
+clears result, sets PostgreSQL completion time and one fixed catalog error, and preserves owner,
+claim, heartbeat, attempts, maximum attempts, progress, availability, and immutable/request fields.
+
+Stale recovery, handler execution, worker polling, signals, CLI, routes, and all later Phase 0B3C
+services remain absent.
 
 ## 10. Identification
 

@@ -18,6 +18,7 @@ from lumina.jobs.domain.heartbeat import (
     JobOwnershipLost,
     JobOwnerToken,
 )
+from lumina.jobs.domain.models import ExpectedJobAttempt
 from lumina.jobs.infrastructure.postgresql.heartbeat import (
     _HEARTBEAT_SQL,
     PostgreSqlHeartbeatJobStore,
@@ -123,6 +124,7 @@ def test_heartbeat_sql_is_exactly_the_single_guarded_column_update() -> None:
         "WHERE id = :job_id "
         "AND status = 'running' "
         "AND claimed_by = :owner "
+        "AND attempts = :expected_attempt "
         "RETURNING heartbeat_at"
     )
     for excluded in (
@@ -217,7 +219,11 @@ class _Factory:
 
 
 def _request() -> HeartbeatJobRequest:
-    return HeartbeatJobRequest(job_id=_JOB_ID, owner=JobOwnerToken(_OWNER))
+    return HeartbeatJobRequest(
+        job_id=_JOB_ID,
+        owner=JobOwnerToken(_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
+    )
 
 
 def _store(
@@ -246,6 +252,7 @@ async def test_success_maps_before_commit_and_closes_before_return() -> None:
     assert connection.executions[1][1] == {
         "job_id": _JOB_ID,
         "owner": _OWNER,
+        "expected_attempt": 2,
     }
 
 

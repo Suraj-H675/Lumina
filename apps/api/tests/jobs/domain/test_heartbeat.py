@@ -15,6 +15,7 @@ from lumina.jobs.domain.heartbeat import (
     JobOwnershipLost,
     JobOwnerToken,
 )
+from lumina.jobs.domain.models import ExpectedJobAttempt
 
 _JOB_ID = UUID("12345678-1234-4234-9234-123456789abc")
 _OWNER = "worker.heartbeat-secret"
@@ -50,11 +51,16 @@ def test_invalid_owner_token_is_rejected_without_echo(owner: str) -> None:
 
 
 def test_request_and_success_are_immutable_aware_and_fully_redacted() -> None:
-    request = HeartbeatJobRequest(job_id=_JOB_ID, owner=JobOwnerToken(_OWNER))
+    request = HeartbeatJobRequest(
+        job_id=_JOB_ID,
+        owner=JobOwnerToken(_OWNER),
+        expected_attempt=ExpectedJobAttempt(2),
+    )
     recorded = HeartbeatRecorded(job_id=_JOB_ID, heartbeat_at=_HEARTBEAT_AT)
 
     assert request.job_id == _JOB_ID
     assert request.owner.value == _OWNER
+    assert request.expected_attempt.value == 2
     assert recorded.job_id == _JOB_ID
     assert recorded.heartbeat_at == _HEARTBEAT_AT
     assert repr(request) == "HeartbeatJobRequest(<redacted>)"

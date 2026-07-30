@@ -277,7 +277,28 @@ or exact unchanged running. Exact unchanged evidence includes null result and pr
 operation failure; every missing, mismatched, malformed, overlapping, or unavailable outcome is
 fatal `JobFailureOutcomeUnknown`. Failure is never issued a second time to resolve ambiguity.
 
-The future Phase 0B3C boundary uses a static registry to select a handler from the passive type.
+Phase 0B3C2 adds only one atomic stale-running-job recovery capability. Eligibility is
+`status = 'running'` with `COALESCE(heartbeat_at, claimed_at)` at or before PostgreSQL
+`transaction_timestamp() - make_interval(secs => :stale_seconds)`. One materialized CTE orders by
+oldest lease, claim timestamp, and ID, locks at most 100 rows with `FOR UPDATE SKIP LOCKED`, and
+updates that batch in the same statement. Recovery never accepts a clock or batch size from its
+caller.
+
+Stale attempts with attempts remaining return to `queued` at PostgreSQL transaction time, clear
+ownership, lifecycle completion, result, progress, and error fields, and do not increment attempts.
+Exhausted stale attempts become `dead_letter`, clear result, record PostgreSQL completion time and
+the canonical `FailureReason.STALE_ATTEMPTS_EXHAUSTED` code/message, and retain owner, claim,
+heartbeat, progress, availability, and attempt history. Python receives only validated requeued and
+dead-lettered aggregate counts.
+
+An empty batch is rolled back and cleaned up without a mutating commit. A positive batch is
+committed once under one shared monotonic lifecycle deadline. Uncertain commit acknowledgement
+quarantines the connection, performs no reconciliation or second recovery, and raises fatal
+`JobRecoveryOutcomeUnknown`; confirmed commit plus unsafe cleanup is instead a fixed recovery
+operation failure. C1 attempt fences prevent delayed work from an earlier attempt from mutating a
+later same-owner claim after recovery.
+
+The future handler-execution boundary uses a static registry to select a handler from the passive type.
 Only that selected handler validates the passive payload before execution; `system.noop` requires
 an object. Unsupported types or incompatible payloads enter the future non-retryable failure path
 without rolling back their successful claim.

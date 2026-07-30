@@ -6,7 +6,8 @@ Phase 0A defined no Lumina runtime environment variables. Phase 0B2 activates th
 and four database URLs below. Phase 0B3A activates its three enqueue settings, Phase 0B3B1
 activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for heartbeat. Phase
 0B3B3 adds only the result-size setting and reuses the existing operation timeout for completion
-and reconciliation. All other variables remain planned until their owning phases.
+and reconciliation. Phase 0B3C2 adds only the stale threshold and reuses the operation timeout for
+recovery. All other variables remain planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -102,13 +103,23 @@ construction receives this validated setting and never reads the environment dir
 application default leaves headroom below the separate accepted 65,536-byte PostgreSQL JSONB-text
 limit.
 
+## Active in Phase 0B3C2
+
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_JOB_STALE_SECONDS` | `120` | Exact integer from 2 through 86400; PostgreSQL-authoritative running-job stale threshold. |
+
+Existing `.env` files may omit this value. Bootstrap never rewrites an existing file. Recovery
+construction receives the validated setting and never reads the environment directly. The batch
+size is the fixed internal value 100 and is not configurable. No heartbeat/stale cross-setting
+validation or recovery-cadence setting exists yet.
+
 ## Planned later job settings
 
 ```text
 LUMINA_WORKER_ID_PREFIX=
 LUMINA_WORKER_POLL_SECONDS=2
 LUMINA_JOB_HEARTBEAT_SECONDS=30
-LUMINA_JOB_STALE_SECONDS=120
 ```
 
 ## Storage

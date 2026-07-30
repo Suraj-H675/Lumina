@@ -108,7 +108,7 @@ No secrets or infrastructure details.
 ## 7. Settings
 
 Phase 0B2 typed settings, the Phase 0B3A enqueue limits, the Phase 0B3B1/B2/B3 job-operation
-timeout, and the Phase 0B3B3 result limit:
+timeout, the Phase 0B3B3 result limit, and the Phase 0B3C2 stale threshold:
 
 - required runtime environment;
 - API host and port;
@@ -120,6 +120,7 @@ timeout, and the Phase 0B3B3 result limit:
 - default maximum attempts.
 - claim, heartbeat, completion, and completion-reconciliation operation wait timeout.
 - successful-result maximum bytes.
+- stale-running-job threshold.
 
 Settings are loaded once and injected; tests can override explicitly.
 
@@ -187,6 +188,14 @@ codes/messages are fixed catalog values. A potentially lost failure commit ackno
 fresh bounded distinct backend and Boolean-only reconciliation without a second mutation. Stale
 recovery, handlers, execution, worker loops, polling, identity, signals, CLI, public routes,
 settings, and migrations remain deferred.
+
+Phase 0B3C2 then adds only one explicit atomic stale-running-job recovery batch. PostgreSQL selects
+at most 100 eligible rows in oldest-lease, claim-time, then ID order with `FOR UPDATE SKIP LOCKED`.
+It requeues non-exhausted attempts without incrementing attempts and dead-letters exhausted
+attempts with the canonical stale-exhaustion error. Empty batches roll back; ambiguous positive
+commit acknowledgement is fatal and is neither reconciled nor retried. Handler execution,
+the `system.noop` handler, worker identity/cadence, polling, heartbeat orchestration, signals,
+graceful shutdown, CLI, public routes, migrations, and ACL changes remain deferred.
 
 ## 10. Web/API contract generation
 

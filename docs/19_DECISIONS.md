@@ -200,6 +200,22 @@ exact-unchanged-running evidence. Exact unchanged evidence requires null result;
 evidence raises fatal `JobFailureOutcomeUnknown`. Migrations, ACLs, settings, dependencies, public
 routes, stale recovery, handlers, worker runtime, signals, and CLI remain unchanged or deferred.
 
+## ADR-026 — Phase 0B3C2 atomic stale-running-job recovery
+
+**Status:** Accepted
+**Date:** 2026-07-30
+**Decision:** Add one narrow recovery capability using PostgreSQL-authoritative stale eligibility
+and timestamps. One ordered materialized CTE selects and locks at most 100 stale running rows with
+`FOR UPDATE SKIP LOCKED`, atomically requeues attempts with capacity, and dead-letters exhausted
+attempts using `FailureReason.STALE_ATTEMPTS_EXHAUSTED`. Recovery never increments attempts and
+returns only aggregate counts.
+**Consequences:** `LUMINA_JOB_STALE_SECONDS` is the only new setting. Empty batches roll back.
+Positive batches commit once under a shared lifecycle deadline; uncertain acknowledgement is not
+reconciled or retried and raises fatal `JobRecoveryOutcomeUnknown` after quarantine. C1 attempt
+fences protect later same-owner attempts. Migrations, ACLs, dependencies, handlers, execution,
+worker identity/cadence, polling, signals, graceful shutdown, CLI, and public routes remain
+unchanged or deferred.
+
 ## ADR template
 
 ```text

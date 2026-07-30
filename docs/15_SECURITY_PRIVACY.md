@@ -251,6 +251,17 @@ evidence raises fixed, cause-free `JobFailureOutcomeUnknown`; no second mutation
 Request, result, catalog selection, schedule, lifecycle evidence, and database failures retain
 fixed redacted representations and are not logged.
 
+Phase 0B3C2 recovery accepts only a validated stale threshold and returns only requeued and
+dead-lettered aggregate counts. Requests, results, thresholds, errors, and fatal
+`JobRecoveryOutcomeUnknown` have fixed redacted representations. No IDs, owners, attempts,
+payloads, types, timestamps, errors, row evidence, SQL, parameters, SQLSTATE, URLs, credentials, or
+raw exceptions cross the boundary or enter logs.
+
+The runtime role uses only the lifecycle-column updates already granted by revision 0002.
+Ambiguous positive-batch commit acknowledgement discards the primary connection and is never
+diagnosed with row reads, reconstructed from partial evidence, reconciled, or retried. Cleanup is
+bounded and quarantines or replaces unsafe pooled resources before returning.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

@@ -392,8 +392,20 @@ retryable failure becomes `dead_letter`; non-retryable failure becomes `failed`.
 clears result, sets PostgreSQL completion time and one fixed catalog error, and preserves owner,
 claim, heartbeat, attempts, maximum attempts, progress, availability, and immutable/request fields.
 
-Stale recovery, handler execution, worker polling, signals, CLI, routes, and all later Phase 0B3C
-services remain absent.
+Phase 0B3C2 adds `running → queued|dead_letter` stale recovery without a schema or ACL change. A
+running row is eligible when `COALESCE(heartbeat_at, claimed_at)` is at or before the
+PostgreSQL-authored stale cutoff. Recovery selects at most 100 rows in oldest-lease, claim-time,
+then ID order with `FOR UPDATE SKIP LOCKED`.
+
+A non-exhausted stale attempt becomes immediately available `queued`, clears owner, claim,
+heartbeat, completion, result and error fields, and resets progress to zero. An exhausted stale
+attempt becomes `dead_letter`, clears result, sets PostgreSQL completion time and the canonical
+`job.stale_attempts_exhausted` error, and preserves owner, claim, heartbeat, progress, prior
+availability, attempts, maximum attempts, and immutable/request fields. Recovery never increments
+attempts; only claim owns that transition.
+
+Handler execution, worker polling/identity, recovery cadence, heartbeating orchestration, signals,
+CLI, routes, and later Phase 0B3C services remain absent.
 
 ## 10. Identification
 

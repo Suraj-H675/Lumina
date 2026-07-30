@@ -135,6 +135,7 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.job_enqueue_wait_timeout_ms == 5_000
     assert settings.job_operation_wait_timeout_ms == 5_000
     assert settings.job_result_max_bytes == 61_440
+    assert settings.job_stale_seconds == 120
 
 
 @pytest.mark.parametrize(
@@ -150,6 +151,8 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
         ("LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS", 30_001),
         ("LUMINA_JOB_RESULT_MAX_BYTES", 0),
         ("LUMINA_JOB_RESULT_MAX_BYTES", 65_537),
+        ("LUMINA_JOB_STALE_SECONDS", 1),
+        ("LUMINA_JOB_STALE_SECONDS", 86_401),
     ],
 )
 def test_job_setting_bounds(name: str, value: int) -> None:
@@ -166,6 +169,7 @@ def test_job_settings_accept_documented_overrides() -> None:
             "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS": 750,
             "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS": 900,
             "LUMINA_JOB_RESULT_MAX_BYTES": 2_048,
+            "LUMINA_JOB_STALE_SECONDS": 300,
         }
     )
 
@@ -174,6 +178,23 @@ def test_job_settings_accept_documented_overrides() -> None:
     assert settings.job_enqueue_wait_timeout_ms == 750
     assert settings.job_operation_wait_timeout_ms == 900
     assert settings.job_result_max_bytes == 2_048
+    assert settings.job_stale_seconds == 300
+
+
+@pytest.mark.parametrize(
+    "value",
+    [True, False, 2.0, "2.0", " 120", "120 ", "+120", "1e2", ""],
+)
+def test_stale_setting_requires_exact_integer_parsing(value: object) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_JOB_STALE_SECONDS": value})
+
+
+@pytest.mark.parametrize("value", [2, 120, 86_400, "2", "120", "86400"])
+def test_stale_setting_accepts_exact_integer_range(value: int | str) -> None:
+    settings = _settings({"LUMINA_ENV": "test", "LUMINA_JOB_STALE_SECONDS": value})
+
+    assert settings.job_stale_seconds == int(value)
 
 
 @pytest.mark.parametrize("host", ["0.0.0.0", "::", "::1", "api.example.test"])

@@ -45,6 +45,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS",
         "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS",
         "LUMINA_JOB_RESULT_MAX_BYTES",
+        "LUMINA_JOB_STALE_SECONDS",
     }
 )
 
@@ -182,6 +183,22 @@ class AppSettings(BaseSettings):
         le=65_536,
         validation_alias="LUMINA_JOB_RESULT_MAX_BYTES",
     )
+    job_stale_seconds: int = Field(
+        default=120,
+        ge=2,
+        le=86_400,
+        validation_alias="LUMINA_JOB_STALE_SECONDS",
+    )
+
+    @field_validator("job_stale_seconds", mode="before")
+    @classmethod
+    def parse_job_stale_seconds(cls, value: object) -> int:
+        """Accept only an exact integer value or an exact base-10 environment string."""
+        if type(value) is int:
+            return value
+        if isinstance(value, str) and re.fullmatch(r"-?[0-9]+", value, re.ASCII):
+            return int(value)
+        raise ValueError("Job stale threshold must be an exact integer")
 
     @field_validator("database_url")
     @classmethod

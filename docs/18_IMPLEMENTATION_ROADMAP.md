@@ -25,6 +25,13 @@ requeueing. Heartbeat, completion, completion reconciliation, and failure requir
 backoff are catalog-derived; only claim increments attempts. Stale recovery, handlers, execution,
 worker identity, polling, signals, CLI, and public routes remain later gates.
 
+Phase 0B3C2 adds only atomic stale-running-job recovery. PostgreSQL authors the cutoff and
+transition timestamps; one ordered materialized CTE locks at most 100 rows with `FOR UPDATE SKIP
+LOCKED` and requeues non-exhausted attempts or dead-letters exhausted attempts with the canonical
+stale-exhaustion error. Attempts remain claim-owned. Recovery cadence, worker identity, handlers,
+execution, polling, heartbeating orchestration, signals, graceful shutdown, CLI, and public routes
+remain later gates.
+
 The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
 read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
 explicit JSON null distinct from no returned row, unchanged Phase 0B3A enqueue validation, no
@@ -52,6 +59,13 @@ policy, attempt-fenced heartbeat/completion/failure, indistinguishable ownership
 transaction-local waits, distinct-backend commit reconciliation returning only mutually exclusive
 Boolean evidence, fatal `JobFailureOutcomeUnknown`, no second mutation, secrecy, pool/task cleanup,
 and guarded real-PostgreSQL cross-attempt evidence without migration or ACL changes.
+
+The Phase 0B3C2 gate requires exact stale eligibility, a fixed 100-row ordered atomic batch,
+`FOR UPDATE SKIP LOCKED` concurrency, exact requeue/dead-letter field policy, PostgreSQL time
+authority, canonical stale-exhaustion errors, C1 cross-attempt protection, bounded empty and
+positive transaction cleanup, fatal unreconciled `JobRecoveryOutcomeUnknown`, aggregate-only
+evidence, secrecy, and guarded real-PostgreSQL cutoff/race/batch/ACL evidence without migration or
+ACL changes.
 
 ### Goal
 

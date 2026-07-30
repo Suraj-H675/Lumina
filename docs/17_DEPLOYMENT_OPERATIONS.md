@@ -204,6 +204,19 @@ running state is a fixed operation failure, and all other evidence raises fatal
 `JobFailureOutcomeUnknown`. Operators and future worker code must never repeat the failure write
 or claim another job after that unknown outcome.
 
+Phase 0B3C2 activates `LUMINA_JOB_STALE_SECONDS`, default 120 and bounded from 2 through 86,400,
+and reuses `LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS`. Each explicit invocation opens one short
+transaction, installs transaction-local statement and lock timeouts, and recovers at most 100 stale
+running rows using PostgreSQL time and `FOR UPDATE SKIP LOCKED`. An empty batch rolls back rather
+than requiring a mutating commit.
+
+A positive batch commits once. If commit acknowledgement is uncertain, the primary connection is
+quarantined, recovery is not repeated, no rows are diagnosed or reconciled, and fatal
+`JobRecoveryOutcomeUnknown` must stop the future worker lifecycle. Confirmed commit followed by
+unsafe cleanup is a fixed recovery operation failure, not an unknown database outcome. Phase
+0B3C2 adds no recovery cadence, worker identity, polling, heartbeat orchestration, signals,
+graceful shutdown, or CLI.
+
 ## 8. Backups
 
 Production:

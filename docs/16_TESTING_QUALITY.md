@@ -201,6 +201,21 @@ malformed/non-exclusive Booleans, missing rows, and all partial evidence become 
 Reconciliation returns only Booleans and every exit is checked for secret-safe diagnostics and
 bounded resource cleanup.
 
+Phase 0B3C2 deterministic tests cover exact stale-threshold parsing, immutable/redacted requests
+and aggregate-only results, the fixed 100-row batch, exact SQL eligibility/order/bindings,
+canonical stale-exhaustion error resolution, malformed aggregate evidence, timeout/error
+classification, empty-batch rollback, bounded cleanup and task observation, and fatal ambiguous
+positive commit without reconciliation or a second mutation.
+
+Guarded PostgreSQL tests prove exact requeue and dead-letter field policies, PostgreSQL time
+authority and cutoff equality, recent-heartbeat exclusion, null-heartbeat fallback to claim time,
+attempt preservation, 100/101 batching and ordering, concurrent `SKIP LOCKED` recoverers, locked-row
+skipping, and heartbeat/recovery lock races without correctness sleeps. Same-owner recovery and
+reclaim tests prove delayed attempt-one heartbeat/completion/failure cannot mutate attempt two,
+while each current-attempt operation succeeds in a separate fixture. Existing ACL tests plus a
+runtime recovery transition prove revision 0002 is sufficient and prohibited columns/operations
+remain denied.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

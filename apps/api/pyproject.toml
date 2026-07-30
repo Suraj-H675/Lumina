@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 lumina-api = "lumina.main:run"
+lumina-worker = "lumina.worker.cli:main"
 
 [build-system]
 requires = ["hatchling==1.28.0"]

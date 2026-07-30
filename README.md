@@ -19,10 +19,12 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0B3A builds on the accepted PostgreSQL foundation with least-privilege runtime `job` ACLs,
-bounded `system.noop` enqueue validation, application UUIDv4 identifiers, and atomic idempotent
-enqueue/replay behavior. It does not claim, execute, retry, or expose jobs through HTTP and does not
-add a worker, provider integration, Supabase, a web application, or a product feature.
+Phase 0B3C4 completes the internal database-backed worker foundation. One `lumina-worker` process
+uses one owner identity, performs one initial stale-recovery batch, processes at most one
+`system.noop` job at a time, polls with bounded cadence, and shuts down gracefully on SIGINT or
+SIGTERM. Startup validates the existing job catalog and runtime privileges read-only. This remains
+internal infrastructure: it adds no public route, provider integration, scheduler, supervisor, new
+handler, database state, or product feature.
 
 Before writing implementation code, read these files in order:
 
@@ -84,6 +86,27 @@ is at `/health/live`, database readiness at `/health/ready`, and public metadata
 Set `LUMINA_API_HOST=0.0.0.0` or `LUMINA_API_HOST=::` only when intentional network or container
 access is required. An all-interface bind exposes the development API to every reachable network
 interface; it does not add TLS, authentication, or a production proxy boundary.
+
+## Internal worker development
+
+Start the existing database and worker from the repository root:
+
+```sh
+docker compose up -d --wait db
+uv run lumina-worker
+```
+
+The worker confirms readiness with exactly one structured stdout event and accepts SIGINT or
+SIGTERM for bounded graceful shutdown. `LUMINA_WORKER_POLL_SECONDS` defaults to `2` and accepts
+exact integers from 1 through 60. The process currently supports only the internal
+`system.noop` handler and executes jobs sequentially. It is not added to Compose and requires an
+external process supervisor in deployment environments.
+
+Guarded worker integration tests must explicitly target the local test database:
+
+```sh
+LUMINA_ENV=test uv run pytest -q apps/api/tests/integration/jobs/test_worker.py
+```
 
 ## Licensing status
 

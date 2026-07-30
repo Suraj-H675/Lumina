@@ -40,6 +40,14 @@ Unknown lifecycle outcomes and settlement-unknown outcomes are fatal. Polling, r
 no-job delay, recovery cadence, signals, graceful process shutdown, startup events, CLI, engine
 composition, process hard exit, and public routes remain later gates.
 
+Phase 0B3C4 adds the internal sequential worker process: strict poll configuration,
+process-lifetime nonblocking output, exact runtime-role startup compatibility checks, one owner
+identity, graceful SIGINT/SIGTERM shutdown, readiness and handler-start linearization, one initial
+recovery batch, derived recovery cadence, repeated one-job execution, bounded cleanup, and
+exactly-once hard termination for settlement-unknown live tasks. It changes no C1–C3 lifecycle
+SQL or semantics and adds no migration, ACL, state, handler, dependency, public route, generated
+contract, Docker/Compose service, scheduler, queue, or supervisor.
+
 The Phase 0B3B1 gate requires passive claiming of every valid PostgreSQL JSONB form, deeply
 read-only and fully redacted persisted payloads, no dependency on enqueue limits or policies,
 explicit JSON null distinct from no returned row, unchanged Phase 0B3A enqueue validation, no
@@ -82,6 +90,14 @@ non-overlapping no-burst heartbeat scheduling, deterministic handler/heartbeat p
 handler failure mapping, fatal unknown outcomes, secrecy, task cleanup, and guarded PostgreSQL
 execution evidence without migrations, ACLs, dependencies, routes, polling, signals, CLI, or hard
 exit.
+
+The Phase 0B3C4 gate requires exact startup construction/output and reverse-safe unwind,
+read-only catalog/ACL compatibility with positive connection cleanup or quarantine, one initial
+recovery batch, derived no-burst cadence, full interruptible no-job polling, one owner and one job
+at a time, shutdown-safe claim and handler-start barriers, bounded signal/task/engine/output
+cleanup, silent invalid CLI invocation, exact exit codes, and exactly-once hard termination that
+does not return through ordinary async-runner shutdown. Guarded PostgreSQL and real subprocess
+tests must pass against `lumina_test`.
 
 ### Goal
 

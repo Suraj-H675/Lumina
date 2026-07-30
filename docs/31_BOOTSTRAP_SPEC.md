@@ -210,6 +210,14 @@ errors are fatal. Polling, no-job delay, repeated claims, recovery cadence, proc
 signals, graceful shutdown, startup events, CLI, hard exit, public routes, migrations, and ACL
 changes remain deferred.
 
+Phase 0B3C4 then composes the accepted capabilities into the internal `lumina-worker` command.
+After process-lifetime nonblocking output activation, it validates settings and exact runtime-role
+database compatibility, constructs services and the static registry, installs signals, creates
+one owner, emits the fixed startup event through the readiness gate, performs one initial recovery
+batch, and runs sequential recovery/poll/execution scheduling. Cleanup and settlement-unknown hard
+termination are deadline-bounded. No migration, ACL, state, handler, dependency, route, generated
+contract, Docker/Compose service, scheduler, Redis queue, or supervisor is added.
+
 ## 10. Web/API contract generation
 
 - API OpenAPI written deterministically;

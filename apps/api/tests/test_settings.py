@@ -140,6 +140,7 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.job_heartbeat_seconds == 30
     assert settings.job_handler_timeout_seconds == 300
     assert settings.job_cancellation_grace_seconds == 5
+    assert settings.worker_poll_seconds == 2
 
 
 @pytest.mark.parametrize(
@@ -163,6 +164,8 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
         ("LUMINA_JOB_HANDLER_TIMEOUT_SECONDS", 86_401),
         ("LUMINA_JOB_CANCELLATION_GRACE_SECONDS", 0),
         ("LUMINA_JOB_CANCELLATION_GRACE_SECONDS", 61),
+        ("LUMINA_WORKER_POLL_SECONDS", 0),
+        ("LUMINA_WORKER_POLL_SECONDS", 61),
     ],
 )
 def test_job_setting_bounds(name: str, value: int) -> None:
@@ -184,6 +187,7 @@ def test_job_settings_accept_documented_overrides() -> None:
             "LUMINA_JOB_HEARTBEAT_SECONDS": 45,
             "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS": 600,
             "LUMINA_JOB_CANCELLATION_GRACE_SECONDS": 10,
+            "LUMINA_WORKER_POLL_SECONDS": 7,
         }
     )
 
@@ -197,6 +201,7 @@ def test_job_settings_accept_documented_overrides() -> None:
     assert settings.job_heartbeat_seconds == 45
     assert settings.job_handler_timeout_seconds == 600
     assert settings.job_cancellation_grace_seconds == 10
+    assert settings.worker_poll_seconds == 7
 
 
 @pytest.mark.parametrize(
@@ -228,6 +233,7 @@ def test_stale_setting_accepts_exact_integer_range(value: int | str) -> None:
         "LUMINA_JOB_HEARTBEAT_SECONDS",
         "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
         "LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
+        "LUMINA_WORKER_POLL_SECONDS",
     ],
 )
 @pytest.mark.parametrize("value", [True, False, 1.0, "1.0", " 1", "1 ", "+1", "1e0", ""])
@@ -237,6 +243,25 @@ def test_execution_integer_settings_reject_boolean_and_coercion(
 ) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", name: value})
+
+
+@pytest.mark.parametrize("value", [1, 2, 60, "1", "2", "60"])
+def test_worker_poll_setting_accepts_exact_integer_range(value: int | str) -> None:
+    settings = _settings({"LUMINA_ENV": "test", "LUMINA_WORKER_POLL_SECONDS": value})
+
+    assert settings.worker_poll_seconds == int(value)
+
+
+def test_dotenv_may_omit_worker_poll_setting(tmp_path: Path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "LUMINA_ENV=test\n"
+        "LUMINA_DATABASE_URL="
+        "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test\n",
+        encoding="utf-8",
+    )
+
+    assert load_settings(env_file=env_file).worker_poll_seconds == 2
 
 
 @pytest.mark.parametrize(

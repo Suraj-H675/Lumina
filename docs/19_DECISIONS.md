@@ -233,6 +233,24 @@ claims, no-job delay, stale-recovery cadence, signals, graceful shutdown, startu
 engine composition, process hard exit, public routes, migrations, ACLs, and dependency changes
 remain deferred.
 
+## ADR-028 — Phase 0B3C4 bounded sequential worker runtime
+
+**Status:** Accepted
+**Date:** 2026-07-30
+**Decision:** Compose the accepted C1–C3 capabilities into one internal sequential
+`lumina-worker` process. Startup takes process-lifetime nonblocking ownership of stdout/stderr,
+verifies exact job catalog and effective runtime privileges read-only, installs signals, creates
+one owner, and synchronously linearizes shutdown against the fixed startup event. Runtime performs
+one initial recovery batch, derived no-burst recovery cadence, and one executor invocation at a
+time. A synchronous handler-start gate linearizes shutdown against user-handler entry.
+**Consequences:** Shutdown cancels only a confirmed active outer executor; recovery, claim,
+pre-handler setup, and terminal settlement reach their accepted boundaries. Startup and cleanup
+share absolute deadlines and quarantine unsafe database resources. Any handler, heartbeat, output,
+startup-check, engine, or cleanup task whose settlement remains unknown freezes lifecycle work and
+invokes one hard terminator before ordinary async-runner shutdown. The CLI has exact fixed output
+and exit codes. No lifecycle SQL, migration, ACL, state, handler, dependency, public route,
+generated contract, Compose service, internal scheduler, queue, or supervisor changes.
+
 ## ADR template
 
 ```text

@@ -411,8 +411,12 @@ catalog. Successful `system.noop` execution stores `{}` and never echoes its pas
 Unsupported types and incompatible noop payloads use the canonical non-retryable failure reasons.
 Handler timeout, cancellation, and heartbeat failure use their existing retry classifications.
 
-Polling, repeated claims, stale-recovery cadence, signals, graceful process shutdown, CLI, startup
-events, engine composition, process hard exit, routes, migrations, and ACL changes remain absent.
+Phase 0B3C4 composes repeated sequential invocations and stale-recovery cadence without changing
+the `job` schema or mutation semantics. It creates no state, column, constraint, index, migration,
+or ACL. One process owner is reused across sequential attempts, and all claim, heartbeat,
+completion, failure, and recovery operations retain the accepted C1–C3 fences and field policies.
+The startup checker compares this exact 18-column catalog, its named constraints/indexes, and the
+revision-0002 effective privilege set read-only; it does not read `alembic_version`.
 
 ## 10. Identification
 

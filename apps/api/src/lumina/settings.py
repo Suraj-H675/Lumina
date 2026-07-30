@@ -51,6 +51,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_JOB_HEARTBEAT_SECONDS",
         "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
         "LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
+        "LUMINA_WORKER_POLL_SECONDS",
     }
 )
 
@@ -216,12 +217,19 @@ class AppSettings(BaseSettings):
         le=60,
         validation_alias="LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
     )
+    worker_poll_seconds: int = Field(
+        default=2,
+        ge=1,
+        le=60,
+        validation_alias="LUMINA_WORKER_POLL_SECONDS",
+    )
 
     @field_validator(
         "job_stale_seconds",
         "job_heartbeat_seconds",
         "job_handler_timeout_seconds",
         "job_cancellation_grace_seconds",
+        "worker_poll_seconds",
         mode="before",
     )
     @classmethod

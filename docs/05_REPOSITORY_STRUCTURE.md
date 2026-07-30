@@ -99,6 +99,12 @@ registry plus one-job execution application service under `lumina/jobs`, and onl
 and timing support under `lumina/worker`. It does not add a worker entry point, CLI, polling loop,
 signal handling, provider, frontend, or generated-client code.
 
+Phase 0B3C4 adds the worker process composition root, sequential runtime, signal ownership,
+read-only startup compatibility checker, process-lifetime nonblocking output, bounded hard
+termination, and internal CLI under `apps/api/src/lumina/worker`. Its tests live in
+`apps/api/tests/worker` and `apps/api/tests/integration/jobs/test_worker.py`. No worker service is
+added to Compose and no later-phase module is created.
+
 ## Ownership
 
 ### `apps/web`

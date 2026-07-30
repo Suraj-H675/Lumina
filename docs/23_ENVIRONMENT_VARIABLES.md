@@ -7,8 +7,8 @@ and four database URLs below. Phase 0B3A activates its three enqueue settings, P
 activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for heartbeat. Phase
 0B3B3 adds only the result-size setting and reuses the existing operation timeout for completion
 and reconciliation. Phase 0B3C2 adds only the stale threshold and reuses the operation timeout for
-recovery. Phase 0B3C3 activates four worker/execution settings. All other variables remain planned
-until their owning phases.
+recovery. Phase 0B3C3 activates four worker/execution settings, and Phase 0B3C4 activates only the
+worker poll interval. All other variables remain planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -139,11 +139,15 @@ LUMINA_JOB_CANCELLATION_GRACE_SECONDS
 Identity construction and execution receive validated values and never read the environment.
 Complete owner tokens, UUID suffixes, and prefix configuration are never logged.
 
-## Planned later job settings
+## Active in Phase 0B3C4
 
-```text
-LUMINA_WORKER_POLL_SECONDS=2
-```
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_WORKER_POLL_SECONDS` | `2` | Exact integer from 1 through 60; full no-job delay, interruptible by shutdown. |
+
+Existing `.env` files may omit this value. The validated value is injected into the sequential
+runtime and is never read by domain/application code. Recovery cadence remains derived from the
+existing stale threshold and is not independently configurable.
 
 ## Storage
 

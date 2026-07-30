@@ -230,6 +230,25 @@ fatal to that invocation. C3 deliberately adds no process composition, polling/n
 repeated claim, recovery cadence, signals, graceful shutdown, startup event, CLI, or hard-exit
 behavior.
 
+Phase 0B3C4 adds the internal `lumina-worker` command and activates only
+`LUMINA_WORKER_POLL_SECONDS`, default `2`. Construction order is CLI parsing, process-output
+activation, settings, engine, fully cleaned read-only compatibility check, lifecycle services and
+static registry, signals, one identity, readiness linearization, complete startup output, shutdown
+recheck, then initial recovery. Startup failure unwinds established resources in reverse-safe
+order, writes only the fixed failure sentence while output remains active, and restores descriptor
+modes last. Graceful shutdown before readiness omits both startup and failure output.
+
+The process runs one recovery or executor operation at a time. SIGINT/SIGTERM interrupts idle
+polling immediately; recovery and claims reach accepted definite boundaries; a confirmed active
+handler receives one outer cancellation; terminal settlement is never newly cancelled. Exit `0`
+means help or fully settled graceful shutdown, `1` means startup/runtime/cleanup failure, and `2`
+means silent invalid CLI invocation.
+
+The worker contains no scheduler or supervisor. Deployments remain responsible for restart policy,
+resource limits, and process observation. Settlement-unknown live handler, heartbeat, output,
+startup-check, engine, or cleanup tasks use bounded fatal output/cleanup and exactly one hard exit
+with status `1`, avoiding ordinary async-runner shutdown.
+
 ## 8. Backups
 
 Production:

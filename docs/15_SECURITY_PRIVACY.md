@@ -275,6 +275,23 @@ cause-free, and context-free. An unknown claim/completion/failure outcome or unc
 settlement stops lifecycle work; it is never converted to a normal processed result or followed by
 another terminal mutation.
 
+Phase 0B3C4 emits only the fixed startup event, two fixed settlement-unknown fatal events, and the
+fixed startup-failure sentence. Invalid CLI invocation is silent and never echoes argv. Output,
+exceptions, task names, representations, and cleanup diagnostics exclude URLs, credentials,
+roles, database names, owners, identifiers, payloads, results, signal values, and raw database
+evidence.
+
+The worker startup check uses only the runtime URL and a read-only transaction. It verifies exact
+catalog and effective-privilege compatibility without migration credentials or table ownership.
+Before any connection is returned, transaction inactivity or physical invalidation is confirmed;
+otherwise the captured pool is detached through `dispose(close=False)`. Unquarantined uncertainty
+hard-terminates rather than returning an unsafe connection or beginning lifecycle work.
+
+SIGINT/SIGTERM callbacks only set one event. Raw stdout/stderr descriptors remain nonblocking for
+the worker lifetime and are restored once during final cleanup. Process hard exit is restricted to
+settlement-unknown live tasks, has fixed status `1`, performs no later lifecycle call, and cannot
+be selected through job data or CLI input.
+
 ## 12. Local export/import
 
 Export may contain private location/journal data.

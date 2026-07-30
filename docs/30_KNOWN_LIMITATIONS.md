@@ -74,3 +74,14 @@ This document starts with planned limitations and must be updated as implementat
 - Core software and sources are free/open as documented.
 - Unlimited hosting, bandwidth, storage, and plate-solving compute cannot be guaranteed at zero cost.
 - Optional heavy features may be disabled on constrained deployments.
+
+## Phase 0B3C4 worker
+
+- The production registry contains only the internal deterministic `system.noop` handler.
+- One worker process executes one job at a time; concurrent job execution is intentionally absent.
+- Handlers are static; there is no dynamic loading, plugin discovery, Redis queue, internal
+  scheduler, or process supervisor.
+- Compose still contains only PostgreSQL. Operators start and supervise `lumina-worker`
+  separately.
+- Startup compatibility is intentionally exact for the accepted 0001 catalog and 0002 effective
+  privileges; incompatible schema or ACL drift fails startup.

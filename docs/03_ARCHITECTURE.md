@@ -322,6 +322,26 @@ their accepted fatal category. C3 adds no polling loop, repeated claims, stale-r
 signals, graceful process shutdown, CLI, startup event, process hard exit, engine composition, or
 public route; those remain outside this gate.
 
+Phase 0B3C4 composes those accepted capabilities into one internal sequential worker process.
+After CLI parsing, raw stdout/stderr descriptors become nonblocking for the process lifetime.
+Startup validates the exact existing `job` catalog and effective runtime privileges in one
+read-only bounded transaction, constructs the static noop registry and lifecycle services,
+installs SIGINT/SIGTERM handlers, creates one owner identity, and linearizes shutdown against the
+fixed startup event before initial recovery.
+
+The runtime performs exactly one initial recovery batch, then one due batch at
+`max(1, min(60, stale_seconds // 2))` cadence and one executor invocation at a time. Recovery,
+claim, handler, and terminal settlement never overlap. A synchronous handler-start gate decides
+whether shutdown or user-handler entry wins without an event-loop yield. Shutdown does not cancel
+recovery, claim, pre-handler setup, or terminal settlement; only a confirmed active handler causes
+one outer-executor cancellation.
+
+All process-owned task, signal, engine, output, and startup-check cleanup shares absolute bounded
+deadlines. A live task whose settlement remains unknown is never returned to ordinary async-runner
+shutdown: the worker emits only the applicable fixed fatal event, performs bounded cleanup, and
+uses the termination-only hard-exit capability exactly once. C4 changes no lifecycle SQL, schema,
+ACL, public API, handler catalog, generated contract, dependency, or Compose service.
+
 Every runtime and migration database-settings boundary accepts one normalized DNS hostname, IPv4
 literal, or IPv6 literal with an explicit port and an empty query mapping. Multi-host, socket-path,
 implicit-host, connection-target query, fragment, and ambiguous host forms are rejected before

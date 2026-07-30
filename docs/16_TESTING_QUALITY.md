@@ -232,6 +232,19 @@ failures, a heartbeat during blocked execution, attempt fencing, timeout, and re
 ownership loss with no later terminal mutation. Existing lifecycle integration suites remain the
 authoritative detailed evidence for each individual PostgreSQL capability.
 
+Phase 0B3C4 deterministic tests use events, explicit task barriers, and monotonic seams to cover
+initial recovery, derived cadence, full no-job poll delay, non-overlap, readiness and handler-start
+linearization, every shutdown phase, claimed-after-shutdown settlement, signal restoration,
+process-lifetime descriptor ownership, partial/non-writable output, and exactly-once hard
+termination. No correctness sleep is used.
+
+Guarded `lumina_test` tests execute the runtime-role startup catalog/ACL check, real initial
+recovery and sequential noop completion, claimed-after-shutdown cancellation, pool return, and
+one-owner reuse. Subprocess tests resolve the installed `lumina-worker`, promote only the guarded
+test runtime URL, await the exact complete startup line, send real SIGTERM, and assert exact
+status/output. Invalid polling and secret-bearing argv cases prove fixed or silent output. Failed
+tests use bounded child termination so no worker remains live.
+
 ## 7. Provider tests
 
 No routine CI depends on live upstream providers.

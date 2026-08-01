@@ -31,6 +31,22 @@ Exact commands are added during bootstrap. The conceptual CI gates are:
 - Playwright smoke
 - accessibility smoke
 
+Phase 0C2 runs `pnpm api:check` as the generated-contract freshness gate. The command performs two
+isolated exports and generations, verifies byte identity and TypeScript compatibility, and compares
+only the three committed generated artifacts without writing to the repository. API-client tests
+cover generated path/method typing, absence of handwritten response DTO replicas, strict runtime
+unknown-field rejection, origin validation, bounded response reading, JSON media types, timeouts,
+cancellation, and safe failure normalization. Web tests cover all four foundation status states,
+metadata-only failure, accessibility, and absence of raw-error or provider/catalog claims.
+
+Phase 0C2 Playwright status tests use one loopback stub bound to an operating-system-selected port.
+The harness proves the listener before starting Next.js, switches explicit disconnect/ready modes
+through a mode-0600 coordination file, records bounded categories for unexpected traffic, and
+requires an authenticated clean assertion before teardown. Explicit authenticated clearing exists
+only for deliberate isolation tests. Teardown retains unresolved violations as a failing outcome
+while still awaiting web child, socket, listener, and file cleanup. No PostgreSQL process is
+required for these browser tests.
+
 ### API
 
 - Ruff format/check

@@ -1,0 +1,148 @@
+{
+  "components": {
+    "schemas": {
+      "FeatureFlags": {
+        "additionalProperties": false,
+        "description": "Environment-safe public feature flags for the current phase.",
+        "properties": {},
+        "title": "FeatureFlags",
+        "type": "object"
+      },
+      "LiveResponse": {
+        "additionalProperties": false,
+        "description": "Dependency-free process liveness.",
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "LiveResponse",
+        "type": "object"
+      },
+      "MetaResponse": {
+        "additionalProperties": false,
+        "description": "Safe public application metadata.",
+        "properties": {
+          "api_version": {
+            "title": "Api Version",
+            "type": "string"
+          },
+          "application_name": {
+            "title": "Application Name",
+            "type": "string"
+          },
+          "application_version": {
+            "title": "Application Version",
+            "type": "string"
+          },
+          "build_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Build Commit"
+          },
+          "feature_flags": {
+            "$ref": "#/components/schemas/FeatureFlags"
+          }
+        },
+        "required": [
+          "application_name",
+          "application_version",
+          "api_version",
+          "feature_flags",
+          "build_commit"
+        ],
+        "title": "MetaResponse",
+        "type": "object"
+      },
+      "ReadyResponse": {
+        "additionalProperties": false,
+        "description": "Public dependency readiness.",
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ReadyResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Lumina API",
+    "version": "0.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/meta": {
+      "get": {
+        "description": "Translate resolved application metadata into its public contract.",
+        "operationId": "metadata_api_v1_meta_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Metadata"
+      }
+    },
+    "/health/live": {
+      "get": {
+        "description": "Report process liveness without checking external dependencies.",
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Live"
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "description": "Report whether the injected database probe can complete safely.",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready"
+      }
+    }
+  }
+}

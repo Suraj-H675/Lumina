@@ -8,7 +8,8 @@ activates one job-operation timeout, and Phase 0B3B2 reuses that timeout for hea
 0B3B3 adds only the result-size setting and reuses the existing operation timeout for completion
 and reconciliation. Phase 0B3C2 adds only the stale threshold and reuses the operation timeout for
 recovery. Phase 0B3C3 activates four worker/execution settings, and Phase 0B3C4 activates only the
-worker poll interval. All other variables remain planned until their owning phases.
+worker poll interval. Phase 0C2 activates one server-only web API origin. All other variables remain
+planned until their owning phases.
 
 ## Active in Phase 0B1
 
@@ -59,12 +60,27 @@ Local bootstrap generates these credentials only for a new named PostgreSQL volu
 Compose volume exists while `.env` is absent, bootstrap stops without generating replacements;
 restore the matching `.env` or use the manual recovery procedure in deployment operations.
 
-## Web public variables
+## Active in Phase 0C2 web
+
+| Variable | Required/default | Validation and behavior |
+| --- | --- | --- |
+| `LUMINA_WEB_API_ORIGIN` | Development: `http://127.0.0.1:8000`; production: required for a reachable status | Server-only exact HTTP/HTTPS origin. Credentials, non-root paths, queries, fragments, surrounding whitespace, control characters, and other schemes are rejected. A trailing root slash is normalized away. Missing or invalid production configuration renders the status as unavailable and performs no request. |
+
+The value belongs in a web-local ignored environment file when an override is needed;
+`apps/web/.env.example` contains the non-secret development value. It is intentionally absent from
+the root `.env.example`: the API owns and strictly validates the root Lumina settings, while Next.js
+loads this web-only setting from the web application boundary. `/status` reads the setting only in a
+Server Component. It is never included in a `NEXT_PUBLIC_` variable or browser bundle.
+
+Each of the three status requests has an independent five-second maximum, disables caching, accepts
+only JSON 2xx responses, and reads no more than 61,440 response bytes before generated-schema
+validation. Invalid configuration and request failures are reduced to safe public status states.
+
+## Planned web public variables
 
 Only non-secret values use `NEXT_PUBLIC_`.
 
 ```text
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 NEXT_PUBLIC_APP_ENV=development
 NEXT_PUBLIC_ENABLE_WEBGL=true
 NEXT_PUBLIC_ENABLE_IDENTIFICATION=false

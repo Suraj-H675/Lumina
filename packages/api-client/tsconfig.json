@@ -1,0 +1,11 @@
+{
+  "extends": "../config-typescript/base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2024"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["scripts/**/*.mjs", "src/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules"]
+}

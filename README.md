@@ -19,10 +19,10 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0C1 adds a foundation-only web application at `apps/web`. Its home page is intentionally
-limited to an honest under-construction statement, the project purpose, and the current foundation
-status. It has no catalog, product data, live providers, API integration, accounts, or `/status`
-route yet.
+Phase 0C2 adds a generated API contract package and an honest server-rendered `/status` route to
+the foundation-only web application. The route reports only API liveness, dependency readiness,
+and safe application metadata; it is not a provider dashboard. The web application still has no
+catalog, product data, live providers, or accounts.
 
 Before writing implementation code, read these files in order:
 
@@ -79,11 +79,23 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:e2e
+pnpm api:generate
+pnpm api:check
 pnpm check
 ```
 
 `pnpm build` creates a production build. `pnpm test` runs focused unit/component checks, and
 `pnpm test:e2e` runs the Playwright browser smoke tests.
+
+`LUMINA_WEB_API_ORIGIN` is a server-only web setting. Development defaults to
+`http://127.0.0.1:8000`; copy the safe value from `apps/web/.env.example` into a web-local ignored
+environment file only when an override is needed. Production must configure an exact HTTP or HTTPS
+origin without credentials, a path, query, or fragment. The value is never exposed through a
+`NEXT_PUBLIC_` variable.
+
+The committed OpenAPI JSON and generated TypeScript/Zod contract live in `packages/api-client`.
+`pnpm api:generate` regenerates the complete artifact set, while `pnpm api:check` verifies freshness
+without rewriting the repository.
 
 ## API development
 

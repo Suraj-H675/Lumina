@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <article className="space-y-12">
@@ -20,12 +22,20 @@ export default function HomePage() {
           Current foundation status: the accessible home page and essential route boundaries are in
           place.
         </p>
-        <a
-          className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
-          href="#about"
-        >
-          Read about this foundation
-        </a>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <a
+            className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
+            href="#about"
+          >
+            Read about this foundation
+          </a>
+          <Link
+            className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
+            href="/status"
+          >
+            Check the API foundation status
+          </Link>
+        </div>
       </section>
 
       <section

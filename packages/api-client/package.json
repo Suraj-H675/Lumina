@@ -1,0 +1,35 @@
+{
+  "name": "@lumina/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Generated Lumina API contracts and bounded server transport",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./contract": "./src/contract.ts",
+    "./generated/types": "./src/generated/types.gen.ts",
+    "./generated/zod": "./src/generated/zod.gen.ts",
+    "./transport": "./src/transport.ts"
+  },
+  "scripts": {
+    "format:check": "prettier --check package.json tsconfig.json eslint.config.mjs \"scripts/**/*.mjs\" \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "generate:types": "node scripts/generate.mjs",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@hey-api/openapi-ts": "0.99.0",
+    "@lumina/config-typescript": "workspace:*",
+    "@types/node": "24.10.0",
+    "eslint": "9.39.5",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.65.0",
+    "vitest": "4.1.10"
+  }
+}

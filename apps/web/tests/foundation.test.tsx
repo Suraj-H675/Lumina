@@ -39,6 +39,15 @@ describe("Lumina foundation home", () => {
     expect(pageText).not.toMatch(/\b\d+[,+]?\s+(objects|missions|catalog entries)\b/i);
   });
 
+  it("links to the API foundation status after C2", () => {
+    renderHome();
+
+    expect(screen.getByRole("link", { name: "Check the API foundation status" })).toHaveAttribute(
+      "href",
+      "/status",
+    );
+  });
+
   it("has one top-level heading and semantic landmarks", () => {
     renderHome();
 

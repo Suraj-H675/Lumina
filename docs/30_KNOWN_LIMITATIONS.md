@@ -6,8 +6,9 @@ This document starts with planned limitations and must be updated as implementat
 
 - Phase 0A provides workspace and toolchain foundations only; it has no running web, API,
   database, or worker service.
-- Phase 0C1 provides only the foundation home page. `/status` and generated API integration remain
-  for Phase 0C2.
+- Phase 0C2 `/status` is a dynamic, point-in-time foundation check of the committed API's liveness,
+  database readiness, and safe metadata. It does not poll, retain history, monitor providers, or
+  claim that the catalog or scientific services are operational.
 - No catalog or product data exists in the web application, and no live provider functionality is
   available.
 - Lumina currently has no project licence and is all-rights-reserved by default. Licensing must

@@ -42,6 +42,7 @@ pnpm typecheck
 pnpm test
 pnpm test:e2e
 pnpm api:generate
+pnpm api:check
 pnpm check
 
 uv sync
@@ -66,7 +67,7 @@ docker compose down -v   # explicitly destructive
 Required routes only:
 
 - `/` — honest project foundation page
-- `/status` — static/app health shell when API available
+- `/status` — dynamic, no-store API foundation health summary that remains renderable when unavailable
 - framework not-found/error/loading boundaries
 
 Home includes:
@@ -221,9 +222,10 @@ contract, Docker/Compose service, scheduler, Redis queue, or supervisor is added
 ## 10. Web/API contract generation
 
 - API OpenAPI written deterministically;
-- generated TypeScript client in `packages/api-client`;
-- script fails on uncommitted/stale generated output;
-- client can call health/meta from web;
+- generated TypeScript and Zod contract in `packages/api-client`, with no generated SDK;
+- read-only check fails on stale committed OpenAPI or generated output without consulting unrelated
+  working-tree changes;
+- bounded server-only transport can call health/meta from web;
 - no handwritten duplicate types.
 
 ## 11. CI jobs

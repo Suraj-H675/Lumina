@@ -7,7 +7,7 @@ import asyncio
 import inspect
 from collections.abc import Callable
 from types import SimpleNamespace
-from typing import cast
+from typing import NoReturn, cast
 
 import pytest
 from lumina.settings import AppSettings
@@ -20,6 +20,7 @@ from lumina.worker.composition import (
     run_worker_process,
 )
 from lumina.worker.output import WORKER_STARTUP_FAILED
+from lumina.worker.termination import TerminatorReturned
 
 
 def test_shutdown_wins_before_readiness_without_output_commitment() -> None:
@@ -75,6 +76,33 @@ class _EngineSpy:
 
     async def dispose(self) -> None:
         self.dispose_calls += 1
+
+
+class _UncooperativeEngine(_EngineSpy):
+    def __init__(self) -> None:
+        super().__init__()
+        self.cancellation_seen = asyncio.Event()
+        self.release = asyncio.Event()
+        self.dispose_task: asyncio.Task[None] | None = None
+
+    async def dispose(self) -> None:
+        self.dispose_calls += 1
+        self.dispose_task = asyncio.current_task()
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            self.cancellation_seen.set()
+            await self.release.wait()
+            raise RuntimeError("private-uncooperative-disposal") from None
+
+
+class _TerminatorSpy:
+    def __init__(self) -> None:
+        self.calls: list[int] = []
+
+    def terminate(self, status: int) -> NoReturn:
+        self.calls.append(status)
+        raise TerminatorReturned()
 
 
 class _SignalsSpy:
@@ -241,3 +269,31 @@ async def test_settled_startup_failure_still_disposes_engine(
     assert engine.dispose_calls == 1
     assert output.stdout == []
     assert output.stderr == [WORKER_STARTUP_FAILED]
+
+
+@pytest.mark.asyncio
+async def test_uncooperative_engine_disposal_hard_terminates_exactly_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    engine = _UncooperativeEngine()
+    output = _OutputSpy()
+    terminator = _TerminatorSpy()
+    _patch_pre_readiness_dependencies(monkeypatch, engine=engine)
+
+    with pytest.raises(TerminatorReturned):
+        await run_worker_process(
+            output,
+            settings_loader=_settings,
+            terminator=terminator,
+        )
+
+    assert engine.dispose_calls == 1
+    assert engine.cancellation_seen.is_set()
+    assert terminator.calls == [1]
+
+    if engine.dispose_task is not None and not engine.dispose_task.done():
+        engine.release.set()
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+    assert engine.dispose_task is not None
+    assert engine.dispose_task.done()

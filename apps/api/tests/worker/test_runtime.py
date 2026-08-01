@@ -78,6 +78,32 @@ class RecordingRecovery:
         return RecoverStaleJobsResult(requeued_count=0, dead_lettered_count=0)
 
 
+class ScriptedSchedulerTiming:
+    """Release each absolute scheduler deadline explicitly from the test."""
+
+    def __init__(self) -> None:
+        self.now = 0.0
+        self.deadlines: list[float] = []
+        self.releases: list[asyncio.Event] = []
+
+    def monotonic(self) -> float:
+        return self.now
+
+    async def sleep_until(self, deadline: float) -> None:
+        release = asyncio.Event()
+        self.deadlines.append(deadline)
+        self.releases.append(release)
+        await release.wait()
+        self.now = deadline
+
+    async def wait_for_wait(self, count: int) -> None:
+        while len(self.releases) < count:
+            await asyncio.sleep(0)
+
+    def release(self, index: int) -> None:
+        self.releases[index].set()
+
+
 class StopAfterProcessed:
     def __init__(self, events: list[str], shutdown: asyncio.Event) -> None:
         self.events = events
@@ -131,6 +157,185 @@ async def test_recovery_failure_prevents_claim() -> None:
 
     assert await runtime.run() == 1
     assert events == ["recover"]
+    assert executor.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_recovery_and_poll_deadlines_are_exact_and_recovery_does_not_burst() -> None:
+    shutdown = asyncio.Event()
+    recovery_finished = asyncio.Event()
+    timing = ScriptedSchedulerTiming()
+
+    class CadencedRecovery:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def recover(self) -> RecoverStaleJobsResult:
+            self.calls += 1
+            if self.calls == 2:
+                recovery_finished.set()
+            return RecoverStaleJobsResult(requeued_count=0, dead_lettered_count=0)
+
+    class NoJob:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def execute(self) -> NoJobExecuted:
+            self.calls += 1
+            return NoJobExecuted()
+
+    recovery = CadencedRecovery()
+    executor = NoJob()
+    runtime = WorkerRuntime(
+        recovery=recovery,
+        executor=executor,
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=2,
+        stale_seconds=10,
+        cancellation_grace_seconds=1,
+        timing=timing,
+    )
+
+    task = asyncio.create_task(runtime.run())
+    await timing.wait_for_wait(1)
+    assert timing.deadlines == [2]
+    timing.release(0)
+
+    await timing.wait_for_wait(2)
+    assert timing.deadlines == [2, 4]
+    timing.release(1)
+
+    await timing.wait_for_wait(3)
+    assert timing.deadlines == [2, 4, 5]
+    timing.release(2)
+    await recovery_finished.wait()
+
+    assert runtime.recovery_cadence_seconds == 5
+    assert recovery.calls == 2
+    assert executor.calls == 3
+
+    shutdown.set()
+    assert await task == 0
+
+
+class BlockingPhaseExecutor:
+    def __init__(
+        self,
+        *,
+        phase: ExecutionPhase,
+        observer: RuntimeExecutionObserver,
+        started: asyncio.Event,
+        release: asyncio.Event,
+    ) -> None:
+        self.phase = phase
+        self.observer = observer
+        self.started = started
+        self.release = release
+        self.calls = 0
+        self.cancellations = 0
+
+    async def execute(self) -> JobProcessed:
+        self.calls += 1
+        self.observer.mark(self.phase)
+        self.started.set()
+        try:
+            await self.release.wait()
+        except asyncio.CancelledError:
+            self.cancellations += 1
+            raise
+        return JobProcessed()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "phase",
+    [
+        ExecutionPhase.CLAIMING,
+        ExecutionPhase.PRE_HANDLER,
+        ExecutionPhase.HANDLER_ACTIVE,
+        ExecutionPhase.POST_HANDLER,
+        ExecutionPhase.TERMINAL_SETTLEMENT,
+    ],
+)
+async def test_shutdown_settles_each_inflight_execution_phase(phase: ExecutionPhase) -> None:
+    shutdown = asyncio.Event()
+    observer = RuntimeExecutionObserver()
+    started = asyncio.Event()
+    release = asyncio.Event()
+    executor = BlockingPhaseExecutor(
+        phase=phase,
+        observer=observer,
+        started=started,
+        release=release,
+    )
+    runtime = WorkerRuntime(
+        recovery=RecordingRecovery([]),
+        executor=executor,
+        shutdown_event=shutdown,
+        observer=observer,
+        fatal_termination=FatalSpy(),
+        poll_seconds=2,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+    )
+
+    task = asyncio.create_task(runtime.run())
+    await started.wait()
+    shutdown.set()
+    if phase is not ExecutionPhase.HANDLER_ACTIVE:
+        release.set()
+
+    assert await task == 0
+    assert executor.calls == 1
+    assert executor.cancellations == (1 if phase is ExecutionPhase.HANDLER_ACTIVE else 0)
+
+
+@pytest.mark.asyncio
+async def test_shutdown_waits_for_inflight_recovery_before_claiming() -> None:
+    shutdown = asyncio.Event()
+    started = asyncio.Event()
+    release = asyncio.Event()
+
+    class BlockingRecovery:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def recover(self) -> RecoverStaleJobsResult:
+            self.calls += 1
+            started.set()
+            await release.wait()
+            return RecoverStaleJobsResult(requeued_count=0, dead_lettered_count=0)
+
+    class ForbiddenExecutor:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def execute(self) -> NoJobExecuted:
+            self.calls += 1
+            raise AssertionError("claim must not start after shutdown")
+
+    recovery = BlockingRecovery()
+    executor = ForbiddenExecutor()
+    runtime = WorkerRuntime(
+        recovery=recovery,
+        executor=executor,
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=2,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+    )
+
+    task = asyncio.create_task(runtime.run())
+    await started.wait()
+    shutdown.set()
+    release.set()
+
+    assert await task == 0
+    assert recovery.calls == 1
     assert executor.calls == 0
 
 

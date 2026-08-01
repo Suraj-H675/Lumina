@@ -3,5 +3,8 @@
 .venv
 .cache
 node_modules
+apps/web/.next
+apps/web/playwright-report
+apps/web/test-results
 pnpm-lock.yaml
 uv.lock

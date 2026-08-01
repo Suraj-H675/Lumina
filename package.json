@@ -2,21 +2,27 @@
   "name": "lumina",
   "version": "0.0.0",
   "private": true,
-  "description": "Lumina repository workspace and toolchain foundation",
+  "description": "Lumina repository workspace and accessible web foundation",
   "packageManager": "pnpm@11.17.0",
   "engines": {
     "node": ">=24 <25",
     "pnpm": "11.17.0"
   },
   "scripts": {
-    "check": "pnpm run format:check && pnpm run typecheck",
+    "build": "pnpm --filter @lumina/web build",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test",
+    "dev": "pnpm --filter @lumina/web dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "lint": "pnpm --filter @lumina/web lint",
+    "test": "pnpm --filter @lumina/web test",
+    "test:e2e": "pnpm --filter @lumina/web test:e2e",
+    "typecheck": "pnpm run typecheck:root && pnpm --filter @lumina/web typecheck",
+    "typecheck:root": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@lumina/config-typescript": "workspace:*",
     "prettier": "3.9.6",
-    "typescript": "7.0.2"
+    "typescript": "6.0.3"
   }
 }

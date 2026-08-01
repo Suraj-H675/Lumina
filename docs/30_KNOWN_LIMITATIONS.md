@@ -6,6 +6,10 @@ This document starts with planned limitations and must be updated as implementat
 
 - Phase 0A provides workspace and toolchain foundations only; it has no running web, API,
   database, or worker service.
+- Phase 0C1 provides only the foundation home page. `/status` and generated API integration remain
+  for Phase 0C2.
+- No catalog or product data exists in the web application, and no live provider functionality is
+  available.
 - Lumina currently has no project licence and is all-rights-reserved by default. Licensing must
   be reconsidered before accepting outside contributions or declaring the project open source.
 

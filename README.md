@@ -19,12 +19,10 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0B3C4 completes the internal database-backed worker foundation. One `lumina-worker` process
-uses one owner identity, performs one initial stale-recovery batch, processes at most one
-`system.noop` job at a time, polls with bounded cadence, and shuts down gracefully on SIGINT or
-SIGTERM. Startup validates the existing job catalog and runtime privileges read-only. This remains
-internal infrastructure: it adds no public route, provider integration, scheduler, supervisor, new
-handler, database state, or product feature.
+Phase 0C1 adds a foundation-only web application at `apps/web`. Its home page is intentionally
+limited to an honest under-construction statement, the project purpose, and the current foundation
+status. It has no catalog, product data, live providers, API integration, accounts, or `/status`
+route yet.
 
 Before writing implementation code, read these files in order:
 
@@ -64,6 +62,28 @@ uv run pytest -q
 
 When Corepack is available, `corepack pnpm run check` is the preferred equivalent. Never use a
 pnpm version that differs from the root `packageManager` field.
+
+## Web development
+
+The Next.js App Router application lives in `apps/web`.
+
+```sh
+pnpm dev
+```
+
+The development site is available at `http://127.0.0.1:3000`.
+
+```sh
+pnpm build
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm check
+```
+
+`pnpm build` creates a production build. `pnpm test` runs focused unit/component checks, and
+`pnpm test:e2e` runs the Playwright browser smoke tests.
 
 ## API development
 

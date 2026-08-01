@@ -5,9 +5,10 @@ from __future__ import annotations
 import ast
 import asyncio
 import inspect
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
+from contextvars import Context
 from types import SimpleNamespace
-from typing import NoReturn, cast
+from typing import Any, NoReturn, cast
 
 import pytest
 from lumina.settings import AppSettings
@@ -92,8 +93,93 @@ class _UncooperativeEngine(_EngineSpy):
             await asyncio.Event().wait()
         except asyncio.CancelledError:
             self.cancellation_seen.set()
-            await self.release.wait()
+            while True:
+                try:
+                    await self.release.wait()
+                    break
+                except asyncio.CancelledError:
+                    self.cancellation_seen.set()
             raise RuntimeError("private-uncooperative-disposal") from None
+
+
+class _ObservedTask(asyncio.Task[Any]):
+    def __init__(
+        self,
+        # asyncio's task-factory protocol is Any-typed at this instrumentation boundary.
+        coro: Coroutine[Any, Any, Any],
+        *,
+        loop: asyncio.AbstractEventLoop,
+        context: Context | None,
+        exception_consumed: asyncio.Event,
+    ) -> None:
+        super().__init__(coro, loop=loop, context=context)
+        self.exception_reads = 0
+        self.exception_consumed = exception_consumed
+
+    def exception(self) -> BaseException | None:
+        if self.get_name() == "lumina.worker.engine-disposal":
+            self.exception_reads += 1
+            self.exception_consumed.set()
+        return super().exception()
+
+
+class _DeterministicTimeout:
+    def __init__(
+        self,
+        deadline: float,
+        created: asyncio.Event,
+        *,
+        fail_on_enter: bool,
+    ) -> None:
+        self.deadline = deadline
+        self.created = created
+        self.fail_on_enter = fail_on_enter
+        self.task: asyncio.Task[object] | None = None
+        self.expired = False
+
+    async def __aenter__(self) -> _DeterministicTimeout:
+        self.task = asyncio.current_task()
+        self.created.set()
+        if self.fail_on_enter:
+            raise TimeoutError()
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: object | None,
+    ) -> bool:
+        del exc_value, traceback
+        if self.expired and exc_type is asyncio.CancelledError:
+            current = asyncio.current_task()
+            if current is not None:
+                current.uncancel()
+            raise TimeoutError()
+        return False
+
+    def expire(self) -> None:
+        self.expired = True
+        assert self.task is not None
+        self.task.cancel()
+
+
+class _TimeoutController:
+    def __init__(self) -> None:
+        self.created = asyncio.Event()
+        self.second_created = asyncio.Event()
+        self.contexts: list[_DeterministicTimeout] = []
+
+    def __call__(self, deadline: float) -> _DeterministicTimeout:
+        context = _DeterministicTimeout(
+            deadline,
+            self.created,
+            fail_on_enter=len(self.contexts) >= 2,
+        )
+        self.contexts.append(context)
+        if len(self.contexts) == 2:
+            self.second_created.set()
+        return context
 
 
 class _TerminatorSpy:
@@ -274,26 +360,71 @@ async def test_settled_startup_failure_still_disposes_engine(
 @pytest.mark.asyncio
 async def test_uncooperative_engine_disposal_hard_terminates_exactly_once(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     engine = _UncooperativeEngine()
     output = _OutputSpy()
     terminator = _TerminatorSpy()
     _patch_pre_readiness_dependencies(monkeypatch, engine=engine)
+    loop = asyncio.get_running_loop()
+    observed_tasks: list[_ObservedTask] = []
+    exception_consumed = asyncio.Event()
 
-    with pytest.raises(TerminatorReturned):
-        await run_worker_process(
+    def task_factory(
+        task_loop: asyncio.AbstractEventLoop,
+        coro: Coroutine[Any, Any, Any],
+        context: Context | None = None,
+    ) -> _ObservedTask:
+        task = _ObservedTask(
+            coro,
+            loop=task_loop,
+            context=context,
+            exception_consumed=exception_consumed,
+        )
+        observed_tasks.append(task)
+        return task
+
+    previous_factory = loop.get_task_factory()
+    loop.set_task_factory(task_factory)
+    timeout = _TimeoutController()
+    monkeypatch.setattr("lumina.worker.composition.asyncio.timeout_at", timeout)
+
+    process_task = asyncio.create_task(
+        run_worker_process(
             output,
             settings_loader=_settings,
             terminator=terminator,
         )
+    )
+    try:
+        await timeout.created.wait()
+        assert len(timeout.contexts) == 1
+        timeout.contexts[0].expire()
+        await engine.cancellation_seen.wait()
+        await timeout.second_created.wait()
+        timeout.contexts[1].expire()
+
+        with pytest.raises(TerminatorReturned):
+            await process_task
+    finally:
+        loop.set_task_factory(previous_factory)
 
     assert engine.dispose_calls == 1
     assert engine.cancellation_seen.is_set()
     assert terminator.calls == [1]
-
-    if engine.dispose_task is not None and not engine.dispose_task.done():
-        engine.release.set()
-        await asyncio.sleep(0)
-        await asyncio.sleep(0)
     assert engine.dispose_task is not None
-    assert engine.dispose_task.done()
+    assert engine.dispose_task in observed_tasks
+    observed_disposal = next(
+        task for task in observed_tasks if task.get_name() == "lumina.worker.engine-disposal"
+    )
+    engine.release.set()
+    await exception_consumed.wait()
+    assert observed_disposal.done()
+    # The graceful cleanup and the hard-termination cleanup each attach the
+    # production eventual consumer to the same still-live disposal task.
+    assert observed_disposal.exception_reads == 2
+    assert all(
+        "private-uncooperative-disposal" not in record.getMessage() for record in caplog.records
+    )
+    assert "private-uncooperative-disposal" not in b"".join(output.stdout).decode()
+    assert "private-uncooperative-disposal" not in b"".join(output.stderr).decode()

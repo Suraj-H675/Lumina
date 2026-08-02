@@ -18,6 +18,8 @@ contributions or declaring Lumina open source.
 Every non-original asset entry must include:
 
 ```yaml
+manifest_type: asset
+manifest_schema_version: 1
 id:
 title:
 asset_type:
@@ -37,13 +39,21 @@ review_status:
 
 Build fails for published local assets missing credit/licence.
 
+Phase 0C3 treats `licence_url`, `downloaded_at`, and `checksum` as required keys that may contain
+explicit `null`. `entity_ids` is a required ordered collection of opaque strings and may be empty;
+it does not create or resolve canonical entities. `review_status`, `licence`, and `asset_type` are
+nonblank documentary text, not invented enums. `local_path_or_url` is either an absolute HTTP(S)
+URL without user information or a safe repository-relative path.
+
 ## 3. Data manifest
 
 Every dataset/kernel includes:
 
 ```yaml
-provider:
-dataset:
+manifest_type: data
+manifest_schema_version: 1
+source_id:
+dataset_id:
 release_version:
 official_url:
 documentation_url:
@@ -56,6 +66,17 @@ checksum:
 parser_version:
 usage_notes:
 ```
+
+Each Phase 0C3 data manifest owns exactly one release identified by
+`(source_id, dataset_id, release_version)` and references one source manifest. `local_file` and
+`checksum` are independently required nullable keys; C3 does not invent a relationship between
+them. Terms, citation, coverage, and usage notes remain exact documentary text.
+
+The third executable shape is `SourceManifest`, which records the provider identity, official and
+terms URLs, attribution, documentary operational policies, adapter and provider-schema versions,
+normalized fields, limitations, verification time, and declared `lookup`/`batch_fetch`
+capabilities. These fields are non-executable in C3. All three shapes reject unknown fields and
+unsupported manifest schema versions and use canonical UTF-8 JSON.
 
 ## 4. NASA
 

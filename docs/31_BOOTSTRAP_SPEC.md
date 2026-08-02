@@ -228,6 +228,18 @@ contract, Docker/Compose service, scheduler, Redis queue, or supervisor is added
 - bounded server-only transport can call health/meta from web;
 - no handwritten duplicate types.
 
+## 10A. Phase 0C3 provenance boundary
+
+Phase 0C3 provenance is file-backed and database-free. Production code contains three immutable
+Pydantic manifest contracts and the request/raw-payload/validated-payload/result provider protocol.
+The production manifest root is empty-valid and checked by a read-only fixed-root command. The only
+provider implementation and all fictional data remain under tests.
+
+This gate adds no settings or environment variables, production provider, registry, network call,
+cache execution, database table or migration, API route or OpenAPI shape, generated client file,
+worker handler, job, scheduler, Docker service, or UI. Root `pnpm check` composition remains
+unchanged until Phase 0C4.
+
 ## 11. CI jobs
 
 Suggested separate jobs:

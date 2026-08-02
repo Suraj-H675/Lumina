@@ -265,6 +265,16 @@ tests use bounded child termination so no worker remains live.
 
 No routine CI depends on live upstream providers.
 
+Phase 0C3 focused tests validate three independently discriminated immutable manifests, canonical
+JSON, cross-file source references, safe diagnostics, the request/raw/validated/normalized provider
+boundary, and deterministic lookup/batch behavior from fictional fixtures. They are intentionally
+PostgreSQL-free. Architecture guards keep the fake and fixture data outside production imports and
+the wheel.
+
+`pnpm manifests:check` is the standalone read-only production-manifest gate. An empty production
+set passes. Phase 0C4 will compose this command into root `pnpm check`; Phase 0C3 does not change
+that composition.
+
 Use sanitized fixtures for:
 
 - normal response;

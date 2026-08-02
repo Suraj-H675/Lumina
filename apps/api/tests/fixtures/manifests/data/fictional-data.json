@@ -1,0 +1,17 @@
+{
+  "checksum": null,
+  "citation": "Lumina fictional scalar fixtures, fixture release v1; test-only and not scientific data.",
+  "coverage": "Four fictional scalar cases used only to test deterministic contract behavior.",
+  "dataset_id": "fictional-scalar-fixtures",
+  "documentation_url": "https://fixtures.invalid/lumina/dataset-documentation",
+  "local_file": null,
+  "manifest_schema_version": 1,
+  "manifest_type": "data",
+  "official_url": "https://fixtures.invalid/lumina/fictional-dataset",
+  "parser_version": "fixture-parser-v1",
+  "release_version": "fixture-release-v1",
+  "retrieved_at": "2026-01-15T00:00:00Z",
+  "source_id": "lumina-fixture-source",
+  "terms_or_licence": "Fictional test-only content owned by this repository; no external scientific material is included.",
+  "usage_notes": "Use only in tests; never present these fictional values as production or scientific data."
+}

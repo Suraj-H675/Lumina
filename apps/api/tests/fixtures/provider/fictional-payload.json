@@ -1,0 +1,39 @@
+{
+  "records": [
+    {
+      "dataset_id": "fictional-scalar-fixtures",
+      "fictional_label": "Fictional integer case",
+      "fictional_value": 17,
+      "fixture_id": "integer-case",
+      "release_version": "fixture-release-v1",
+      "source_id": "lumina-fixture-source"
+    },
+    {
+      "dataset_id": "fictional-scalar-fixtures",
+      "fictional_label": "Fictional null case",
+      "fictional_value": null,
+      "fixture_id": "null-case",
+      "release_version": "fixture-release-v1",
+      "source_id": "lumina-fixture-source"
+    },
+    {
+      "dataset_id": "fictional-scalar-fixtures",
+      "fictional_label": "Fictional string case",
+      "fictional_value": "café-fixture",
+      "fixture_id": "string-case",
+      "release_version": "fixture-release-v1",
+      "source_id": "lumina-fixture-source"
+    },
+    {
+      "dataset_id": "fictional-scalar-fixtures",
+      "fictional_label": "Fictional true case",
+      "fictional_value": true,
+      "fixture_id": "true-case",
+      "release_version": "fixture-release-v1",
+      "source_id": "lumina-fixture-source"
+    }
+  ],
+  "scientific_data": false,
+  "source_schema_version": "fixture-payload-v1",
+  "test_only": true
+}

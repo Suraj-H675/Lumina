@@ -99,6 +99,18 @@ cleanup, silent invalid CLI invocation, exact exit codes, and exactly-once hard 
 does not return through ordinary async-runner shutdown. Guarded PostgreSQL and real subprocess
 tests must pass against `lumina_test`.
 
+Phase 0C3 adds exactly three strict file-backed manifest contracts (`SourceManifest`,
+`DataManifest`, and `AssetManifest`), a transport-neutral provider protocol, a deterministic
+test-only fake, fictional fixtures, and a read-only fixed-root manifest validator. Production
+manifests remain empty; no live provider, network behavior, database model, API contract, worker
+integration, or scientific record model is introduced.
+
+The Phase 0C3 gate requires strict/canonical manifest parsing, safe deterministic validator
+diagnostics, valid cross-file source references, explicit fetch/validation/normalization separation,
+fake lookup and batch determinism, test/production packaging isolation, the standalone
+`pnpm manifests:check` command, and the full existing regression suite. Phase 0C4 owns adding that
+standalone command to the root `check` composition.
+
 ### Goal
 
 A clean, reproducible monorepo with no false product claims.

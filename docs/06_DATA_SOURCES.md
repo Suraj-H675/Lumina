@@ -27,6 +27,20 @@ Every adapter must record:
 
 All provider calls are server-side unless explicitly approved.
 
+### Phase 0C3 static source declarations
+
+Phase 0C3 implements a strict immutable `SourceManifest` for the documentary declarations above.
+It identifies one source and one adapter version, declares only `lookup` and `batch_fetch`
+capabilities, and records normalized output field names. Its endpoint, authentication, fair-use,
+cache, refresh, timestamp, failure, fixture, and limitation fields are required documentation, not
+runtime configuration. A nullable endpoint supports the networkless fictional test source.
+
+`DataManifest` separately owns one exact `(source_id, dataset_id, release_version)` and must
+reference a source in the same validated file set. `AssetManifest` is independent. Phase 0C3 adds
+no provider execution policy, records, measurements, units, canonical entities, database storage,
+or live source. Runtime timeouts, retries, rate limiting, cache execution, scheduling, status, and
+metrics remain Phase 4A.
+
 ## 2. Source priority by purpose
 
 ### Canonical identity and aliases

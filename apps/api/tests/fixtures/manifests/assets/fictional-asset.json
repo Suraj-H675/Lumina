@@ -1,0 +1,19 @@
+{
+  "asset_type": "fictional test diagram",
+  "checksum": null,
+  "creator": "Lumina test fixture maintainers",
+  "credit_line": "Fictional Lumina test-only asset; not a photograph or scientific image.",
+  "downloaded_at": null,
+  "entity_ids": [],
+  "id": "lumina-fictional-asset",
+  "licence": "Repository-owned fictional test fixture; not third-party media.",
+  "licence_url": null,
+  "local_path_or_url": "https://fixtures.invalid/lumina/fictional-asset.svg",
+  "manifest_schema_version": 1,
+  "manifest_type": "asset",
+  "modifications": [],
+  "review_status": "Test-only fictional fixture reviewed for Phase 0C3 contract coverage.",
+  "source_page": "https://fixtures.invalid/lumina/fictional-asset-source",
+  "title": "Fictional Lumina Contract Diagram",
+  "usage_notes": "Use only for manifest validation tests; no production asset is approved."
+}

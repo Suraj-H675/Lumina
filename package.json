@@ -17,6 +17,7 @@
     "format": "prettier --write . '!packages/api-client/openapi/openapi.json'",
     "format:check": "prettier --check . '!packages/api-client/openapi/openapi.json'",
     "lint": "pnpm --filter @lumina/api-client lint && pnpm --filter @lumina/web lint",
+    "manifests:check": "uv run python scripts/data/validate_manifests.py",
     "test": "pnpm --filter @lumina/api-client test && pnpm --filter @lumina/web test",
     "test:e2e": "pnpm --filter @lumina/web test:e2e",
     "typecheck": "pnpm run typecheck:root && pnpm --filter @lumina/api-client typecheck && pnpm --filter @lumina/web typecheck",

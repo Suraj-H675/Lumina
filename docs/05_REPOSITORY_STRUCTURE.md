@@ -105,6 +105,13 @@ termination, and internal CLI under `apps/api/src/lumina/worker`. Its tests live
 `apps/api/tests/worker` and `apps/api/tests/integration/jobs/test_worker.py`. No worker service is
 added to Compose and no later-phase module is created.
 
+Phase 0C3 adds `lumina/provenance/domain` for the three manifest contracts and provider protocol,
+and `scripts/data/validate_manifests.py` for read-only production-manifest validation. The
+production `data/manifests` root contains only its README because no real manifest is approved.
+The deterministic provider fake lives only in `apps/api/tests/fakes`; fictional JSON lives only in
+`apps/api/tests/fixtures/manifests` and `apps/api/tests/fixtures/provider`; focused tests live in
+`apps/api/tests/provenance`. None of those test paths enter the `lumina-api` wheel.
+
 ## Ownership
 
 ### `apps/web`
@@ -137,7 +144,8 @@ Sanitized deterministic tests. Never production.
 
 ### `data/manifests`
 
-Source, kernel, media, and licensing manifests.
+Human-reviewed source, exact-release data, asset, kernel, media, and licensing manifests. Phase
+0C3's root is empty-valid and contains no production JSON.
 
 ### `migrations`
 

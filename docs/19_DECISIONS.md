@@ -251,6 +251,22 @@ invokes one hard terminator before ordinary async-runner shutdown. The CLI has e
 and exit codes. No lifecycle SQL, migration, ACL, state, handler, dependency, public route,
 generated contract, Compose service, internal scheduler, queue, or supervisor changes.
 
+## ADR-029 — Phase 0C3 file-backed provenance manifests and provider boundary
+
+**Status:** Accepted
+**Date:** 2026-08-02
+**Decision:** Define three independently discriminated, strict, immutable Pydantic contracts for
+one source, one exact dataset release, and one asset. Python owns their canonical JSON parser and
+serializer. A generic provider protocol separates typed request, untrusted fetched object, strict
+payload validation, and provider-isolated normalization. The only implementation is a deterministic
+fictional fake under tests.
+**Consequences:** Source manifests own documentary adapter metadata and capabilities; data
+manifests reference a source by exact identity; asset manifests remain independent. The production
+manifest root is empty-valid and its validator is read-only and fixed-root. C3 adds no live
+provider, network policy, runtime registry, scientific record/measurement model, database, API,
+worker, generated schema, dependency, or lockfile change. Root-check composition remains Phase
+0C4.
+
 ## ADR template
 
 ```text

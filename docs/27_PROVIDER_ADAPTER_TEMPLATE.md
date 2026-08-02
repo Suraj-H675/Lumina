@@ -2,6 +2,27 @@
 
 Copy this section into a provider implementation design before writing the adapter.
 
+## Phase 0C3 boundary
+
+Phase 0C3 defines only this transport-neutral sequence:
+
+```text
+typed request
+  -> await fetch(request) -> untrusted object
+  -> validate_payload(object) -> strict provider payload DTO
+  -> normalize(request, payload) -> provider-isolated result
+```
+
+The adapter exposes one `SourceManifest`; its capabilities are the sole operation declaration.
+Fetch cannot claim a validated payload type, malformed payloads cannot reach normalization, and no
+provider payload crosses a public API boundary. The deterministic fictional adapter under tests
+implements `lookup` and `batch_fetch` without filesystem or network access.
+
+Timeouts, retries, concurrency, rate limits, pagination, cache execution, credentials, schedules,
+provider status, metrics, registries, and real implementations remain Phase 4A. The template below
+continues to define that future per-provider design work; its operational entries are not supplied
+by the C3 protocol.
+
 ## Provider summary
 
 - Provider:

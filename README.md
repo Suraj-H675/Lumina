@@ -19,10 +19,10 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0C2 adds a generated API contract package and an honest server-rendered `/status` route to
-the foundation-only web application. The route reports only API liveness, dependency readiness,
-and safe application metadata; it is not a provider dashboard. The web application still has no
-catalog, product data, live providers, or accounts.
+Phase 0C3 adds strict source, data-release, and asset manifest contracts plus a transport-neutral
+provider boundary. A deterministic fictional provider exists only in tests. The production
+manifest root is intentionally empty, and Lumina still has no catalog, product data, live
+providers, provider dashboard, or accounts.
 
 Before writing implementation code, read these files in order:
 
@@ -56,7 +56,7 @@ of reading `uv.lock`. pnpm is pinned exactly by the root `packageManager` field.
 npm exec --yes --prefer-offline --cache .cache/npm --package=pnpm@11.17.0 -- pnpm run check
 uv run ruff format --check .
 uv run ruff check .
-uv run mypy apps/api/src apps/api/tests
+uv run mypy apps/api/src apps/api/tests scripts/data
 uv run pytest -q
 ```
 
@@ -81,6 +81,7 @@ pnpm test
 pnpm test:e2e
 pnpm api:generate
 pnpm api:check
+pnpm manifests:check
 pnpm check
 ```
 
@@ -96,6 +97,10 @@ origin without credentials, a path, query, or fragment. The value is never expos
 The committed OpenAPI JSON and generated TypeScript/Zod contract live in `packages/api-client`.
 `pnpm api:generate` regenerates the complete artifact set, while `pnpm api:check` verifies freshness
 without rewriting the repository.
+
+`pnpm manifests:check` independently validates only `data/manifests`. Phase 0C3 approves no real
+production manifests, so the documented empty set is valid. This command is intentionally not part
+of root `pnpm check` until Phase 0C4.
 
 ## API development
 

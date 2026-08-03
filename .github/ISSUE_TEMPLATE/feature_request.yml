@@ -1,0 +1,61 @@
+name: Feature request
+description: Propose a phase-aligned, scientifically grounded Lumina outcome.
+title: "feature: "
+labels: [enhancement, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requests must respect Lumina's no-LLM, free-core, local-first, provenance, accessibility,
+        and phased-delivery requirements. A future roadmap item is not automatically in current scope.
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: Describe what a user should be able to accomplish and why it matters.
+    validations:
+      required: true
+  - type: input
+    id: phase
+    attributes:
+      label: Roadmap phase
+      description: Identify the roadmap phase or explain the minimum prerequisite.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Scientific and data basis
+      description: Identify deterministic calculations, curated content, official data, provenance, licences, and uncertainty needs.
+    validations:
+      required: true
+  - type: textarea
+    id: degraded
+    attributes:
+      label: Accessibility and degraded behavior
+      description: Cover keyboard, screen reader, reduced motion, high contrast, 2D/text fallback, offline, and provider-failure behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy, security, and cost
+      description: Explain data collection, location/upload handling, external services, free-core constraints, and resource limits.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and scope boundaries
+      description: Note simpler outcomes, explicitly deferred work, and why existing features are insufficient.
+    validations:
+      required: true
+  - type: checkboxes
+    id: invariants
+    attributes:
+      label: Product invariants
+      options:
+        - label: This does not require an LLM, generative content, a paid core API, or a public social network.
+          required: true
+        - label: Core use remains accessible without animation or 3D and does not require an account.
+          required: true

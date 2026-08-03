@@ -1,0 +1,62 @@
+name: Scientific or data issue
+description: Report a possible scientific value, provenance, attribution, or classification problem.
+title: "data: "
+labels: [data, needs-review]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Lumina distinguishes measurements, estimates, models, hypotheses, artist impressions, and
+        unknowns. Do not paste copyrighted source text, credentials, exact private locations, or
+        unpublished personal data.
+  - type: input
+    id: location
+    attributes:
+      label: Lumina record or location
+      description: Give the entity ID, manifest path, field, calculation, or page without private user data.
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Issue category
+      options:
+        - Scientific value or unit
+        - Source or provenance
+        - Uncertainty or bounds
+        - Freshness or timestamp
+        - Media credit or licence
+        - Measurement/model classification
+        - Provider parsing or normalization
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current presentation
+      description: State the value, unit, classification, freshness, or attribution currently shown.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Primary evidence
+      description: Link official documentation, a paper, or an authoritative data release and include its date/version.
+    validations:
+      required: true
+  - type: textarea
+    id: conflict
+    attributes:
+      label: Conflicting measurements or interpretation
+      description: Preserve alternatives, uncertainties, and source timestamps; do not silently choose a best value.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have not included secrets, private content, or an exact personal location.
+          required: true
+        - label: I identified uncertainty and source/version details where available instead of inventing them.
+          required: true

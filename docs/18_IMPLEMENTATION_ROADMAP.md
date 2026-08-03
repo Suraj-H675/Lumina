@@ -111,6 +111,29 @@ fake lookup and batch determinism, test/production packaging isolation, the stan
 `pnpm manifests:check` command, and the full existing regression suite. Phase 0C4 owns adding that
 standalone command to the root `check` composition.
 
+Phase 0C4 adds only deterministic repository acceptance infrastructure: the root check composition,
+candidate-aware documentation links, immutable migration-history validation, pinned GitHub Actions,
+full-history/current-candidate secret scanning, canonical-lockfile vulnerability scanning,
+contribution templates, and explicit job cleanup/cleanliness evidence. It changes no application,
+database, migration, API, client, UI, worker, provider, manifest contract, or production-data
+boundary. The sole remediation exception is three parent-qualified pnpm overrides in
+`pnpm-workspace.yaml` with their effective `pnpm-lock.yaml` graph: they replace only
+`@hey-api/json-schema-ref-parser@1.4.4 > js-yaml`, `next@16.2.12 > postcss`, and
+`next@16.2.12 > sharp`, leave every package manifest unchanged, and add no application dependency.
+
+The Phase 0C4 gate requires all official actions and scanner images to use reviewed immutable
+references; exact Node, pnpm, Python, uv, and Playwright runtime verification; one cache owner per
+ecosystem followed by frozen installs; full non-shallow committed-history and current-candidate
+secret scopes with fixed non-leaking output; OSV access to only the two canonical lockfiles;
+tracked/nonignored-untracked documentation discovery; unchanged accepted migration checksums; real
+PostgreSQL migration/integration tests; Chromium-only accessible E2E; explicit cleanup; and exact
+post-cleanup repository cleanliness. The local unstaged acceptance gate must retain exactly the 25
+authorized C4 paths: the prior 20 acceptance-infrastructure paths plus `pnpm-workspace.yaml`,
+`pnpm-lock.yaml`, and the three test files containing current fictional URI inputs. It must not
+mutate any protected application, schema, contract, fixture, or production-manifest path. Hosted CI
+verification and a final finding-only Phase 0 review are follow-up actions, not evidence fabricated
+by the implementation commit.
+
 ### Goal
 
 A clean, reproducible monorepo with no false product claims.

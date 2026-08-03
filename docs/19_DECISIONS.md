@@ -267,6 +267,27 @@ provider, network policy, runtime registry, scientific record/measurement model,
 worker, generated schema, dependency, or lockfile change. Root-check composition remains Phase
 0C4.
 
+## ADR-030 — Phase 0C4 deterministic repository acceptance
+
+**Status:** Accepted
+**Date:** 2026-08-02
+**Decision:** Compose generated-client, production-manifest, candidate-aware documentation, and
+immutable migration checks into the root repository gate. Add four isolated GitHub checkout jobs
+plus a checkout-free acceptance aggregator. Pin official actions by commit, scanners by top-level
+multi-platform image digest, and runtime tools explicitly. Scan both committed history and the
+complete nonignored filesystem candidate for secrets, scan only canonical lockfiles for known
+vulnerabilities, and require job-specific cleanup followed by exact clean-tree assertions.
+**Consequences:** setup-node exclusively owns the pnpm-store cache and setup-uv exclusively owns the
+uv cache; frozen lock validation follows every restore. Security requires full Git history and
+Docker, keeps raw results private, distinguishes findings from scanner failures, and gives OSV
+advisory-network access without mounting source. Documentation validation includes modified and
+nonignored untracked Markdown without querying external URLs. Accepted migrations 0001 and 0002
+remain checksum-locked. C4 changes no package manifest, application, migration, API, client, UI,
+worker, provider, manifest, or scientific-data behavior. Its narrow security-remediation exception
+uses exactly three parent-qualified pnpm overrides in `pnpm-workspace.yaml` and the matching
+`pnpm-lock.yaml` graph, with no unqualified or package-wide override. Hosted execution remains
+separate evidence after the implementation commit.
+
 ## ADR template
 
 ```text

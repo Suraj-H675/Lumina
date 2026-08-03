@@ -13,6 +13,17 @@ This document starts with planned limitations and must be updated as implementat
   available.
 - Lumina currently has no project licence and is all-rights-reserved by default. Licensing must
   be reconsidered before accepting outside contributions or declaring the project open source.
+- Phase 0C4 defines the hosted GitHub Actions workflow but local implementation checks do not prove
+  a hosted runner execution or deployment. Hosted CI verification remains a separately authorized
+  follow-up.
+- The security gate requires Docker, a non-shallow Git checkout, registry access for the two pinned
+  scanner images, and OSV advisory-network access. Network or scanner failures fail closed with a
+  distinct execution-error status; there is no offline vulnerability-database mirror.
+- Secret scanning covers committed `HEAD` history plus the current tracked/nonignored candidate.
+  Ignored local files are intentionally absent from the candidate snapshot and must still be
+  protected by local handling and hosting-platform secret controls.
+- Automated dependency, secret, documentation, accessibility, and E2E checks reduce risk but do not
+  prove that the software is vulnerability-free, scientifically correct, or WCAG compliant.
 
 ## Product scope
 

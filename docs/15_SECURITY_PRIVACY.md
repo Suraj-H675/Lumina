@@ -137,6 +137,49 @@ CI:
 
 A vulnerability is triaged by exploitability and affected path, not ignored solely because it is transitive.
 
+Phase 0C4 makes dependency and secret scanning a mandatory, fail-closed CI job through
+`pnpm security:check`. The wrapper uses these immutable multi-platform image references:
+
+- TruffleHog 3.96.0:
+  `ghcr.io/trufflesecurity/trufflehog:3.96.0@sha256:aa821cf4ace8861c7d096d83818cdf7bb9719028a52d37a52eaad44086a52577`
+  (AGPL-3.0);
+- OSV Scanner v2.4.0:
+  `ghcr.io/google/osv-scanner:v2.4.0@sha256:5116601dedc01c1c580eb92371883ec052fc4c13c3fbc109d621a63ac416d475`
+  (Apache-2.0).
+
+The TruffleHog history scope requires a non-shallow repository with a valid nonempty `HEAD` and
+scans `git file:///repo --branch=HEAD`. A second filesystem scope is built with NUL-safe Git and GNU
+tar operations from tracked files, tracked working-tree modifications, and nonignored untracked
+files. Deleted and ignored files are excluded; this keeps ignored `.env`, `.venv`, `node_modules`,
+`.next`, and Playwright output outside the candidate snapshot. Symlinks are preserved rather than
+dereferenced.
+
+Both TruffleHog scopes run in read-only containers with no network, a bounded temporary filesystem,
+verification disabled, verification caching disabled, self-update disabled, every result class
+enabled, and scan errors configured to fail. Exit 183 is a finding; any other nonzero exit is an
+execution failure. Exit zero with result output is also an execution failure because it contradicts
+the scanner contract. Both scopes run even when the first finds a secret, and an execution failure
+takes precedence over findings in the wrapper's final status.
+
+OSV Scanner receives read-only mounts for exactly `pnpm-lock.yaml` and `uv.lock`, plus one private
+output directory. It receives advisory-network access because dependency resolution queries OSV;
+no source tree, environment file, or credential mount is available to it. Exit zero is clean, exit
+one is a vulnerability finding, and other nonzero statuses are execution failures. Absence or parse
+failure of either canonical lockfile, or an absent, empty, or malformed scanner JSON result, fails
+the gate.
+
+The only accepted historical TruffleHog results are five exact `URI` detector tuples, each matched
+by detector, immutable commit, repository-relative path, and line. Current fictional URI inputs use
+inline scanner-ignore comments only; a detector, commit, path, or line near miss remains a finding.
+No path-wide, detector-wide, or advisory suppression is permitted.
+
+All scanner stdout, stderr, result JSON, candidate data, and metadata use one mode-0700 temporary
+root with mode-0600 result files. `EXIT`, `HUP`, `INT`, and `TERM` cleanup removes that exact root.
+Terminal output contains only scanner, scope, fixed result class, relevant exit status, and JSON
+line count; it never includes a path, detector payload, suspected secret, raw JSON, or scanner
+stderr. Wrapper exit 10 means findings only, while exit 20 means preflight or scanner execution
+failure. Neither is permitted to pass the mandatory job.
+
 ## 9. Database
 
 - least-privilege runtime role;

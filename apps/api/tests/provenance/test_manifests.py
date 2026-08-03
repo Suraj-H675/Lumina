@@ -17,6 +17,7 @@ from lumina.provenance.domain.manifests import (
 from pydantic import ValidationError
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "manifests"
+_INVALID_TERMS_URL = "https://user:secret@fixtures.invalid/terms"  # trufflehog:ignore
 
 
 def _fixture(kind: str) -> bytes:
@@ -65,7 +66,7 @@ def test_each_manifest_constructs_independently_and_union_discriminates() -> Non
         ({"purpose": "bad\ntext"}, "purpose"),
         ({"official_documentation_url": "relative/path"}, "official_documentation_url"),
         (
-            {"terms_or_licence_url": "https://user:secret@fixtures.invalid/terms"},
+            {"terms_or_licence_url": _INVALID_TERMS_URL},
             "terms_or_licence_url",
         ),
         ({"last_verified_at": "2026-01-15T01:00:00+01:00"}, "last_verified_at"),

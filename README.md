@@ -19,10 +19,11 @@ Lumina does **not** use an LLM, generative-AI assistant, or AI-wrapper architect
 
 This repository begins as a clean rebuild. The previous Lumina prototype is not an architectural dependency and must not be copied into this repository unless a specific asset is reviewed and approved.
 
-Phase 0C3 adds strict source, data-release, and asset manifest contracts plus a transport-neutral
-provider boundary. A deterministic fictional provider exists only in tests. The production
-manifest root is intentionally empty, and Lumina still has no catalog, product data, live
-providers, provider dashboard, or accounts.
+Phase 0C4 adds deterministic repository acceptance gates, immutable GitHub Actions references,
+candidate-aware documentation validation, immutable migration checks, dependency and secret
+scanning, and contribution templates. The Phase 0C3 manifest boundary remains unchanged: its only
+provider is a deterministic test fake, the production manifest root is empty, and Lumina still has
+no catalog, product data, live providers, provider dashboard, or accounts.
 
 Before writing implementation code, read these files in order:
 
@@ -48,15 +49,18 @@ Before writing implementation code, read these files in order:
 
 ## Local setup
 
-Required tool families are Node.js 24.x active LTS, Python 3.12.x, and a maintained uv capable
-of reading `uv.lock`. pnpm is pinned exactly by the root `packageManager` field.
+Required tool families are Node.js 24.x active LTS and Python 3.12.x. Phase 0C4 CI uses exact
+Node.js 24.16.0, Python 3.12.13, pnpm 11.17.0, and uv 0.12.1; local acceptance accepts Node major
+24, requires pnpm 11.17.0, and accepts only semantic uv release 0.12.1 (with optional official
+trailing metadata). pnpm is pinned by the root `packageManager` field; the CI workflow
+independently pins uv and verifies each runtime before installing dependencies.
 
 ```sh
 ./scripts/bootstrap/setup.sh
 npm exec --yes --prefer-offline --cache .cache/npm --package=pnpm@11.17.0 -- pnpm run check
 uv run ruff format --check .
 uv run ruff check .
-uv run mypy apps/api/src apps/api/tests scripts/data
+uv run mypy apps/api/src apps/api/tests scripts/bootstrap scripts/data scripts/openapi scripts/ci
 uv run pytest -q
 ```
 
@@ -82,6 +86,9 @@ pnpm test:e2e
 pnpm api:generate
 pnpm api:check
 pnpm manifests:check
+pnpm docs:check
+pnpm migrations:check
+pnpm security:check
 pnpm check
 ```
 
@@ -98,9 +105,39 @@ The committed OpenAPI JSON and generated TypeScript/Zod contract live in `packag
 `pnpm api:generate` regenerates the complete artifact set, while `pnpm api:check` verifies freshness
 without rewriting the repository.
 
-`pnpm manifests:check` independently validates only `data/manifests`. Phase 0C3 approves no real
-production manifests, so the documented empty set is valid. This command is intentionally not part
-of root `pnpm check` until Phase 0C4.
+`pnpm check` composes formatting, lint, TypeScript checks, unit tests, generated-client freshness,
+production-manifest validation, candidate-aware local Markdown links, and immutable migration
+history. `pnpm manifests:check`, `pnpm docs:check`, and `pnpm migrations:check` remain available as
+focused read-only commands. The manifest command validates only `data/manifests`; the approved
+production set is currently empty.
+
+`pnpm security:check` is a separate mandatory Docker-based gate because it needs the pinned scanner
+images and OSV advisory network access. It scans committed Git history plus the current tracked and
+nonignored untracked filesystem candidate with TruffleHog, then scans only `pnpm-lock.yaml` and
+`uv.lock` with OSV Scanner. Run it only from a non-shallow clone. It never prints or retains raw
+scanner payloads.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` defines repository, Python/PostgreSQL, web E2E, and security jobs plus a
+single Phase 0 acceptance result. Official actions and scanner images use immutable commit or image
+digest references. Cache restores are followed by frozen lock validation and installation; neither
+`node_modules` nor `.venv` is cached.
+
+GitHub Ubuntu installs the repository-scoped Playwright 1.62.1 Chromium browser and Linux packages:
+
+```sh
+pnpm --filter @lumina/web exec playwright install --with-deps chromium
+```
+
+The accepted local Arch Linux check installs only Chromium because the system libraries are already
+managed locally:
+
+```sh
+pnpm --filter @lumina/web exec playwright install chromium
+```
+
+Do not substitute the local command into the GitHub job or install every Playwright browser.
 
 ## API development
 

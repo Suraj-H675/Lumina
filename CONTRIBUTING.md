@@ -56,6 +56,11 @@ A PR includes:
 
 Keep unrelated changes separate.
 
+Use `.github/pull_request_template.md` so skipped checks, phase boundaries, provenance, privacy,
+accessibility, and rollback evidence remain explicit. Public bug and data reports must not include
+secrets, exact locations, private journal content, or upload contents; security disclosures follow
+`SECURITY.md` privately.
+
 ## Code review
 
 Reviewers check:
@@ -122,14 +127,39 @@ Do not manually edit generated API client files. Update OpenAPI and regenerate.
 
 ## Local verification
 
-Phase 0A verification commands are maintained in README. Later phases will add their applicable
-checks. Before a future PR:
+Phase 0C4 verification commands are maintained in README. Before a PR, run the focused checks while
+iterating and the applicable complete acceptance set before reporting completion:
 
-- web format/lint/type/test/build;
-- API Ruff/mypy/pytest;
-- migrations;
-- relevant E2E;
-- docs/content/data checks.
+```sh
+node -e 'if (Number(process.versions.node.split(".")[0]) !== 24) process.exit(1)'
+test "$(pnpm --version)" = "11.17.0"
+uv --version |
+  awk 'NR == 1 && $1 == "uv" && $2 == "0.12.1" { ok=1 } END { exit !(NR == 1 && ok) }'
+uv lock --check
+uv sync --locked
+pnpm install --frozen-lockfile
+pnpm check
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy apps/api/src apps/api/tests scripts/bootstrap scripts/data scripts/openapi scripts/ci
+docker compose up -d --wait db
+uv run alembic upgrade head
+LUMINA_ENV=test uv run pytest -q
+pnpm build
+pnpm --filter @lumina/web exec playwright install chromium
+pnpm test:e2e
+pnpm security:check
+docker compose down
+```
+
+The plain Chromium installation above is the accepted local Arch Linux command. GitHub Ubuntu uses
+`pnpm --filter @lumina/web exec playwright install --with-deps chromium` so the required Linux
+packages are installed there. The Docker-based security command requires a full, non-shallow Git
+history; exit 10 means findings and exit 20 means scanner/preflight execution failure. Both fail the
+gate and raw scanner output must never be pasted into a public issue or PR.
+
+After checks, inspect `git diff`, the staged index, and nonignored untracked files. Never use cleanup
+or regeneration to hide a mutation caused by a supposedly read-only check.
 
 ## Reporting problems
 

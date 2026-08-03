@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible Lumina software defect without including private or secret data.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, exact locations, private journal text, or uploaded image contents.
+        Report security vulnerabilities privately using SECURITY.md instead of this public form.
+  - type: input
+    id: phase
+    attributes:
+      label: Roadmap phase or area
+      description: Identify the active phase, package, page, command, or service when known.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Describe the safe, user-visible or engineering failure.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Describe the expected deterministic behavior and its specification or source.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest repeatable steps using sanitized inputs or fixtures.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include commit, OS, browser, and relevant tool versions without credentials or URLs containing credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Checks and safe diagnostics
+      description: List exact commands and sanitized results. Remove tokens, locations, payloads, and private paths.
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I removed secrets, exact locations, private content, and uploaded image data.
+          required: true
+        - label: This report is not a vulnerability requiring private disclosure.
+          required: true

@@ -134,8 +134,9 @@ describe("server-only API origin", () => {
   });
 
   it("fails closed for missing production or invalid configuration", () => {
+    const url = "https://user:secret@example.test"; // trufflehog:ignore
     expect(resolveWebApiOrigin(undefined, "production")).toEqual({ valid: false });
-    expect(resolveWebApiOrigin("https://user:secret@example.test", "production")).toEqual({
+    expect(resolveWebApiOrigin(url, "production")).toEqual({
       valid: false,
     });
   });
@@ -368,7 +369,7 @@ describe("foundation state mapping", () => {
       loadFoundationStatus({
         environment: "production",
         fetchImplementation,
-        origin: "https://user:secret@example.test",
+        origin: "https://user:secret@example.test", // trufflehog:ignore
       }),
     ).resolves.toEqual({ kind: "unavailable", meta: null });
     expect(fetchImplementation).not.toHaveBeenCalled();

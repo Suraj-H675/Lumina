@@ -11,6 +11,13 @@ This document removes ambiguity for the first implementation phase.
 - compatible Python 3.12.x release
 - maintained uv `>=0.11.0` capable of reading the committed `uv.lock`
 
+Phase 0C4 CI uses the exact verified runtime set Node.js 24.16.0, pnpm 11.17.0, Python 3.12.13,
+and uv 0.12.1. The accepted local gate requires Node.js major 24 and pnpm 11.17.0; its uv parser
+accepts `uv 0.12.1` with trailing official build metadata but rejects every other semantic release.
+The setup-uv action and installed uv binary are pinned independently; setup-uv must download the
+exact binary from the official GitHub release rather than selecting a current version or using the
+Astral mirror.
+
 The bootstrap scripts check supported Node/Python families, the exact pinned pnpm version, and
 uv lockfile compatibility. Recommended patch releases in `.node-version` and `.python-version`
 must not cause other compatible patches to fail. Corepack's own patch version is not pinned.
@@ -43,6 +50,10 @@ pnpm test
 pnpm test:e2e
 pnpm api:generate
 pnpm api:check
+pnpm manifests:check
+pnpm docs:check
+pnpm migrations:check
+pnpm security:check
 pnpm check
 
 uv sync
@@ -242,17 +253,46 @@ unchanged until Phase 0C4.
 
 ## 11. CI jobs
 
-Suggested separate jobs:
+Phase 0C4 defines four isolated executable jobs and one acceptance aggregator:
 
-1. docs/data validation
-2. web lint/type/unit/build
-3. Python lint/type/unit
-4. PostgreSQL integration/migrations
-5. API client generation diff
-6. Playwright smoke
-7. security/dependency scans where available
+1. `repository`: frozen pnpm/uv restore, format/lint/type/unit, generated-client freshness,
+   manifests, candidate-aware Markdown links, and immutable migration history;
+2. `python_postgres`: Ruff, mypy, shell syntax, guarded real-PostgreSQL migrations and tests, then
+   unconditional Compose volume and generated-environment cleanup;
+3. `web_e2e`: frozen install, production build, exact Playwright 1.62.1 verification,
+   Chromium-only browser installation, E2E/accessibility smoke, process/output cleanup, and bounded
+   failure artifacts;
+4. `security`: full non-shallow checkout, history/current-candidate TruffleHog scans, and
+   lockfile-only OSV scan;
+5. `phase0_acceptance`: no checkout; requires all four results to be successful.
 
-Use caching but correctness must not depend on cache.
+Official actions are full-commit pinned and scanner images use tag-plus-top-level-digest references.
+Every checkout disables persisted credentials; security alone uses full history. setup-node owns the
+only pnpm cache and setup-uv the only uv cache. Frozen lock validation and installation follows
+every restore, no broad restore prefix is configured, and no job caches `node_modules`, `.venv`,
+Python installations, or Playwright browsers. Cache access on forks remains controlled by GitHub
+and cannot bypass the lockfiles.
+
+After intentional cleanup, every checkout job proves the working tree, index, and nonignored
+untracked candidate are clean. Jobs do not format, regenerate, restore, or clean files to make this
+assertion pass. The Python job removes only its generated `.env` with a single-file unlink after
+Compose teardown. The web job separately proves Next/Playwright outputs are ignored and test
+processes are gone. The security wrapper removes its private temporary root on normal exit and
+signals.
+
+GitHub Ubuntu installs Chromium and required system packages with:
+
+```sh
+pnpm --filter @lumina/web exec playwright install --with-deps chromium
+```
+
+The accepted local Arch Linux validation instead uses:
+
+```sh
+pnpm --filter @lumina/web exec playwright install chromium
+```
+
+Hosted workflow success is separate evidence and is not inferred from local implementation.
 
 ## 12. Initial test expectations
 

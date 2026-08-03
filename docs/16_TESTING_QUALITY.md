@@ -20,6 +20,88 @@ No single layer replaces the others.
 
 Exact commands are added during bootstrap. The conceptual CI gates are:
 
+### Phase 0C4 continuous integration
+
+`.github/workflows/ci.yml` contains five jobs: `repository`, `python_postgres`, `web_e2e`,
+`security`, and the checkout-free `phase0_acceptance` aggregator. Every official action is pinned to
+one reviewed 40-character commit with an adjacent stable-release comment:
+
+| Action release | Immutable reference |
+|---|---|
+| actions/checkout v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| actions/setup-node v7.0.0 | `820762786026740c76f36085b0efc47a31fe5020` |
+| pnpm/action-setup v6.0.9 | `0ebf47130e4866e96fce0953f49152a61190b271` |
+| astral-sh/setup-uv v9.0.0 | `c771a70e6277c0a99b617c7a806ffedaca235ff9` |
+| actions/upload-artifact v7.0.1 | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` |
+
+Every checkout disables persisted credentials. Repository, Python/PostgreSQL, and web E2E use a
+depth-one candidate checkout. Security uses `fetch-depth: 0`; the security wrapper independently
+rejects shallow, empty, or missing-`HEAD` history. The acceptance aggregator checks every required
+job result and does not check out or execute repository content.
+
+Node jobs use pnpm 11.17.0 and Node.js 24.16.0. `actions/setup-node` is the only pnpm-store cache
+owner; `pnpm/action-setup` has caching disabled. At the pinned setup-node implementation, the pnpm
+key contains runner OS, Node runtime architecture, package-manager name, and the exact
+`pnpm-lock.yaml` hash. It does not claim Node version, pnpm version, action commit, or a custom
+suffix, and it has no broad pnpm restore key. Every restore is followed by
+`pnpm install --frozen-lockfile`.
+
+Hosted jobs require exact Node.js `v24.16.0`; local acceptance accepts any Node.js 24 major while
+still requiring pnpm 11.17.0. Both local and hosted uv checks accept a first `uv --version` line
+whose first two fields are exactly `uv 0.12.1`, permitting official trailing build metadata but
+rejecting every other semantic release.
+
+Python jobs independently pin setup-uv v9.0.0 and the installed uv binary 0.12.1, then verify the
+binary output. setup-uv is the only uv-cache owner. Its exact key includes its cache schema,
+detected architecture/platform/OS, configured Python 3.12.13, `uv.lock` hash, and the supported
+`uv-0.12.1` suffix; it does not claim the action commit. Python installations are not cached and no
+broad restore prefix is configured. Every restore is followed by `uv lock --check` and
+`uv sync --locked`. No job uses `actions/cache`, and neither `node_modules` nor `.venv` is cached.
+
+GitHub's cache service controls branch and fork access. Pull requests may restore caches available
+from their base/default branch but can save only in their merge-ref scope, so they cannot replace a
+protected-branch cache. Cache loss, eviction, corruption, or an untrusted fork never bypasses
+frozen lock checks.
+
+The web job performs this exact sequence after its frozen install:
+
+```sh
+pnpm build
+test "$(pnpm --filter @lumina/web exec playwright --version)" = "Version 1.62.1"
+pnpm --filter @lumina/web exec playwright install --with-deps chromium
+pnpm test:e2e
+```
+
+GitHub Ubuntu therefore installs only Chromium and its required Linux packages. The accepted local
+Arch Linux command is separately `pnpm --filter @lumina/web exec playwright install chromium`; it
+uses the already managed local system libraries. No browser cache is restored or saved.
+
+After job-specific cleanup, every repository-checkout job runs exactly:
+
+```sh
+git diff --exit-code
+git diff --cached --quiet
+test -z "$(git ls-files --others --exclude-standard)"
+```
+
+The repository job first verifies both API-client temporary-directory prefixes are absent. The
+Python/PostgreSQL job always removes Compose resources and its generated `.env`, then proves the
+environment, Compose containers, and named database volume are absent before the separate clean
+tree step. The web job proves the coordination file and test processes are gone, and proves Next,
+Playwright, and `next-env.d.ts` outputs are ignored rather than tracked or staged. Bounded E2E
+failure artifacts upload only after cleanliness checks. The security job lets the wrapper trap
+remove all private scan artifacts, proves no scanner temporary root remains, and then checks the
+tree. Cleanup failures are separate steps and cannot conceal an earlier test failure. No job uses
+`git clean`, `git restore`, formatting, or regeneration to manufacture cleanliness.
+
+`check_doc_links.py` obtains its Markdown candidate from the NUL-delimited output of
+`git ls-files --cached --others --exclude-standard -- '*.md'`. It includes tracked modifications
+and nonignored untracked Markdown, excludes ignored and deleted Markdown, deduplicates and sorts
+paths, rejects repository/symlink escapes, and validates only local relative targets/fragments.
+External schemes are never queried. `check_migration_integrity.py` is a read-only checksum and
+lineage guard for accepted revisions 0001 and 0002; any later migration requires an explicit
+update in its authorized phase rather than silent allowlisting.
+
 ### Web
 
 - format check
@@ -272,8 +354,8 @@ PostgreSQL-free. Architecture guards keep the fake and fixture data outside prod
 the wheel.
 
 `pnpm manifests:check` is the standalone read-only production-manifest gate. An empty production
-set passes. Phase 0C4 will compose this command into root `pnpm check`; Phase 0C3 does not change
-that composition.
+set passes. Phase 0C4 composes this command into root `pnpm check`; Phase 0C3 does not change that
+composition.
 
 Use sanitized fixtures for:
 

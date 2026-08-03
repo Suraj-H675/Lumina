@@ -30,7 +30,7 @@ describe("API origin normalization", () => {
     "",
     " http://127.0.0.1:8000",
     "ftp://api.example.test",
-    "https://user:password@api.example.test",
+    "https://user:password@api.example.test", // trufflehog:ignore
     "https://api.example.test/path",
     "https://api.example.test?query=yes",
     "https://api.example.test#fragment",

@@ -269,7 +269,7 @@ def test_package_command_is_standalone_and_cli_cannot_select_a_fixture_root(
     package = json.loads((_REPOSITORY_ROOT / "package.json").read_bytes())
     scripts = package["scripts"]
     assert scripts["manifests:check"] == "uv run python scripts/data/validate_manifests.py"
-    assert "manifests:check" not in scripts["check"]
+    assert "pnpm run manifests:check" in scripts["check"]
 
     assert main(["--root", "private-fixture-root"]) == 2
     output = capsys.readouterr()

@@ -408,6 +408,12 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     assert "persist-credentials: false" in security
     assert "actions/checkout@" not in _workflow_job(workflow, "phase0_acceptance", None)
 
+    temporary_directory_setup = 'echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"'
+    assert "TMPDIR: ${{ runner.temp }}" not in workflow
+    assert workflow.count(temporary_directory_setup) == 4
+    for checkout_job in (repository, python, web, security):
+        assert temporary_directory_setup in checkout_job
+
     assert workflow.count("cache: false") == 4
     assert workflow.count('cache: "pnpm"') == 3
     assert workflow.count('cache-dependency-path: "pnpm-lock.yaml"') == 3

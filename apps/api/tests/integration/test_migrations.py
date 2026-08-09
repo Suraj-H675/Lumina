@@ -1,4 +1,4 @@
-"""The first migration is exact and reversible on the guarded test database only."""
+"""The accepted migration lineage is exact and reversible on guarded PostgreSQL."""
 
 from __future__ import annotations
 
@@ -20,6 +20,8 @@ from .migration_lifecycle import (
 )
 
 _ACCEPTED_0001_SHA256 = "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b"
+_ACCEPTED_0002_SHA256 = "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
+_ACCEPTED_HEAD = "d502b5935120"
 
 _EXPECTED_COLUMNS = [
     ("id", "uuid", False, True, "<none>", "", ""),
@@ -254,8 +256,8 @@ def _assert_head_schema(url: URL) -> None:
     tables = _table_names(url)
     columns, constraints, indexes, extensions = _schema_snapshot(url)
 
-    assert revision == "0002_grant_job_runtime_dml"
-    assert tables == {"alembic_version", "job"}
+    assert revision == _ACCEPTED_HEAD
+    assert tables == {"alembic_version", "dataset", "entity", "job", "provider", "source_record"}
     assert columns == _EXPECTED_COLUMNS
     assert constraints == _EXPECTED_CONSTRAINTS
     assert indexes == _EXPECTED_INDEXES
@@ -263,9 +265,13 @@ def _assert_head_schema(url: URL) -> None:
     assert extensions == {"plpgsql"}
 
 
-def test_accepted_first_migration_is_byte_for_byte_unchanged() -> None:
-    migration = Path(__file__).resolve().parents[4] / "migrations/versions/0001_create_job.py"
-    assert sha256(migration.read_bytes()).hexdigest() == _ACCEPTED_0001_SHA256
+def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
+    root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
+    assert sha256((root / "0001_create_job.py").read_bytes()).hexdigest() == _ACCEPTED_0001_SHA256
+    assert (
+        sha256((root / "0002_grant_job_runtime_dml.py").read_bytes()).hexdigest()
+        == _ACCEPTED_0002_SHA256
+    )
 
 
 def test_upgrade_downgrade_and_reupgrade(integration_settings: IntegrationTestSettings) -> None:

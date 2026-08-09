@@ -1,4 +1,4 @@
-"""Verify the accepted Phase 0 migration history without importing migration code."""
+"""Verify accepted migration history without importing migration code."""
 
 from __future__ import annotations
 
@@ -31,6 +31,12 @@ EXPECTED_MIGRATIONS = (
         revision="0002_grant_job_runtime_dml",
         down_revision="0001_create_job",
         sha256="8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889",
+    ),
+    MigrationContract(
+        filename="d502b5935120_create_catalog_identity_provenance.py",
+        revision="d502b5935120",
+        down_revision="0002_grant_job_runtime_dml",
+        sha256="f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b",
     ),
 )
 
@@ -92,7 +98,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 2 accepted revisions, head 0002_grant_job_runtime_dml.")
+    print("Migration integrity passed: 3 accepted revisions, head d502b5935120.")
     return 0
 
 

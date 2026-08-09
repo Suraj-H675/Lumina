@@ -890,13 +890,41 @@ def test_security_signal_cleanup_removes_private_temporary_output(
 def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> None:
     diagnostics = _migration_checker.validate_migrations()
     assert diagnostics == ()
+    assert [
+        (contract.filename, contract.revision, contract.down_revision, contract.sha256)
+        for contract in _migration_checker.EXPECTED_MIGRATIONS
+    ] == [
+        (
+            "0001_create_job.py",
+            "0001_create_job",
+            None,
+            "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
+        ),
+        (
+            "0002_grant_job_runtime_dml.py",
+            "0002_grant_job_runtime_dml",
+            "0001_create_job",
+            "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889",
+        ),
+        (
+            "d502b5935120_create_catalog_identity_provenance.py",
+            "d502b5935120",
+            "0002_grant_job_runtime_dml",
+            "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b",
+        ),
+    ]
     root = tmp_path / "versions"
     shutil.copytree(REPOSITORY_ROOT / "migrations" / "versions", root)
     migration = root / "0001_create_job.py"
-    migration.write_bytes(migration.read_bytes() + b"\n")
+    migration.write_bytes(
+        migration.read_bytes().replace(
+            b'revision = "0001_create_job"', b'revision = "drifted_revision"'
+        )
+    )
     (root / "0003_unapproved.py").write_text("revision = '0003'\n", encoding="utf-8")
     changed = _migration_checker.validate_migrations(root)
     assert "migration.checksum_mismatch: 0001_create_job.py" in changed
+    assert "migration.lineage_mismatch: 0001_create_job.py" in changed
     assert "migration.unapproved_file: 0003_unapproved.py" in changed
 
 

@@ -312,8 +312,8 @@ Hosted workflow success is separate evidence and is not inferred from local impl
 
 - `scripts/bootstrap/check-tools.sh`
 - `scripts/bootstrap/setup.sh`
-- `scripts/ci/check-doc-links.py`
-- `scripts/ci/check-generated.sh`
+- `scripts/ci/check_doc_links.py`
+- `pnpm api:check` for deterministic OpenAPI and generated-client drift verification
 
 Scripts are idempotent where practical.
 

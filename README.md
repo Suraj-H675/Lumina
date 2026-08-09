@@ -61,11 +61,21 @@ npm exec --yes --prefer-offline --cache .cache/npm --package=pnpm@11.17.0 -- pnp
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy apps/api/src apps/api/tests scripts/bootstrap scripts/data scripts/openapi scripts/ci
-uv run pytest -q
+docker compose up -d --wait db
+uv run alembic upgrade head
+LUMINA_ENV=test uv run pytest -q
 ```
 
 When Corepack is available, `corepack pnpm run check` is the preferred equivalent. Never use a
 pnpm version that differs from the root `packageManager` field.
+
+The bootstrap command installs the locked dependencies and creates the ignored root `.env` when
+it is absent. The checks through mypy are database-free; the complete Python suite requires the
+accepted PostgreSQL Compose service. On first initialization, that service provisions both the
+development database and the isolated `lumina_test` database with their dedicated roles. Alembic
+applies the development migration state before pytest; the guarded integration-test fixture applies
+the accepted migration head to `lumina_test`, and therefore the complete suite must run with
+`LUMINA_ENV=test`.
 
 ## Web development
 

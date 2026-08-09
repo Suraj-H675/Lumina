@@ -4,6 +4,9 @@ node_modules/
 .venv/
 .cache/
 
+# Markdown is maintained as local-only publication context.
+*.[mM][dD]
+
 # Python
 __pycache__/
 *.py[cod]

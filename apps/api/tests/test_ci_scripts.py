@@ -19,7 +19,6 @@ import pytest
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml"
 SECURITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_security.sh"
-DOC_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py"
 MIGRATION_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_migration_integrity.py"
 PNPM_WORKSPACE_PATH = REPOSITORY_ROOT / "pnpm-workspace.yaml"
 PNPM_LOCKFILE_PATH = REPOSITORY_ROOT / "pnpm-lock.yaml"
@@ -42,7 +41,6 @@ def _load_module(name: str, path: Path) -> ModuleType:
     return module
 
 
-_doc_checker = _load_module("lumina_ci_doc_checker", DOC_SCRIPT)
 _migration_checker = _load_module("lumina_ci_migration_checker", MIGRATION_SCRIPT)
 
 ACTION_PINS = {
@@ -62,8 +60,8 @@ OSV_IMAGE = (
 )
 SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
-    "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.0",
-    "next@16.2.12>postcss": "8.5.18",
+    "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.1",
+    "next@16.2.12>postcss": "8.5.25",
     "next@16.2.12>sharp": "0.35.0",
 }
 HISTORICAL_TRUFFLEHOG_EXCEPTIONS = (
@@ -209,7 +207,10 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     nodes = tuple(_dependency_nodes(records))
     vulnerable_versions = {
         ("js-yaml", "4.2.0"),
+        ("js-yaml", "4.3.0"),
+        ("nanoid", "3.3.16"),
         ("postcss", "8.4.31"),
+        ("postcss", "8.5.18"),
         ("sharp", "0.34.5"),
     }
     seen_versions = {
@@ -225,7 +226,7 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     ]
     assert parser_nodes
     assert all(
-        node.get("version") == "1.4.4" and _direct_dependency_version(node, "js-yaml") == "4.3.0"
+        node.get("version") == "1.4.4" and _direct_dependency_version(node, "js-yaml") == "4.3.1"
         for node in parser_nodes
     )
 
@@ -237,11 +238,12 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     assert next_nodes
     assert all(
         node.get("version") == "16.2.12"
-        and _direct_dependency_version(node, "postcss") == "8.5.18"
+        and _direct_dependency_version(node, "postcss") == "8.5.25"
         and _direct_dependency_version(node, "sharp") == "0.35.0"
         for node in next_nodes
     )
     assert ("postcss", "8.5.25") in seen_versions
+    assert ("nanoid", "3.3.18") in seen_versions
 
 
 def _dependency_inputs() -> dict[Path, bytes]:
@@ -279,8 +281,8 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
     package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
 
     assert _top_level_yaml_block(workspace, "overrides") == (
-        '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.0"',
-        '  "next@16.2.12>postcss": "8.5.18"',
+        '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.1"',
+        '  "next@16.2.12>postcss": "8.5.25"',
         '  "next@16.2.12>sharp": "0.35.0"',
         "",
     )
@@ -294,12 +296,12 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
     [
         {
             "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.2.0",
-            "next@16.2.12>postcss": "8.5.18",
+            "next@16.2.12>postcss": "8.5.25",
             "next@16.2.12>sharp": "0.35.0",
         },
         {
             **EXPECTED_PNPM_OVERRIDES,
-            "next@16.2.12>js-yaml": "4.3.0",
+            "next@16.2.12>js-yaml": "4.3.1",
         },
     ],
 )
@@ -443,7 +445,11 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
 
     assert workflow.count(clean_tree) == 4
     assert repository.index("lumina-api-client-first-*") < repository.index(clean_tree)
-    assert python.index("docker compose down -v") < python.index("unlink -- .env")
+    candidate_compose = 'docker compose --env-file .env -p "$candidate_project"'
+    assert "scripts/bootstrap/create_local_env.py --ephemeral-candidate" in python
+    assert "source .env" not in python
+    assert python.count("docker compose ") == python.count(candidate_compose) == 5
+    assert python.index("down -v --remove-orphans") < python.index("unlink -- .env")
     assert python.index("unlink -- .env") < python.index(clean_tree)
     assert web.index("lumina-status-e2e-*") < web.index(clean_tree)
     assert web.index(clean_tree) < web.index("actions/upload-artifact@")
@@ -875,104 +881,6 @@ def test_security_signal_cleanup_removes_private_temporary_output(
     assert not Path(temporary_root).exists()
 
 
-def _doc_repository(tmp_path: Path) -> Path:
-    repository = tmp_path / "docs-repository"
-    _initialize_repository(repository)
-    (repository / ".gitignore").write_text("ignored.md\n", encoding="utf-8")
-    (repository / "docs").mkdir()
-    (repository / "docs" / "target.md").write_text("# Valid section\n", encoding="utf-8")
-    (repository / "README.md").write_text(
-        "[valid](docs/target.md#valid-section)\n", encoding="utf-8"
-    )
-    _commit_all(repository, "documentation")
-    return repository
-
-
-def _run_doc_checker(repository: Path) -> subprocess.CompletedProcess[str]:
-    return _run([sys.executable, str(DOC_SCRIPT)], cwd=repository, check=False)
-
-
-def test_doc_checker_validates_tracked_and_modified_markdown(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    valid = _run_doc_checker(repository)
-    assert valid.returncode == 0
-    assert "2 Markdown files checked" in valid.stdout
-
-    (repository / "tracked-broken.md").write_text(
-        "[tracked](docs/missing-tracked.md)\n", encoding="utf-8"
-    )
-    _commit_all(repository, "add tracked broken link")
-    tracked_broken = _run_doc_checker(repository)
-    assert tracked_broken.returncode == 1
-    assert "tracked-broken.md:1: doc.target_missing" in tracked_broken.stdout
-    (repository / "tracked-broken.md").write_text(
-        "[fixed](docs/target.md#valid-section)\n", encoding="utf-8"
-    )
-    _commit_all(repository, "fix tracked link")
-
-    (repository / "README.md").write_text("[broken](docs/missing.md)\n", encoding="utf-8")
-    broken = _run_doc_checker(repository)
-    assert broken.returncode == 1
-    assert "README.md:1: doc.target_missing" in broken.stdout
-
-
-def test_doc_checker_includes_untracked_excludes_ignored_and_deleted(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    deleted = repository / "deleted.md"
-    deleted.write_text("[broken](missing-deleted.md)\n", encoding="utf-8")
-    _commit_all(repository, "add deleted candidate")
-    deleted.unlink()
-    (repository / "ignored.md").write_text("[ignored](missing-ignored.md)\n", encoding="utf-8")
-    (repository / "new.md").write_text("[new](missing-new.md)\n", encoding="utf-8")
-
-    result = _run_doc_checker(repository)
-    assert result.returncode == 1
-    assert "new.md:1: doc.target_missing" in result.stdout
-    assert "ignored.md" not in result.stdout
-    assert "deleted.md" not in result.stdout
-
-
-def test_doc_candidate_discovery_deduplicates_and_diagnostics_sort(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    repository = tmp_path / "repository"
-    repository.mkdir()
-    (repository / "z.md").write_text("[z](missing-z.md)\n", encoding="utf-8")
-    (repository / "a.md").write_text("[a](missing-a.md)\n", encoding="utf-8")
-    completed = subprocess.CompletedProcess(
-        args=["git", "ls-files"], returncode=0, stdout=b"z.md\0a.md\0z.md\0", stderr=b""
-    )
-    monkeypatch.setattr(_doc_checker.subprocess, "run", lambda *args, **kwargs: completed)
-    candidates, diagnostics = _doc_checker.validate_repository(repository)
-    assert [path.name for path in candidates] == ["a.md", "z.md"]
-    rendered = [diagnostic.render() for diagnostic in diagnostics]
-    assert rendered == sorted(rendered)
-
-
-def test_doc_checker_rejects_repository_and_symlink_escapes(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    outside = tmp_path / "outside.md"
-    outside.write_text("# Outside\n", encoding="utf-8")
-    (repository / "escape.md").write_text("[escape](../outside.md)\n", encoding="utf-8")
-    (repository / "linked.md").symlink_to(outside)
-    result = _run_doc_checker(repository)
-    assert result.returncode == 1
-    assert "escape.md:1: doc.target_escape" in result.stdout
-    assert "linked.md:0: doc.candidate_escape" in result.stdout
-
-
-def test_doc_checker_ignores_all_external_schemes(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    (repository / "external.md").write_text(
-        "[web](https://example.invalid/a#b)\n"
-        "[mail](mailto:owner@example.invalid)\n"
-        "[custom](science-data:catalog-entry)\n",
-        encoding="utf-8",
-    )
-    result = _run_doc_checker(repository)
-    assert result.returncode == 0
-
-
 def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> None:
     diagnostics = _migration_checker.validate_migrations()
     assert diagnostics == ()
@@ -986,18 +894,27 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
     assert "migration.unapproved_file: 0003_unapproved.py" in changed
 
 
-def test_root_commands_and_contribution_templates_are_phase0c4_complete() -> None:
+def test_root_commands_and_issue_forms_are_publication_complete() -> None:
     package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
     scripts = package["scripts"]
-    assert scripts["docs:check"] == "uv run python scripts/ci/check_doc_links.py"
+    assert "docs:check" not in scripts
     assert scripts["migrations:check"] == "uv run python scripts/ci/check_migration_integrity.py"
     assert scripts["security:check"] == "bash scripts/ci/check_security.sh"
-    for command in ("api:check", "manifests:check", "docs:check", "migrations:check"):
+    for command in ("api:check", "manifests:check", "migrations:check"):
         assert f"pnpm run {command}" in scripts["check"]
+    assert "docs:check" not in scripts["check"]
     assert "security:check" not in scripts["check"]
 
-    pull_request_template = REPOSITORY_ROOT / ".github" / "pull_request_template.md"
-    assert pull_request_template.is_file()
+    assert not (REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py").exists()
+    tracked = _run(["git", "ls-files", "-z"], cwd=REPOSITORY_ROOT).stdout.split("\0")
+    assert not any(path.lower().endswith(".md") for path in tracked if path)
+    assert ".github/pull_request_template.md" not in tracked
+
+    workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+    repository = _workflow_job(workflow, "repository", "python_postgres")
+    assert "Assert current tree tracks no Markdown" in repository
+    assert "awk 'tolower($0) ~ /\\.md$/'" in repository
+
     template_root = REPOSITORY_ROOT / ".github" / "ISSUE_TEMPLATE"
     assert {path.name for path in template_root.glob("*.yml")} == {
         "bug_report.yml",
@@ -1008,6 +925,9 @@ def test_root_commands_and_contribution_templates_are_phase0c4_complete() -> Non
         text = template.read_text(encoding="utf-8")
         assert "required: true" in text
         assert "secret" in text.lower() or "privacy" in text.lower()
+    bug_report = (template_root / "bug_report.yml").read_text(encoding="utf-8")
+    assert 'GitHub\'s "Report a vulnerability"' in bug_report
+    assert "SECURITY.md" not in bug_report
 
 
 def test_current_fictional_uri_inputs_use_only_inline_trufflehog_ignore_markers() -> None:

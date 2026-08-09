@@ -26,6 +26,13 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
 
+      - name: Assert current tree tracks no Markdown
+        run: |
+          test -z "$(
+            git ls-files |
+              awk 'tolower($0) ~ /\.md$/'
+          )"
+
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: "11.17.0"
@@ -134,11 +141,26 @@ jobs:
       - name: Create isolated CI environment
         run: |
           test ! -e .env
-          uv run python scripts/bootstrap/create_local_env.py
+          test -z "$(
+            docker volume ls --quiet \
+              --filter name='^lumina_lumina_postgres_data$'
+          )"
+          uv run python scripts/bootstrap/create_local_env.py --ephemeral-candidate
           test -f .env
+          test "$(stat -c '%a' .env)" = 600
+          candidate_project="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' .env)"
+          candidate_volume="$(sed -n 's/^COMPOSE_POSTGRES_VOLUME_NAME=//p' .env)"
+          [[ "$candidate_project" =~ ^lumina_public_candidate_[0-9a-f]{16}$ ]]
+          test "$candidate_volume" = "${candidate_project}_postgres_data"
+          test "$candidate_volume" != lumina_lumina_postgres_data
 
       - name: Run Python and PostgreSQL acceptance
         run: |
+          candidate_project="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' .env)"
+          candidate_volume="$(sed -n 's/^COMPOSE_POSTGRES_VOLUME_NAME=//p' .env)"
+          [[ "$candidate_project" =~ ^lumina_public_candidate_[0-9a-f]{16}$ ]]
+          test "$candidate_volume" = "${candidate_project}_postgres_data"
+          test "$candidate_volume" != lumina_lumina_postgres_data
           uv run ruff format --check .
           uv run ruff check .
           uv run mypy \
@@ -149,17 +171,17 @@ jobs:
             scripts/openapi \
             scripts/ci
           bash -n scripts/ci/check_security.sh
-          docker compose up -d --wait db
+          docker compose --env-file .env -p "$candidate_project" up -d --wait db
           uv run alembic upgrade head
           LUMINA_ENV=test uv run pytest -q
           test "$(uv run alembic heads)" = "0002_grant_job_runtime_dml (head)"
           test "$(
-            docker compose exec -T db \
+            docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina -Atqc \
               'SELECT version_num FROM alembic_version'
           )" = "0002_grant_job_runtime_dml"
           test "$(
-            docker compose exec -T db \
+            docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina_test -Atqc \
               'SELECT version_num FROM alembic_version'
           )" = "0002_grant_job_runtime_dml"
@@ -169,21 +191,44 @@ jobs:
         if: always()
         run: |
           cleanup_status=0
-          if test -f .env; then
-            set -a
-            source .env
-            set +a
+          if ! test -f .env; then
+            test -z "$(
+              docker volume ls --quiet \
+                --filter name='^lumina_lumina_postgres_data$'
+            )"
+            exit 0
           fi
-          docker compose down -v || cleanup_status=$?
-          if test -e .env; then
-            unlink -- .env || cleanup_status=$?
+          candidate_project="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' .env)"
+          candidate_volume="$(sed -n 's/^COMPOSE_POSTGRES_VOLUME_NAME=//p' .env)"
+          if [[ ! "$candidate_project" =~ ^lumina_public_candidate_[0-9a-f]{16}$ ]]; then
+            echo "Invalid isolated Compose project metadata; refusing teardown." >&2
+            exit 1
           fi
-          test ! -e .env || cleanup_status=$?
-          test -z "$(docker compose ps -aq)" || cleanup_status=$?
+          if test "$candidate_volume" != "${candidate_project}_postgres_data" || \
+            test "$candidate_volume" = lumina_lumina_postgres_data; then
+            echo "Invalid isolated Compose volume metadata; refusing teardown." >&2
+            exit 1
+          fi
+          docker compose --env-file .env -p "$candidate_project" \
+            down -v --remove-orphans || cleanup_status=$?
+          candidate_containers="$(
+            docker compose --env-file .env -p "$candidate_project" ps -aq
+          )" || cleanup_status=$?
+          candidate_volumes="$(
+            docker volume ls --quiet --filter "name=^${candidate_volume}$"
+          )" || cleanup_status=$?
+          test -z "$candidate_containers" || cleanup_status=$?
+          test -z "$candidate_volumes" || cleanup_status=$?
           test -z "$(
             docker volume ls --quiet \
               --filter name='^lumina_lumina_postgres_data$'
           )" || cleanup_status=$?
+          if test "$cleanup_status" -eq 0; then
+            unlink -- .env || cleanup_status=$?
+          fi
+          if test "$cleanup_status" -eq 0; then
+            test ! -e .env || cleanup_status=$?
+          fi
           exit "$cleanup_status"
 
       - name: Assert clean repository

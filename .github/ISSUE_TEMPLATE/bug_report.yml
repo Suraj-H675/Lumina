@@ -7,7 +7,8 @@ body:
     attributes:
       value: |
         Do not include secrets, exact locations, private journal text, or uploaded image contents.
-        Report security vulnerabilities privately using SECURITY.md instead of this public form.
+        Report security vulnerabilities privately through GitHub's "Report a vulnerability"
+        security-advisory form instead of this public form.
   - type: input
     id: phase
     attributes:

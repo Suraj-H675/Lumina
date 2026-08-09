@@ -30,4 +30,4 @@ services:
 
 volumes:
   lumina_postgres_data:
-    name: lumina_lumina_postgres_data
+    name: ${COMPOSE_POSTGRES_VOLUME_NAME:-lumina_lumina_postgres_data}

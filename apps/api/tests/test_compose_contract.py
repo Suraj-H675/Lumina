@@ -22,13 +22,19 @@ _COMPOSE_ENVIRONMENT = {
 
 
 def _render_compose(
-    *, environment_project: str | None = None, cli_project: str | None = None
+    *,
+    environment_project: str | None = None,
+    cli_project: str | None = None,
+    physical_volume_name: str | None = None,
 ) -> dict[str, object]:
     environment = {**os.environ, **_COMPOSE_ENVIRONMENT}
     environment.pop("COMPOSE_PROJECT_NAME", None)
+    environment.pop("COMPOSE_POSTGRES_VOLUME_NAME", None)
     if environment_project is not None:
         environment["COMPOSE_PROJECT_NAME"] = environment_project
-    command = ["docker", "compose"]
+    if physical_volume_name is not None:
+        environment["COMPOSE_POSTGRES_VOLUME_NAME"] = physical_volume_name
+    command = ["docker", "compose", "--env-file", ".env.example"]
     if cli_project is not None:
         command.extend(["-p", cli_project])
     command.extend(["config", "--format", "json"])
@@ -58,7 +64,7 @@ def test_compose_is_single_loopback_pinned_postgres_service() -> None:
     assert "/var/lib/postgresql" in content
     assert "scram-sha-256" in content
     assert "name: lumina" in content
-    assert "    name: lumina_lumina_postgres_data" in content
+    assert "    name: ${COMPOSE_POSTGRES_VOLUME_NAME:-lumina_lumina_postgres_data}" in content
     assert "lumina-postgres-healthcheck" in content
     assert "POSTGRES_HOST_AUTH_METHOD=trust" not in content
     for forbidden in ("supabase", "worker:", "api:"):
@@ -95,3 +101,30 @@ def test_compose_project_overrides_preserve_canonical_physical_volume(
         "target": "/var/lib/postgresql",
         "volume": {},
     } in database_mounts
+
+
+def test_compose_candidate_override_uses_only_isolated_physical_volume() -> None:
+    project = "lumina_public_candidate_0123456789abcdef"
+    candidate_volume = f"{project}_postgres_data"
+    rendered = _render_compose(
+        environment_project=project,
+        cli_project=project,
+        physical_volume_name=candidate_volume,
+    )
+
+    assert rendered["name"] == project
+    assert rendered["volumes"] == {"lumina_postgres_data": {"name": candidate_volume}}
+    assert _CANONICAL_VOLUME_NAME not in json.dumps(rendered["volumes"], sort_keys=True)
+    services = rendered["services"]
+    assert isinstance(services, dict)
+    database_service = services["db"]
+    assert isinstance(database_service, dict)
+    assert database_service["ports"] == [
+        {
+            "mode": "ingress",
+            "target": 5432,
+            "published": "15432",
+            "protocol": "tcp",
+            "host_ip": "127.0.0.1",
+        }
+    ]

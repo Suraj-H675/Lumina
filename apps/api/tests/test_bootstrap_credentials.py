@@ -20,12 +20,36 @@ class _EnvCreator(Protocol):
     ) -> bool: ...
 
     def main(
-        self, repository_root: Path, *, volume_inspection: Callable[[], object] = ...
+        self,
+        repository_root: Path,
+        *,
+        ephemeral_candidate: bool = ...,
+        volume_inspection: Callable[[], object] = ...,
+        candidate_volume_inspection: Callable[[str], object] = ...,
+        candidate_host_port_selector: Callable[[], int] = ...,
     ) -> int: ...
+
+    def cli(self, argv: tuple[str, ...]) -> int: ...
+
+    def create_ephemeral_candidate_env(
+        self,
+        repository_root: Path,
+        *,
+        volume_inspection: Callable[[str], object] = ...,
+        host_port_selector: Callable[[], int] = ...,
+    ) -> bool: ...
+
+    def inspect_database_volume(
+        self,
+        volume_name: str,
+        run: Callable[[list[str]], subprocess.CompletedProcess[str]],
+    ) -> object: ...
 
     def inspect_local_database_volume(
         self, run: Callable[[list[str]], subprocess.CompletedProcess[str]]
     ) -> object: ...
+
+    def select_available_loopback_port(self) -> int: ...
 
 
 class _Inspection(Protocol):
@@ -65,6 +89,14 @@ def _runner(
     return run
 
 
+def _environment_values(content: str) -> dict[str, str]:
+    return dict(line.split("=", maxsplit=1) for line in content.splitlines() if "=" in line)
+
+
+def _passwords(content: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"^POSTGRES(?:_[A-Z]+)*=([0-9a-f]{64})$", content, re.MULTILINE))
+
+
 def test_create_local_env_is_private_complete_and_idempotent(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -77,6 +109,7 @@ def test_create_local_env_is_private_complete_and_idempotent(
                 _result(
                     ["docker", "volume", "inspect"],
                     returncode=1,
+                    stdout="\n",
                     stderr=(
                         "Error response from daemon: get lumina_lumina_postgres_data: "
                         "no such volume\n"
@@ -93,9 +126,207 @@ def test_create_local_env_is_private_complete_and_idempotent(
     assert stat.S_IMODE(env_file.stat().st_mode) == 0o600
     assert not module.create_local_env(tmp_path, volume_inspection=lambda: object())
     assert env_file.read_text(encoding="utf-8") == first
-    passwords = re.findall(r"^POSTGRES(?:_[A-Z]+)*=([0-9a-f]{64})$", first, re.MULTILINE)
+    passwords = _passwords(first)
     assert len(passwords) == 5
     assert len(set(passwords)) == 5
+    assert first.startswith("LUMINA_ENV=development\n")
+    assert "POSTGRES_HOST_PORT=5432\n" in first
+    assert "COMPOSE_PROJECT_NAME=" not in first
+    assert "COMPOSE_POSTGRES_VOLUME_NAME=" not in first
+    assert not list(tmp_path.glob(".env.*.tmp"))
+
+
+def test_ephemeral_candidate_is_isolated_private_fresh_and_non_disclosing(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    module = _module()
+    absent = module.inspect_local_database_volume(
+        _runner(
+            [
+                _result(["docker", "info"], stdout="29.6.1\n"),
+                _result(
+                    ["docker", "volume", "inspect"],
+                    returncode=1,
+                    stderr=(
+                        "Error response from daemon: get lumina_lumina_postgres_data: "
+                        "no such volume\n"
+                    ),
+                ),
+            ]
+        )
+    )
+    inspected_volumes: list[str] = []
+
+    def inspect(volume_name: str) -> object:
+        inspected_volumes.append(volume_name)
+        return absent
+
+    assert (
+        module.main(
+            tmp_path,
+            ephemeral_candidate=True,
+            candidate_volume_inspection=inspect,
+            candidate_host_port_selector=lambda: 15432,
+        )
+        == 0
+    )
+    captured = capsys.readouterr()
+    env_file = tmp_path / ".env"
+    content = env_file.read_text(encoding="utf-8")
+    values = _environment_values(content)
+    project = values["COMPOSE_PROJECT_NAME"]
+    volume = values["COMPOSE_POSTGRES_VOLUME_NAME"]
+    passwords = _passwords(content)
+
+    assert captured.out == ""
+    assert captured.err == ""
+    assert re.fullmatch(r"lumina_public_candidate_[0-9a-f]{16}", project)
+    assert volume == f"{project}_postgres_data"
+    assert volume != "lumina_lumina_postgres_data"
+    assert inspected_volumes == [volume]
+    assert values["LUMINA_ENV"] == "test"
+    assert values["POSTGRES_HOST_PORT"] == "15432"
+    assert stat.S_IMODE(env_file.stat().st_mode) == 0o600
+    assert len(passwords) == 5
+    assert len(set(passwords)) == 5
+    assert not any(password in captured.out + captured.err for password in passwords)
+    assert not list(tmp_path.glob(".env.*.tmp"))
+
+    second_root = tmp_path / "second"
+    second_root.mkdir()
+    assert module.create_ephemeral_candidate_env(
+        second_root,
+        volume_inspection=lambda _volume_name: absent,
+        host_port_selector=lambda: 15433,
+    )
+    second_content = (second_root / ".env").read_text(encoding="utf-8")
+    second_values = _environment_values(second_content)
+    second_passwords = _passwords(second_content)
+    assert second_values["COMPOSE_PROJECT_NAME"] != project
+    assert set(second_passwords).isdisjoint(passwords)
+
+
+@pytest.mark.parametrize("host_port", [0, 5432, 65536])
+def test_ephemeral_candidate_refuses_invalid_or_canonical_host_port(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    host_port: int,
+) -> None:
+    module = _module()
+    absent = module.inspect_local_database_volume(
+        _runner(
+            [
+                _result(["docker", "info"], stdout="29.6.1\n"),
+                _result(
+                    ["docker", "volume", "inspect"],
+                    returncode=1,
+                    stderr=(
+                        "Error response from daemon: get lumina_lumina_postgres_data: "
+                        "no such volume\n"
+                    ),
+                ),
+            ]
+        )
+    )
+
+    assert (
+        module.main(
+            tmp_path,
+            ephemeral_candidate=True,
+            candidate_volume_inspection=lambda _volume_name: absent,
+            candidate_host_port_selector=lambda: host_port,
+        )
+        == 1
+    )
+    captured = capsys.readouterr()
+    assert "isolated loopback PostgreSQL port" in captured.err
+    assert not (tmp_path / ".env").exists()
+
+
+def test_ephemeral_candidate_volume_inspection_fails_closed_without_secret_output(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    module = _module()
+    failed = module.inspect_database_volume(
+        "lumina_public_candidate_0123456789abcdef_postgres_data",
+        _runner(
+            [
+                _result(["docker", "info"], stdout="29.6.1\n"),
+                _result(
+                    ["docker", "volume", "inspect"],
+                    returncode=1,
+                    stderr=f"inspection failed for {'a' * 64}\n",
+                ),
+            ]
+        ),
+    )
+    host_port_selected = False
+
+    def select_host_port() -> int:
+        nonlocal host_port_selected
+        host_port_selected = True
+        return 15432
+
+    assert (
+        module.main(
+            tmp_path,
+            ephemeral_candidate=True,
+            candidate_volume_inspection=lambda _volume_name: failed,
+            candidate_host_port_selector=select_host_port,
+        )
+        == 1
+    )
+    captured = capsys.readouterr()
+    assert _value(failed) == "inspection_failed"
+    assert "Docker could not inspect the isolated PostgreSQL volume" in captured.err
+    assert "a" * 64 not in captured.out + captured.err
+    assert not host_port_selected
+    assert not (tmp_path / ".env").exists()
+
+
+def test_candidate_exact_volume_absence_uses_generated_name() -> None:
+    module = _module()
+    volume = "lumina_public_candidate_0123456789abcdef_postgres_data"
+    calls: list[list[str]] = []
+
+    def run(command: list[str]) -> subprocess.CompletedProcess[str]:
+        calls.append(command)
+        if len(calls) == 1:
+            return _result(command, stdout="29.6.1\n")
+        return _result(
+            command,
+            returncode=1,
+            stdout="\n",
+            stderr=f"Error response from daemon: get {volume}: no such volume\n",
+        )
+
+    assert _value(module.inspect_database_volume(volume, run)) == "absent"
+    assert calls == [
+        ["docker", "info", "--format", "{{.ServerVersion}}"],
+        ["docker", "volume", "inspect", volume, "--format", "{{.Name}}"],
+    ]
+
+
+def test_cli_rejects_unexpected_arguments_without_echoing_them(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    module = _module()
+    credential_like_argument = "a" * 64
+
+    assert module.cli((credential_like_argument,)) == 2
+    captured = capsys.readouterr()
+    assert credential_like_argument not in captured.out + captured.err
+    assert captured.err == "error: expected no arguments or --ephemeral-candidate\n"
+
+
+def test_candidate_port_selector_returns_non_default_loopback_port() -> None:
+    module = _module()
+    selected = module.select_available_loopback_port()
+
+    assert 1 <= selected <= 65535
+    assert selected != 5432
 
 
 def test_existing_env_is_preserved_without_volume_inspection(tmp_path: Path) -> None:
@@ -109,6 +340,56 @@ def test_existing_env_is_preserved_without_volume_inspection(tmp_path: Path) -> 
         volume_inspection=lambda: (_ for _ in ()).throw(AssertionError("not inspected")),
     )
     assert env_file.read_text(encoding="utf-8") == original
+
+
+def test_ephemeral_candidate_preserves_existing_env_without_inspection(tmp_path: Path) -> None:
+    module = _module()
+    env_file = tmp_path / ".env"
+    original = f"POSTGRES_PASSWORD={'a' * 64}\n"
+    env_file.write_text(original, encoding="utf-8")
+
+    assert not module.create_ephemeral_candidate_env(
+        tmp_path,
+        volume_inspection=lambda _volume_name: (_ for _ in ()).throw(
+            AssertionError("not inspected")
+        ),
+        host_port_selector=lambda: (_ for _ in ()).throw(AssertionError("port not selected")),
+    )
+    assert env_file.read_text(encoding="utf-8") == original
+
+
+def test_existing_candidate_volume_refuses_before_port_or_credential_generation(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    module = _module()
+    exists = module.inspect_local_database_volume(
+        _runner(
+            [
+                _result(["docker", "info"], stdout="29.6.1\n"),
+                _result(
+                    ["docker", "volume", "inspect"],
+                    stdout="lumina_lumina_postgres_data\n",
+                ),
+            ]
+        )
+    )
+
+    assert (
+        module.main(
+            tmp_path,
+            ephemeral_candidate=True,
+            candidate_volume_inspection=lambda _volume_name: exists,
+            candidate_host_port_selector=lambda: (_ for _ in ()).throw(
+                AssertionError("port not selected")
+            ),
+        )
+        == 1
+    )
+    captured = capsys.readouterr()
+    assert "candidate PostgreSQL volume already exists" in captured.err
+    assert "a" * 64 not in captured.out + captured.err
+    assert not (tmp_path / ".env").exists()
 
 
 def test_existing_volume_without_env_refuses_without_disclosing_credentials(
@@ -167,6 +448,21 @@ def test_existing_volume_without_env_refuses_without_disclosing_credentials(
                 ),
             ],
             "malformed not-found output",
+        ),
+        (
+            [
+                _result(["docker", "info"], stdout="29.6.1\n"),
+                _result(
+                    ["docker", "volume", "inspect"],
+                    returncode=1,
+                    stdout="\n\n",
+                    stderr=(
+                        "Error response from daemon: get lumina_lumina_postgres_data: "
+                        "no such volume\n"
+                    ),
+                ),
+            ],
+            "malformed not-found stdout",
         ),
         (
             [

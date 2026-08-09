@@ -63,6 +63,7 @@ def test_empty_temporary_and_actual_production_roots_are_valid(
     assert result.manifests == ()
     assert result.diagnostics == ()
 
+    assert (PRODUCTION_MANIFEST_ROOT / ".gitkeep").is_file()
     production = validate_manifest_root(PRODUCTION_MANIFEST_ROOT)
     assert production.is_valid
     assert production.manifests == ()

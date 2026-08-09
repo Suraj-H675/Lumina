@@ -135,7 +135,7 @@ def _scan_manifest_files(
         if entry.is_symlink():
             diagnostics.append(_diagnostic(display, "manifest.path_symlink"))
             continue
-        if entry.name == "README.md" and entry.is_file():
+        if entry.name in {".gitkeep", "README.md"} and entry.is_file():
             continue
         if entry.is_file():
             diagnostics.append(_diagnostic(display, "manifest.unsupported_file"))

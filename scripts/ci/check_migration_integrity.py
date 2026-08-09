@@ -38,6 +38,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="0002_grant_job_runtime_dml",
         sha256="f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b",
     ),
+    MigrationContract(
+        filename="e4c9f1a7b362_add_measurement_provenance.py",
+        revision="e4c9f1a7b362",
+        down_revision="d502b5935120",
+        sha256="336a59a593c1f1d5fcfd4b32c3b8405bb290b1f13c9a6fee094e8170249c8c2d",
+    ),
 )
 
 
@@ -98,7 +104,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 3 accepted revisions, head d502b5935120.")
+    print("Migration integrity passed: 4 accepted revisions, head e4c9f1a7b362.")
     return 0
 
 

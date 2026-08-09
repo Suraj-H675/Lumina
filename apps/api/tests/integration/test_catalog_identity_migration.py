@@ -24,12 +24,16 @@ from .migration_lifecycle import (
 )
 
 _REVISION = "d502b5935120"
+_PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_0_HEAD = "0002_grant_job_runtime_dml"
 _TABLES = ("provider", "entity", "dataset", "source_record")
 _PROTECTED_HASHES = {
     "0001_create_job.py": "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
     "0002_grant_job_runtime_dml.py": (
         "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
+    ),
+    "d502b5935120_create_catalog_identity_provenance.py": (
+        "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
     ),
 }
 
@@ -287,10 +291,11 @@ def _insert_graph(connection: Connection) -> None:
     )
 
 
-def test_phase1a1_is_the_only_head_with_the_accepted_parent() -> None:
+def test_phase1a1_retains_its_accepted_parent_below_phase1a2_head() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_REVISION]
+    assert script.get_heads() == [_PHASE_1A2_HEAD]
     assert script.get_revision(_REVISION).down_revision == _PHASE_0_HEAD
+    assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _REVISION
 
 
 def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
@@ -419,7 +424,19 @@ def test_catalog_columns_constraints_indexes_and_collations_are_exact(
             ("fk_source_record_canonical_entity", "r", "r"),
         }
 
-    run_migration_operation(_sync_url(integration_settings), assert_catalog)
+    sync_url = _sync_url(integration_settings)
+    identity = integration_migration_identity(integration_settings)
+    run_migration_operation(
+        sync_url,
+        lambda connection: run_alembic(connection, identity, _REVISION, downgrade=True),
+    )
+    try:
+        run_migration_operation(sync_url, assert_catalog)
+    finally:
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=False),
+        )
 
 
 def test_upgrade_from_phase0_downgrade_and_reupgrade(
@@ -441,7 +458,7 @@ def test_upgrade_from_phase0_downgrade_and_reupgrade(
         run_migration_operation(sync_url, assert_phase0)
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+            lambda connection: run_alembic(connection, identity, _REVISION, downgrade=False),
         )
 
         def assert_phase1a1(connection: Connection) -> None:
@@ -832,6 +849,10 @@ def test_acl_drift_refuses_downgrade_without_partial_changes(
         connection.exec_driver_sql("REVOKE SELECT ON TABLE public.entity FROM lumina_test_app")
         connection.commit()
 
+    run_migration_operation(
+        sync_url,
+        lambda connection: run_alembic(connection, identity, _REVISION, downgrade=True),
+    )
     run_migration_operation(sync_url, grant)
     try:
         before = run_migration_operation(sync_url, _table_names)
@@ -849,3 +870,7 @@ def test_acl_drift_refuses_downgrade_without_partial_changes(
         assert run_migration_operation(sync_url, _revision) == _REVISION
     finally:
         run_migration_operation(sync_url, revoke)
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=False),
+        )

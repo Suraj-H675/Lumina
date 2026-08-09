@@ -21,7 +21,8 @@ from .migration_lifecycle import (
 
 _ACCEPTED_0001_SHA256 = "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b"
 _ACCEPTED_0002_SHA256 = "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
-_ACCEPTED_HEAD = "d502b5935120"
+_ACCEPTED_PHASE1A1_SHA256 = "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
+_ACCEPTED_HEAD = "e4c9f1a7b362"
 
 _EXPECTED_COLUMNS = [
     ("id", "uuid", False, True, "<none>", "", ""),
@@ -257,7 +258,19 @@ def _assert_head_schema(url: URL) -> None:
     columns, constraints, indexes, extensions = _schema_snapshot(url)
 
     assert revision == _ACCEPTED_HEAD
-    assert tables == {"alembic_version", "dataset", "entity", "job", "provider", "source_record"}
+    assert tables == {
+        "alembic_version",
+        "canonical_measurement",
+        "dataset",
+        "entity",
+        "job",
+        "measurement",
+        "provider",
+        "quantity",
+        "quantity_unit",
+        "source_record",
+        "unit",
+    }
     assert columns == _EXPECTED_COLUMNS
     assert constraints == _EXPECTED_CONSTRAINTS
     assert indexes == _EXPECTED_INDEXES
@@ -271,6 +284,12 @@ def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
     assert (
         sha256((root / "0002_grant_job_runtime_dml.py").read_bytes()).hexdigest()
         == _ACCEPTED_0002_SHA256
+    )
+    assert (
+        sha256(
+            (root / "d502b5935120_create_catalog_identity_provenance.py").read_bytes()
+        ).hexdigest()
+        == _ACCEPTED_PHASE1A1_SHA256
     )
 
 

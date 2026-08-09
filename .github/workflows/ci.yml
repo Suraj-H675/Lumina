@@ -176,17 +176,17 @@ jobs:
           docker compose --env-file .env -p "$candidate_project" up -d --wait db
           uv run alembic upgrade head
           LUMINA_ENV=test uv run pytest -q
-          test "$(uv run alembic heads)" = "d502b5935120 (head)"
+          test "$(uv run alembic heads)" = "e4c9f1a7b362 (head)"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina -Atqc \
               'SELECT version_num FROM alembic_version'
-          )" = "d502b5935120"
+          )" = "e4c9f1a7b362"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina_test -Atqc \
               'SELECT version_num FROM alembic_version'
-          )" = "d502b5935120"
+          )" = "e4c9f1a7b362"
           uv run python scripts/ci/check_migration_integrity.py
 
       - name: Remove PostgreSQL and generated environment

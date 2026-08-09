@@ -912,6 +912,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "0002_grant_job_runtime_dml",
             "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b",
         ),
+        (
+            "e4c9f1a7b362_add_measurement_provenance.py",
+            "e4c9f1a7b362",
+            "d502b5935120",
+            "336a59a593c1f1d5fcfd4b32c3b8405bb290b1f13c9a6fee094e8170249c8c2d",
+        ),
     ]
     root = tmp_path / "versions"
     shutil.copytree(REPOSITORY_ROOT / "migrations" / "versions", root)

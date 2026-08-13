@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from hashlib import sha256
@@ -26,6 +26,7 @@ from .migration_lifecycle import (
 
 _PHASE_1A1_HEAD = "d502b5935120"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
+_PHASE_1A3_HEAD = "a1a3c0f17c5e"
 _PHASE_1A2_PARENT = _PHASE_1A1_HEAD
 _PHASE_1A2_TABLES = (
     "quantity",
@@ -328,11 +329,32 @@ def _insert_measurement(
     )
 
 
+@pytest.fixture(autouse=True)
+def phase1a2_schema(
+    integration_settings: IntegrationTestSettings,
+) -> Iterator[None]:
+    """Pin historical measurement tests to Phase 1A2 and restore the accepted head."""
+    sync_url = _sync_url(integration_settings)
+    identity = integration_migration_identity(integration_settings)
+    run_migration_operation(
+        sync_url,
+        lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=True),
+    )
+    try:
+        yield
+    finally:
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
+        )
+
+
 def test_phase1a2_has_single_head_with_phase1a1_parent() -> None:
     script = ScriptDirectory.from_config(migration_config())
     head = _head()
-    assert head == _PHASE_1A2_HEAD
-    assert script.get_revision(head).down_revision == _PHASE_1A2_PARENT
+    assert head == _PHASE_1A3_HEAD
+    assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _PHASE_1A2_PARENT
+    assert script.get_revision(head).down_revision == _PHASE_1A2_HEAD
 
 
 def test_protected_phase0_migrations_are_byte_for_byte_unchanged() -> None:
@@ -346,7 +368,7 @@ def test_phase1a2_catalogue_is_exact_and_has_no_deferred_schema(
     integration_settings: IntegrationTestSettings,
 ) -> None:
     def assert_schema(connection: Connection) -> None:
-        assert _revision(connection) == _head()
+        assert _revision(connection) == _PHASE_1A2_HEAD
         assert _table_names(connection) == {
             "alembic_version",
             "job",
@@ -1098,7 +1120,7 @@ def test_upgrade_from_phase1a1_downgrade_and_reupgrade(
     sync_url = _sync_url(integration_settings)
     identity = integration_migration_identity(integration_settings)
     phase1a2 = _PHASE_1A2_HEAD
-    assert _head() == phase1a2
+    assert _head() == _PHASE_1A3_HEAD
 
     run_migration_operation(
         sync_url,

@@ -44,6 +44,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="d502b5935120",
         sha256="336a59a593c1f1d5fcfd4b32c3b8405bb290b1f13c9a6fee094e8170249c8c2d",
     ),
+    MigrationContract(
+        filename="a1a3c0f17c5e_add_deterministic_catalog_ingestion.py",
+        revision="a1a3c0f17c5e",
+        down_revision="e4c9f1a7b362",
+        sha256="26b5dad738a93d9776a62155c638402319b35365896ab515cb018413274cfda5",
+    ),
 )
 
 
@@ -104,7 +110,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 4 accepted revisions, head e4c9f1a7b362.")
+    print("Migration integrity passed: 5 accepted revisions, head a1a3c0f17c5e.")
     return 0
 
 

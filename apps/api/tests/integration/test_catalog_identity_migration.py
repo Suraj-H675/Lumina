@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from datetime import UTC, datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -25,6 +25,7 @@ from .migration_lifecycle import (
 
 _REVISION = "d502b5935120"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
+_PHASE_1A3_HEAD = "a1a3c0f17c5e"
 _PHASE_0_HEAD = "0002_grant_job_runtime_dml"
 _TABLES = ("provider", "entity", "dataset", "source_record")
 _PROTECTED_HASHES = {
@@ -291,11 +292,32 @@ def _insert_graph(connection: Connection) -> None:
     )
 
 
-def test_phase1a1_retains_its_accepted_parent_below_phase1a2_head() -> None:
+@pytest.fixture(autouse=True)
+def phase1a1_schema(
+    integration_settings: IntegrationTestSettings,
+) -> Iterator[None]:
+    """Pin historical identity tests to Phase 1A1 and restore the accepted head."""
+    sync_url = _sync_url(integration_settings)
+    identity = integration_migration_identity(integration_settings)
+    run_migration_operation(
+        sync_url,
+        lambda connection: run_alembic(connection, identity, _REVISION, downgrade=True),
+    )
+    try:
+        yield
+    finally:
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
+        )
+
+
+def test_phase1a1_retains_its_accepted_parent_below_phase1a3_head() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_PHASE_1A2_HEAD]
+    assert script.get_heads() == [_PHASE_1A3_HEAD]
     assert script.get_revision(_REVISION).down_revision == _PHASE_0_HEAD
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _REVISION
+    assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
 
 
 def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
@@ -375,6 +397,7 @@ def test_catalog_columns_constraints_indexes_and_collations_are_exact(
                     "ON collation_data.oid = attribute.attcollation "
                     "WHERE namespace.nspname = 'public' "
                     "AND table_data.relname = ANY(CAST(:tables AS text[])) "
+                    "AND attribute.attnum > 0 AND NOT attribute.attisdropped "
                     "AND collation_data.collname = 'C'"
                 ),
                 {"tables": list(_TABLES)},

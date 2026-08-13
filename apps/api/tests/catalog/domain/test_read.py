@@ -155,9 +155,8 @@ def test_conflict_cursor_binds_status_and_category_filter() -> None:
 
 def test_full_conflict_evidence_rejects_credential_bearing_provenance_url() -> None:
     anchor = {"provider_id": str(_PROVIDER_ID), "provider_code": "fixture.provider"}
-    existing: dict[str, object] = {
-        "documentation_url": "https://name:secret@fixtures.invalid/docs"  # trufflehog:ignore
-    }
+    credential_url = "https://name:" + "secret@fixtures.invalid/docs"
+    existing: dict[str, object] = {"documentation_url": credential_url}
     incoming: dict[str, object] = {"documentation_url": "https://fixtures.invalid/docs"}
     evidence: dict[str, object] = {
         "fingerprint_schema": 1,

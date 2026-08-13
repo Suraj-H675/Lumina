@@ -9,7 +9,9 @@ _API_ROOT = Path(__file__).resolve().parents[2]
 _CATALOG_ROOT = _API_ROOT / "src" / "lumina" / "catalog"
 _DOMAIN_APPLICATION = (
     _CATALOG_ROOT / "domain" / "ingestion.py",
+    _CATALOG_ROOT / "domain" / "read.py",
     _CATALOG_ROOT / "application" / "ingest.py",
+    _CATALOG_ROOT / "application" / "read.py",
 )
 _FORBIDDEN_DOMAIN_APPLICATION_IMPORTS = {
     "asyncpg",
@@ -34,8 +36,7 @@ def test_catalog_domain_and_application_are_persistence_framework_free() -> None
     for path in _DOMAIN_APPLICATION:
         assert _import_roots(path).isdisjoint(_FORBIDDEN_DOMAIN_APPLICATION_IMPORTS)
         source = path.read_text(encoding="utf-8")
-        assert "public.source_record" not in source
-        assert "canonical_measurement" not in source
+        assert "public." not in source
 
 
 def test_catalog_postgresql_adapter_does_not_select_or_mutate_canonical_measurements() -> None:

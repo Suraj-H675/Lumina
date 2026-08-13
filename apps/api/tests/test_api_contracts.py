@@ -334,9 +334,17 @@ def test_openapi_contains_only_phase_0b2_routes() -> None:
     response = _request(_app(), "GET", "/openapi.json")
     document: dict[str, Any] = response.json()
 
-    assert set(document["paths"]) == {"/health/live", "/health/ready", "/api/v1/meta"}
+    assert set(document["paths"]) == {
+        "/health/live",
+        "/health/ready",
+        "/api/v1/meta",
+        "/api/v1/catalog/entities/{entity_id}",
+        "/api/v1/catalog/entities/{entity_id}/measurements",
+        "/api/v1/catalog/entities/{entity_id}/canonical-selections",
+        "/api/v1/catalog/sources/{source_record_id}",
+    }
     serialized = response.text.lower()
-    for forbidden in ("provider", "/jobs", "supabase"):
+    for forbidden in ("/jobs", "supabase", "/api/v1/sources/"):
         assert forbidden not in serialized
 
 

@@ -51,7 +51,15 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
     assert b"\r" not in first
     assert first.startswith(b'{\n  "components"')
     document: dict[str, Any] = json.loads(first)
-    assert set(document["paths"]) == {"/api/v1/meta", "/health/live", "/health/ready"}
+    assert set(document["paths"]) == {
+        "/api/v1/meta",
+        "/health/live",
+        "/health/ready",
+        "/api/v1/catalog/entities/{entity_id}",
+        "/api/v1/catalog/entities/{entity_id}/measurements",
+        "/api/v1/catalog/entities/{entity_id}/canonical-selections",
+        "/api/v1/catalog/sources/{source_record_id}",
+    }
 
 
 def test_export_does_not_open_network_or_database_connections(

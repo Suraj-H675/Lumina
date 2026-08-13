@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 lumina-api = "lumina.main:run"
+lumina-catalog = "lumina.catalog.cli:main"
 lumina-worker = "lumina.worker.cli:main"
 
 [build-system]

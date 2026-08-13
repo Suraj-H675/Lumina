@@ -3,11 +3,91 @@
 import * as z from "zod";
 
 /**
+ * CurrentSelectionReference
+ */
+export const zCurrentSelectionReference = z.object({
+  explanation: z.string(),
+  rule: z.string(),
+  selected_at: z.iso.datetime(),
+  version: z.string(),
+});
+
+/**
+ * DatasetReference
+ */
+export const zDatasetReference = z.object({
+  code: z.string(),
+  name: z.string(),
+  release_version: z.string(),
+});
+
+/**
+ * EntityType
+ *
+ * Closed persisted catalogue entity vocabulary.
+ */
+export const zEntityType = z.enum([
+  "star",
+  "planet",
+  "dwarf_planet",
+  "moon",
+  "asteroid",
+  "comet",
+  "exoplanet",
+  "galaxy",
+  "nebula",
+  "cluster",
+  "black_hole",
+  "compact_object",
+  "system",
+  "constellation",
+  "mission",
+  "spacecraft",
+  "launch_vehicle",
+  "observatory",
+  "person",
+  "concept",
+  "event",
+]);
+
+/**
+ * ErrorBody
+ *
+ * Stable public error fields.
+ */
+export const zErrorBody = z.object({
+  code: z.string(),
+  details: z.record(z.string(), z.unknown()).optional(),
+  message: z.string(),
+  request_id: z.string(),
+});
+
+/**
+ * ErrorResponse
+ *
+ * Top-level public error envelope.
+ */
+export const zErrorResponse = z.object({
+  error: zErrorBody,
+});
+
+/**
  * FeatureFlags
  *
  * Environment-safe public feature flags for the current phase.
  */
 export const zFeatureFlags = z.record(z.string(), z.never());
+
+/**
+ * HistorySelectionReference
+ */
+export const zHistorySelectionReference = z.object({
+  explanation: z.string(),
+  rule: z.string(),
+  selected_at: z.iso.datetime(),
+  superseded_at: z.iso.datetime().nullable(),
+  version: z.string(),
+});
 
 /**
  * LiveResponse
@@ -32,6 +112,40 @@ export const zMetaResponse = z.object({
 });
 
 /**
+ * PageResponse
+ */
+export const zPageResponse = z.object({
+  has_more: z.boolean(),
+  limit: z.int().gte(1).lte(100),
+  next_cursor: z.string().nullable(),
+});
+
+/**
+ * ProviderReference
+ */
+export const zProviderReference = z.object({
+  code: z.string(),
+  name: z.string(),
+});
+
+/**
+ * CompactSourceReference
+ */
+export const zCompactSourceReference = z.object({
+  dataset: zDatasetReference,
+  provider: zProviderReference,
+  source_record_id: z.uuid(),
+});
+
+/**
+ * QuantityReference
+ */
+export const zQuantityReference = z.object({
+  code: z.string(),
+  name: z.string(),
+});
+
+/**
  * ReadyResponse
  *
  * Public dependency readiness.
@@ -39,6 +153,166 @@ export const zMetaResponse = z.object({
 export const zReadyResponse = z.object({
   status: z.string(),
 });
+
+/**
+ * SelectionState
+ *
+ * Public state of an immutable measurement relative to selection history.
+ */
+export const zSelectionState = z.enum(["current", "historical", "never_selected"]);
+
+/**
+ * SourceDatasetResponse
+ */
+export const zSourceDatasetResponse = z.object({
+  citation: z.string(),
+  code: z.string(),
+  licence: z.string(),
+  name: z.string(),
+  release_version: z.string(),
+  source_url: z.string(),
+});
+
+/**
+ * SourceProviderResponse
+ */
+export const zSourceProviderResponse = z.object({
+  attribution_text: z.string(),
+  code: z.string(),
+  documentation_url: z.string(),
+  name: z.string(),
+  terms_url: z.string(),
+});
+
+/**
+ * SourceRecordResponse
+ */
+export const zSourceRecordResponse = z.object({
+  fetched_at: z.iso.datetime(),
+  provider_record_id: z.string(),
+  provider_version: z.string(),
+  source_url: z.string().nullable(),
+});
+
+/**
+ * SourceProvenanceResponse
+ */
+export const zSourceProvenanceResponse = z.object({
+  dataset: zSourceDatasetResponse,
+  provider: zSourceProviderResponse,
+  record: zSourceRecordResponse,
+  source_record_id: z.uuid(),
+});
+
+/**
+ * UnitReference
+ */
+export const zUnitReference = z.object({
+  code: z.string(),
+  name: z.string(),
+  symbol: z.string(),
+});
+
+/**
+ * MeasurementReference
+ */
+export const zMeasurementReference = z.object({
+  id: z.uuid(),
+  original_unit: z.string(),
+  original_value: z.string(),
+  source: zCompactSourceReference,
+  unit: zUnitReference,
+  value: z.string().regex(/^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/),
+});
+
+/**
+ * CurrentCanonicalSelectionResponse
+ */
+export const zCurrentCanonicalSelectionResponse = z.object({
+  measurement: zMeasurementReference,
+  selection: zCurrentSelectionReference,
+});
+
+/**
+ * EntityQuantityResponse
+ */
+export const zEntityQuantityResponse = z.object({
+  current_selection: zCurrentCanonicalSelectionResponse.nullable(),
+  measurement_count: z.int().gt(0),
+  quantity: zQuantityReference,
+});
+
+/**
+ * EntityDetailResponse
+ */
+export const zEntityDetailResponse = z.object({
+  canonical_name: z.string().min(1),
+  entity_type: zEntityType,
+  id: z.uuid(),
+  quantities: z.array(zEntityQuantityResponse),
+});
+
+/**
+ * MeasurementResponse
+ */
+export const zMeasurementResponse = z.object({
+  id: z.uuid(),
+  original_unit: z.string(),
+  original_value: z.string(),
+  quantity: zQuantityReference,
+  selection_state: zSelectionState,
+  source: zCompactSourceReference,
+  unit: zUnitReference,
+  value: z.string().regex(/^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/),
+});
+
+/**
+ * MeasurementPageResponse
+ */
+export const zMeasurementPageResponse = z.object({
+  items: z.array(zMeasurementResponse),
+  page: zPageResponse,
+});
+
+/**
+ * SelectionHistoryResponse
+ */
+export const zSelectionHistoryResponse = z.object({
+  measurement_id: z.uuid(),
+  quantity: zQuantityReference,
+  selection: zHistorySelectionReference,
+  source: zCompactSourceReference,
+  unit: zUnitReference,
+  value: z.string().regex(/^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/),
+});
+
+/**
+ * SelectionHistoryPageResponse
+ */
+export const zSelectionHistoryPageResponse = z.object({
+  items: z.array(zSelectionHistoryResponse),
+  page: zPageResponse,
+});
+
+/**
+ * Successful Response
+ */
+export const zGetCatalogEntityResponse = zEntityDetailResponse;
+
+/**
+ * Successful Response
+ */
+export const zListCatalogEntityCanonicalSelectionsResponse = zSelectionHistoryPageResponse;
+
+/**
+ * Successful Response
+ */
+export const zListCatalogEntityMeasurementsResponse = zMeasurementPageResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetSourceRecordProvenanceResponse = zSourceProvenanceResponse;
 
 /**
  * Successful Response

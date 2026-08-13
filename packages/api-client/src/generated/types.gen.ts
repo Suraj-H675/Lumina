@@ -5,12 +5,196 @@ export type ClientOptions = {
 };
 
 /**
+ * CompactSourceReference
+ */
+export type CompactSourceReference = {
+  dataset: DatasetReference;
+  provider: ProviderReference;
+  /**
+   * Source Record Id
+   */
+  source_record_id: string;
+};
+
+/**
+ * CurrentCanonicalSelectionResponse
+ */
+export type CurrentCanonicalSelectionResponse = {
+  measurement: MeasurementReference;
+  selection: CurrentSelectionReference;
+};
+
+/**
+ * CurrentSelectionReference
+ */
+export type CurrentSelectionReference = {
+  /**
+   * Explanation
+   *
+   * Public-safe scientific/editorial rationale for this canonical selection. Must not contain credentials, private reviewer notes, raw provider payloads, SQL/database details, debugging information, or hidden operational state.
+   */
+  explanation: string;
+  /**
+   * Rule
+   */
+  rule: string;
+  /**
+   * Selected At
+   */
+  selected_at: string;
+  /**
+   * Version
+   */
+  version: string;
+};
+
+/**
+ * DatasetReference
+ */
+export type DatasetReference = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Release Version
+   */
+  release_version: string;
+};
+
+/**
+ * EntityDetailResponse
+ */
+export type EntityDetailResponse = {
+  /**
+   * Canonical Name
+   */
+  canonical_name: string;
+  entity_type: EntityType;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Quantities
+   */
+  quantities: Array<EntityQuantityResponse>;
+};
+
+/**
+ * EntityQuantityResponse
+ */
+export type EntityQuantityResponse = {
+  current_selection: CurrentCanonicalSelectionResponse | null;
+  /**
+   * Measurement Count
+   */
+  measurement_count: number;
+  quantity: QuantityReference;
+};
+
+/**
+ * EntityType
+ *
+ * Closed persisted catalogue entity vocabulary.
+ */
+export type EntityType =
+  | "star"
+  | "planet"
+  | "dwarf_planet"
+  | "moon"
+  | "asteroid"
+  | "comet"
+  | "exoplanet"
+  | "galaxy"
+  | "nebula"
+  | "cluster"
+  | "black_hole"
+  | "compact_object"
+  | "system"
+  | "constellation"
+  | "mission"
+  | "spacecraft"
+  | "launch_vehicle"
+  | "observatory"
+  | "person"
+  | "concept"
+  | "event";
+
+/**
+ * ErrorBody
+ *
+ * Stable public error fields.
+ */
+export type ErrorBody = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Details
+   */
+  details?: {
+    [key: string]: unknown;
+  };
+  /**
+   * Message
+   */
+  message: string;
+  /**
+   * Request Id
+   */
+  request_id: string;
+};
+
+/**
+ * ErrorResponse
+ *
+ * Top-level public error envelope.
+ */
+export type ErrorResponse = {
+  error: ErrorBody;
+};
+
+/**
  * FeatureFlags
  *
  * Environment-safe public feature flags for the current phase.
  */
 export type FeatureFlags = {
   [key: string]: never;
+};
+
+/**
+ * HistorySelectionReference
+ */
+export type HistorySelectionReference = {
+  /**
+   * Explanation
+   *
+   * Public-safe scientific/editorial rationale for this canonical selection. Must not contain credentials, private reviewer notes, raw provider payloads, SQL/database details, debugging information, or hidden operational state.
+   */
+  explanation: string;
+  /**
+   * Rule
+   */
+  rule: string;
+  /**
+   * Selected At
+   */
+  selected_at: string;
+  /**
+   * Superseded At
+   */
+  superseded_at: string | null;
+  /**
+   * Version
+   */
+  version: string;
 };
 
 /**
@@ -23,6 +207,67 @@ export type LiveResponse = {
    * Status
    */
   status: string;
+};
+
+/**
+ * MeasurementPageResponse
+ */
+export type MeasurementPageResponse = {
+  /**
+   * Items
+   */
+  items: Array<MeasurementResponse>;
+  page: PageResponse;
+};
+
+/**
+ * MeasurementReference
+ */
+export type MeasurementReference = {
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Original Unit
+   */
+  original_unit: string;
+  /**
+   * Original Value
+   */
+  original_value: string;
+  source: CompactSourceReference;
+  unit: UnitReference;
+  /**
+   * Value
+   */
+  value: string;
+};
+
+/**
+ * MeasurementResponse
+ */
+export type MeasurementResponse = {
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Original Unit
+   */
+  original_unit: string;
+  /**
+   * Original Value
+   */
+  original_value: string;
+  quantity: QuantityReference;
+  selection_state: SelectionState;
+  source: CompactSourceReference;
+  unit: UnitReference;
+  /**
+   * Value
+   */
+  value: string;
 };
 
 /**
@@ -51,6 +296,52 @@ export type MetaResponse = {
 };
 
 /**
+ * PageResponse
+ */
+export type PageResponse = {
+  /**
+   * Has More
+   */
+  has_more: boolean;
+  /**
+   * Limit
+   */
+  limit: number;
+  /**
+   * Next Cursor
+   */
+  next_cursor: string | null;
+};
+
+/**
+ * ProviderReference
+ */
+export type ProviderReference = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
+ * QuantityReference
+ */
+export type QuantityReference = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
  * ReadyResponse
  *
  * Public dependency readiness.
@@ -61,6 +352,351 @@ export type ReadyResponse = {
    */
   status: string;
 };
+
+/**
+ * SelectionHistoryPageResponse
+ */
+export type SelectionHistoryPageResponse = {
+  /**
+   * Items
+   */
+  items: Array<SelectionHistoryResponse>;
+  page: PageResponse;
+};
+
+/**
+ * SelectionHistoryResponse
+ */
+export type SelectionHistoryResponse = {
+  /**
+   * Measurement Id
+   */
+  measurement_id: string;
+  quantity: QuantityReference;
+  selection: HistorySelectionReference;
+  source: CompactSourceReference;
+  unit: UnitReference;
+  /**
+   * Value
+   */
+  value: string;
+};
+
+/**
+ * SelectionState
+ *
+ * Public state of an immutable measurement relative to selection history.
+ */
+export type SelectionState = "current" | "historical" | "never_selected";
+
+/**
+ * SourceDatasetResponse
+ */
+export type SourceDatasetResponse = {
+  /**
+   * Citation
+   */
+  citation: string;
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Licence
+   */
+  licence: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Release Version
+   */
+  release_version: string;
+  /**
+   * Source Url
+   */
+  source_url: string;
+};
+
+/**
+ * SourceProvenanceResponse
+ */
+export type SourceProvenanceResponse = {
+  dataset: SourceDatasetResponse;
+  provider: SourceProviderResponse;
+  record: SourceRecordResponse;
+  /**
+   * Source Record Id
+   */
+  source_record_id: string;
+};
+
+/**
+ * SourceProviderResponse
+ */
+export type SourceProviderResponse = {
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Documentation Url
+   */
+  documentation_url: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Terms Url
+   */
+  terms_url: string;
+};
+
+/**
+ * SourceRecordResponse
+ */
+export type SourceRecordResponse = {
+  /**
+   * Fetched At
+   */
+  fetched_at: string;
+  /**
+   * Provider Record Id
+   */
+  provider_record_id: string;
+  /**
+   * Provider Version
+   */
+  provider_version: string;
+  /**
+   * Source Url
+   */
+  source_url: string | null;
+};
+
+/**
+ * UnitReference
+ */
+export type UnitReference = {
+  /**
+   * Code
+   */
+  code: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Symbol
+   */
+  symbol: string;
+};
+
+export type GetCatalogEntityData = {
+  body?: never;
+  path: {
+    /**
+     * Entity Id
+     */
+    entity_id: string;
+  };
+  query?: never;
+  url: "/api/v1/catalog/entities/{entity_id}";
+};
+
+export type GetCatalogEntityErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetCatalogEntityError = GetCatalogEntityErrors[keyof GetCatalogEntityErrors];
+
+export type GetCatalogEntityResponses = {
+  /**
+   * Successful Response
+   */
+  200: EntityDetailResponse;
+};
+
+export type GetCatalogEntityResponse = GetCatalogEntityResponses[keyof GetCatalogEntityResponses];
+
+export type ListCatalogEntityCanonicalSelectionsData = {
+  body?: never;
+  path: {
+    /**
+     * Entity Id
+     */
+    entity_id: string;
+  };
+  query?: {
+    /**
+     * Limit
+     *
+     * Maximum number of items to return.
+     */
+    limit?: number;
+    /**
+     * Cursor
+     *
+     * Opaque cursor returned by the preceding page.
+     */
+    cursor?: string | null;
+  };
+  url: "/api/v1/catalog/entities/{entity_id}/canonical-selections";
+};
+
+export type ListCatalogEntityCanonicalSelectionsErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type ListCatalogEntityCanonicalSelectionsError =
+  ListCatalogEntityCanonicalSelectionsErrors[keyof ListCatalogEntityCanonicalSelectionsErrors];
+
+export type ListCatalogEntityCanonicalSelectionsResponses = {
+  /**
+   * Successful Response
+   */
+  200: SelectionHistoryPageResponse;
+};
+
+export type ListCatalogEntityCanonicalSelectionsResponse =
+  ListCatalogEntityCanonicalSelectionsResponses[keyof ListCatalogEntityCanonicalSelectionsResponses];
+
+export type ListCatalogEntityMeasurementsData = {
+  body?: never;
+  path: {
+    /**
+     * Entity Id
+     */
+    entity_id: string;
+  };
+  query?: {
+    /**
+     * Limit
+     *
+     * Maximum number of items to return.
+     */
+    limit?: number;
+    /**
+     * Cursor
+     *
+     * Opaque cursor returned by the preceding page.
+     */
+    cursor?: string | null;
+  };
+  url: "/api/v1/catalog/entities/{entity_id}/measurements";
+};
+
+export type ListCatalogEntityMeasurementsErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type ListCatalogEntityMeasurementsError =
+  ListCatalogEntityMeasurementsErrors[keyof ListCatalogEntityMeasurementsErrors];
+
+export type ListCatalogEntityMeasurementsResponses = {
+  /**
+   * Successful Response
+   */
+  200: MeasurementPageResponse;
+};
+
+export type ListCatalogEntityMeasurementsResponse =
+  ListCatalogEntityMeasurementsResponses[keyof ListCatalogEntityMeasurementsResponses];
+
+export type GetSourceRecordProvenanceData = {
+  body?: never;
+  path: {
+    /**
+     * Source Record Id
+     */
+    source_record_id: string;
+  };
+  query?: never;
+  url: "/api/v1/catalog/sources/{source_record_id}";
+};
+
+export type GetSourceRecordProvenanceErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetSourceRecordProvenanceError =
+  GetSourceRecordProvenanceErrors[keyof GetSourceRecordProvenanceErrors];
+
+export type GetSourceRecordProvenanceResponses = {
+  /**
+   * Successful Response
+   */
+  200: SourceProvenanceResponse;
+};
+
+export type GetSourceRecordProvenanceResponse =
+  GetSourceRecordProvenanceResponses[keyof GetSourceRecordProvenanceResponses];
 
 export type MetadataApiV1MetaGetData = {
   body?: never;

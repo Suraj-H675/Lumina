@@ -1,11 +1,285 @@
 {
   "components": {
     "schemas": {
+      "CompactSourceReference": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetReference"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderReference"
+          },
+          "source_record_id": {
+            "format": "uuid",
+            "title": "Source Record Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_record_id",
+          "provider",
+          "dataset"
+        ],
+        "title": "CompactSourceReference",
+        "type": "object"
+      },
+      "CurrentCanonicalSelectionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "measurement": {
+            "$ref": "#/components/schemas/MeasurementReference"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/CurrentSelectionReference"
+          }
+        },
+        "required": [
+          "measurement",
+          "selection"
+        ],
+        "title": "CurrentCanonicalSelectionResponse",
+        "type": "object"
+      },
+      "CurrentSelectionReference": {
+        "additionalProperties": false,
+        "properties": {
+          "explanation": {
+            "description": "Public-safe scientific/editorial rationale for this canonical selection. Must not contain credentials, private reviewer notes, raw provider payloads, SQL/database details, debugging information, or hidden operational state.",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          },
+          "selected_at": {
+            "format": "date-time",
+            "title": "Selected At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "version",
+          "explanation",
+          "selected_at"
+        ],
+        "title": "CurrentSelectionReference",
+        "type": "object"
+      },
+      "DatasetReference": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "release_version": {
+            "title": "Release Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "release_version"
+        ],
+        "title": "DatasetReference",
+        "type": "object"
+      },
+      "EntityDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_name": {
+            "minLength": 1,
+            "title": "Canonical Name",
+            "type": "string"
+          },
+          "entity_type": {
+            "$ref": "#/components/schemas/EntityType"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "quantities": {
+            "items": {
+              "$ref": "#/components/schemas/EntityQuantityResponse"
+            },
+            "title": "Quantities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "entity_type",
+          "canonical_name",
+          "quantities"
+        ],
+        "title": "EntityDetailResponse",
+        "type": "object"
+      },
+      "EntityQuantityResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "current_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CurrentCanonicalSelectionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "measurement_count": {
+            "exclusiveMinimum": 0.0,
+            "title": "Measurement Count",
+            "type": "integer"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/QuantityReference"
+          }
+        },
+        "required": [
+          "quantity",
+          "measurement_count",
+          "current_selection"
+        ],
+        "title": "EntityQuantityResponse",
+        "type": "object"
+      },
+      "EntityType": {
+        "description": "Closed persisted catalogue entity vocabulary.",
+        "enum": [
+          "star",
+          "planet",
+          "dwarf_planet",
+          "moon",
+          "asteroid",
+          "comet",
+          "exoplanet",
+          "galaxy",
+          "nebula",
+          "cluster",
+          "black_hole",
+          "compact_object",
+          "system",
+          "constellation",
+          "mission",
+          "spacecraft",
+          "launch_vehicle",
+          "observatory",
+          "person",
+          "concept",
+          "event"
+        ],
+        "title": "EntityType",
+        "type": "string"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "description": "Stable public error fields.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "description": "Top-level public error envelope.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
       "FeatureFlags": {
         "additionalProperties": false,
         "description": "Environment-safe public feature flags for the current phase.",
         "properties": {},
         "title": "FeatureFlags",
+        "type": "object"
+      },
+      "HistorySelectionReference": {
+        "additionalProperties": false,
+        "properties": {
+          "explanation": {
+            "description": "Public-safe scientific/editorial rationale for this canonical selection. Must not contain credentials, private reviewer notes, raw provider payloads, SQL/database details, debugging information, or hidden operational state.",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          },
+          "selected_at": {
+            "format": "date-time",
+            "title": "Selected At",
+            "type": "string"
+          },
+          "superseded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded At"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "version",
+          "explanation",
+          "selected_at",
+          "superseded_at"
+        ],
+        "title": "HistorySelectionReference",
         "type": "object"
       },
       "LiveResponse": {
@@ -21,6 +295,113 @@
           "status"
         ],
         "title": "LiveResponse",
+        "type": "object"
+      },
+      "MeasurementPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MeasurementResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageResponse"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "title": "MeasurementPageResponse",
+        "type": "object"
+      },
+      "MeasurementReference": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "original_unit": {
+            "title": "Original Unit",
+            "type": "string"
+          },
+          "original_value": {
+            "title": "Original Value",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CompactSourceReference"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitReference"
+          },
+          "value": {
+            "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "unit",
+          "original_value",
+          "original_unit",
+          "source"
+        ],
+        "title": "MeasurementReference",
+        "type": "object"
+      },
+      "MeasurementResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "original_unit": {
+            "title": "Original Unit",
+            "type": "string"
+          },
+          "original_value": {
+            "title": "Original Value",
+            "type": "string"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/QuantityReference"
+          },
+          "selection_state": {
+            "$ref": "#/components/schemas/SelectionState"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CompactSourceReference"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitReference"
+          },
+          "value": {
+            "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "quantity",
+          "value",
+          "unit",
+          "original_value",
+          "original_unit",
+          "selection_state",
+          "source"
+        ],
+        "title": "MeasurementResponse",
         "type": "object"
       },
       "MetaResponse": {
@@ -64,6 +445,77 @@
         "title": "MetaResponse",
         "type": "object"
       },
+      "PageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "limit": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "next_cursor",
+          "has_more",
+          "limit"
+        ],
+        "title": "PageResponse",
+        "type": "object"
+      },
+      "ProviderReference": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "ProviderReference",
+        "type": "object"
+      },
+      "QuantityReference": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "QuantityReference",
+        "type": "object"
+      },
       "ReadyResponse": {
         "additionalProperties": false,
         "description": "Public dependency readiness.",
@@ -78,6 +530,235 @@
         ],
         "title": "ReadyResponse",
         "type": "object"
+      },
+      "SelectionHistoryPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SelectionHistoryResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageResponse"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "title": "SelectionHistoryPageResponse",
+        "type": "object"
+      },
+      "SelectionHistoryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "measurement_id": {
+            "format": "uuid",
+            "title": "Measurement Id",
+            "type": "string"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/QuantityReference"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/HistorySelectionReference"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CompactSourceReference"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/UnitReference"
+          },
+          "value": {
+            "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quantity",
+          "measurement_id",
+          "value",
+          "unit",
+          "source",
+          "selection"
+        ],
+        "title": "SelectionHistoryResponse",
+        "type": "object"
+      },
+      "SelectionState": {
+        "description": "Public state of an immutable measurement relative to selection history.",
+        "enum": [
+          "current",
+          "historical",
+          "never_selected"
+        ],
+        "title": "SelectionState",
+        "type": "string"
+      },
+      "SourceDatasetResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "release_version": {
+            "title": "Release Version",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "release_version",
+          "source_url",
+          "licence",
+          "citation"
+        ],
+        "title": "SourceDatasetResponse",
+        "type": "object"
+      },
+      "SourceProvenanceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset": {
+            "$ref": "#/components/schemas/SourceDatasetResponse"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SourceProviderResponse"
+          },
+          "record": {
+            "$ref": "#/components/schemas/SourceRecordResponse"
+          },
+          "source_record_id": {
+            "format": "uuid",
+            "title": "Source Record Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_record_id",
+          "provider",
+          "dataset",
+          "record"
+        ],
+        "title": "SourceProvenanceResponse",
+        "type": "object"
+      },
+      "SourceProviderResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "documentation_url": {
+            "title": "Documentation Url",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "terms_url": {
+            "title": "Terms Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "documentation_url",
+          "terms_url",
+          "attribution_text"
+        ],
+        "title": "SourceProviderResponse",
+        "type": "object"
+      },
+      "SourceRecordResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "fetched_at": {
+            "format": "date-time",
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "provider_record_id": {
+            "title": "Provider Record Id",
+            "type": "string"
+          },
+          "provider_version": {
+            "title": "Provider Version",
+            "type": "string"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "required": [
+          "provider_record_id",
+          "provider_version",
+          "source_url",
+          "fetched_at"
+        ],
+        "title": "SourceRecordResponse",
+        "type": "object"
+      },
+      "UnitReference": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "symbol",
+          "name"
+        ],
+        "title": "UnitReference",
+        "type": "object"
       }
     }
   },
@@ -87,6 +768,366 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/catalog/entities/{entity_id}": {
+      "get": {
+        "description": "Return one public canonical entity and its bounded current quantities.",
+        "operationId": "get_catalog_entity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested catalogue resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be validated."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be completed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The database is temporarily unavailable."
+          }
+        },
+        "summary": "Get Catalog Entity",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/catalog/entities/{entity_id}/canonical-selections": {
+      "get": {
+        "description": "Return one bounded immutable canonical-selection history page.",
+        "operationId": "list_catalog_entity_canonical_selections",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum number of items to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Maximum number of items to return.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor returned by the preceding page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor returned by the preceding page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectionHistoryPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested catalogue resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be validated."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be completed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The database is temporarily unavailable."
+          }
+        },
+        "summary": "List Catalog Entity Canonical Selections",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/catalog/entities/{entity_id}/measurements": {
+      "get": {
+        "description": "Return one bounded immutable measurement page in deterministic order.",
+        "operationId": "list_catalog_entity_measurements",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum number of items to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Maximum number of items to return.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor returned by the preceding page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor returned by the preceding page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested catalogue resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be validated."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be completed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The database is temporarily unavailable."
+          }
+        },
+        "summary": "List Catalog Entity Measurements",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/catalog/sources/{source_record_id}": {
+      "get": {
+        "description": "Return the eligible provenance closure for one public source record.",
+        "operationId": "get_source_record_provenance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_record_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Record Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceProvenanceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested catalogue resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be validated."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be completed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The database is temporarily unavailable."
+          }
+        },
+        "summary": "Get Source Record Provenance",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "description": "Translate resolved application metadata into its public contract.",

@@ -924,6 +924,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "e4c9f1a7b362",
             "26b5dad738a93d9776a62155c638402319b35365896ab515cb018413274cfda5",
         ),
+        (
+            "c4b9e2d7a6f1_seed_gaia_dr3_slice.py",
+            "c4b9e2d7a6f1",
+            "a1a3c0f17c5e",
+            "ae89acabb3e241e49d6874a429ca2de0319aaa25ed5e2ba1185866df6cbfdf7a",
+        ),
     ]
     root = tmp_path / "versions"
     shutil.copytree(REPOSITORY_ROOT / "migrations" / "versions", root)

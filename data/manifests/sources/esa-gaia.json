@@ -1,0 +1,42 @@
+{
+  "adapter_id": "esa-gaia-reviewed-csv",
+  "adapter_version": "1",
+  "attribution_text": "Data from ESA's Gaia mission, processed by the Gaia Data Processing and Analysis Consortium (DPAC).",
+  "authentication_method": "none; public archive.",
+  "cache_ttl": "not applicable to immutable repository artifact.",
+  "capabilities": ["batch_fetch"],
+  "contact_or_user_agent_requirement": null,
+  "endpoint_or_base_url": "https://gea.esac.esa.int/tap-server/tap",
+  "failure_and_fallback_behaviour": "fail closed; no live fallback or unrelated data.",
+  "fetch_time_policy": "exact DataManifest retrieval time becomes source-record fetched_at.",
+  "fixture_and_checksum_strategy": "approved 806-byte CSV plus exact SHA-256; fictional fixtures are test-only.",
+  "known_limitations": [
+    "five stars/three magnitudes only; no uncertainty synthesis; no positions, aliases, relationships, or completeness claim."
+  ],
+  "last_verified_at": "2026-08-15T08:23:59Z",
+  "manifest_schema_version": 1,
+  "manifest_type": "source",
+  "normalized_fields": [
+    "designation",
+    "duplicated_source",
+    "phot_bp_mean_mag",
+    "phot_bp_n_blended_transits",
+    "phot_bp_n_contaminated_transits",
+    "phot_g_mean_mag",
+    "phot_proc_mode",
+    "phot_rp_mean_mag",
+    "phot_rp_n_blended_transits",
+    "phot_rp_n_contaminated_transits",
+    "solution_id",
+    "source_id"
+  ],
+  "observation_or_publication_time_policy": "DR3 release provenance is retained; no unavailable per-magnitude observation time is fabricated.",
+  "official_documentation_url": "https://gea.esac.esa.int/archive/documentation/GDR3/",
+  "purpose": "ingest one offline, checksum-pinned Gaia DR3 photometry slice.",
+  "rate_or_fair_use_constraints": "one bounded reviewed acquisition; runtime and CI make no requests.",
+  "refresh_schedule": "none; release and bytes are pinned.",
+  "source_id": "esa-gaia",
+  "source_name": "ESA Gaia Archive",
+  "source_schema_version": "gaiadr3.gaia_source.dr3",
+  "terms_or_licence_url": "https://gea.esac.esa.int/archive/documentation/GDR3/Miscellaneous/sec_credit_and_citation_instructions/"
+}

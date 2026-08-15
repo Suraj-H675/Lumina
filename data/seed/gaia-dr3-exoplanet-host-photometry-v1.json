@@ -1,0 +1,133 @@
+{
+  "artifact": {
+    "adql": "SELECT source_id,designation,solution_id,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,duplicated_source,phot_proc_mode,phot_bp_n_contaminated_transits,phot_bp_n_blended_transits,phot_rp_n_contaminated_transits,phot_rp_n_blended_transits FROM gaiadr3.gaia_source WHERE source_id IN (1779546757669063552,2079000330051813504,2079597124345617280,2835207319109249920,3910747531814692736) ORDER BY source_id",
+    "byte_length": 806,
+    "columns": [
+      "source_id",
+      "designation",
+      "solution_id",
+      "phot_g_mean_mag",
+      "phot_bp_mean_mag",
+      "phot_rp_mean_mag",
+      "duplicated_source",
+      "phot_proc_mode",
+      "phot_bp_n_contaminated_transits",
+      "phot_bp_n_blended_transits",
+      "phot_rp_n_contaminated_transits",
+      "phot_rp_n_blended_transits"
+    ],
+    "path": "data/seed/gaia-dr3-exoplanet-host-photometry-v1.csv",
+    "sha256": "585efe5379533874906995a84946c1457a1f0442187bdf306e6da68d11d94304"
+  },
+  "compatibility_pairs": [
+    {
+      "quantity_code": "gaia_bp_mean_magnitude",
+      "quantity_id": "b9532ccd-e769-5d36-9046-b7c1bc138841",
+      "unit_code": "mag",
+      "unit_id": "4e4a920b-dc09-5556-a056-c08ba155c18a"
+    },
+    {
+      "quantity_code": "gaia_g_mean_magnitude",
+      "quantity_id": "2c3626b7-647f-5180-8662-5240238e1acc",
+      "unit_code": "mag",
+      "unit_id": "4e4a920b-dc09-5556-a056-c08ba155c18a"
+    },
+    {
+      "quantity_code": "gaia_rp_mean_magnitude",
+      "quantity_id": "347f0167-0786-5d34-a4d4-a4da006343eb",
+      "unit_code": "mag",
+      "unit_id": "4e4a920b-dc09-5556-a056-c08ba155c18a"
+    }
+  ],
+  "data_manifest": "data/manifests/data/gaia-source-dr3.json",
+  "dataset": {
+    "code": "gaia-source",
+    "name": "Gaia Data Release 3 main source catalogue",
+    "release_version": "dr3"
+  },
+  "entities": [
+    {
+      "canonical_name": "HD 209458",
+      "entity_type": "star",
+      "id": "26f4b667-ecd9-524d-8121-29508723715a",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:hd-209458",
+      "provider_record_id": "1779546757669063552"
+    },
+    {
+      "canonical_name": "Kepler-186",
+      "entity_type": "star",
+      "id": "bbfe8678-81ca-5e70-ac95-c597d7655540",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:kepler-186",
+      "provider_record_id": "2079000330051813504"
+    },
+    {
+      "canonical_name": "Kepler-452",
+      "entity_type": "star",
+      "id": "bfd42670-3013-598e-8eb5-5a1c084dd1a0",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:kepler-452",
+      "provider_record_id": "2079597124345617280"
+    },
+    {
+      "canonical_name": "51 Pegasi",
+      "entity_type": "star",
+      "id": "c593bd18-c4bc-5551-8a41-09f1b501f981",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:51-pegasi",
+      "provider_record_id": "2835207319109249920"
+    },
+    {
+      "canonical_name": "K2-18",
+      "entity_type": "star",
+      "id": "403d0e71-8d81-5c52-abad-c4666c1b5cd6",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:k2-18",
+      "provider_record_id": "3910747531814692736"
+    }
+  ],
+  "expected": {
+    "measurements": 15,
+    "source_records": 5
+  },
+  "provider": {
+    "code": "esa-gaia",
+    "name": "ESA Gaia Archive"
+  },
+  "provider_version": "1636148068921376768",
+  "quality": {
+    "designation_prefix": "Gaia DR3 ",
+    "duplicated_source": false,
+    "phot_bp_n_blended_transits": 0,
+    "phot_bp_n_contaminated_transits": 0,
+    "phot_proc_mode": 0,
+    "phot_rp_n_blended_transits": 0,
+    "phot_rp_n_contaminated_transits": 0,
+    "solution_id": "1636148068921376768"
+  },
+  "quantities": [
+    {
+      "code": "gaia_bp_mean_magnitude",
+      "id": "b9532ccd-e769-5d36-9046-b7c1bc138841",
+      "name": "Gaia integrated BP mean magnitude (Vega scale)",
+      "source_fact_key": "phot_bp_mean_mag"
+    },
+    {
+      "code": "gaia_g_mean_magnitude",
+      "id": "2c3626b7-647f-5180-8662-5240238e1acc",
+      "name": "Gaia G-band mean magnitude (Vega scale)",
+      "source_fact_key": "phot_g_mean_mag"
+    },
+    {
+      "code": "gaia_rp_mean_magnitude",
+      "id": "347f0167-0786-5d34-a4d4-a4da006343eb",
+      "name": "Gaia integrated RP mean magnitude (Vega scale)",
+      "source_fact_key": "phot_rp_mean_mag"
+    }
+  ],
+  "schema_version": 1,
+  "slice_id": "gaia-dr3-exoplanet-host-photometry-v1",
+  "source_manifest": "data/manifests/sources/esa-gaia.json",
+  "unit": {
+    "code": "mag",
+    "id": "4e4a920b-dc09-5556-a056-c08ba155c18a",
+    "name": "magnitude",
+    "symbol": "mag"
+  }
+}

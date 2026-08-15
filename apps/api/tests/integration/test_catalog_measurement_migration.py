@@ -27,6 +27,7 @@ from .migration_lifecycle import (
 _PHASE_1A1_HEAD = "d502b5935120"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
+_PHASE_1A5_HEAD = "c4b9e2d7a6f1"
 _PHASE_1A2_PARENT = _PHASE_1A1_HEAD
 _PHASE_1A2_TABLES = (
     "quantity",
@@ -349,12 +350,12 @@ def phase1a2_schema(
         )
 
 
-def test_phase1a2_has_single_head_with_phase1a1_parent() -> None:
+def test_repository_head_and_phase1a2_lineage_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    head = _head()
-    assert head == _PHASE_1A3_HEAD
+    current_head = _head()
+    assert current_head == _PHASE_1A5_HEAD
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _PHASE_1A2_PARENT
-    assert script.get_revision(head).down_revision == _PHASE_1A2_HEAD
+    assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
 
 
 def test_protected_phase0_migrations_are_byte_for_byte_unchanged() -> None:
@@ -1120,7 +1121,7 @@ def test_upgrade_from_phase1a1_downgrade_and_reupgrade(
     sync_url = _sync_url(integration_settings)
     identity = integration_migration_identity(integration_settings)
     phase1a2 = _PHASE_1A2_HEAD
-    assert _head() == _PHASE_1A3_HEAD
+    assert _head() == _PHASE_1A5_HEAD
 
     run_migration_operation(
         sync_url,

@@ -128,6 +128,10 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "UPDATE public.job SET priority = priority",
         "UPDATE public.job SET payload = payload",
         "UPDATE public.job SET max_attempts = max_attempts",
+        "DELETE FROM public.entity WHERE false",
+        "DELETE FROM public.quantity WHERE false",
+        "DELETE FROM public.unit WHERE false",
+        "DELETE FROM public.quantity_unit WHERE false",
         "INSERT INTO public.job "
         "(id, job_type, status, priority, payload, max_attempts) "
         "VALUES ('00000000-0000-4000-8000-000000000001', "
@@ -141,6 +145,15 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "SELECT pg_get_userbyid(relowner) = current_user "
         "FROM pg_class WHERE oid = 'public.job'::regclass",
     ) == [False]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM public.entity WHERE id IN ("
+        "'26f4b667-ecd9-524d-8121-29508723715a', "
+        "'bbfe8678-81ca-5e70-ac95-c597d7655540', "
+        "'bfd42670-3013-598e-8eb5-5a1c084dd1a0', "
+        "'c593bd18-c4bc-5551-8a41-09f1b501f981', "
+        "'403d0e71-8d81-5c52-abad-c4666c1b5cd6')",
+    ) == [5]
 
 
 def test_privilege_connection_failure_is_sanitized(

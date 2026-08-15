@@ -1,0 +1,6 @@
+source_id,designation,solution_id,phot_g_mean_mag,phot_bp_mean_mag,phot_rp_mean_mag,duplicated_source,phot_proc_mode,phot_bp_n_contaminated_transits,phot_bp_n_blended_transits,phot_rp_n_contaminated_transits,phot_rp_n_blended_transits
+1000000000000000001,FICTIONAL TEST STAR 1,1000000000000000000,1.2300,1E+2,-1,false,0,0,0,0,0
+1000000000000000002,FICTIONAL TEST STAR 2,1000000000000000000,-0,0.000,2e-3,false,0,0,0,0,0
+1000000000000000003,FICTIONAL TEST STAR 3,1000000000000000000,3.0,4.00,5.000,false,0,0,0,0,0
+1000000000000000004,FICTIONAL TEST STAR 4,1000000000000000000,6,7.0,8.00,false,0,0,0,0,0
+1000000000000000005,FICTIONAL TEST STAR 5,1000000000000000000,9.000,1e1,-0.0,false,0,0,0,0,0

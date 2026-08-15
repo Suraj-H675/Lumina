@@ -27,6 +27,7 @@ from .migration_lifecycle import (
 
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
+_PHASE_1A5_HEAD = "c4b9e2d7a6f1"
 _CATALOG_TABLES = (
     "provider",
     "entity",
@@ -279,7 +280,7 @@ def _delete_graph(connection: Connection) -> None:
 
 def test_lineage_and_protected_history_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_PHASE_1A3_HEAD]
+    assert script.get_heads() == [_PHASE_1A5_HEAD]
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
     root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
     assert {

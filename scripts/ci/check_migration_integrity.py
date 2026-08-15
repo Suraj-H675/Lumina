@@ -50,6 +50,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="e4c9f1a7b362",
         sha256="26b5dad738a93d9776a62155c638402319b35365896ab515cb018413274cfda5",
     ),
+    MigrationContract(
+        filename="c4b9e2d7a6f1_seed_gaia_dr3_slice.py",
+        revision="c4b9e2d7a6f1",
+        down_revision="a1a3c0f17c5e",
+        sha256="ae89acabb3e241e49d6874a429ca2de0319aaa25ed5e2ba1185866df6cbfdf7a",
+    ),
 )
 
 
@@ -110,7 +116,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 5 accepted revisions, head a1a3c0f17c5e.")
+    print("Migration integrity passed: 6 accepted revisions, head c4b9e2d7a6f1.")
     return 0
 
 

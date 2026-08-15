@@ -26,6 +26,7 @@ from .migration_lifecycle import (
 _REVISION = "d502b5935120"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
+_PHASE_1A5_HEAD = "c4b9e2d7a6f1"
 _PHASE_0_HEAD = "0002_grant_job_runtime_dml"
 _TABLES = ("provider", "entity", "dataset", "source_record")
 _PROTECTED_HASHES = {
@@ -314,7 +315,7 @@ def phase1a1_schema(
 
 def test_phase1a1_retains_its_accepted_parent_below_phase1a3_head() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_PHASE_1A3_HEAD]
+    assert script.get_heads() == [_PHASE_1A5_HEAD]
     assert script.get_revision(_REVISION).down_revision == _PHASE_0_HEAD
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _REVISION
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD

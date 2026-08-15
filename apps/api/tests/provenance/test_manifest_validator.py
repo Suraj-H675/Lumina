@@ -55,7 +55,7 @@ def _write_canonical(path: Path, document: dict[str, object]) -> None:
     path.write_bytes(serialize_manifest(manifest))
 
 
-def test_empty_temporary_and_actual_production_roots_are_valid(
+def test_empty_temporary_root_and_approved_production_manifests_are_valid(
     capsys: pytest.CaptureFixture[str], tmp_path: Path
 ) -> None:
     result = validate_manifest_root(tmp_path)
@@ -66,13 +66,12 @@ def test_empty_temporary_and_actual_production_roots_are_valid(
     assert (PRODUCTION_MANIFEST_ROOT / ".gitkeep").is_file()
     production = validate_manifest_root(PRODUCTION_MANIFEST_ROOT)
     assert production.is_valid
-    assert production.manifests == ()
+    assert len(production.manifests) == 2
+    assert {manifest.manifest_type for manifest in production.manifests} == {"source", "data"}
     assert main([]) == 0
     output = capsys.readouterr()
     assert output.err == ""
-    assert (
-        output.out == "Lumina manifest validation passed: no production manifests are approved.\n"
-    )
+    assert output.out == "Lumina manifest validation passed: 2 manifest files.\n"
 
 
 def test_exact_committed_fictional_manifest_set_is_valid(tmp_path: Path) -> None:

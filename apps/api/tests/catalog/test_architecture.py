@@ -10,8 +10,11 @@ _CATALOG_ROOT = _API_ROOT / "src" / "lumina" / "catalog"
 _DOMAIN_APPLICATION = (
     _CATALOG_ROOT / "domain" / "ingestion.py",
     _CATALOG_ROOT / "domain" / "read.py",
+    _CATALOG_ROOT / "domain" / "reviewed_slice.py",
     _CATALOG_ROOT / "application" / "ingest.py",
     _CATALOG_ROOT / "application" / "read.py",
+    _CATALOG_ROOT / "application" / "reviewed_slice.py",
+    _CATALOG_ROOT / "application" / "data_quality.py",
 )
 _FORBIDDEN_DOMAIN_APPLICATION_IMPORTS = {
     "asyncpg",
@@ -37,6 +40,7 @@ def test_catalog_domain_and_application_are_persistence_framework_free() -> None
         assert _import_roots(path).isdisjoint(_FORBIDDEN_DOMAIN_APPLICATION_IMPORTS)
         source = path.read_text(encoding="utf-8")
         assert "public." not in source
+        assert "lumina.catalog.infrastructure" not in source
 
 
 def test_catalog_postgresql_adapter_does_not_select_or_mutate_canonical_measurements() -> None:
@@ -56,3 +60,15 @@ def test_catalog_adapter_keeps_postgresql_sql_out_of_the_service_boundary() -> N
 
     assert "PostgreSqlCatalogIngestionStore" not in application_source
     assert "FOR UPDATE" not in application_source
+
+
+def test_permanent_reviewed_slice_gate_does_not_depend_on_value_selection_state() -> None:
+    sources = (
+        (_CATALOG_ROOT / "application" / "data_quality.py").read_text(encoding="utf-8"),
+        (_CATALOG_ROOT / "infrastructure" / "postgresql" / "data_quality.py").read_text(
+            encoding="utf-8"
+        ),
+    )
+
+    assert all("canonical_measurement" not in source for source in sources)
+    assert all("selection_state" not in source for source in sources)

@@ -40,6 +40,19 @@ _QUANTITY_RADIUS_ID = UUID("72000000-0000-4000-8000-000000000002")
 _UNIT_KG_ID = UUID("73000000-0000-4000-8000-000000000001")
 _UNIT_M_ID = UUID("73000000-0000-4000-8000-000000000002")
 _FETCHED_AT = datetime(2026, 8, 11, 12, tzinfo=UTC)
+_REVIEWED_ENTITY_IDS = (
+    UUID("26f4b667-ecd9-524d-8121-29508723715a"),
+    UUID("bbfe8678-81ca-5e70-ac95-c597d7655540"),
+    UUID("bfd42670-3013-598e-8eb5-5a1c084dd1a0"),
+    UUID("c593bd18-c4bc-5551-8a41-09f1b501f981"),
+    UUID("403d0e71-8d81-5c52-abad-c4666c1b5cd6"),
+)
+_REVIEWED_QUANTITY_IDS = (
+    UUID("2c3626b7-647f-5180-8662-5240238e1acc"),
+    UUID("b9532ccd-e769-5d36-9046-b7c1bc138841"),
+    UUID("347f0167-0786-5d34-a4d4-a4da006343eb"),
+)
+_REVIEWED_UNIT_ID = UUID("4e4a920b-dc09-5556-a056-c08ba155c18a")
 
 
 def _migration_operation[Result](
@@ -116,21 +129,36 @@ def _clean_catalog(connection: Connection) -> None:
         "DELETE FROM public.source_record",
         "DELETE FROM public.dataset",
         "DELETE FROM public.provider",
-        "DELETE FROM public.quantity_unit",
-        "DELETE FROM public.quantity",
-        "DELETE FROM public.unit",
-        "DELETE FROM public.entity",
     ):
         connection.execute(text(statement))
+    connection.execute(
+        text(
+            "DELETE FROM public.quantity_unit WHERE NOT ("
+            "quantity_id = ANY(CAST(:quantity_ids AS uuid[])) AND unit_id = :unit_id)"
+        ),
+        {"quantity_ids": list(_REVIEWED_QUANTITY_IDS), "unit_id": _REVIEWED_UNIT_ID},
+    )
+    connection.execute(
+        text("DELETE FROM public.quantity WHERE NOT id = ANY(CAST(:quantity_ids AS uuid[]))"),
+        {"quantity_ids": list(_REVIEWED_QUANTITY_IDS)},
+    )
+    connection.execute(
+        text("DELETE FROM public.unit WHERE id <> :unit_id"),
+        {"unit_id": _REVIEWED_UNIT_ID},
+    )
+    connection.execute(
+        text("DELETE FROM public.entity WHERE NOT id = ANY(CAST(:entity_ids AS uuid[]))"),
+        {"entity_ids": list(_REVIEWED_ENTITY_IDS)},
+    )
     connection.commit()
 
 
 def _seed_catalog_vocabulary(connection: Connection) -> None:
     connection.execute(
         text(
-            "INSERT INTO public.entity (id, entity_type, canonical_name) "
-            "VALUES (:id, 'star', 'Repository Fixture Star'), "
-            "(:second_id, 'star', 'Repository Fixture Star B')"
+            "INSERT INTO public.entity (id, entity_type, canonical_name, slug) "
+            "VALUES (:id, 'star', 'Repository Fixture Star', 'repository-fixture-star'), "
+            "(:second_id, 'star', 'Repository Fixture Star B', 'repository-fixture-star-b')"
         ),
         {"id": _ENTITY_ID, "second_id": _ENTITY_B_ID},
     )

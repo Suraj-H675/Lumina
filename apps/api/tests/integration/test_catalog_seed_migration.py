@@ -22,6 +22,7 @@ from .migration_lifecycle import (
 
 _PARENT_REVISION = "a1a3c0f17c5e"
 _REVISION = "c4b9e2d7a6f1"
+_CURRENT_HEAD = "b7f3a2c81d4e"
 _SAFE_ERROR = "Gaia DR3 seed migration precondition failed."
 
 _ENTITY_ROWS = (
@@ -139,7 +140,9 @@ def at_parent_revision(integration_settings: IntegrationTestSettings) -> Iterato
     try:
         yield
     finally:
-        _run_upgrade(integration_settings)
+        # The fixture exercises the historical seed head, but every test must
+        # hand the shared integration database back at the repository head.
+        _run_upgrade(integration_settings, _CURRENT_HEAD)
 
 
 def _seed_counts(settings: IntegrationTestSettings) -> tuple[int, int, int, int]:
@@ -213,7 +216,7 @@ def _assert_seed_rows(settings: IntegrationTestSettings) -> None:
 
 def test_lineage_and_plain_insert_contract_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_REVISION]
+    assert script.get_heads() == [_CURRENT_HEAD]
     assert script.get_revision(_REVISION).down_revision == _PARENT_REVISION
 
     migration = (

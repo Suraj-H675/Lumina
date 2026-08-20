@@ -26,7 +26,7 @@ from .migration_lifecycle import (
 _REVISION = "d502b5935120"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
-_PHASE_1A5_HEAD = "c4b9e2d7a6f1"
+_PHASE_1A5_HEAD = "b7f3a2c81d4e"
 _PHASE_0_HEAD = "0002_grant_job_runtime_dml"
 _TABLES = ("provider", "entity", "dataset", "source_record")
 _PROTECTED_HASHES = {
@@ -309,7 +309,7 @@ def phase1a1_schema(
     finally:
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
         )
 
 
@@ -459,7 +459,7 @@ def test_catalog_columns_constraints_indexes_and_collations_are_exact(
     finally:
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=False),
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
         )
 
 
@@ -896,5 +896,5 @@ def test_acl_drift_refuses_downgrade_without_partial_changes(
         run_migration_operation(sync_url, revoke)
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=False),
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
         )

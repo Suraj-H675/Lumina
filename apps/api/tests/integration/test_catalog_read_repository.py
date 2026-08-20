@@ -60,8 +60,10 @@ async def test_real_driver_maps_uuid_and_runs_nullable_first_page_cursor(
             )
             await connection.execute(
                 text(
-                    "INSERT INTO public.entity (id, entity_type, canonical_name, created_at) "
-                    "VALUES (:id, 'star', 'Fictional Empty Read Star', :created_at)"
+                    "INSERT INTO public.entity "
+                    "(id, entity_type, canonical_name, slug, created_at) "
+                    "VALUES (:id, 'star', 'Fictional Empty Read Star', "
+                    "'fictional-empty-read-star', :created_at)"
                 ),
                 {"id": entity_id, "created_at": datetime(2026, 8, 13, tzinfo=UTC)},
             )

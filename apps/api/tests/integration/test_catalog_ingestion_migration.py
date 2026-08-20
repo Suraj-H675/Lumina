@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -27,7 +27,7 @@ from .migration_lifecycle import (
 
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
-_PHASE_1A5_HEAD = "c4b9e2d7a6f1"
+_PHASE_1A5_HEAD = "b7f3a2c81d4e"
 _CATALOG_TABLES = (
     "provider",
     "entity",
@@ -276,6 +276,24 @@ def _delete_graph(connection: Connection) -> None:
     connection.execute(text("DELETE FROM dataset"))
     connection.execute(text("DELETE FROM entity"))
     connection.execute(text("DELETE FROM provider"))
+
+
+@pytest.fixture(autouse=True)
+def phase1a3_schema(integration_settings: IntegrationTestSettings) -> Iterator[None]:
+    """Run historical ingestion contracts at Phase 1A3 and restore the repository head."""
+    sync_url = _sync_url(integration_settings)
+    identity = integration_migration_identity(integration_settings)
+    run_migration_operation(
+        sync_url,
+        lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=True),
+    )
+    try:
+        yield
+    finally:
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
+        )
 
 
 def test_lineage_and_protected_history_are_exact() -> None:
@@ -910,7 +928,7 @@ def test_upgrade_and_downgrade_refuse_unbackfillable_or_immutable_rows(
     finally:
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
         )
 
 
@@ -1032,7 +1050,7 @@ def test_downgrade_locks_before_emptiness_guard_preserve_concurrent_ingestion(
         run_migration_operation(sync_url, cleanup)
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
         )
 
 
@@ -1105,5 +1123,5 @@ def test_clean_upgrade_downgrade_and_reupgrade_restore_the_parent(
     finally:
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
+            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
         )

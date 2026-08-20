@@ -56,6 +56,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="a1a3c0f17c5e",
         sha256="ae89acabb3e241e49d6874a429ca2de0319aaa25ed5e2ba1185866df6cbfdf7a",
     ),
+    MigrationContract(
+        filename="b7f3a2c81d4e_add_catalog_public_identity.py",
+        revision="b7f3a2c81d4e",
+        down_revision="c4b9e2d7a6f1",
+        sha256="20f4660a65bbf3ae1eec286548406603f6c3ca4052476f73375c371daf3c038a",
+    ),
 )
 
 
@@ -116,7 +122,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 6 accepted revisions, head c4b9e2d7a6f1.")
+    print("Migration integrity passed: 7 accepted revisions, head b7f3a2c81d4e.")
     return 0
 
 

@@ -132,6 +132,21 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "DELETE FROM public.quantity WHERE false",
         "DELETE FROM public.unit WHERE false",
         "DELETE FROM public.quantity_unit WHERE false",
+        "SELECT * FROM public.entity_alias LIMIT 0",
+        "SELECT * FROM public.entity_alias_evidence LIMIT 0",
+        "INSERT INTO public.entity_alias "
+        "(id, entity_id, alias, normalized_alias, normalization_version, alias_type) "
+        "VALUES ('00000000-0000-4000-8000-000000000011', "
+        "'26f4b667-ecd9-524d-8121-29508723715a', 'Fixture Alias', 'fixture alias', 1, 'common')",
+        "INSERT INTO public.entity_alias_evidence "
+        "(alias_id, entity_id, source_record_id) VALUES "
+        "('00000000-0000-4000-8000-000000000011', "
+        "'26f4b667-ecd9-524d-8121-29508723715a', "
+        "'00000000-0000-0000-0000-000000000011')",
+        "UPDATE public.entity_alias SET alias = alias",
+        "DELETE FROM public.entity_alias WHERE false",
+        "UPDATE public.entity_alias_evidence SET entity_id = entity_id",
+        "DELETE FROM public.entity_alias_evidence WHERE false",
         "INSERT INTO public.job "
         "(id, job_type, status, priority, payload, max_attempts) "
         "VALUES ('00000000-0000-4000-8000-000000000001', "
@@ -140,6 +155,75 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         _assert_runtime_denied(runtime_url, statement)
 
     assert _query(runtime_url, "SELECT 1") == [1]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM unnest(CAST(ARRAY['entity_alias', "
+        "'entity_alias_evidence'] AS text[])) AS tables(table_name) "
+        "CROSS JOIN unnest(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', 'DELETE', "
+        "'TRUNCATE', 'REFERENCES', 'TRIGGER'] AS text[])) "
+        "AS privileges(privilege_name) "
+        "WHERE has_table_privilege(current_user, format('public.%I', table_name), privilege_name)",
+    ) == [0]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM pg_class AS table_data "
+        "JOIN pg_namespace AS namespace ON namespace.oid = table_data.relnamespace "
+        "JOIN pg_attribute AS attribute ON attribute.attrelid = table_data.oid "
+        "CROSS JOIN unnest(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', 'REFERENCES'] AS text[])) "
+        "AS privileges(privilege_name) WHERE namespace.nspname = 'public' "
+        "AND table_data.relname IN ('entity_alias', 'entity_alias_evidence') "
+        "AND attribute.attnum > 0 AND NOT attribute.attisdropped "
+        "AND has_column_privilege(current_user, table_data.oid, attribute.attname, privilege_name)",
+    ) == [0]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM pg_class AS table_data "
+        "JOIN pg_namespace AS namespace ON namespace.oid = table_data.relnamespace "
+        "JOIN pg_roles AS role_data ON role_data.rolname = current_user "
+        "CROSS JOIN LATERAL aclexplode(COALESCE(table_data.relacl, "
+        "acldefault('r', table_data.relowner))) AS privilege "
+        "WHERE namespace.nspname = 'public' "
+        "AND table_data.relname IN ('entity_alias', 'entity_alias_evidence') "
+        "AND privilege.grantee = role_data.oid AND privilege.is_grantable",
+    ) == [0]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM pg_class AS table_data "
+        "JOIN pg_namespace AS namespace ON namespace.oid = table_data.relnamespace "
+        "CROSS JOIN LATERAL aclexplode(COALESCE(table_data.relacl, "
+        "acldefault('r', table_data.relowner))) AS privilege "
+        "WHERE namespace.nspname = 'public' "
+        "AND table_data.relname IN ('entity_alias', 'entity_alias_evidence') "
+        "AND privilege.grantee = 0 "
+        "AND privilege.privilege_type = ANY(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', "
+        "'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'] AS text[]))",
+    ) == [0]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM pg_class AS table_data "
+        "JOIN pg_namespace AS namespace ON namespace.oid = table_data.relnamespace "
+        "JOIN pg_attribute AS attribute ON attribute.attrelid = table_data.oid "
+        "CROSS JOIN LATERAL aclexplode(attribute.attacl) AS privilege "
+        "WHERE namespace.nspname = 'public' "
+        "AND table_data.relname IN ('entity_alias', 'entity_alias_evidence') "
+        "AND attribute.attnum > 0 AND NOT attribute.attisdropped "
+        "AND privilege.grantee = 0 "
+        "AND privilege.privilege_type = ANY(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', "
+        "'REFERENCES'] AS text[]))",
+    ) == [0]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM pg_class AS table_data "
+        "JOIN pg_namespace AS namespace ON namespace.oid = table_data.relnamespace "
+        "JOIN pg_attribute AS attribute ON attribute.attrelid = table_data.oid "
+        "CROSS JOIN LATERAL aclexplode(attribute.attacl) AS privilege "
+        "WHERE namespace.nspname = 'public' "
+        "AND table_data.relname IN ('entity_alias', 'entity_alias_evidence') "
+        "AND attribute.attnum > 0 AND NOT attribute.attisdropped "
+        "AND privilege.grantee = 0 "
+        "AND privilege.privilege_type = ANY(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', "
+        "'REFERENCES'] AS text[])) AND privilege.is_grantable",
+    ) == [0]
     assert _query(
         runtime_url,
         "SELECT pg_get_userbyid(relowner) = current_user "

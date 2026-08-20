@@ -930,6 +930,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "a1a3c0f17c5e",
             "ae89acabb3e241e49d6874a429ca2de0319aaa25ed5e2ba1185866df6cbfdf7a",
         ),
+        (
+            "b7f3a2c81d4e_add_catalog_public_identity.py",
+            "b7f3a2c81d4e",
+            "c4b9e2d7a6f1",
+            "20f4660a65bbf3ae1eec286548406603f6c3ca4052476f73375c371daf3c038a",
+        ),
     ]
     root = tmp_path / "versions"
     shutil.copytree(REPOSITORY_ROOT / "migrations" / "versions", root)

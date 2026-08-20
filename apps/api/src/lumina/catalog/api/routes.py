@@ -22,7 +22,9 @@ from lumina.catalog.domain.read import (
 from lumina.shared.api.errors import ErrorResponse, error_response
 
 from .schemas import (
+    EntityBrowsePageResponse,
     EntityDetailResponse,
+    EntitySummaryResponse,
     EntityType,
     MeasurementPageResponse,
     SelectionHistoryPageResponse,
@@ -43,6 +45,10 @@ _CURSOR = Annotated[
     str | None,
     Query(description="Opaque cursor returned by the preceding page."),
 ]
+_ENTITY_TYPE = Annotated[
+    EntityType | None,
+    Query(description="Restrict results to one canonical entity type."),
+]
 
 
 class _ResponseMappingFailure(RuntimeError):
@@ -61,6 +67,15 @@ class _SourceRecordNotFound(RuntimeError):
 
 def _service(request: Request) -> Any:
     return request.app.state.catalog_read_service
+
+
+def _require_singular_entity_type(
+    request: Request,
+    value: EntityType | None,
+) -> EntityType | None:
+    if len(request.query_params.getlist("entity_type")) >= 2:
+        raise CatalogReadValidationRejected()
+    return value
 
 
 def _dump(value: object) -> object:
@@ -183,6 +198,27 @@ def _entity_payload(value: object) -> dict[str, object]:
     }
 
 
+def _entity_summary_payload(value: object) -> dict[str, object]:
+    """Build the exact public four-field navigation projection."""
+    return {
+        "id": _field(value, "id"),
+        "slug": _field(value, "slug"),
+        "entity_type": EntityType(cast(str, _enum_text(_field(value, "entity_type")))),
+        "canonical_name": _field(value, "canonical_name"),
+    }
+
+
+def _entity_browse_page_payload(value: object) -> dict[str, object]:
+    return {
+        "items": [_entity_summary_payload(item) for item in cast(Any, _field(value, "items"))],
+        "page": {
+            "next_cursor": _field(value, "next_cursor"),
+            "has_more": _field(value, "has_more"),
+            "limit": _field(value, "limit"),
+        },
+    }
+
+
 def _public_page_payload(value: object, *, history: bool) -> dict[str, object]:
     items = []
     for item in cast(Any, _field(value, "items")):
@@ -258,6 +294,10 @@ def _response[ResponseModel: BaseModel](model: type[ResponseModel], value: objec
     try:
         if model is EntityDetailResponse:
             value = _entity_payload(value)
+        elif model is EntitySummaryResponse:
+            value = _entity_summary_payload(value)
+        elif model is EntityBrowsePageResponse:
+            value = _entity_browse_page_payload(value)
         elif model is MeasurementPageResponse:
             value = _public_page_payload(value, history=False)
         elif model is SelectionHistoryPageResponse:
@@ -295,6 +335,49 @@ def _error_kind(error: BaseException) -> tuple[int, str, str]:
 def _failure(request: Request, error: BaseException) -> JSONResponse:
     status, code, message = _error_kind(error)
     return error_response(request, status_code=status, code=code, message=message)
+
+
+@router.get(
+    "/entities",
+    operation_id="list_catalog_entities",
+    response_model=EntityBrowsePageResponse,
+    responses=cast(Any, _ERROR_RESPONSES),
+)
+async def list_catalog_entities(
+    request: Request,
+    entity_type: _ENTITY_TYPE = None,
+    limit: _LIMIT = 20,
+    cursor: _CURSOR = None,
+) -> EntityBrowsePageResponse | JSONResponse:
+    """Return one deterministic, bounded page of public entity summaries."""
+    try:
+        selected_type = _require_singular_entity_type(request, entity_type)
+        result = await _service(request).list_entities(
+            entity_type=None if selected_type is None else selected_type.value,
+            cursor=cursor,
+            limit=limit,
+        )
+        return _response(EntityBrowsePageResponse, result)
+    except Exception as error:
+        return _failure(request, error)
+
+
+@router.get(
+    "/entities/by-slug/{slug}",
+    operation_id="get_catalog_entity_by_slug",
+    response_model=EntitySummaryResponse,
+    responses=cast(Any, _ERROR_RESPONSES),
+)
+async def get_catalog_entity_by_slug(
+    request: Request,
+    slug: str,
+) -> EntitySummaryResponse | JSONResponse:
+    """Resolve one canonical public entity by its exact stable slug."""
+    try:
+        result = await _service(request).get_entity_by_slug(slug)
+        return _response(EntitySummaryResponse, result)
+    except Exception as error:
+        return _failure(request, error)
 
 
 @router.get(

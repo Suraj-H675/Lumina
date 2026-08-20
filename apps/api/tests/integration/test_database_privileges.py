@@ -129,6 +129,11 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "UPDATE public.job SET payload = payload",
         "UPDATE public.job SET max_attempts = max_attempts",
         "DELETE FROM public.entity WHERE false",
+        "INSERT INTO public.entity "
+        "(id, entity_type, canonical_name, slug) VALUES "
+        "('96000000-0000-4000-8000-000000000099', 'star', "
+        "'Runtime Insert Must Fail', 'runtime-insert-must-fail')",
+        "UPDATE public.entity SET canonical_name = canonical_name WHERE false",
         "DELETE FROM public.quantity WHERE false",
         "DELETE FROM public.unit WHERE false",
         "DELETE FROM public.quantity_unit WHERE false",
@@ -155,6 +160,25 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         _assert_runtime_denied(runtime_url, statement)
 
     assert _query(runtime_url, "SELECT 1") == [1]
+    assert _query(
+        runtime_url,
+        "SELECT has_table_privilege(current_user, 'public.entity', 'SELECT')",
+    ) == [True]
+    assert _query(
+        runtime_url,
+        "SELECT has_column_privilege(current_user, 'public.entity', 'slug', 'SELECT')",
+    ) == [True]
+    assert _query(
+        runtime_url,
+        "SELECT slug FROM public.entity WHERE slug = 'hd-209458'",
+    ) == ["hd-209458"]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM unnest(CAST(ARRAY['INSERT', 'UPDATE', 'DELETE', "
+        "'TRUNCATE', 'REFERENCES', 'TRIGGER'] AS text[])) "
+        "AS privileges(privilege_name) "
+        "WHERE has_table_privilege(current_user, 'public.entity', privilege_name)",
+    ) == [0]
     assert _query(
         runtime_url,
         "SELECT count(*) FROM unnest(CAST(ARRAY['entity_alias', "

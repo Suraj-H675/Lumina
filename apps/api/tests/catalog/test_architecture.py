@@ -43,6 +43,23 @@ def test_catalog_domain_and_application_are_persistence_framework_free() -> None
         assert "lumina.catalog.infrastructure" not in source
 
 
+def test_catalog_read_domain_reuses_only_the_domain_identity_validator_for_public_slugs() -> None:
+    source = (_CATALOG_ROOT / "domain" / "read.py").read_text(encoding="utf-8")
+
+    assert "from lumina.catalog.domain.identity import" in source
+    assert "_PUBLIC_SLUG_PATTERN" not in source
+    assert "fastapi" not in source
+    assert "sqlalchemy" not in source
+
+
+def test_catalog_navigation_routes_remain_free_of_sql_and_postgresql_dependencies() -> None:
+    source = (_CATALOG_ROOT / "api" / "routes.py").read_text(encoding="utf-8")
+
+    assert "SELECT " not in source
+    assert "FROM public." not in source
+    assert "sqlalchemy" not in source
+
+
 def test_catalog_postgresql_adapter_does_not_select_or_mutate_canonical_measurements() -> None:
     source = (_CATALOG_ROOT / "infrastructure" / "postgresql" / "ingestion.py").read_text(
         encoding="utf-8"

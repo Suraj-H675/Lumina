@@ -44,6 +44,8 @@ from lumina.catalog.domain.read import (
     ConflictSlice,
     CurrentCanonicalSelection,
     DatasetProvenance,
+    EntityBrowseCursor,
+    EntityBrowseSlice,
     EntityDetail,
     EntityQuantity,
     HistoricalSelection,
@@ -52,6 +54,7 @@ from lumina.catalog.domain.read import (
     MeasurementCursor,
     MeasurementSlice,
     ProviderProvenance,
+    PublicEntitySummary,
     Quantity,
     SelectedMeasurement,
     SelectionHistoryCursor,
@@ -62,6 +65,7 @@ from lumina.catalog.domain.read import (
     SourceRecordProvenance,
     Unit,
     validate_ingestion_conflict_evidence,
+    validate_public_entity_slug,
 )
 
 _SET_READ_COMMITTED_SQL = text("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
@@ -119,6 +123,49 @@ _ENTITY_DETAIL_SQL = text(
     "LEFT JOIN public.dataset AS dataset ON dataset.id = source_record.dataset_id "
     "LEFT JOIN public.provider AS provider ON provider.id = source_record.provider_id "
     'ORDER BY quantity_counts.quantity_code COLLATE "C" ASC NULLS LAST'
+)
+
+_ENTITY_SUMMARY_BY_SLUG_SQL = text(
+    "SELECT\n"
+    "    entity.id AS entity_id,\n"
+    "    entity.slug,\n"
+    "    entity.entity_type,\n"
+    "    entity.canonical_name\n"
+    "FROM public.entity AS entity\n"
+    "WHERE entity.slug = CAST(:slug AS text)"
+)
+
+_ENTITY_BROWSE_SQL = text(
+    "SELECT\n"
+    "    entity.id AS entity_id,\n"
+    "    entity.slug,\n"
+    "    entity.entity_type,\n"
+    "    entity.canonical_name\n"
+    "FROM public.entity AS entity\n"
+    "WHERE (\n"
+    "    CAST(:after_slug AS text) IS NULL\n"
+    '    OR entity.slug COLLATE "C" >\n'
+    '       CAST(:after_slug AS text) COLLATE "C"\n'
+    ")\n"
+    'ORDER BY entity.slug COLLATE "C" ASC\n'
+    "LIMIT :fetch_limit"
+)
+
+_FILTERED_ENTITY_BROWSE_SQL = text(
+    "SELECT\n"
+    "    entity.id AS entity_id,\n"
+    "    entity.slug,\n"
+    "    entity.entity_type,\n"
+    "    entity.canonical_name\n"
+    "FROM public.entity AS entity\n"
+    "WHERE entity.entity_type = CAST(:entity_type AS text)\n"
+    "  AND (\n"
+    "      CAST(:after_slug AS text) IS NULL\n"
+    '      OR entity.slug COLLATE "C" >\n'
+    '         CAST(:after_slug AS text) COLLATE "C"\n'
+    "  )\n"
+    'ORDER BY entity.slug COLLATE "C" ASC\n'
+    "LIMIT :fetch_limit"
 )
 
 # The target CTE carries entity existence even for an empty page.  ``limit + 1`` is supplied by
@@ -255,7 +302,7 @@ class _DatabasePhase(Enum):
 
 
 class PostgreSqlCatalogReadRepository:
-    """Execute the six bounded catalogue read queries in fresh read-only transactions."""
+    """Execute the eight bounded catalogue read queries in fresh read-only transactions."""
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
@@ -271,6 +318,68 @@ class PostgreSqlCatalogReadRepository:
                 .all()
             )
             return _entity_detail(rows)
+
+        return await self._read(operation)
+
+    async def get_entity_summary_by_slug(self, *, slug: str) -> PublicEntitySummary | None:
+        """Resolve one exact canonical public slug without aliases or normalization."""
+        canonical_slug = validate_public_entity_slug(slug)
+
+        async def operation(connection: AsyncConnection) -> PublicEntitySummary | None:
+            rows = (
+                (
+                    await connection.execute(
+                        _ENTITY_SUMMARY_BY_SLUG_SQL,
+                        {"slug": canonical_slug},
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            if not rows:
+                return None
+            if len(rows) != 1:
+                raise CatalogDataInconsistent()
+            return _public_entity_summary(rows[0])
+
+        return await self._read(operation)
+
+    async def list_entity_summaries(
+        self,
+        *,
+        entity_type: CatalogEntityType | None,
+        cursor: EntityBrowseCursor | None,
+        limit: int,
+    ) -> EntityBrowseSlice:
+        """Return one slug-keyset page using exactly one filtered or unfiltered query."""
+        if entity_type is not None and type(entity_type) is not CatalogEntityType:
+            raise CatalogReadValidationRejected()
+        _require_limit(limit)
+        if cursor is not None:
+            if type(cursor) is not EntityBrowseCursor or cursor.entity_type is not entity_type:
+                raise CatalogReadValidationRejected()
+            after_slug: str | None = cursor.slug
+        else:
+            after_slug = None
+
+        async def operation(connection: AsyncConnection) -> EntityBrowseSlice:
+            if entity_type is None:
+                statement = _ENTITY_BROWSE_SQL
+                parameters: dict[str, object] = {
+                    "after_slug": after_slug,
+                    "fetch_limit": limit + 1,
+                }
+            else:
+                statement = _FILTERED_ENTITY_BROWSE_SQL
+                parameters = {
+                    "entity_type": entity_type.value,
+                    "after_slug": after_slug,
+                    "fetch_limit": limit + 1,
+                }
+            rows = (await connection.execute(statement, parameters)).mappings().all()
+            if len(rows) > limit + 1:
+                raise CatalogDataInconsistent()
+            return EntityBrowseSlice(items=tuple(_public_entity_summary(row) for row in rows))
 
         return await self._read(operation)
 
@@ -780,6 +889,16 @@ def _entity_detail(rows: Sequence[RowMapping]) -> EntityDetail | None:
         entity_type=entity_type,
         canonical_name=canonical_name,
         quantities=tuple(quantities),
+    )
+
+
+def _public_entity_summary(row: RowMapping) -> PublicEntitySummary:
+    """Map exactly the four columns selected by the public navigation read queries."""
+    return PublicEntitySummary(
+        id=_required_uuid(row, "entity_id"),
+        slug=_required(row, "slug", str),
+        entity_type=CatalogEntityType(_required(row, "entity_type", str)),
+        canonical_name=_required(row, "canonical_name", str),
     )
 
 

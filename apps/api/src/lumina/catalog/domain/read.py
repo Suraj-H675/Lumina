@@ -33,6 +33,10 @@ from pydantic import (
     model_validator,
 )
 
+from lumina.catalog.domain.identity import (
+    CatalogIdentityValidationError,
+    validate_public_slug,
+)
 from lumina.catalog.domain.ingestion import (
     ExactSourceText,
     FiniteDecimal,
@@ -131,6 +135,16 @@ _READ_ERROR_TYPES: Final = (
 def is_catalog_read_error(error: BaseException) -> bool:
     """Return whether ``error`` belongs to the closed read failure taxonomy."""
     return type(error) in _READ_ERROR_TYPES
+
+
+def validate_public_entity_slug(value: object) -> str:
+    """Translate public-identity validation into the catalogue-read taxonomy."""
+    if type(value) is not str:
+        raise CatalogReadValidationRejected()
+    try:
+        return validate_public_slug(value)
+    except CatalogIdentityValidationError:
+        raise CatalogReadValidationRejected() from None
 
 
 def _validate_nonempty_text(value: str) -> str:
@@ -317,6 +331,20 @@ class EntityDetail(_ReadModel):
         return value
 
 
+class PublicEntitySummary(_ReadModel):
+    """The stable, four-field public identity used for navigation reads."""
+
+    id: UUID
+    slug: StrictStr
+    entity_type: CatalogEntityType
+    canonical_name: NarrativeText
+
+    @field_validator("slug", mode="before")
+    @classmethod
+    def _require_canonical_slug(cls, value: object) -> str:
+        return validate_public_entity_slug(value)
+
+
 class CatalogMeasurement(_ReadModel):
     """One immutable alternative, including its internal stable page-order timestamp."""
 
@@ -409,6 +437,18 @@ class ConflictCursor(_ReadModel):
     fingerprint: Sha256
 
 
+class EntityBrowseCursor(_ReadModel):
+    """The unique canonical-slug continuation position for entity navigation."""
+
+    entity_type: CatalogEntityType | None
+    slug: StrictStr
+
+    @field_validator("slug", mode="before")
+    @classmethod
+    def _require_canonical_slug(cls, value: object) -> str:
+        return validate_public_entity_slug(value)
+
+
 class MeasurementSlice(_ReadModel):
     """One repository result containing at most ``limit + 1`` measurement rows."""
 
@@ -419,6 +459,12 @@ class SelectionHistorySlice(_ReadModel):
     """One repository result containing at most ``limit + 1`` selection rows."""
 
     items: tuple[SelectionHistoryItem, ...]
+
+
+class EntityBrowseSlice(_ReadModel):
+    """One repository result containing at most ``limit + 1`` entity summaries."""
+
+    items: tuple[PublicEntitySummary, ...]
 
 
 class ConflictAnchor(_ReadModel):
@@ -514,6 +560,13 @@ class SelectionHistoryPage(_ReadModel):
     limit: Annotated[StrictInt, Field(ge=1, le=100)]
 
 
+class EntityBrowsePage(_ReadModel):
+    items: tuple[PublicEntitySummary, ...]
+    next_cursor: str | None
+    has_more: StrictBool
+    limit: Annotated[StrictInt, Field(ge=1, le=100)]
+
+
 class ConflictPage(_ReadModel):
     items: tuple[IngestionConflictItem, ...]
     next_cursor: str | None
@@ -534,12 +587,20 @@ def validate_entity_detail(value: object) -> EntityDetail:
     return _refresh_model(EntityDetail, value)
 
 
+def validate_public_entity_summary(value: object) -> PublicEntitySummary:
+    return _refresh_model(PublicEntitySummary, value)
+
+
 def validate_measurement_slice(value: object) -> MeasurementSlice:
     return _refresh_model(MeasurementSlice, value)
 
 
 def validate_selection_history_slice(value: object) -> SelectionHistorySlice:
     return _refresh_model(SelectionHistorySlice, value)
+
+
+def validate_entity_browse_slice(value: object) -> EntityBrowseSlice:
+    return _refresh_model(EntityBrowseSlice, value)
 
 
 def validate_source_provenance(value: object) -> SourceProvenance:
@@ -589,6 +650,18 @@ def validate_limit(value: object, *, default: int, maximum: int = 100) -> int:
     return value
 
 
+def validate_entity_type_filter(value: object | None) -> CatalogEntityType | None:
+    """Accept one exact persisted entity-type value or the absence of a filter."""
+    if value is None:
+        return None
+    if type(value) is not str:
+        raise CatalogReadValidationRejected()
+    try:
+        return CatalogEntityType(value)
+    except ValueError:
+        raise CatalogReadValidationRejected() from None
+
+
 def validate_fingerprint(value: object) -> str:
     if type(value) is not str:
         raise CatalogReadValidationRejected()
@@ -623,6 +696,8 @@ def _decode_cursor_payload(value: object, *, expected_kind: str) -> dict[str, ob
         raise CatalogReadValidationRejected() from None
     if (
         canonical != raw
+        or "v" not in decoded
+        or "k" not in decoded
         or type(decoded.get("v")) is not int
         or decoded["v"] != _CURSOR_VERSION
         or type(decoded.get("k")) is not str
@@ -690,6 +765,44 @@ def decode_measurement_cursor(value: object, *, entity_id: UUID) -> MeasurementC
     except (ValidationError, CatalogReadValidationRejected):
         raise CatalogReadValidationRejected() from None
     if cursor.entity_id != entity_id:
+        raise CatalogReadValidationRejected()
+    return cursor
+
+
+def encode_entity_browse_cursor(cursor: EntityBrowseCursor) -> str:
+    """Encode a filter-bound canonical-slug continuation cursor."""
+    cursor = _refresh_model(EntityBrowseCursor, cursor)
+    return _encode_cursor(
+        {
+            "v": _CURSOR_VERSION,
+            "k": "entities",
+            "f": cursor.entity_type.value if cursor.entity_type is not None else None,
+            "s": cursor.slug,
+        }
+    )
+
+
+def decode_entity_browse_cursor(
+    value: object,
+    *,
+    entity_type: CatalogEntityType | None,
+) -> EntityBrowseCursor:
+    """Decode one canonical entity continuation cursor bound to its active filter."""
+    if entity_type is not None and type(entity_type) is not CatalogEntityType:
+        raise CatalogReadValidationRejected()
+    payload = _decode_cursor_payload(value, expected_kind="entities")
+    if set(payload) != {"v", "k", "f", "s"}:
+        raise CatalogReadValidationRejected()
+    try:
+        if payload["f"] is not None and type(payload["f"]) is not str:
+            raise CatalogReadValidationRejected()
+        cursor = EntityBrowseCursor(
+            entity_type=(None if payload["f"] is None else CatalogEntityType(payload["f"])),
+            slug=validate_public_entity_slug(payload["s"]),
+        )
+    except (TypeError, ValueError, ValidationError, CatalogReadValidationRejected):
+        raise CatalogReadValidationRejected() from None
+    if cursor.entity_type is not entity_type:
         raise CatalogReadValidationRejected()
     return cursor
 

@@ -67,6 +67,17 @@ export type DatasetReference = {
 };
 
 /**
+ * EntityBrowsePageResponse
+ */
+export type EntityBrowsePageResponse = {
+  /**
+   * Items
+   */
+  items: Array<EntitySummaryResponse>;
+  page: PageResponse;
+};
+
+/**
  * EntityDetailResponse
  */
 export type EntityDetailResponse = {
@@ -95,6 +106,27 @@ export type EntityQuantityResponse = {
    */
   measurement_count: number;
   quantity: QuantityReference;
+};
+
+/**
+ * EntitySummaryResponse
+ *
+ * The stable four-field public navigation projection for one entity.
+ */
+export type EntitySummaryResponse = {
+  /**
+   * Canonical Name
+   */
+  canonical_name: string;
+  entity_type: EntityType;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Slug
+   */
+  slug: string;
 };
 
 /**
@@ -497,6 +529,107 @@ export type UnitReference = {
    */
   symbol: string;
 };
+
+export type ListCatalogEntitiesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Entity Type
+     *
+     * Restrict results to one canonical entity type.
+     */
+    entity_type?: EntityType | null;
+    /**
+     * Limit
+     *
+     * Maximum number of items to return.
+     */
+    limit?: number;
+    /**
+     * Cursor
+     *
+     * Opaque cursor returned by the preceding page.
+     */
+    cursor?: string | null;
+  };
+  url: "/api/v1/catalog/entities";
+};
+
+export type ListCatalogEntitiesErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type ListCatalogEntitiesError = ListCatalogEntitiesErrors[keyof ListCatalogEntitiesErrors];
+
+export type ListCatalogEntitiesResponses = {
+  /**
+   * Successful Response
+   */
+  200: EntityBrowsePageResponse;
+};
+
+export type ListCatalogEntitiesResponse =
+  ListCatalogEntitiesResponses[keyof ListCatalogEntitiesResponses];
+
+export type GetCatalogEntityBySlugData = {
+  body?: never;
+  path: {
+    /**
+     * Slug
+     */
+    slug: string;
+  };
+  query?: never;
+  url: "/api/v1/catalog/entities/by-slug/{slug}";
+};
+
+export type GetCatalogEntityBySlugErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetCatalogEntityBySlugError =
+  GetCatalogEntityBySlugErrors[keyof GetCatalogEntityBySlugErrors];
+
+export type GetCatalogEntityBySlugResponses = {
+  /**
+   * Successful Response
+   */
+  200: EntitySummaryResponse;
+};
+
+export type GetCatalogEntityBySlugResponse =
+  GetCatalogEntityBySlugResponses[keyof GetCatalogEntityBySlugResponses];
 
 export type GetCatalogEntityData = {
   body?: never;

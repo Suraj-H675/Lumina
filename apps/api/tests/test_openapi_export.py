@@ -55,11 +55,37 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/meta",
         "/health/live",
         "/health/ready",
+        "/api/v1/catalog/entities",
+        "/api/v1/catalog/entities/by-slug/{slug}",
         "/api/v1/catalog/entities/{entity_id}",
         "/api/v1/catalog/entities/{entity_id}/measurements",
         "/api/v1/catalog/entities/{entity_id}/canonical-selections",
         "/api/v1/catalog/sources/{source_record_id}",
     }
+
+
+def test_catalog_navigation_openapi_is_singular_and_four_field() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    paths = document["paths"]
+
+    assert paths["/api/v1/catalog/entities"]["get"]["operationId"] == ("list_catalog_entities")
+    assert paths["/api/v1/catalog/entities/by-slug/{slug}"]["get"]["operationId"] == (
+        "get_catalog_entity_by_slug"
+    )
+    summary_schema = document["components"]["schemas"]["EntitySummaryResponse"]
+    assert set(summary_schema["properties"]) == {"id", "slug", "entity_type", "canonical_name"}
+    assert summary_schema["additionalProperties"] is False
+
+    browse_schema = document["components"]["schemas"]["EntityBrowsePageResponse"]
+    assert set(browse_schema["properties"]) == {"items", "page"}
+    assert browse_schema["additionalProperties"] is False
+
+    parameters = paths["/api/v1/catalog/entities"]["get"]["parameters"]
+    entity_type_parameters = [item for item in parameters if item["name"] == "entity_type"]
+    assert len(entity_type_parameters) == 1
+    entity_type_parameter = entity_type_parameters[0]
+    assert entity_type_parameter["required"] is False
+    assert entity_type_parameter["schema"]["anyOf"][0]["$ref"] == "#/components/schemas/EntityType"
 
 
 def test_export_does_not_open_network_or_database_connections(

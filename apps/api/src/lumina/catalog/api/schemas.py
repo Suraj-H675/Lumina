@@ -11,6 +11,8 @@ from uuid import UUID
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
 
+from lumina.catalog.domain.read import validate_public_entity_slug
+
 _DECIMAL_TEXT_PATTERN = r"^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$"
 _DECIMAL_RE = re.compile(rf"\A{_DECIMAL_TEXT_PATTERN}\Z", re.ASCII)
 
@@ -48,6 +50,11 @@ DecimalText = Annotated[
     AfterValidator(_decimal_text),
 ]
 PublicUrl = Annotated[StrictStr, AfterValidator(_public_url)]
+PublicSlug = Annotated[
+    StrictStr,
+    Field(min_length=1, max_length=100),
+    AfterValidator(validate_public_entity_slug),
+]
 
 
 class _ResponseModel(BaseModel):
@@ -164,6 +171,15 @@ class EntityDetailResponse(_ResponseModel):
     quantities: list[EntityQuantityResponse]
 
 
+class EntitySummaryResponse(_ResponseModel):
+    """The stable four-field public navigation projection for one entity."""
+
+    id: UUID
+    slug: PublicSlug
+    entity_type: EntityType
+    canonical_name: StrictStr = Field(min_length=1)
+
+
 class MeasurementResponse(_ResponseModel):
     id: UUID
     quantity: QuantityReference
@@ -197,6 +213,11 @@ class MeasurementPageResponse(_ResponseModel):
 
 class SelectionHistoryPageResponse(_ResponseModel):
     items: list[SelectionHistoryResponse]
+    page: PageResponse
+
+
+class EntityBrowsePageResponse(_ResponseModel):
+    items: list[EntitySummaryResponse]
     page: PageResponse
 
 
@@ -237,7 +258,9 @@ __all__ = [
     "CurrentSelectionReference",
     "DatasetReference",
     "EntityDetailResponse",
+    "EntityBrowsePageResponse",
     "EntityQuantityResponse",
+    "EntitySummaryResponse",
     "EntityType",
     "HistorySelectionReference",
     "MeasurementPageResponse",

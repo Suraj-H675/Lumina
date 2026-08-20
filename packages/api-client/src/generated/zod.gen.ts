@@ -51,6 +51,18 @@ export const zEntityType = z.enum([
 ]);
 
 /**
+ * EntitySummaryResponse
+ *
+ * The stable four-field public navigation projection for one entity.
+ */
+export const zEntitySummaryResponse = z.object({
+  canonical_name: z.string().min(1),
+  entity_type: zEntityType,
+  id: z.uuid(),
+  slug: z.string().min(1).max(100),
+});
+
+/**
  * ErrorBody
  *
  * Stable public error fields.
@@ -118,6 +130,14 @@ export const zPageResponse = z.object({
   has_more: z.boolean(),
   limit: z.int().gte(1).lte(100),
   next_cursor: z.string().nullable(),
+});
+
+/**
+ * EntityBrowsePageResponse
+ */
+export const zEntityBrowsePageResponse = z.object({
+  items: z.array(zEntitySummaryResponse),
+  page: zPageResponse,
 });
 
 /**
@@ -293,6 +313,16 @@ export const zSelectionHistoryPageResponse = z.object({
   items: z.array(zSelectionHistoryResponse),
   page: zPageResponse,
 });
+
+/**
+ * Successful Response
+ */
+export const zListCatalogEntitiesResponse = zEntityBrowsePageResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetCatalogEntityBySlugResponse = zEntitySummaryResponse;
 
 /**
  * Successful Response

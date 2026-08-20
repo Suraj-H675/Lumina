@@ -96,6 +96,27 @@
         "title": "DatasetReference",
         "type": "object"
       },
+      "EntityBrowsePageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EntitySummaryResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageResponse"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "title": "EntityBrowsePageResponse",
+        "type": "object"
+      },
       "EntityDetailResponse": {
         "additionalProperties": false,
         "properties": {
@@ -157,6 +178,39 @@
           "current_selection"
         ],
         "title": "EntityQuantityResponse",
+        "type": "object"
+      },
+      "EntitySummaryResponse": {
+        "additionalProperties": false,
+        "description": "The stable four-field public navigation projection for one entity.",
+        "properties": {
+          "canonical_name": {
+            "minLength": 1,
+            "title": "Canonical Name",
+            "type": "string"
+          },
+          "entity_type": {
+            "$ref": "#/components/schemas/EntityType"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "slug": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "entity_type",
+          "canonical_name"
+        ],
+        "title": "EntitySummaryResponse",
         "type": "object"
       },
       "EntityType": {
@@ -768,6 +822,193 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/catalog/entities": {
+      "get": {
+        "description": "Return one deterministic, bounded page of public entity summaries.",
+        "operationId": "list_catalog_entities",
+        "parameters": [
+          {
+            "description": "Restrict results to one canonical entity type.",
+            "in": "query",
+            "name": "entity_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EntityType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict results to one canonical entity type.",
+              "title": "Entity Type"
+            }
+          },
+          {
+            "description": "Maximum number of items to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Maximum number of items to return.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor returned by the preceding page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opaque cursor returned by the preceding page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityBrowsePageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested catalogue resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be validated."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be completed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The database is temporarily unavailable."
+          }
+        },
+        "summary": "List Catalog Entities",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/catalog/entities/by-slug/{slug}": {
+      "get": {
+        "description": "Resolve one canonical public entity by its exact stable slug.",
+        "operationId": "get_catalog_entity_by_slug",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitySummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested catalogue resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be validated."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request could not be completed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The database is temporarily unavailable."
+          }
+        },
+        "summary": "Get Catalog Entity By Slug",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/api/v1/catalog/entities/{entity_id}": {
       "get": {
         "description": "Return one public canonical entity and its bounded current quantities.",

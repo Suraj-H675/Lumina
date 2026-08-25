@@ -7,6 +7,7 @@ from .read import (
     CatalogReadRepository,
     CatalogReadService,
 )
+from .search import CatalogSearchRepository, CatalogSearchService
 
 __all__ = [
     "CatalogIngestionService",
@@ -15,4 +16,6 @@ __all__ = [
     "CatalogOperatorReadService",
     "CatalogReadRepository",
     "CatalogReadService",
+    "CatalogSearchRepository",
+    "CatalogSearchService",
 ]

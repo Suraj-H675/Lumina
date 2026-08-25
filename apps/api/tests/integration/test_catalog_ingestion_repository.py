@@ -11,6 +11,10 @@ from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
+from lumina.catalog.domain.identity import (
+    ALIAS_NORMALIZATION_VERSION,
+    normalize_alias,
+)
 from lumina.catalog.domain.ingestion import (
     CatalogIngestionStatus,
     CatalogUnknownEntity,
@@ -154,14 +158,27 @@ def _clean_catalog(connection: Connection) -> None:
 
 
 def _seed_catalog_vocabulary(connection: Connection) -> None:
-    connection.execute(
-        text(
-            "INSERT INTO public.entity (id, entity_type, canonical_name, slug) "
-            "VALUES (:id, 'star', 'Repository Fixture Star', 'repository-fixture-star'), "
-            "(:second_id, 'star', 'Repository Fixture Star B', 'repository-fixture-star-b')"
-        ),
-        {"id": _ENTITY_ID, "second_id": _ENTITY_B_ID},
+    fixture_entities = (
+        (_ENTITY_ID, "Repository Fixture Star", "repository-fixture-star"),
+        (_ENTITY_B_ID, "Repository Fixture Star B", "repository-fixture-star-b"),
     )
+    for entity_id, canonical_name, slug in fixture_entities:
+        connection.execute(
+            text(
+                "INSERT INTO public.entity "
+                "(id, entity_type, canonical_name, slug, normalized_canonical_name, "
+                "canonical_name_normalization_version) VALUES "
+                "(:id, 'star', :canonical_name, :slug, :normalized_canonical_name, 1)"
+            ),
+            {
+                "id": entity_id,
+                "canonical_name": canonical_name,
+                "slug": slug,
+                "normalized_canonical_name": normalize_alias(
+                    canonical_name, version=ALIAS_NORMALIZATION_VERSION
+                ),
+            },
+        )
     connection.execute(
         text(
             "INSERT INTO public.quantity (id, code, name) VALUES "

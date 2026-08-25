@@ -12,21 +12,23 @@ import pytest
 from alembic.script import ScriptDirectory
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import DataError, IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_runtime_url,
+    historical_sync_url,
     migration_config,
     run_alembic,
     run_migration_operation,
 )
 
 _REVISION = "d502b5935120"
+_HISTORICAL_B2 = "b7f3a2c81d4e"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
-_PHASE_1A5_HEAD = "b7f3a2c81d4e"
+_PHASE_1A5_HEAD = "e8f4c1a9b362"
 _PHASE_0_HEAD = "0002_grant_job_runtime_dml"
 _TABLES = ("provider", "entity", "dataset", "source_record")
 _PROTECTED_HASHES = {
@@ -140,7 +142,7 @@ _EXPECTED_INDEXES = {
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_sync_url.get_secret_value())
+    return historical_sync_url(settings)
 
 
 def _revision(connection: Connection) -> str | None:
@@ -158,8 +160,58 @@ def _table_names(connection: Connection) -> set[str]:
     )
 
 
+_ACCEPTED_HISTORICAL_REVISIONS = frozenset(
+    {
+        "0002_grant_job_runtime_dml",
+        "d502b5935120",
+        "e4c9f1a7b362",
+        "a1a3c0f17c5e",
+        "c4b9e2d7a6f1",
+        "b7f3a2c81d4e",
+    }
+)
+
+
+def _history_revision(integration_settings: IntegrationTestSettings) -> str | None:
+    from .migration_lifecycle import historical_sync_url, run_migration_operation
+
+    revision = run_migration_operation(
+        historical_sync_url(integration_settings),
+        lambda connection: connection.execute(
+            text("SELECT version_num FROM public.alembic_version")
+        ).scalar_one(),
+    )
+    return None if revision is None else str(revision)
+
+
+def _normalize_history_to_b2(integration_settings: IntegrationTestSettings) -> None:
+    """Normalize the history database to B2 using Alembic only."""
+    from .migration_lifecycle import (
+        historical_migration_identity,
+        historical_sync_url,
+        run_alembic,
+        run_migration_operation,
+    )
+
+    revision = _history_revision(integration_settings)
+    identity = historical_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+
+    if revision is None or revision not in _ACCEPTED_HISTORICAL_REVISIONS:
+        pytest.fail("History database is empty or at an unexpected revision.")
+    if revision == "e8f4c1a9b362":
+        pytest.fail("History database must never contain Phase 1B3 state.")
+    if revision != "b7f3a2c81d4e":
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
+        )
+    if _history_revision(integration_settings) != "b7f3a2c81d4e":
+        pytest.fail("History normalization did not reach accepted B2.")
+
+
 def _run_rolled_back(
-    settings: IntegrationTestSettings,
+    integration_settings: IntegrationTestSettings,
     operation: Callable[[Connection], None],
 ) -> None:
     def execute(connection: Connection) -> None:
@@ -169,7 +221,7 @@ def _run_rolled_back(
         finally:
             transaction.rollback()
 
-    run_migration_operation(_sync_url(settings), execute)
+    run_migration_operation(historical_sync_url(integration_settings), execute)
 
 
 def _expect_integrity_error(
@@ -294,12 +346,15 @@ def _insert_graph(connection: Connection) -> None:
 
 
 @pytest.fixture(autouse=True)
-def phase1a1_schema(
+def _phase1a1_schema(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> Iterator[None]:
     """Pin historical identity tests to Phase 1A1 and restore the accepted head."""
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
+    _normalize_history_to_b2(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, _REVISION, downgrade=True),
@@ -307,10 +362,7 @@ def phase1a1_schema(
     try:
         yield
     finally:
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
-        )
+        _normalize_history_to_b2(integration_settings)
 
 
 def test_phase1a1_retains_its_accepted_parent_below_phase1a3_head() -> None:
@@ -330,6 +382,8 @@ def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
 
 def test_catalog_columns_constraints_indexes_and_collations_are_exact(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
     def assert_catalog(connection: Connection) -> None:
         assert _revision(connection) == _REVISION
@@ -448,8 +502,8 @@ def test_catalog_columns_constraints_indexes_and_collations_are_exact(
             ("fk_source_record_canonical_entity", "r", "r"),
         }
 
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, _REVISION, downgrade=True),
@@ -459,15 +513,22 @@ def test_catalog_columns_constraints_indexes_and_collations_are_exact(
     finally:
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
+            lambda connection: run_alembic(
+                connection,
+                identity,
+                _HISTORICAL_B2,
+                downgrade=False,
+            ),
         )
 
 
 def test_upgrade_from_phase0_downgrade_and_reupgrade(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
 
     run_migration_operation(
         sync_url,
@@ -498,12 +559,19 @@ def test_upgrade_from_phase0_downgrade_and_reupgrade(
     finally:
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+            lambda connection: run_alembic(
+                connection,
+                identity,
+                _HISTORICAL_B2,
+                downgrade=False,
+            ),
         )
 
 
 def test_uuid_null_and_timestamp_semantics(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
     def exercise(connection: Connection) -> None:
         _insert_provider(connection, _PROVIDER_A, "Fixture.Provider")
@@ -552,6 +620,8 @@ def test_uuid_null_and_timestamp_semantics(
 
 def test_identity_checks_and_case_sensitive_uniqueness(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
     def exercise(connection: Connection) -> None:
         _insert_provider(connection, _PROVIDER_A, "Fixture.Provider")
@@ -644,6 +714,8 @@ def test_identity_checks_and_case_sensitive_uniqueness(
 
 def test_invalid_fk_states_and_source_record_fields_are_rejected(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
     def exercise(connection: Connection) -> None:
         _insert_provider(connection, _PROVIDER_A, "Fixture.Provider")
@@ -718,6 +790,8 @@ def test_invalid_fk_states_and_source_record_fields_are_rejected(
 
 def test_fk_updates_and_deletes_are_restrictive(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
     def exercise(connection: Connection) -> None:
         _insert_graph(connection)
@@ -750,9 +824,11 @@ def test_fk_updates_and_deletes_are_restrictive(
 
 def test_runtime_and_public_have_no_catalog_privileges(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
-    sync_url = _sync_url(integration_settings)
-    runtime_role = make_url(integration_settings.test_database_url.get_secret_value()).username
+    sync_url = historical_sync_url(integration_settings)
+    runtime_role = historical_runtime_url(integration_settings).username
     assert runtime_role is not None
 
     def assert_acl(connection: Connection) -> None:
@@ -847,9 +923,7 @@ def test_runtime_and_public_have_no_catalog_privileges(
 
     run_migration_operation(sync_url, assert_acl)
 
-    runtime_url = make_url(integration_settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
+    runtime_url = historical_runtime_url(integration_settings).set(drivername="postgresql+psycopg")
     runtime_engine = create_engine(runtime_url, poolclass=NullPool)
     try:
         for table_name in _TABLES:
@@ -861,9 +935,11 @@ def test_runtime_and_public_have_no_catalog_privileges(
 
 def test_acl_drift_refuses_downgrade_without_partial_changes(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
+    _phase1a1_schema: None,
 ) -> None:
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
 
     def grant(connection: Connection) -> None:
         connection.exec_driver_sql("GRANT SELECT ON TABLE public.entity TO lumina_test_app")
@@ -896,5 +972,10 @@ def test_acl_drift_refuses_downgrade_without_partial_changes(
         run_migration_operation(sync_url, revoke)
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
+            lambda connection: run_alembic(
+                connection,
+                identity,
+                _HISTORICAL_B2,
+                downgrade=False,
+            ),
         )

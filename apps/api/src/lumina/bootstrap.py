@@ -12,8 +12,11 @@ from starlette.exceptions import HTTPException
 
 from lumina import __version__
 from lumina.catalog.api.routes import router as catalog_router
+from lumina.catalog.api.routes import search_router
 from lumina.catalog.application.read import CatalogReadService
+from lumina.catalog.application.search import CatalogSearchService
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
+from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
 from lumina.settings import AppSettings
 from lumina.shared.api.errors import (
     http_exception_handler,
@@ -34,6 +37,8 @@ def create_app(settings: AppSettings) -> FastAPI:
     readiness_service = DatabaseReadinessService(SqlAlchemyDatabaseProbe(database_runtime.engine))
     catalog_read_repository = PostgreSqlCatalogReadRepository(database_runtime.session_factory)
     catalog_read_service = CatalogReadService(catalog_read_repository)
+    catalog_search_repository = PostgreSqlCatalogSearchRepository(database_runtime.session_factory)
+    catalog_search_service = CatalogSearchService(catalog_search_repository)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -55,6 +60,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.state.database_runtime = database_runtime
     application.state.readiness_service = readiness_service
     application.state.catalog_read_service = catalog_read_service
+    application.state.catalog_search_service = catalog_search_service
 
     application.add_exception_handler(
         RequestValidationError,
@@ -73,4 +79,5 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.add_middleware(RequestContextMiddleware)
     application.include_router(router)
     application.include_router(catalog_router)
+    application.include_router(search_router)
     return application

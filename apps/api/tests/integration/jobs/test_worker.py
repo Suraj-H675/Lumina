@@ -10,6 +10,7 @@ import sys
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass
+from pathlib import Path
 from typing import NoReturn, Protocol, cast
 from uuid import UUID
 
@@ -421,13 +422,20 @@ async def test_real_claim_returned_after_shutdown_gets_cancellation_transition(
 
 def _child_environment(settings: IntegrationTestSettings) -> dict[str, str]:
     parsed = make_url(settings.test_database_url.get_secret_value())
-    assert parsed.host in {"127.0.0.1", "localhost", "::1"}
+    assert parsed.host in {"127.0.0.1", "db", "localhost", "::1"}
     assert parsed.database == "lumina_test"
     assert parsed.username == "lumina_test_app"
     environment = os.environ.copy()
     environment["LUMINA_ENV"] = "test"
     environment["LUMINA_DATABASE_URL"] = settings.test_database_url.get_secret_value()
     return environment
+
+
+def _worker_executable() -> tuple[str, ...]:
+    executable = shutil.which("lumina-worker")
+    assert executable is not None
+    assert Path(executable).is_file()
+    return (sys.executable, executable)
 
 
 @dataclass(frozen=True, slots=True)
@@ -547,10 +555,9 @@ async def test_installed_worker_subprocess_starts_then_sigterm_is_exact(
     clean_worker_rows: Engine,
 ) -> None:
     del clean_worker_rows
-    executable = shutil.which("lumina-worker")
-    assert executable is not None
+    command = _worker_executable()
     process = await asyncio.create_subprocess_exec(
-        executable,
+        *command,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
         env=_child_environment(integration_settings),
@@ -572,12 +579,11 @@ async def test_installed_worker_subprocess_starts_then_sigterm_is_exact(
 async def test_subprocess_invalid_poll_has_only_fixed_startup_failure(
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    executable = shutil.which("lumina-worker")
-    assert executable is not None
+    command = _worker_executable()
     environment = _child_environment(integration_settings)
     environment["LUMINA_WORKER_POLL_SECONDS"] = "secret-invalid"
     process = await asyncio.create_subprocess_exec(
-        executable,
+        *command,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
         env=environment,
@@ -596,10 +602,9 @@ async def test_subprocess_invalid_poll_has_only_fixed_startup_failure(
 async def test_subprocess_secret_argument_is_silent(
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    executable = shutil.which("lumina-worker")
-    assert executable is not None
+    command = _worker_executable()
     process = await asyncio.create_subprocess_exec(
-        executable,
+        *command,
         "--database-password=argv-secret",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -619,14 +624,13 @@ async def test_subprocess_secret_argument_is_silent(
 async def test_subprocess_startup_output_failure_is_fixed_and_reaped(
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    executable = shutil.which("lumina-worker")
-    assert executable is not None
+    command = _worker_executable()
     read_fd, write_fd = os.pipe()
     os.close(read_fd)
     process: asyncio.subprocess.Process | None = None
     try:
         process = await asyncio.create_subprocess_exec(
-            executable,
+            *command,
             stdout=write_fd,
             stderr=asyncio.subprocess.PIPE,
             env=_child_environment(integration_settings),

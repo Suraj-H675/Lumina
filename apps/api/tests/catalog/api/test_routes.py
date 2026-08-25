@@ -13,13 +13,15 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
 from lumina.catalog.api.routes import router as catalog_router
+from lumina.catalog.api.routes import search_router
 from lumina.catalog.api.schemas import (
     EntityBrowsePageResponse,
     EntitySummaryResponse,
     EntityType,
     PageResponse,
 )
-from lumina.catalog.domain.read import CatalogEntityNotFound
+from lumina.catalog.domain.read import CatalogEntityNotFound, CatalogEntityType, PublicEntitySummary
+from lumina.catalog.domain.search import SearchMatchReason, SearchResult
 from lumina.settings import AppSettings
 
 _ENTITY_ID = UUID("12345678-1234-4234-9234-123456789abc")
@@ -69,6 +71,27 @@ def _service(app: FastAPI) -> Mock:
     return service
 
 
+def _search_service(app: FastAPI) -> Mock:
+    service = Mock()
+    service.search = AsyncMock()
+    service.suggest = AsyncMock()
+    summary = PublicEntitySummary(
+        id=_ENTITY_ID,
+        slug="hd-209458",
+        entity_type=CatalogEntityType.STAR,
+        canonical_name="HD 209458",
+    )
+    result = SearchResult(
+        entity=summary,
+        match_reason=SearchMatchReason.EXACT_SLUG,
+        matched_alias=None,
+    )
+    service.search.return_value = (result,)
+    service.suggest.return_value = (result,)
+    app.state.catalog_search_service = service
+    return service
+
+
 def test_catalog_route_registration_preserves_static_precedence() -> None:
     paths = [route.path for route in catalog_router.routes if isinstance(route, APIRoute)]
 
@@ -80,6 +103,12 @@ def test_catalog_route_registration_preserves_static_precedence() -> None:
         "/api/v1/catalog/entities/{entity_id}/canonical-selections",
         "/api/v1/catalog/sources/{source_record_id}",
     ]
+
+
+def test_search_routes_use_public_paths_and_not_legacy_catalog_paths() -> None:
+    paths = {route.path for route in search_router.routes if isinstance(route, APIRoute)}
+
+    assert paths == {"/api/v1/search", "/api/v1/search/suggest"}
 
 
 def test_slug_route_calls_only_slug_service_and_never_uuid_service() -> None:
@@ -227,3 +256,48 @@ def test_existing_uuid_route_remains_reachable() -> None:
     assert response.json()["error"]["code"] == "catalog.entity_not_found"
     service.get_entity_detail.assert_awaited_once_with(_ENTITY_ID)
     service.get_entity_by_slug.assert_not_awaited()
+
+
+def test_search_returns_explainable_result_and_suggest_returns_summaries() -> None:
+    app = _app()
+    service = _search_service(app)
+
+    response = _request(app, "/api/v1/search?q=hd-209458")
+    suggest_response = _request(app, "/api/v1/search/suggest?q=hd-209458")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "entity": {
+                    "id": str(_ENTITY_ID),
+                    "slug": "hd-209458",
+                    "entity_type": "star",
+                    "canonical_name": "HD 209458",
+                },
+                "match_reason": "exact_slug",
+                "matched_alias": None,
+            }
+        ]
+    }
+    assert suggest_response.status_code == 200
+    assert suggest_response.json() == {
+        "items": [
+            {
+                "id": str(_ENTITY_ID),
+                "slug": "hd-209458",
+                "entity_type": "star",
+                "canonical_name": "HD 209458",
+            }
+        ]
+    }
+    service.search.assert_awaited_once_with("hd-209458", entity_type=None, limit=20)
+    service.suggest.assert_awaited_once_with("hd-209458", entity_type=None, limit=5)
+
+
+@pytest.mark.parametrize("path", ["/api/v1/search?q=a&q=b", "/api/v1/search/suggest?q=a&q=b"])
+def test_repeated_query_is_rejected(path: str) -> None:
+    response = _request(_app(), path)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "request.validation_failed"

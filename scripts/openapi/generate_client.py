@@ -28,6 +28,9 @@ _GENERATED_NAMES: Final = frozenset({"types.gen.ts", "zod.gen.ts"})
 _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
     {
         "ClientOptions",
+        "CatalogSearchResponse",
+        "CatalogSearchResultResponse",
+        "CatalogSuggestResponse",
         "CompactSourceReference",
         "CurrentCanonicalSelectionResponse",
         "CurrentSelectionReference",
@@ -71,6 +74,17 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
         "ListCatalogEntitiesErrors",
         "ListCatalogEntitiesResponse",
         "ListCatalogEntitiesResponses",
+        "SearchCatalogEntitiesData",
+        "SearchCatalogEntitiesError",
+        "SearchCatalogEntitiesErrors",
+        "SearchCatalogEntitiesResponse",
+        "SearchCatalogEntitiesResponses",
+        "SearchMatchReason",
+        "SuggestCatalogEntitiesData",
+        "SuggestCatalogEntitiesError",
+        "SuggestCatalogEntitiesErrors",
+        "SuggestCatalogEntitiesResponse",
+        "SuggestCatalogEntitiesResponses",
         "LiveHealthLiveGetData",
         "LiveHealthLiveGetResponse",
         "LiveHealthLiveGetResponses",
@@ -102,6 +116,9 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
 _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
     {
         "zCompactSourceReference",
+        "zCatalogSearchResponse",
+        "zCatalogSearchResultResponse",
+        "zCatalogSuggestResponse",
         "zCurrentCanonicalSelectionResponse",
         "zCurrentSelectionReference",
         "zDatasetReference",
@@ -132,6 +149,9 @@ _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
         "zSelectionHistoryPageResponse",
         "zSelectionHistoryResponse",
         "zSelectionState",
+        "zSearchMatchReason",
+        "zSearchCatalogEntitiesResponse",
+        "zSuggestCatalogEntitiesResponse",
         "zSourceDatasetResponse",
         "zSourceProvenanceResponse",
         "zSourceProviderResponse",
@@ -241,12 +261,16 @@ def _validate_openapi(content: bytes) -> None:
         b'"/api/v1/catalog/entities/{entity_id}/measurements"',
         b'"/api/v1/catalog/entities/{entity_id}/canonical-selections"',
         b'"/api/v1/catalog/sources/{source_record_id}"',
+        b'"/api/v1/search"',
+        b'"/api/v1/search/suggest"',
         b'"get_catalog_entity"',
         b'"list_catalog_entities"',
         b'"get_catalog_entity_by_slug"',
         b'"list_catalog_entity_measurements"',
         b'"list_catalog_entity_canonical_selections"',
         b'"get_source_record_provenance"',
+        b'"search_catalog_entities"',
+        b'"suggest_catalog_entities"',
     )
     if any(path not in content for path in required_paths) or b'"/api/v1/sources/' in content:
         raise GenerationError("OpenAPI output is missing a required committed route")
@@ -295,11 +319,7 @@ def _compile_and_probe(output: Path, workspace: Path) -> None:
     compiled.mkdir()
     _run(
         (
-            "pnpm",
-            "--filter",
-            "@lumina/api-client",
-            "exec",
-            "tsc",
+            str(CLIENT_ROOT.parent.parent / "node_modules" / ".bin" / "tsc"),
             "--ignoreConfig",
             "--strict",
             "--target",
@@ -374,9 +394,7 @@ def _generate_once(workspace: Path) -> dict[Path, bytes]:
     _validate_generated_files(output)
     _run(
         (
-            "pnpm",
-            "exec",
-            "prettier",
+            str(CLIENT_ROOT.parent.parent / "node_modules" / ".bin" / "prettier"),
             "--config",
             str(REPOSITORY_ROOT / "prettier.config.mjs"),
             "--write",

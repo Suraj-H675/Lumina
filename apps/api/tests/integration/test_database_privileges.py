@@ -137,7 +137,6 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "DELETE FROM public.quantity WHERE false",
         "DELETE FROM public.unit WHERE false",
         "DELETE FROM public.quantity_unit WHERE false",
-        "SELECT * FROM public.entity_alias LIMIT 0",
         "SELECT * FROM public.entity_alias_evidence LIMIT 0",
         "INSERT INTO public.entity_alias "
         "(id, entity_id, alias, normalized_alias, normalization_version, alias_type) "
@@ -181,8 +180,19 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
     ) == [0]
     assert _query(
         runtime_url,
-        "SELECT count(*) FROM unnest(CAST(ARRAY['entity_alias', "
-        "'entity_alias_evidence'] AS text[])) AS tables(table_name) "
+        "SELECT has_table_privilege(current_user, 'public.entity_alias', 'SELECT')",
+    ) == [True]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM unnest(CAST(ARRAY['INSERT', 'UPDATE', 'DELETE', "
+        "'TRUNCATE', 'REFERENCES', 'TRIGGER'] AS text[])) "
+        "AS privileges(privilege_name) "
+        "WHERE has_table_privilege(current_user, 'public.entity_alias', privilege_name)",
+    ) == [0]
+    assert _query(
+        runtime_url,
+        "SELECT count(*) FROM unnest(CAST(ARRAY['entity_alias_evidence'] "
+        "AS text[])) AS tables(table_name) "
         "CROSS JOIN unnest(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', 'DELETE', "
         "'TRUNCATE', 'REFERENCES', 'TRIGGER'] AS text[])) "
         "AS privileges(privilege_name) "
@@ -195,7 +205,7 @@ def test_runtime_roles_cannot_create_or_modify_database_objects(
         "JOIN pg_attribute AS attribute ON attribute.attrelid = table_data.oid "
         "CROSS JOIN unnest(CAST(ARRAY['SELECT', 'INSERT', 'UPDATE', 'REFERENCES'] AS text[])) "
         "AS privileges(privilege_name) WHERE namespace.nspname = 'public' "
-        "AND table_data.relname IN ('entity_alias', 'entity_alias_evidence') "
+        "AND table_data.relname IN ('entity_alias_evidence') "
         "AND attribute.attnum > 0 AND NOT attribute.attisdropped "
         "AND has_column_privilege(current_user, table_data.oid, attribute.attname, privilege_name)",
     ) == [0]

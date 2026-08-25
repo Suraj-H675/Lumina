@@ -35,7 +35,7 @@ from .migration_lifecycle import (
     run_migration_operation,
 )
 
-_PHASE_1A5_HEAD = "b7f3a2c81d4e"
+_PHASE_1A5_HEAD = "e8f4c1a9b362"
 
 
 def _ensure_reviewed_seed_migration(settings: IntegrationTestSettings) -> None:

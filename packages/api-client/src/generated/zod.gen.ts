@@ -63,6 +63,13 @@ export const zEntitySummaryResponse = z.object({
 });
 
 /**
+ * CatalogSuggestResponse
+ */
+export const zCatalogSuggestResponse = z.object({
+  items: z.array(zEntitySummaryResponse),
+});
+
+/**
  * ErrorBody
  *
  * Stable public error fields.
@@ -172,6 +179,35 @@ export const zQuantityReference = z.object({
  */
 export const zReadyResponse = z.object({
   status: z.string(),
+});
+
+/**
+ * SearchMatchReason
+ */
+export const zSearchMatchReason = z.enum([
+  "exact_slug",
+  "exact_canonical_name",
+  "exact_alias",
+  "canonical_name_prefix",
+  "alias_prefix",
+  "canonical_name_fuzzy",
+  "alias_fuzzy",
+]);
+
+/**
+ * CatalogSearchResultResponse
+ */
+export const zCatalogSearchResultResponse = z.object({
+  entity: zEntitySummaryResponse,
+  match_reason: zSearchMatchReason,
+  matched_alias: z.string().nullable(),
+});
+
+/**
+ * CatalogSearchResponse
+ */
+export const zCatalogSearchResponse = z.object({
+  items: z.array(zCatalogSearchResultResponse),
 });
 
 /**
@@ -348,6 +384,16 @@ export const zGetSourceRecordProvenanceResponse = zSourceProvenanceResponse;
  * Successful Response
  */
 export const zMetadataApiV1MetaGetResponse = zMetaResponse;
+
+/**
+ * Successful Response
+ */
+export const zSearchCatalogEntitiesResponse = zCatalogSearchResponse;
+
+/**
+ * Successful Response
+ */
+export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
 
 /**
  * Successful Response

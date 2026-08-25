@@ -14,20 +14,24 @@ import pytest
 from alembic.script import ScriptDirectory
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_runtime_url,
+    historical_sync_url,
     migration_config,
+    normalize_historical_database_to_b2,
+    read_historical_revision,
     run_alembic,
     run_migration_operation,
 )
 
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
+_HISTORICAL_B2 = "b7f3a2c81d4e"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
-_PHASE_1A5_HEAD = "b7f3a2c81d4e"
+_PHASE_1A5_HEAD = "e8f4c1a9b362"
 _CATALOG_TABLES = (
     "provider",
     "entity",
@@ -121,13 +125,11 @@ _FETCHED_AT = datetime(2026, 8, 11, 12, 0, tzinfo=UTC)
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_sync_url.get_secret_value())
+    return historical_sync_url(settings)
 
 
 def _runtime_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
+    return historical_runtime_url(settings).set(drivername="postgresql+psycopg")
 
 
 def _revision(connection: Connection) -> str | None:
@@ -148,6 +150,7 @@ def _table_names(connection: Connection) -> set[str]:
 def _run_rolled_back(
     settings: IntegrationTestSettings,
     operation: Callable[[Connection], None],
+    historical_test_database: None,
 ) -> None:
     def execute(connection: Connection) -> None:
         transaction = connection.begin()
@@ -156,7 +159,7 @@ def _run_rolled_back(
         finally:
             transaction.rollback()
 
-    run_migration_operation(_sync_url(settings), execute)
+    run_migration_operation(historical_sync_url(settings), execute)
 
 
 def _expect_integrity_error(
@@ -279,10 +282,15 @@ def _delete_graph(connection: Connection) -> None:
 
 
 @pytest.fixture(autouse=True)
-def phase1a3_schema(integration_settings: IntegrationTestSettings) -> Iterator[None]:
-    """Run historical ingestion contracts at Phase 1A3 and restore the repository head."""
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+def phase1a3_schema(
+    integration_settings: IntegrationTestSettings, historical_test_database: None
+) -> Iterator[None]:
+    """Run historical ingestion contracts at Phase 1A3 and restore historical B2."""
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
+    normalize_historical_database_to_b2(integration_settings)
+    if read_historical_revision(integration_settings) != _HISTORICAL_B2:
+        pytest.fail("History database did not normalize to accepted B2.")
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=True),
@@ -290,10 +298,7 @@ def phase1a3_schema(integration_settings: IntegrationTestSettings) -> Iterator[N
     try:
         yield
     finally:
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
-        )
+        normalize_historical_database_to_b2(integration_settings)
 
 
 def test_lineage_and_protected_history_are_exact() -> None:
@@ -308,6 +313,7 @@ def test_lineage_and_protected_history_are_exact() -> None:
 
 def test_phase1a3_schema_trigger_and_conflict_contract_are_exact(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
     def assert_schema(connection: Connection) -> None:
         assert _revision(connection) == _PHASE_1A3_HEAD
@@ -479,11 +485,12 @@ def test_phase1a3_schema_trigger_and_conflict_contract_are_exact(
             "FOR EACH ROW EXECUTE FUNCTION enforce_source_record_resolution()"
         )
 
-    run_migration_operation(_sync_url(integration_settings), assert_schema)
+    run_migration_operation(historical_sync_url(integration_settings), assert_schema)
 
 
 def test_source_truth_and_conflict_constraints_preserve_exact_contract(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
     def exercise(connection: Connection) -> None:
         _insert_graph(connection, include_measurement=True)
@@ -574,11 +581,12 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
             {"fingerprint": "f" * 64, "provider_id": _PROVIDER_ID},
         )
 
-    _run_rolled_back(integration_settings, exercise)
+    _run_rolled_back(integration_settings, exercise, historical_test_database)
 
 
 def test_source_resolution_trigger_allows_only_one_unmeasured_null_to_uuid_transition(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
     def exercise(connection: Connection) -> None:
         _insert_graph(connection, include_measurement=True)
@@ -610,11 +618,12 @@ def test_source_resolution_trigger_allows_only_one_unmeasured_null_to_uuid_trans
         ):
             _expect_integrity_error(connection, statement, parameters)
 
-    _run_rolled_back(integration_settings, exercise)
+    _run_rolled_back(integration_settings, exercise, historical_test_database)
 
 
 def test_runtime_acl_is_exact_and_the_trigger_remains_enforceable(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
     def prepare(connection: Connection) -> None:
         _insert_graph(connection, include_measurement=True)
@@ -632,10 +641,10 @@ def test_runtime_acl_is_exact_and_the_trigger_remains_enforceable(
         _delete_graph(connection)
         connection.commit()
 
-    run_migration_operation(_sync_url(integration_settings), prepare)
+    run_migration_operation(historical_sync_url(integration_settings), prepare)
     engine = create_engine(_runtime_url(integration_settings), poolclass=NullPool)
     try:
-        identity = integration_migration_identity(integration_settings)
+        identity = historical_migration_identity(integration_settings)
 
         def assert_acl(connection: Connection) -> None:
             direct_acl = {
@@ -795,7 +804,7 @@ def test_runtime_acl_is_exact_and_the_trigger_remains_enforceable(
                 {"role": identity.runtime_role},
             ).scalar_one()
 
-        run_migration_operation(_sync_url(integration_settings), assert_acl)
+        run_migration_operation(historical_sync_url(integration_settings), assert_acl)
         with engine.connect() as connection:
             for table in _CATALOG_TABLES:
                 connection.execute(text(f"SELECT * FROM public.{table} LIMIT 0"))
@@ -832,14 +841,15 @@ def test_runtime_acl_is_exact_and_the_trigger_remains_enforceable(
                 connection.execute(text("SELECT public.enforce_source_record_resolution()"))
     finally:
         engine.dispose()
-        run_migration_operation(_sync_url(integration_settings), cleanup)
+        run_migration_operation(historical_sync_url(integration_settings), cleanup)
 
 
 def test_upgrade_and_downgrade_refuse_unbackfillable_or_immutable_rows(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=True),
@@ -926,17 +936,15 @@ def test_upgrade_and_downgrade_refuse_unbackfillable_or_immutable_rows(
 
         run_migration_operation(sync_url, clean_head)
     finally:
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
-        )
+        normalize_historical_database_to_b2(integration_settings)
 
 
 def test_downgrade_locks_before_emptiness_guard_preserve_concurrent_ingestion(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     conflict_fingerprint = "d" * 64
 
     def insert_provider(connection: Connection) -> None:
@@ -1048,80 +1056,84 @@ def test_downgrade_locks_before_emptiness_guard_preserve_concurrent_ingestion(
             connection.commit()
 
         run_migration_operation(sync_url, cleanup)
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
-        )
+        normalize_historical_database_to_b2(integration_settings)
 
 
 def test_downgrade_refuses_resolution_function_body_drift(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
-    original_definition = run_migration_operation(
-        sync_url,
-        lambda connection: str(
-            connection.execute(
-                text(
-                    "SELECT pg_get_functiondef("
-                    "'public.enforce_source_record_resolution()'::regprocedure)"
-                )
-            ).scalar_one()
-        ),
-    )
-
-    def drift_function_body(connection: Connection) -> None:
-        connection.exec_driver_sql(
-            "CREATE OR REPLACE FUNCTION public.enforce_source_record_resolution() "
-            "RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER "
-            "SET search_path = pg_catalog, public "
-            "AS $$ BEGIN RETURN NEW; END; $$"
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
+    if True:
+        original_definition = run_migration_operation(
+            sync_url,
+            lambda connection: str(
+                connection.execute(
+                    text(
+                        "SELECT pg_get_functiondef("
+                        "'public.enforce_source_record_resolution()'::regprocedure)"
+                    )
+                ).scalar_one()
+            ),
         )
-        connection.commit()
 
-    run_migration_operation(sync_url, drift_function_body)
-    try:
-        with pytest.raises(RuntimeError, match="Runtime ACL migration precondition failed"):
+        def drift_function_body(connection: Connection) -> None:
+            connection.exec_driver_sql(
+                "CREATE OR REPLACE FUNCTION public.enforce_source_record_resolution() "
+                "RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER "
+                "SET search_path = pg_catalog, public "
+                "AS $$ BEGIN RETURN NEW; END; $$"
+            )
+            connection.commit()
+
+        run_migration_operation(sync_url, drift_function_body)
+        try:
+            with pytest.raises(RuntimeError, match="Runtime ACL migration precondition failed"):
+                run_migration_operation(
+                    sync_url,
+                    lambda connection: run_alembic(
+                        connection, identity, _PHASE_1A2_HEAD, downgrade=True
+                    ),
+                )
+            assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
+        finally:
+
+            def restore_function_body(connection: Connection) -> None:
+                connection.exec_driver_sql(original_definition)
+                connection.commit()
+
+            run_migration_operation(sync_url, restore_function_body)
+
+
+def test_clean_upgrade_downgrade_and_reupgrade_restore_the_parent(
+    integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
+) -> None:
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
+    if True:
+        run_migration_operation(
+            sync_url,
+            lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=True),
+        )
+        try:
+            assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
+            run_migration_operation(
+                sync_url,
+                lambda connection: run_alembic(
+                    connection, identity, _PHASE_1A3_HEAD, downgrade=False
+                ),
+            )
+            assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
             run_migration_operation(
                 sync_url,
                 lambda connection: run_alembic(
                     connection, identity, _PHASE_1A2_HEAD, downgrade=True
                 ),
             )
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
-    finally:
-
-        def restore_function_body(connection: Connection) -> None:
-            connection.exec_driver_sql(original_definition)
-            connection.commit()
-
-        run_migration_operation(sync_url, restore_function_body)
-
-
-def test_clean_upgrade_downgrade_and_reupgrade_restore_the_parent(
-    integration_settings: IntegrationTestSettings,
-) -> None:
-    sync_url = _sync_url(integration_settings)
-    identity = integration_migration_identity(integration_settings)
-    run_migration_operation(
-        sync_url,
-        lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=True),
-    )
-    try:
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A3_HEAD, downgrade=False),
-        )
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=True),
-        )
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
-    finally:
-        run_migration_operation(
-            sync_url,
-            lambda connection: run_alembic(connection, identity, _PHASE_1A5_HEAD, downgrade=False),
-        )
+            assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
+        finally:
+            pass

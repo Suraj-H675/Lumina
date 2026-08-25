@@ -22,17 +22,21 @@ from lumina.catalog.domain.read import (
 from lumina.shared.api.errors import ErrorResponse, error_response
 
 from .schemas import (
+    CatalogSearchResponse,
+    CatalogSuggestResponse,
     EntityBrowsePageResponse,
     EntityDetailResponse,
     EntitySummaryResponse,
     EntityType,
     MeasurementPageResponse,
+    SearchMatchReason,
     SelectionHistoryPageResponse,
     SelectionState,
     SourceProvenanceResponse,
 )
 
 router = APIRouter(prefix="/api/v1/catalog", tags=["catalog"])
+search_router = APIRouter(prefix="/api/v1", tags=["search"])
 
 _ERROR_RESPONSES = {
     404: {"model": ErrorResponse, "description": "The requested catalogue resource was not found."},
@@ -67,6 +71,10 @@ class _SourceRecordNotFound(RuntimeError):
 
 def _service(request: Request) -> Any:
     return request.app.state.catalog_read_service
+
+
+def _search_service(request: Request) -> Any:
+    return request.app.state.catalog_search_service
 
 
 def _require_singular_entity_type(
@@ -304,6 +312,17 @@ def _response[ResponseModel: BaseModel](model: type[ResponseModel], value: objec
             value = _public_page_payload(value, history=True)
         elif model is SourceProvenanceResponse:
             value = _source_provenance_payload(value)
+        elif model is CatalogSearchResponse:
+            value = {"items": _search_payload(value)}
+        elif model is CatalogSuggestResponse:
+            value = {
+                "items": [
+                    _entity_summary_payload(
+                        item if not isinstance(item, Mapping) else _field(item, "entity")
+                    )
+                    for item in cast(Any, _field(value, "items"))
+                ]
+            }
         else:
             raise TypeError
         if not isinstance(value, Mapping):
@@ -330,6 +349,88 @@ def _error_kind(error: BaseException) -> tuple[int, str, str]:
     if isinstance(error, (CatalogDataInconsistent, _ResponseMappingFailure)):
         return 500, "catalog.data_inconsistent", "The catalogue data is inconsistent."
     return 500, "server.internal_error", "The request could not be completed."
+
+
+_SEARCH_LIMIT = Annotated[int, Query(ge=1, le=50, description="Maximum search results.")]
+_SUGGEST_LIMIT = Annotated[int, Query(ge=1, le=10, description="Maximum suggestions.")]
+_QUERY = Annotated[str, Query(description="Normalized textual query.")]
+
+
+def _require_singular_query(request: Request, value: str) -> str:
+    if len(request.query_params.getlist("q")) >= 2:
+        raise CatalogReadValidationRejected()
+    return value
+
+
+def _search_payload(value: object) -> list[dict[str, object]]:
+    items: list[dict[str, object]] = []
+    for item in cast(Any, _field(value, "items")):
+        entity = _field(item, "entity")
+        items.append(
+            {
+                "entity": _entity_summary_payload(entity),
+                "match_reason": SearchMatchReason(
+                    cast(str, _enum_text(_field(item, "match_reason")))
+                ),
+                "matched_alias": _field(item, "matched_alias"),
+            }
+        )
+    return items
+
+
+@search_router.get(
+    "/search",
+    operation_id="search_catalog_entities",
+    response_model=CatalogSearchResponse,
+    responses=cast(Any, _ERROR_RESPONSES),
+)
+async def search_catalog_entities(
+    request: Request,
+    q: _QUERY,
+    entity_type: _ENTITY_TYPE = None,
+    limit: _SEARCH_LIMIT = 20,
+) -> CatalogSearchResponse | JSONResponse:
+    """Return deterministic explainable catalogue discovery results."""
+    try:
+        selected_type = _require_singular_entity_type(request, entity_type)
+        query = _require_singular_query(request, q)
+        result = await _search_service(request).search(
+            query,
+            entity_type=None if selected_type is None else selected_type.value,
+            limit=limit,
+        )
+        return _response(CatalogSearchResponse, {"items": result})
+    except Exception as error:
+        return _failure(request, error)
+
+
+@search_router.get(
+    "/search/suggest",
+    operation_id="suggest_catalog_entities",
+    response_model=CatalogSuggestResponse,
+    responses=cast(Any, _ERROR_RESPONSES),
+)
+async def suggest_catalog_entities(
+    request: Request,
+    q: _QUERY,
+    entity_type: _ENTITY_TYPE = None,
+    limit: _SUGGEST_LIMIT = 5,
+) -> CatalogSuggestResponse | JSONResponse:
+    """Return bounded exact and prefix catalogue navigation suggestions."""
+    try:
+        selected_type = _require_singular_entity_type(request, entity_type)
+        query = _require_singular_query(request, q)
+        result = await _search_service(request).suggest(
+            query,
+            entity_type=None if selected_type is None else selected_type.value,
+            limit=limit,
+        )
+        return _response(
+            CatalogSuggestResponse,
+            {"items": [_field(item, "entity") for item in result]},
+        )
+    except Exception as error:
+        return _failure(request, error)
 
 
 def _failure(request: Request, error: BaseException) -> JSONResponse:
@@ -468,4 +569,4 @@ async def get_source_record_provenance(
         return _failure(request, error)
 
 
-__all__ = ["router"]
+__all__ = ["router", "search_router"]

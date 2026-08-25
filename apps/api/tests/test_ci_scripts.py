@@ -890,10 +890,11 @@ def test_security_signal_cleanup_removes_private_temporary_output(
 def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> None:
     diagnostics = _migration_checker.validate_migrations()
     assert diagnostics == ()
-    assert [
+    actual_contracts = [
         (contract.filename, contract.revision, contract.down_revision, contract.sha256)
         for contract in _migration_checker.EXPECTED_MIGRATIONS
-    ] == [
+    ]
+    expected_contracts = [
         (
             "0001_create_job.py",
             "0001_create_job",
@@ -936,7 +937,14 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "c4b9e2d7a6f1",
             "20f4660a65bbf3ae1eec286548406603f6c3ca4052476f73375c371daf3c038a",
         ),
+        (
+            "e8f4c1a9b362_add_explainable_catalog_search.py",
+            "e8f4c1a9b362",
+            "b7f3a2c81d4e",
+            "0ea8204ef453f5b6570d98cb46227ae41d28030f8bb5c6dd36f5935a5a8119c3",
+        ),
     ]
+    assert actual_contracts == expected_contracts
     root = tmp_path / "versions"
     shutil.copytree(REPOSITORY_ROOT / "migrations" / "versions", root)
     migration = root / "0001_create_job.py"

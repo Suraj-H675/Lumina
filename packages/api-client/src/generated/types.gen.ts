@@ -5,6 +5,38 @@ export type ClientOptions = {
 };
 
 /**
+ * CatalogSearchResponse
+ */
+export type CatalogSearchResponse = {
+  /**
+   * Items
+   */
+  items: Array<CatalogSearchResultResponse>;
+};
+
+/**
+ * CatalogSearchResultResponse
+ */
+export type CatalogSearchResultResponse = {
+  entity: EntitySummaryResponse;
+  match_reason: SearchMatchReason;
+  /**
+   * Matched Alias
+   */
+  matched_alias: string | null;
+};
+
+/**
+ * CatalogSuggestResponse
+ */
+export type CatalogSuggestResponse = {
+  /**
+   * Items
+   */
+  items: Array<EntitySummaryResponse>;
+};
+
+/**
  * CompactSourceReference
  */
 export type CompactSourceReference = {
@@ -384,6 +416,18 @@ export type ReadyResponse = {
    */
   status: string;
 };
+
+/**
+ * SearchMatchReason
+ */
+export type SearchMatchReason =
+  | "exact_slug"
+  | "exact_canonical_name"
+  | "exact_alias"
+  | "canonical_name_prefix"
+  | "alias_prefix"
+  | "canonical_name_fuzzy"
+  | "alias_fuzzy";
 
 /**
  * SelectionHistoryPageResponse
@@ -847,6 +891,122 @@ export type MetadataApiV1MetaGetResponses = {
 
 export type MetadataApiV1MetaGetResponse =
   MetadataApiV1MetaGetResponses[keyof MetadataApiV1MetaGetResponses];
+
+export type SearchCatalogEntitiesData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Q
+     *
+     * Normalized textual query.
+     */
+    q: string;
+    /**
+     * Entity Type
+     *
+     * Restrict results to one canonical entity type.
+     */
+    entity_type?: EntityType | null;
+    /**
+     * Limit
+     *
+     * Maximum search results.
+     */
+    limit?: number;
+  };
+  url: "/api/v1/search";
+};
+
+export type SearchCatalogEntitiesErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type SearchCatalogEntitiesError =
+  SearchCatalogEntitiesErrors[keyof SearchCatalogEntitiesErrors];
+
+export type SearchCatalogEntitiesResponses = {
+  /**
+   * Successful Response
+   */
+  200: CatalogSearchResponse;
+};
+
+export type SearchCatalogEntitiesResponse =
+  SearchCatalogEntitiesResponses[keyof SearchCatalogEntitiesResponses];
+
+export type SuggestCatalogEntitiesData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Q
+     *
+     * Normalized textual query.
+     */
+    q: string;
+    /**
+     * Entity Type
+     *
+     * Restrict results to one canonical entity type.
+     */
+    entity_type?: EntityType | null;
+    /**
+     * Limit
+     *
+     * Maximum suggestions.
+     */
+    limit?: number;
+  };
+  url: "/api/v1/search/suggest";
+};
+
+export type SuggestCatalogEntitiesErrors = {
+  /**
+   * The requested catalogue resource was not found.
+   */
+  404: ErrorResponse;
+  /**
+   * The request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The request could not be completed.
+   */
+  500: ErrorResponse;
+  /**
+   * The database is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type SuggestCatalogEntitiesError =
+  SuggestCatalogEntitiesErrors[keyof SuggestCatalogEntitiesErrors];
+
+export type SuggestCatalogEntitiesResponses = {
+  /**
+   * Successful Response
+   */
+  200: CatalogSuggestResponse;
+};
+
+export type SuggestCatalogEntitiesResponse =
+  SuggestCatalogEntitiesResponses[keyof SuggestCatalogEntitiesResponses];
 
 export type LiveHealthLiveGetData = {
   body?: never;

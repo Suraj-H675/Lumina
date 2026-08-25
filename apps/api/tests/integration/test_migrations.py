@@ -13,7 +13,9 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_sync_url,
+    normalize_historical_database_to_b2,
     open_migration_connection,
     run_alembic,
     run_migration_operation,
@@ -22,7 +24,8 @@ from .migration_lifecycle import (
 _ACCEPTED_0001_SHA256 = "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b"
 _ACCEPTED_0002_SHA256 = "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
 _ACCEPTED_PHASE1A1_SHA256 = "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
-_ACCEPTED_HEAD = "b7f3a2c81d4e"
+_HISTORICAL_B2 = "b7f3a2c81d4e"
+_ACCEPTED_HEAD = "e8f4c1a9b362"
 
 _EXPECTED_COLUMNS = [
     ("id", "uuid", False, True, "<none>", "", ""),
@@ -277,8 +280,9 @@ def _assert_head_schema(url: URL) -> None:
     assert columns == _EXPECTED_COLUMNS
     assert constraints == _EXPECTED_CONSTRAINTS
     assert indexes == _EXPECTED_INDEXES
-    # `plpgsql` is PostgreSQL's built-in extension; Lumina installs no extension.
-    assert extensions == {"plpgsql"}
+    # `plpgsql` is PostgreSQL's built-in extension; pg_trgm is owner-provisioned
+    # externally before B3 and must be present at head.
+    assert extensions == {"pg_trgm", "plpgsql"}
 
 
 def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
@@ -296,28 +300,27 @@ def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
     )
 
 
-def test_upgrade_downgrade_and_reupgrade(integration_settings: IntegrationTestSettings) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
+def test_upgrade_downgrade_and_reupgrade(
+    integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
+) -> None:
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
 
+    normalize_historical_database_to_b2(integration_settings)
     run_migration_operation(
-        sync_url, lambda connection: run_alembic(connection, identity, "base", downgrade=True)
+        sync_url, lambda c: run_alembic(c, identity, "c4b9e2d7a6f1", downgrade=True)
     )
-    run_migration_operation(
-        sync_url, lambda connection: run_alembic(connection, identity, "head", downgrade=False)
-    )
-    _assert_head_schema(sync_url)
+    assert _revision(sync_url) == "c4b9e2d7a6f1"
 
-    run_migration_operation(
-        sync_url, lambda connection: run_alembic(connection, identity, "base", downgrade=True)
-    )
-    assert _revision(sync_url) is None
-    assert _table_names(sync_url) == {"alembic_version"}
-
-    run_migration_operation(
-        sync_url, lambda connection: run_alembic(connection, identity, "head", downgrade=False)
-    )
-    _assert_head_schema(sync_url)
+    try:
+        run_migration_operation(
+            sync_url, lambda c: run_alembic(c, identity, _HISTORICAL_B2, downgrade=False)
+        )
+        assert _revision(sync_url) == _HISTORICAL_B2
+    finally:
+        normalize_historical_database_to_b2(integration_settings)
 
 
 @pytest.mark.parametrize(

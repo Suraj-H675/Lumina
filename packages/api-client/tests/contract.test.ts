@@ -10,6 +10,8 @@ import type {
   ListCatalogEntitiesData,
   MetadataApiV1MetaGetData,
   ReadyHealthReadyGetData,
+  SearchCatalogEntitiesData,
+  SuggestCatalogEntitiesData,
 } from "../src/generated/types.gen";
 import {
   zEntityBrowsePageResponse,
@@ -18,6 +20,8 @@ import {
   zListCatalogEntitiesResponse,
   zLiveResponse,
   zMetaResponse,
+  zSearchCatalogEntitiesResponse,
+  zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
 
 describe("generated contract boundary", () => {
@@ -61,6 +65,8 @@ describe("generated contract boundary", () => {
     expectTypeOf<NonNullable<ListCatalogEntitiesData["query"]>["entity_type"]>().toEqualTypeOf<
       EntityType | null | undefined
     >();
+    expectTypeOf<SearchCatalogEntitiesData["url"]>().toEqualTypeOf<"/api/v1/search">();
+    expectTypeOf<SuggestCatalogEntitiesData["url"]>().toEqualTypeOf<"/api/v1/search/suggest">();
   });
 
   it("validates the exact four-field navigation responses", () => {
@@ -79,6 +85,14 @@ describe("generated contract boundary", () => {
     expect(validateExactGenerated(zEntityBrowsePageResponse, page).valid).toBe(true);
     expect(validateExactGenerated(zGetCatalogEntityBySlugResponse, summary).valid).toBe(true);
     expect(validateExactGenerated(zListCatalogEntitiesResponse, page).valid).toBe(true);
+    expect(
+      validateExactGenerated(zSearchCatalogEntitiesResponse, {
+        items: [{ entity: summary, match_reason: "exact_slug", matched_alias: null }],
+      }).valid,
+    ).toBe(true);
+    expect(
+      validateExactGenerated(zSuggestCatalogEntitiesResponse, { items: [summary] }).valid,
+    ).toBe(true);
     expect(validateExactGenerated(zEntitySummaryResponse, { ...summary, id: 42 })).toEqual({
       valid: false,
     });

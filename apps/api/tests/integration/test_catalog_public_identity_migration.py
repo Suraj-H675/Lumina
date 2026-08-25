@@ -12,19 +12,23 @@ import pytest
 from alembic.script import ScriptDirectory
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import DataError, IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_runtime_url,
+    historical_sync_url,
     migration_config,
+    normalize_historical_database_to_b2,
+    read_historical_revision,
     run_alembic,
     run_migration_operation,
 )
 
 _PARENT_REVISION = "c4b9e2d7a6f1"
 _REVISION = "b7f3a2c81d4e"
+_HISTORICAL_B2 = _REVISION
 _SAFE_ERROR = "Phase 1B1 public identity migration precondition failed."
 _PROTECTED_HASHES = {
     "0001_create_job.py": "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
@@ -147,13 +151,11 @@ _IDENTITY_CONSTRAINT_NAMES = {
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_sync_url.get_secret_value())
+    return historical_sync_url(settings)
 
 
 def _runtime_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
+    return historical_runtime_url(settings).set(drivername="postgresql+psycopg")
 
 
 def _revision(connection: Connection) -> str | None:
@@ -167,7 +169,7 @@ def _query(
 ) -> list[tuple[object, ...]]:
     return list(
         run_migration_operation(
-            _sync_url(settings),
+            historical_sync_url(settings),
             lambda connection: [
                 tuple(row) for row in connection.execute(text(statement), parameters)
             ],
@@ -180,22 +182,29 @@ def _execute(settings: IntegrationTestSettings, statement: str, **parameters: ob
         with connection.begin():
             connection.execute(text(statement), parameters)
 
-    run_migration_operation(_sync_url(settings), operation)
+    run_migration_operation(historical_sync_url(settings), operation)
 
 
-def _run_upgrade(settings: IntegrationTestSettings, revision: str = _REVISION) -> None:
-    identity = integration_migration_identity(settings)
+def _run_historical_downgrade(
+    settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    revision: str = _PARENT_REVISION,
+) -> None:
+    normalize_historical_database_to_b2(settings)
+    if read_historical_revision(settings) != _HISTORICAL_B2:
+        pytest.fail("History database did not normalize to accepted B2.")
+    identity = historical_migration_identity(settings)
     run_migration_operation(
-        _sync_url(settings),
-        lambda connection: run_alembic(connection, identity, revision, downgrade=False),
+        historical_sync_url(settings),
+        lambda connection: run_alembic(connection, identity, revision, downgrade=True),
     )
 
 
-def _run_downgrade(settings: IntegrationTestSettings, revision: str = _PARENT_REVISION) -> None:
-    identity = integration_migration_identity(settings)
+def _run_upgrade(settings: IntegrationTestSettings, revision: str = _REVISION) -> None:
+    identity = historical_migration_identity(settings)
     run_migration_operation(
-        _sync_url(settings),
-        lambda connection: run_alembic(connection, identity, revision, downgrade=True),
+        historical_sync_url(settings),
+        lambda connection: run_alembic(connection, identity, revision, downgrade=False),
     )
 
 
@@ -288,12 +297,12 @@ def _with_fixture_graph(
         finally:
             transaction.rollback()
 
-    run_migration_operation(_sync_url(settings), run)
+    run_migration_operation(historical_sync_url(settings), run)
 
 
 def test_lineage_and_protected_history_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_REVISION]
+    assert script.get_heads() == ["e8f4c1a9b362"]
     assert script.get_revision(_REVISION).down_revision == _PARENT_REVISION
     root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
     assert {
@@ -325,6 +334,7 @@ def test_source_record_candidate_key_is_exact_at_current_head(
 
 def test_public_identity_schema_and_constraints_are_exact(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
     def assert_schema(connection: Connection) -> None:
         assert _revision(connection) == _REVISION
@@ -492,7 +502,7 @@ def test_public_identity_schema_and_constraints_are_exact(
             == 0
         )
 
-    run_migration_operation(_sync_url(integration_settings), assert_schema)
+    run_migration_operation(historical_sync_url(integration_settings), assert_schema)
 
 
 def test_slug_and_alias_predicates_reject_invalid_values_and_preserve_ambiguity(
@@ -832,9 +842,10 @@ def test_alias_evidence_preserves_multiple_sources_and_rejects_cross_entity_link
 
 def test_runtime_and_public_receive_no_identity_table_privileges(
     integration_settings: IntegrationTestSettings,
+    historical_test_database: None,
 ) -> None:
     runtime_role = _runtime_url(integration_settings).username
-    migration_role = _sync_url(integration_settings).username
+    migration_role = historical_sync_url(integration_settings).username
     assert runtime_role is not None
     assert migration_role is not None
     tables = ["entity_alias", "entity_alias_evidence"]
@@ -1015,8 +1026,10 @@ def _privilege_surface(settings: IntegrationTestSettings) -> tuple[list[tuple[ob
 
 def test_identity_lifecycle_does_not_expand_non_table_acl_surface(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
-    _run_downgrade(integration_settings)
+    _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
     try:
         before = _privilege_surface(integration_settings)
         _run_upgrade(integration_settings)
@@ -1031,13 +1044,15 @@ def test_identity_lifecycle_does_not_expand_non_table_acl_surface(
 
 def test_upgrade_downgrade_reupgrade_preserves_phase1a_rows_and_candidate_key(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
     before = _query(
         integration_settings,
         "SELECT id, entity_type, canonical_name FROM public.entity ORDER BY id",
     )
     assert set(before) == {(row[0], row[1], row[2]) for row in _ENTITY_ROWS}
-    _run_downgrade(integration_settings)
+    _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
     try:
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_PARENT_REVISION,)
@@ -1068,6 +1083,8 @@ def test_upgrade_downgrade_reupgrade_preserves_phase1a_rows_and_candidate_key(
 
 def test_downgrade_refuses_alias_or_evidence_rows_before_destructive_work(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
     def insert_alias_and_evidence(connection: Connection) -> None:
         connection.execute(
@@ -1080,10 +1097,10 @@ def test_downgrade_refuses_alias_or_evidence_rows_before_destructive_work(
         )
         connection.commit()
 
-    run_migration_operation(_sync_url(integration_settings), insert_alias_and_evidence)
+    run_migration_operation(historical_sync_url(integration_settings), insert_alias_and_evidence)
     try:
         with pytest.raises(RuntimeError, match=_SAFE_ERROR):
-            _run_downgrade(integration_settings)
+            _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_REVISION,)
         ]
@@ -1108,6 +1125,8 @@ def test_downgrade_refuses_alias_or_evidence_rows_before_destructive_work(
 
 def test_downgrade_refuses_evidence_rows_before_destructive_work(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
     def insert_graph_with_evidence(connection: Connection) -> None:
         connection.begin()
@@ -1151,10 +1170,10 @@ def test_downgrade_refuses_evidence_rows_before_destructive_work(
             entity_b=_FIXTURE_ENTITY_B,
         )
 
-    run_migration_operation(_sync_url(integration_settings), insert_graph_with_evidence)
+    run_migration_operation(historical_sync_url(integration_settings), insert_graph_with_evidence)
     try:
         with pytest.raises(RuntimeError, match=_SAFE_ERROR):
-            _run_downgrade(integration_settings)
+            _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_REVISION,)
         ]
@@ -1167,6 +1186,8 @@ def test_downgrade_refuses_evidence_rows_before_destructive_work(
 
 def test_downgrade_refuses_slug_drift_without_removing_identity_tables(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
     original = _ENTITY_ROWS[0][3]
     _execute(
@@ -1177,7 +1198,7 @@ def test_downgrade_refuses_slug_drift_without_removing_identity_tables(
     )
     try:
         with pytest.raises(RuntimeError, match=_SAFE_ERROR):
-            _run_downgrade(integration_settings)
+            _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_REVISION,)
         ]
@@ -1196,7 +1217,7 @@ def test_downgrade_refuses_slug_drift_without_removing_identity_tables(
 
 
 def _admin_execute(admin_url: URL, statement: str) -> None:
-    engine = create_engine(admin_url.set(database="lumina_test"), poolclass=NullPool)
+    engine = create_engine(admin_url.set(database="lumina_history_test"), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             connection.exec_driver_sql(statement)
@@ -1206,6 +1227,8 @@ def _admin_execute(admin_url: URL, statement: str) -> None:
 
 def test_downgrade_refuses_identity_constraint_drift_before_destructive_work(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
     _execute(
         integration_settings,
@@ -1213,7 +1236,7 @@ def test_downgrade_refuses_identity_constraint_drift_before_destructive_work(
     )
     try:
         with pytest.raises(RuntimeError, match=_SAFE_ERROR):
-            _run_downgrade(integration_settings)
+            _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_REVISION,)
         ]
@@ -1230,6 +1253,8 @@ def test_downgrade_refuses_identity_constraint_drift_before_destructive_work(
 
 def test_downgrade_refuses_identity_acl_drift_before_destructive_work(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
     runtime_role = _runtime_url(integration_settings).username
     assert runtime_role is not None
@@ -1239,7 +1264,7 @@ def test_downgrade_refuses_identity_acl_drift_before_destructive_work(
     )
     try:
         with pytest.raises(RuntimeError, match=_SAFE_ERROR):
-            _run_downgrade(integration_settings)
+            _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_REVISION,)
         ]
@@ -1253,8 +1278,9 @@ def test_downgrade_refuses_identity_acl_drift_before_destructive_work(
 def test_downgrade_refuses_identity_owner_drift_before_destructive_work(
     integration_settings: IntegrationTestSettings,
     postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
-    migration_role = _sync_url(integration_settings).username
+    migration_role = historical_sync_url(integration_settings).username
     runtime_role = _runtime_url(integration_settings).username
     assert migration_role is not None
     assert runtime_role is not None
@@ -1271,7 +1297,7 @@ def test_downgrade_refuses_identity_owner_drift_before_destructive_work(
     )
     try:
         with pytest.raises(RuntimeError, match=_SAFE_ERROR):
-            _run_downgrade(integration_settings)
+            _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
         assert _query(integration_settings, "SELECT version_num FROM public.alembic_version") == [
             (_REVISION,)
         ]
@@ -1288,8 +1314,10 @@ def test_downgrade_refuses_identity_owner_drift_before_destructive_work(
 
 def test_upgrade_refuses_missing_or_extra_entity_prestate_without_partial_changes(
     integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+    historical_test_database: None,
 ) -> None:
-    _run_downgrade(integration_settings)
+    _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
     missing = _ENTITY_ROWS[0]
     _execute(integration_settings, "DELETE FROM public.entity WHERE id = :id", id=missing[0])
     try:
@@ -1320,7 +1348,7 @@ def test_upgrade_refuses_missing_or_extra_entity_prestate_without_partial_change
             )
         _run_upgrade(integration_settings)
 
-    _run_downgrade(integration_settings)
+    _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
     extra = UUID("96000000-0000-0000-0000-000000000901")
     _execute(
         integration_settings,
@@ -1338,7 +1366,7 @@ def test_upgrade_refuses_missing_or_extra_entity_prestate_without_partial_change
         _execute(integration_settings, "DELETE FROM public.entity WHERE id = :id", id=extra)
         _run_upgrade(integration_settings)
 
-    _run_downgrade(integration_settings)
+    _run_historical_downgrade(integration_settings, postgres_admin_sync_url)
     altered = _ENTITY_ROWS[1]
     _execute(
         integration_settings,

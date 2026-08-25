@@ -11,18 +11,21 @@ import pytest
 from alembic.script import ScriptDirectory
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, text
-from sqlalchemy.engine import make_url
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_sync_url,
     migration_config,
+    normalize_historical_database_to_b2,
+    read_historical_revision,
     run_alembic,
     run_migration_operation,
 )
 
 _PARENT_REVISION = "a1a3c0f17c5e"
 _REVISION = "c4b9e2d7a6f1"
-_CURRENT_HEAD = "b7f3a2c81d4e"
+_HISTORICAL_B2 = "b7f3a2c81d4e"
+_CURRENT_HEAD = "e8f4c1a9b362"
 _SAFE_ERROR = "Gaia DR3 seed migration precondition failed."
 
 _ENTITY_ROWS = (
@@ -64,7 +67,7 @@ _FIXTURE_COMPATIBILITY_UNIT_ID = UUID("c7000000-0000-4000-8000-000000000001")
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_sync_url.get_secret_value())
+    return historical_sync_url(settings)
 
 
 def _revision(connection: Connection) -> str | None:
@@ -74,8 +77,8 @@ def _revision(connection: Connection) -> str | None:
 
 
 def _run_upgrade(settings: IntegrationTestSettings, revision: str = _REVISION) -> None:
-    sync_url = _sync_url(settings)
-    identity = integration_migration_identity(settings)
+    sync_url = historical_sync_url(settings)
+    identity = historical_migration_identity(settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, revision, downgrade=False),
@@ -83,8 +86,8 @@ def _run_upgrade(settings: IntegrationTestSettings, revision: str = _REVISION) -
 
 
 def _run_downgrade(settings: IntegrationTestSettings, revision: str = _PARENT_REVISION) -> None:
-    sync_url = _sync_url(settings)
-    identity = integration_migration_identity(settings)
+    sync_url = historical_sync_url(settings)
+    identity = historical_migration_identity(settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, revision, downgrade=True),
@@ -100,7 +103,7 @@ def _execute(
         with connection.begin():
             connection.execute(text(statement), parameters)
 
-    run_migration_operation(_sync_url(settings), operation)
+    run_migration_operation(historical_sync_url(settings), operation)
 
 
 def _query_one(
@@ -109,7 +112,7 @@ def _query_one(
     parameters: dict[str, object],
 ) -> object:
     return run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: connection.execute(text(statement), parameters).scalar_one(),
     )
 
@@ -120,14 +123,20 @@ def _query_count_row(
     parameters: dict[str, object],
 ) -> tuple[int, ...]:
     return run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: tuple(connection.execute(text(statement), parameters).one()),
     )
 
 
 @pytest.fixture
-def at_parent_revision(integration_settings: IntegrationTestSettings) -> Iterator[None]:
-    """Run each seed contract from the immutable migration's parent revision."""
+def at_parent_revision(
+    integration_settings: IntegrationTestSettings,
+    postgres_admin_sync_url: URL,
+) -> Iterator[None]:
+    """Run each seed contract in the pre-B3 world, then restore historical B2."""
+    normalize_historical_database_to_b2(integration_settings)
+    if read_historical_revision(integration_settings) != _HISTORICAL_B2:
+        pytest.fail("History database did not normalize to accepted B2.")
     _run_downgrade(integration_settings)
     assert (
         _query_one(
@@ -140,9 +149,7 @@ def at_parent_revision(integration_settings: IntegrationTestSettings) -> Iterato
     try:
         yield
     finally:
-        # The fixture exercises the historical seed head, but every test must
-        # hand the shared integration database back at the repository head.
-        _run_upgrade(integration_settings, _CURRENT_HEAD)
+        normalize_historical_database_to_b2(integration_settings)
 
 
 def _seed_counts(settings: IntegrationTestSettings) -> tuple[int, int, int, int]:
@@ -206,7 +213,9 @@ def _assert_seed_rows(settings: IntegrationTestSettings) -> None:
         }
         return entities, quantities, units, pairs
 
-    entities, quantities, units, pairs = run_migration_operation(_sync_url(settings), query)
+    entities, quantities, units, pairs = run_migration_operation(
+        historical_sync_url(settings), query
+    )
     assert entities == set(_ENTITY_ROWS)
     assert quantities == set(_QUANTITY_ROWS)
     assert units == {_UNIT_ROW}
@@ -247,6 +256,7 @@ def test_lineage_and_plain_insert_contract_are_exact() -> None:
 def test_upgrade_seeds_only_exact_reviewed_closure(
     integration_settings: IntegrationTestSettings,
     at_parent_revision: None,
+    historical_test_database: None,
 ) -> None:
     _run_upgrade(integration_settings)
     assert (
@@ -343,6 +353,7 @@ def test_upgrade_rejects_every_target_identity_collision_without_adopting_rows(
     integration_settings: IntegrationTestSettings,
     at_parent_revision: None,
     collision: _Collision,
+    historical_test_database: None,
 ) -> None:
     _execute(integration_settings, collision.insert, collision.parameters)
     collision_counts = _seed_counts(integration_settings)
@@ -365,6 +376,7 @@ def test_upgrade_rejects_every_target_identity_collision_without_adopting_rows(
 def test_upgrade_rejects_existing_target_compatibility_pair_without_partial_seed(
     integration_settings: IntegrationTestSettings,
     at_parent_revision: None,
+    historical_test_database: None,
 ) -> None:
     quantity_id, quantity_code, quantity_name = _QUANTITY_ROWS[0]
     _execute(
@@ -416,6 +428,7 @@ def test_upgrade_rejects_existing_target_compatibility_pair_without_partial_seed
 def test_downgrade_requires_exact_metadata_then_deletes_only_seed_closure(
     integration_settings: IntegrationTestSettings,
     at_parent_revision: None,
+    historical_test_database: None,
 ) -> None:
     _run_upgrade(integration_settings)
     _execute(
@@ -660,6 +673,7 @@ def test_downgrade_rejects_every_runtime_seed_dependency_before_deleting(
     integration_settings: IntegrationTestSettings,
     at_parent_revision: None,
     dependency: _Dependency,
+    historical_test_database: None,
 ) -> None:
     _run_upgrade(integration_settings)
     dependency.setup(integration_settings)

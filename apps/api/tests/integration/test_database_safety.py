@@ -64,7 +64,15 @@ def test_destructive_migration_url_rejects_overrides_and_nonlocal_targets(url: s
             port=5432,
             database="lumina_test",
         ),
+        URL.create(
+            "postgresql+psycopg",
+            username="role",
+            password="password",
+            host="db",
+            port=5432,
+            database="lumina_test",
+        ),
     ],
 )
-def test_destructive_migration_url_accepts_only_explicit_loopback_test_urls(url: URL) -> None:
+def test_destructive_migration_url_accepts_explicit_local_test_urls(url: URL) -> None:
     require_local_test_database(url)

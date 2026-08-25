@@ -180,6 +180,30 @@ class EntitySummaryResponse(_ResponseModel):
     canonical_name: StrictStr = Field(min_length=1)
 
 
+class SearchMatchReason(StrEnum):
+    EXACT_SLUG = "exact_slug"
+    EXACT_CANONICAL_NAME = "exact_canonical_name"
+    EXACT_ALIAS = "exact_alias"
+    CANONICAL_NAME_PREFIX = "canonical_name_prefix"
+    ALIAS_PREFIX = "alias_prefix"
+    CANONICAL_NAME_FUZZY = "canonical_name_fuzzy"
+    ALIAS_FUZZY = "alias_fuzzy"
+
+
+class CatalogSearchResultResponse(_ResponseModel):
+    entity: EntitySummaryResponse
+    match_reason: SearchMatchReason
+    matched_alias: StrictStr | None
+
+
+class CatalogSearchResponse(_ResponseModel):
+    items: list[CatalogSearchResultResponse]
+
+
+class CatalogSuggestResponse(_ResponseModel):
+    items: list[EntitySummaryResponse]
+
+
 class MeasurementResponse(_ResponseModel):
     id: UUID
     quantity: QuantityReference
@@ -253,6 +277,9 @@ class SourceProvenanceResponse(_ResponseModel):
 
 
 __all__ = [
+    "CatalogSearchResponse",
+    "CatalogSearchResultResponse",
+    "CatalogSuggestResponse",
     "CompactSourceReference",
     "CurrentCanonicalSelectionResponse",
     "CurrentSelectionReference",
@@ -272,6 +299,7 @@ __all__ = [
     "SelectionHistoryPageResponse",
     "SelectionHistoryResponse",
     "SelectionReference",
+    "SearchMatchReason",
     "SelectionState",
     "SourceDatasetResponse",
     "SourceProvenanceResponse",

@@ -12,11 +12,15 @@ from lumina.shared.infrastructure.database.migration_identity import (
     validate_migration_identity,
 )
 from sqlalchemy import URL, Connection, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_admin_connection_url,
+    historical_migration_identity,
+    historical_migration_identity_with_runtime,
+    historical_runtime_url,
+    historical_sync_url,
+    normalize_historical_database_to_b2,
     run_alembic,
     run_migration_operation,
 )
@@ -52,6 +56,15 @@ _UPDATE_COLUMNS = {
 }
 
 type AclEntry = tuple[str, str, str | None, str, str, str, bool]
+
+
+@pytest.fixture(autouse=True)
+def _historical_job_database(
+    integration_settings: IntegrationTestSettings,
+) -> Iterator[None]:
+    """Pin job ACL lifecycle tests to the disposable pre-B3 history database."""
+    normalize_historical_database_to_b2(integration_settings)
+    yield
 
 
 def _acl_snapshot(connection: Connection) -> set[AclEntry]:
@@ -141,7 +154,7 @@ def _admin_connection(admin_url: URL) -> Iterator[Connection]:
 
 @pytest.fixture
 def alternate_runtime_role(postgres_admin_sync_url: URL) -> Iterator[None]:
-    with _admin_connection(postgres_admin_sync_url) as connection:
+    with _admin_connection(historical_admin_connection_url(postgres_admin_sync_url)) as connection:
         connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_ROLE_B}")
         connection.exec_driver_sql(
             f"CREATE ROLE {_ROLE_B} LOGIN NOSUPERUSER NOCREATEDB "
@@ -150,15 +163,14 @@ def alternate_runtime_role(postgres_admin_sync_url: URL) -> Iterator[None]:
     try:
         yield
     finally:
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_ROLE_B}")
 
 
 def _runtime_url_for(settings: IntegrationTestSettings, role: str) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        username=role,
-        password="acl-test-secret",
-    )
+    return historical_runtime_url(settings).set(username=role, password="acl-test-secret")
 
 
 def test_acl_upgrade_downgrade_role_mismatch_and_restore(
@@ -166,9 +178,9 @@ def test_acl_upgrade_downgrade_role_mismatch_and_restore(
     alternate_runtime_role: None,
 ) -> None:
     del alternate_runtime_role
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity_a = integration_migration_identity(integration_settings)
-    identity_b = integration_migration_identity(
+    sync_url = historical_sync_url(integration_settings)
+    identity_a = historical_migration_identity(integration_settings)
+    identity_b = historical_migration_identity_with_runtime(
         integration_settings,
         runtime_url=_runtime_url_for(integration_settings, _ROLE_B),
     )
@@ -183,7 +195,7 @@ def test_acl_upgrade_downgrade_role_mismatch_and_restore(
     baseline = run_migration_operation(sync_url, snapshot)
     run_migration_operation(
         sync_url,
-        lambda connection: run_alembic(connection, identity_a, "head", downgrade=False),
+        lambda connection: run_alembic(connection, identity_a, "b7f3a2c81d4e", downgrade=False),
     )
 
     before_refusal = run_migration_operation(sync_url, snapshot)
@@ -208,7 +220,7 @@ def test_acl_upgrade_downgrade_role_mismatch_and_restore(
 
     run_migration_operation(
         sync_url,
-        lambda connection: run_alembic(connection, identity_a, "head", downgrade=False),
+        lambda connection: run_alembic(connection, identity_a, "b7f3a2c81d4e", downgrade=False),
     )
     assert (
         _runtime_acl(run_migration_operation(sync_url, snapshot), identity_a.runtime_role)
@@ -221,13 +233,13 @@ def test_nonexistent_or_superuser_runtime_role_fails_before_acl_changes(
     integration_settings: IntegrationTestSettings,
     role: str,
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity_a = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity_a = historical_migration_identity(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity_a, "0001_create_job", downgrade=True),
     )
-    invalid_identity = integration_migration_identity(
+    invalid_identity = historical_migration_identity_with_runtime(
         integration_settings,
         runtime_url=_runtime_url_for(integration_settings, role),
     )
@@ -239,20 +251,22 @@ def test_nonexistent_or_superuser_runtime_role_fails_before_acl_changes(
     with pytest.raises(RuntimeError, match="Runtime ACL migration precondition failed"):
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, invalid_identity, "head", downgrade=False),
+            lambda connection: run_alembic(
+                connection, invalid_identity, "b7f3a2c81d4e", downgrade=False
+            ),
         )
     assert run_migration_operation(sync_url, snapshot) == before
     run_migration_operation(
         sync_url,
-        lambda connection: run_alembic(connection, identity_a, "head", downgrade=False),
+        lambda connection: run_alembic(connection, identity_a, "b7f3a2c81d4e", downgrade=False),
     )
 
 
 def test_missing_unsafe_or_migration_runtime_identity_is_rejected_before_alembic(
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    migration_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    runtime_url = make_url(integration_settings.test_database_url.get_secret_value())
+    migration_url = historical_sync_url(integration_settings)
+    runtime_url = historical_runtime_url(integration_settings)
     invalid_urls = [
         URL.create(
             runtime_url.drivername,
@@ -292,14 +306,16 @@ def test_any_direct_or_transitive_runtime_membership_fails_without_acl_change(
     postgres_admin_sync_url: URL,
     membership_statements: tuple[str, ...],
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, "0001_create_job", downgrade=True),
     )
     try:
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             for role in reversed(_MEMBERSHIP_ROLES):
                 connection.exec_driver_sql(f"DROP ROLE IF EXISTS {role}")
             for role in _MEMBERSHIP_ROLES:
@@ -314,26 +330,30 @@ def test_any_direct_or_transitive_runtime_membership_fails_without_acl_change(
         with pytest.raises(RuntimeError) as failure:
             run_migration_operation(
                 sync_url,
-                lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+                lambda connection: run_alembic(
+                    connection, identity, "b7f3a2c81d4e", downgrade=False
+                ),
             )
         assert str(failure.value) == "Runtime ACL migration precondition failed."
         assert "lumina_test" not in repr(failure.value)
         assert run_migration_operation(sync_url, _acl_snapshot) == before
     finally:
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             for role in reversed(_MEMBERSHIP_ROLES):
                 connection.exec_driver_sql(f"DROP ROLE IF EXISTS {role}")
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+            lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
         )
 
 
 def test_grant_option_refuses_downgrade_without_partial_revocation(
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
 
     def add_grant_option(connection: Connection) -> None:
         connection.exec_driver_sql(
@@ -373,7 +393,7 @@ def test_grant_option_refuses_downgrade_without_partial_revocation(
     )
     run_migration_operation(
         sync_url,
-        lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+        lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
     )
 
 
@@ -381,9 +401,9 @@ def test_changed_grantor_refuses_downgrade_without_partial_revocation(
     integration_settings: IntegrationTestSettings,
     postgres_admin_sync_url: URL,
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
-    test_admin_url = postgres_admin_sync_url.set(database="lumina_test")
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
+    test_admin_url = historical_admin_connection_url(postgres_admin_sync_url)
 
     def replace_expected_select(connection: Connection) -> None:
         connection.exec_driver_sql("REVOKE SELECT ON TABLE public.job FROM lumina_test_app")
@@ -399,7 +419,7 @@ def test_changed_grantor_refuses_downgrade_without_partial_revocation(
         connection.exec_driver_sql("GRANT SELECT ON TABLE public.job TO lumina_test_app")
         connection.commit()
 
-    with _admin_connection(postgres_admin_sync_url) as connection:
+    with _admin_connection(historical_admin_connection_url(postgres_admin_sync_url)) as connection:
         connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_GRANTOR_ROLE}")
         connection.exec_driver_sql(
             f"CREATE ROLE {_GRANTOR_ROLE} NOLOGIN NOSUPERUSER NOCREATEDB "
@@ -434,7 +454,9 @@ def test_changed_grantor_refuses_downgrade_without_partial_revocation(
         run_migration_operation(sync_url, restore_expected_select)
         with _admin_connection(test_admin_url) as connection:
             connection.exec_driver_sql(f"REVOKE USAGE ON SCHEMA public FROM {_GRANTOR_ROLE}")
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_GRANTOR_ROLE}")
 
     run_migration_operation(
@@ -443,7 +465,7 @@ def test_changed_grantor_refuses_downgrade_without_partial_revocation(
     )
     run_migration_operation(
         sync_url,
-        lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+        lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
     )
 
 
@@ -463,14 +485,16 @@ def test_unexpected_column_acl_refuses_upgrade_without_changes(
     privilege: str,
     principal: str,
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, "0001_create_job", downgrade=True),
     )
     if principal == _COLUMN_ROLE:
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_COLUMN_ROLE}")
             connection.exec_driver_sql(
                 f"CREATE ROLE {_COLUMN_ROLE} NOLOGIN NOSUPERUSER NOCREATEDB "
@@ -495,17 +519,21 @@ def test_unexpected_column_acl_refuses_upgrade_without_changes(
         with pytest.raises(RuntimeError, match="Runtime ACL migration precondition failed"):
             run_migration_operation(
                 sync_url,
-                lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+                lambda connection: run_alembic(
+                    connection, identity, "b7f3a2c81d4e", downgrade=False
+                ),
             )
         assert run_migration_operation(sync_url, _acl_snapshot) == before
     finally:
         run_migration_operation(sync_url, revoke)
         if principal == _COLUMN_ROLE:
-            with _admin_connection(postgres_admin_sync_url) as connection:
+            with _admin_connection(
+                historical_admin_connection_url(postgres_admin_sync_url)
+            ) as connection:
                 connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_COLUMN_ROLE}")
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+            lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
         )
 
 
@@ -524,10 +552,12 @@ def test_unexpected_column_acl_refuses_downgrade_without_changes(
     privilege: str,
     principal: str,
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     if principal == _COLUMN_ROLE:
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_COLUMN_ROLE}")
             connection.exec_driver_sql(
                 f"CREATE ROLE {_COLUMN_ROLE} NOLOGIN NOSUPERUSER NOCREATEDB "
@@ -563,7 +593,9 @@ def test_unexpected_column_acl_refuses_downgrade_without_changes(
     finally:
         run_migration_operation(sync_url, revoke)
         if principal == _COLUMN_ROLE:
-            with _admin_connection(postgres_admin_sync_url) as connection:
+            with _admin_connection(
+                historical_admin_connection_url(postgres_admin_sync_url)
+            ) as connection:
                 connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_COLUMN_ROLE}")
         run_migration_operation(
             sync_url,
@@ -576,7 +608,7 @@ def test_unexpected_column_acl_refuses_downgrade_without_changes(
         )
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+            lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
         )
 
 
@@ -584,13 +616,13 @@ def test_inherited_column_acl_refuses_upgrade_without_changes(
     integration_settings: IntegrationTestSettings,
     postgres_admin_sync_url: URL,
 ) -> None:
-    sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
-    identity = integration_migration_identity(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
+    identity = historical_migration_identity(integration_settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, "0001_create_job", downgrade=True),
     )
-    with _admin_connection(postgres_admin_sync_url) as connection:
+    with _admin_connection(historical_admin_connection_url(postgres_admin_sync_url)) as connection:
         connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_COLUMN_ROLE}")
         connection.exec_driver_sql(
             f"CREATE ROLE {_COLUMN_ROLE} NOLOGIN NOSUPERUSER NOCREATEDB "
@@ -609,22 +641,30 @@ def test_inherited_column_acl_refuses_upgrade_without_changes(
 
     try:
         run_migration_operation(sync_url, grant)
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"GRANT {_COLUMN_ROLE} TO lumina_test_app")
         before = run_migration_operation(sync_url, _acl_snapshot)
         with pytest.raises(RuntimeError, match="Runtime ACL migration precondition failed"):
             run_migration_operation(
                 sync_url,
-                lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+                lambda connection: run_alembic(
+                    connection, identity, "b7f3a2c81d4e", downgrade=False
+                ),
             )
         assert run_migration_operation(sync_url, _acl_snapshot) == before
     finally:
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"REVOKE {_COLUMN_ROLE} FROM lumina_test_app")
         run_migration_operation(sync_url, revoke)
-        with _admin_connection(postgres_admin_sync_url) as connection:
+        with _admin_connection(
+            historical_admin_connection_url(postgres_admin_sync_url)
+        ) as connection:
             connection.exec_driver_sql(f"DROP ROLE IF EXISTS {_COLUMN_ROLE}")
         run_migration_operation(
             sync_url,
-            lambda connection: run_alembic(connection, identity, "head", downgrade=False),
+            lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
         )

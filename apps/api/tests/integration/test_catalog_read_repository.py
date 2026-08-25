@@ -9,6 +9,7 @@ from uuid import UUID
 import pytest
 import pytest_asyncio
 from lumina.catalog.application.read import CatalogOperatorReadService, CatalogReadService
+from lumina.catalog.domain.identity import ALIAS_NORMALIZATION_VERSION, normalize_alias
 from lumina.catalog.domain.read import (
     CatalogEntityNotFound,
     CatalogEntityType,
@@ -74,14 +75,20 @@ def fictional_browse_entities(integration_settings: IntegrationTestSettings) -> 
             connection.execute(
                 text(
                     "INSERT INTO public.entity "
-                    "(id, entity_type, canonical_name, slug) "
-                    "VALUES (:id, :entity_type, :canonical_name, :slug)"
+                    "(id, entity_type, canonical_name, slug, "
+                    "normalized_canonical_name, canonical_name_normalization_version) "
+                    "VALUES (:id, :entity_type, :canonical_name, :slug, "
+                    ":normalized_canonical_name, :normalization_version)"
                 ),
                 {
                     "id": entity_id,
                     "entity_type": entity_type,
                     "canonical_name": canonical_name,
                     "slug": slug,
+                    "normalized_canonical_name": normalize_alias(
+                        canonical_name, version=ALIAS_NORMALIZATION_VERSION
+                    ),
+                    "normalization_version": ALIAS_NORMALIZATION_VERSION,
                 },
             )
 
@@ -238,14 +245,24 @@ async def test_real_driver_maps_uuid_and_runs_nullable_first_page_cursor(
                 text("DELETE FROM public.entity WHERE id = :id"),
                 {"id": entity_id},
             )
+            canonical_name = "Fictional Empty Read Star"
             await connection.execute(
                 text(
                     "INSERT INTO public.entity "
-                    "(id, entity_type, canonical_name, slug, created_at) "
-                    "VALUES (:id, 'star', 'Fictional Empty Read Star', "
-                    "'fictional-empty-read-star', :created_at)"
+                    "(id, entity_type, canonical_name, slug, created_at, "
+                    "normalized_canonical_name, canonical_name_normalization_version) "
+                    "VALUES (:id, 'star', :canonical_name, 'fictional-empty-read-star', "
+                    ":created_at, :normalized_canonical_name, :normalization_version)"
                 ),
-                {"id": entity_id, "created_at": datetime(2026, 8, 13, tzinfo=UTC)},
+                {
+                    "id": entity_id,
+                    "canonical_name": canonical_name,
+                    "created_at": datetime(2026, 8, 13, tzinfo=UTC),
+                    "normalized_canonical_name": normalize_alias(
+                        canonical_name, version=ALIAS_NORMALIZATION_VERSION
+                    ),
+                    "normalization_version": ALIAS_NORMALIZATION_VERSION,
+                },
             )
         runtime = create_database_runtime(integration_settings.test_database_url)
         try:

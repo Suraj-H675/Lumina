@@ -344,6 +344,8 @@ def test_openapi_contains_only_phase_1b2_routes() -> None:
         "/api/v1/catalog/entities/{entity_id}/measurements",
         "/api/v1/catalog/entities/{entity_id}/canonical-selections",
         "/api/v1/catalog/sources/{source_record_id}",
+        "/api/v1/search",
+        "/api/v1/search/suggest",
     }
     serialized = response.text.lower()
     for forbidden in ("/jobs", "supabase", "/api/v1/sources/"):

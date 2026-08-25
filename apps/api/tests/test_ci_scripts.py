@@ -454,7 +454,7 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     candidate_compose = 'docker compose --env-file .env -p "$candidate_project"'
     assert "scripts/bootstrap/create_local_env.py --ephemeral-candidate" in python
     assert "source .env" not in python
-    assert python.count("docker compose ") == python.count(candidate_compose) == 5
+    assert python.count("docker compose ") == python.count(candidate_compose) == 8
     assert python.index("down -v --remove-orphans") < python.index("unlink -- .env")
     assert python.index("unlink -- .env") < python.index(clean_tree)
     assert web.index("lumina-status-e2e-*") < web.index(clean_tree)

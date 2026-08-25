@@ -182,7 +182,7 @@ jobs:
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina -Atqc \
-              'SELECT count(*) FROM pg_extension WHERE extname = '"'"'pg_trgm'"'"'
+              "SELECT count(*) FROM pg_extension WHERE extname = 'pg_trgm'"
           )" = "0"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \

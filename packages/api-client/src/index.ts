@@ -40,5 +40,6 @@ export type {
   EntitySummaryResponse,
   EntityType,
   MeasurementReference,
+  QuantityReference,
   SearchMatchReason,
 } from "./generated/types.gen";

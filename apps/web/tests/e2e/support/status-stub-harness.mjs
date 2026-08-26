@@ -52,8 +52,11 @@ let shutdownPromise;
 //
 // Values mirror the reviewed Gaia DR3 seed slice (fingerprint
 // 05444b36d44bd800ca9fdefbb45d10fbef2e222729cb65c4c919fd0759c61c2c) so E2E
-// assertions stay truthful against accepted data. This is test infrastructure:
-// production always reads from the real API.
+// assertions stay truthful against accepted data. The BP/RP magnitudes below
+// are the published DR3 photometry for the same five accepted source_ids
+// (ESA Gaia Archive, gaiadr3.gaia_source); the G values are exactly the ones
+// the accepted slice persists. This is test infrastructure: production always
+// reads from the real API.
 // ---------------------------------------------------------------------------
 const CATALOGUE_ENTITIES = [
   {
@@ -89,15 +92,52 @@ const CATALOGUE_ENTITIES = [
 ];
 
 const CATALOGUE_MEASUREMENTS = new Map([
-  ["26f4b667-ecd9-524d-8121-29508723715a", [{ code: "gaia_g_mean_magnitude", value: "7.5212455" }]],
-  ["bbfe8678-81ca-5e70-ac95-c597d7655540", [{ code: "gaia_g_mean_magnitude", value: "14.583239" }]],
-  ["bfd42670-3013-598e-8eb5-5a1c084dd1a0", [{ code: "gaia_g_mean_magnitude", value: "13.392909" }]],
-  ["c593bd18-c4bc-5551-8a41-09f1b501f981", [{ code: "gaia_g_mean_magnitude", value: "5.283212" }]],
-  ["403d0e71-8d81-5c52-abad-c4666c1b5cd6", [{ code: "gaia_g_mean_magnitude", value: "12.400764" }]],
+  [
+    "26f4b667-ecd9-524d-8121-29508723715a",
+    [
+      { code: "gaia_g_mean_magnitude", value: "7.5212455" },
+      { code: "gaia_bp_mean_magnitude", value: "7.7932835" },
+      { code: "gaia_rp_mean_magnitude", value: "7.080288" },
+    ],
+  ],
+  [
+    "bbfe8678-81ca-5e70-ac95-c597d7655540",
+    [
+      { code: "gaia_g_mean_magnitude", value: "14.583239" },
+      { code: "gaia_bp_mean_magnitude", value: "15.51225" },
+      { code: "gaia_rp_mean_magnitude", value: "13.631706" },
+    ],
+  ],
+  [
+    "bfd42670-3013-598e-8eb5-5a1c084dd1a0",
+    [
+      { code: "gaia_g_mean_magnitude", value: "13.392909" },
+      { code: "gaia_bp_mean_magnitude", value: "13.772195" },
+      { code: "gaia_rp_mean_magnitude", value: "12.851425" },
+    ],
+  ],
+  [
+    "c593bd18-c4bc-5551-8a41-09f1b501f981",
+    [
+      { code: "gaia_g_mean_magnitude", value: "5.283212" },
+      { code: "gaia_bp_mean_magnitude", value: "5.6174655" },
+      { code: "gaia_rp_mean_magnitude", value: "4.7888722" },
+    ],
+  ],
+  [
+    "403d0e71-8d81-5c52-abad-c4666c1b5cd6",
+    [
+      { code: "gaia_g_mean_magnitude", value: "12.400764" },
+      { code: "gaia_bp_mean_magnitude", value: "13.71137" },
+      { code: "gaia_rp_mean_magnitude", value: "11.269744" },
+    ],
+  ],
 ]);
 
 const GAIA_QUANTITY = {
+  gaia_bp_mean_magnitude: "Gaia integrated BP mean magnitude (Vega scale)",
   gaia_g_mean_magnitude: "Gaia G-band mean magnitude (Vega scale)",
+  gaia_rp_mean_magnitude: "Gaia integrated RP mean magnitude (Vega scale)",
 };
 
 function catalogueSource(entity) {
@@ -119,7 +159,7 @@ function catalogueDetail(entity) {
     id: entity.id,
     entity_type: entity.entity_type,
     canonical_name: entity.canonical_name,
-    quantities: entries.map((entry) => ({
+    quantities: entries.map((entry, index) => ({
       quantity: { code: entry.code, name: GAIA_QUANTITY[entry.code] ?? entry.code },
       measurement_count: 1,
       current_selection: {
@@ -127,7 +167,7 @@ function catalogueDetail(entity) {
           id:
             entry.code === "gaia_g_mean_magnitude"
               ? "22222222-3333-5444-8555-666666666666"
-              : "33333333-4444-5555-8666-777777777777",
+              : `33333333-4444-5555-8666-${String(index).padStart(12, "0")}`,
           value: entry.value,
           unit: { code: "mag", name: "magnitude", symbol: "mag" },
           original_value: entry.value,

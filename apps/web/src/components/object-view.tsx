@@ -11,6 +11,8 @@ import {
 
 type ObjectViewProps = Readonly<{
   detail: EntityDetailResponse;
+  /** The public slug that resolved to this entity; used for the compare link. */
+  slug: string;
 }>;
 
 /**
@@ -18,7 +20,7 @@ type ObjectViewProps = Readonly<{
  * data and provenance the accepted public contract exposes. Nothing is
  * inferred; quantities without a canonical selection are stated as such.
  */
-export function ObjectView({ detail }: ObjectViewProps) {
+export function ObjectView({ detail, slug }: ObjectViewProps) {
   const title = objectTitle(detail);
   const provenanceRows = objectProvenanceRows(detail);
   const measuredQuantities = detail.quantities.filter((entry) => entry.current_selection !== null);
@@ -42,6 +44,14 @@ export function ObjectView({ detail }: ObjectViewProps) {
           {title}
         </h1>
         <p className="text-lg text-[var(--muted)]">{objectMetaLine(detail)}</p>
+        <p>
+          <Link
+            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+            href={`/compare?object=${encodeURIComponent(slug)}`}
+          >
+            <span aria-hidden="true">⇄</span> Compare this object
+          </Link>
+        </p>
       </header>
 
       <section aria-labelledby="object-data-heading" className="space-y-5">

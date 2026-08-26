@@ -58,5 +58,5 @@ export default async function ObjectPage({ params }: ObjectPageProps) {
     );
   }
 
-  return <ObjectView detail={outcome.detail} />;
+  return <ObjectView detail={outcome.detail} slug={slug} />;
 }

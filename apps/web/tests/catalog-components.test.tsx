@@ -118,7 +118,7 @@ describe("ObjectView", () => {
   }
 
   it("presents identity, scientific data with units, provenance, and a return affordance", () => {
-    render(<ObjectView detail={detail()} />);
+    render(<ObjectView detail={detail()} slug="51-pegasi" />);
 
     expect(screen.getByRole("heading", { level: 1, name: "51 Pegasi" })).toBeVisible();
     expect(screen.getByText("Gaia G-band mean magnitude (Vega scale)")).toBeVisible();
@@ -135,6 +135,7 @@ describe("ObjectView", () => {
     render(
       <ObjectView
         detail={{ canonical_name: "HD 209458", entity_type: "star", id: K2_18_ID, quantities: [] }}
+        slug="hd-209458"
       />,
     );
 
@@ -146,7 +147,7 @@ describe("ObjectView", () => {
   });
 
   it("passes an axe accessibility scan with data present", async () => {
-    const { container } = render(<ObjectView detail={detail()} />);
+    const { container } = render(<ObjectView detail={detail()} slug="51-pegasi" />);
     expect((await axe(container)).violations).toEqual([]);
   });
 });

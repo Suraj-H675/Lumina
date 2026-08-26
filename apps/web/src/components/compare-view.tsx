@@ -5,6 +5,7 @@ import { COMPARE_MAX_OBJECTS } from "../lib/compare-url";
 import { entityTypeLabel, formatMeasurementValue } from "../lib/catalog-display";
 import { CompareAddObject } from "./compare-add-object";
 import { CompareRemoveButton } from "./compare-remove-button";
+import { CompareSaveSelected } from "./compare-save-selected";
 
 type CompareViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
@@ -110,6 +111,19 @@ export function CompareView({ apiOrigin, model, selectedSlugs }: CompareViewProp
   }
 
   const identities = objects.map(slotIdentity);
+  // Save-the-objects payload: only successfully loaded slots contribute an
+  // identity snapshot; unknown/unavailable slots are not catalogue objects.
+  const saveableIdentities = objects.flatMap((state) =>
+    state.kind === "ok"
+      ? [
+          {
+            canonical_name: state.detail.canonical_name,
+            entity_type: state.detail.entity_type,
+            slug: state.slug,
+          },
+        ]
+      : [],
+  );
   // Invite a second object only when there is room to actually add one; when
   // the comparison is full (or only unknown/unavailable slots remain), that
   // state is communicated by the selector itself instead of contradicting it.
@@ -177,6 +191,9 @@ export function CompareView({ apiOrigin, model, selectedSlugs }: CompareViewProp
           </p>
         ) : null}
       </section>
+
+      {/* Collections integration: save the compared objects (identity only). */}
+      <CompareSaveSelected identities={saveableIdentities} />
 
       {loadedCount === 0 ? (
         <section aria-labelledby="compare-data-heading" className="space-y-4">

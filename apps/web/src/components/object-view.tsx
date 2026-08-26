@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { EntityDetailResponse } from "@lumina/api-client";
 
+import { SaveToCollectionsButton } from "./save-to-collections";
 import {
   formatMeasurementValue,
   objectMetaLine,
@@ -44,14 +45,21 @@ export function ObjectView({ detail, slug }: ObjectViewProps) {
           {title}
         </h1>
         <p className="text-lg text-[var(--muted)]">{objectMetaLine(detail)}</p>
-        <p>
+        <div className="flex flex-wrap gap-2 pt-1">
           <Link
             className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
             href={`/compare?object=${encodeURIComponent(slug)}`}
           >
             <span aria-hidden="true">⇄</span> Compare this object
           </Link>
-        </p>
+          <SaveToCollectionsButton
+            identity={{
+              canonical_name: title,
+              entity_type: detail.entity_type,
+              slug,
+            }}
+          />
+        </div>
       </header>
 
       <section aria-labelledby="object-data-heading" className="space-y-5">

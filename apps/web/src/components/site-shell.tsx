@@ -1,14 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { SiteNav } from "./site-nav";
+
 type SiteShellProps = Readonly<{
   children: ReactNode;
 }>;
-
-const navigationItems = [
-  { href: "/explore", label: "Explore" },
-  { href: "/status", label: "Status" },
-] as const;
 
 export function SiteShell({ children }: SiteShellProps) {
   return (
@@ -27,20 +24,7 @@ export function SiteShell({ children }: SiteShellProps) {
             </span>
             Lumina
           </Link>
-          <nav aria-label="Primary">
-            <ul className="flex items-center gap-1 sm:gap-2">
-              {navigationItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    className="inline-flex min-h-11 items-center rounded-sm px-2 text-sm font-medium text-[var(--muted)] no-underline transition-colors hover:text-[var(--foreground)] sm:px-3"
-                    href={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <SiteNav />
         </div>
       </header>
       <main

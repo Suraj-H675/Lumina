@@ -29,6 +29,12 @@ export function ObjectView({ detail }: ObjectViewProps) {
   return (
     <article className="space-y-12">
       <header className="space-y-3">
+        <Link
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-[var(--muted)] underline decoration-[var(--border-strong)] underline-offset-4 transition-colors hover:text-[var(--foreground)]"
+          href="/explore"
+        >
+          ← Explore
+        </Link>
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
           Catalogue object
         </p>

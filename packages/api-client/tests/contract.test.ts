@@ -1,11 +1,23 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { liveEndpoint, metaEndpoint, readyEndpoint, validateExactGenerated } from "../src/contract";
+import {
+  catalogEntitiesEndpoint,
+  catalogEntityBySlugEndpoint,
+  catalogEntityDetailEndpoint,
+  catalogSuggestEndpoint,
+  catalogSearchEndpoint,
+  liveEndpoint,
+  metaEndpoint,
+  readyEndpoint,
+  validateExactGenerated,
+} from "../src/contract";
+import { requestEndpoint } from "../src/transport";
 import type {
   EntityBrowsePageResponse,
   EntitySummaryResponse,
   EntityType,
   GetCatalogEntityBySlugData,
+  GetCatalogEntityData,
   LiveHealthLiveGetData,
   ListCatalogEntitiesData,
   MetadataApiV1MetaGetData,
@@ -122,5 +134,99 @@ describe("generated contract boundary", () => {
         nested_future_field: {},
       }),
     ).toEqual({ valid: false });
+  });
+});
+
+describe("catalogue discovery endpoints", () => {
+  const summary: EntitySummaryResponse = {
+    id: "0b6e7c30-1e2a-5c4d-9f3e-6a5b7c8d9e0f",
+    slug: "k2-18",
+    entity_type: "star",
+    canonical_name: "K2-18",
+  };
+
+  function respondWith(body: unknown): typeof fetch {
+    return () =>
+      Promise.resolve(
+        new Response(JSON.stringify(body), {
+          headers: { "content-type": "application/json" },
+          status: 200,
+        }),
+      );
+  }
+
+  it("binds the search endpoint to the generated operation contract", async () => {
+    expectTypeOf(catalogSearchEndpoint.path).toEqualTypeOf<SearchCatalogEntitiesData["url"]>();
+    expectTypeOf(catalogSearchEndpoint.method).toEqualTypeOf<"GET">();
+
+    const result = await requestEndpoint("http://127.0.0.1:8000", catalogSearchEndpoint, {
+      fetchImplementation: respondWith({
+        items: [{ entity: summary, match_reason: "canonical_name_prefix", matched_alias: null }],
+      }),
+    });
+
+    expect(result).toEqual({
+      data: {
+        items: [{ entity: summary, match_reason: "canonical_name_prefix", matched_alias: null }],
+      },
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("binds the suggest endpoint to the generated operation contract", async () => {
+    expectTypeOf(catalogSuggestEndpoint.path).toEqualTypeOf<SuggestCatalogEntitiesData["url"]>();
+    expectTypeOf(catalogSuggestEndpoint.method).toEqualTypeOf<"GET">();
+
+    const result = await requestEndpoint("http://127.0.0.1:8000", catalogSuggestEndpoint, {
+      fetchImplementation: respondWith({ items: [summary] }),
+    });
+
+    expect(result).toEqual({ data: { items: [summary] }, kind: "ok", status: 200 });
+  });
+
+  it("rejects malformed discovery payloads instead of trusting them", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", catalogSearchEndpoint, {
+      fetchImplementation: respondWith({
+        items: [{ entity: summary, match_reason: "invented_tier", matched_alias: null }],
+      }),
+    });
+
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("binds the catalogue read endpoints used by explore and object pages", async () => {
+    expectTypeOf(catalogEntitiesEndpoint.path).toEqualTypeOf<ListCatalogEntitiesData["url"]>();
+    expectTypeOf(catalogEntityBySlugEndpoint.path).toEqualTypeOf<
+      GetCatalogEntityBySlugData["url"]
+    >();
+    expectTypeOf(catalogEntityDetailEndpoint.path).toEqualTypeOf<GetCatalogEntityData["url"]>();
+
+    const browse = await requestEndpoint("http://127.0.0.1:8000", catalogEntitiesEndpoint, {
+      fetchImplementation: respondWith({
+        items: [summary],
+        page: { has_more: false, limit: 20, next_cursor: null },
+      }),
+    });
+    expect(browse).toEqual({
+      data: { items: [summary], page: { has_more: false, limit: 20, next_cursor: null } },
+      kind: "ok",
+      status: 200,
+    });
+
+    const bySlug = await requestEndpoint("http://127.0.0.1:8000", catalogEntityBySlugEndpoint, {
+      fetchImplementation: respondWith(summary),
+    });
+    expect(bySlug.kind).toBe("ok");
+
+    const detail = await requestEndpoint("http://127.0.0.1:8000", catalogEntityDetailEndpoint, {
+      fetchImplementation: respondWith({
+        canonical_name: "K2-18",
+        entity_type: "star",
+        id: summary.id,
+        quantities: [],
+      }),
+    });
+    expect(detail.kind).toBe("ok");
   });
 });

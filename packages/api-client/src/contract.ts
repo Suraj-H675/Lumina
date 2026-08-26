@@ -1,14 +1,33 @@
 import type { ZodType } from "zod";
 
 import type {
+  CatalogSearchResponse,
+  CatalogSuggestResponse,
+  EntityBrowsePageResponse,
+  EntityDetailResponse,
+  EntitySummaryResponse,
+  GetCatalogEntityBySlugData,
+  GetCatalogEntityData,
+  ListCatalogEntitiesData,
   LiveHealthLiveGetData,
   LiveHealthLiveGetResponse,
   MetadataApiV1MetaGetData,
   MetadataApiV1MetaGetResponse,
   ReadyHealthReadyGetData,
   ReadyHealthReadyGetResponse,
+  SearchCatalogEntitiesData,
+  SuggestCatalogEntitiesData,
 } from "./generated/types.gen";
-import { zLiveResponse, zMetaResponse, zReadyResponse } from "./generated/zod.gen";
+import {
+  zCatalogSearchResponse,
+  zCatalogSuggestResponse,
+  zEntityBrowsePageResponse,
+  zEntityDetailResponse,
+  zEntitySummaryResponse,
+  zLiveResponse,
+  zMetaResponse,
+  zReadyResponse,
+} from "./generated/zod.gen";
 
 export type LiveResponse = LiveHealthLiveGetResponse;
 export type ReadyResponse = ReadyHealthReadyGetResponse;
@@ -39,6 +58,36 @@ export const metaEndpoint = {
   path: "/api/v1/meta" satisfies MetadataApiV1MetaGetData["url"],
   validator: zMetaResponse,
 } satisfies ApiEndpoint<MetaResponse, MetadataApiV1MetaGetData["url"]>;
+
+export const catalogSearchEndpoint = {
+  method: "GET",
+  path: "/api/v1/search" satisfies SearchCatalogEntitiesData["url"],
+  validator: zCatalogSearchResponse,
+} satisfies ApiEndpoint<CatalogSearchResponse, SearchCatalogEntitiesData["url"]>;
+
+export const catalogSuggestEndpoint = {
+  method: "GET",
+  path: "/api/v1/search/suggest" satisfies SuggestCatalogEntitiesData["url"],
+  validator: zCatalogSuggestResponse,
+} satisfies ApiEndpoint<CatalogSuggestResponse, SuggestCatalogEntitiesData["url"]>;
+
+export const catalogEntitiesEndpoint = {
+  method: "GET",
+  path: "/api/v1/catalog/entities" satisfies ListCatalogEntitiesData["url"],
+  validator: zEntityBrowsePageResponse,
+} satisfies ApiEndpoint<EntityBrowsePageResponse, ListCatalogEntitiesData["url"]>;
+
+export const catalogEntityBySlugEndpoint = {
+  method: "GET",
+  path: "/api/v1/catalog/entities/by-slug/{slug}" satisfies GetCatalogEntityBySlugData["url"],
+  validator: zEntitySummaryResponse,
+} satisfies ApiEndpoint<EntitySummaryResponse, GetCatalogEntityBySlugData["url"]>;
+
+export const catalogEntityDetailEndpoint = {
+  method: "GET",
+  path: "/api/v1/catalog/entities/{entity_id}" satisfies GetCatalogEntityData["url"],
+  validator: zEntityDetailResponse,
+} satisfies ApiEndpoint<EntityDetailResponse, GetCatalogEntityData["url"]>;
 
 export type ValidationResult<T> = Readonly<{ data: T; valid: true }> | Readonly<{ valid: false }>;
 

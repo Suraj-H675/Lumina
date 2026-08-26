@@ -13,6 +13,8 @@ if (coordinationFile === undefined || coordinationFile.length === 0) {
 const token = randomBytes(32).toString("hex");
 const sockets = new Set();
 const apiPaths = new Set(["/api/v1/meta", "/health/live", "/health/ready"]);
+// Catalogue discovery endpoints carry query strings; matched by prefix below.
+const apiPathPrefixes = ["/api/v1/catalog/", "/api/v1/search"];
 const controlPaths = new Set([
   "/__control/assert-clean",
   "/__control/clear-violations",
@@ -45,9 +47,207 @@ let childShutdownBarrierReached = false;
 let requestedExitCode = 0;
 let shutdownPromise;
 
+// ---------------------------------------------------------------------------
+// Deterministic catalogue fixture.
+//
+// Values mirror the reviewed Gaia DR3 seed slice (fingerprint
+// 05444b36d44bd800ca9fdefbb45d10fbef2e222729cb65c4c919fd0759c61c2c) so E2E
+// assertions stay truthful against accepted data. This is test infrastructure:
+// production always reads from the real API.
+// ---------------------------------------------------------------------------
+const CATALOGUE_ENTITIES = [
+  {
+    id: "26f4b667-ecd9-524d-8121-29508723715a",
+    slug: "hd-209458",
+    entity_type: "star",
+    canonical_name: "HD 209458",
+  },
+  {
+    id: "bbfe8678-81ca-5e70-ac95-c597d7655540",
+    slug: "kepler-186",
+    entity_type: "star",
+    canonical_name: "Kepler-186",
+  },
+  {
+    id: "bfd42670-3013-598e-8eb5-5a1c084dd1a0",
+    slug: "kepler-452",
+    entity_type: "star",
+    canonical_name: "Kepler-452",
+  },
+  {
+    id: "c593bd18-c4bc-5551-8a41-09f1b501f981",
+    slug: "51-pegasi",
+    entity_type: "star",
+    canonical_name: "51 Pegasi",
+  },
+  {
+    id: "403d0e71-8d81-5c52-abad-c4666c1b5cd6",
+    slug: "k2-18",
+    entity_type: "star",
+    canonical_name: "K2-18",
+  },
+];
+
+const CATALOGUE_MEASUREMENTS = new Map([
+  ["26f4b667-ecd9-524d-8121-29508723715a", [{ code: "gaia_g_mean_magnitude", value: "7.5212455" }]],
+  ["bbfe8678-81ca-5e70-ac95-c597d7655540", [{ code: "gaia_g_mean_magnitude", value: "14.583239" }]],
+  ["bfd42670-3013-598e-8eb5-5a1c084dd1a0", [{ code: "gaia_g_mean_magnitude", value: "13.392909" }]],
+  ["c593bd18-c4bc-5551-8a41-09f1b501f981", [{ code: "gaia_g_mean_magnitude", value: "5.283212" }]],
+  ["403d0e71-8d81-5c52-abad-c4666c1b5cd6", [{ code: "gaia_g_mean_magnitude", value: "12.400764" }]],
+]);
+
+const GAIA_QUANTITY = {
+  gaia_g_mean_magnitude: "Gaia G-band mean magnitude (Vega scale)",
+};
+
+function catalogueSource(entity) {
+  return {
+    source_record_id: `10000000-0000-5000-8000-${entity.canonical_name.length.toString().padStart(12, "0")}`,
+    provider: { code: "esa-gaia", name: "ESA Gaia Archive" },
+    dataset: {
+      code: "gaia-source",
+      name: "Gaia Data Release 3 main source catalogue",
+      release_version: "dr3",
+    },
+  };
+}
+
+function catalogueDetail(entity) {
+  const entries = CATALOGUE_MEASUREMENTS.get(entity.id) ?? [];
+  const source = catalogueSource(entity);
+  return {
+    id: entity.id,
+    entity_type: entity.entity_type,
+    canonical_name: entity.canonical_name,
+    quantities: entries.map((entry) => ({
+      quantity: { code: entry.code, name: GAIA_QUANTITY[entry.code] ?? entry.code },
+      measurement_count: 1,
+      current_selection: {
+        measurement: {
+          id:
+            entry.code === "gaia_g_mean_magnitude"
+              ? "22222222-3333-5444-8555-666666666666"
+              : "33333333-4444-5555-8666-777777777777",
+          value: entry.value,
+          unit: { code: "mag", name: "magnitude", symbol: "mag" },
+          original_value: entry.value,
+          original_unit: "mag",
+          source,
+        },
+        selection: {
+          rule: "single-reviewed-measurement",
+          version: "1",
+          explanation: "Only reviewed measurement for this quantity in the accepted slice.",
+          selected_at: "2026-08-15T08:23:59Z",
+        },
+      },
+    })),
+  };
+}
+
+function normalizeQuery(value) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function searchCatalogueFixture(query) {
+  const normalized = normalizeQuery(query);
+  const hits = [];
+  for (const entity of CATALOGUE_ENTITIES) {
+    const name = normalizeQuery(entity.canonical_name);
+    if (entity.slug === normalized) {
+      hits.push({ entity, match_reason: "exact_slug", matched_alias: null });
+    } else if (name === normalized) {
+      hits.push({ entity, match_reason: "exact_canonical_name", matched_alias: null });
+    } else if (name.startsWith(normalized)) {
+      hits.push({ entity, match_reason: "canonical_name_prefix", matched_alias: null });
+    }
+  }
+  return hits;
+}
+
+function respondCatalogue(request, response, target) {
+  const path = target.pathname;
+  const query = target.searchParams;
+
+  if (path === "/api/v1/catalog/entities") {
+    sendJson(response, 200, {
+      items: CATALOGUE_ENTITIES,
+      page: { has_more: false, limit: Number(query.get("limit") ?? 20), next_cursor: null },
+    });
+    return;
+  }
+
+  const bySlugMatch = /^\/api\/v1\/catalog\/entities\/by-slug\/([^/]+)$/u.exec(path);
+  if (bySlugMatch !== null) {
+    const slug = decodeURIComponent(bySlugMatch[1]);
+    const entity = CATALOGUE_ENTITIES.find((item) => item.slug === slug);
+    if (entity === undefined) {
+      sendJson(response, 404, {
+        error: {
+          code: "catalog.entity_not_found",
+          message: "No matching object was found.",
+          request_id: "e2e-fixture",
+        },
+      });
+      return;
+    }
+    sendJson(response, 200, entity);
+    return;
+  }
+
+  const detailMatch = /^\/api\/v1\/catalog\/entities\/([0-9a-f-]{36})$/u.exec(path);
+  if (detailMatch !== null) {
+    const entity = CATALOGUE_ENTITIES.find((item) => item.id === detailMatch[1]);
+    if (entity === undefined) {
+      sendJson(response, 404, {
+        error: {
+          code: "catalog.entity_not_found",
+          message: "No matching object was found.",
+          request_id: "e2e-fixture",
+        },
+      });
+      return;
+    }
+    sendJson(response, 200, catalogueDetail(entity));
+    return;
+  }
+
+  if (path === "/api/v1/search" || path === "/api/v1/search/suggest") {
+    const q = query.get("q") ?? "";
+    if (normalizeQuery(q).length < 2) {
+      sendJson(response, 422, {
+        error: {
+          code: "request.validation_failed",
+          message: "The request could not be validated.",
+          request_id: "e2e-fixture",
+        },
+      });
+      return;
+    }
+    const items = searchCatalogueFixture(q);
+    if (path === "/api/v1/search/suggest") {
+      sendJson(response, 200, { items: items.map((item) => item.entity) });
+    } else {
+      sendJson(response, 200, { items });
+    }
+    return;
+  }
+
+  recordViolation("unexpected-path");
+  sendFailure(response, 500);
+}
+
+// The discovery suite performs real server-side reads through this stub. It
+// runs with fullyParallel workers, while the status suite toggles the stub
+// into disconnect mode; a worker's SSR fetch can therefore land in a
+// disconnect window and fail flakily. Serial mode pins discovery tests to one
+// worker AND makes Playwright await suite completion before the status suite
+// starts, so the two suites never interleave their stub modes.
+
 function sendJson(response, status, body) {
   const content = Buffer.from(JSON.stringify(body));
   response.writeHead(status, {
+    "Access-Control-Allow-Origin": "*",
     "Content-Length": String(content.byteLength),
     "Content-Type": "application/json; charset=utf-8",
   });
@@ -222,7 +422,8 @@ const stub = http.createServer(async (request, response) => {
   }
 
   let unexpectedRequest = false;
-  if (!apiPaths.has(path)) {
+  const isCataloguePath = apiPathPrefixes.some((prefix) => path.startsWith(prefix));
+  if (!apiPaths.has(path) && !isCataloguePath) {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
   }
@@ -230,12 +431,21 @@ const stub = http.createServer(async (request, response) => {
     recordViolation("unexpected-method");
     unexpectedRequest = true;
   }
-  if (target.search !== "") {
+  if (target.search !== "" && !isCataloguePath) {
     recordViolation("unexpected-query");
     unexpectedRequest = true;
   }
   if (unexpectedRequest) {
     sendFailure(response, 500);
+    return;
+  }
+  if (isCataloguePath) {
+    // Catalogue fixture responses are deliberately independent of the
+    // status-suite mode: the status suite simulates API downtime through the
+    // health/meta endpoints only, while the discovery suite needs these reads
+    // always available. Keeping them outside the mode gate removes any
+    // cross-suite scheduling race between the two specs.
+    respondCatalogue(request, response, target);
     return;
   }
   if (mode === "disconnect") {

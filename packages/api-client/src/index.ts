@@ -26,3 +26,19 @@ export {
   requestEndpoint,
 } from "./transport";
 export type { ApiOriginResult, ApiTransportResult, TransportOptions } from "./transport";
+export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
+export {
+  catalogEntitiesEndpoint,
+  catalogEntityBySlugEndpoint,
+  catalogEntityDetailEndpoint,
+} from "./contract";
+export type {
+  CatalogSearchResponse,
+  CatalogSuggestResponse,
+  EntityDetailResponse,
+  EntityQuantityResponse,
+  EntitySummaryResponse,
+  EntityType,
+  MeasurementReference,
+  SearchMatchReason,
+} from "./generated/types.gen";

@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --surface: #ffffff;
-  --foreground: #10213d;
-  --muted: #3c4e6b;
-  --border: #c5d0df;
-  --border-strong: #64748b;
-  --accent: #075985;
-  --link: #075985;
-  --focus: #b45309;
+  --background: #05070f;
+  --background-raised: #090d1c;
+  --surface: #0d1326;
+  --surface-hover: #131b33;
+  --foreground: #e8edf8;
+  --muted: #9aa7c4;
+  --border: #222b47;
+  --border-strong: #39456e;
+  --accent: #7dd3fc;
+  --accent-strong: #38bdf8;
+  --link: #93c5fd;
+  --focus: #fbbf24;
   --content-width: 72rem;
 }
 
@@ -20,12 +23,24 @@
 html {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
   overflow-wrap: break-word;
 }
 
 body {
-  background: var(--background);
+  /* A single restrained depth cue behind content; purely decorative and static. */
+  background:
+    radial-gradient(110rem 55rem at 85% -18rem, rgba(56, 96, 170, 0.16), transparent 60%),
+    radial-gradient(90rem 48rem at -20% -22rem, rgba(125, 211, 252, 0.07), transparent 55%),
+    var(--background);
+  color: var(--foreground);
   margin: 0;
   min-width: 20rem;
 }
@@ -37,7 +52,9 @@ button {
 
 a:focus-visible,
 button:focus-visible,
-[tabindex="-1"]:focus-visible {
+input:focus-visible,
+[tabindex="-1"]:focus-visible,
+[role="option"]:focus-visible {
   outline: 0.1875rem solid var(--focus);
   outline-offset: 0.1875rem;
 }
@@ -48,7 +65,7 @@ button {
 
 .skip-link {
   background: var(--foreground);
-  color: var(--surface);
+  color: var(--background);
   left: 0.5rem;
   padding: 0.75rem 1rem;
   position: fixed;
@@ -62,8 +79,15 @@ button {
 }
 
 .global-error-content {
-  color: #10213d;
-  font-family: Arial, Helvetica, sans-serif;
+  color: #e8edf8;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
   line-height: 1.5;
   margin: 0 auto;
   max-width: 48rem;
@@ -71,17 +95,19 @@ button {
 }
 
 .global-error-content button {
-  background: #ffffff;
-  border: 1px solid #64748b;
-  color: #10213d;
+  background: #0d1326;
+  border: 1px solid #39456e;
+  color: #e8edf8;
   min-height: 2.75rem;
   padding: 0 1rem;
 }
 
 @media (prefers-contrast: more) {
   :root {
-    --muted: #1e293b;
-    --border: #475569;
-    --link: #003f6b;
+    --muted: #ccd6ec;
+    --border: #55628f;
+    --border-strong: #8b97c2;
+    --link: #bfdbfe;
+    --accent: #bae6fd;
   }
 }

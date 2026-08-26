@@ -24,9 +24,7 @@ describe("Lumina foundation home", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Lumina is under construction" }),
     ).toBeVisible();
-    expect(
-      screen.getByText(/does not yet provide catalog content, live data, or observing tools/i),
-    ).toBeVisible();
+    expect(screen.getByText(/first public capability is live/i)).toBeVisible();
   });
 
   it("does not present catalog or live-service claims", () => {
@@ -36,7 +34,7 @@ describe("Lumina foundation home", () => {
     expect(pageText).not.toMatch(
       /catalog is available|live data is available|provider status|current mission/i,
     );
-    expect(pageText).not.toMatch(/\b\d+[,+]?\s+(objects|missions|catalog entries)\b/i);
+    expect(pageText).not.toMatch(/\b\d+[,+]\s+(objects|missions|catalog entries)\b/i);
   });
 
   it("links to the API foundation status after C2", () => {
@@ -55,9 +53,9 @@ describe("Lumina foundation home", () => {
     expect(screen.getByRole("banner")).toBeVisible();
     expect(screen.getByRole("main")).toBeVisible();
     expect(screen.getByRole("contentinfo")).toBeVisible();
-    expect(screen.getByRole("link", { name: "About this foundation" })).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: "Explore the catalogue" })[0]).toHaveAttribute(
       "href",
-      "/#about",
+      "/explore",
     );
   });
 

@@ -15,20 +15,16 @@ export default function HomePage() {
         </h1>
         <p className="max-w-2xl text-lg leading-8 text-[var(--muted)]">
           Lumina is being built as a free, visual, scientifically grounded place to explore,
-          understand, observe, and experiment with space. This foundation page does not yet provide
-          catalog content, live data, or observing tools.
-        </p>
-        <p className="border-l-4 border-[var(--accent)] pl-4 text-base leading-7 text-[var(--foreground)]">
-          Current foundation status: the accessible home page and essential route boundaries are in
-          place.
+          understand, observe, and experiment with space. Its first public capability is live: a
+          small, provenance-first astronomical catalogue you can search and open right now.
         </p>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <a
+          <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
-            href="#about"
+            href="/explore"
           >
-            Read about this foundation
-          </a>
+            Explore the catalogue
+          </Link>
           <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
             href="/status"

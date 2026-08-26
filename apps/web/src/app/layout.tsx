@@ -5,14 +5,18 @@ import { SiteShell } from "../components/site-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Lumina — Foundation",
-  description: "The accessible web foundation for Lumina, currently under construction.",
+  title: {
+    default: "Lumina — Foundation",
+    template: "%s — Lumina",
+  },
+  description:
+    "Lumina is a free, scientifically grounded platform for exploring space. Its first public capability is a provenance-first astronomical catalogue you can search and browse.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f8fafc",
+  themeColor: "#05070f",
 };
 
 type RootLayoutProps = Readonly<{

@@ -40,12 +40,10 @@ test("the home page is accessible and usable at 320 CSS pixels without horizonta
   await expect(
     page.getByRole("heading", { level: 1, name: "Lumina is under construction" }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Read about this foundation" })).toBeVisible();
+  const exploreLink = page.getByRole("link", { name: "Explore the catalogue" }).first();
+  await expect(exploreLink).toBeVisible();
 
-  const headerLinkBox = await page
-    .getByRole("link", { name: "About this foundation", exact: true })
-    .boundingBox();
-  expect(headerLinkBox?.height).toBeGreaterThanOrEqual(44);
+  expect((await exploreLink.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 
   const axeResults = await new AxeBuilder({ page }).analyze();
   expect(axeResults.violations).toEqual([]);

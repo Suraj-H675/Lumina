@@ -410,7 +410,7 @@ function CompareSelectionPanel({
               const checked = selectedSlugs.includes(item.slug);
               const blocked = !checked && atMaximum;
               return (
-                <li key={item.slug}>
+                <li className="min-w-0" key={item.slug}>
                   <label
                     className={`flex min-h-11 items-center gap-2 rounded-sm border px-3 py-2 ${
                       blocked

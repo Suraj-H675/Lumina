@@ -113,12 +113,12 @@ export function CollectionsOverview() {
             className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
           >
             {data.collections.map((collection) => (
-              <li className="list-none" key={collection.id}>
+              <li className="list-none min-w-0" key={collection.id}>
                 <Link
-                  className="flex h-full min-h-11 flex-col justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-4 no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+                  className="flex h-full min-h-11 min-w-0 flex-col justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-4 no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
                   href={`/collections/${collection.id}`}
                 >
-                  <span className="truncate text-lg font-semibold tracking-tight text-[var(--foreground)]">
+                  <span className="block truncate text-lg font-semibold tracking-tight text-[var(--foreground)]">
                     {collection.name}
                   </span>
                   <span className="text-sm text-[var(--muted)]">

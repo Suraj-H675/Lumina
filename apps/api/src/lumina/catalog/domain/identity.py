@@ -18,7 +18,8 @@ ALIAS_NORMALIZATION_UNICODE_VERSION: Final = "15.0.0"
 
 _MAX_ALIAS_CODEPOINTS: Final = 255
 _MAX_SLUG_CODEPOINTS: Final = 100
-_PUBLIC_SLUG_PATTERN: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*", re.ASCII)
+PUBLIC_SLUG_PATTERN: Final = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+_PUBLIC_SLUG_PATTERN: Final = re.compile(PUBLIC_SLUG_PATTERN, re.ASCII)
 _IDENTITY_VALIDATION_MESSAGE: Final = "Catalogue identity value is invalid."
 
 

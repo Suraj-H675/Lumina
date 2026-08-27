@@ -27,6 +27,7 @@ const MAX_ID_LENGTH = 100;
 
 /** Mirrors the accepted public slug vocabulary so junk never becomes identity. */
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const UTC_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
 
 /** Locally generated ids are UUIDs; the pattern keeps junk out of route hrefs. */
 const COLLECTION_ID_PATTERN = /^[0-9a-z-]+$/iu;
@@ -127,8 +128,12 @@ function hasOnlyKeys(record: Record<string, unknown>, keys: ReadonlyArray<string
 }
 
 function isIsoTimestamp(value: unknown): value is string {
-  if (!isString(value) || value.length === 0 || value.length > 40) return false;
-  return !Number.isNaN(Date.parse(value));
+  if (!isString(value) || !UTC_TIMESTAMP_PATTERN.test(value)) return false;
+  // Date.parse accepts date-only strings, local-time strings, and normalizes
+  // impossible calendar dates. Persisted values are always canonical UTC
+  // output from Date.prototype.toISOString(), so require an exact round trip.
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
 }
 
 function isEntityType(value: unknown): value is EntityType {

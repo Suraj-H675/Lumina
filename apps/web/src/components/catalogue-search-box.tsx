@@ -97,6 +97,7 @@ export function CatalogueSearchBox({ apiOrigin, initialQuery }: CatalogueSearchB
         return;
       }
       if (event.key === "Escape") {
+        reset();
         setOpen(false);
         setActiveIndex(null);
         return;
@@ -113,7 +114,7 @@ export function CatalogueSearchBox({ apiOrigin, initialQuery }: CatalogueSearchB
         if (slug !== undefined) goToSuggestion(slug);
       }
     },
-    [activeIndex, goToSuggestion, open, suggestions],
+    [activeIndex, goToSuggestion, open, reset, suggestions],
   );
 
   const handleFormSubmit = useCallback(

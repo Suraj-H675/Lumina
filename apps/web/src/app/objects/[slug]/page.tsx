@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ObjectNotFoundView } from "../../../components/object-not-found-view";
 import { ObjectView } from "../../../components/object-view";
 import { entityTypeLabel } from "../../../lib/catalog-display";
-import { loadObjectBySlug } from "../../../lib/server/catalog";
+import { loadObjectBySlugPerRequest } from "../../../lib/server/catalog";
 
 type ObjectPageProps = Readonly<{
   params: Promise<Readonly<{ slug: string }>>;
@@ -12,9 +12,12 @@ type ObjectPageProps = Readonly<{
 
 export async function generateMetadata({ params }: ObjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const outcome = await loadObjectBySlug(slug);
-  if (outcome.kind !== "ok") {
+  const outcome = await loadObjectBySlugPerRequest(slug);
+  if (outcome.kind === "object-not-found") {
     return { title: "Object not found" };
+  }
+  if (outcome.kind !== "ok") {
+    return { title: "Object temporarily unavailable" };
   }
   const name = outcome.detail.canonical_name;
   // Truthful identity-only template; descriptions are never invented.
@@ -26,7 +29,7 @@ export async function generateMetadata({ params }: ObjectPageProps): Promise<Met
 
 export default async function ObjectPage({ params }: ObjectPageProps) {
   const { slug } = await params;
-  const outcome = await loadObjectBySlug(slug);
+  const outcome = await loadObjectBySlugPerRequest(slug);
 
   if (outcome.kind === "object-not-found") {
     return <ObjectNotFoundView slug={slug} />;

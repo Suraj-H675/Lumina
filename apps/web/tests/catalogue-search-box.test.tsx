@@ -25,7 +25,11 @@ type SuggestBody = Readonly<{
 
 function okSuggestions(items: Array<{ canonical_name: string; slug: string }>): SuggestBody {
   return {
-    items: items.map((item) => ({ ...item, entity_type: "star", id: item.slug })),
+    items: items.map((item) => ({
+      ...item,
+      entity_type: "star",
+      id: "12345678-1234-4234-9234-123456789abc",
+    })),
   };
 }
 
@@ -84,6 +88,7 @@ describe("CatalogueSearchBox", () => {
     // A further keystroke supersedes the pending request before it resolves.
     await user.type(input, "p");
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
 
     resolvers[1]?.(okSuggestions([{ canonical_name: "Kepler-186", slug: "kepler-186" }]));
     const option = await screen.findByRole("option", { name: /Kepler-186/ });
@@ -105,6 +110,48 @@ describe("CatalogueSearchBox", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  it("fails closed for malformed or additive suggestion payloads", async () => {
+    fetchMock.mockResolvedValue(
+      jsonOk({
+        items: [
+          {
+            canonical_name: "K2-18",
+            entity_type: "star",
+            id: "not-a-uuid",
+            slug: "k2-18",
+          },
+        ],
+        unexpected: true,
+      }),
+    );
+    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+
+    await typeQuery("k2");
+    await sleep(DEBOUNCE_MS);
+
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+  });
+
+  it("aborts an in-flight request when the suggestion list is escaped", async () => {
+    fetchMock.mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(new DOMException("aborted", "AbortError"));
+        });
+      });
+    });
+    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+
+    const user = userEvent.setup();
+    const input = screen.getByRole("combobox", COMBOBOX);
+    await user.type(input, "ke");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+
+    await user.type(input, "{Escape}");
+
+    expect(fetchMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
   });
 
   it("supports keyboard navigation, escape, and enter-to-search without a selection", async () => {

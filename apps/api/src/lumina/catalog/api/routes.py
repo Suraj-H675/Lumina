@@ -29,6 +29,7 @@ from .schemas import (
     EntitySummaryResponse,
     EntityType,
     MeasurementPageResponse,
+    PublicSlug,
     SearchMatchReason,
     SelectionHistoryPageResponse,
     SelectionState,
@@ -471,7 +472,7 @@ async def list_catalog_entities(
 )
 async def get_catalog_entity_by_slug(
     request: Request,
-    slug: str,
+    slug: PublicSlug,
 ) -> EntitySummaryResponse | JSONResponse:
     """Resolve one canonical public entity by its exact stable slug."""
     try:

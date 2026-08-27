@@ -42,7 +42,14 @@ export async function loadCompareObjects(
  * `cache` scopes this to a single server render; nothing persists between
  * requests.
  */
-export const loadCompareObjectsPerRequest = cache(
-  async (slugs: ReadonlyArray<string>): Promise<Array<CompareObjectState>> =>
-    loadCompareObjects(slugs),
+const loadCompareObjectsForKey = cache(async (key: string): Promise<Array<CompareObjectState>> =>
+  loadCompareObjects(key === "" ? [] : key.split("\u0000")),
 );
+
+export function loadCompareObjectsPerRequest(
+  slugs: ReadonlyArray<string>,
+): Promise<Array<CompareObjectState>> {
+  // Public slugs cannot contain NUL, so this primitive key is collision-free
+  // and remains equal when metadata and page parsing create separate arrays.
+  return loadCompareObjectsForKey(slugs.join("\u0000"));
+}

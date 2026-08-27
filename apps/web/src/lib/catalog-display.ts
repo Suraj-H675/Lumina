@@ -8,6 +8,15 @@ import type { EntityDetailResponse, EntityType } from "@lumina/api-client";
 export function formatMeasurementValue(raw: string): string {
   const trimmed = raw.trim();
   if (/^-?\d+$/u.test(trimmed)) return trimmed;
+  // Number cannot preserve arbitrary-precision catalogue decimals. Keep the
+  // source lexeme intact when notation or significant digits exceed the range
+  // where the display rounding below is trustworthy.
+  const coefficient = trimmed.split(/[eE]/u, 1)[0] ?? "";
+  const significantDigits = coefficient
+    .replace(/^-?/u, "")
+    .replace(".", "")
+    .replace(/^0+/u, "").length;
+  if (/[eE]/u.test(trimmed) || significantDigits > 15) return trimmed;
   const numeric = Number(trimmed);
   if (!Number.isFinite(numeric)) return trimmed;
   const scaled = Math.abs(numeric) >= 1 ? numeric.toFixed(4) : numeric.toPrecision(6);

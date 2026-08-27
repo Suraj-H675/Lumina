@@ -152,6 +152,24 @@ describe("validateCollectionsData (untrusted persisted input)", () => {
         version: 1,
       }),
     ).toBeNull();
+    expect(
+      validateCollectionsData({
+        collections: [makeCollection("a", "Alpha", [], { updated_at: "1" })],
+        version: 1,
+      }),
+    ).toBeNull();
+    expect(
+      validateCollectionsData({
+        collections: [makeCollection("a", "Alpha", [], { updated_at: "2026-02-30T10:00:00.000Z" })],
+        version: 1,
+      }),
+    ).toBeNull();
+    expect(
+      validateCollectionsData({
+        collections: [makeCollection("a", "Alpha", [], { updated_at: "2026-13-30T10:00:00.000Z" })],
+        version: 1,
+      }),
+    ).toBeNull();
     // Unknown entity types are rejected rather than coerced.
     const badType = makeCollection("a", "Alpha");
     (badType.items as Array<Record<string, unknown>>)[0] = {

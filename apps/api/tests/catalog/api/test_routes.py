@@ -129,6 +129,18 @@ def test_slug_route_calls_only_slug_service_and_never_uuid_service() -> None:
     service.get_entity_detail.assert_not_awaited()
 
 
+@pytest.mark.parametrize("slug", ["HD-209458", "hd--209458", "hd_209458", "a" * 101])
+def test_slug_route_rejects_noncanonical_path_values_without_calling_service(slug: str) -> None:
+    app = _app()
+    service = _service(app)
+
+    response = _request(app, f"/api/v1/catalog/entities/by-slug/{slug}")
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "request.validation_failed"
+    service.get_entity_by_slug.assert_not_awaited()
+
+
 def test_uuid_looking_value_under_slug_route_keeps_slug_semantics() -> None:
     app = _app()
     service = _service(app)

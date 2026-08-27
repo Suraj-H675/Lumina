@@ -263,6 +263,7 @@
           "slug": {
             "maxLength": 100,
             "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
             "title": "Slug",
             "type": "string"
           }
@@ -1022,6 +1023,9 @@
             "name": "slug",
             "required": true,
             "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
               "title": "Slug",
               "type": "string"
             }

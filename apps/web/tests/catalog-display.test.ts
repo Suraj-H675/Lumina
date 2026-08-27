@@ -62,6 +62,11 @@ describe("formatMeasurementValue", () => {
     expect(formatMeasurementValue("0.129")).toBe("0.129");
     expect(formatMeasurementValue("12")).toBe("12");
   });
+
+  it("does not round exact high-precision catalogue values through Number", () => {
+    expect(formatMeasurementValue("9007199254740993.1234")).toBe("9007199254740993.1234");
+    expect(formatMeasurementValue("1e+100")).toBe("1e+100");
+  });
 });
 
 describe("entityTypeLabel", () => {

@@ -23,7 +23,11 @@ function jsonOk(body: unknown): { json: () => Promise<unknown>; ok: boolean; sta
 
 function okSuggestions(items: Array<{ canonical_name: string; slug: string }>) {
   return {
-    items: items.map((item) => ({ ...item, entity_type: "star", id: item.slug })),
+    items: items.map((item) => ({
+      ...item,
+      entity_type: "star",
+      id: "12345678-1234-4234-9234-123456789abc",
+    })),
   };
 }
 

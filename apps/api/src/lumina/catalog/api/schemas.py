@@ -11,6 +11,7 @@ from uuid import UUID
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
 
+from lumina.catalog.domain.identity import PUBLIC_SLUG_PATTERN
 from lumina.catalog.domain.read import validate_public_entity_slug
 
 _DECIMAL_TEXT_PATTERN = r"^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$"
@@ -52,7 +53,7 @@ DecimalText = Annotated[
 PublicUrl = Annotated[StrictStr, AfterValidator(_public_url)]
 PublicSlug = Annotated[
     StrictStr,
-    Field(min_length=1, max_length=100),
+    Field(min_length=1, max_length=100, pattern=PUBLIC_SLUG_PATTERN),
     AfterValidator(validate_public_entity_slug),
 ]
 

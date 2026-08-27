@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import {
   catalogEntitiesEndpoint,
   catalogEntityBySlugEndpoint,
@@ -244,3 +246,8 @@ export async function loadObjectBySlug(
   }
   return { kind: "unavailable" };
 }
+
+/** Share the two bounded object reads between metadata and page rendering. */
+export const loadObjectBySlugPerRequest = cache(
+  async (slug: string): Promise<ObjectBySlugOutcome> => loadObjectBySlug(slug),
+);

@@ -77,6 +77,7 @@ def test_catalog_navigation_openapi_is_singular_and_four_field() -> None:
     summary_schema = document["components"]["schemas"]["EntitySummaryResponse"]
     assert set(summary_schema["properties"]) == {"id", "slug", "entity_type", "canonical_name"}
     assert summary_schema["additionalProperties"] is False
+    assert summary_schema["properties"]["slug"]["pattern"] == r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
 
     browse_schema = document["components"]["schemas"]["EntityBrowsePageResponse"]
     assert set(browse_schema["properties"]) == {"items", "page"}

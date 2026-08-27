@@ -59,7 +59,11 @@ export const zEntitySummaryResponse = z.object({
   canonical_name: z.string().min(1),
   entity_type: zEntityType,
   id: z.uuid(),
-  slug: z.string().min(1).max(100),
+  slug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
 });
 
 /**

@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { EntityDetailResponse } from "@lumina/api-client";
 
+import { localDateString } from "../src/lib/observation/domain";
+
 const { pushMock, replaceMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   replaceMock: vi.fn(),
@@ -58,11 +60,11 @@ function plannerDetail(): EntityDetailResponse {
   };
 }
 
-function renderPlanner(detail: EntityDetailResponse | null = plannerDetail()) {
+function renderPlanner(detail: EntityDetailResponse | null = plannerDetail(), date = "2026-08-27") {
   return render(
     <ObservationPlanner
       detail={detail}
-      initialDate="2026-08-27"
+      initialDate={date}
       slug={detail === null ? null : "k2-18"}
       targetUnavailable={false}
     />,
@@ -147,5 +149,20 @@ describe("ObservationPlanner", () => {
   it("passes an accessibility scan for the empty-location state", async () => {
     const { container } = renderPlanner();
     expect((await axe(container)).violations).toEqual([]);
+  });
+
+  it("shows lunar conditions after location entry without opting into weather", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    const user = userEvent.setup();
+    renderPlanner(undefined, localDateString(new Date()));
+
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    expect(await screen.findByRole("heading", { name: "Lunar conditions" })).toBeVisible();
+    expect(screen.getByText("Moon at selected time")).toBeVisible();
+    expect(screen.getByText("Target separation")).toBeVisible();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

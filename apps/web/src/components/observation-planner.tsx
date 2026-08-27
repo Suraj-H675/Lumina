@@ -15,6 +15,7 @@ import {
 import type { EntityDetailResponse } from "@lumina/api-client";
 
 import { CatalogueSearchBox } from "./catalogue-search-box";
+import { LunarConditions } from "./lunar-conditions";
 import { entityTypeLabel } from "../lib/catalog-display";
 import {
   computeObservationPlan,
@@ -398,6 +399,7 @@ function PlannerResults({ plan, timeZone }: Readonly<{ plan: ObservationPlan; ti
       </div>
 
       <AltitudeChart plan={plan} timeZone={timeZone} />
+      <LunarConditions plan={plan} timeZone={timeZone} />
       <CoordinateSource plan={plan} />
     </section>
   );

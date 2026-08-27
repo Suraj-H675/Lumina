@@ -102,6 +102,7 @@ test("planner remains readable at 390px without horizontal overflow", async ({ p
   await fillManualLocation(page);
 
   await expect(page.getByText(/altitude through the night/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Lunar conditions" })).toBeVisible();
   const chart = page
     .locator("figure")
     .filter({ hasText: /altitude through the night/i })
@@ -109,6 +110,19 @@ test("planner remains readable at 390px without horizontal overflow", async ({ p
   const chartBox = await chart.boundingBox();
   expect(chartBox).not.toBeNull();
   expect(chartBox?.width ?? 0).toBeLessThanOrEqual(390);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});
+
+test("conditions remain readable at 320px", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+
+  await expect(page.getByRole("heading", { name: "Lunar conditions" })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

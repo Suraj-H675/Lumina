@@ -212,7 +212,11 @@ function WeatherSummarySection({ summary }: Readonly<{ summary: WeatherSummary |
   );
 }
 
-function WeatherAttribution({ enabled }: Readonly<{ enabled: boolean }>) {
+function WeatherAttribution({
+  enabled,
+  fetchedAt,
+  timeZone,
+}: Readonly<{ enabled: boolean; fetchedAt?: Date | undefined; timeZone: string }>) {
   return (
     <div className="space-y-2 text-xs leading-5 text-[var(--muted)]">
       {enabled ? (
@@ -222,7 +226,9 @@ function WeatherAttribution({ enabled }: Readonly<{ enabled: boolean }>) {
         </p>
       ) : null}
       <p>
-        Forecast provider: {WEATHER_PROVIDER_NAME}. Retrieved data are forecasts, not measurements.{" "}
+        Forecast provider: {WEATHER_PROVIDER_NAME}.
+        {fetchedAt !== undefined ? ` Retrieved ${formatTime(fetchedAt, timeZone)}.` : ""} Data are
+        forecasts, not measurements.{" "}
         <a
           className="font-medium text-[var(--link)] underline decoration-[var(--border-strong)] underline-offset-2 hover:text-[var(--foreground)]"
           href={WEATHER_PROVIDER_URL}
@@ -399,7 +405,11 @@ function WeatherConditionsSection({
       ) : weather.forecast !== undefined ? (
         <LoadedWeather forecast={weather.forecast} plan={plan} timeZone={timeZone} />
       ) : null}
-      <WeatherAttribution enabled={enabled} />
+      <WeatherAttribution
+        enabled={enabled}
+        fetchedAt={weather.forecast?.fetchedAt}
+        timeZone={timeZone}
+      />
     </section>
   );
 }

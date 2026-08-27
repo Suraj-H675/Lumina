@@ -139,6 +139,7 @@ test("weather is explicitly enabled with rounded coordinates and UTC hourly vari
   await expect(page.getByText("Relative humidity", { exact: true })).toBeVisible();
   await expect(page.getByText("Precipitation probability", { exact: true })).toBeVisible();
   await expect(page.getByText(/Weather data by Open-Meteo/i)).toBeVisible();
+  await expect(page.getByText(/Retrieved/i)).toBeVisible();
   expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(localStorageBefore);
   expect(weatherRequestCount).toBe(1);
 });

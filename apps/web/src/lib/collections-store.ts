@@ -9,6 +9,7 @@ import {
   collectionsContainingSlug,
   collectionContainsSlug,
   createCollectionMutation,
+  createCollectionWithObjectsMutation,
   deleteCollectionMutation,
   removeObjectMutation,
   renameCollectionMutation,
@@ -269,6 +270,32 @@ export function createCollection(name: string): StoreResult {
   if (!persisted.ok) return persisted;
   const collection = outcome.collection;
   return collection === undefined ? { ok: true } : { collection, ok: true };
+}
+
+/** Create and populate a collection with one localStorage write. */
+export function createCollectionWithObjects(
+  name: string,
+  identities: ReadonlyArray<ObjectIdentityInput>,
+): StoreResult {
+  ensureHydrated();
+  const guard = guardReady();
+  if (guard !== null) return guard;
+  const outcome = createCollectionWithObjectsMutation(
+    state,
+    name,
+    generateCollectionId(),
+    identities,
+    nowIso(),
+  );
+  if (!outcome.ok) return outcome;
+  const persisted = persist(outcome.data);
+  if (!persisted.ok) return persisted;
+  return {
+    addedCount: outcome.addedCount,
+    collection: outcome.collection,
+    existingCount: outcome.existingCount,
+    ok: true,
+  };
 }
 
 export function renameCollection(collectionId: string, name: string): StoreResult {

@@ -6,7 +6,11 @@ import { useCallback, useMemo, useState } from "react";
 
 import { COMPARE_MAX_OBJECTS, buildCompareHref } from "../lib/compare-url";
 import { entityTypeLabel } from "../lib/catalog-display";
-import { collectionNameProblem, type CollectionItemSnapshot } from "../lib/collections-model";
+import {
+  collectionNameProblem,
+  normalizeCollectionName,
+  type CollectionItemSnapshot,
+} from "../lib/collections-model";
 import {
   deleteCollection,
   removeObjectFromCollection,
@@ -189,11 +193,13 @@ function RenameCollectionButton({
   const allCollections = useCollectionsData().collections;
 
   const problem = collectionNameProblem(name);
+  const normalizedName = normalizeCollectionName(name).toLowerCase();
   const duplicate =
     problem === null &&
     allCollections.some(
       (entry) =>
-        entry.id !== collection.id && entry.name.toLowerCase() === name.toLowerCase().trim(),
+        entry.id !== collection.id &&
+        normalizeCollectionName(entry.name).toLowerCase() === normalizedName,
     );
   const invalid = problem !== null || duplicate;
 

@@ -7,7 +7,7 @@ import type { EntityType } from "@lumina/api-client";
 import { collectionNameProblem } from "../lib/collections-model";
 import {
   addObjectsToCollection,
-  createCollection,
+  createCollectionWithObjects,
   useCollectionsData,
   useCollectionsStatus,
 } from "../lib/collections-store";
@@ -40,17 +40,22 @@ export function CompareSaveSelected({ identities }: CompareSaveSelectedProps) {
   const problem = collectionNameProblem(newName);
 
   const handleSave = useCallback((): void => {
-    let targetId = chosenId;
+    const targetId = chosenId;
     // Creating inline without abandoning the comparison.
     if (targetId === "__create__") {
-      const created = createCollection(newName);
+      const created = createCollectionWithObjects(newName, identities);
       if (!created.ok) {
         setMessage(created.message);
         return;
       }
       const createdCollection = created.collection;
       if (createdCollection === undefined) return;
-      targetId = createdCollection.id;
+      setMessage(
+        `Saved ${created.addedCount ?? identities.length} object${created.addedCount === 1 ? "" : "s"} to ${createdCollection.name}.`,
+      );
+      setNewName("");
+      setChosenId("");
+      return;
     }
     if (targetId === "") return;
     const result = addObjectsToCollection(targetId, identities);

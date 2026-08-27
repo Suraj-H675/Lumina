@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { collectionNameProblem } from "../lib/collections-model";
+import { collectionNameProblem, normalizeCollectionName } from "../lib/collections-model";
 import {
   createCollection,
   useCollectionsData,
@@ -152,10 +152,11 @@ function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogPr
   const existingCollections = useCollectionsData().collections;
 
   const problem = collectionNameProblem(name);
+  const normalizedName = normalizeCollectionName(name).toLowerCase();
   const duplicate =
     problem === null &&
     existingCollections.some(
-      (collection) => collection.name.toLowerCase() === name.toLowerCase().trim(),
+      (collection) => normalizeCollectionName(collection.name).toLowerCase() === normalizedName,
     );
   const invalid = problem !== null || duplicate;
 

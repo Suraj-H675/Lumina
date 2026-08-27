@@ -231,12 +231,18 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
 
     await user.selectOptions(screen.getByLabelText("Collection"), "__create__");
     await user.type(screen.getByLabelText("New collection name"), "Fresh Shelf");
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    await waitFor(() => {
-      const target = persistedCollections().find((c) => c.name === "Fresh Shelf");
-      expect(target?.items.map((item) => item.slug) ?? []).toEqual(["k2-18", "kepler-452"]);
-    });
+    try {
+      await waitFor(() => {
+        const target = persistedCollections().find((c) => c.name === "Fresh Shelf");
+        expect(target?.items.map((item) => item.slug) ?? []).toEqual(["k2-18", "kepler-452"]);
+      });
+      expect(setItem).toHaveBeenCalledTimes(1);
+    } finally {
+      setItem.mockRestore();
+    }
   });
 
   it("is idempotent: re-saving reports 'already saved' and never duplicates", async () => {

@@ -11,7 +11,7 @@ import {
 } from "../lib/collections-model";
 import {
   addObjectToCollection,
-  createCollection,
+  createCollectionWithObjects,
   removeObjectFromCollection,
   resetCollections,
   useCollectionsContaining,
@@ -75,7 +75,7 @@ export function SaveToCollectionsDialog({
   );
 
   const handleCreate = useCallback(() => {
-    const created = createCollection(newName);
+    const created = createCollectionWithObjects(newName, [identity]);
     if (!created.ok) {
       setAnnouncement(created.message);
       return;
@@ -85,16 +85,9 @@ export function SaveToCollectionsDialog({
       setAnnouncement("The collection was created, but could not be opened for saving.");
       return;
     }
-    // The freshly created collection exists locally only after the write
-    // above succeeded, so adding straight into it cannot lose the object.
-    const added = addObjectToCollection(createdCollection.id, identity);
-    if (!added.ok) {
-      setAnnouncement(added.message);
-      return;
-    }
     setNewName("");
     announceResult(
-      added,
+      created,
       `Created ${createdCollection.name} and saved ${identity.canonical_name}.`,
     );
   }, [announceResult, identity, newName]);

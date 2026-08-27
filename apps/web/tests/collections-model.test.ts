@@ -162,6 +162,30 @@ describe("validateCollectionsData (untrusted persisted input)", () => {
     };
     expect(validateCollectionsData({ collections: [badType], version: 1 })).toBeNull();
   });
+
+  it("rejects unknown fields instead of carrying scientific payloads into local state", () => {
+    const valid = makeCollection("a", "Alpha", ["k2-18"]);
+    expect(
+      validateCollectionsData({
+        collections: [{ ...valid, measurement_payload: { value: 1 } }],
+        version: 1,
+      }),
+    ).toBeNull();
+    expect(
+      validateCollectionsData({
+        collections: [
+          {
+            ...valid,
+            items: [{ ...valid.items[0], provenance: [{ source: "catalogue" }] }],
+          },
+        ],
+        version: 1,
+      }),
+    ).toBeNull();
+    expect(
+      validateCollectionsData({ collections: [], version: 1, raw_api_response: {} }),
+    ).toBeNull();
+  });
 });
 
 describe("createCollectionMutation", () => {
@@ -279,6 +303,30 @@ describe("deleteCollectionMutation / removeObjectMutation", () => {
 });
 
 describe("addObjectsMutation (atomic multi-object save)", () => {
+  it("rejects malformed identity input without mutating the collection", () => {
+    const data: CollectionsData = {
+      collections: [makeCollection("a", "Alpha")],
+      version: 1,
+    };
+    const before = structuredClone(data);
+
+    expect(
+      addObjectsMutation(
+        data,
+        "a",
+        [
+          {
+            canonical_name: "K2-18",
+            entity_type: "not-a-catalogue-type" as never,
+            slug: "k2-18",
+          },
+        ],
+        "t",
+      ),
+    ).toMatchObject({ ok: false, reason: "invalid-object" });
+    expect(data).toEqual(before);
+  });
+
   it("appends new unique items in request order, preserving existing order", () => {
     const data: CollectionsData = {
       collections: [makeCollection("a", "Alpha", ["hd-209458"])],

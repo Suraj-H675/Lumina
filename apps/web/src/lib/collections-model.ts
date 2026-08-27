@@ -31,6 +31,11 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 /** Locally generated ids are UUIDs; the pattern keeps junk out of route hrefs. */
 const COLLECTION_ID_PATTERN = /^[0-9a-z-]+$/iu;
 
+const COLLECTIONS_DATA_KEYS = ["collections", "version"] as const;
+const COLLECTION_KEYS = ["created_at", "id", "items", "name", "updated_at"] as const;
+const COLLECTION_ITEM_KEYS = ["canonical_name", "entity_type", "saved_at", "slug"] as const;
+const OBJECT_IDENTITY_KEYS = ["canonical_name", "entity_type", "slug"] as const;
+
 /**
  * Closed persisted entity-type vocabulary, mirrored from the generated public
  * contract. Compile-time exhaustiveness is checked against EntityType so a
@@ -92,7 +97,12 @@ export type ObjectIdentityInput = Readonly<{
 }>;
 
 export type MutationFailureReason =
-  "invalid-name" | "duplicate-name" | "collection-limit" | "item-limit" | "collection-not-found";
+  | "invalid-name"
+  | "duplicate-name"
+  | "collection-limit"
+  | "item-limit"
+  | "collection-not-found"
+  | "invalid-object";
 
 export type MutationSuccess<R = Record<string, never>> = Readonly<
   { data: CollectionsData; ok: true } & R
@@ -110,6 +120,10 @@ export type MutationFailure = Readonly<{
 
 function isString(value: unknown): value is string {
   return typeof value === "string";
+}
+
+function hasOnlyKeys(record: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
+  return Object.keys(record).every((key) => keys.includes(key));
 }
 
 function isIsoTimestamp(value: unknown): value is string {
@@ -134,6 +148,20 @@ export function isValidCollectionSlug(value: unknown): value is string {
 /** Trim surrounding whitespace and collapse accidental whitespace runs. */
 export function normalizeCollectionName(raw: string): string {
   return raw.trim().replaceAll(/\s+/gu, " ");
+}
+
+/** Validate the small identity snapshot accepted at the local-store boundary. */
+export function isValidObjectIdentity(value: unknown): value is ObjectIdentityInput {
+  if (value === null || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return (
+    hasOnlyKeys(record, OBJECT_IDENTITY_KEYS) &&
+    isValidCollectionSlug(record.slug) &&
+    isString(record.canonical_name) &&
+    [...record.canonical_name].length > 0 &&
+    [...record.canonical_name].length <= MAX_IDENTITY_NAME_LENGTH &&
+    isEntityType(record.entity_type)
+  );
 }
 
 function isValidCollectionName(value: unknown): value is string {
@@ -166,7 +194,8 @@ export function findDuplicateCollectionName(
   const candidate = normalizeCollectionName(rawName).toLowerCase();
   return data.collections.find(
     (collection) =>
-      collection.id !== excludeId && collection.name.trim().toLowerCase() === candidate,
+      collection.id !== excludeId &&
+      normalizeCollectionName(collection.name).toLowerCase() === candidate,
   );
 }
 
@@ -174,6 +203,7 @@ function isCollectionItem(value: unknown): value is CollectionItemSnapshot {
   if (value === null || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   return (
+    hasOnlyKeys(record, COLLECTION_ITEM_KEYS) &&
     isValidCollectionSlug(record.slug) &&
     isString(record.canonical_name) &&
     record.canonical_name.trim().length > 0 &&
@@ -187,6 +217,7 @@ function isLocalCollection(value: unknown): value is LocalCollection {
   if (value === null || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   if (
+    !hasOnlyKeys(record, COLLECTION_KEYS) ||
     !isString(record.id) ||
     record.id.length === 0 ||
     record.id.length > MAX_ID_LENGTH ||
@@ -223,7 +254,7 @@ function isLocalCollection(value: unknown): value is LocalCollection {
 export function validateCollectionsData(value: unknown): CollectionsData | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
-  if (record.version !== 1) return null;
+  if (!hasOnlyKeys(record, COLLECTIONS_DATA_KEYS) || record.version !== 1) return null;
   if (!Array.isArray(record.collections)) return null;
   if (record.collections.length > MAX_COLLECTIONS) return null;
   const seenIds = new Set<string>();
@@ -358,6 +389,14 @@ export function addObjectsMutation(
     };
   }
 
+  if (!Array.isArray(identities) || !identities.every(isValidObjectIdentity)) {
+    return {
+      message: "That object has an invalid catalogue identity and could not be saved.",
+      ok: false,
+      reason: "invalid-object",
+    };
+  }
+
   const presentSlugs = new Set(existing.items.map((item) => item.slug));
   const requestedSlugs = new Set<string>();
   const additions: Array<CollectionItemSnapshot> = [];
@@ -404,6 +443,44 @@ export function addObjectsMutation(
       ),
       version: 1,
     },
+    ok: true,
+  };
+}
+
+/** Create a collection and populate it through one atomic persisted mutation. */
+export function createCollectionWithObjectsMutation(
+  data: CollectionsData,
+  rawName: string,
+  id: string,
+  identities: ReadonlyArray<ObjectIdentityInput>,
+  now: string,
+):
+  | MutationSuccess<{
+      addedCount: number;
+      collection: LocalCollection;
+      existingCount: number;
+    }>
+  | MutationFailure {
+  const created = createCollectionMutation(data, rawName, id, now);
+  if (!created.ok) return created;
+
+  const populated = addObjectsMutation(created.data, id, identities, now);
+  if (!populated.ok) return populated;
+
+  const collection = populated.data.collections.find((entry) => entry.id === id);
+  if (collection === undefined) {
+    return {
+      message: "That collection no longer exists on this device.",
+      ok: false,
+      reason: "collection-not-found",
+    };
+  }
+
+  return {
+    addedCount: populated.addedCount,
+    collection,
+    data: populated.data,
+    existingCount: populated.existingCount,
     ok: true,
   };
 }

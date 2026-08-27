@@ -20,6 +20,8 @@ type CatalogueSearchBoxProps = Readonly<{
   initialQuery: string;
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
+  /** Where an activated suggestion should take the user. */
+  suggestionDestination?: "object" | "observe";
 }>;
 
 /**
@@ -28,7 +30,11 @@ type CatalogueSearchBoxProps = Readonly<{
  * navigations to /explore?q=… so the URL stays the source of truth. Without
  * JavaScript the form still submits natively to the same address.
  */
-export function CatalogueSearchBox({ apiOrigin, initialQuery }: CatalogueSearchBoxProps) {
+export function CatalogueSearchBox({
+  apiOrigin,
+  initialQuery,
+  suggestionDestination = "object",
+}: CatalogueSearchBoxProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [open, setOpen] = useState(false);
@@ -69,9 +75,11 @@ export function CatalogueSearchBox({ apiOrigin, initialQuery }: CatalogueSearchB
     (slug: string) => {
       setOpen(false);
       setActiveIndex(null);
-      void router.push(`/objects/${slug}`);
+      void router.push(
+        suggestionDestination === "observe" ? `/observe?object=${slug}` : `/objects/${slug}`,
+      );
     },
-    [router],
+    [router, suggestionDestination],
   );
 
   const commitSearch = useCallback(() => {

@@ -47,6 +47,12 @@ export function ObjectView({ detail, slug }: ObjectViewProps) {
         <p className="text-lg text-[var(--muted)]">{objectMetaLine(detail)}</p>
         <div className="flex flex-wrap gap-2 pt-1">
           <Link
+            className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--background)] no-underline transition-colors hover:bg-[var(--accent-strong)]"
+            href={`/observe?object=${encodeURIComponent(slug)}`}
+          >
+            <span aria-hidden="true">◒</span> Observe
+          </Link>
+          <Link
             className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
             href={`/compare?object=${encodeURIComponent(slug)}`}
           >

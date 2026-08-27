@@ -91,6 +91,23 @@ const CATALOGUE_ENTITIES = [
   },
 ];
 
+const GAIA_SOURCE_IDS = new Map([
+  ["26f4b667-ecd9-524d-8121-29508723715a", "1779546757669063552"],
+  ["bbfe8678-81ca-5e70-ac95-c597d7655540", "2079000330051813504"],
+  ["bfd42670-3013-598e-8eb5-5a1c084dd1a0", "2079597124345617280"],
+  ["c593bd18-c4bc-5551-8a41-09f1b501f981", "2835207319109249920"],
+  ["403d0e71-8d81-5c52-abad-c4666c1b5cd6", "3910747531814692736"],
+]);
+
+// Test-only schema-valid fixture for the planner's missing-coordinate state.
+// It is deliberately not included in the browse or suggestion slice.
+const NO_COORDINATE_FIXTURE = {
+  id: "00000000-0000-5000-8000-000000000001",
+  slug: "no-coordinate-fixture",
+  entity_type: "star",
+  canonical_name: "No Coordinate Fixture",
+};
+
 const CATALOGUE_MEASUREMENTS = new Map([
   [
     "26f4b667-ecd9-524d-8121-29508723715a",
@@ -98,6 +115,18 @@ const CATALOGUE_MEASUREMENTS = new Map([
       { code: "gaia_g_mean_magnitude", value: "7.5212455" },
       { code: "gaia_bp_mean_magnitude", value: "7.7932835" },
       { code: "gaia_rp_mean_magnitude", value: "7.080288" },
+      {
+        code: "gaia_icrs_right_ascension",
+        value: "330.79502626424147",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
+      {
+        code: "gaia_icrs_declination",
+        value: "18.88423938290383",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
     ],
   ],
   [
@@ -106,6 +135,18 @@ const CATALOGUE_MEASUREMENTS = new Map([
       { code: "gaia_g_mean_magnitude", value: "14.583239" },
       { code: "gaia_bp_mean_magnitude", value: "15.51225" },
       { code: "gaia_rp_mean_magnitude", value: "13.631706" },
+      {
+        code: "gaia_icrs_right_ascension",
+        value: "298.65273637846053",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
+      {
+        code: "gaia_icrs_declination",
+        value: "43.9549878103226",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
     ],
   ],
   [
@@ -114,6 +155,18 @@ const CATALOGUE_MEASUREMENTS = new Map([
       { code: "gaia_g_mean_magnitude", value: "13.392909" },
       { code: "gaia_bp_mean_magnitude", value: "13.772195" },
       { code: "gaia_rp_mean_magnitude", value: "12.851425" },
+      {
+        code: "gaia_icrs_right_ascension",
+        value: "296.0037539639907",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
+      {
+        code: "gaia_icrs_declination",
+        value: "44.2775873685433",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
     ],
   ],
   [
@@ -122,6 +175,18 @@ const CATALOGUE_MEASUREMENTS = new Map([
       { code: "gaia_g_mean_magnitude", value: "5.283212" },
       { code: "gaia_bp_mean_magnitude", value: "5.6174655" },
       { code: "gaia_rp_mean_magnitude", value: "4.7888722" },
+      {
+        code: "gaia_icrs_right_ascension",
+        value: "344.3675708158258",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
+      {
+        code: "gaia_icrs_declination",
+        value: "20.769104345387106",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
     ],
   ],
   [
@@ -130,6 +195,18 @@ const CATALOGUE_MEASUREMENTS = new Map([
       { code: "gaia_g_mean_magnitude", value: "12.400764" },
       { code: "gaia_bp_mean_magnitude", value: "13.71137" },
       { code: "gaia_rp_mean_magnitude", value: "11.269744" },
+      {
+        code: "gaia_icrs_right_ascension",
+        value: "172.5601297577743",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
+      {
+        code: "gaia_icrs_declination",
+        value: "7.58781312214569",
+        unit: "deg",
+        dataset: "gaia-source-astrometry",
+      },
     ],
   ],
 ]);
@@ -138,15 +215,22 @@ const GAIA_QUANTITY = {
   gaia_bp_mean_magnitude: "Gaia integrated BP mean magnitude (Vega scale)",
   gaia_g_mean_magnitude: "Gaia G-band mean magnitude (Vega scale)",
   gaia_rp_mean_magnitude: "Gaia integrated RP mean magnitude (Vega scale)",
+  gaia_icrs_right_ascension: "Gaia ICRS right ascension at reference epoch",
+  gaia_icrs_declination: "Gaia ICRS declination at reference epoch",
 };
 
-function catalogueSource(entity) {
+function catalogueSource(entity, datasetCode = "gaia-source") {
+  const astrometry = datasetCode === "gaia-source-astrometry";
   return {
-    source_record_id: `10000000-0000-5000-8000-${entity.canonical_name.length.toString().padStart(12, "0")}`,
+    source_record_id: astrometry
+      ? `90000000-0000-5000-8000-${GAIA_SOURCE_IDS.get(entity.id).slice(-12)}`
+      : `10000000-0000-5000-8000-${entity.canonical_name.length.toString().padStart(12, "0")}`,
     provider: { code: "esa-gaia", name: "ESA Gaia Archive" },
     dataset: {
-      code: "gaia-source",
-      name: "Gaia Data Release 3 main source catalogue",
+      code: datasetCode,
+      name: astrometry
+        ? "Gaia Data Release 3 main source catalogue — reviewed astrometry slice"
+        : "Gaia Data Release 3 main source catalogue",
       release_version: "dr3",
     },
   };
@@ -154,7 +238,6 @@ function catalogueSource(entity) {
 
 function catalogueDetail(entity) {
   const entries = CATALOGUE_MEASUREMENTS.get(entity.id) ?? [];
-  const source = catalogueSource(entity);
   return {
     id: entity.id,
     entity_type: entity.entity_type,
@@ -169,10 +252,14 @@ function catalogueDetail(entity) {
               ? "22222222-3333-5444-8555-666666666666"
               : `33333333-4444-5555-8666-${String(index).padStart(12, "0")}`,
           value: entry.value,
-          unit: { code: "mag", name: "magnitude", symbol: "mag" },
+          unit: {
+            code: entry.unit ?? "mag",
+            name: entry.unit ?? "magnitude",
+            symbol: entry.unit ?? "mag",
+          },
           original_value: entry.value,
-          original_unit: "mag",
-          source,
+          original_unit: entry.unit ?? "mag",
+          source: catalogueSource(entity, entry.dataset ?? "gaia-source"),
         },
         selection: {
           rule: "single-reviewed-measurement",
@@ -220,7 +307,10 @@ function respondCatalogue(request, response, target) {
   const bySlugMatch = /^\/api\/v1\/catalog\/entities\/by-slug\/([^/]+)$/u.exec(path);
   if (bySlugMatch !== null) {
     const slug = decodeURIComponent(bySlugMatch[1]);
-    const entity = CATALOGUE_ENTITIES.find((item) => item.slug === slug);
+    const entity =
+      slug === NO_COORDINATE_FIXTURE.slug
+        ? NO_COORDINATE_FIXTURE
+        : CATALOGUE_ENTITIES.find((item) => item.slug === slug);
     if (entity === undefined) {
       sendJson(response, 404, {
         error: {
@@ -237,7 +327,10 @@ function respondCatalogue(request, response, target) {
 
   const detailMatch = /^\/api\/v1\/catalog\/entities\/([0-9a-f-]{36})$/u.exec(path);
   if (detailMatch !== null) {
-    const entity = CATALOGUE_ENTITIES.find((item) => item.id === detailMatch[1]);
+    const entity =
+      detailMatch[1] === NO_COORDINATE_FIXTURE.id
+        ? NO_COORDINATE_FIXTURE
+        : CATALOGUE_ENTITIES.find((item) => item.id === detailMatch[1]);
     if (entity === undefined) {
       sendJson(response, 404, {
         error: {

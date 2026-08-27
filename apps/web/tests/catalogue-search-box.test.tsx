@@ -228,6 +228,27 @@ describe("CatalogueSearchBox", () => {
     });
   });
 
+  it("can route the same certified suggestion selection into the observation planner", async () => {
+    fetchMock.mockResolvedValue(
+      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+    );
+
+    render(
+      <CatalogueSearchBox
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+        suggestionDestination="observe"
+      />,
+    );
+    const input = screen.getByRole("combobox", COMBOBOX);
+    const user = userEvent.setup();
+    await user.type(input, "k2");
+    await screen.findByRole("option", { name: /K2-18/ });
+    await user.type(input, "{ArrowDown}{Enter}");
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/observe?object=k2-18"));
+  });
+
   it("keeps a working native GET form when client navigation is unavailable", () => {
     render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="k2" />);
 

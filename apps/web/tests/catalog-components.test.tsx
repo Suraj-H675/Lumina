@@ -121,6 +121,10 @@ describe("ObjectView", () => {
     render(<ObjectView detail={detail()} slug="51-pegasi" />);
 
     expect(screen.getByRole("heading", { level: 1, name: "51 Pegasi" })).toBeVisible();
+    expect(screen.getByRole("link", { name: /observe/i })).toHaveAttribute(
+      "href",
+      "/observe?object=51-pegasi",
+    );
     expect(screen.getByText("Gaia G-band mean magnitude (Vega scale)")).toBeVisible();
     expect(screen.getByText("mag")).toBeVisible();
     expect(screen.getByRole("link", { name: /back to explore/i })).toHaveAttribute(

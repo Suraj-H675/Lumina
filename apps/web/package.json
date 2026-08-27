@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@lumina/api-client": "workspace:*",
+    "astronomy-engine": "2.1.19",
     "next": "16.2.12",
     "react": "19.2.0",
     "react-dom": "19.2.0",

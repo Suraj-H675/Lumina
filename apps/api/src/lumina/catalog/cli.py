@@ -15,6 +15,12 @@ from lumina.catalog.application.data_quality import ReviewedSliceDataQualityServ
 from lumina.catalog.application.ingest import CatalogIngestionService
 from lumina.catalog.application.read import CatalogOperatorReadService
 from lumina.catalog.application.reviewed_slice import ReviewedSliceIngestionService
+from lumina.catalog.domain.astrometry_slice import (
+    ASTROMETRY_ARTIFACT_SHA256,
+    ASTROMETRY_SLICE_ID,
+    ASTROMETRY_STATE_SHA256,
+    load_astrometry_slice,
+)
 from lumina.catalog.domain.ingestion import (
     CatalogIngestionError,
     IngestionConflictCategory,
@@ -36,6 +42,9 @@ from lumina.catalog.domain.reviewed_slice import (
     ReviewedSliceValidationRejected,
 )
 from lumina.catalog.infrastructure.gaia_dr3 import build_reviewed_gaia_commands
+from lumina.catalog.infrastructure.gaia_dr3_astrometry import (
+    build_reviewed_gaia_astrometry_commands,
+)
 from lumina.catalog.infrastructure.postgresql.data_quality import (
     PostgreSqlCatalogDataQualityRepository,
 )
@@ -76,14 +85,16 @@ def _parser() -> _SafeArgumentParser:
     )
     commands = parser.add_subparsers(dest="command", required=True)
     ingest = commands.add_parser("ingest", help="Ingest the one reviewed offline source slice.")
-    ingest.add_argument("--slice", required=True, choices=(REVIEWED_SLICE_ID,))
+    ingest.add_argument("--slice", required=True, choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID))
     ingest.add_argument("--validate-only", action="store_true")
 
     data_check = commands.add_parser(
         "data-check",
         help="Validate immutable provenance and source facts for one reviewed slice.",
     )
-    data_check.add_argument("--slice", required=True, choices=(REVIEWED_SLICE_ID,))
+    data_check.add_argument(
+        "--slice", required=True, choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID)
+    )
 
     conflicts = commands.add_parser("conflicts", help="Read source-integrity conflicts.")
     conflict_commands = conflicts.add_subparsers(dest="conflict_command", required=True)
@@ -109,11 +120,19 @@ def _parser() -> _SafeArgumentParser:
 async def _run(namespace: argparse.Namespace) -> dict[str, object]:
     if namespace.command == "ingest" and namespace.validate_only:
         started = perf_counter()
-        validated = await ReviewedSliceIngestionService(build_reviewed_gaia_commands).validate(
-            namespace.slice
-        )
+        if namespace.slice == ASTROMETRY_SLICE_ID:
+            validated = await ReviewedSliceIngestionService(
+                build_reviewed_gaia_astrometry_commands,
+                slice_loader=load_astrometry_slice,
+            ).validate(namespace.slice)
+            artifact_sha256 = ASTROMETRY_ARTIFACT_SHA256
+        else:
+            validated = await ReviewedSliceIngestionService(build_reviewed_gaia_commands).validate(
+                namespace.slice
+            )
+            artifact_sha256 = _reviewed_artifact_sha256()
         return {
-            "artifact_sha256": _reviewed_artifact_sha256(),
+            "artifact_sha256": artifact_sha256,
             "duration_ms": _elapsed_milliseconds(started),
             "measurement_count": validated.measurement_count,
             "replayed_source_record_count": validated.replayed_source_record_count,
@@ -127,13 +146,23 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
     try:
         if namespace.command == "ingest":
             started = perf_counter()
-            ingestion_service = ReviewedSliceIngestionService(
-                build_reviewed_gaia_commands,
-                CatalogIngestionService(PostgreSqlCatalogIngestionStore(runtime.session_factory)),
+            catalog_ingestion = CatalogIngestionService(
+                PostgreSqlCatalogIngestionStore(runtime.session_factory)
             )
-            ingestion_result = await ingestion_service.ingest(namespace.slice)
+            if namespace.slice == ASTROMETRY_SLICE_ID:
+                ingestion_result = await ReviewedSliceIngestionService(
+                    build_reviewed_gaia_astrometry_commands,
+                    catalog_ingestion,
+                    slice_loader=load_astrometry_slice,
+                ).ingest(namespace.slice)
+                artifact_sha256 = ASTROMETRY_ARTIFACT_SHA256
+            else:
+                ingestion_result = await ReviewedSliceIngestionService(
+                    build_reviewed_gaia_commands, catalog_ingestion
+                ).ingest(namespace.slice)
+                artifact_sha256 = _reviewed_artifact_sha256()
             return {
-                "artifact_sha256": _reviewed_artifact_sha256(),
+                "artifact_sha256": artifact_sha256,
                 "duration_ms": _elapsed_milliseconds(started),
                 "existing_measurement_count": ingestion_result.existing_measurement_count,
                 "inserted_measurement_count": ingestion_result.inserted_measurement_count,
@@ -146,10 +175,18 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
             }
         if namespace.command == "data-check":
             started = perf_counter()
-            check_result = await ReviewedSliceDataQualityService(
-                PostgreSqlCatalogDataQualityRepository(runtime.session_factory),
-                build_reviewed_gaia_commands,
-            ).check(namespace.slice)
+            if namespace.slice == ASTROMETRY_SLICE_ID:
+                check_result = await ReviewedSliceDataQualityService(
+                    PostgreSqlCatalogDataQualityRepository(runtime.session_factory),
+                    build_reviewed_gaia_astrometry_commands,
+                    slice_loader=load_astrometry_slice,
+                    expected_state_sha256=ASTROMETRY_STATE_SHA256,
+                ).check(namespace.slice)
+            else:
+                check_result = await ReviewedSliceDataQualityService(
+                    PostgreSqlCatalogDataQualityRepository(runtime.session_factory),
+                    build_reviewed_gaia_commands,
+                ).check(namespace.slice)
             return {
                 "artifact_sha256": check_result.artifact_sha256,
                 "conflict_count": check_result.conflict_count,

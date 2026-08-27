@@ -16,9 +16,17 @@ from lumina.catalog.application.data_quality import ReviewedSliceDataQualityServ
 from lumina.catalog.application.ingest import CatalogIngestionService
 from lumina.catalog.application.read import CatalogReadService
 from lumina.catalog.application.reviewed_slice import ReviewedSliceIngestionService
+from lumina.catalog.domain.astrometry_slice import (
+    ASTROMETRY_SLICE_ID,
+    ASTROMETRY_STATE_SHA256,
+    load_astrometry_slice,
+)
 from lumina.catalog.domain.read import SelectionState
 from lumina.catalog.domain.reviewed_slice import REVIEWED_SLICE_ID, load_reviewed_slice
 from lumina.catalog.infrastructure.gaia_dr3 import build_reviewed_gaia_commands
+from lumina.catalog.infrastructure.gaia_dr3_astrometry import (
+    build_reviewed_gaia_astrometry_commands,
+)
 from lumina.catalog.infrastructure.postgresql.data_quality import (
     PostgreSqlCatalogDataQualityRepository,
 )
@@ -35,7 +43,7 @@ from .migration_lifecycle import (
     run_migration_operation,
 )
 
-_PHASE_1A5_HEAD = "e8f4c1a9b362"
+_PHASE_1A5_HEAD = "f2a6c8d9e0b1"
 
 
 def _ensure_reviewed_seed_migration(settings: IntegrationTestSettings) -> None:
@@ -133,6 +141,25 @@ async def _ingest_and_replay(runtime: DatabaseRuntime) -> None:
     assert second.replayed_source_record_count == 5
 
 
+async def _ingest_astrometry_and_replay(runtime: DatabaseRuntime) -> tuple[int, int]:
+    service = ReviewedSliceIngestionService(
+        build_reviewed_gaia_astrometry_commands,
+        CatalogIngestionService(PostgreSqlCatalogIngestionStore(runtime.session_factory)),
+        slice_loader=load_astrometry_slice,
+    )
+    first = await service.ingest(ASTROMETRY_SLICE_ID)
+    second = await service.ingest(ASTROMETRY_SLICE_ID)
+    assert first.inserted_source_record_count == 5
+    assert first.replayed_source_record_count == 0
+    assert first.inserted_measurement_count == 10
+    assert first.existing_measurement_count == 0
+    assert second.inserted_source_record_count == 0
+    assert second.replayed_source_record_count == 5
+    assert second.inserted_measurement_count == 0
+    assert second.existing_measurement_count == 10
+    return first.source_record_count, first.measurement_count
+
+
 @pytest.mark.asyncio
 async def test_initial_ingestion_and_replay_leave_the_phase_1a5_milestone_unselected(
     reviewed_slice_runtime: DatabaseRuntime,
@@ -179,6 +206,59 @@ async def test_initial_ingestion_and_replay_leave_the_phase_1a5_milestone_unsele
         assert history.items == ()
     assert quality.source_record_count == 5
     assert quality.measurement_count == 15
+
+
+@pytest.mark.asyncio
+async def test_astrometry_coexists_with_photometry_and_is_exposed_by_generic_reads(
+    reviewed_slice_runtime: DatabaseRuntime,
+) -> None:
+    await _ingest_and_replay(reviewed_slice_runtime)
+    source_records, measurements = await _ingest_astrometry_and_replay(reviewed_slice_runtime)
+    assert source_records == 5
+    assert measurements == 10
+
+    photometry_quality = ReviewedSliceDataQualityService(
+        PostgreSqlCatalogDataQualityRepository(reviewed_slice_runtime.session_factory),
+        build_reviewed_gaia_commands,
+    )
+    astrometry_quality = ReviewedSliceDataQualityService(
+        PostgreSqlCatalogDataQualityRepository(reviewed_slice_runtime.session_factory),
+        build_reviewed_gaia_astrometry_commands,
+        slice_loader=load_astrometry_slice,
+        expected_state_sha256=ASTROMETRY_STATE_SHA256,
+    )
+    assert (await photometry_quality.check(REVIEWED_SLICE_ID)).state_sha256 == (
+        "05444b36d44bd800ca9fdefbb45d10fbef2e222729cb65c4c919fd0759c61c2c"
+    )
+    astrometry_result = await astrometry_quality.check(ASTROMETRY_SLICE_ID)
+    assert astrometry_result.artifact_sha256 == (
+        "40f09e01429b58bc9cb86ba1f6fd035d520d856569e2e5bb8a2ab767e37d50ef"
+    )
+    assert astrometry_result.state_sha256 == ASTROMETRY_STATE_SHA256
+    assert astrometry_result.source_record_count == 5
+    assert astrometry_result.measurement_count == 10
+
+    source = load_astrometry_slice(ASTROMETRY_SLICE_ID)
+    read_service = CatalogReadService(
+        PostgreSqlCatalogReadRepository(reviewed_slice_runtime.session_factory)
+    )
+    for entity in source.entities:
+        detail = await read_service.get_entity_detail(entity.id)
+        measurements_page = await read_service.list_entity_measurements(entity.id)
+        assert {item.quantity.code for item in detail.quantities} >= {
+            "gaia_icrs_right_ascension",
+            "gaia_icrs_declination",
+        }
+        coordinate_measurements = [
+            item
+            for item in measurements_page.items
+            if item.quantity.code in {"gaia_icrs_right_ascension", "gaia_icrs_declination"}
+        ]
+        assert len(coordinate_measurements) == 2
+        assert all(item.unit.code == "deg" for item in coordinate_measurements)
+        assert all(
+            item.source.dataset.code == "gaia-source-astrometry" for item in coordinate_measurements
+        )
 
 
 @pytest.mark.asyncio

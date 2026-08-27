@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Protocol
+from typing import Protocol, TypeVar, cast
 
 from lumina.catalog.domain.ingestion import (
     CatalogIngestionOutcome,
@@ -13,21 +14,42 @@ from lumina.catalog.domain.ingestion import (
     IngestReviewedDatasetCommand,
 )
 from lumina.catalog.domain.reviewed_slice import (
-    REVIEWED_SLICE_ID,
-    ReviewedSlice,
+    ReviewedArtifact,
+    ReviewedCompatibilityPair,
+    ReviewedDataset,
+    ReviewedEntity,
+    ReviewedExpectedCounts,
+    ReviewedProvider,
+    ReviewedQuantity,
     ReviewedSlicePolicyRejected,
+    ReviewedUnit,
     load_reviewed_slice,
 )
+from lumina.provenance.domain.manifests import DataManifest, SourceManifest
 
 _LOGGER = logging.getLogger("lumina.catalog.reviewed_slice")
 
 
-class ReviewedSliceCommandBuilder(Protocol):
-    """Normalize one validated reviewed slice through its provider adapter."""
+class ReviewedSliceContract(Protocol):
+    """Structural contract shared by closed reviewed data products."""
 
-    def __call__(self, slice_contract: ReviewedSlice) -> tuple[IngestReviewedDatasetCommand, ...]:
-        """Return the complete ordered immutable-source command set."""
-        ...
+    source_manifest_path: str
+    data_manifest_path: str
+    source_manifest: SourceManifest
+    data_manifest: DataManifest
+    provider: ReviewedProvider
+    dataset: ReviewedDataset
+    slice_id: str
+    provider_version: str
+    artifact: ReviewedArtifact
+    entities: tuple[ReviewedEntity, ...]
+    quantities: tuple[ReviewedQuantity, ...]
+    unit: ReviewedUnit
+    compatibility_pairs: tuple[ReviewedCompatibilityPair, ...]
+    expected: ReviewedExpectedCounts
+
+
+SliceContractT = TypeVar("SliceContractT")
 
 
 class ReviewedSliceIngestionPort(Protocol):
@@ -52,31 +74,38 @@ class ReviewedSliceIngestionResult:
     existing_measurement_count: int
 
 
-class ReviewedSliceIngestionService:
+class ReviewedSliceIngestionService[SliceContractT]:
     """Preflight all records, then delegate each immutable source record transactionally."""
 
     def __init__(
         self,
-        command_builder: ReviewedSliceCommandBuilder,
+        command_builder: Callable[[SliceContractT], tuple[IngestReviewedDatasetCommand, ...]],
         ingestion_service: ReviewedSliceIngestionPort | None = None,
+        slice_loader: Callable[[str], SliceContractT] | None = None,
     ) -> None:
         self._command_builder = command_builder
         self._ingestion_service = ingestion_service
+        self._slice_loader = (
+            cast(Callable[[str], SliceContractT], load_reviewed_slice)
+            if slice_loader is None
+            else slice_loader
+        )
 
     async def validate(self, slice_id: str) -> ReviewedSliceIngestionResult:
         """Validate local reviewed resources only, without constructing a database runtime."""
         started = perf_counter()
-        slice_contract = load_reviewed_slice(slice_id)
+        slice_contract = self._slice_loader(slice_id)
+        contract = cast(ReviewedSliceContract, slice_contract)
         _LOGGER.info(
             "catalog.reviewed_slice.validation_started",
             extra={
                 "slice_event": "catalog.reviewed_slice.validation_started",
-                "slice_id": slice_contract.slice_id,
+                "slice_id": contract.slice_id,
                 "status": "started",
             },
         )
         commands = self._command_builder(slice_contract)
-        result = self._validated_result(slice_contract, commands)
+        result = self._validated_result(contract, commands)
         _LOGGER.info(
             "catalog.reviewed_slice.validation_completed",
             extra={
@@ -95,9 +124,10 @@ class ReviewedSliceIngestionService:
         started = perf_counter()
         if self._ingestion_service is None:
             raise ReviewedSlicePolicyRejected()
-        slice_contract = load_reviewed_slice(slice_id)
+        slice_contract = self._slice_loader(slice_id)
+        contract = cast(ReviewedSliceContract, slice_contract)
         commands = self._command_builder(slice_contract)
-        result = self._validated_result(slice_contract, commands)
+        result = self._validated_result(contract, commands)
         inserted = 0
         replayed = 0
         inserted_measurements = 0
@@ -140,7 +170,7 @@ class ReviewedSliceIngestionService:
 
     @staticmethod
     def _validated_result(
-        slice_contract: ReviewedSlice,
+        slice_contract: ReviewedSliceContract,
         commands: tuple[IngestReviewedDatasetCommand, ...],
     ) -> ReviewedSliceIngestionResult:
         expected_entities = {
@@ -149,8 +179,7 @@ class ReviewedSliceIngestionService:
         expected_source_ids = tuple(expected_entities)
         expected_fact_keys = {quantity.source_fact_key for quantity in slice_contract.quantities}
         if (
-            slice_contract.slice_id != REVIEWED_SLICE_ID
-            or len(commands) != slice_contract.expected.source_records
+            len(commands) != slice_contract.expected.source_records
             or tuple(command.source_record.provider_record_id for command in commands)
             != expected_source_ids
             or sum(len(command.source_record.measurements) for command in commands)
@@ -194,7 +223,7 @@ def _elapsed_milliseconds(started: float) -> int:
 
 
 __all__ = [
-    "ReviewedSliceCommandBuilder",
+    "ReviewedSliceContract",
     "ReviewedSliceIngestionResult",
     "ReviewedSliceIngestionPort",
     "ReviewedSliceIngestionService",

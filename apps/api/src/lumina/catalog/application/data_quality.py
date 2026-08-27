@@ -9,23 +9,22 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from time import perf_counter
-from typing import Protocol
+from typing import Protocol, TypeVar, cast
 from uuid import UUID
 
-from lumina.catalog.application.reviewed_slice import ReviewedSliceCommandBuilder
+from lumina.catalog.application.reviewed_slice import ReviewedSliceContract
 from lumina.catalog.domain.ingestion import (
     IngestReviewedDatasetCommand,
     normalized_source_content_sha256,
 )
 from lumina.catalog.domain.read import CatalogReadError
 from lumina.catalog.domain.reviewed_slice import (
-    REVIEWED_SLICE_ID,
     REVIEWED_STATE_SHA256,
-    ReviewedSlice,
     ReviewedSliceError,
     ReviewedSlicePolicyRejected,
     load_reviewed_slice,
@@ -34,6 +33,9 @@ from lumina.provenance.domain.manifests import serialize_manifest
 
 _FINGERPRINT_SCHEMA_VERSION = 1
 _LOGGER = logging.getLogger("lumina.catalog.data_quality")
+
+
+SliceContractT = TypeVar("SliceContractT", bound=ReviewedSliceContract)
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,7 +168,7 @@ class SliceDatabaseState:
 class CatalogDataQualityRepository(Protocol):
     """Read one bounded immutable source-fact closure in a repeatable snapshot."""
 
-    async def load_slice_state(self, slice_contract: ReviewedSlice) -> SliceDatabaseState:
+    async def load_slice_state(self, slice_contract: ReviewedSliceContract) -> SliceDatabaseState:
         """Return no more than one reviewed source-slice state."""
         ...
 
@@ -184,31 +186,40 @@ class ReviewedSliceDataCheckResult:
     conflict_count: int
 
 
-class ReviewedSliceDataQualityService:
+class ReviewedSliceDataQualityService[SliceContractT]:
     """Validate the complete reviewed source-fact closure and calculate its stable fingerprint."""
 
     def __init__(
         self,
         repository: CatalogDataQualityRepository,
-        command_builder: ReviewedSliceCommandBuilder,
+        command_builder: Callable[[SliceContractT], tuple[IngestReviewedDatasetCommand, ...]],
+        slice_loader: Callable[[str], SliceContractT] | None = None,
+        expected_state_sha256: str = REVIEWED_STATE_SHA256,
     ) -> None:
         self._repository = repository
         self._command_builder = command_builder
+        self._slice_loader = (
+            cast(Callable[[str], SliceContractT], load_reviewed_slice)
+            if slice_loader is None
+            else slice_loader
+        )
+        self._expected_state_sha256 = expected_state_sha256
 
     async def check(self, slice_id: str) -> ReviewedSliceDataCheckResult:
         """Fail closed unless immutable artifact, metadata, provenance, and facts all agree."""
         started = perf_counter()
         try:
-            slice_contract = load_reviewed_slice(slice_id)
+            slice_contract = self._slice_loader(slice_id)
             commands = self._command_builder(slice_contract)
-            state = await self._repository.load_slice_state(slice_contract)
-            self._validate_state(slice_contract, state, commands)
-            state_sha256 = _state_fingerprint(slice_contract, state)
-            if state_sha256 != REVIEWED_STATE_SHA256:
+            contract = cast(ReviewedSliceContract, slice_contract)
+            state = await self._repository.load_slice_state(contract)
+            self._validate_state(contract, state, commands)
+            state_sha256 = _state_fingerprint(contract, state)
+            if state_sha256 != self._expected_state_sha256:
                 raise ReviewedSlicePolicyRejected()
             result = ReviewedSliceDataCheckResult(
-                slice_id=slice_contract.slice_id,
-                artifact_sha256=slice_contract.artifact.sha256,
+                slice_id=contract.slice_id,
+                artifact_sha256=contract.artifact.sha256,
                 state_sha256=state_sha256,
                 source_record_count=len(state.source_records),
                 measurement_count=len(state.measurements),
@@ -254,13 +265,12 @@ class ReviewedSliceDataQualityService:
 
     @staticmethod
     def _validate_state(
-        slice_contract: ReviewedSlice,
+        slice_contract: ReviewedSliceContract,
         state: SliceDatabaseState,
         commands: tuple[IngestReviewedDatasetCommand, ...],
     ) -> None:
         if (
             type(state) is not SliceDatabaseState
-            or slice_contract.slice_id != REVIEWED_SLICE_ID
             or len(commands) != slice_contract.expected.source_records
             or state.provider is None
             or state.dataset is None
@@ -292,7 +302,9 @@ class ReviewedSliceDataQualityService:
         _require_exact_source_facts(slice_contract, state, commands)
 
 
-def _require_exact_entities(slice_contract: ReviewedSlice, state: SliceDatabaseState) -> None:
+def _require_exact_entities(
+    slice_contract: ReviewedSliceContract, state: SliceDatabaseState
+) -> None:
     expected = {
         entity.id: (entity.entity_type, entity.canonical_name) for entity in slice_contract.entities
     }
@@ -301,7 +313,9 @@ def _require_exact_entities(slice_contract: ReviewedSlice, state: SliceDatabaseS
         raise ReviewedSlicePolicyRejected()
 
 
-def _require_exact_vocabulary(slice_contract: ReviewedSlice, state: SliceDatabaseState) -> None:
+def _require_exact_vocabulary(
+    slice_contract: ReviewedSliceContract, state: SliceDatabaseState
+) -> None:
     if state.unit is None:
         raise ReviewedSlicePolicyRejected()
     expected_quantities = {
@@ -331,7 +345,7 @@ def _require_exact_vocabulary(slice_contract: ReviewedSlice, state: SliceDatabas
 
 
 def _require_exact_source_facts(
-    slice_contract: ReviewedSlice,
+    slice_contract: ReviewedSliceContract,
     state: SliceDatabaseState,
     commands: tuple[IngestReviewedDatasetCommand, ...],
 ) -> None:
@@ -401,7 +415,7 @@ def _elapsed_milliseconds(started: float) -> int:
     return max(0, int((perf_counter() - started) * 1000))
 
 
-def _state_fingerprint(slice_contract: ReviewedSlice, state: SliceDatabaseState) -> str:
+def _state_fingerprint(slice_contract: ReviewedSliceContract, state: SliceDatabaseState) -> str:
     """Hash only durable reviewed source-slice facts, never local surrogate or selection state."""
     if state.provider is None or state.dataset is None or state.unit is None:
         raise ReviewedSlicePolicyRejected()

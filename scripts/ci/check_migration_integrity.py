@@ -68,6 +68,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="b7f3a2c81d4e",
         sha256="0ea8204ef453f5b6570d98cb46227ae41d28030f8bb5c6dd36f5935a5a8119c3",
     ),
+    MigrationContract(
+        filename="f2a6c8d9e0b1_seed_gaia_astrometry_vocabulary.py",
+        revision="f2a6c8d9e0b1",
+        down_revision="e8f4c1a9b362",
+        sha256="754b631381f1bd763322e824406831c3317ab3bc4f94d3f445756ba9979c266e",
+    ),
 )
 
 
@@ -128,7 +134,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 8 accepted revisions, head e8f4c1a9b362.")
+    print("Migration integrity passed: 9 accepted revisions, head f2a6c8d9e0b1.")
     return 0
 
 

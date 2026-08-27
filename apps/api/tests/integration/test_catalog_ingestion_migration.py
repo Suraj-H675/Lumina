@@ -31,7 +31,7 @@ from .migration_lifecycle import (
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
 _HISTORICAL_B2 = "b7f3a2c81d4e"
 _PHASE_1A3_HEAD = "a1a3c0f17c5e"
-_PHASE_1A5_HEAD = "e8f4c1a9b362"
+_PHASE_1A5_HEAD = "f2a6c8d9e0b1"
 _CATALOG_TABLES = (
     "provider",
     "entity",

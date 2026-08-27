@@ -40,13 +40,13 @@ from lumina.catalog.application.data_quality import (
     SliceSourceRecord,
     SliceUnit,
 )
+from lumina.catalog.application.reviewed_slice import ReviewedSliceContract
 from lumina.catalog.domain.read import (
     CatalogDataInconsistent,
     CatalogReadOperationFailure,
     CatalogReadUnavailable,
     CatalogReadValidationRejected,
 )
-from lumina.catalog.domain.reviewed_slice import ReviewedSlice
 
 _SET_REPEATABLE_READ_SQL = text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
 _SET_READ_ONLY_SQL = text("SET TRANSACTION READ ONLY")
@@ -240,9 +240,9 @@ class PostgreSqlCatalogDataQualityRepository:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def load_slice_state(self, slice: ReviewedSlice) -> SliceDatabaseState:
+    async def load_slice_state(self, slice: object) -> SliceDatabaseState:
         """Return a coherent source-fact state snapshot for one structurally valid slice."""
-        scope = _scope_from_slice(slice)
+        scope = _scope_from_slice(cast(ReviewedSliceContract, slice))
 
         async def operation(connection: AsyncConnection) -> SliceDatabaseState:
             parameters = scope.parameters
@@ -427,7 +427,7 @@ def _database_sqlstate(error: DBAPIError) -> str | None:
     return sqlstate if isinstance(sqlstate, str) else None
 
 
-def _scope_from_slice(slice: ReviewedSlice) -> _SliceScope:
+def _scope_from_slice(slice: ReviewedSliceContract) -> _SliceScope:
     provider_code = _text_attribute(_attribute(slice, "provider"), "code")
     dataset_code = _text_attribute(_attribute(slice, "dataset"), "code")
     dataset_release_version = _text_attribute(

@@ -1,0 +1,17 @@
+{
+  "checksum": "sha256:40f09e01429b58bc9cb86ba1f6fd035d520d856569e2e5bb8a2ab767e37d50ef",
+  "citation": "Gaia mission paper and Gaia DR3 release-summary paper.",
+  "coverage": "five exact Gaia DR3 source IDs with ICRS right ascension and declination from gaiadr3.gaia_source.",
+  "dataset_id": "gaia-source-astrometry",
+  "documentation_url": "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html",
+  "local_file": "data/seed/gaia-dr3-exoplanet-host-astrometry-v1.csv",
+  "manifest_schema_version": 1,
+  "manifest_type": "data",
+  "official_url": "https://gea.esac.esa.int/archive/",
+  "parser_version": "gaia-dr3-astrometry-v1",
+  "release_version": "dr3",
+  "retrieved_at": "2026-08-27T14:04:55Z",
+  "source_id": "esa-gaia",
+  "terms_or_licence": "Gaia data are open and free to use with ESA/Gaia/DPAC credit; no inferred SPDX licence.",
+  "usage_notes": "accepted for Gaia DR3 ICRS catalogue position at the published reference epoch J2016.0; no proper-motion or epoch propagation is performed."
+}

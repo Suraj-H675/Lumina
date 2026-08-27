@@ -37,7 +37,7 @@ _DIAGNOSTIC_MESSAGES = {
     "manifest.file_unreadable": "A manifest file could not be read.",
     "manifest.directory_type_mismatch": "A manifest discriminator did not match its directory.",
     "manifest.json_noncanonical": "A manifest file was not canonical JSON.",
-    "manifest.source_duplicate": "A source manifest identity was duplicated.",
+    "manifest.source_duplicate": "A source adapter manifest identity was duplicated.",
     "manifest.data_duplicate": "A data manifest release identity was duplicated.",
     "manifest.asset_duplicate": "An asset manifest identity was duplicated.",
     "manifest.source_reference_missing": "A data manifest referenced an absent source manifest.",
@@ -204,13 +204,20 @@ def _load_manifest(
 
 
 def _identity_diagnostics(loaded: list[_LoadedManifest]) -> list[ManifestDiagnostic]:
-    source_paths: defaultdict[str, list[str]] = defaultdict(list)
+    # ``source_id`` is the persisted provider identity.  One provider may own
+    # multiple independently reviewed adapters, so source-manifest identity is
+    # the provider plus its immutable adapter contract.  This lets the frozen
+    # photometry and new astrometry Gaia products share ``esa-gaia`` without
+    # weakening duplicate detection for an exact adapter manifest.
+    source_paths: defaultdict[tuple[str, str, str], list[str]] = defaultdict(list)
     data_paths: defaultdict[tuple[str, str, str], list[str]] = defaultdict(list)
     asset_paths: defaultdict[str, list[str]] = defaultdict(list)
     for item in loaded:
         manifest = item.manifest
         if isinstance(manifest, SourceManifest):
-            source_paths[manifest.source_id].append(item.path)
+            source_paths[
+                (manifest.source_id, manifest.adapter_id, manifest.adapter_version)
+            ].append(item.path)
         elif isinstance(manifest, DataManifest):
             data_paths[(manifest.source_id, manifest.dataset_id, manifest.release_version)].append(
                 item.path
@@ -220,7 +227,11 @@ def _identity_diagnostics(loaded: list[_LoadedManifest]) -> list[ManifestDiagnos
 
     diagnostics: list[ManifestDiagnostic] = []
     for path_group, code, field_path in (
-        (source_paths.values(), "manifest.source_duplicate", "source_id"),
+        (
+            source_paths.values(),
+            "manifest.source_duplicate",
+            "source_id,adapter_id,adapter_version",
+        ),
         (data_paths.values(), "manifest.data_duplicate", "source_id,dataset_id,release_version"),
         (asset_paths.values(), "manifest.asset_duplicate", "id"),
     ):
@@ -230,7 +241,7 @@ def _identity_diagnostics(loaded: list[_LoadedManifest]) -> list[ManifestDiagnos
                     _diagnostic(path, code, field_path=field_path) for path in sorted(paths)
                 )
 
-    known_sources = set(source_paths)
+    known_sources = {source_id for source_id, _, _ in source_paths}
     diagnostics.extend(
         _diagnostic(
             item.path,

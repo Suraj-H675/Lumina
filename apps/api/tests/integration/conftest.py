@@ -21,6 +21,8 @@ from .migration_lifecycle import (
 )
 
 _PG_TRGM_CONTRACT = ("pg_trgm", "1.6", "public", "lumina_admin")
+_CURRENT_HEAD = "f2a6c8d9e0b1"
+_B3_REVISION = "e8f4c1a9b362"
 _ALEMBIC_TABLE_SQL = text("SELECT to_regclass('public.alembic_version')")
 _REVISION_SQL = text("SELECT version_num FROM public.alembic_version")
 _CREATE_PG_TRGM_SQL = text("CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public")
@@ -94,11 +96,12 @@ def migrated_test_database(
         )
         if read_revision() != "b7f3a2c81d4e":
             pytest.fail("Historical lineage did not commit exactly to the accepted B2 revision.")
-    elif revision == "e8f4c1a9b362":
+    elif revision in {_B3_REVISION, _CURRENT_HEAD}:
         state = _pg_trgm_state(integration_settings, postgres_admin_sync_url)
         if state is None or tuple(state) != _PG_TRGM_CONTRACT:
             pytest.fail("Existing guarded test database has an invalid Phase 1B3 contract.")
-        return
+        if revision == _CURRENT_HEAD:
+            return
     elif revision == "b7f3a2c81d4e":
         state = _pg_trgm_state(integration_settings, postgres_admin_sync_url)
         if state is not None and tuple(state) != _PG_TRGM_CONTRACT:
@@ -123,8 +126,8 @@ def migrated_test_database(
         sync_url,
         lambda connection: run_alembic(connection, identity, "head", downgrade=False),
     )
-    if read_revision() != "e8f4c1a9b362":
-        pytest.fail("Guarded migration did not commit exactly to the accepted B3 revision.")
+    if read_revision() != _CURRENT_HEAD:
+        pytest.fail("Guarded migration did not commit exactly to the current repository head.")
 
 
 @pytest.fixture(scope="session")

@@ -66,12 +66,12 @@ def test_empty_temporary_root_and_approved_production_manifests_are_valid(
     assert (PRODUCTION_MANIFEST_ROOT / ".gitkeep").is_file()
     production = validate_manifest_root(PRODUCTION_MANIFEST_ROOT)
     assert production.is_valid
-    assert len(production.manifests) == 2
+    assert len(production.manifests) == 4
     assert {manifest.manifest_type for manifest in production.manifests} == {"source", "data"}
     assert main([]) == 0
     output = capsys.readouterr()
     assert output.err == ""
-    assert output.out == "Lumina manifest validation passed: 2 manifest files.\n"
+    assert output.out == "Lumina manifest validation passed: 4 manifest files.\n"
 
 
 def test_exact_committed_fictional_manifest_set_is_valid(tmp_path: Path) -> None:
@@ -91,6 +91,19 @@ def test_one_source_can_own_multiple_exact_releases(tmp_path: Path) -> None:
     second["release_version"] = "fixture-release-v2"
     _write_canonical(tmp_path / "data/release-v1.json", first)
     _write_canonical(tmp_path / "data/release-v2.json", second)
+    assert validate_manifest_root(tmp_path).is_valid
+
+
+def test_one_provider_can_own_multiple_reviewed_adapter_manifests(tmp_path: Path) -> None:
+    _layout(tmp_path)
+    first_path = tmp_path / "sources/photometry.json"
+    second_path = tmp_path / "sources/astrometry.json"
+    first = json.loads((_FIXTURES / "sources/fictional-source.json").read_text(encoding="utf-8"))
+    second = dict(first)
+    second["adapter_id"] = "fictional-source-astrometry"
+    second["purpose"] = "A second independently reviewed adapter contract."
+    _write_canonical(first_path, first)
+    _write_canonical(second_path, second)
     assert validate_manifest_root(tmp_path).is_valid
 
 

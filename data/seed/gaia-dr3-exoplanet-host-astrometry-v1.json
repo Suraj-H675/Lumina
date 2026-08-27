@@ -1,0 +1,111 @@
+{
+  "artifact": {
+    "adql": "SELECT source_id,solution_id,designation,ref_epoch,ra,ra_error,dec,dec_error FROM gaiadr3.gaia_source WHERE source_id IN (1779546757669063552,2079000330051813504,2079597124345617280,2835207319109249920,3910747531814692736) ORDER BY source_id",
+    "byte_length": 747,
+    "columns": [
+      "source_id",
+      "solution_id",
+      "designation",
+      "ref_epoch",
+      "ra",
+      "ra_error",
+      "dec",
+      "dec_error"
+    ],
+    "path": "data/seed/gaia-dr3-exoplanet-host-astrometry-v1.csv",
+    "sha256": "40f09e01429b58bc9cb86ba1f6fd035d520d856569e2e5bb8a2ab767e37d50ef"
+  },
+  "compatibility_pairs": [
+    {
+      "quantity_code": "gaia_icrs_declination",
+      "quantity_id": "18e12409-5731-5fb0-bb26-8f7033a52621",
+      "unit_code": "deg",
+      "unit_id": "48176d92-8406-52ae-855a-aa2f48dfd089"
+    },
+    {
+      "quantity_code": "gaia_icrs_right_ascension",
+      "quantity_id": "3c034f43-6cac-58b0-863a-c72c01cbbd0f",
+      "unit_code": "deg",
+      "unit_id": "48176d92-8406-52ae-855a-aa2f48dfd089"
+    }
+  ],
+  "data_manifest": "data/manifests/data/gaia-source-astrometry-dr3.json",
+  "dataset": {
+    "code": "gaia-source-astrometry",
+    "name": "Gaia Data Release 3 main source catalogue — reviewed astrometry slice",
+    "release_version": "dr3"
+  },
+  "entities": [
+    {
+      "canonical_name": "HD 209458",
+      "entity_type": "star",
+      "id": "26f4b667-ecd9-524d-8121-29508723715a",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:hd-209458",
+      "provider_record_id": "1779546757669063552"
+    },
+    {
+      "canonical_name": "Kepler-186",
+      "entity_type": "star",
+      "id": "bbfe8678-81ca-5e70-ac95-c597d7655540",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:kepler-186",
+      "provider_record_id": "2079000330051813504"
+    },
+    {
+      "canonical_name": "Kepler-452",
+      "entity_type": "star",
+      "id": "bfd42670-3013-598e-8eb5-5a1c084dd1a0",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:kepler-452",
+      "provider_record_id": "2079597124345617280"
+    },
+    {
+      "canonical_name": "51 Pegasi",
+      "entity_type": "star",
+      "id": "c593bd18-c4bc-5551-8a41-09f1b501f981",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:51-pegasi",
+      "provider_record_id": "2835207319109249920"
+    },
+    {
+      "canonical_name": "K2-18",
+      "entity_type": "star",
+      "id": "403d0e71-8d81-5c52-abad-c4666c1b5cd6",
+      "identity_seed": "urn:lumina:catalog-entity:v1:star:k2-18",
+      "provider_record_id": "3910747531814692736"
+    }
+  ],
+  "expected": {
+    "measurements": 10,
+    "source_records": 5
+  },
+  "provider": {
+    "code": "esa-gaia",
+    "name": "ESA Gaia Archive"
+  },
+  "provider_version": "1636148068921376768",
+  "quantities": [
+    {
+      "code": "gaia_icrs_declination",
+      "id": "18e12409-5731-5fb0-bb26-8f7033a52621",
+      "name": "Gaia ICRS declination at reference epoch",
+      "source_fact_key": "dec"
+    },
+    {
+      "code": "gaia_icrs_right_ascension",
+      "id": "3c034f43-6cac-58b0-863a-c72c01cbbd0f",
+      "name": "Gaia ICRS right ascension at reference epoch",
+      "source_fact_key": "ra"
+    }
+  ],
+  "reference_epoch": {
+    "unit": "Julian year",
+    "value": "2016.0"
+  },
+  "schema_version": 1,
+  "slice_id": "gaia-dr3-exoplanet-host-astrometry-v1",
+  "source_manifest": "data/manifests/sources/esa-gaia-astrometry.json",
+  "unit": {
+    "code": "deg",
+    "id": "48176d92-8406-52ae-855a-aa2f48dfd089",
+    "name": "degree",
+    "symbol": "deg"
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
@@ -29,12 +29,20 @@ export function useSuggestCatalogue(options: UseSuggestCatalogueOptions = {}): {
 } {
   const [state, setState] = useState<SuggestState | null>(null);
   const generationRef = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const origin = options.origin;
+
+  const cancelPendingTimer = useCallback(() => {
+    if (timerRef.current === null) return;
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }, []);
 
   const load = useCallback(
     (rawQuery: string) => {
       generationRef.current += 1;
       const generation = generationRef.current;
+      cancelPendingTimer();
 
       const search = buildSuggestQuery(rawQuery);
       if (search === "" || origin === undefined) {
@@ -44,7 +52,8 @@ export function useSuggestCatalogue(options: UseSuggestCatalogueOptions = {}): {
         return;
       }
 
-      const timeout = setTimeout(() => {
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
         void (async () => {
           try {
             const response = await fetch(`${origin}/api/v1/search/suggest?${search}`, {
@@ -62,15 +71,17 @@ export function useSuggestCatalogue(options: UseSuggestCatalogueOptions = {}): {
           }
         })();
       }, SUGGEST_DEBOUNCE_MS);
-      timers.add(timeout);
     },
-    [origin],
+    [cancelPendingTimer, origin],
   );
 
   const reset = useCallback(() => {
     generationRef.current += 1;
+    cancelPendingTimer();
     setState(null);
-  }, []);
+  }, [cancelPendingTimer]);
+
+  useEffect(() => cancelPendingTimer, [cancelPendingTimer]);
 
   return { load, reset, state };
 }
@@ -106,12 +117,4 @@ function parseSuggestResponse(body: unknown): SuggestState {
     return { items: parsed, kind: "ok" };
   }
   return { kind: "unavailable" };
-}
-
-const timers = new Set<ReturnType<typeof setTimeout>>();
-if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", () => {
-    for (const timer of timers) clearTimeout(timer);
-    timers.clear();
-  });
 }

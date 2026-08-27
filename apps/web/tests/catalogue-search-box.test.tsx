@@ -50,6 +50,17 @@ afterEach(() => {
 });
 
 describe("CatalogueSearchBox", () => {
+  it("coalesces rapid typing into one suggestion request", async () => {
+    fetchMock.mockResolvedValue(jsonOk(okSuggestions([])));
+    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+
+    const user = userEvent.setup({ delay: 10 });
+    await user.type(screen.getByRole("combobox", COMBOBOX), "kepler");
+    await sleep(DEBOUNCE_MS);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("debounces suggestions and discards stale responses so only the newest wins", async () => {
     const resolvers: Array<(body: SuggestBody) => void> = [];
     fetchMock.mockImplementation(

@@ -55,8 +55,13 @@ _REVIEWED_QUANTITY_IDS = (
     UUID("2c3626b7-647f-5180-8662-5240238e1acc"),
     UUID("b9532ccd-e769-5d36-9046-b7c1bc138841"),
     UUID("347f0167-0786-5d34-a4d4-a4da006343eb"),
+    UUID("3c034f43-6cac-58b0-863a-c72c01cbbd0f"),
+    UUID("18e12409-5731-5fb0-bb26-8f7033a52621"),
 )
-_REVIEWED_UNIT_ID = UUID("4e4a920b-dc09-5556-a056-c08ba155c18a")
+_REVIEWED_UNIT_IDS = (
+    UUID("4e4a920b-dc09-5556-a056-c08ba155c18a"),
+    UUID("48176d92-8406-52ae-855a-aa2f48dfd089"),
+)
 
 
 def _migration_operation[Result](
@@ -138,17 +143,25 @@ def _clean_catalog(connection: Connection) -> None:
     connection.execute(
         text(
             "DELETE FROM public.quantity_unit WHERE NOT ("
-            "quantity_id = ANY(CAST(:quantity_ids AS uuid[])) AND unit_id = :unit_id)"
+            "(quantity_id = ANY(CAST(:photometry_quantity_ids AS uuid[])) "
+            "AND unit_id = :photometry_unit_id) OR "
+            "(quantity_id = ANY(CAST(:astrometry_quantity_ids AS uuid[])) "
+            "AND unit_id = :astrometry_unit_id))"
         ),
-        {"quantity_ids": list(_REVIEWED_QUANTITY_IDS), "unit_id": _REVIEWED_UNIT_ID},
+        {
+            "photometry_quantity_ids": list(_REVIEWED_QUANTITY_IDS[:3]),
+            "photometry_unit_id": _REVIEWED_UNIT_IDS[0],
+            "astrometry_quantity_ids": list(_REVIEWED_QUANTITY_IDS[3:]),
+            "astrometry_unit_id": _REVIEWED_UNIT_IDS[1],
+        },
     )
     connection.execute(
         text("DELETE FROM public.quantity WHERE NOT id = ANY(CAST(:quantity_ids AS uuid[]))"),
         {"quantity_ids": list(_REVIEWED_QUANTITY_IDS)},
     )
     connection.execute(
-        text("DELETE FROM public.unit WHERE id <> :unit_id"),
-        {"unit_id": _REVIEWED_UNIT_ID},
+        text("DELETE FROM public.unit WHERE id <> ALL(CAST(:unit_ids AS uuid[]))"),
+        {"unit_ids": list(_REVIEWED_UNIT_IDS)},
     )
     connection.execute(
         text("DELETE FROM public.entity WHERE NOT id = ANY(CAST(:entity_ids AS uuid[]))"),

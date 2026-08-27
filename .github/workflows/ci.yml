@@ -177,7 +177,8 @@ jobs:
           # Phase 1B3 contract: pg_trgm is OWNER-PROVISIONED between B2 and B3.
           # Replay the accepted historical lineage to exactly B2 without the
           # extension, install pg_trgm 1.6 in public as the database owner, then
-          # upgrade to head so the B3 migration verifies the exact tuple.
+          # upgrade to head so the B3 migration verifies the exact tuple and
+          # the Phase 2A0 astrometry vocabulary is present.
           uv run alembic upgrade b7f3a2c81d4e
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
@@ -196,18 +197,21 @@ jobs:
           uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
           uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
           uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1
+          uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
+          uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
+          uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
           LUMINA_ENV=test uv run pytest -q
-          test "$(uv run alembic heads)" = "e8f4c1a9b362 (head)"
+          test "$(uv run alembic heads)" = "f2a6c8d9e0b1 (head)"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina -Atqc \
               'SELECT version_num FROM alembic_version'
-          )" = "e8f4c1a9b362"
+          )" = "f2a6c8d9e0b1"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina_test -Atqc \
               'SELECT version_num FROM alembic_version'
-          )" = "e8f4c1a9b362"
+          )" = "f2a6c8d9e0b1"
           uv run python scripts/ci/check_migration_integrity.py
 
       - name: Remove PostgreSQL and generated environment

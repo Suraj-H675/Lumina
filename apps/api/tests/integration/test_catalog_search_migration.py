@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import suppress
 from typing import Final
 
@@ -19,6 +20,7 @@ from .migration_lifecycle import (
 
 _B2_REVISION: Final = "b7f3a2c81d4e"
 _B3_REVISION: Final = "e8f4c1a9b362"
+_CURRENT_HEAD: Final = "f2a6c8d9e0b1"
 _PG_TRGM_CONTRACT: Final = ("pg_trgm", "1.6", "public", "lumina_admin")
 _CREATE_PG_TRGM_SQL: Final = text("CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public")
 _DROP_PG_TRGM_SQL: Final = text("DROP EXTENSION pg_trgm")
@@ -104,6 +106,28 @@ def _require_b3_baseline(
         pytest.fail("B3 drift test requires the accepted B3 revision.")
     if _pg_trgm_state(settings, postgres_admin_sync_url) != _PG_TRGM_CONTRACT:
         pytest.fail("B3 drift test requires the exact owner-provisioned extension.")
+
+
+@pytest.fixture(autouse=True)
+def b3_test_database(
+    integration_settings: IntegrationTestSettings,
+    migrated_test_database: None,
+) -> Iterator[None]:
+    """Run B3-specific assertions at B3 while keeping the repository head current."""
+    del migrated_test_database
+    current = _revision(integration_settings)
+    if current == _CURRENT_HEAD:
+        _run_downgrade(integration_settings, _B3_REVISION)
+    elif current != _B3_REVISION:
+        pytest.fail("B3 test database is at an unexpected migration revision.")
+    try:
+        yield
+    finally:
+        current = _revision(integration_settings)
+        if current == _B3_REVISION:
+            _run_upgrade(integration_settings, _CURRENT_HEAD)
+        elif current != _CURRENT_HEAD:
+            pytest.fail("B3 test database was not restored to the current repository head.")
 
 
 def _assert_no_unexpected_index(settings: IntegrationTestSettings) -> None:

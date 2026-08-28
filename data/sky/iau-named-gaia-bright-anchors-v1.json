@@ -1,0 +1,104 @@
+{
+  "artifact": {
+    "byte_count": 79245,
+    "columns": [
+      "iau_name",
+      "hip_id",
+      "iau_constellation_abbreviation",
+      "date_approved",
+      "gaia_source_id",
+      "gaia_crossmatch_angular_distance_arcsec",
+      "gaia_crossmatch_neighbour_count",
+      "gaia_crossmatch_flag"
+    ],
+    "path": "apps/web/public/data/iau-named-gaia-bright-anchors-v1.json",
+    "row_count": 236,
+    "sha256": "68097843437fe7eea89f1b577b4ed3fd7956238fd84d2c7fcb2d8de1696d1aa7"
+  },
+  "attribution": "Star names are from the International Astronomical Union Working Group on Star Names (WGSN) Catalog of Star Names; Gaia positions are reused from Lumina's pinned ESA Gaia DR3 bright-star context.",
+  "bright_context_dependency": {
+    "artifact_path": "apps/web/public/data/gaia-dr3-bright-sky-context-v1.csv",
+    "artifact_sha256": "a7ed657ea1fef1cbef23b4ebbba493da9fdbcdd51e8ec4e7484ba58d91eb7bb3",
+    "dataset_id": "gaia-dr3-bright-sky-context-v1",
+    "row_count": 3690
+  },
+  "catalogue_snapshot": {
+    "catalogue": "IAU Catalog of Star Names (CSN)",
+    "raw_row_count": 627,
+    "retrieved_at": "2026-08-28T10:40:52.001Z",
+    "rows_with_numeric_hip": 553,
+    "source_fields_used": [
+      "proper names",
+      "HIP",
+      "Constellation",
+      "Date of Adoption"
+    ],
+    "source_url": "https://exopla.net/star-names/modern-iau-star-names/",
+    "unique_numeric_hip": 552
+  },
+  "crossmatch": {
+    "accepted_flag_distribution": [
+      {
+        "flag": 8,
+        "row_count": 210
+      },
+      {
+        "flag": 16,
+        "row_count": 16
+      },
+      {
+        "flag": 72,
+        "row_count": 10
+      }
+    ],
+    "ambiguity_policy": {
+      "duplicate_iau_hip_identity": "reject the affected name path",
+      "gaia_xm_flag_ambiguous_bits_mask": 3,
+      "note": "xm_flag bits 1 and 2 indicate external multiples or suspected duplicates; accepted rows have neither bit set.",
+      "number_of_neighbours": 1
+    },
+    "candidate_rows_intersecting_bright_context": 237,
+    "documentation_url": "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_cross-matches/ssec_dm_hipparcos2_best_neighbour.html",
+    "fields": [
+      "source_id",
+      "original_ext_source_id",
+      "angular_distance",
+      "number_of_neighbours",
+      "xm_flag"
+    ],
+    "hip_id_input_count": 552,
+    "hip_id_input_sha256": "0a142a79ffd93d17aa9da2d5507d4dd85757f62e3f1255118b9e3ad076fad77e",
+    "query": "SELECT source_id, original_ext_source_id, angular_distance, number_of_neighbours, xm_flag FROM gaiadr3.hipparcos2_best_neighbour WHERE original_ext_source_id IN (92845,89642,95168,92041,93085,91014,93683,98688,88116,88567,90037,94160,94005,90982,110538,109410,109176,112447,112440,113186,78072,84556,104732,104887,98110,102531,104538,104858,100027,105140,86414,91117,98337,96837,97365,95501,93244,97804,96665,91919,92862,91971,91973,92791,94713,80582,36948,102626,30089,84380,81693,79992,83207,78493,76952,77512,76127,77048,18724,22565,20877,72105,72220,71995,71284,71053,74666,67275,74793,23685,24305,27288,104139,21881,64962,43103,61966,33694,29997,14862,17959,31940,17884,11569,9598,9763,5372,17358,18532,2599,4427,28358,10670,10064,83100,66006,78322,112961,5434,8068,301,10280,88267,10644,88886,90139,72370,114570,113726,116805,116631,116584,4463,67464,3693,65109,73695,29271,114341,71908,77233,72571,107259,110130,19780,113288,71860,111169,31685,87108,68002,51624,49637,99473,61394,98823,53524,47780,115211,62452,65426,57087,117883,17378,90004,29550,57820,72845,118319,13993,73136,95124,6643,48711,107251,26380,12191,37284,99894,1547,33719,3479,54158,66047,114322,5529,2247,57370,56508,61177,42446,94645,21109,55174,80076,47087,84787,15578,108375,37265,47202,79219,76351,92895,12961,66192,110813,30860,30905,52521,24003,82651,72339,22491,40687,48235,5054,32916,74961,31895,13192,99711,88414,116084,83547,81022,56572,106824,55664,79431,95262,104780,43674,38041,80687,60644,17096,57291,96078,91852,77450,84405,59747,62223,81266,71681,7097,86782,43109,38170,106786,70755,29034,97165,48615,113889,66249,61359,44946,93747,40881,40526,47431,60260,82396,5348,3821,92761,94481,94141,108085,83895,101421,44471,115623,42913,80331,73714,4422,20894,14879,86614,26241,78104,69974,13061,45941,42556,94114,42402,13268,14668,7607,33856,82545,104382,89341,20205,115250,20455,8886,22449,98066,112122,8198,82514,76333,96100,41075,100310,32362,13288,95771,20535,13209,78265,2920,87261,23767,23015,79374,69427,28380,113963,63090,53229,5737,23453,21594,57399,63076,26451,62423,69732,48356,23416,80112,83608,46750,87937,80463,107556,64241,56211,12706,79043,30343,21393,42911,42806,59803,71683,79593,95294,95241,79882,102618,59199,53740,110003,93506,17448,107136,13701,8645,19587,14838,87585,19849,108917,85693,80883,34088,18614,72487,67927,75695,48455,101769,84379,96757,111710,101958,47508,69701,40167,39757,60129,15197,78820,33579,6411,106032,100064,75411,88635,9487,98036,94376,92946,17579,17847,109427,86742,17489,100345,3419,78401,17499,87833,68702,112029,104987,80816,85696,112158,68933,8796,34045,39429,106985,73555,92855,75097,70890,85670,6686,84012,110395,112748,109074,106278,100453,86228,3179,71075,92420,113136,44816,93194,97278,17531,77070,35550,85822,57757,72622,74785,13847,60718,44066,50335,95947,105199,50583,60965,31681,9640,109268,26311,26727,46390,76267,35904,55203,55219,2081,25985,45556,82273,41037,61317,54879,43587,63125,23875,25428,107315,30122,61084,36188,9884,90185,90496,89931,72607,17573,32246,26207,28360,17608,45238,62434,25930,15863,30324,41704,25606,100751,26634,58001,61941,29655,86032,95347,27366,85927,8903,44127,50801,50372,58952,63608,27628,34444,18543,54872,7588,65477,17702,21421,1067,14576,62956,102488,67301,677,97649,80763,69673,25336,27989,30438,24608,746,36850,102098,57632,54061,59774,14135,53910,10826,5447,65378,17851,11767,37279,84345,49669,24436,113881,32349,65474,68756,91262,20889,86796,53721,75458,116727,90344,113368,113357,46471,97938,103527,80838,37826,16537,7513,116076) ORDER BY original_ext_source_id, source_id",
+    "rejected_rows": [
+      {
+        "gaia_crossmatch_flag": 8,
+        "gaia_crossmatch_neighbour_count": 2,
+        "gaia_source_id": "1274286186493145728",
+        "hip_id": 76127,
+        "iau_name": "Guansuo",
+        "reason": "multiple-gaia-neighbours"
+      }
+    ],
+    "returned_row_count": 346,
+    "table": "gaiadr3.hipparcos2_best_neighbour"
+  },
+  "dataset_id": "iau-named-gaia-bright-anchors-v1",
+  "limitations": [
+    "Only official names with an unambiguous numeric HIP identifier, a high-confidence Gaia DR3 cross-match, and an intersection with the immutable Phase 2D G ≤ 5.5 context are included.",
+    "Named anchors reuse Phase 2D Gaia DR3 J2016.0 positions; no duplicate coordinates or proper-motion propagation is introduced.",
+    "A geometric position above the horizon is not a naked-eye visibility claim.",
+    "This context layer is not a searchable Lumina catalogue entity dataset."
+  ],
+  "rejection_counts": {
+    "missing-numeric-hip": 74,
+    "multiple-gaia-neighbours": 1,
+    "no-gaia-crossmatch": 206,
+    "outside-phase-2d-bright-context": 110
+  },
+  "schema_version": 1,
+  "source_authority": "International Astronomical Union Working Group on Star Names",
+  "source_catalogue_url": "https://exopla.net/star-names/modern-iau-star-names/",
+  "source_guidelines_url": "https://exopla.net/star-names/wgsn-guidelines/",
+  "terms_url": "https://iauarchive.eso.org/copyright/",
+  "usage_purpose": "Officially named Gaia bright-star orientation anchors for the Lumina Sky Finder."
+}

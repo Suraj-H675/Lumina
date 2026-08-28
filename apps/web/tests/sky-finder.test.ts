@@ -3,19 +3,24 @@ import * as Astronomy from "astronomy-engine";
 
 import {
   BRIGHT_STAR_RENDER_CAP,
+  angularSeparationDegrees,
   calculateBrightContextHorizontalPositions,
   computeSolarSystemMarkers,
   filterAboveHorizonMarkers,
   isValidSkyPosition,
   projectAzimuthAtRadius,
   projectBelowHorizonDirection,
+  projectConstellationBoundary,
   projectHorizontalPosition,
   projectSkyPosition,
+  positionNamedSkyAnchors,
+  selectNamedAnchorLabels,
   selectRenderedBrightContextStars,
   starMarkerOpacity,
   starMarkerRadius,
   targetForSkyFinder,
 } from "../src/lib/observation/sky-finder";
+import type { ConstellationRegion } from "../src/lib/observation/iau-context";
 
 const options = { centerX: 100, centerY: 100, skyRadius: 80, belowHorizonPadding: 12 } as const;
 
@@ -232,5 +237,195 @@ describe("sky finder bright-star context", () => {
     expect(selection.capApplied).toBe(false);
     expect(selection.aboveHorizonCount).toBe(2);
     expect(selection.stars.map((item) => item.sourceId)).toEqual(["10", "20"]);
+  });
+});
+
+describe("named sky-anchor geometry", () => {
+  it("uses spherical separation rather than screen distance and clamps the dot product", () => {
+    expect(angularSeparationDegrees(position(20, 40), position(20, 40))).toBeLessThan(0.0001);
+    expect(angularSeparationDegrees(position(0, 0), position(0, 90))).toBeCloseTo(90, 10);
+    expect(angularSeparationDegrees(position(90, 0), position(-90, 180))).toBeCloseTo(180, 10);
+    expect(angularSeparationDegrees(position(90, 0), position(90, 270))).toBeCloseTo(0, 10);
+    expect(angularSeparationDegrees(position(Number.NaN, 0), position(0, 0))).toBeNull();
+  });
+
+  it("joins by exact Gaia source ID and sorts nearest anchors deterministically", () => {
+    const rows = [
+      {
+        iauName: "Zulu",
+        hipId: 3,
+        constellationAbbreviation: "Aql",
+        dateApproved: "2016/01/01",
+        gaiaSourceId: "30",
+        gaiaCrossmatchAngularDistanceArcsec: 0,
+        gaiaCrossmatchNeighbourCount: 1,
+        gaiaCrossmatchFlag: 8,
+      },
+      {
+        iauName: "Alpha",
+        hipId: 1,
+        constellationAbbreviation: "Aql",
+        dateApproved: "2016/01/01",
+        gaiaSourceId: "10",
+        gaiaCrossmatchAngularDistanceArcsec: 0,
+        gaiaCrossmatchNeighbourCount: 1,
+        gaiaCrossmatchFlag: 8,
+      },
+      {
+        iauName: "Missing",
+        hipId: 2,
+        constellationAbbreviation: "Aql",
+        dateApproved: "2016/01/01",
+        gaiaSourceId: "999",
+        gaiaCrossmatchAngularDistanceArcsec: 0,
+        gaiaCrossmatchNeighbourCount: 1,
+        gaiaCrossmatchFlag: 8,
+      },
+    ] as const;
+    const stars = [
+      { sourceId: "30", gMagnitude: 2, position: position(30, 90) },
+      { sourceId: "10", gMagnitude: 2, position: position(30, 90) },
+    ] as const;
+
+    const anchors = positionNamedSkyAnchors(rows, stars, position(30, 90));
+    expect(anchors.map((anchor) => anchor.iauName)).toEqual(["Alpha", "Zulu"]);
+    expect(anchors.every((anchor) => anchor.angularSeparationDegrees === 0)).toBe(true);
+    expect(anchors.map((anchor) => anchor.gaiaSourceId)).not.toContain("999");
+  });
+
+  it("limits labels to twelve above-horizon anchors with stable tie breaking", () => {
+    const anchors = Array.from({ length: 13 }, (_, index) => ({
+      iauName: index === 0 ? "Zulu" : `Anchor-${String(index).padStart(2, "0")}`,
+      hipId: index + 1,
+      constellationAbbreviation: "Aql",
+      gaiaSourceId: String(index + 1),
+      gMagnitude: 2,
+      position: position(index === 12 ? -1 : 20, 10),
+      angularSeparationDegrees: 5,
+    }));
+
+    const selected = selectNamedAnchorLabels(anchors);
+    expect(selected).toHaveLength(12);
+    expect(selected.map((anchor) => anchor.iauName)).toEqual([
+      "Anchor-01",
+      "Anchor-02",
+      "Anchor-03",
+      "Anchor-04",
+      "Anchor-05",
+      "Anchor-06",
+      "Anchor-07",
+      "Anchor-08",
+      "Anchor-09",
+      "Anchor-10",
+      "Anchor-11",
+      "Zulu",
+    ]);
+    expect(selectNamedAnchorLabels(anchors)).toEqual(selected);
+  });
+});
+
+describe("constellation boundary projection", () => {
+  const instant = new Date("2026-08-27T12:00:00Z");
+
+  function longitudeForRightAscensionZero(): number {
+    const siderealDegrees = Astronomy.SiderealTime(instant) * 15;
+    const normalized = ((siderealDegrees + 180) % 360) - 180;
+    return normalized === -180 ? 180 : -normalized;
+  }
+
+  function region(
+    vertices: ReadonlyArray<{ rightAscensionDegrees: number; declinationDegrees: number }>,
+  ): ConstellationRegion {
+    return {
+      abbreviation: "Fixture",
+      latinName: "Fixture",
+      englishName: "Fixture",
+      boundaryParts: [{ sourceFile: "fixture.txt", vertices }],
+    };
+  }
+
+  function expectFinitePaths(
+    paths: ReadonlyArray<ReadonlyArray<{ x: number; y: number; altitude: number }>>,
+  ): void {
+    expect(paths.length).toBeGreaterThan(0);
+    expect(paths.every((path) => path.length >= 2)).toBe(true);
+    expect(
+      paths.flat().every((point) => Number.isFinite(point.x) && Number.isFinite(point.y)),
+    ).toBe(true);
+  }
+
+  it("retains above-horizon geometry and clips a boundary at the horizon", () => {
+    const longitude = longitudeForRightAscensionZero();
+    const paths = projectConstellationBoundary(
+      region([
+        { rightAscensionDegrees: 0, declinationDegrees: 0 },
+        { rightAscensionDegrees: 180, declinationDegrees: 0 },
+        { rightAscensionDegrees: 359, declinationDegrees: 0 },
+      ]),
+      { latitude: 0, longitude },
+      instant,
+      options,
+    );
+
+    expectFinitePaths(paths);
+    expect(paths.length).toBeGreaterThanOrEqual(2);
+    expect(paths.flat().every((point) => point.altitude >= 0)).toBe(true);
+  });
+
+  it("does not render a wholly below-horizon region", () => {
+    const longitude = longitudeForRightAscensionZero();
+    const paths = projectConstellationBoundary(
+      region([
+        { rightAscensionDegrees: 179, declinationDegrees: 0 },
+        { rightAscensionDegrees: 181, declinationDegrees: 0 },
+        { rightAscensionDegrees: 180, declinationDegrees: 2 },
+      ]),
+      { latitude: 0, longitude },
+      instant,
+      options,
+    );
+
+    expect(paths).toEqual([]);
+  });
+
+  it("handles RA wrap and northern/southern high-declination regions finitely", () => {
+    const longitude = longitudeForRightAscensionZero();
+    const wrapPaths = projectConstellationBoundary(
+      region([
+        { rightAscensionDegrees: 359, declinationDegrees: 0 },
+        { rightAscensionDegrees: 1, declinationDegrees: 0 },
+        { rightAscensionDegrees: 1, declinationDegrees: 2 },
+        { rightAscensionDegrees: 359, declinationDegrees: 2 },
+      ]),
+      { latitude: 0, longitude },
+      instant,
+      options,
+    );
+    const northPaths = projectConstellationBoundary(
+      region([
+        { rightAscensionDegrees: 359, declinationDegrees: 88 },
+        { rightAscensionDegrees: 1, declinationDegrees: 88 },
+        { rightAscensionDegrees: 1, declinationDegrees: 89 },
+        { rightAscensionDegrees: 359, declinationDegrees: 89 },
+      ]),
+      { latitude: 80, longitude },
+      instant,
+      options,
+    );
+    const southPaths = projectConstellationBoundary(
+      region([
+        { rightAscensionDegrees: 359, declinationDegrees: -89 },
+        { rightAscensionDegrees: 1, declinationDegrees: -89 },
+        { rightAscensionDegrees: 1, declinationDegrees: -88 },
+        { rightAscensionDegrees: 359, declinationDegrees: -88 },
+      ]),
+      { latitude: -80, longitude },
+      instant,
+      options,
+    );
+
+    expectFinitePaths(wrapPaths);
+    expectFinitePaths(northPaths);
+    expectFinitePaths(southPaths);
   });
 });

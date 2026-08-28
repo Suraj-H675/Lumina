@@ -22,7 +22,7 @@
     "manifests:check": "uv run python scripts/data/validate_manifests.py",
     "migrations:check": "uv run python scripts/ci/check_migration_integrity.py",
     "security:check": "bash scripts/ci/check_security.sh",
-    "sky-context:artifact-check": "uv run python scripts/data/validate_bright_sky_context.py",
+    "sky-context:artifact-check": "uv run python scripts/data/validate_iau_context.py",
     "test": "pnpm --filter @lumina/api-client test && pnpm --filter @lumina/web test",
     "test:e2e": "pnpm --filter @lumina/web test:e2e",
     "typecheck": "pnpm run typecheck:root && pnpm --filter @lumina/api-client typecheck && pnpm --filter @lumina/web typecheck",

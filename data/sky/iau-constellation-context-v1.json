@@ -1,0 +1,54 @@
+{
+  "artifact": {
+    "byte_count": 236885,
+    "columns": [
+      "latin_name",
+      "abbreviation",
+      "english_name",
+      "boundary_parts",
+      "target_memberships"
+    ],
+    "path": "apps/web/public/data/iau-constellation-context-v1.json",
+    "row_count": 88,
+    "sha256": "c4c4710f1f57ec9575e658d7a9a6c9b003bb1d61c6fed6797def5f4b6f78795e"
+  },
+  "attribution": "Constellation identities and J2000 boundary coordinates are from the International Astronomical Union official constellation material.",
+  "boundary_source": {
+    "base_url": "https://iauarchive.eso.org/static/public/constellations/txt/",
+    "coordinate_frame": "equatorial",
+    "coordinate_representation": "J2000.0",
+    "coordinate_units": {
+      "declination": "degrees",
+      "right_ascension": "degrees after deterministic HMS normalization"
+    },
+    "part_count": 89,
+    "retrieved_at": "2026-08-28T10:44:49.364Z",
+    "source_file_count": 89,
+    "source_url": "https://iauarchive.eso.org/public/themes/constellations/",
+    "vertex_count": 1565
+  },
+  "dataset_id": "iau-constellation-context-v1",
+  "identity_source": {
+    "official_identity_count": 88,
+    "retrieved_at": "2026-08-28T10:51:52.086Z",
+    "source_url": "https://iauarchive.eso.org/public/themes/constellations/"
+  },
+  "limitations": [
+    "Boundaries are official sky regions, not artistic constellation drawings or star-to-star line conventions.",
+    "Boundary coordinates are represented at J2000.0; Gaia target evidence remains at its published J2016.0 catalogue reference epoch with no proper-motion propagation.",
+    "The runtime renders only the selected target constellation boundary and clips it at the geometric horizon."
+  ],
+  "schema_version": 1,
+  "target_membership": {
+    "coordinate_source": "Lumina accepted Gaia DR3 astrometry slice; exact source IDs and coordinates are frozen in the artifact.",
+    "method": "bounded offline point-in-region review against the IAU J2000 boundary vertices; no CDS B1875 boundary was used",
+    "target_count": 5
+  },
+  "terms_url": "https://iauarchive.eso.org/copyright/",
+  "usage_purpose": "Official constellation region context for the Lumina Sky Finder.",
+  "verification_source": {
+    "catalogue": "CDS VizieR VI/42 (Roman 1987)",
+    "role": "Independent official-abbreviation/count and boundary-reference check only; the VI/42 B1875 geometry is not used as the runtime boundary artifact.",
+    "source_url": "https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=VI/42"
+  }
+}

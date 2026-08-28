@@ -1,0 +1,2377 @@
+{
+  "anchors": [
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008028795,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5044368071870093312",
+      "hip_id": 13847,
+      "iau_constellation_abbreviation": "Eri",
+      "iau_name": "Acamar"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008891207,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "398030875774246656",
+      "hip_id": 6411,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Adhil"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00963506,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "48026706558487040",
+      "hip_id": 20889,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Ain"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0040394254,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4075705783885296640",
+      "hip_id": 92761,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Ainalrami"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008891476,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2099679223187100800",
+      "hip_id": 94481,
+      "iau_constellation_abbreviation": "Lyr",
+      "iau_name": "Aladfar"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012875365,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4082115215112774272",
+      "hip_id": 94141,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Albaldah"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.045004927,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6903096911032851584",
+      "hip_id": 102618,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Albali"
+    },
+    {
+      "date_approved": "2016/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 1.2112398,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "66714384142368256",
+      "hip_id": 17702,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Alcyone"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0078077186,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6880093650314169984",
+      "hip_id": 100064,
+      "iau_constellation_abbreviation": "Cap",
+      "iau_name": "Algedi"
+    },
+    {
+      "date_approved": "2016/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.04206955,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2769202742740232960",
+      "hip_id": 1067,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Algenib"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.02023796,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3520586071217872896",
+      "hip_id": 60965,
+      "iau_constellation_abbreviation": "Crv",
+      "iau_name": "Algorab"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.006035957,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2839853133694170880",
+      "hip_id": 115623,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Alkarab"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0071067,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3553136288324444544",
+      "hip_id": 53740,
+      "iau_constellation_abbreviation": "Crt",
+      "iau_name": "Alkes"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01570678,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "205499655242974464",
+      "hip_id": 23416,
+      "iau_constellation_abbreviation": "Aur",
+      "iau_name": "Almaaz"
+    },
+    {
+      "date_approved": "2026/07/16",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0042103333,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2059372363884259072",
+      "hip_id": 98110,
+      "iau_constellation_abbreviation": "Cyg",
+      "iau_name": "Almighzal"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.5493072,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6048602103663486592",
+      "hip_id": 80112,
+      "iau_constellation_abbreviation": "Sco",
+      "iau_name": "Alniyat"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.047960453,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1222646935698492160",
+      "hip_id": 76267,
+      "iau_constellation_abbreviation": "CrB",
+      "iau_name": "Alphecca"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0062125237,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4081642115877635840",
+      "hip_id": 93683,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Alqiladah"
+    },
+    {
+      "date_approved": "2026/04/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00827258,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1279618955326351488",
+      "hip_id": 71995,
+      "iau_constellation_abbreviation": "Boo",
+      "iau_name": "Alrumh"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0027586466,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2261614264931057664",
+      "hip_id": 96100,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Alsafi"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0032786536,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2001387556602514304",
+      "hip_id": 110538,
+      "iau_constellation_abbreviation": "Lac",
+      "iau_name": "Alsamaka"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0017873271,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4296708789290712064",
+      "hip_id": 98036,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Alshain"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007971803,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6879844473490229888",
+      "hip_id": 100310,
+      "iau_constellation_abbreviation": "Cap",
+      "iau_name": "Alshat"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012347519,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2255173119658513408",
+      "hip_id": 94376,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Altais"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.021146096,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "644306911864817152",
+      "hip_id": 46750,
+      "iau_constellation_abbreviation": "Leo",
+      "iau_name": "Alterf"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.002089773,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "757565233820538752",
+      "hip_id": 55219,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Alula Borealis"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.005392269,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6735126993600519168",
+      "hip_id": 91014,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Alwasl"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004692006,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4281199284413726208",
+      "hip_id": 92946,
+      "iau_constellation_abbreviation": "Ser",
+      "iau_name": "Alya"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.021960452,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3352485999058854912",
+      "hip_id": 32362,
+      "iau_constellation_abbreviation": "Gem",
+      "iau_name": "Alzirr"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0074037747,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2616542115933350144",
+      "hip_id": 110003,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Ancha"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0035766952,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2022881668925464320",
+      "hip_id": 95771,
+      "iau_constellation_abbreviation": "Vul",
+      "iau_name": "Anser"
+    },
+    {
+      "date_approved": "2024/06/06",
+      "gaia_crossmatch_angular_distance_arcsec": 0.018674262,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4224225924761329792",
+      "hip_id": 99473,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Antinous"
+    },
+    {
+      "date_approved": "2025/11/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.014698842,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "326109689896765568",
+      "hip_id": 10670,
+      "iau_constellation_abbreviation": "Tri",
+      "iau_name": "Apdu"
+    },
+    {
+      "date_approved": "2016/10/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0035147201,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6664407333374099968",
+      "hip_id": 95294,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Arkab Posterior"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0085592605,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2971266110612490624",
+      "hip_id": 25985,
+      "iau_constellation_abbreviation": "Lep",
+      "iau_name": "Arneb"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.8168219,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6760703042771435136",
+      "hip_id": 93506,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Ascella"
+    },
+    {
+      "date_approved": "2016/11/06",
+      "gaia_crossmatch_angular_distance_arcsec": 0.009409694,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "660136821288588416",
+      "hip_id": 42911,
+      "iau_constellation_abbreviation": "Cnc",
+      "iau_name": "Asellus Australis"
+    },
+    {
+      "date_approved": "2016/11/06",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0093463175,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "664950414475977728",
+      "hip_id": 42806,
+      "iau_constellation_abbreviation": "Cnc",
+      "iau_name": "Asellus Borealis"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.5524531,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5300300156538723328",
+      "hip_id": 45556,
+      "iau_constellation_abbreviation": "Car",
+      "iau_name": "Aspidiske"
+    },
+    {
+      "date_approved": "2026/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.010694386,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1385978666451514112",
+      "hip_id": 79992,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Asuusiha"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01627111,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1625209684868707328",
+      "hip_id": 80331,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Athebyne"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.041784216,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "216718178536050176",
+      "hip_id": 17448,
+      "iau_constellation_abbreviation": "Per",
+      "iau_name": "Atik"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.019823568,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "66526127137440128",
+      "hip_id": 17847,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Atlas"
+    },
+    {
+      "date_approved": "2026/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0039574346,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1320255698202371072",
+      "hip_id": 78493,
+      "iau_constellation_abbreviation": "CrB",
+      "iau_name": "Aurwandilsta"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.011460321,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5173421634271199104",
+      "hip_id": 13701,
+      "iau_constellation_abbreviation": "Eri",
+      "iau_name": "Azha"
+    },
+    {
+      "date_approved": "2024/08/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0084809875,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4472097420946809600",
+      "hip_id": 87108,
+      "iau_constellation_abbreviation": "Oph",
+      "iau_name": "Bake-eo"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.003024467,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3196359642878570368",
+      "hip_id": 19587,
+      "iau_constellation_abbreviation": "Eri",
+      "iau_name": "Beid"
+    },
+    {
+      "date_approved": "2026/05/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0033433922,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3305012316783533056",
+      "hip_id": 18724,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Bibing"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007782501,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6722114239093474048",
+      "hip_id": 90982,
+      "iau_constellation_abbreviation": "CrA",
+      "iau_name": "Bie"
+    },
+    {
+      "date_approved": "2025/06/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0048629837,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4576147844112599424",
+      "hip_id": 88267,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Bodu"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.036179047,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6227443304915069056",
+      "hip_id": 73714,
+      "iau_constellation_abbreviation": "Lib",
+      "iau_name": "Brachium"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0013604056,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2667335258168556928",
+      "hip_id": 106786,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Bunda"
+    },
+    {
+      "date_approved": "2016/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.8372706,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "892348694913501952",
+      "hip_id": 36850,
+      "iau_constellation_abbreviation": "Gem",
+      "iau_name": "Castor"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0053208903,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "425940947659705600",
+      "hip_id": 4422,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Castula"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0086036,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4473334474604992384",
+      "hip_id": 86742,
+      "iau_constellation_abbreviation": "Oph",
+      "iau_name": "Cebalrai"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0013472614,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "65287458566524928",
+      "hip_id": 17489,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Celaeno"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0045584617,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5945941905576552064",
+      "hip_id": 86796,
+      "iau_constellation_abbreviation": "Ara",
+      "iau_name": "Cervantes"
+    },
+    {
+      "date_approved": "2025/11/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.011213124,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "430769040662018560",
+      "hip_id": 2599,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Cexing"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.005007528,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "777254360337133312",
+      "hip_id": 53721,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Chalawan"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0070980308,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1534011998572555776",
+      "hip_id": 61317,
+      "iau_constellation_abbreviation": "CVn",
+      "iau_name": "Chara"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.019546634,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3970052886914547712",
+      "hip_id": 54879,
+      "iau_constellation_abbreviation": "Leo",
+      "iau_name": "Chertan"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.022353413,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1517698716348324992",
+      "hip_id": 63125,
+      "iau_constellation_abbreviation": "CVn",
+      "iau_name": "Cor Caroli"
+    },
+    {
+      "date_approved": "2025/08/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00070643745,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "405987526029851264",
+      "hip_id": 8068,
+      "iau_constellation_abbreviation": "Per",
+      "iau_name": "Dajiangjunbei"
+    },
+    {
+      "date_approved": "2026/03/22",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004346567,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2996171698248699904",
+      "hip_id": 27288,
+      "iau_constellation_abbreviation": "Lep",
+      "iau_name": "Darlugal"
+    },
+    {
+      "date_approved": "2025/06/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.006047546,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "326173044957518080",
+      "hip_id": 10644,
+      "iau_constellation_abbreviation": "Tri",
+      "iau_name": "Deltoton"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.040513802,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6838311796136238976",
+      "hip_id": 107556,
+      "iau_constellation_abbreviation": "Cap",
+      "iau_name": "Deneb Algedi"
+    },
+    {
+      "date_approved": "2026/07/16",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008152537,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1763000482062205056",
+      "hip_id": 102531,
+      "iau_constellation_abbreviation": "Del",
+      "iau_name": "Dhanishta"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.017386211,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4050309195613114624",
+      "hip_id": 88567,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Dhanuśarāgra"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007948959,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1614731957531452544",
+      "hip_id": 75458,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Edasich"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0075601973,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "65271996684817280",
+      "hip_id": 17499,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Electra"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008073469,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3649422995468596480",
+      "hip_id": 70755,
+      "iau_constellation_abbreviation": "Vir",
+      "iau_name": "Elgafar"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007284027,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2884917717270728064",
+      "hip_id": 29034,
+      "iau_constellation_abbreviation": "Col",
+      "iau_name": "Elkurud"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0023947426,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2256800156349110528",
+      "hip_id": 90344,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Fafnir"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.017308742,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6235406071207202688",
+      "hip_id": 78265,
+      "iau_constellation_abbreviation": "Sco",
+      "iau_name": "Fang"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.028603392,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2079784488001577600",
+      "hip_id": 97165,
+      "iau_constellation_abbreviation": "Cyg",
+      "iau_name": "Fawaris"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0076297414,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "418001477279154304",
+      "hip_id": 2920,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Fulu"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008842565,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2662057224398507264",
+      "hip_id": 113889,
+      "iau_constellation_abbreviation": "Psc",
+      "iau_name": "Fumalsamakah"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.02975097,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2896572746685604480",
+      "hip_id": 30122,
+      "iau_constellation_abbreviation": "CMa",
+      "iau_name": "Furud"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012662079,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "546439965996109696",
+      "hip_id": 9598,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Gang"
+    },
+    {
+      "date_approved": "2024/09/19",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012130635,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2202630001603369856",
+      "hip_id": 107259,
+      "iau_constellation_abbreviation": "Cep",
+      "iau_name": "Garnet Star"
+    },
+    {
+      "date_approved": "2026/04/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0031858634,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1284257623084916480",
+      "hip_id": 71284,
+      "iau_constellation_abbreviation": "Boo",
+      "iau_name": "Genghe"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007243982,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1061909811871141504",
+      "hip_id": 56211,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Giausar"
+    },
+    {
+      "date_approved": "2017/11/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008357522,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6058271964884299520",
+      "hip_id": 60260,
+      "iau_constellation_abbreviation": "Cru",
+      "iau_name": "Ginan"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004825218,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6750856228950043264",
+      "hip_id": 98688,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Gouguo"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.006967801,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1421593566062037120",
+      "hip_id": 87585,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Grumium"
+    },
+    {
+      "date_approved": "2018/08/10",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0110866735,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1197588859547184640",
+      "hip_id": 77450,
+      "iau_constellation_abbreviation": "Ser",
+      "iau_name": "Gudja"
+    },
+    {
+      "date_approved": "2018/08/10",
+      "gaia_crossmatch_angular_distance_arcsec": 0.014802559,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4109030160308317312",
+      "hip_id": 84405,
+      "iau_constellation_abbreviation": "Oph",
+      "iau_name": "Guniibuu"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.023683364,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "201261278441958656",
+      "hip_id": 23767,
+      "iau_constellation_abbreviation": "Aur",
+      "iau_name": "Haedus"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.013415926,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "160886283751041408",
+      "hip_id": 23015,
+      "iau_constellation_abbreviation": "Aur",
+      "iau_name": "Hassaleh"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.005703827,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2835207319109249920",
+      "hip_id": 113357,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Helvetios"
+    },
+    {
+      "date_approved": "2025/03/16",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01154745,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6112195451032545024",
+      "hip_id": 67464,
+      "iau_constellation_abbreviation": "Cen",
+      "iau_name": "Heng"
+    },
+    {
+      "date_approved": "2024/12/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0017955807,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5264749303462961280",
+      "hip_id": 29271,
+      "iau_constellation_abbreviation": "Men",
+      "iau_name": "Hoerikwaggo"
+    },
+    {
+      "date_approved": "2025/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00088285445,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1990723839987250176",
+      "hip_id": 114570,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Honores"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0063209264,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4291462091610511744",
+      "hip_id": 96665,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Hru"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.30644456,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "517650349234855424",
+      "hip_id": 11569,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Huagai"
+    },
+    {
+      "date_approved": "2025/08/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0022193568,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2414783622022208128",
+      "hip_id": 301,
+      "iau_constellation_abbreviation": "Cet",
+      "iau_name": "Hydor"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.030002298,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6041076668127513984",
+      "hip_id": 78104,
+      "iau_constellation_abbreviation": "Sco",
+      "iau_name": "Iklil"
+    },
+    {
+      "date_approved": "2018/08/10",
+      "gaia_crossmatch_angular_distance_arcsec": 0.029985571,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6071060144089351808",
+      "hip_id": 59747,
+      "iau_constellation_abbreviation": "Cru",
+      "iau_name": "Imai"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0015549145,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "818464227945910016",
+      "hip_id": 46471,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Intercrus"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.09344551,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6245697981070158080",
+      "hip_id": 79374,
+      "iau_constellation_abbreviation": "Sco",
+      "iau_name": "Jabbah"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004133718,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4084834822776246272",
+      "hip_id": 93085,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Jian"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.039576128,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2093931938472201600",
+      "hip_id": 92791,
+      "iau_constellation_abbreviation": "Lyr",
+      "iau_name": "Jiantai"
+    },
+    {
+      "date_approved": "2019/12/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.26304185,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "894363992351617920",
+      "hip_id": 37265,
+      "iau_constellation_abbreviation": "Gem",
+      "iau_name": "Jishui"
+    },
+    {
+      "date_approved": "2025/08/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.35595787,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "401100815319187456",
+      "hip_id": 5434,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Junnanmen"
+    },
+    {
+      "date_approved": "2025/05/08",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008942915,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1926476042681491712",
+      "hip_id": 116805,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Kaffalmusalsala"
+    },
+    {
+      "date_approved": "2026/04/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0070510413,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1284537517514584704",
+      "hip_id": 71053,
+      "iau_constellation_abbreviation": "Boo",
+      "iau_name": "Kalasungsang"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0025337306,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1140693565213532416",
+      "hip_id": 31940,
+      "iau_constellation_abbreviation": "Cam",
+      "iau_name": "Kamelos"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.009760406,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6304988355324252928",
+      "hip_id": 69427,
+      "iau_constellation_abbreviation": "Vir",
+      "iau_name": "Kang"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.019432772,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4076915349846977664",
+      "hip_id": 90496,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Kaus Borealis"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.019643366,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4049506483413484672",
+      "hip_id": 89931,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Kaus Media"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.013273867,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4084474835781915392",
+      "hip_id": 95168,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Kenemu"
+    },
+    {
+      "date_approved": "2026/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0061687953,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1310284059748155136",
+      "hip_id": 83207,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Khepdenreret"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01036532,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1297565458994346240",
+      "hip_id": 80816,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Kornephoros"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0022201566,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3501215734352781440",
+      "hip_id": 61359,
+      "iau_constellation_abbreviation": "Crv",
+      "iau_name": "Kraz"
+    },
+    {
+      "date_approved": "2025/04/06",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0027274834,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2803727064255015424",
+      "hip_id": 4463,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Kui"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.072587624,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2218144110660778368",
+      "hip_id": 108917,
+      "iau_constellation_abbreviation": "Cep",
+      "iau_name": "Kurhah"
+    },
+    {
+      "date_approved": "2018/08/10",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0041002836,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1542553623374596352",
+      "hip_id": 62223,
+      "iau_constellation_abbreviation": "CVn",
+      "iau_name": "La Superba"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.2030096,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2713130535941345792",
+      "hip_id": 113186,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Leidian"
+    },
+    {
+      "date_approved": "2026/05/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.015043,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3406917219108423808",
+      "hip_id": 22565,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Lembu"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0057703657,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4298361114753012992",
+      "hip_id": 97938,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Libertas"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.011466124,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1876331990259358976",
+      "hip_id": 112440,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Ligong"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0068604946,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "128855517166594048",
+      "hip_id": 13061,
+      "iau_constellation_abbreviation": "Ari",
+      "iau_name": "Lilii Borea"
+    },
+    {
+      "date_approved": "2026/02/22",
+      "gaia_crossmatch_angular_distance_arcsec": 0.005147842,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6059642884074103936",
+      "hip_id": 61966,
+      "iau_constellation_abbreviation": "Cru",
+      "iau_name": "Lumbung"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008483409,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4570796456599587200",
+      "hip_id": 85693,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Maasym"
+    },
+    {
+      "date_approved": "2026/04/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.026049703,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3655377057091634304",
+      "hip_id": 72220,
+      "iau_constellation_abbreviation": "Vir",
+      "iau_name": "Maenalus"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0037319486,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6727439895482929536",
+      "hip_id": 90037,
+      "iau_constellation_abbreviation": "CrA",
+      "iau_name": "Magur"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.036607116,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "65283232316451328",
+      "hip_id": 17573,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Maia"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.7301536,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4432032213658420992",
+      "hip_id": 80883,
+      "iau_constellation_abbreviation": "Oph",
+      "iau_name": "Marfik"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.40621313,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5310393535853560576",
+      "hip_id": 45941,
+      "iau_constellation_abbreviation": "Vel",
+      "iau_name": "Markeb"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0015439831,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1198898034296727296",
+      "hip_id": 79043,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Marsic"
+    },
+    {
+      "date_approved": "2026/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0053972597,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1222932018450870144",
+      "hip_id": 77512,
+      "iau_constellation_abbreviation": "CrB",
+      "iau_name": "Matrichakra"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0059960783,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3384529341302871296",
+      "hip_id": 32246,
+      "iau_constellation_abbreviation": "Gem",
+      "iau_name": "Mebsuta"
+    },
+    {
+      "date_approved": "2016/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.005324063,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1575287046603605888",
+      "hip_id": 59774,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Megrez"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.011498495,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3366754155291545344",
+      "hip_id": 34088,
+      "iau_constellation_abbreviation": "Gem",
+      "iau_name": "Mekbuda"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.028894346,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "219375904303684224",
+      "hip_id": 18614,
+      "iau_constellation_abbreviation": "Per",
+      "iau_name": "Menkib"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00839722,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6718857073327910144",
+      "hip_id": 94114,
+      "iau_constellation_abbreviation": "CrA",
+      "iau_name": "Meridiana"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.002983621,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3080111439567156992",
+      "hip_id": 42402,
+      "iau_constellation_abbreviation": "Hya",
+      "iau_name": "Minchir"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0033027125,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3704342295607157120",
+      "hip_id": 63090,
+      "iau_constellation_abbreviation": "Vir",
+      "iau_name": "Minelauva"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0620545,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3220756843825383936",
+      "hip_id": 25930,
+      "iau_constellation_abbreviation": "Ori",
+      "iau_name": "Mintaka"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008345241,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "454491381981202944",
+      "hip_id": 13268,
+      "iau_constellation_abbreviation": "Per",
+      "iau_name": "Miram"
+    },
+    {
+      "date_approved": "2016/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.014713058,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1563590579347125632",
+      "hip_id": 65378,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Mizar"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004184803,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2936152657031151232",
+      "hip_id": 34045,
+      "iau_constellation_abbreviation": "CMa",
+      "iau_name": "Muliphein"
+    },
+    {
+      "date_approved": "2026/07/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.006556769,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1193030490492925824",
+      "hip_id": 78072,
+      "iau_constellation_abbreviation": "Ser",
+      "iau_name": "Muning"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.006090742,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1041808368494264576",
+      "hip_id": 41704,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Muscida"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 1.290579,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4072953671943400832",
+      "hip_id": 92041,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Nandou"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.84811586,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5534788672055388032",
+      "hip_id": 39429,
+      "iau_constellation_abbreviation": "Pup",
+      "iau_name": "Naos"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00791319,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "399402894487590144",
+      "hip_id": 7607,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Nembus"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0023307756,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5610441600394646016",
+      "hip_id": 33856,
+      "iau_constellation_abbreviation": "CMa",
+      "iau_name": "Nganurganity"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.009587688,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2106630885454013184",
+      "hip_id": 92862,
+      "iau_constellation_abbreviation": "Lyr",
+      "iau_name": "Niandao"
+    },
+    {
+      "date_approved": "2026/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0037055437,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1339952869195300608",
+      "hip_id": 84380,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Nüchuang"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.011185328,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4314399312979641728",
+      "hip_id": 93747,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Okab"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0033534989,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4240272953377646592",
+      "hip_id": 97804,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Pagru"
+    },
+    {
+      "date_approved": "2018/08/10",
+      "gaia_crossmatch_angular_distance_arcsec": 0.61180526,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6044420729667868928",
+      "hip_id": 81266,
+      "iau_constellation_abbreviation": "Sco",
+      "iau_name": "Paikauhale"
+    },
+    {
+      "date_approved": "2025/05/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.006282381,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5773473920382493440",
+      "hip_id": 72370,
+      "iau_constellation_abbreviation": "Aps",
+      "iau_name": "Paradys"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.015446674,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2900546759663847168",
+      "hip_id": 26634,
+      "iau_constellation_abbreviation": "Col",
+      "iau_name": "Phact"
+    },
+    {
+      "date_approved": "2026/03/22",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0026020578,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1696798367260229376",
+      "hip_id": 74793,
+      "iau_constellation_abbreviation": "UMi",
+      "iau_name": "Pherkad Minor"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.013223196,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5971244451311982336",
+      "hip_id": 82545,
+      "iau_constellation_abbreviation": "Sco",
+      "iau_name": "Pipirima"
+    },
+    {
+      "date_approved": "2024/08/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.016998116,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5557271829408912896",
+      "hip_id": 31685,
+      "iau_constellation_abbreviation": "Pup",
+      "iau_name": "Pipit"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0017122066,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6341181494973204096",
+      "hip_id": 104382,
+      "iau_constellation_abbreviation": "Oct",
+      "iau_name": "Polaris Australis"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.030597502,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4093933487636355968",
+      "hip_id": 89341,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Polis"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007341819,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3312052249215275904",
+      "hip_id": 20205,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Prima Hyadum"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.02172097,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6717240825593666304",
+      "hip_id": 94005,
+      "iau_constellation_abbreviation": "CrA",
+      "iau_name": "Qedty"
+    },
+    {
+      "date_approved": "2026/04/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0014703276,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1278391075717325312",
+      "hip_id": 74666,
+      "iau_constellation_abbreviation": "Boo",
+      "iau_name": "Qigong"
+    },
+    {
+      "date_approved": "2025/06/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008733785,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4528147293916651776",
+      "hip_id": 88886,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Ramus"
+    },
+    {
+      "date_approved": "2022/04/04",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00885745,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5164120762333028736",
+      "hip_id": 17378,
+      "iau_constellation_abbreviation": "Eri",
+      "iau_name": "Rana"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0036599697,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "559491100295682048",
+      "hip_id": 9763,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Rangifer"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0027918227,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "643819484617141504",
+      "hip_id": 48455,
+      "iau_constellation_abbreviation": "Leo",
+      "iau_name": "Rasalas"
+    },
+    {
+      "date_approved": "2025/05/08",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0066749156,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1925644949328127488",
+      "hip_id": 116631,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Rasalnaqa"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.023404354,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1415230383034813824",
+      "hip_id": 85670,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Rastaban"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0018007834,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2577061092921353984",
+      "hip_id": 5737,
+      "iau_constellation_abbreviation": "Psc",
+      "iau_name": "Revati"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.010726951,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "510204838759030144",
+      "hip_id": 6686,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Ruchbah"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0064361724,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6713727061309245952",
+      "hip_id": 95347,
+      "iau_constellation_abbreviation": "Sgr",
+      "iau_name": "Rukbat"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0058876863,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1876510592179455744",
+      "hip_id": 112748,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Sadalbari"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.009142671,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2680356911816018048",
+      "hip_id": 109074,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Sadalmelik"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0026793368,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2671038928727970944",
+      "hip_id": 106278,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Sadalsuud"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0728894,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2067518817314952576",
+      "hip_id": 100453,
+      "iau_constellation_abbreviation": "Cyg",
+      "iau_name": "Sadr"
+    },
+    {
+      "date_approved": "2024/12/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012675874,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2386316510063903616",
+      "hip_id": 114341,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Safina"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.046567805,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3011968416163350272",
+      "hip_id": 27366,
+      "iau_constellation_abbreviation": "Ori",
+      "iau_name": "Saiph"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007003052,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2840673506807375360",
+      "hip_id": 115250,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Salm"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012635351,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4573412435280434560",
+      "hip_id": 84379,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Sarin"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.033755917,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "418551920284673408",
+      "hip_id": 3179,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Schedar"
+    },
+    {
+      "date_approved": "2026/05/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01617706,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3312910967798031360",
+      "hip_id": 20877,
+      "iau_constellation_abbreviation": "Tau",
+      "iau_name": "Shakata"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0042070593,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1823991938314881152",
+      "hip_id": 96837,
+      "iau_constellation_abbreviation": "Sge",
+      "iau_name": "Shakh"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00957471,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1824277055360974720",
+      "hip_id": 96757,
+      "iau_constellation_abbreviation": "Sge",
+      "iau_name": "Sham"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0024243805,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "547825694242685184",
+      "hip_id": 14862,
+      "iau_constellation_abbreviation": "Cas",
+      "iau_name": "Shangcheng"
+    },
+    {
+      "date_approved": "2024/07/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.016146962,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3870025847369674624",
+      "hip_id": 51624,
+      "iau_constellation_abbreviation": "Leo",
+      "iau_name": "Shaomin"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0016936179,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "495235297172196864",
+      "hip_id": 17959,
+      "iau_constellation_abbreviation": "Cam",
+      "iau_name": "Shaowei"
+    },
+    {
+      "date_approved": "2025/09/22",
+      "gaia_crossmatch_angular_distance_arcsec": 0.014789644,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2610370969483589888",
+      "hip_id": 112961,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Shatabhisha"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008640892,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2090687795056051328",
+      "hip_id": 92420,
+      "iau_constellation_abbreviation": "Lyr",
+      "iau_name": "Sheliak"
+    },
+    {
+      "date_approved": "2025/03/16",
+      "gaia_crossmatch_angular_distance_arcsec": 0.011429688,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2804918316384272128",
+      "hip_id": 3693,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Shimu"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0044395346,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2624940628127167616",
+      "hip_id": 111710,
+      "iau_constellation_abbreviation": "Aqr",
+      "iau_name": "Situla"
+    },
+    {
+      "date_approved": "2024/10/31",
+      "gaia_crossmatch_angular_distance_arcsec": 0.03883694,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6219380139469026432",
+      "hip_id": 72571,
+      "iau_constellation_abbreviation": "Hya",
+      "iau_name": "Solitaire"
+    },
+    {
+      "date_approved": "2024/08/29",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0045139324,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1988193348344678656",
+      "hip_id": 111169,
+      "iau_constellation_abbreviation": "Lac",
+      "iau_name": "Stellio"
+    },
+    {
+      "date_approved": "2026/05/14",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0020323985,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1369646142775099136",
+      "hip_id": 77048,
+      "iau_constellation_abbreviation": "CrB",
+      "iau_name": "Stephanos"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.017988928,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "588551501854159744",
+      "hip_id": 47508,
+      "iau_constellation_abbreviation": "Leo",
+      "iau_name": "Subra"
+    },
+    {
+      "date_approved": "2026/07/16",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0076483665,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6880097807842527232",
+      "hip_id": 100027,
+      "iau_constellation_abbreviation": "Cap",
+      "iau_name": "Sukhurmashu"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0047795316,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2043823929421342848",
+      "hip_id": 93194,
+      "iau_constellation_abbreviation": "Lyr",
+      "iau_name": "Sulafat"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008015933,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3288921720025503360",
+      "hip_id": 22449,
+      "iau_constellation_abbreviation": "Ori",
+      "iau_name": "Tabit"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008202587,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "786420645182229504",
+      "hip_id": 57399,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Taiyangshou"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.008137559,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1677302170674242560",
+      "hip_id": 63076,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Taiyi"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.02872341,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1014058103758571520",
+      "hip_id": 44127,
+      "iau_constellation_abbreviation": "UMa",
+      "iau_name": "Talitha"
+    },
+    {
+      "date_approved": "2025/12/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0064166165,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "574112955678493824",
+      "hip_id": 5372,
+      "iau_constellation_abbreviation": "Cep",
+      "iau_name": "Tarandus"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.026992677,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4302054339959905920",
+      "hip_id": 97278,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Tarazed"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.010600977,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3098404220680931968",
+      "hip_id": 40526,
+      "iau_constellation_abbreviation": "Cnc",
+      "iau_name": "Tarf"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00808102,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1823067317695766784",
+      "hip_id": 98337,
+      "iau_constellation_abbreviation": "Sge",
+      "iau_name": "Telum"
+    },
+    {
+      "date_approved": "2024/09/19",
+      "gaia_crossmatch_angular_distance_arcsec": 0.003549009,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1985889115564260224",
+      "hip_id": 113288,
+      "iau_constellation_abbreviation": "Lac",
+      "iau_name": "Tengshe"
+    },
+    {
+      "date_approved": "2026/04/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.21404132,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1244571953471006720",
+      "hip_id": 67275,
+      "iau_constellation_abbreviation": "Boo",
+      "iau_name": "Tepiamenit"
+    },
+    {
+      "date_approved": "2017/02/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004714882,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4878631812268014464",
+      "hip_id": 21393,
+      "iau_constellation_abbreviation": "Eri",
+      "iau_name": "Theemin"
+    },
+    {
+      "date_approved": "2026/06/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.003647587,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1362451076122760320",
+      "hip_id": 86414,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Tianbang"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0031671058,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4156500578347841408",
+      "hip_id": 91117,
+      "iau_constellation_abbreviation": "Sct",
+      "iau_name": "Tianbian"
+    },
+    {
+      "date_approved": "2024/05/16",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0059008896,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4298688082015247744",
+      "hip_id": 98823,
+      "iau_constellation_abbreviation": "Aql",
+      "iau_name": "Tianfu"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.052633625,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1679124752931512960",
+      "hip_id": 62423,
+      "iau_constellation_abbreviation": "Dra",
+      "iau_name": "Tianyi"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.020784643,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "348020482735930112",
+      "hip_id": 7513,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Titawin"
+    },
+    {
+      "date_approved": "2026/02/22",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0012881256,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1139835946142603008",
+      "hip_id": 33694,
+      "iau_constellation_abbreviation": "Cam",
+      "iau_name": "Tonglingxing"
+    },
+    {
+      "date_approved": "2025/08/25",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01053553,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "300312157810876544",
+      "hip_id": 10280,
+      "iau_constellation_abbreviation": "Tri",
+      "iau_name": "Triminus"
+    },
+    {
+      "date_approved": "2026/08/13",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01234377,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2719475542667772416",
+      "hip_id": 112447,
+      "iau_constellation_abbreviation": "Peg",
+      "iau_name": "Tugongli"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01350408,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5698015743046182272",
+      "hip_id": 39757,
+      "iau_constellation_abbreviation": "Pup",
+      "iau_name": "Tureis"
+    },
+    {
+      "date_approved": "2025/06/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.005707581,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4529285391533766400",
+      "hip_id": 90139,
+      "iau_constellation_abbreviation": "Her",
+      "iau_name": "Tusizuo"
+    },
+    {
+      "date_approved": "2026/02/22",
+      "gaia_crossmatch_angular_distance_arcsec": 0.018210873,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6882183890633433600",
+      "hip_id": 104139,
+      "iau_constellation_abbreviation": "Cap",
+      "iau_name": "Udang"
+    },
+    {
+      "date_approved": "2025/05/08",
+      "gaia_crossmatch_angular_distance_arcsec": 0.002044662,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1939115478598580352",
+      "hip_id": 116584,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Udkadua"
+    },
+    {
+      "date_approved": "2018/06/01",
+      "gaia_crossmatch_angular_distance_arcsec": 0.007475101,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3827873938815011200",
+      "hip_id": 47431,
+      "iau_constellation_abbreviation": "Hya",
+      "iau_name": "Ukdah"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0039145076,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4429785739602747392",
+      "hip_id": 77070,
+      "iau_constellation_abbreviation": "Ser",
+      "iau_name": "Unukalhai"
+    },
+    {
+      "date_approved": "2024/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.73853976,
+      "gaia_crossmatch_flag": 16,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5905821894507108864",
+      "hip_id": 71860,
+      "iau_constellation_abbreviation": "Lup",
+      "iau_name": "Uridim"
+    },
+    {
+      "date_approved": "2015/12/15",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0056295423,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1920113512486282240",
+      "hip_id": 116076,
+      "iau_constellation_abbreviation": "And",
+      "iau_name": "Veritate"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.013211795,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3736865265441207424",
+      "hip_id": 63608,
+      "iau_constellation_abbreviation": "Vir",
+      "iau_name": "Vindemiatrix"
+    },
+    {
+      "date_approved": "2016/07/20",
+      "gaia_crossmatch_angular_distance_arcsec": 0.004801301,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "2887731882922767744",
+      "hip_id": 27628,
+      "iau_constellation_abbreviation": "Col",
+      "iau_name": "Wazn"
+    },
+    {
+      "date_approved": "2017/11/17",
+      "gaia_crossmatch_angular_distance_arcsec": 0.01706704,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4913847589156808960",
+      "hip_id": 5348,
+      "iau_constellation_abbreviation": "Phe",
+      "iau_name": "Wurren"
+    },
+    {
+      "date_approved": "2017/06/30",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0074202092,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1505311446553172992",
+      "hip_id": 69732,
+      "iau_constellation_abbreviation": "Boo",
+      "iau_name": "Xuange"
+    },
+    {
+      "date_approved": "2026/06/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.051848393,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5942012246713512704",
+      "hip_id": 80582,
+      "iau_constellation_abbreviation": "Nor",
+      "iau_name": "Yaqana"
+    },
+    {
+      "date_approved": "2016/10/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.014728177,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4356298849169862784",
+      "hip_id": 79882,
+      "iau_constellation_abbreviation": "Oph",
+      "iau_name": "Yed Posterior"
+    },
+    {
+      "date_approved": "2016/11/06",
+      "gaia_crossmatch_angular_distance_arcsec": 0.012304406,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "4357027756659697664",
+      "hip_id": 79593,
+      "iau_constellation_abbreviation": "Oph",
+      "iau_name": "Yed Prior"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0052301353,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "1724851173788449536",
+      "hip_id": 85822,
+      "iau_constellation_abbreviation": "UMi",
+      "iau_name": "Yildun"
+    },
+    {
+      "date_approved": "2024/07/18",
+      "gaia_crossmatch_angular_distance_arcsec": 0.0031415788,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3879879704937353984",
+      "hip_id": 49637,
+      "iau_constellation_abbreviation": "Leo",
+      "iau_name": "Yunü"
+    },
+    {
+      "date_approved": "2016/08/21",
+      "gaia_crossmatch_angular_distance_arcsec": 0.014857666,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "3796442680948579328",
+      "hip_id": 57757,
+      "iau_constellation_abbreviation": "Vir",
+      "iau_name": "Zavijava"
+    },
+    {
+      "date_approved": "2016/09/12",
+      "gaia_crossmatch_angular_distance_arcsec": 0.023011325,
+      "gaia_crossmatch_flag": 72,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "5166714578981717632",
+      "hip_id": 15197,
+      "iau_constellation_abbreviation": "Eri",
+      "iau_name": "Zibal"
+    },
+    {
+      "date_approved": "2017/09/05",
+      "gaia_crossmatch_angular_distance_arcsec": 0.00527998,
+      "gaia_crossmatch_flag": 8,
+      "gaia_crossmatch_neighbour_count": 1,
+      "gaia_source_id": "6265374394490973184",
+      "hip_id": 76333,
+      "iau_constellation_abbreviation": "Lib",
+      "iau_name": "Zubenelhakrabi"
+    }
+  ],
+  "columns": [
+    "iau_name",
+    "hip_id",
+    "iau_constellation_abbreviation",
+    "date_approved",
+    "gaia_source_id",
+    "gaia_crossmatch_angular_distance_arcsec",
+    "gaia_crossmatch_neighbour_count",
+    "gaia_crossmatch_flag"
+  ],
+  "dataset_id": "iau-named-gaia-bright-anchors-v1",
+  "row_count": 236,
+  "schema_version": 1
+}

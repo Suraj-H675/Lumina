@@ -1,0 +1,55 @@
+{
+  "adql": "SELECT source_id, solution_id, designation, ref_epoch, ra, dec, phot_g_mean_mag, duplicated_source FROM gaiadr3.gaia_source WHERE phot_g_mean_mag IS NOT NULL AND phot_g_mean_mag <= 5.5 AND ra IS NOT NULL AND dec IS NOT NULL AND duplicated_source = 'false' ORDER BY phot_g_mean_mag ASC, source_id ASC",
+  "artifact": {
+    "byte_count": 474384,
+    "columns": [
+      "source_id",
+      "solution_id",
+      "designation",
+      "ref_epoch",
+      "ra",
+      "dec",
+      "phot_g_mean_mag",
+      "duplicated_source"
+    ],
+    "path": "apps/web/public/data/gaia-dr3-bright-sky-context-v1.csv",
+    "row_count": 3690,
+    "sha256": "a7ed657ea1fef1cbef23b4ebbba493da9fdbcdd51e8ec4e7484ba58d91eb7bb3"
+  },
+  "attribution": "Data from ESA's Gaia mission, processed by the Gaia Data Processing and Analysis Consortium (DPAC).",
+  "brightness_selection": {
+    "field": "phot_g_mean_mag",
+    "maximum_inclusive": "5.5",
+    "photometric_scale": "Vega",
+    "quantity": "Gaia G-band mean magnitude"
+  },
+  "dataset_id": "gaia-dr3-bright-sky-context-v1",
+  "documentation_url": "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html",
+  "limitations": [
+    "Context stars only; rows are not canonical Lumina catalogue entities.",
+    "Selected by Gaia G magnitude.",
+    "Catalogue positions use the published Gaia reference epoch.",
+    "Proper motion is not propagated.",
+    "This selection is not a statement of naked-eye visibility.",
+    "This artifact is not a complete physical model of the night sky."
+  ],
+  "official_url": "https://gea.esac.esa.int/archive/",
+  "ordering": [
+    "phot_g_mean_mag ASC",
+    "source_id ASC"
+  ],
+  "provider": "ESA Gaia Archive",
+  "reference_epoch_policy": {
+    "catalogue_epoch": "J2016.0",
+    "field_value": "2016.0",
+    "proper_motion_propagated": false,
+    "time_scale": "TCB"
+  },
+  "release": "Gaia DR3",
+  "retrieved_at": "2026-08-28T09:36:47Z",
+  "schema_version": 1,
+  "solution_id": "1636148068921376768",
+  "table": "gaiadr3.gaia_source",
+  "terms_url": "https://gea.esac.esa.int/archive/documentation/GDR3/Miscellaneous/sec_credit_and_citation_instructions/",
+  "usage_purpose": "All-sky bounded Gaia DR3 bright-star context for the Lumina Sky Finder."
+}

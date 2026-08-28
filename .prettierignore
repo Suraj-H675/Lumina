@@ -8,3 +8,4 @@ apps/web/playwright-report
 apps/web/test-results
 pnpm-lock.yaml
 uv.lock
+data/sky/gaia-dr3-bright-sky-context-v1.json

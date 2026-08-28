@@ -243,8 +243,7 @@ test("selected time rotates named anchors and boundary without refetching immuta
     finder
       .getByTestId("sky-finder-constellation-boundary")
       .locator("path")
-      .first()
-      .getAttribute("d");
+      .evaluateAll((paths) => paths.map((path) => path.getAttribute("d")).join("|"));
   const before = await namedPosition();
   const boundaryBefore = await boundaryPath();
   await page.getByLabel("Selected local time").fill("13:00");
@@ -283,8 +282,7 @@ test("location changes rotate named anchors and boundary without refetching immu
     finder
       .getByTestId("sky-finder-constellation-boundary")
       .locator("path")
-      .first()
-      .getAttribute("d");
+      .evaluateAll((paths) => paths.map((path) => path.getAttribute("d")).join("|"));
   const boundaryBefore = await boundaryPath();
   await page.getByLabel("Latitude").fill("-33.8688");
   await page.getByLabel("Longitude").fill("151.2093");

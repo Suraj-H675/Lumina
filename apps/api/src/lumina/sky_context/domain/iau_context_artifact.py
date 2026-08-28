@@ -36,9 +36,7 @@ NAMED_ANCHOR_MANIFEST_PATH: Final = "data/sky/iau-named-gaia-bright-anchors-v1.j
 NAMED_ANCHOR_MANIFEST_SHA256: Final = (
     "e3b0d74a5fd137f790d7ec01d7b4383c5dcb4e61d314f342dea2f6a58a6043c0"
 )
-NAMED_ANCHOR_ARTIFACT_PATH: Final = (
-    "apps/web/public/data/iau-named-gaia-bright-anchors-v1.json"
-)
+NAMED_ANCHOR_ARTIFACT_PATH: Final = "apps/web/public/data/iau-named-gaia-bright-anchors-v1.json"
 NAMED_ANCHOR_ARTIFACT_SHA256: Final = (
     "68097843437fe7eea89f1b577b4ed3fd7956238fd84d2c7fcb2d8de1696d1aa7"
 )
@@ -495,7 +493,8 @@ def _validate_named_manifest(document: dict[str, object]) -> None:
         crossmatch["candidate_rows_intersecting_bright_context"] != NAMED_ANCHOR_ROW_COUNT + 1
         or crossmatch["documentation_url"]
         != "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_cross-matches/ssec_dm_hipparcos2_best_neighbour.html"
-        or tuple(_require_string_list(crossmatch["fields"], length=5)) != (
+        or tuple(_require_string_list(crossmatch["fields"], length=5))
+        != (
             "source_id",
             "original_ext_source_id",
             "angular_distance",
@@ -581,8 +580,10 @@ def _validate_named_manifest(document: dict[str, object]) -> None:
     if root["source_catalogue_url"] != catalogue["source_url"]:
         _reject()
     limitations = root["limitations"]
-    if type(limitations) is not list or not limitations or any(
-        type(item) is not str or not item for item in limitations
+    if (
+        type(limitations) is not list
+        or not limitations
+        or any(type(item) is not str or not item for item in limitations)
     ):
         _reject()
 
@@ -746,8 +747,7 @@ def _validate_constellation_manifest(document: dict[str, object]) -> None:
         ),
     )
     if (
-        boundary["base_url"]
-        != "https://iauarchive.eso.org/static/public/constellations/txt/"
+        boundary["base_url"] != "https://iauarchive.eso.org/static/public/constellations/txt/"
         or boundary["coordinate_frame"] != "equatorial"
         or boundary["coordinate_representation"] != "J2000.0"
         or boundary["part_count"] != CONSTELLATION_PART_COUNT
@@ -795,8 +795,10 @@ def _validate_constellation_manifest(document: dict[str, object]) -> None:
     for key in ("attribution", "terms_url", "usage_purpose"):
         _require_string(root[key])
     limitations = root["limitations"]
-    if type(limitations) is not list or not limitations or any(
-        type(item) is not str or not item for item in limitations
+    if (
+        type(limitations) is not list
+        or not limitations
+        or any(type(item) is not str or not item for item in limitations)
     ):
         _reject()
 
@@ -896,10 +898,7 @@ def parse_constellation_artifact(content: bytes) -> ConstellationArtifactReview:
         for part_value in parts:
             part = _require_object(part_value, frozenset({"source_file", "vertices"}))
             source_file = _require_string(part["source_file"])
-            if (
-                re.fullmatch(r"[a-z0-9]+\.txt", source_file) is None
-                or source_file in source_files
-            ):
+            if re.fullmatch(r"[a-z0-9]+\.txt", source_file) is None or source_file in source_files:
                 _reject()
             stem = source_file[:-4]
             if stem != abbreviation.lower() and not (
@@ -1113,12 +1112,11 @@ def _point_inside_boundary(
         if (vertex.declination_degrees > declination) != (
             previous_vertex.declination_degrees > declination
         ):
-            crossing = (
-                (unwrapped[previous_index] - unwrapped[index])
-                * (declination - vertex.declination_degrees)
-                / (previous_vertex.declination_degrees - vertex.declination_degrees)
-                + unwrapped[index]
-            )
+            crossing = (unwrapped[previous_index] - unwrapped[index]) * (
+                declination - vertex.declination_degrees
+            ) / (previous_vertex.declination_degrees - vertex.declination_degrees) + unwrapped[
+                index
+            ]
             if right_ascension < crossing:
                 inside = not inside
     return inside

@@ -39,18 +39,14 @@ def _canonical(document: object) -> bytes:
 def _named_document() -> dict[str, object]:
     return cast(
         dict[str, object],
-        json.loads(
-            (_REPOSITORY_ROOT / NAMED_ANCHOR_ARTIFACT_PATH).read_text(encoding="utf-8")
-        ),
+        json.loads((_REPOSITORY_ROOT / NAMED_ANCHOR_ARTIFACT_PATH).read_text(encoding="utf-8")),
     )
 
 
 def _constellation_document() -> dict[str, object]:
     return cast(
         dict[str, object],
-        json.loads(
-            (_REPOSITORY_ROOT / CONSTELLATION_ARTIFACT_PATH).read_text(encoding="utf-8")
-        ),
+        json.loads((_REPOSITORY_ROOT / CONSTELLATION_ARTIFACT_PATH).read_text(encoding="utf-8")),
     )
 
 
@@ -65,17 +61,18 @@ def test_phase_2e_artifacts_are_exactly_pinned_and_join_phase_2d() -> None:
     assert len(named_bytes) == NAMED_ANCHOR_ARTIFACT_BYTES == 79_245
     assert len(constellation_bytes) == CONSTELLATION_ARTIFACT_BYTES == 236_885
     assert hashlib.sha256(named_bytes).hexdigest() == NAMED_ANCHOR_ARTIFACT_SHA256
-    assert (
-        hashlib.sha256(constellation_bytes).hexdigest() == CONSTELLATION_ARTIFACT_SHA256
-    )
+    assert hashlib.sha256(constellation_bytes).hexdigest() == CONSTELLATION_ARTIFACT_SHA256
     assert sum(len(item.boundary_parts) for item in constellations.constellations) == (
         CONSTELLATION_PART_COUNT
     )
-    assert sum(
-        len(part.vertices)
-        for item in constellations.constellations
-        for part in item.boundary_parts
-    ) == CONSTELLATION_VERTEX_COUNT
+    assert (
+        sum(
+            len(part.vertices)
+            for item in constellations.constellations
+            for part in item.boundary_parts
+        )
+        == CONSTELLATION_VERTEX_COUNT
+    )
     assert {
         item.target_slug: item.constellation_abbreviation
         for item in constellations.target_memberships
@@ -102,13 +99,9 @@ def test_phase_2e_artifacts_are_exactly_pinned_and_join_phase_2d() -> None:
         lambda document: document["anchors"][3].update(
             {"gaia_crossmatch_angular_distance_arcsec": -1}
         ),
-        lambda document: document["anchors"][4].update(
-            {"gaia_crossmatch_neighbour_count": 2}
-        ),
+        lambda document: document["anchors"][4].update({"gaia_crossmatch_neighbour_count": 2}),
         lambda document: document["anchors"][5].update({"gaia_crossmatch_flag": 1}),
-        lambda document: document["anchors"][6].update(
-            {"iau_constellation_abbreviation": "Not"}
-        ),
+        lambda document: document["anchors"][6].update({"iau_constellation_abbreviation": "Not"}),
         lambda document: document["anchors"][7].update(
             {"gaia_crossmatch_angular_distance_arcsec": "not-a-number"}
         ),
@@ -140,15 +133,15 @@ def test_constellation_artifact_has_exact_official_regions_and_serpens_parts() -
     )
     assert len({item.abbreviation for item in review.constellations}) == 88
     assert {item.abbreviation for item in review.constellations} == {
-        item.abbreviation for item in parse_constellation_artifact(
+        item.abbreviation
+        for item in parse_constellation_artifact(
             (_REPOSITORY_ROOT / CONSTELLATION_ARTIFACT_PATH).read_bytes()
         ).constellations
     }
     serpens = next(item for item in review.constellations if item.abbreviation == "Ser")
     assert len(serpens.boundary_parts) == 2
     assert all(
-        -90 <= vertex.declination_degrees <= 90
-        and 0 <= vertex.right_ascension_degrees < 360
+        -90 <= vertex.declination_degrees <= 90 and 0 <= vertex.right_ascension_degrees < 360
         for item in review.constellations
         for part in item.boundary_parts
         for vertex in part.vertices

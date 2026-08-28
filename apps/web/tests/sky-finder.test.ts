@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import * as Astronomy from "astronomy-engine";
 
 import {
+  BRIGHT_STAR_RENDER_CAP,
+  calculateBrightContextHorizontalPositions,
   computeSolarSystemMarkers,
   filterAboveHorizonMarkers,
   isValidSkyPosition,
@@ -8,6 +11,9 @@ import {
   projectBelowHorizonDirection,
   projectHorizontalPosition,
   projectSkyPosition,
+  selectRenderedBrightContextStars,
+  starMarkerOpacity,
+  starMarkerRadius,
   targetForSkyFinder,
 } from "../src/lib/observation/sky-finder";
 
@@ -128,5 +134,103 @@ describe("sky finder target source", () => {
     );
     expect(target.position).toBe(selectedPosition);
     expect(target.name).toBe("Fixture target");
+  });
+});
+
+describe("sky finder bright-star context", () => {
+  const location = { latitude: 12.972, longitude: 77.594 } as const;
+  const star = {
+    sourceId: "10",
+    rightAscensionDegrees: 180,
+    declinationDegrees: 20,
+    gMagnitude: 2,
+  } as const;
+
+  it("converts Gaia RA degrees to hours on the existing geometric Horizon path", () => {
+    const instant = new Date("2026-08-27T12:00:00Z");
+    const [positioned] = calculateBrightContextHorizontalPositions([star], location, instant);
+    const observer = new Astronomy.Observer(location.latitude, location.longitude, 0);
+    const expected = Astronomy.Horizon(instant, observer, 12, star.declinationDegrees);
+
+    expect(positioned).toBeDefined();
+    expect(positioned?.position.altitude).toBeCloseTo(expected.altitude, 10);
+    expect(positioned?.position.azimuth).toBeCloseTo(expected.azimuth, 10);
+    expect(Number.isFinite(positioned?.position.altitude)).toBe(true);
+    expect(Number.isFinite(positioned?.position.azimuth)).toBe(true);
+  });
+
+  it("recomputes the real sky rotation for selected-time and location changes", () => {
+    const first = calculateBrightContextHorizontalPositions(
+      [star],
+      location,
+      new Date("2026-08-27T12:00:00Z"),
+    )[0];
+    const later = calculateBrightContextHorizontalPositions(
+      [star],
+      location,
+      new Date("2026-08-27T14:00:00Z"),
+    )[0];
+    const elsewhere = calculateBrightContextHorizontalPositions(
+      [star],
+      { latitude: -33.8688, longitude: 151.2093 },
+      new Date("2026-08-27T12:00:00Z"),
+    )[0];
+
+    expect(first?.position).toBeDefined();
+    expect(later?.position.azimuth).not.toBeCloseTo(first?.position.azimuth ?? 0, 4);
+    expect(elsewhere?.position.altitude).not.toBeCloseTo(first?.position.altitude ?? 0, 4);
+  });
+
+  it("uses a bounded monotonic marker mapping and fails safely for NaN", () => {
+    const magnitudes = [-2, 0, 2, 4, 5.5];
+    const radii = magnitudes.map((magnitude) => starMarkerRadius(magnitude));
+    const opacities = magnitudes.map((magnitude) => starMarkerOpacity(magnitude));
+
+    expect(radii.every((radius) => radius !== null && radius >= 0.7 && radius <= 3)).toBe(true);
+    expect(
+      opacities.every((opacity) => opacity !== null && opacity >= 0.32 && opacity <= 0.82),
+    ).toBe(true);
+    for (let index = 1; index < radii.length; index += 1) {
+      expect(radii[index - 1] ?? 0).toBeGreaterThanOrEqual(radii[index] ?? 0);
+      expect(opacities[index - 1] ?? 0).toBeGreaterThanOrEqual(opacities[index] ?? 0);
+    }
+    expect(starMarkerRadius(5.5)).toBeCloseTo(0.7, 10);
+    expect(starMarkerRadius(Number.NaN)).toBeNull();
+    expect(starMarkerOpacity(Number.POSITIVE_INFINITY)).toBeNull();
+  });
+
+  it("excludes below-horizon rows and caps to the brightest deterministic 1,200", () => {
+    const positioned = Array.from({ length: BRIGHT_STAR_RENDER_CAP + 2 }, (_, index) => ({
+      sourceId: String(index + 10),
+      gMagnitude: index === BRIGHT_STAR_RENDER_CAP + 1 ? -1 : index / 1_000,
+      position: position(30, index % 360),
+    }));
+    positioned.push({ sourceId: "99999", gMagnitude: -1, position: position(-1, 0) });
+    positioned[1] = { sourceId: "11", gMagnitude: 0, position: position(30, 1) };
+    positioned[0] = { sourceId: "10", gMagnitude: 0, position: position(30, 0) };
+
+    const selection = selectRenderedBrightContextStars(positioned);
+
+    expect(selection.aboveHorizonCount).toBe(BRIGHT_STAR_RENDER_CAP + 2);
+    expect(selection.capApplied).toBe(true);
+    expect(selection.stars).toHaveLength(BRIGHT_STAR_RENDER_CAP);
+    expect(selection.stars.map((item) => item.sourceId).slice(0, 3)).toEqual([
+      String(BRIGHT_STAR_RENDER_CAP + 11),
+      "10",
+      "11",
+    ]);
+    expect(selection.stars.map((item) => item.sourceId)).not.toContain("99999");
+  });
+
+  it("preserves every above-horizon row when the cap is not reached", () => {
+    const selection = selectRenderedBrightContextStars([
+      { sourceId: "20", gMagnitude: 4, position: position(1, 0) },
+      { sourceId: "10", gMagnitude: 2, position: position(0, 90) },
+      { sourceId: "30", gMagnitude: 1, position: position(-0.1, 180) },
+    ]);
+
+    expect(selection.capApplied).toBe(false);
+    expect(selection.aboveHorizonCount).toBe(2);
+    expect(selection.stars.map((item) => item.sourceId)).toEqual(["10", "20"]);
   });
 });

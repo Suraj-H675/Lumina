@@ -1,6 +1,11 @@
 import * as Astronomy from "astronomy-engine";
 
 import {
+  BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE,
+  compareGaiaSourceIds,
+  type BrightContextStar,
+} from "./bright-star-context";
+import {
   formatCompassDirection,
   validateObserverLocation,
   type HorizontalPosition,
@@ -50,6 +55,18 @@ export type SkyReferenceMarker = Readonly<{
   position: HorizontalPosition;
 }>;
 
+export type PositionedBrightContextStar = Readonly<{
+  sourceId: string;
+  gMagnitude: number;
+  position: HorizontalPosition;
+}>;
+
+export type RenderedBrightContextSelection = Readonly<{
+  aboveHorizonCount: number;
+  capApplied: boolean;
+  stars: ReadonlyArray<PositionedBrightContextStar>;
+}>;
+
 const SOLAR_SYSTEM_BODIES: ReadonlyArray<
   Readonly<{
     body: Astronomy.Body;
@@ -65,6 +82,7 @@ const SOLAR_SYSTEM_BODIES: ReadonlyArray<
 ];
 
 const DEFAULT_BELOW_HORIZON_PADDING = 14;
+export const BRIGHT_STAR_RENDER_CAP = 1_200;
 
 function isFiniteProjectionOption(value: number): boolean {
   return Number.isFinite(value) && value > 0;
@@ -237,4 +255,108 @@ export function filterAboveHorizonMarkers(
   markers: ReadonlyArray<SkyReferenceMarker>,
 ): Array<SkyReferenceMarker> {
   return markers.filter((marker) => marker.position.altitude >= 0);
+}
+
+/**
+ * Converts the accepted J2016.0 ICRS rows using the same geometric Horizon
+ * convention as the selected target. Astronomy Engine accepts RA in hours,
+ * so the reviewed Gaia degrees are divided by 15 exactly once here.
+ */
+export function calculateBrightContextHorizontalPositions(
+  stars: ReadonlyArray<BrightContextStar>,
+  location: ObserverLocation,
+  instant: Date,
+): ReadonlyArray<PositionedBrightContextStar> {
+  if (validateObserverLocation(location) === null || !Number.isFinite(instant.getTime())) return [];
+  try {
+    const observer = new Astronomy.Observer(location.latitude, location.longitude, 0);
+    return stars.map((star) => {
+      const horizontal = Astronomy.Horizon(
+        instant,
+        observer,
+        star.rightAscensionDegrees / 15,
+        star.declinationDegrees,
+      );
+      const azimuth = normalizedAzimuth(horizontal.azimuth);
+      if (
+        azimuth === null ||
+        !Number.isFinite(horizontal.altitude) ||
+        horizontal.altitude < -90 ||
+        horizontal.altitude > 90
+      ) {
+        throw new Error("Invalid bright-star horizontal position");
+      }
+      return {
+        sourceId: star.sourceId,
+        gMagnitude: star.gMagnitude,
+        position: {
+          altitude: horizontal.altitude,
+          azimuth,
+          compass: formatCompassDirection(azimuth),
+        },
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/** Keeps only the deterministic brightest bounded set above the geometric horizon. */
+export function selectRenderedBrightContextStars(
+  stars: ReadonlyArray<PositionedBrightContextStar>,
+  cap = BRIGHT_STAR_RENDER_CAP,
+): RenderedBrightContextSelection {
+  if (!Number.isSafeInteger(cap) || cap <= 0) {
+    return { aboveHorizonCount: 0, capApplied: false, stars: [] };
+  }
+  try {
+    if (
+      stars.some(
+        (star) =>
+          !Number.isFinite(star.gMagnitude) ||
+          star.gMagnitude > BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE ||
+          !isValidSkyPosition(star.position) ||
+          compareGaiaSourceIds(star.sourceId, star.sourceId) !== 0,
+      )
+    ) {
+      return { aboveHorizonCount: 0, capApplied: false, stars: [] };
+    }
+    const aboveHorizon = stars
+      .filter((star) => star.position.altitude >= 0)
+      .sort(
+        (left, right) =>
+          left.gMagnitude - right.gMagnitude || compareGaiaSourceIds(left.sourceId, right.sourceId),
+      );
+    return {
+      aboveHorizonCount: aboveHorizon.length,
+      capApplied: aboveHorizon.length > cap,
+      stars: aboveHorizon.slice(0, cap),
+    };
+  } catch {
+    return { aboveHorizonCount: 0, capApplied: false, stars: [] };
+  }
+}
+
+/** Display-only monotonic Gaia G magnitude encoding; it does not represent stellar size. */
+export function starMarkerRadius(gMagnitude: number): number | null {
+  if (!Number.isFinite(gMagnitude) || gMagnitude > BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE) {
+    return null;
+  }
+  const boundedMagnitude = Math.max(-2, gMagnitude);
+  const brightnessFraction =
+    (BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE - boundedMagnitude) /
+    (BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE + 2);
+  return Math.min(3, Math.max(0.7, 0.7 + 2.3 * Math.sqrt(brightnessFraction)));
+}
+
+/** Display-only monotonic opacity companion with a nonzero faint-marker floor. */
+export function starMarkerOpacity(gMagnitude: number): number | null {
+  if (!Number.isFinite(gMagnitude) || gMagnitude > BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE) {
+    return null;
+  }
+  const boundedMagnitude = Math.max(-2, gMagnitude);
+  const brightnessFraction =
+    (BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE - boundedMagnitude) /
+    (BRIGHT_STAR_CONTEXT_MAXIMUM_G_MAGNITUDE + 2);
+  return Math.min(0.82, Math.max(0.32, 0.32 + 0.5 * Math.sqrt(brightnessFraction)));
 }

@@ -1,20 +1,30 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
+import {
+  loadBrightStarContext,
+  type BrightContextStar,
+} from "../lib/observation/bright-star-context";
 import { calculateMoonHorizontalPosition } from "../lib/observation/lunar";
 import type { HorizontalPosition, ObservationPlan } from "../lib/observation/domain";
 import {
+  calculateBrightContextHorizontalPositions,
   computeSolarSystemMarkers,
   filterAboveHorizonMarkers,
   projectAzimuthAtRadius,
   projectHorizontalPosition,
   projectSkyPosition,
+  selectRenderedBrightContextStars,
+  starMarkerOpacity,
+  starMarkerRadius,
   targetForSkyFinder,
   type BelowHorizonProjectionPoint,
   type SkyFinderTarget,
   type SkyProjectionPoint,
   type SkyReferenceMarker,
+  type PositionedBrightContextStar,
+  type RenderedBrightContextSelection,
 } from "../lib/observation/sky-finder";
 
 const SKY_VIEW = {
@@ -36,6 +46,10 @@ const CARDINAL_LABELS = [
 ] as const;
 
 const GUIDE_AZIMUTHS = CARDINAL_LABELS.map(({ azimuth }) => azimuth);
+
+type BrightStarContextState =
+  | Readonly<{ status: "idle" | "loading" | "failure" }>
+  | Readonly<{ status: "ready"; stars: ReadonlyArray<BrightContextStar> }>;
 
 function formatAltitude(altitude: number): string {
   return `${altitude < 0 ? "−" : ""}${Math.abs(altitude).toFixed(1)}°`;
@@ -197,11 +211,41 @@ function SecondaryMarker({
   );
 }
 
+function BrightStarLayer({
+  stars,
+}: Readonly<{ stars: ReadonlyArray<PositionedBrightContextStar> }>) {
+  if (stars.length === 0) return null;
+  return (
+    <g aria-hidden="true" data-testid="sky-finder-bright-star-layer" pointerEvents="none">
+      {stars.map((star) => {
+        const projection = projectHorizontalPosition(star.position, SKY_VIEW);
+        const radius = starMarkerRadius(star.gMagnitude);
+        const opacity = starMarkerOpacity(star.gMagnitude);
+        return projection === null || radius === null || opacity === null ? null : (
+          <circle
+            cx={projection.x}
+            cy={projection.y}
+            data-source-id={star.sourceId}
+            data-testid="sky-finder-context-star"
+            fill="var(--foreground)"
+            fillOpacity={opacity}
+            key={star.sourceId}
+            pointerEvents="none"
+            r={radius}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
 function SkyProjection({
+  contextStars,
   target,
   moon,
   references,
 }: Readonly<{
+  contextStars: ReadonlyArray<PositionedBrightContextStar>;
   moon: HorizontalPosition | null;
   references: ReadonlyArray<SkyReferenceMarker>;
   target: SkyFinderTarget;
@@ -270,6 +314,7 @@ function SkyProjection({
             stroke="var(--muted)"
             strokeWidth="1"
           />
+          <BrightStarLayer stars={contextStars} />
           {CARDINAL_LABELS.map(({ azimuth, label }) => {
             const point = pointForAzimuth(azimuth, SKY_VIEW.skyRadius + 22);
             return (
@@ -298,10 +343,6 @@ function SkyProjection({
           <text fill="var(--muted)" fontSize="10" textAnchor="middle" x="84" y="184">
             30°
           </text>
-          <TargetMarker projection={targetProjection} target={target} />
-          {moonProjection !== null ? (
-            <SecondaryMarker kind="moon" name="Moon" point={moonProjection.point} />
-          ) : null}
           {references.map((reference) => {
             const projection = projectHorizontalPosition(reference.position, SKY_VIEW);
             return projection === null ? null : (
@@ -313,6 +354,10 @@ function SkyProjection({
               />
             );
           })}
+          {moonProjection !== null ? (
+            <SecondaryMarker kind="moon" name="Moon" point={moonProjection.point} />
+          ) : null}
+          <TargetMarker projection={targetProjection} target={target} />
         </svg>
       </div>
       <figcaption
@@ -323,6 +368,62 @@ function SkyProjection({
         outer circle; altitude increases toward the zenith at the center. Rings mark 30° and 60°.
       </figcaption>
     </figure>
+  );
+}
+
+function BrightStarContextMetadata({
+  contextState,
+  selection,
+  showContext,
+  transformFailed,
+}: Readonly<{
+  contextState: BrightStarContextState;
+  selection: RenderedBrightContextSelection;
+  showContext: boolean;
+  transformFailed: boolean;
+}>) {
+  let status: string;
+  if (!showContext) {
+    status = "Bright-star context is hidden.";
+  } else if (contextState.status === "idle" || contextState.status === "loading") {
+    status = "Loading pinned bright-star context…";
+  } else if (contextState.status === "failure" || transformFailed) {
+    status = "Bright-star context unavailable.";
+  } else if (selection.capApplied) {
+    status = `Showing the 1,200 brightest context stars above the horizon from the pinned Gaia DR3 G ≤ 5.5 slice. ${selection.aboveHorizonCount.toLocaleString()} context stars are above the geometric horizon.`;
+  } else {
+    status = `${selection.aboveHorizonCount.toLocaleString()} context stars above the geometric horizon.`;
+  }
+  return (
+    <section
+      aria-labelledby="bright-star-context-heading"
+      className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5"
+      data-testid="sky-finder-bright-star-metadata"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3
+          className="text-lg font-semibold text-[var(--foreground)]"
+          id="bright-star-context-heading"
+        >
+          Bright-star context
+        </h3>
+        <span className="text-xs text-[var(--muted)]">Gaia DR3 · G ≤ 5.5</span>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-[var(--foreground)]" role="status">
+        {status}
+      </p>
+      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+        Positions: Gaia DR3 catalogue epoch J2016.0. Proper motion not propagated.
+      </p>
+      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+        Marker size is derived from Gaia G magnitude; it is a visual encoding, not stellar physical
+        size or a guarantee of visibility.
+      </p>
+      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+        Source: ESA Gaia Archive · processed by Gaia DPAC. Context rows are not searchable Lumina
+        catalogue entities.
+      </p>
+    </section>
   );
 }
 
@@ -507,6 +608,10 @@ export function SkyFinder({
   targetName,
 }: Readonly<{ plan: ObservationPlan; targetName: string }>) {
   const [showReferences, setShowReferences] = useState(true);
+  const [showBrightStarContext, setShowBrightStarContext] = useState(true);
+  const [brightStarContext, setBrightStarContext] = useState<BrightStarContextState>({
+    status: "loading",
+  });
   const target = useMemo(() => targetForSkyFinder(plan, targetName), [plan, targetName]);
   const observerLocation = plan.location;
   const selectedInstant = plan.selected.instant;
@@ -518,6 +623,39 @@ export function SkyFinder({
     () => computeSolarSystemMarkers(observerLocation, selectedInstant),
     [observerLocation, selectedInstant],
   );
+  useEffect(() => {
+    let active = true;
+    void loadBrightStarContext().then(
+      (stars) => {
+        if (active) setBrightStarContext({ status: "ready", stars });
+      },
+      () => {
+        if (active) setBrightStarContext({ status: "failure" });
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
+  const positionedBrightStars = useMemo(
+    () =>
+      brightStarContext.status === "ready"
+        ? calculateBrightContextHorizontalPositions(
+            brightStarContext.stars,
+            observerLocation,
+            selectedInstant,
+          )
+        : [],
+    [brightStarContext, observerLocation, selectedInstant],
+  );
+  const brightStarSelection = useMemo(
+    () => selectRenderedBrightContextStars(positionedBrightStars),
+    [positionedBrightStars],
+  );
+  const brightStarTransformFailed =
+    brightStarContext.status === "ready" &&
+    brightStarContext.stars.length > 0 &&
+    positionedBrightStars.length === 0;
   const references = showReferences ? filterAboveHorizonMarkers(solarSystemMarkers) : [];
   const finderId = useId().replaceAll(":", "");
 
@@ -539,12 +677,37 @@ export function SkyFinder({
       </div>
       <p className="max-w-3xl text-sm leading-6 text-[var(--muted)]">
         Use the direction card and circular map to orient yourself at the selected local time. The
-        target marker is primary; the Moon and optional solar-system markers are context.
+        target marker is primary; the Moon, solar-system markers, and pinned Gaia bright stars are
+        context.
       </p>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-        <SkyProjection moon={moon} references={references} target={target} />
+        <SkyProjection
+          contextStars={
+            showBrightStarContext && !brightStarTransformFailed ? brightStarSelection.stars : []
+          }
+          moon={moon}
+          references={references}
+          target={target}
+        />
         <div className="space-y-4">
           <FinderInstruction target={target} />
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
+            <input
+              aria-describedby={`sky-finder-star-toggle-help-${finderId}`}
+              checked={showBrightStarContext}
+              className="h-5 w-5 shrink-0 [accent-color:var(--accent)]"
+              onChange={(event) => setShowBrightStarContext(event.target.checked)}
+              type="checkbox"
+            />
+            <span>Show bright-star context</span>
+          </label>
+          <p
+            className="text-xs leading-5 text-[var(--muted)]"
+            id={`sky-finder-star-toggle-help-${finderId}`}
+          >
+            Neutral markers come only from the pinned Gaia DR3 G ≤ 5.5 context artifact and are
+            shown above the geometric horizon.
+          </p>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
               aria-describedby={`sky-finder-toggle-help-${finderId}`}
@@ -564,6 +727,12 @@ export function SkyFinder({
           </p>
         </div>
       </div>
+      <BrightStarContextMetadata
+        contextState={brightStarContext}
+        selection={brightStarSelection}
+        showContext={showBrightStarContext}
+        transformFailed={brightStarTransformFailed}
+      />
       <ReferenceList
         moon={moon}
         references={references}

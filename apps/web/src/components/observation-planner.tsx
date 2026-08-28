@@ -16,6 +16,7 @@ import type { EntityDetailResponse } from "@lumina/api-client";
 
 import { CatalogueSearchBox } from "./catalogue-search-box";
 import { ObservationConditions } from "./observation-conditions";
+import { SkyFinder } from "./sky-finder";
 import { entityTypeLabel } from "../lib/catalog-display";
 import {
   computeObservationPlan,
@@ -327,8 +328,9 @@ function AltitudeChart({ plan, timeZone }: Readonly<{ plan: ObservationPlan; tim
 function PlannerResults({
   nightDate,
   plan,
+  targetName,
   timeZone,
-}: Readonly<{ nightDate: string; plan: ObservationPlan; timeZone: string }>) {
+}: Readonly<{ nightDate: string; plan: ObservationPlan; targetName: string; timeZone: string }>) {
   const highest = plan.maxDuringDarkness;
   return (
     <section aria-labelledby="planner-results-heading" className="space-y-8">
@@ -402,6 +404,7 @@ function PlannerResults({
         </dl>
       </div>
 
+      <SkyFinder plan={plan} targetName={targetName} />
       <AltitudeChart plan={plan} timeZone={timeZone} />
       <ObservationConditions nightDate={nightDate} plan={plan} timeZone={timeZone} />
       <CoordinateSource plan={plan} />
@@ -782,7 +785,12 @@ export function ObservationPlanner({
               </p>
             </section>
           ) : plan !== null ? (
-            <PlannerResults plan={plan} timeZone={timeZone} nightDate={activeNightDate} />
+            <PlannerResults
+              plan={plan}
+              targetName={targetTitle}
+              timeZone={timeZone}
+              nightDate={activeNightDate}
+            />
           ) : (
             <section
               aria-live="polite"

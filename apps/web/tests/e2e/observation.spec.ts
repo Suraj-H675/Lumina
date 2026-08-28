@@ -31,8 +31,46 @@ test("object page opens the selected target in the observation planner", async (
   await fillManualLocation(page);
 
   await expect(page.getByText(/altitude through the night/i)).toBeVisible();
-  await expect(page.getByText(/Azimuth/)).toBeVisible();
+  await expect(page.getByText("Azimuth · 0° north, eastward", { exact: true })).toBeVisible();
   await expect(page.getByText(/Position source/)).toBeVisible();
+});
+
+test("sky finder gives selected-time direction guidance and reference context", async ({
+  page,
+}) => {
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("12:00");
+
+  const finder = page
+    .getByRole("heading", { name: "Sky Finder" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(finder).toBeVisible();
+  await expect(finder.getByText("Face", { exact: true })).toBeVisible();
+  await expect(finder.getByText("True azimuth", { exact: true })).toBeVisible();
+  await expect(finder.getByText("Look up", { exact: true })).toBeVisible();
+  await expect(finder.getByText(/North is at the top, east is right/i)).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-target-marker")).toBeVisible();
+  await expect(finder.getByText("Reference objects at selected time")).toBeVisible();
+  await expect(finder.getByRole("listitem", { name: /^Sun:/ })).toBeVisible();
+  await expect(finder.getByRole("checkbox", { name: /show solar-system markers/i })).toBeChecked();
+});
+
+test("sky finder keeps a below-horizon target outside the visible sky", async ({ page }) => {
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("22:00");
+
+  const finder = page
+    .getByRole("heading", { name: "Sky Finder" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(finder.getByText("Target is below the horizon", { exact: true })).toBeVisible();
+  await expect(
+    finder.getByTestId("sky-finder-target-guidance").getByText(/−\d+\.\d+°/),
+  ).toBeVisible();
+  await expect(finder.getByText("Direction", { exact: true })).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-target-below")).toBeVisible();
+  await expect(finder.getByText("Look up", { exact: true })).not.toBeVisible();
 });
 
 test("planner target search uses B3 suggestions and keyboard selection", async ({ page }) => {
@@ -48,6 +86,7 @@ test("planner target search uses B3 suggestions and keyboard selection", async (
   await expect(page.getByRole("heading", { level: 1, name: "Kepler-452" })).toBeVisible();
   await fillManualLocation(page);
   await expect(page.getByText(/altitude through the night/i)).toBeVisible();
+  await expect(page.getByRole("listitem", { name: /^Kepler-452:/ })).toBeVisible();
 });
 
 test("manual location validation rejects invalid coordinates and accepts a fixture location", async ({
@@ -100,9 +139,16 @@ test("planner remains readable at 390px without horizontal overflow", async ({ p
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
   await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("12:00");
 
   await expect(page.getByText(/altitude through the night/i)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Lunar conditions" })).toBeVisible();
+  const skyMap = page.getByTestId("sky-finder-map");
+  const skyMapBox = await skyMap.boundingBox();
+  expect(skyMapBox).not.toBeNull();
+  expect(skyMapBox?.width ?? 0).toBeLessThanOrEqual(390);
+  await expect(page.getByRole("heading", { name: "Sky Finder" })).toBeVisible();
+  await expect(page.getByText("Face", { exact: true })).toBeVisible();
   const chart = page
     .locator("figure")
     .filter({ hasText: /altitude through the night/i })
@@ -123,6 +169,8 @@ test("conditions remain readable at 320px", async ({ page }) => {
   await fillManualLocation(page);
 
   await expect(page.getByRole("heading", { name: "Lunar conditions" })).toBeVisible();
+  await expect(page.getByTestId("sky-finder-map")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-below")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

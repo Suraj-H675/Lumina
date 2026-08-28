@@ -1,5 +1,5 @@
 import { axe } from "jest-axe";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -164,5 +164,66 @@ describe("ObservationPlanner", () => {
     expect(screen.getByText("Moon at selected time")).toBeVisible();
     expect(screen.getByText("Target separation")).toBeVisible();
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("shows the selected-time finder and updates its guidance with the planner time", async () => {
+    const user = userEvent.setup();
+    renderPlanner();
+
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    expect(await screen.findByRole("heading", { name: "Sky Finder" })).toBeVisible();
+    expect(screen.getByTestId("sky-finder-target-guidance")).toHaveTextContent(
+      /true azimuth|look up/i,
+    );
+
+    const selectedTime = screen.getByDisplayValue("22:00");
+    await user.clear(selectedTime);
+    await user.type(selectedTime, "12:00");
+
+    expect(await screen.findByText("Look up")).toBeVisible();
+    const finder = screen.getByRole("heading", { name: "Sky Finder" }).closest("section");
+    expect(finder).not.toBeNull();
+    expect(
+      within(finder as HTMLElement).getByText(/above the geometric horizon/i, { selector: "dd" }),
+    ).toBeVisible();
+  });
+
+  it("keeps the Moon independent and makes solar-system markers an accessible toggle", async () => {
+    const user = userEvent.setup();
+    renderPlanner();
+
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+    const selectedTime = screen.getByDisplayValue("22:00");
+    await user.clear(selectedTime);
+    await user.type(selectedTime, "12:00");
+
+    const toggle = await screen.findByRole("checkbox", { name: /show solar-system markers/i });
+    expect(toggle).toBeChecked();
+    expect(
+      screen.getByRole("heading", { name: "Reference objects at selected time" }),
+    ).toBeVisible();
+    expect(screen.getByRole("listitem", { name: /^Moon:/ })).toBeVisible();
+
+    await user.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByText(/reference markers are hidden/i)).toBeVisible();
+    expect(screen.getByRole("listitem", { name: /^Moon:/ })).toBeVisible();
+  });
+
+  it("passes an accessibility scan with the loaded finder", async () => {
+    const user = userEvent.setup();
+    const { container } = renderPlanner();
+
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    expect(await screen.findByRole("heading", { name: "Sky Finder" })).toBeVisible();
+    expect((await axe(container)).violations).toEqual([]);
   });
 });

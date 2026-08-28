@@ -105,6 +105,8 @@ test("lunar conditions do not make a weather request before opt-in", async ({ pa
   await expect(page.getByRole("heading", { name: "Lunar conditions" })).toBeVisible();
   await expect(page.getByText("Moon at selected time")).toBeVisible();
   await expect(page.getByText("Target separation")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sky Finder" })).toBeVisible();
+  await expect(page.getByRole("listitem", { name: /^Moon:/ })).toBeVisible();
   expect(weatherRequestCount).toBe(0);
 });
 
@@ -158,6 +160,7 @@ test("weather provider failure leaves target geometry and lunar conditions usabl
   await expect(page.locator('p[role="alert"]')).toContainText(
     /Could not load the weather forecast/i,
   );
+  await expect(page.getByRole("heading", { name: "Sky Finder" })).toBeVisible();
   await expect(page.getByText(/altitude through the night/i)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Lunar conditions" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Retry forecast" })).toBeVisible();

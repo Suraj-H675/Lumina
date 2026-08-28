@@ -6,15 +6,28 @@ import {
   loadBrightStarContext,
   type BrightContextStar,
 } from "../lib/observation/bright-star-context";
+import {
+  loadConstellationContext,
+  loadNamedAnchorContext,
+  resolveTargetConstellation,
+  type ConstellationRegion,
+  type ConstellationContext,
+  type NamedAnchorContext,
+  type TargetMembership,
+} from "../lib/observation/iau-context";
 import { calculateMoonHorizontalPosition } from "../lib/observation/lunar";
 import type { HorizontalPosition, ObservationPlan } from "../lib/observation/domain";
 import {
+  NAMED_ANCHOR_LABEL_CAP,
   calculateBrightContextHorizontalPositions,
   computeSolarSystemMarkers,
   filterAboveHorizonMarkers,
+  positionNamedSkyAnchors,
   projectAzimuthAtRadius,
+  projectConstellationBoundary,
   projectHorizontalPosition,
   projectSkyPosition,
+  selectNamedAnchorLabels,
   selectRenderedBrightContextStars,
   starMarkerOpacity,
   starMarkerRadius,
@@ -24,6 +37,8 @@ import {
   type SkyProjectionPoint,
   type SkyReferenceMarker,
   type PositionedBrightContextStar,
+  type PositionedNamedSkyAnchor,
+  type ProjectedConstellationBoundary,
   type RenderedBrightContextSelection,
 } from "../lib/observation/sky-finder";
 
@@ -51,6 +66,14 @@ type BrightStarContextState =
   | Readonly<{ status: "idle" | "loading" | "failure" }>
   | Readonly<{ status: "ready"; stars: ReadonlyArray<BrightContextStar> }>;
 
+type NamedAnchorContextState =
+  | Readonly<{ status: "loading" | "failure" }>
+  | Readonly<{ status: "ready"; context: NamedAnchorContext }>;
+
+type ConstellationContextState =
+  | Readonly<{ status: "loading" | "failure" }>
+  | Readonly<{ status: "ready"; context: ConstellationContext }>;
+
 function formatAltitude(altitude: number): string {
   return `${altitude < 0 ? "−" : ""}${Math.abs(altitude).toFixed(1)}°`;
 }
@@ -61,6 +84,10 @@ function formatAzimuth(position: HorizontalPosition): string {
 
 function formatSpokenAltitude(altitude: number): string {
   return `${Math.abs(altitude).toFixed(1)} degrees`;
+}
+
+function formatAngularSeparation(separation: number): string {
+  return `${separation.toFixed(1)}°`;
 }
 
 function pointForAzimuth(azimuth: number, radius: number): Readonly<{ x: number; y: number }> {
@@ -89,9 +116,11 @@ function MarkerLabel({
   point,
   children,
   className = "",
+  fontSize = 11,
 }: Readonly<{
   children: string;
   className?: string;
+  fontSize?: number;
   point: Readonly<{ x: number; y: number }>;
 }>) {
   const labelPoint = labelPointForMarker(point);
@@ -99,7 +128,7 @@ function MarkerLabel({
     <text
       className={className}
       fill="var(--foreground)"
-      fontSize="11"
+      fontSize={fontSize}
       fontWeight="600"
       textAnchor={textAnchorForPoint(point)}
       x={labelPoint.x}
@@ -239,14 +268,98 @@ function BrightStarLayer({
   );
 }
 
+function ConstellationBoundaryLayer({
+  paths,
+}: Readonly<{ paths: ProjectedConstellationBoundary }>) {
+  if (paths.length === 0) return null;
+  return (
+    <g
+      aria-hidden="true"
+      data-testid="sky-finder-constellation-boundary"
+      fill="none"
+      pointerEvents="none"
+    >
+      {paths.map((path, index) => (
+        <path
+          d={path
+            .map(
+              (point, pointIndex) =>
+                `${pointIndex === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`,
+            )
+            .join(" ")}
+          key={`boundary-${index}`}
+          stroke="var(--focus)"
+          strokeOpacity="0.42"
+          strokeWidth="0.9"
+        />
+      ))}
+    </g>
+  );
+}
+
+function NamedAnchorLayer({
+  anchors,
+  labels,
+}: Readonly<{
+  anchors: ReadonlyArray<PositionedNamedSkyAnchor>;
+  labels: ReadonlyArray<PositionedNamedSkyAnchor>;
+}>) {
+  if (anchors.length === 0) return null;
+  const labelSourceIds = new Set(labels.map((anchor) => anchor.gaiaSourceId));
+  return (
+    <g aria-hidden="true" data-testid="sky-finder-named-anchor-layer" pointerEvents="none">
+      {anchors.map((anchor) => {
+        const projection = projectHorizontalPosition(anchor.position, SKY_VIEW);
+        if (projection === null) return null;
+        const markerRadius = starMarkerRadius(anchor.gMagnitude);
+        return (
+          <circle
+            cx={projection.x}
+            cy={projection.y}
+            data-source-id={anchor.gaiaSourceId}
+            data-testid="sky-finder-named-anchor-marker"
+            fill="none"
+            key={anchor.gaiaSourceId}
+            pointerEvents="none"
+            r={(markerRadius ?? 1) + 2.2}
+            stroke="var(--focus)"
+            strokeOpacity="0.72"
+            strokeWidth="1.1"
+          />
+        );
+      })}
+      {labels.map((anchor) => {
+        if (!labelSourceIds.has(anchor.gaiaSourceId)) return null;
+        const projection = projectHorizontalPosition(anchor.position, SKY_VIEW);
+        return projection === null ? null : (
+          <MarkerLabel
+            className="named-anchor-label"
+            fontSize={9}
+            key={`label-${anchor.gaiaSourceId}`}
+            point={projection}
+          >
+            {anchor.iauName}
+          </MarkerLabel>
+        );
+      })}
+    </g>
+  );
+}
+
 function SkyProjection({
   contextStars,
+  constellationBoundary,
+  namedAnchorLabels,
+  namedAnchors,
   target,
   moon,
   references,
 }: Readonly<{
   contextStars: ReadonlyArray<PositionedBrightContextStar>;
+  constellationBoundary: ProjectedConstellationBoundary;
   moon: HorizontalPosition | null;
+  namedAnchorLabels: ReadonlyArray<PositionedNamedSkyAnchor>;
+  namedAnchors: ReadonlyArray<PositionedNamedSkyAnchor>;
   references: ReadonlyArray<SkyReferenceMarker>;
   target: SkyFinderTarget;
 }>) {
@@ -314,7 +427,9 @@ function SkyProjection({
             stroke="var(--muted)"
             strokeWidth="1"
           />
+          <ConstellationBoundaryLayer paths={constellationBoundary} />
           <BrightStarLayer stars={contextStars} />
+          <NamedAnchorLayer anchors={namedAnchors} labels={namedAnchorLabels} />
           {CARDINAL_LABELS.map(({ azimuth, label }) => {
             const point = pointForAzimuth(azimuth, SKY_VIEW.skyRadius + 22);
             return (
@@ -422,6 +537,161 @@ function BrightStarContextMetadata({
       <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
         Source: ESA Gaia Archive · processed by Gaia DPAC. Context rows are not searchable Lumina
         catalogue entities.
+      </p>
+    </section>
+  );
+}
+
+function ConstellationContextMetadata({
+  boundaryPaths,
+  contextState,
+  region,
+  membership,
+  showBoundary,
+}: Readonly<{
+  boundaryPaths: ProjectedConstellationBoundary;
+  contextState: ConstellationContextState;
+  membership: TargetMembership | null;
+  region: ConstellationRegion | null;
+  showBoundary: boolean;
+}>) {
+  let status: string;
+  if (contextState.status === "loading") {
+    status = "Loading constellation context…";
+  } else if (contextState.status === "failure" || membership === null || region === null) {
+    status = "Constellation context unavailable.";
+  } else if (!showBoundary) {
+    status = "Constellation boundary is hidden.";
+  } else if (boundaryPaths.length === 0) {
+    status = "No boundary segment is above the geometric horizon at this selected time.";
+  } else {
+    status = "Target constellation boundary shown for the selected observer and instant.";
+  }
+  return (
+    <section
+      aria-labelledby="constellation-context-heading"
+      className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5"
+      data-testid="sky-finder-constellation-metadata"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3
+          className="text-lg font-semibold text-[var(--foreground)]"
+          id="constellation-context-heading"
+        >
+          Constellation region
+        </h3>
+        <span className="text-xs text-[var(--muted)]">Official IAU region</span>
+      </div>
+      {membership !== null && region !== null ? (
+        <>
+          <p
+            className="mt-2 text-xl font-semibold text-[var(--foreground)]"
+            data-testid="sky-finder-target-constellation"
+          >
+            Constellation {region.latinName}
+          </p>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Official abbreviation{" "}
+            <span className="font-mono">{membership.constellationAbbreviation}</span>
+          </p>
+        </>
+      ) : null}
+      <p className="mt-2 text-sm leading-6 text-[var(--foreground)]" role="status">
+        {status}
+      </p>
+      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+        Constellations are official IAU sky regions; the boundary shown is not a stick-figure
+        drawing. The pinned boundary coordinates are J2000.0 equatorial regions transformed to the
+        selected observer and instant.
+      </p>
+      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+        Source: International Astronomical Union. This context uses region geometry only; it does
+        not describe physical proximity or guarantee visibility.
+      </p>
+    </section>
+  );
+}
+
+function NamedAnchorReferenceList({
+  anchors,
+  brightContextStatus,
+  contextState,
+  showAnchors,
+  transformFailed,
+}: Readonly<{
+  anchors: ReadonlyArray<PositionedNamedSkyAnchor>;
+  brightContextStatus: BrightStarContextState["status"];
+  contextState: NamedAnchorContextState;
+  showAnchors: boolean;
+  transformFailed: boolean;
+}>) {
+  const referenceAnchors = anchors.slice(0, NAMED_ANCHOR_LABEL_CAP);
+  const nearest = anchors[0];
+  let status: string;
+  if (!showAnchors) {
+    status = "Named star anchor markers and labels are hidden.";
+  } else if (contextState.status === "loading" || brightContextStatus === "loading") {
+    status = "Loading named sky anchors…";
+  } else if (
+    contextState.status === "failure" ||
+    brightContextStatus === "failure" ||
+    transformFailed ||
+    anchors.length === 0
+  ) {
+    status = "Named star anchors unavailable.";
+  } else {
+    status = `${anchors.length.toLocaleString()} named anchors reuse the pinned Gaia star positions.`;
+  }
+  return (
+    <section
+      aria-labelledby="named-anchor-heading"
+      className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5"
+      data-testid="sky-finder-named-anchor-list"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-lg font-semibold text-[var(--foreground)]" id="named-anchor-heading">
+          Named sky anchors
+        </h3>
+        <span className="text-xs text-[var(--muted)]">Objective geometric context</span>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-[var(--foreground)]" role="status">
+        {status}
+      </p>
+      {nearest !== undefined && showAnchors ? (
+        <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
+          Nearest named sky anchor by angular separation:{" "}
+          <span className="font-semibold">{nearest.iauName}</span> ·{" "}
+          {formatAngularSeparation(nearest.angularSeparationDegrees)}.
+        </p>
+      ) : null}
+      {referenceAnchors.length > 0 ? (
+        <ul aria-label="Named sky anchors at selected time" className="mt-2">
+          {referenceAnchors.map((anchor) => (
+            <li
+              aria-label={`${anchor.iauName}: altitude ${formatAltitude(anchor.position.altitude)}; azimuth ${formatAzimuth(anchor.position)}; angular separation ${formatAngularSeparation(anchor.angularSeparationDegrees)} from target`}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-1 border-b border-[var(--border)] py-3 last:border-b-0"
+              data-testid="sky-finder-named-anchor-row"
+              key={anchor.gaiaSourceId}
+            >
+              <span className="font-medium text-[var(--foreground)]">{anchor.iauName}</span>
+              <span className="font-mono text-sm text-[var(--foreground)]">
+                {formatAltitude(anchor.position.altitude)}
+              </span>
+              <span className="text-xs text-[var(--muted)]">Altitude · geometric</span>
+              <span className="font-mono text-sm text-[var(--muted)]">
+                {formatAzimuth(anchor.position)}
+              </span>
+              <span className="col-span-2 text-xs text-[var(--muted)]">
+                Angular separation from target ·{" "}
+                {formatAngularSeparation(anchor.angularSeparationDegrees)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
+        Proper names: IAU Working Group on Star Names. Positions: ESA Gaia DR3 / Gaia DPAC. Above
+        the geometric horizon is not a naked-eye visibility claim; proper motion is not propagated.
       </p>
     </section>
   );
@@ -606,10 +876,19 @@ function ReferenceList({
 export function SkyFinder({
   plan,
   targetName,
-}: Readonly<{ plan: ObservationPlan; targetName: string }>) {
+  targetSlug,
+}: Readonly<{ plan: ObservationPlan; targetName: string; targetSlug: string }>) {
   const [showReferences, setShowReferences] = useState(true);
   const [showBrightStarContext, setShowBrightStarContext] = useState(true);
+  const [showNamedAnchors, setShowNamedAnchors] = useState(true);
+  const [showConstellationBoundary, setShowConstellationBoundary] = useState(true);
   const [brightStarContext, setBrightStarContext] = useState<BrightStarContextState>({
+    status: "loading",
+  });
+  const [namedAnchorContext, setNamedAnchorContext] = useState<NamedAnchorContextState>({
+    status: "loading",
+  });
+  const [constellationContext, setConstellationContext] = useState<ConstellationContextState>({
     status: "loading",
   });
   const target = useMemo(() => targetForSkyFinder(plan, targetName), [plan, targetName]);
@@ -637,6 +916,34 @@ export function SkyFinder({
       active = false;
     };
   }, []);
+  useEffect(() => {
+    let active = true;
+    void loadNamedAnchorContext().then(
+      (context) => {
+        if (active) setNamedAnchorContext({ status: "ready", context });
+      },
+      () => {
+        if (active) setNamedAnchorContext({ status: "failure" });
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void loadConstellationContext().then(
+      (context) => {
+        if (active) setConstellationContext({ status: "ready", context });
+      },
+      () => {
+        if (active) setConstellationContext({ status: "failure" });
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
   const positionedBrightStars = useMemo(
     () =>
       brightStarContext.status === "ready"
@@ -656,6 +963,54 @@ export function SkyFinder({
     brightStarContext.status === "ready" &&
     brightStarContext.stars.length > 0 &&
     positionedBrightStars.length === 0;
+  const targetConstellationMembership = useMemo(
+    () =>
+      constellationContext.status === "ready"
+        ? resolveTargetConstellation(constellationContext.context, targetSlug, plan.coordinate)
+        : null,
+    [constellationContext, plan.coordinate, targetSlug],
+  );
+  const targetConstellationRegion = useMemo(
+    () =>
+      targetConstellationMembership === null || constellationContext.status !== "ready"
+        ? null
+        : (constellationContext.context.constellations.find(
+            (item) => item.abbreviation === targetConstellationMembership.constellationAbbreviation,
+          ) ?? null),
+    [constellationContext, targetConstellationMembership],
+  );
+  const constellationBoundary = useMemo(
+    () =>
+      targetConstellationRegion === null || constellationContext.status !== "ready"
+        ? []
+        : projectConstellationBoundary(
+            targetConstellationRegion,
+            observerLocation,
+            selectedInstant,
+            SKY_VIEW,
+          ),
+    [constellationContext.status, observerLocation, selectedInstant, targetConstellationRegion],
+  );
+  const namedAnchors = useMemo(
+    () =>
+      namedAnchorContext.status !== "ready" ||
+      brightStarContext.status !== "ready" ||
+      brightStarTransformFailed
+        ? []
+        : positionNamedSkyAnchors(
+            namedAnchorContext.context.rows,
+            positionedBrightStars,
+            target.position,
+          ),
+    [
+      brightStarContext.status,
+      brightStarTransformFailed,
+      namedAnchorContext,
+      positionedBrightStars,
+      target.position,
+    ],
+  );
+  const namedAnchorLabels = useMemo(() => selectNamedAnchorLabels(namedAnchors), [namedAnchors]);
   const references = showReferences ? filterAboveHorizonMarkers(solarSystemMarkers) : [];
   const finderId = useId().replaceAll(":", "");
 
@@ -677,20 +1032,57 @@ export function SkyFinder({
       </div>
       <p className="max-w-3xl text-sm leading-6 text-[var(--muted)]">
         Use the direction card and circular map to orient yourself at the selected local time. The
-        target marker is primary; the Moon, solar-system markers, and pinned Gaia bright stars are
-        context.
+        target marker is primary; named sky anchors, the Moon, solar-system markers, the target
+        constellation region, and pinned Gaia bright stars are context.
       </p>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
         <SkyProjection
           contextStars={
             showBrightStarContext && !brightStarTransformFailed ? brightStarSelection.stars : []
           }
+          constellationBoundary={showConstellationBoundary ? constellationBoundary : []}
           moon={moon}
+          namedAnchorLabels={showNamedAnchors ? namedAnchorLabels : []}
+          namedAnchors={showNamedAnchors ? namedAnchors : []}
           references={references}
           target={target}
         />
         <div className="space-y-4">
           <FinderInstruction target={target} />
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
+            <input
+              aria-describedby={`sky-finder-named-anchor-toggle-help-${finderId}`}
+              checked={showNamedAnchors}
+              className="h-5 w-5 shrink-0 [accent-color:var(--focus)]"
+              onChange={(event) => setShowNamedAnchors(event.target.checked)}
+              type="checkbox"
+            />
+            <span>Show named star anchors</span>
+          </label>
+          <p
+            className="text-xs leading-5 text-[var(--muted)]"
+            id={`sky-finder-named-anchor-toggle-help-${finderId}`}
+          >
+            Official IAU proper names are layered onto their matching Gaia DR3 context stars. The
+            underlying bright-star dots are controlled separately.
+          </p>
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
+            <input
+              aria-describedby={`sky-finder-constellation-toggle-help-${finderId}`}
+              checked={showConstellationBoundary}
+              className="h-5 w-5 shrink-0 [accent-color:var(--focus)]"
+              onChange={(event) => setShowConstellationBoundary(event.target.checked)}
+              type="checkbox"
+            />
+            <span>Show constellation boundary</span>
+          </label>
+          <p
+            className="text-xs leading-5 text-[var(--muted)]"
+            id={`sky-finder-constellation-toggle-help-${finderId}`}
+          >
+            Shows the selected target&apos;s official IAU sky-region boundary, not an artistic
+            constellation drawing.
+          </p>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
               aria-describedby={`sky-finder-star-toggle-help-${finderId}`}
@@ -710,7 +1102,7 @@ export function SkyFinder({
           </p>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
-              aria-describedby={`sky-finder-toggle-help-${finderId}`}
+              aria-describedby={`sky-finder-solar-toggle-help-${finderId}`}
               checked={showReferences}
               className="h-5 w-5 shrink-0 [accent-color:var(--accent)]"
               onChange={(event) => setShowReferences(event.target.checked)}
@@ -720,7 +1112,7 @@ export function SkyFinder({
           </label>
           <p
             className="text-xs leading-5 text-[var(--muted)]"
-            id={`sky-finder-toggle-help-${finderId}`}
+            id={`sky-finder-solar-toggle-help-${finderId}`}
           >
             Sun, Mercury, Venus, Mars, Jupiter, and Saturn are shown only when above the geometric
             horizon. Above the horizon does not mean visible.
@@ -731,6 +1123,20 @@ export function SkyFinder({
         contextState={brightStarContext}
         selection={brightStarSelection}
         showContext={showBrightStarContext}
+        transformFailed={brightStarTransformFailed}
+      />
+      <ConstellationContextMetadata
+        boundaryPaths={constellationBoundary}
+        contextState={constellationContext}
+        membership={targetConstellationMembership}
+        region={targetConstellationRegion}
+        showBoundary={showConstellationBoundary}
+      />
+      <NamedAnchorReferenceList
+        anchors={namedAnchors}
+        brightContextStatus={brightStarContext.status}
+        contextState={namedAnchorContext}
+        showAnchors={showNamedAnchors}
         transformFailed={brightStarTransformFailed}
       />
       <ReferenceList

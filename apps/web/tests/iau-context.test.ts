@@ -217,7 +217,7 @@ describe("IAU context loaders and target membership", () => {
           name: "Gaia DR3 astrometry",
           release_version: "dr3",
         },
-        source_record_id: `gaia-source-record-${membership.gaiaSourceId}`,
+        source_record_id: "90000000-0000-5000-8000-531814692736",
       },
     };
 

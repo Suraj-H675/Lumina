@@ -24,22 +24,23 @@ test("empty planner explains how to choose a target", async ({ page }) => {
 test("bright-star artifact stays lazy until a finder has target, location, and time", async ({
   page,
 }) => {
-  let starArtifactRequests = 0;
+  const contextRequests = { bright: 0, named: 0, constellation: 0 };
   page.on("request", (request) => {
-    if (new URL(request.url()).pathname === "/data/gaia-dr3-bright-sky-context-v1.csv") {
-      starArtifactRequests += 1;
-    }
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/data/gaia-dr3-bright-sky-context-v1.csv") contextRequests.bright += 1;
+    if (pathname === "/data/iau-named-gaia-bright-anchors-v1.json") contextRequests.named += 1;
+    if (pathname === "/data/iau-constellation-context-v1.json") contextRequests.constellation += 1;
   });
 
   await page.goto("/");
   await page.goto("/explore");
   await page.goto("/observe");
   await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
-  expect(starArtifactRequests).toBe(0);
+  expect(contextRequests).toEqual({ bright: 0, named: 0, constellation: 0 });
 
   await fillManualLocation(page);
   await expect(page.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
-  expect(starArtifactRequests).toBe(1);
+  expect(contextRequests).toEqual({ bright: 1, named: 1, constellation: 1 });
 });
 
 test("object page opens the selected target in the observation planner", async ({ page }) => {
@@ -90,6 +91,34 @@ test("sky finder gives selected-time direction guidance and reference context", 
   expect(starArtifactRequests).toBe(1);
 });
 
+test("sky finder adds official named anchors and the target constellation region", async ({
+  page,
+}) => {
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("12:00");
+
+  const finder = page
+    .getByRole("heading", { name: "Sky Finder" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(finder.getByRole("heading", { name: "Constellation region" })).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-target-constellation")).toHaveText(
+    "Constellation Leo",
+  );
+  await expect(finder.getByText(/Official abbreviation/)).toContainText("Leo");
+  await expect(finder.getByText(/not a stick-figure drawing/i)).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-named-anchor-layer")).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-constellation-boundary")).toBeVisible();
+  await expect(finder.getByText(/Nearest named sky anchor by angular separation/i)).toBeVisible();
+  const namedRows = finder.getByTestId("sky-finder-named-anchor-row");
+  expect(await namedRows.count()).toBeGreaterThan(0);
+  expect(await namedRows.count()).toBeLessThanOrEqual(12);
+  await expect(finder.getByRole("checkbox", { name: /show named star anchors/i })).toBeChecked();
+  await expect(
+    finder.getByRole("checkbox", { name: /show constellation boundary/i }),
+  ).toBeChecked();
+});
+
 test("bright-star context toggles truthfully while target and Moon remain", async ({ page }) => {
   await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
   await fillManualLocation(page);
@@ -108,6 +137,44 @@ test("bright-star context toggles truthfully while target and Moon remain", asyn
 
   await toggle.check();
   await expect(finder.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+});
+
+test("named, constellation, bright-star, and solar layers toggle independently", async ({
+  page,
+}) => {
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("12:00");
+  const finder = page
+    .getByRole("heading", { name: "Sky Finder" })
+    .locator("xpath=ancestor::section[1]");
+  const brightToggle = finder.getByRole("checkbox", { name: /show bright-star context/i });
+  const namedToggle = finder.getByRole("checkbox", { name: /show named star anchors/i });
+  const boundaryToggle = finder.getByRole("checkbox", { name: /show constellation boundary/i });
+  const solarToggle = finder.getByRole("checkbox", { name: /show solar-system markers/i });
+
+  await expect(finder.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-named-anchor-layer")).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-constellation-boundary")).toBeVisible();
+
+  await brightToggle.uncheck();
+  await expect(finder.getByTestId("sky-finder-bright-star-layer")).not.toBeAttached();
+  await expect(finder.getByTestId("sky-finder-named-anchor-layer")).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-target-marker")).toBeVisible();
+
+  await namedToggle.uncheck();
+  await expect(finder.getByTestId("sky-finder-named-anchor-layer")).not.toBeAttached();
+  await expect(finder.getByText(/markers and labels are hidden/i)).toBeVisible();
+  await brightToggle.check();
+  await expect(finder.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+
+  await boundaryToggle.uncheck();
+  await expect(finder.getByTestId("sky-finder-constellation-boundary")).not.toBeAttached();
+  await expect(finder.getByTestId("sky-finder-target-constellation")).toHaveText(
+    "Constellation Leo",
+  );
+  await expect(finder.getByText("Constellation boundary is hidden.")).toBeVisible();
+  await expect(solarToggle).toBeChecked();
 });
 
 test("selected time rotates context without reloading the artifact", async ({ page }) => {
@@ -150,6 +217,86 @@ test("selected time rotates context without reloading the artifact", async ({ pa
   expect(starArtifactRequests).toBe(1);
 });
 
+test("selected time rotates named anchors and boundary without refetching immutable assets", async ({
+  page,
+}) => {
+  const contextRequests = { named: 0, constellation: 0 };
+  page.on("request", (request) => {
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/data/iau-named-gaia-bright-anchors-v1.json") contextRequests.named += 1;
+    if (pathname === "/data/iau-constellation-context-v1.json") contextRequests.constellation += 1;
+  });
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("12:00");
+  const finder = page
+    .getByRole("heading", { name: "Sky Finder" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(finder.getByTestId("sky-finder-named-anchor-marker").first()).toBeVisible();
+  await expect(finder.getByTestId("sky-finder-constellation-boundary")).toBeVisible();
+  const namedPosition = async () =>
+    finder
+      .getByTestId("sky-finder-named-anchor-marker")
+      .first()
+      .evaluate((marker) => `${marker.getAttribute("cx")},${marker.getAttribute("cy")}`);
+  const boundaryPath = async () =>
+    finder
+      .getByTestId("sky-finder-constellation-boundary")
+      .locator("path")
+      .first()
+      .getAttribute("d");
+  const before = await namedPosition();
+  const boundaryBefore = await boundaryPath();
+  await page.getByLabel("Selected local time").fill("13:00");
+  await expect.poll(async () => (await namedPosition()) !== before).toBe(true);
+  await expect.poll(async () => (await boundaryPath()) !== boundaryBefore).toBe(true);
+  await expect(finder.getByTestId("sky-finder-target-constellation")).toHaveText(
+    "Constellation Leo",
+  );
+  expect(contextRequests).toEqual({ named: 1, constellation: 1 });
+});
+
+test("location changes rotate named anchors and boundary without refetching immutable assets", async ({
+  page,
+}) => {
+  const contextRequests = { named: 0, constellation: 0 };
+  page.on("request", (request) => {
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/data/iau-named-gaia-bright-anchors-v1.json") contextRequests.named += 1;
+    if (pathname === "/data/iau-constellation-context-v1.json") contextRequests.constellation += 1;
+  });
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByLabel("Selected local time").fill("12:00");
+  const finder = page
+    .getByRole("heading", { name: "Sky Finder" })
+    .locator("xpath=ancestor::section[1]");
+  await expect(finder.getByTestId("sky-finder-named-anchor-marker").first()).toBeVisible();
+  const namedPosition = async () =>
+    finder
+      .getByTestId("sky-finder-named-anchor-marker")
+      .first()
+      .evaluate((marker) => `${marker.getAttribute("cx")},${marker.getAttribute("cy")}`);
+  const before = await namedPosition();
+  await expect(finder.getByTestId("sky-finder-constellation-boundary")).toBeVisible();
+  const boundaryPath = async () =>
+    finder
+      .getByTestId("sky-finder-constellation-boundary")
+      .locator("path")
+      .first()
+      .getAttribute("d");
+  const boundaryBefore = await boundaryPath();
+  await page.getByLabel("Latitude").fill("-33.8688");
+  await page.getByLabel("Longitude").fill("151.2093");
+  await page.getByRole("button", { name: /calculate with these coordinates/i }).click();
+  await expect.poll(async () => (await namedPosition()) !== before).toBe(true);
+  await expect.poll(async () => (await boundaryPath()) !== boundaryBefore).toBe(true);
+  await expect(finder.getByTestId("sky-finder-target-constellation")).toHaveText(
+    "Constellation Leo",
+  );
+  expect(contextRequests).toEqual({ named: 1, constellation: 1 });
+});
+
 test("sky finder keeps a below-horizon target outside the visible sky", async ({ page }) => {
   await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
   await fillManualLocation(page);
@@ -178,11 +325,12 @@ test("sky finder keeps a below-horizon target outside the visible sky", async ({
 });
 
 test("target changes reuse the all-sky context request", async ({ page }) => {
-  let starArtifactRequests = 0;
+  const contextRequests = { bright: 0, named: 0, constellation: 0 };
   page.on("request", (request) => {
-    if (new URL(request.url()).pathname === "/data/gaia-dr3-bright-sky-context-v1.csv") {
-      starArtifactRequests += 1;
-    }
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/data/gaia-dr3-bright-sky-context-v1.csv") contextRequests.bright += 1;
+    if (pathname === "/data/iau-named-gaia-bright-anchors-v1.json") contextRequests.named += 1;
+    if (pathname === "/data/iau-constellation-context-v1.json") contextRequests.constellation += 1;
   });
   await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
   await fillManualLocation(page);
@@ -195,12 +343,41 @@ test("target changes reuse the all-sky context request", async ({ page }) => {
   await expect(page).toHaveURL(/\/observe\?object=kepler-452/);
   await expect(page.getByRole("heading", { level: 1, name: "Kepler-452" })).toBeVisible();
   await expect(page.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-constellation")).toHaveText(
+    "Constellation Cygnus",
+  );
+  await expect(page.getByText(/Official abbreviation/)).toContainText("Cyg");
+  await expect(page.getByTestId("sky-finder-named-anchor-layer")).toBeVisible();
   await expect(
     page.locator(
       '[data-testid="sky-finder-target-marker"], [data-testid="sky-finder-target-below"]',
     ),
   ).toBeVisible();
-  expect(starArtifactRequests).toBe(1);
+  expect(contextRequests).toEqual({ bright: 1, named: 1, constellation: 1 });
+});
+
+test("named-anchor failure leaves the real star field and target usable", async ({ page }) => {
+  await page.route("**/data/iau-named-gaia-bright-anchors-v1.json", (route) => route.abort());
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+
+  await expect(page.getByText("Named star anchors unavailable.")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-guidance")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-constellation")).toHaveText("Constellation Leo");
+});
+
+test("constellation failure leaves named anchors and the real star field usable", async ({
+  page,
+}) => {
+  await page.route("**/data/iau-constellation-context-v1.json", (route) => route.abort());
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+
+  await expect(page.getByText("Constellation context unavailable.")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-named-anchor-layer")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-guidance")).toBeVisible();
 });
 
 test("planner target search uses B3 suggestions and keyboard selection", async ({ page }) => {
@@ -279,6 +456,9 @@ test("planner remains readable at 390px without horizontal overflow", async ({ p
   expect(skyMapBox?.width ?? 0).toBeLessThanOrEqual(390);
   await expect(page.getByRole("heading", { name: "Sky Finder" })).toBeVisible();
   await expect(page.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-named-anchor-layer")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-constellation")).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /show constellation boundary/i })).toBeVisible();
   await expect(page.getByText(/Gaia DR3 · G ≤ 5.5/i)).toBeVisible();
   await expect(page.getByText("Face", { exact: true })).toBeVisible();
   const chart = page
@@ -304,6 +484,8 @@ test("conditions remain readable at 320px", async ({ page }) => {
   await expect(page.getByTestId("sky-finder-map")).toBeVisible();
   await expect(page.getByTestId("sky-finder-bright-star-layer")).toBeVisible();
   await expect(page.getByTestId("sky-finder-target-below")).toBeVisible();
+  await expect(page.getByTestId("sky-finder-target-constellation")).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /show named star anchors/i })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

@@ -329,8 +329,15 @@ function PlannerResults({
   nightDate,
   plan,
   targetName,
+  targetSlug,
   timeZone,
-}: Readonly<{ nightDate: string; plan: ObservationPlan; targetName: string; timeZone: string }>) {
+}: Readonly<{
+  nightDate: string;
+  plan: ObservationPlan;
+  targetName: string;
+  targetSlug: string;
+  timeZone: string;
+}>) {
   const highest = plan.maxDuringDarkness;
   return (
     <section aria-labelledby="planner-results-heading" className="space-y-8">
@@ -404,7 +411,7 @@ function PlannerResults({
         </dl>
       </div>
 
-      <SkyFinder plan={plan} targetName={targetName} />
+      <SkyFinder plan={plan} targetName={targetName} targetSlug={targetSlug} />
       <AltitudeChart plan={plan} timeZone={timeZone} />
       <ObservationConditions nightDate={nightDate} plan={plan} timeZone={timeZone} />
       <CoordinateSource plan={plan} />
@@ -788,6 +795,7 @@ export function ObservationPlanner({
             <PlannerResults
               plan={plan}
               targetName={targetTitle}
+              targetSlug={slug ?? ""}
               timeZone={timeZone}
               nightDate={activeNightDate}
             />

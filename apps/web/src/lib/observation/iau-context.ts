@@ -647,16 +647,11 @@ export function resolveTargetConstellation(
 ): TargetMembership | null {
   const membership = context.targetMemberships.find((item) => item.targetSlug === targetSlug);
   if (membership === undefined) return null;
-  const sourceIdMatch = /^gaia-source-record-([1-9][0-9]*)$/u.exec(
-    coordinate.source.source_record_id,
-  );
   if (
-    sourceIdMatch === null ||
     coordinate.epoch !== 2016 ||
     coordinate.source.provider.code !== "esa-gaia" ||
     coordinate.source.dataset.code !== "gaia-source-astrometry" ||
     coordinate.source.dataset.release_version !== "dr3" ||
-    sourceIdMatch[1] !== membership.gaiaSourceId ||
     coordinate.rightAscensionDegrees !== membership.rightAscensionDegrees ||
     coordinate.declinationDegrees !== membership.declinationDegrees
   ) {

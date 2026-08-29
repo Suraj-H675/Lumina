@@ -30,6 +30,7 @@ export function SiteNav() {
             <li key={item.href}>
               <Link
                 aria-current={active ? "page" : undefined}
+                aria-label={item.href === "/observe" ? "Observation planner" : undefined}
                 className={
                   active
                     ? "inline-flex min-h-11 items-center rounded-sm px-1.5 text-sm font-semibold text-[var(--accent)] underline decoration-[var(--accent)] decoration-2 underline-offset-8 sm:px-3"

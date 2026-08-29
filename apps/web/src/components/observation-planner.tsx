@@ -25,6 +25,7 @@ import {
   isValidNightDate,
   localDateString,
   localInstantForNightTime,
+  observerGeolocationErrorMessage,
   parseObserverLocationInputs,
   type NightEvent,
   type ObservationPlan,
@@ -113,13 +114,6 @@ function formatTargetEvent(event: TargetEvent, timeZone: string): string {
 
 function roundedLocationValue(value: number): string {
   return value.toFixed(3);
-}
-
-function errorMessageForGeolocation(code: number): string {
-  if (code === 1) return "Location permission was denied. You can enter coordinates manually.";
-  if (code === 2) return "Your browser could not determine a location. Try manual coordinates.";
-  if (code === 3) return "Location lookup timed out. Try again or enter coordinates manually.";
-  return "Location lookup was unavailable. Enter coordinates manually instead.";
 }
 
 function eventTimeOrFallback(event: NightEvent, timeZone: string): string {
@@ -508,7 +502,7 @@ export function ObservationPlanner({
         setGeoBusy(false);
       },
       (error) => {
-        setLocationError(errorMessageForGeolocation(error.code));
+        setLocationError(observerGeolocationErrorMessage(error.code));
         setGeoBusy(false);
       },
       { enableHighAccuracy: false, maximumAge: 0, timeout: 10_000 },

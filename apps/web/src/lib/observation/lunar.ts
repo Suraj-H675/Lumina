@@ -14,13 +14,15 @@ const DEGREES_TO_RADIANS = Math.PI / 180;
 
 export type LunarConditions = Readonly<{
   minimumSeparationDuringDarkness: number | null;
-  selected: Readonly<{
-    illuminationFraction: number;
-    phaseAngle: number;
-    phaseLabel: LunarPhaseLabel;
-    position: HorizontalPosition;
-    targetSeparationDegrees: number;
-  }>;
+  selected: LunarInstantConditions;
+}>;
+
+export type LunarInstantConditions = Readonly<{
+  illuminationFraction: number;
+  phaseAngle: number;
+  phaseLabel: LunarPhaseLabel;
+  position: HorizontalPosition;
+  targetSeparationDegrees: number;
 }>;
 
 export type LunarPhaseLabel =
@@ -162,22 +164,20 @@ export function minimumTargetMoonSeparationDuringDarkness(
   return separations.length === 0 ? null : Math.min(...separations);
 }
 
-/** Calculates selected-time and darkness-window lunar conditions. */
-export function computeLunarConditions(
+/** Calculates factual topocentric lunar context at one target instant. */
+export function computeLunarConditionsAtInstant(
   coordinate: CoordinatePair,
   location: ObserverLocation,
-  selectedInstant: Date,
-  darkness: Readonly<{ end: Date; start: Date }> | null,
-  samples: ReadonlyArray<AltitudeSample>,
-): LunarConditions | null {
-  if (!Number.isFinite(selectedInstant.getTime())) return null;
-  const position = calculateMoonHorizontalPosition(location, selectedInstant);
-  const targetSeparation = targetMoonSeparation(coordinate, location, selectedInstant);
+  instant: Date,
+): LunarInstantConditions | null {
+  if (!Number.isFinite(instant.getTime())) return null;
+  const position = calculateMoonHorizontalPosition(location, instant);
+  const targetSeparation = targetMoonSeparation(coordinate, location, instant);
   if (position === null || targetSeparation === null) return null;
 
   try {
-    const illumination = Astronomy.Illumination(Astronomy.Body.Moon, selectedInstant);
-    const phaseAngle = Astronomy.MoonPhase(selectedInstant);
+    const illumination = Astronomy.Illumination(Astronomy.Body.Moon, instant);
+    const phaseAngle = Astronomy.MoonPhase(instant);
     const phaseLabel = moonPhaseLabel(phaseAngle);
     if (
       !Number.isFinite(illumination.phase_fraction) ||
@@ -189,21 +189,34 @@ export function computeLunarConditions(
       return null;
     }
     return {
-      minimumSeparationDuringDarkness: minimumTargetMoonSeparationDuringDarkness(
-        coordinate,
-        location,
-        darkness,
-        samples,
-      ),
-      selected: {
-        illuminationFraction: illumination.phase_fraction,
-        phaseAngle: normalizeDegrees(phaseAngle),
-        phaseLabel,
-        position,
-        targetSeparationDegrees: targetSeparation,
-      },
+      illuminationFraction: illumination.phase_fraction,
+      phaseAngle: normalizeDegrees(phaseAngle),
+      phaseLabel,
+      position,
+      targetSeparationDegrees: targetSeparation,
     };
   } catch {
     return null;
   }
+}
+
+/** Calculates selected-time and darkness-window lunar conditions. */
+export function computeLunarConditions(
+  coordinate: CoordinatePair,
+  location: ObserverLocation,
+  selectedInstant: Date,
+  darkness: Readonly<{ end: Date; start: Date }> | null,
+  samples: ReadonlyArray<AltitudeSample>,
+): LunarConditions | null {
+  const selected = computeLunarConditionsAtInstant(coordinate, location, selectedInstant);
+  if (selected === null) return null;
+  return {
+    minimumSeparationDuringDarkness: minimumTargetMoonSeparationDuringDarkness(
+      coordinate,
+      location,
+      darkness,
+      samples,
+    ),
+    selected,
+  };
 }

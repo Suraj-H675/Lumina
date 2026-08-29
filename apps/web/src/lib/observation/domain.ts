@@ -154,6 +154,14 @@ export function parseObserverLocationInputs(
   return validateObserverLocation({ latitude: parsedLatitude, longitude: parsedLongitude });
 }
 
+/** Keeps browser geolocation failures mapped to the accepted planner copy. */
+export function observerGeolocationErrorMessage(code: number): string {
+  if (code === 1) return "Location permission was denied. You can enter coordinates manually.";
+  if (code === 2) return "Your browser could not determine a location. Try manual coordinates.";
+  if (code === 3) return "Location lookup timed out. Try again or enter coordinates manually.";
+  return "Location lookup was unavailable. Enter coordinates manually instead.";
+}
+
 /** Returns the stable local source identity used when pairing RA with Dec. */
 function sourceKey(source: CatalogueSourceReference): string {
   return [
@@ -356,6 +364,26 @@ function calculateNightBoundaries(
     sunrise: sunrise === null ? { kind: "unavailable" } : { instant: sunrise, kind: "time" },
     sunset: sunset === null ? { kind: "unavailable" } : { instant: sunset, kind: "time" },
   };
+}
+
+/** Calculates the shared solar boundaries for a validated selected night. */
+export function computeNightBoundaries(
+  location: ObserverLocation,
+  nightDate: string,
+): NightBoundaries | null {
+  if (!isValidNightDate(nightDate)) return null;
+  const validatedLocation = validateObserverLocation(location);
+  if (validatedLocation === null) return null;
+  try {
+    const observer = new Astronomy.Observer(
+      validatedLocation.latitude,
+      validatedLocation.longitude,
+      0,
+    );
+    return calculateNightBoundaries(nightDate, observer);
+  } catch {
+    return null;
+  }
 }
 
 function defineStar(coordinate: CoordinatePair): void {

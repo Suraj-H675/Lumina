@@ -15,6 +15,7 @@ export type ApiTransportResult<T> =
 
 export type TransportOptions = Readonly<{
   fetchImplementation?: typeof fetch;
+  signal?: AbortSignal;
   timeoutMs?: number;
 }>;
 
@@ -129,6 +130,11 @@ export async function requestEndpoint<T>(
 
   const controller = new AbortController();
   const timeoutState = { expired: false };
+  const abortExternal = () => {
+    controller.abort();
+  };
+  options.signal?.addEventListener("abort", abortExternal, { once: true });
+  if (options.signal?.aborted) controller.abort();
   const timer = setTimeout(() => {
     timeoutState.expired = true;
     controller.abort();
@@ -176,5 +182,6 @@ export async function requestEndpoint<T>(
     }
   } finally {
     clearTimeout(timer);
+    options.signal?.removeEventListener("abort", abortExternal);
   }
 }

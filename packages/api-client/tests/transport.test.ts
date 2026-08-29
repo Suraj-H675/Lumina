@@ -168,6 +168,35 @@ describe("bounded native-fetch transport", () => {
     await expect(result).resolves.toEqual({ kind: "unavailable", reason: "timeout" });
   });
 
+  it("propagates an external abort signal to the bounded fetch", async () => {
+    const external = new AbortController();
+    const fetchImplementation = vi.fn<typeof fetch>().mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          if (init?.signal?.aborted) {
+            reject(new DOMException("aborted", "AbortError"));
+            return;
+          }
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              reject(new DOMException("aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        }),
+    );
+
+    const result = requestEndpoint("http://127.0.0.1:8000", liveEndpoint, {
+      fetchImplementation,
+      signal: external.signal,
+    });
+    external.abort();
+
+    await expect(result).resolves.toEqual({ kind: "unavailable", reason: "transport" });
+    expect(fetchImplementation).toHaveBeenCalledOnce();
+  });
+
   it("classifies transport failure without leaking errors or origins", async () => {
     const origin = "http://private-internal.example.test:8123";
     const sentinel = "PRIVATE-DIAGNOSTIC-SENTINEL";

@@ -256,4 +256,21 @@ describe("Tonight domain", () => {
     expect(tonight?.moon?.targetSeparationDegrees).toBeGreaterThanOrEqual(0);
     expect(tonight?.moon?.targetSeparationDegrees).toBeLessThanOrEqual(180);
   });
+
+  it("handles the accepted one-hundred-target analysis bound deterministically", () => {
+    const targets = Array.from({ length: 100 }, (_, index) => {
+      const slug = `target-${String(index).padStart(3, "0")}`;
+      const target = identity(slug, `Target ${String(index).padStart(3, "0")}`);
+      return loaded(target);
+    });
+
+    const result = analyzeTonightCollection(targets, LOCATION, NIGHT);
+    const analyzed = [...(result?.aboveHorizon ?? []), ...(result?.belowHorizon ?? [])];
+
+    expect(result?.summary.savedTargetCount).toBe(100);
+    expect(result?.summary.scientificallyAnalyzedCount).toBe(100);
+    expect(sortTonightTargets(analyzed, "name").map((target) => target.item.slug)).toEqual(
+      targets.map((target) => target.item.slug),
+    );
+  });
 });

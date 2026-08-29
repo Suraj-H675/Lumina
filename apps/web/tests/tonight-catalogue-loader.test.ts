@@ -49,7 +49,7 @@ afterEach(() => {
 
 describe("Tonight catalogue detail loader", () => {
   it("keeps target requests bounded at six concurrent object loads", async () => {
-    const items = Array.from({ length: 10 }, (_, index) => identity(`target-${index}`));
+    const items = Array.from({ length: 100 }, (_, index) => identity(`target-${index}`));
     let active = 0;
     let maximumActive = 0;
     const fetchImplementation = vi.fn<typeof fetch>().mockImplementation(async (input) => {
@@ -74,7 +74,7 @@ describe("Tonight catalogue detail loader", () => {
       origin: ORIGIN,
     });
 
-    expect(results).toHaveLength(10);
+    expect(results).toHaveLength(100);
     expect(results.every((result) => result.kind === "ok")).toBe(true);
     expect(maximumActive).toBeLessThanOrEqual(6);
   });

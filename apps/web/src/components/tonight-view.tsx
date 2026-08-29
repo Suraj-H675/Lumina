@@ -45,6 +45,17 @@ import {
   TonightCatalogueLoadAborted,
 } from "../lib/tonight/catalogue-loader";
 import {
+  WEATHER_PROVIDER_LICENSE_URL,
+  WEATHER_PROVIDER_NAME,
+  WEATHER_PROVIDER_URL,
+  nearestWeatherHour,
+  type WeatherForecast,
+} from "../lib/weather/domain";
+import {
+  useObservationWeather,
+  type ObservationWeatherState,
+} from "../lib/weather/use-observation-weather";
+import {
   CollectionLoadingNote,
   CorruptedStoragePanel,
   StorageUnavailableNote,
@@ -116,6 +127,20 @@ function formatAltitude(altitude: number): string {
 
 function formatAzimuth(azimuth: number, compass: string): string {
   return `${azimuth.toFixed(1)}° · ${compass}`;
+}
+
+function formatWeatherPercent(value: number | null): string {
+  return value === null ? "Unavailable" : `${Math.round(value)}%`;
+}
+
+function formatWeatherVisibility(meters: number | null): string {
+  if (meters === null) return "Unavailable";
+  const kilometres = meters / 1_000;
+  return `${kilometres >= 10 ? kilometres.toFixed(0) : kilometres.toFixed(1)} km`;
+}
+
+function formatWeatherWind(value: number | null): string {
+  return value === null ? "Unavailable" : `${Math.round(value)} km/h`;
 }
 
 function formatNightEvent(event: NightEvent, timeZone: string): string {
@@ -587,11 +612,70 @@ function MoonLine({ target }: Readonly<{ target: TonightAnalysis["aboveHorizon"]
   );
 }
 
+function WeatherLine({
+  forecast,
+  target,
+  timeZone,
+}: Readonly<{
+  forecast: WeatherForecast;
+  target: TonightAnalysis["aboveHorizon"][number];
+  timeZone: string;
+}>) {
+  const hour = nearestWeatherHour(forecast.hours, target.peak.instant);
+  if (hour === null) {
+    return (
+      <p className="text-sm text-[var(--muted)]">Forecast context unavailable for this peak.</p>
+    );
+  }
+  return (
+    <div className="space-y-2" data-testid="tonight-weather-facts">
+      <p className="text-sm leading-6 text-[var(--muted)]">
+        Forecast near peak ({formatTime(hour.instant, timeZone)}):{" "}
+        {formatWeatherPercent(hour.cloudCover)} total cloud cover ·{" "}
+        {formatWeatherPercent(hour.precipitationProbability)} precipitation probability
+      </p>
+      <details className="rounded-md border border-[var(--border)] px-3 py-2">
+        <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-[var(--foreground)]">
+          More forecast facts
+        </summary>
+        <dl className="grid gap-3 pb-2 pt-2 sm:grid-cols-3">
+          <div>
+            <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
+              Meteorological visibility
+            </dt>
+            <dd className="mt-1 text-sm text-[var(--foreground)]">
+              {formatWeatherVisibility(hour.visibilityMeters)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
+              Relative humidity
+            </dt>
+            <dd className="mt-1 text-sm text-[var(--foreground)]">
+              {formatWeatherPercent(hour.relativeHumidity)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
+              Wind at 10 m
+            </dt>
+            <dd className="mt-1 text-sm text-[var(--foreground)]">
+              {formatWeatherWind(hour.windSpeedKmh)}
+            </dd>
+          </div>
+        </dl>
+      </details>
+    </div>
+  );
+}
+
 function TargetRow({
+  forecast,
   nightDate,
   target,
   timeZone,
 }: Readonly<{
+  forecast?: WeatherForecast;
   nightDate: string;
   target: TonightAnalysis["aboveHorizon"][number];
   timeZone: string;
@@ -627,6 +711,9 @@ function TargetRow({
             Azimuth at peak: {formatAzimuth(target.peak.azimuth, target.peak.compass)}
           </p>
           <MoonLine target={target} />
+          {forecast !== undefined ? (
+            <WeatherLine forecast={forecast} target={target} timeZone={timeZone} />
+          ) : null}
           <EventDetails target={target} timeZone={timeZone} />
         </div>
         <Link
@@ -641,6 +728,7 @@ function TargetRow({
 }
 
 function TargetList({
+  forecast,
   nightDate,
   targets,
   timeZone,
@@ -649,6 +737,7 @@ function TargetList({
   secondary = false,
 }: Readonly<{
   description: string;
+  forecast?: WeatherForecast;
   nightDate: string;
   secondary?: boolean;
   targets: ReadonlyArray<TonightAnalysis["aboveHorizon"][number]>;
@@ -675,6 +764,7 @@ function TargetList({
       >
         {targets.map((target) => (
           <TargetRow
+            {...(forecast === undefined ? {} : { forecast })}
             key={target.item.slug}
             nightDate={nightDate}
             target={target}
@@ -787,9 +877,130 @@ function NoDarknessTargets({
   );
 }
 
+function formatRetrievedAt(instant: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone,
+  }).format(instant);
+}
+
+function TonightWeatherAttribution({
+  consented,
+  fetchedAt,
+  timeZone,
+}: Readonly<{ consented: boolean; fetchedAt: Date | undefined; timeZone: string }>) {
+  return (
+    <div className="space-y-2 text-xs leading-5 text-[var(--muted)]">
+      {consented ? (
+        <p>
+          Weather requests use coordinates rounded to 2 decimal places and are sent directly from
+          your browser to Open-Meteo. Lumina does not store observer location.
+        </p>
+      ) : null}
+      <p>
+        Forecast provider: {WEATHER_PROVIDER_NAME}.
+        {fetchedAt !== undefined ? ` Retrieved ${formatRetrievedAt(fetchedAt, timeZone)}.` : ""}{" "}
+        Data are forecasts, not measurements.{" "}
+        <a
+          className="font-medium text-[var(--link)] underline decoration-[var(--border-strong)] underline-offset-2 hover:text-[var(--foreground)]"
+          href={WEATHER_PROVIDER_URL}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Weather data by Open-Meteo
+        </a>{" "}
+        ·{" "}
+        <a
+          className="text-[var(--link)] underline underline-offset-2"
+          href={WEATHER_PROVIDER_LICENSE_URL}
+          rel="noreferrer"
+          target="_blank"
+        >
+          CC BY 4.0 licence
+        </a>
+      </p>
+    </div>
+  );
+}
+
+function TonightWeatherPanel({
+  weather,
+  timeZone,
+}: Readonly<{ timeZone: string; weather: ObservationWeatherState }>) {
+  const consented = weather.status !== "idle";
+  return (
+    <section aria-labelledby="tonight-weather-heading" className="space-y-4">
+      <div>
+        <h3 className="text-xl font-semibold" id="tonight-weather-heading">
+          Optional weather context
+        </h3>
+        <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+          Weather is a separate hourly forecast for this observer location. It provides factual
+          context at each primary target&apos;s peak time; it does not change the geometric order
+          and is not a measure of sky quality.
+        </p>
+      </div>
+      {weather.availability !== "allowed" ? (
+        <p className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]">
+          Weather forecast unavailable for this date. Past dates and dates beyond the
+          provider&apos;s forecast horizon are not replaced with historical data.
+        </p>
+      ) : weather.status === "idle" ? (
+        <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
+          <p className="text-sm leading-6 text-[var(--muted)]">
+            Loading weather sends one forecast request with a location rounded to 2 decimal places
+            directly to Open-Meteo. You choose whether to make this separate provider request.
+          </p>
+          <button className={`${PRIMARY_BUTTON_CLASS} mt-4`} onClick={weather.enable} type="button">
+            Load weather forecast
+          </button>
+        </div>
+      ) : weather.status === "loading" ? (
+        <p
+          aria-live="polite"
+          className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]"
+          role="status"
+        >
+          Loading weather forecast…
+        </p>
+      ) : weather.status === "unavailable" ? (
+        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4">
+          <p className="text-sm text-[var(--muted)]" role="alert">
+            Could not load the weather forecast. Geometry, Moon context, and factual ordering remain
+            available.
+          </p>
+          <button
+            className={`${SECONDARY_BUTTON_CLASS} mt-3`}
+            onClick={weather.retry}
+            type="button"
+          >
+            Retry forecast
+          </button>
+        </div>
+      ) : weather.forecast !== undefined ? (
+        <p
+          aria-live="polite"
+          className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]"
+          role="status"
+        >
+          Forecast context loaded for the selected night. Primary target rows show the nearest UTC
+          forecast hour at each sampled peak; the default geometric order is unchanged.
+        </p>
+      ) : null}
+      <TonightWeatherAttribution
+        consented={consented}
+        fetchedAt={weather.forecast?.fetchedAt}
+        timeZone={timeZone}
+      />
+    </section>
+  );
+}
+
 function AnalysisResults({
   analysis,
   detailLoad,
+  location,
   nightDate,
   onRetry,
   sort,
@@ -797,11 +1008,13 @@ function AnalysisResults({
 }: Readonly<{
   analysis: TonightAnalysis | null;
   detailLoad: DetailLoadState;
+  location: ObserverLocation;
   nightDate: string;
   onRetry: () => void;
   sort: TonightSort;
   timeZone: string;
 }>) {
+  const weather = useObservationWeather({ location, nightDate });
   if (detailLoad.status === "loading") {
     return (
       <p
@@ -857,9 +1070,11 @@ function AnalysisResults({
           observability score. Ties use peak instant, then canonical name.
         </p>
       ) : null}
+      <TonightWeatherPanel timeZone={timeZone} weather={weather} />
       {analysis.night.astronomicalDarkness !== null && primary.length > 0 ? (
         <TargetList
           description="A target is in this section when its sampled maximum during astronomical darkness is above 0° geometric altitude."
+          {...(weather.forecast === undefined ? {} : { forecast: weather.forecast })}
           nightDate={nightDate}
           targets={primary}
           timeZone={timeZone}
@@ -1145,6 +1360,7 @@ export function TonightView({ apiOrigin, initialDate }: TonightViewProps) {
                 analysis={analysis}
                 detailLoad={detailLoad}
                 nightDate={activeNightDate}
+                location={location}
                 onRetry={() => setRetryToken((token) => token + 1)}
                 sort={sort}
                 timeZone={timeZone}

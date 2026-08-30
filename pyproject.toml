@@ -30,6 +30,14 @@ line-length = 100
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "SIM", "UP"]
 
+[tool.ruff.format]
+exclude = [
+    "migrations/versions/9c7e4a1d2f6b_seed_messier_catalogue.py",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"migrations/versions/9c7e4a1d2f6b_seed_messier_catalogue.py" = ["E501"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

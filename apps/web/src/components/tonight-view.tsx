@@ -24,10 +24,12 @@ import {
   observerGeolocationErrorMessage,
   parseObserverLocationInputs,
   computeNightBoundaries,
+  coordinateProfileForSource,
   type NightEvent,
   type NightBoundaries,
   type ObserverLocation,
   type TargetEvent,
+  getCoordinateDisclosure,
 } from "../lib/observation/domain";
 import {
   analyzeTonightCollection,
@@ -556,6 +558,7 @@ function EventDetails({
   target,
   timeZone,
 }: Readonly<{ target: TonightAnalysis["aboveHorizon"][number]; timeZone: string }>) {
+  const profile = coordinateProfileForSource(target.coordinate.source);
   return (
     <details className="mt-3 rounded-md border border-[var(--border)] px-3 py-2">
       <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-[var(--foreground)]">
@@ -590,8 +593,10 @@ function EventDetails({
       <p className="border-t border-[var(--border)] pb-1 pt-3 text-xs leading-5 text-[var(--muted)]">
         {target.coordinate.source.provider.name} · {target.coordinate.source.dataset.name} (
         {target.coordinate.source.dataset.release_version}) · source record{" "}
-        <span className="font-mono">{target.coordinate.source.source_record_id}</span>. Gaia DR3
-        ICRS catalogue position at reference epoch J2016.0; proper motion is not propagated.
+        <span className="font-mono">{target.coordinate.source.source_record_id}</span>.{" "}
+        {profile === null
+          ? "Reviewed catalogue position. No epoch propagation is applied."
+          : getCoordinateDisclosure(profile)}
       </p>
     </details>
   );

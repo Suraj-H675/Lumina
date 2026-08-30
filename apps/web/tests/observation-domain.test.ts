@@ -16,6 +16,7 @@ import {
   RIGHT_ASCENSION_QUANTITY_CODE,
   calculateHorizontalPosition,
   computeObservationPlan,
+  getCoordinateDisclosure,
   extractCoordinatePairs,
   formatCompassDirection,
   isValidNightDate,
@@ -189,6 +190,55 @@ describe("observation domain", () => {
       rightAscensionDegrees: 172.5601297577743,
       sourceKey: expect.stringContaining(source.source_record_id),
     });
+  });
+
+  it("keeps coordinate-source disclosures profile-aware", () => {
+    expect(
+      getCoordinateDisclosure({
+        provider: "esa-gaia",
+        dataset: ASTROMETRY_DATASET_CODE,
+        release: "dr3",
+        rightAscension: RIGHT_ASCENSION_QUANTITY_CODE,
+        declination: DECLINATION_QUANTITY_CODE,
+        epoch: GAIA_REFERENCE_EPOCH,
+      }),
+    ).toContain("Gaia DR3 catalogue position at reference epoch J2016.0");
+
+    expect(
+      getCoordinateDisclosure({
+        provider: MESSIER_PROVIDER_CODE,
+        dataset: MESSIER_DATASET_CODE,
+        release: MESSIER_RELEASE,
+        rightAscension: MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
+        declination: MESSIER_DECLINATION_QUANTITY_CODE,
+        epoch: MESSIER_REFERENCE_EPOCH,
+      }),
+    ).toContain("SIMBAD Messier J2000 catalogue position at reference epoch J2000.0");
+    expect(
+      getCoordinateDisclosure({
+        provider: MESSIER_PROVIDER_CODE,
+        dataset: MESSIER_DATASET_CODE,
+        release: MESSIER_RELEASE,
+        rightAscension: MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
+        declination: MESSIER_DECLINATION_QUANTITY_CODE,
+        epoch: MESSIER_REFERENCE_EPOCH,
+      }),
+    ).not.toMatch(/Gaia DR3|J2016\.0/);
+  });
+
+  it("handles a partial custom profile without leaking undefined metadata", () => {
+    const disclosure = getCoordinateDisclosure({
+      provider: "custom-provider",
+      dataset: "custom-dataset",
+      release: "",
+      rightAscension: "",
+      declination: "",
+      epoch: 1999,
+    });
+    expect(disclosure).toBe(
+      "Reviewed catalogue position at reference epoch J1999.0. No epoch propagation is applied.",
+    );
+    expect(disclosure).not.toContain("undefined");
   });
 
   it("accepts a SIMBAD J2000 pair and validates RA with the active profile", () => {

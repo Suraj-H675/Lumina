@@ -180,7 +180,7 @@ function sourceKey(source: CatalogueSourceReference): string {
   ].join("\u001f");
 }
 
-type CoordinateProfile = Readonly<{
+export type CoordinateProfile = Readonly<{
   provider: string;
   dataset: string;
   release: string;
@@ -208,7 +208,9 @@ const ACCEPTED_COORDINATE_PROFILES: ReadonlyArray<CoordinateProfile> = [
   },
 ];
 
-function acceptedProfile(source: CatalogueSourceReference): CoordinateProfile | null {
+export function coordinateProfileForSource(
+  source: CatalogueSourceReference,
+): CoordinateProfile | null {
   return (
     ACCEPTED_COORDINATE_PROFILES.find(
       (profile) =>
@@ -220,7 +222,35 @@ function acceptedProfile(source: CatalogueSourceReference): CoordinateProfile | 
 }
 
 /**
- * Extracts only complete, accepted Gaia coordinate pairs. Pairing includes
+ * Returns the public-safe epoch disclosure for an accepted coordinate profile.
+ * The wording is kept here so all observing surfaces describe the same
+ * catalogue semantics.
+ */
+export function getCoordinateDisclosure(profile: CoordinateProfile): string {
+  const epoch = `J${profile.epoch.toFixed(1)}`;
+  if (
+    profile.provider === ASTROMETRY_PROVIDER_CODE &&
+    profile.dataset === ASTROMETRY_DATASET_CODE &&
+    profile.release === ASTROMETRY_RELEASE &&
+    profile.rightAscension === RIGHT_ASCENSION_QUANTITY_CODE &&
+    profile.declination === DECLINATION_QUANTITY_CODE
+  ) {
+    return `Gaia DR3 catalogue position at reference epoch ${epoch}. Proper motion is not propagated.`;
+  }
+  if (
+    profile.provider === MESSIER_PROVIDER_CODE &&
+    profile.dataset === MESSIER_DATASET_CODE &&
+    profile.release === MESSIER_RELEASE &&
+    profile.rightAscension === MESSIER_RIGHT_ASCENSION_QUANTITY_CODE &&
+    profile.declination === MESSIER_DECLINATION_QUANTITY_CODE
+  ) {
+    return `SIMBAD Messier J2000 catalogue position at reference epoch ${epoch}. No epoch propagation is applied.`;
+  }
+  return `Reviewed catalogue position at reference epoch ${epoch}. No epoch propagation is applied.`;
+}
+
+/**
+ * Extracts only complete, accepted coordinate pairs. Pairing includes
  * provider, dataset, release, and source-record identity; entity membership
  * alone is deliberately insufficient.
  */
@@ -231,7 +261,7 @@ export function extractCoordinatePairs(detail: EntityDetailResponse): Array<Coor
     const selection = entry.current_selection;
     if (selection === null || selection.measurement.unit.code !== DEGREES_UNIT_CODE) continue;
     const source = selection.measurement.source;
-    const profile = acceptedProfile(source);
+    const profile = coordinateProfileForSource(source);
     if (profile === null) continue;
     const code = entry.quantity.code;
     if (code !== profile.rightAscension && code !== profile.declination) continue;

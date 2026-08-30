@@ -20,8 +20,10 @@ import { SkyFinder } from "./sky-finder";
 import { entityTypeLabel } from "../lib/catalog-display";
 import {
   computeObservationPlan,
+  coordinateProfileForSource,
   extractCoordinatePairs,
   formatCompassDirection,
+  getCoordinateDisclosure,
   isValidNightDate,
   localDateString,
   localInstantForNightTime,
@@ -133,6 +135,7 @@ function eventCard(label: string, value: string) {
 
 function CoordinateSource({ plan }: Readonly<{ plan: ObservationPlan }>) {
   const { coordinate } = plan;
+  const profile = coordinateProfileForSource(coordinate.source);
   return (
     <section
       aria-labelledby="position-source-heading"
@@ -146,9 +149,10 @@ function CoordinateSource({ plan }: Readonly<{ plan: ObservationPlan }>) {
         {coordinate.source.dataset.release_version})
       </p>
       <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-        Source record <span className="font-mono">{coordinate.source.source_record_id}</span> · Gaia
-        DR3 catalogue position at reference epoch J{coordinate.epoch.toFixed(1)}. Proper motion is
-        not propagated.
+        Source record <span className="font-mono">{coordinate.source.source_record_id}</span> ·{" "}
+        {profile === null
+          ? "Reviewed catalogue position. No epoch propagation is applied."
+          : getCoordinateDisclosure(profile)}
       </p>
     </section>
   );

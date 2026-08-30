@@ -17,7 +17,7 @@ test("explore shows the reviewed catalogue without a query", async ({ page }) =>
   await expect(page.getByRole("combobox", { name: /search the catalogue/i })).toBeVisible();
 
   const browseList = page.getByRole("list", { name: "Catalogue objects" });
-  await expect(browseList.getByRole("link")).toHaveCount(5);
+  await expect(browseList.getByRole("link")).toHaveCount(6);
   for (const name of ["HD 209458", "Kepler-186", "Kepler-452", "51 Pegasi", "K2-18"]) {
     await expect(browseList.getByRole("link", { name })).toBeVisible();
   }

@@ -57,6 +57,21 @@ test("object page opens the selected target in the observation planner", async (
   await expect(page.getByText(/Position source/)).toBeVisible();
 });
 
+test("Messier 31 uses the SIMBAD J2000 coordinate disclosure", async ({ page }) => {
+  await page.goto("/objects/messier-31");
+  await expect(page.getByRole("heading", { level: 1, name: "Messier 31" })).toBeVisible();
+  await page.getByRole("link", { name: /^observe$/i }).click();
+  await page.getByLabel("Night of").fill(NIGHT);
+  await fillManualLocation(page);
+
+  await expect(page.getByText(/altitude through the night/i)).toBeVisible();
+  await expect(
+    page.getByText(/SIMBAD Messier J2000 catalogue position at reference epoch J2000.0/i),
+  ).toBeVisible();
+  const positionSource = page.getByRole("region", { name: "Position source" });
+  await expect(positionSource.getByText(/Gaia DR3 catalogue position|J2016.0/i)).toHaveCount(0);
+});
+
 test("sky finder gives selected-time direction guidance and reference context", async ({
   page,
 }) => {

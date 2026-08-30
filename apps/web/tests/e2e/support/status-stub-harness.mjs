@@ -89,7 +89,15 @@ const CATALOGUE_ENTITIES = [
     entity_type: "star",
     canonical_name: "K2-18",
   },
+  {
+    id: "63f8a58a-a62b-5ae7-824b-35f3ebf1f6f0",
+    slug: "messier-31",
+    entity_type: "galaxy",
+    canonical_name: "Messier 31",
+  },
 ];
+
+const CATALOGUE_ALIASES = new Map([["messier-31", ["M31", "M 31"]]]);
 
 const GAIA_SOURCE_IDS = new Map([
   ["26f4b667-ecd9-524d-8121-29508723715a", "1779546757669063552"],
@@ -209,6 +217,23 @@ const CATALOGUE_MEASUREMENTS = new Map([
       },
     ],
   ],
+  [
+    "63f8a58a-a62b-5ae7-824b-35f3ebf1f6f0",
+    [
+      {
+        code: "icrs_right_ascension_j2000",
+        value: "10.684708333333333",
+        unit: "deg",
+        dataset: "messier-j2000",
+      },
+      {
+        code: "icrs_declination_j2000",
+        value: "41.268750000000004",
+        unit: "deg",
+        dataset: "messier-j2000",
+      },
+    ],
+  ],
 ]);
 
 const GAIA_QUANTITY = {
@@ -217,21 +242,30 @@ const GAIA_QUANTITY = {
   gaia_rp_mean_magnitude: "Gaia integrated RP mean magnitude (Vega scale)",
   gaia_icrs_right_ascension: "Gaia ICRS right ascension at reference epoch",
   gaia_icrs_declination: "Gaia ICRS declination at reference epoch",
+  icrs_right_ascension_j2000: "ICRS right ascension at J2000.0",
+  icrs_declination_j2000: "ICRS declination at J2000.0",
 };
 
 function catalogueSource(entity, datasetCode = "gaia-source") {
   const astrometry = datasetCode === "gaia-source-astrometry";
+  const messier = datasetCode === "messier-j2000";
   return {
     source_record_id: astrometry
       ? `90000000-0000-5000-8000-${GAIA_SOURCE_IDS.get(entity.id).slice(-12)}`
-      : `10000000-0000-5000-8000-${entity.canonical_name.length.toString().padStart(12, "0")}`,
-    provider: { code: "esa-gaia", name: "ESA Gaia Archive" },
+      : messier
+        ? "90000000-0000-5000-8000-000000000031"
+        : `10000000-0000-5000-8000-${entity.canonical_name.length.toString().padStart(12, "0")}`,
+    provider: messier
+      ? { code: "cds-simbad", name: "CDS SIMBAD" }
+      : { code: "esa-gaia", name: "ESA Gaia Archive" },
     dataset: {
       code: datasetCode,
       name: astrometry
         ? "Gaia Data Release 3 main source catalogue — reviewed astrometry slice"
-        : "Gaia Data Release 3 main source catalogue",
-      release_version: "dr3",
+        : messier
+          ? "Reviewed CDS SIMBAD Messier J2000 catalogue"
+          : "Gaia Data Release 3 main source catalogue",
+      release_version: messier ? "v1" : "dr3",
     },
   };
 }
@@ -281,10 +315,13 @@ function searchCatalogueFixture(query) {
   const hits = [];
   for (const entity of CATALOGUE_ENTITIES) {
     const name = normalizeQuery(entity.canonical_name);
+    const aliases = (CATALOGUE_ALIASES.get(entity.slug) ?? []).map(normalizeQuery);
     if (entity.slug === normalized) {
       hits.push({ entity, match_reason: "exact_slug", matched_alias: null });
     } else if (name === normalized) {
       hits.push({ entity, match_reason: "exact_canonical_name", matched_alias: null });
+    } else if (aliases.includes(normalized)) {
+      hits.push({ entity, match_reason: "exact_alias", matched_alias: query.trim() });
     } else if (name.startsWith(normalized)) {
       hits.push({ entity, match_reason: "canonical_name_prefix", matched_alias: null });
     }

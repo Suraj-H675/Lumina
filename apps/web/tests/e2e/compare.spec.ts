@@ -38,3 +38,11 @@ test("an object page links into a one-object partial compare", async ({ page }) 
   ).toBeVisible();
   expect(await hasHorizontalOverflow(page)).toBe(false);
 });
+
+test("Messier 31 remains a distinct catalogue object in compare", async ({ page }) => {
+  await page.goto("/compare?object=messier-31&object=k2-18");
+
+  const selected = page.getByRole("list", { name: "Selected compare objects" });
+  await expect(selected.getByRole("link", { name: "Messier 31" })).toBeVisible();
+  await expect(selected.getByRole("link", { name: "K2-18" })).toBeVisible();
+});

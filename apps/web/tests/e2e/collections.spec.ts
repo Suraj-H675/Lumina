@@ -18,6 +18,7 @@ const CANONICAL_NAMES: Record<string, string> = {
   "kepler-452": "Kepler-452",
   "51-pegasi": "51 Pegasi",
   "k2-18": "K2-18",
+  "messier-31": "Messier 31",
 };
 
 type SeedEnvelope = {
@@ -27,7 +28,7 @@ type SeedEnvelope = {
     id: string;
     items: Array<{
       canonical_name: string;
-      entity_type: "star";
+      entity_type: "galaxy" | "star";
       saved_at: string;
       slug: string;
     }>;
@@ -48,7 +49,7 @@ async function seedShelf(page: Page, slugs: Array<string>, name = SHELF_NAME): P
         id: SHELF_ID,
         items: slugs.map((slug) => ({
           canonical_name: CANONICAL_NAMES[slug] ?? slug,
-          entity_type: "star" as const,
+          entity_type: slug === "messier-31" ? "galaxy" : ("star" as const),
           saved_at: "2026-08-20T10:00:00.000Z",
           slug,
         })),
@@ -133,6 +134,28 @@ test("journey 1 — create + persist across a full reload", async ({ page }) => 
       .getByRole("list", { name: "Your collections" })
       .getByRole("link", { name: /Interesting Worlds/ }),
   ).toBeVisible();
+});
+
+test("journey 2b — a Messier galaxy saves as a galaxy collection item", async ({ page }) => {
+  await seedShelf(page, []);
+  await page.goto("/objects/messier-31");
+
+  const picker = await openDialog(
+    page,
+    /save messier 31 to a collection/iu,
+    "Save to a collection",
+  );
+  await picker.getByRole("checkbox", { name: SHELF_NAME }).check();
+  await picker.getByRole("button", { name: "Done" }).click();
+
+  const data = await readCollections(page);
+  expect(data.collections[0]?.items).toEqual([
+    expect.objectContaining({
+      canonical_name: "Messier 31",
+      entity_type: "galaxy",
+      slug: "messier-31",
+    }),
+  ]);
 });
 
 test("journey 2 — save from the object page into an existing collection", async ({ page }) => {

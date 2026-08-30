@@ -8,6 +8,7 @@ const NAMES: Record<string, string> = {
   "hd-209458": "HD 209458",
   "kepler-452": "Kepler-452",
   "k2-18": "K2-18",
+  "messier-31": "Messier 31",
 };
 const WEATHER_TIMES = [
   Date.parse("2026-08-27T21:00:00Z") / 1_000,
@@ -66,7 +67,7 @@ async function seedCollections(
       id,
       items: slugs.map((slug) => ({
         canonical_name: NAMES[slug] ?? slug,
-        entity_type: "star",
+        entity_type: slug === "messier-31" ? "galaxy" : "star",
         saved_at: "2026-08-20T10:00:00.000Z",
         slug,
       })),
@@ -138,6 +139,19 @@ test("Tonight core compares one local collection with factual geometry and plann
     "href",
     /\/observe\?object=.*&date=2026-08-27/u,
   );
+});
+
+test("Tonight analyzes a saved Messier target with SIMBAD J2000 provenance", async ({ page }) => {
+  await seedCollection(page, ["messier-31"]);
+  await page.goto(`/tonight?date=${NIGHT}`);
+  await fillManualLocation(page, "12.972", "77.594");
+
+  await expect(page.getByText(/Messier 31/).first()).toBeVisible();
+  await page.getByText("Rise, transit, set, and source", { exact: true }).first().click();
+  await expect(
+    page.getByText(/SIMBAD Messier J2000 catalogue position at reference epoch J2000.0/i),
+  ).toBeVisible();
+  await expect(page.getByText(/Gaia DR3 catalogue position|J2016.0/i)).toHaveCount(0);
 });
 
 test("Tonight has a useful empty state and never requests the full catalogue", async ({ page }) => {

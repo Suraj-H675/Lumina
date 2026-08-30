@@ -187,7 +187,8 @@ export type EntityType =
   | "observatory"
   | "person"
   | "concept"
-  | "event";
+  | "event"
+  | "sky_region";
 
 /**
  * ErrorBody

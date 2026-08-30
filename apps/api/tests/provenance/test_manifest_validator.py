@@ -66,12 +66,36 @@ def test_empty_temporary_root_and_approved_production_manifests_are_valid(
     assert (PRODUCTION_MANIFEST_ROOT / ".gitkeep").is_file()
     production = validate_manifest_root(PRODUCTION_MANIFEST_ROOT)
     assert production.is_valid
-    assert len(production.manifests) == 4
+    assert len(production.manifests) == 6
     assert {manifest.manifest_type for manifest in production.manifests} == {"source", "data"}
     assert main([]) == 0
     output = capsys.readouterr()
     assert output.err == ""
-    assert output.out == "Lumina manifest validation passed: 4 manifest files.\n"
+    assert output.out == "Lumina manifest validation passed: 6 manifest files.\n"
+
+
+def test_messier_manifests_are_canonical_and_review_evidence_is_pinned() -> None:
+    data_path = PRODUCTION_MANIFEST_ROOT / "data/simbad-messier-j2000-v1.json"
+    source_path = PRODUCTION_MANIFEST_ROOT / "sources/cds-simbad.json"
+    review_path = _REPOSITORY_ROOT / "data/reviews/simbad-messier-j2000-v1.json"
+
+    data_content = data_path.read_bytes()
+    source_content = source_path.read_bytes()
+    review = json.loads(review_path.read_bytes())
+
+    assert data_content == serialize_manifest(parse_manifest_json(data_content))
+    assert source_content == serialize_manifest(parse_manifest_json(source_content))
+    assert review_path.parent != PRODUCTION_MANIFEST_ROOT
+    assert review["dataset_id"] == "messier-j2000"
+    assert review["data_manifest_sha256"] == (
+        "ae95d19fcacc8a35b636f879270be6fd00e4282180ce0de79634fc0eaa721370"
+    )
+    assert review["source_manifest_sha256"] == (
+        "eb45de6ef052d19b415741c8ea34e403c4469a6cfa43d4c5806674e74d5aaccb"
+    )
+    assert json.loads(data_content)["checksum"] == (
+        "sha256:b29a5c8b3bf58eb3c7649f18f1f64446c6b3b12dbbb3d59c4e639befe2fbf0e9"
+    )
 
 
 def test_exact_committed_fictional_manifest_set_is_valid(tmp_path: Path) -> None:

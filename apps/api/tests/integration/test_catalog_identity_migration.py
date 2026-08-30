@@ -367,7 +367,8 @@ def _phase1a1_schema(
 
 def test_phase1a1_retains_its_accepted_parent_below_phase1a3_head() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_PHASE_1A5_HEAD]
+    assert script.get_revision(_PHASE_1A5_HEAD).revision == _PHASE_1A5_HEAD
+    assert script.get_revision(_PHASE_1A5_HEAD).down_revision == "e8f4c1a9b362"
     assert script.get_revision(_REVISION).down_revision == _PHASE_0_HEAD
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _REVISION
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD

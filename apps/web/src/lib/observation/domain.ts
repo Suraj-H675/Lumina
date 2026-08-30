@@ -10,6 +10,13 @@ export const ASTROMETRY_DATASET_CODE = "gaia-source-astrometry";
 export const ASTROMETRY_PROVIDER_CODE = "esa-gaia";
 export const ASTROMETRY_RELEASE = "dr3";
 export const GAIA_REFERENCE_EPOCH = 2016.0;
+/** The reviewed SIMBAD Messier catalogue position vocabulary. */
+export const MESSIER_RIGHT_ASCENSION_QUANTITY_CODE = "icrs_right_ascension_j2000";
+export const MESSIER_DECLINATION_QUANTITY_CODE = "icrs_declination_j2000";
+export const MESSIER_DATASET_CODE = "messier-j2000";
+export const MESSIER_PROVIDER_CODE = "cds-simbad";
+export const MESSIER_RELEASE = "v1";
+export const MESSIER_REFERENCE_EPOCH = 2000.0;
 
 type CatalogueSourceReference = NonNullable<
   EntityDetailResponse["quantities"][number]["current_selection"]
@@ -96,6 +103,7 @@ type CoordinateCandidate = Readonly<{
   rightAscension?: Readonly<{ original: string; value: number }>;
   source: CatalogueSourceReference;
   sourceKey: string;
+  epoch: number;
 }>;
 
 const CARDINAL_DIRECTIONS = [
@@ -172,15 +180,43 @@ function sourceKey(source: CatalogueSourceReference): string {
   ].join("\u001f");
 }
 
-function acceptedReferenceEpoch(source: CatalogueSourceReference): number | null {
-  if (
-    source.provider.code !== ASTROMETRY_PROVIDER_CODE ||
-    source.dataset.code !== ASTROMETRY_DATASET_CODE ||
-    source.dataset.release_version !== ASTROMETRY_RELEASE
-  ) {
-    return null;
-  }
-  return GAIA_REFERENCE_EPOCH;
+type CoordinateProfile = Readonly<{
+  provider: string;
+  dataset: string;
+  release: string;
+  rightAscension: string;
+  declination: string;
+  epoch: number;
+}>;
+
+const ACCEPTED_COORDINATE_PROFILES: ReadonlyArray<CoordinateProfile> = [
+  {
+    provider: ASTROMETRY_PROVIDER_CODE,
+    dataset: ASTROMETRY_DATASET_CODE,
+    release: ASTROMETRY_RELEASE,
+    rightAscension: RIGHT_ASCENSION_QUANTITY_CODE,
+    declination: DECLINATION_QUANTITY_CODE,
+    epoch: GAIA_REFERENCE_EPOCH,
+  },
+  {
+    provider: MESSIER_PROVIDER_CODE,
+    dataset: MESSIER_DATASET_CODE,
+    release: MESSIER_RELEASE,
+    rightAscension: MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
+    declination: MESSIER_DECLINATION_QUANTITY_CODE,
+    epoch: MESSIER_REFERENCE_EPOCH,
+  },
+];
+
+function acceptedProfile(source: CatalogueSourceReference): CoordinateProfile | null {
+  return (
+    ACCEPTED_COORDINATE_PROFILES.find(
+      (profile) =>
+        source.provider.code === profile.provider &&
+        source.dataset.code === profile.dataset &&
+        source.dataset.release_version === profile.release,
+    ) ?? null
+  );
 }
 
 /**
@@ -194,25 +230,23 @@ export function extractCoordinatePairs(detail: EntityDetailResponse): Array<Coor
   for (const entry of detail.quantities) {
     const selection = entry.current_selection;
     if (selection === null || selection.measurement.unit.code !== DEGREES_UNIT_CODE) continue;
-    const code = entry.quantity.code;
-    if (code !== RIGHT_ASCENSION_QUANTITY_CODE && code !== DECLINATION_QUANTITY_CODE) continue;
-
     const source = selection.measurement.source;
-    if (acceptedReferenceEpoch(source) === null) continue;
+    const profile = acceptedProfile(source);
+    if (profile === null) continue;
+    const code = entry.quantity.code;
+    if (code !== profile.rightAscension && code !== profile.declination) continue;
     const parsed = parseFiniteDecimal(selection.measurement.value);
     if (parsed === null) continue;
 
     const validRange =
-      code === RIGHT_ASCENSION_QUANTITY_CODE
-        ? parsed >= 0 && parsed < 360
-        : parsed >= -90 && parsed <= 90;
+      code === profile.rightAscension ? parsed >= 0 && parsed < 360 : parsed >= -90 && parsed <= 90;
     if (!validRange) continue;
 
     const key = sourceKey(source);
-    const current = candidates.get(key) ?? { source, sourceKey: key };
+    const current = candidates.get(key) ?? { source, sourceKey: key, epoch: profile.epoch };
     candidates.set(
       key,
-      code === RIGHT_ASCENSION_QUANTITY_CODE
+      code === profile.rightAscension
         ? { ...current, rightAscension: { original: selection.measurement.value, value: parsed } }
         : { ...current, declination: { original: selection.measurement.value, value: parsed } },
     );
@@ -229,7 +263,7 @@ export function extractCoordinatePairs(detail: EntityDetailResponse): Array<Coor
     )
     .map((candidate) => ({
       declinationDegrees: candidate.declination.value,
-      epoch: GAIA_REFERENCE_EPOCH,
+      epoch: candidate.epoch,
       originalDeclination: candidate.declination.original,
       originalRightAscension: candidate.rightAscension.original,
       rightAscensionDegrees: candidate.rightAscension.value,

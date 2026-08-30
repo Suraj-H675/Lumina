@@ -7,6 +7,12 @@ import {
   DECLINATION_QUANTITY_CODE,
   DEGREES_UNIT_CODE,
   GAIA_REFERENCE_EPOCH,
+  MESSIER_DATASET_CODE,
+  MESSIER_DECLINATION_QUANTITY_CODE,
+  MESSIER_PROVIDER_CODE,
+  MESSIER_REFERENCE_EPOCH,
+  MESSIER_RELEASE,
+  MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
   RIGHT_ASCENSION_QUANTITY_CODE,
   calculateHorizontalPosition,
   computeObservationPlan,
@@ -28,6 +34,16 @@ type TestSource = {
   provider: { code: string; name: string };
   source_record_id: string;
 };
+
+const messierSource: TestSource = {
+  dataset: {
+    code: MESSIER_DATASET_CODE,
+    name: "Reviewed CDS SIMBAD Messier J2000 catalogue",
+    release_version: MESSIER_RELEASE,
+  },
+  provider: { code: MESSIER_PROVIDER_CODE, name: "CDS SIMBAD" },
+  source_record_id: "simbad-messier-source-31",
+} as const;
 
 const source: TestSource = {
   dataset: {
@@ -99,6 +115,41 @@ function detailWithCoordinates(
   };
 }
 
+function messierDetailWithCoordinates(
+  overrides: Readonly<{ dec?: string; ra?: string }> = {},
+): EntityDetailResponse {
+  const measurement = (code: string, value: string) => ({
+    current_selection: {
+      measurement: {
+        id: `${code}-measurement`,
+        original_unit: DEGREES_UNIT_CODE,
+        original_value: value,
+        source: messierSource,
+        unit: { code: DEGREES_UNIT_CODE, name: "degree", symbol: "°" },
+        value,
+      },
+      selection: {
+        explanation: "Selected from reviewed SIMBAD Messier J2000 v1.",
+        rule: "simbad_messier_j2000",
+        selected_at: "2026-08-30T00:00:00Z",
+        version: "v1",
+      },
+    },
+    measurement_count: 1,
+    quantity: { code, name: code },
+  });
+
+  return {
+    canonical_name: "Messier 31",
+    entity_type: "galaxy",
+    id: "63f8a58a-a62b-5ae7-824b-35f3ebf1f6f0",
+    quantities: [
+      measurement(MESSIER_RIGHT_ASCENSION_QUANTITY_CODE, overrides.ra ?? "10.684708333333334"),
+      measurement(MESSIER_DECLINATION_QUANTITY_CODE, overrides.dec ?? "41.26875"),
+    ],
+  };
+}
+
 describe("observation domain", () => {
   it("validates finite observer coordinates and rejects invalid ranges", () => {
     expect(validateObserverLocation({ latitude: 12.972, longitude: 77.594 })).toEqual({
@@ -138,6 +189,27 @@ describe("observation domain", () => {
       rightAscensionDegrees: 172.5601297577743,
       sourceKey: expect.stringContaining(source.source_record_id),
     });
+  });
+
+  it("accepts a SIMBAD J2000 pair and validates RA with the active profile", () => {
+    const pairs = extractCoordinatePairs(
+      messierDetailWithCoordinates({ ra: "180", dec: "41.26875" }),
+    );
+
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0]).toMatchObject({
+      epoch: MESSIER_REFERENCE_EPOCH,
+      rightAscensionDegrees: 180,
+      declinationDegrees: 41.26875,
+      sourceKey: expect.stringContaining(messierSource.source_record_id),
+    });
+  });
+
+  it("rejects invalid SIMBAD J2000 RA and Dec ranges", () => {
+    expect(extractCoordinatePairs(messierDetailWithCoordinates({ ra: "360" }))).toEqual([]);
+    expect(extractCoordinatePairs(messierDetailWithCoordinates({ ra: "-0.1" }))).toEqual([]);
+    expect(extractCoordinatePairs(messierDetailWithCoordinates({ dec: "90.1" }))).toEqual([]);
+    expect(extractCoordinatePairs(messierDetailWithCoordinates({ dec: "-90.1" }))).toEqual([]);
   });
 
   it("does not pair RA and Dec from different provenance records", () => {

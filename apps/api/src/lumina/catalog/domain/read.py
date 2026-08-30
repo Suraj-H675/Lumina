@@ -245,6 +245,7 @@ class CatalogEntityType(StrEnum):
     PERSON = "person"
     CONCEPT = "concept"
     EVENT = "event"
+    SKY_REGION = "sky_region"
 
 
 class SelectionState(StrEnum):

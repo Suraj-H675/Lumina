@@ -303,7 +303,7 @@ def phase1a3_schema(
 
 def test_lineage_and_protected_history_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_PHASE_1A5_HEAD]
+    assert script.get_heads() == ["a7d4e9f2c1b3"]
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
     root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
     assert {

@@ -164,8 +164,8 @@ def _clean_catalog(connection: Connection) -> None:
         {"unit_ids": list(_REVIEWED_UNIT_IDS)},
     )
     connection.execute(
-        text("DELETE FROM public.entity WHERE NOT id = ANY(CAST(:entity_ids AS uuid[]))"),
-        {"entity_ids": list(_REVIEWED_ENTITY_IDS)},
+        text("DELETE FROM public.entity WHERE id IN (:entity_id, :entity_b_id)"),
+        {"entity_id": _ENTITY_ID, "entity_b_id": _ENTITY_B_ID},
     )
     connection.commit()
 

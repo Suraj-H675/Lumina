@@ -48,6 +48,7 @@ export const zEntityType = z.enum([
   "person",
   "concept",
   "event",
+  "sky_region",
 ]);
 
 /**

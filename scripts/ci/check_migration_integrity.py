@@ -74,6 +74,18 @@ EXPECTED_MIGRATIONS = (
         down_revision="e8f4c1a9b362",
         sha256="754b631381f1bd763322e824406831c3317ab3bc4f94d3f445756ba9979c266e",
     ),
+    MigrationContract(
+        filename="9c7e4a1d2f6b_seed_messier_catalogue.py",
+        revision="9c7e4a1d2f6b",
+        down_revision="f2a6c8d9e0b1",
+        sha256="bb3b081aa10dd64d46e2d5e3cba4dd06247e1193eeacca354cc2e9c958b50b40",
+    ),
+    MigrationContract(
+        filename="a7d4e9f2c1b3_grant_messier_canonical_selection_dml.py",
+        revision="a7d4e9f2c1b3",
+        down_revision="9c7e4a1d2f6b",
+        sha256="002f9ed6a50faae3828a537c038b1f3c963c26b545d4dc677943082689f5cd61",
+    ),
 )
 
 
@@ -134,7 +146,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 9 accepted revisions, head f2a6c8d9e0b1.")
+    print("Migration integrity passed: 11 accepted revisions, head a7d4e9f2c1b3.")
     return 0
 
 

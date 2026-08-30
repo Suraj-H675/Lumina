@@ -9,11 +9,11 @@ from typing import Final
 import pytest
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, TextClause, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_sync_url,
     run_alembic,
     run_migration_operation,
 )
@@ -36,14 +36,14 @@ _REVISION_SQL: Final = text("SELECT version_num FROM public.alembic_version")
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_sync_url.get_secret_value())
+    return historical_sync_url(settings)
 
 
 def _admin_test_url(
     settings: IntegrationTestSettings,
     postgres_admin_sync_url: URL,
 ) -> URL:
-    return postgres_admin_sync_url.set(database="lumina_test")
+    return postgres_admin_sync_url.set(database="lumina_history_test")
 
 
 def _execute_committed(connection: Connection, statement: TextClause) -> None:
@@ -62,7 +62,7 @@ def _execute_committed_operation(
 
 
 def _run_upgrade(settings: IntegrationTestSettings, revision: str) -> None:
-    identity = integration_migration_identity(settings)
+    identity = historical_migration_identity(settings)
     run_migration_operation(
         _sync_url(settings),
         lambda connection: run_alembic(connection, identity, revision, downgrade=False),
@@ -70,7 +70,7 @@ def _run_upgrade(settings: IntegrationTestSettings, revision: str) -> None:
 
 
 def _run_downgrade(settings: IntegrationTestSettings, revision: str) -> None:
-    identity = integration_migration_identity(settings)
+    identity = historical_migration_identity(settings)
     run_migration_operation(
         _sync_url(settings),
         lambda connection: run_alembic(connection, identity, revision, downgrade=True),
@@ -111,23 +111,28 @@ def _require_b3_baseline(
 @pytest.fixture(autouse=True)
 def b3_test_database(
     integration_settings: IntegrationTestSettings,
-    migrated_test_database: None,
+    historical_test_database_with_pg_trgm: None,
 ) -> Iterator[None]:
     """Run B3-specific assertions at B3 while keeping the repository head current."""
-    del migrated_test_database
+    del historical_test_database_with_pg_trgm
     current = _revision(integration_settings)
     if current == _CURRENT_HEAD:
         _run_downgrade(integration_settings, _B3_REVISION)
+    elif current == _B2_REVISION:
+        _run_upgrade(integration_settings, _B3_REVISION)
     elif current != _B3_REVISION:
         pytest.fail("B3 test database is at an unexpected migration revision.")
     try:
         yield
     finally:
         current = _revision(integration_settings)
+        if current == _CURRENT_HEAD:
+            _run_downgrade(integration_settings, _B3_REVISION)
+            current = _B3_REVISION
         if current == _B3_REVISION:
-            _run_upgrade(integration_settings, _CURRENT_HEAD)
-        elif current != _CURRENT_HEAD:
-            pytest.fail("B3 test database was not restored to the current repository head.")
+            _run_downgrade(integration_settings, _B2_REVISION)
+        elif current != _B2_REVISION:
+            pytest.fail("B3 test database was not restored to historical B2.")
 
 
 def _assert_no_unexpected_index(settings: IntegrationTestSettings) -> None:

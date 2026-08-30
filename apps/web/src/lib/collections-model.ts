@@ -64,6 +64,7 @@ const ENTITY_TYPES = [
   "person",
   "concept",
   "event",
+  "sky_region",
 ] as const satisfies ReadonlyArray<EntityType>;
 
 export type CollectionItemSnapshot = Readonly<{

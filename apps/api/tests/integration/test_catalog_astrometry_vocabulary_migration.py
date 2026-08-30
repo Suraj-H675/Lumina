@@ -8,11 +8,11 @@ from uuid import UUID
 import pytest
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
-    integration_migration_identity,
+    historical_migration_identity,
+    historical_sync_url,
     run_alembic,
     run_migration_operation,
 )
@@ -31,7 +31,7 @@ _FIXTURE_SOURCE_RECORD_ID = UUID("d6000000-0000-4000-8000-000000000001")
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_sync_url.get_secret_value())
+    return historical_sync_url(settings)
 
 
 def _revision(connection: Connection) -> str:
@@ -45,7 +45,7 @@ def _run(
     downgrade: bool,
 ) -> None:
     sync_url = _sync_url(settings)
-    identity = integration_migration_identity(settings)
+    identity = historical_migration_identity(settings)
     run_migration_operation(
         sync_url,
         lambda connection: run_alembic(connection, identity, revision, downgrade=downgrade),
@@ -154,23 +154,29 @@ def _cleanup_fixture_state(settings: IntegrationTestSettings) -> None:
 @pytest.fixture
 def at_b3(
     integration_settings: IntegrationTestSettings,
-    migrated_test_database: None,
+    historical_test_database_with_pg_trgm: None,
 ) -> Iterator[None]:
     """Put only the active test database at B3, then restore the repository head."""
-    del migrated_test_database
+    del historical_test_database_with_pg_trgm
     _cleanup_fixture_state(integration_settings)
     sync_url = _sync_url(integration_settings)
     current = run_migration_operation(sync_url, _revision)
     if current == _REVISION:
         _run(integration_settings, _PARENT_REVISION, downgrade=True)
+    elif current == "b7f3a2c81d4e":
+        _run(integration_settings, _PARENT_REVISION, downgrade=False)
     elif current != _PARENT_REVISION:
         pytest.fail("Active test database is not at the accepted B3 or astrometry revision.")
     try:
         yield
     finally:
         _cleanup_fixture_state(integration_settings)
-        if run_migration_operation(sync_url, _revision) == _PARENT_REVISION:
-            _run(integration_settings, _REVISION, downgrade=False)
+        current = run_migration_operation(sync_url, _revision)
+        if current == _REVISION:
+            _run(integration_settings, _PARENT_REVISION, downgrade=True)
+            current = _PARENT_REVISION
+        if current == _PARENT_REVISION:
+            _run(integration_settings, "b7f3a2c81d4e", downgrade=True)
 
 
 def _vocabulary_counts(settings: IntegrationTestSettings) -> tuple[int, int, int, int]:

@@ -1,0 +1,34 @@
+{
+  "dataset_id": "messier-j2000",
+  "retrieved_at": "2026-08-30T08:19:30Z",
+  "simbad_endpoint": "https://simbad.cds.unistra.fr/simbad/sim-tap",
+  "exact_query": "SELECT i.id AS requested_identifier,b.oid,b.main_id,b.otype,b.ra,b.dec,b.coo_qual,b.coo_bibcode FROM ident AS i JOIN basic AS b ON b.oid=i.oidref WHERE i.id IN ('M 1', 'M 2', 'M 3', 'M 4', 'M 5', 'M 6', 'M 7', 'M 8', 'M 9', 'M 10', 'M 11', 'M 12', 'M 13', 'M 14', 'M 15', 'M 16', 'M 17', 'M 18', 'M 19', 'M 20', 'M 21', 'M 22', 'M 23', 'M 24', 'M 25', 'M 26', 'M 27', 'M 28', 'M 29', 'M 30', 'M 31', 'M 32', 'M 33', 'M 34', 'M 35', 'M 36', 'M 37', 'M 38', 'M 39', 'M 40', 'M 41', 'M 42', 'M 43', 'M 44', 'M 45', 'M 46', 'M 47', 'M 48', 'M 49', 'M 50', 'M 51', 'M 52', 'M 53', 'M 54', 'M 55', 'M 56', 'M 57', 'M 58', 'M 59', 'M 60', 'M 61', 'M 62', 'M 63', 'M 64', 'M 65', 'M 66', 'M 67', 'M 68', 'M 69', 'M 70', 'M 71', 'M 72', 'M 73', 'M 74', 'M 75', 'M 76', 'M 77', 'M 78', 'M 79', 'M 80', 'M 81', 'M 82', 'M 83', 'M 84', 'M 85', 'M 86', 'M 87', 'M 88', 'M 89', 'M 90', 'M 91', 'M 92', 'M 93', 'M 94', 'M 95', 'M 96', 'M 97', 'M 98', 'M 99', 'M 100', 'M 101', 'M 102', 'M 103', 'M 104', 'M 105', 'M 106', 'M 107', 'M 108', 'M 109', 'M 110')",
+  "raw_response_sha256": "f0a665f9fb557ea679dac92cbd1e76adb91798211a5a560e7d1a9ace43233895",
+  "raw_response_bytes": 9668,
+  "scope_authority": "https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/",
+  "m24_authority": "https://science.nasa.gov/image-detail/messier-24/",
+  "m102_authority": "https://science.nasa.gov/image-detail/messier-102/",
+  "alternative_m102_convention": "https://heasarc.gsfc.nasa.gov/W3Browse/all/messier.html",
+  "vizier_catalogue": "VII/118",
+  "vizier_names_endpoint": "https://vizier.cds.unistra.fr/cgi-bin/VizieR-3?-source=VII%2F118%2Fnames",
+  "vizier_verification": "Identity verification only; no VizieR rows are redistributed in this repository. NGC/IC/common-name relationships were reviewed where applicable and historical VizieR coordinates do not override selected SIMBAD positions.",
+  "terms": {
+    "simbad": "https://cds.unistra.fr/terms/",
+    "vizier": "https://cds.unistra.fr/vizier-org/licences_vizier.html",
+    "nasa": "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+  },
+  "m102_policy": {
+    "operational_convention": "Modern 110-object observing convention; Messier 102 operationally represented by the Spindle Galaxy/NGC 5866 identity.",
+    "ambiguity": "Historical Messier 102 identity is disputed; some catalogues treat M102 as spurious or duplicative of M101.",
+    "simbad_evidence": "M 102 has SIMBAD main identity M 102, type SyG, with NGC 5866 among accepted identifiers.",
+    "alternative": "NASA HEASARC notes its electronic catalogue contains 109 entries because M102 is generally considered spurious/actually M101."
+  },
+  "special_cases": {
+    "M24": "SIMBAD As* and NASA Star Cloud; represented as sky_region.",
+    "M40": "SIMBAD unknown object type; represented as system under the explicit reviewed mapping.",
+    "M73": "SIMBAD err / Not an Object; represented as sky_region under the explicit reviewed mapping.",
+    "M102": "SIMBAD SyG; represented as galaxy under the reviewed modern operational convention."
+  },
+  "data_manifest_sha256": "ae95d19fcacc8a35b636f879270be6fd00e4282180ce0de79634fc0eaa721370",
+  "source_manifest_sha256": "eb45de6ef052d19b415741c8ea34e403c4469a6cfa43d4c5806674e74d5aaccb"
+}

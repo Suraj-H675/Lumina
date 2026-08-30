@@ -300,7 +300,8 @@
           "observatory",
           "person",
           "concept",
-          "event"
+          "event",
+          "sky_region"
         ],
         "title": "EntityType",
         "type": "string"

@@ -15,13 +15,14 @@ from sqlalchemy.pool import NullPool
 
 from .database_safety import require_local_test_database
 from .migration_lifecycle import (
+    historical_admin_connection_url,
     integration_migration_identity,
     run_alembic,
     run_migration_operation,
 )
 
 _PG_TRGM_CONTRACT = ("pg_trgm", "1.6", "public", "lumina_admin")
-_CURRENT_HEAD = "f2a6c8d9e0b1"
+_CURRENT_HEAD = "a7d4e9f2c1b3"
 _B3_REVISION = "e8f4c1a9b362"
 _ALEMBIC_TABLE_SQL = text("SELECT to_regclass('public.alembic_version')")
 _REVISION_SQL = text("SELECT version_num FROM public.alembic_version")
@@ -130,7 +131,7 @@ def migrated_test_database(
         pytest.fail("Guarded migration did not commit exactly to the current repository head.")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def historical_test_database(
     integration_settings: IntegrationTestSettings,
     postgres_admin_sync_url: URL,
@@ -151,6 +152,39 @@ def historical_test_database(
         lambda connection: run_alembic(connection, identity, "b7f3a2c81d4e", downgrade=False),
     )
     yield
+
+
+@pytest.fixture
+def historical_test_database_with_pg_trgm(
+    historical_test_database: None,
+    postgres_admin_sync_url: URL,
+) -> Iterator[None]:
+    """Temporarily prepare the guarded history DB for B3 migration tests."""
+    del historical_test_database
+    admin_url = historical_admin_connection_url(postgres_admin_sync_url)
+    engine = create_engine(admin_url, poolclass=NullPool)
+    created = False
+    try:
+        with engine.connect() as connection:
+            database = connection.execute(text("SELECT current_database()")).scalar_one()
+            if database != "lumina_history_test":
+                pytest.fail("Historical extension fixture targeted an unexpected database.")
+            present = connection.execute(
+                text("SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm'")
+            ).scalar_one_or_none()
+        if present is None:
+            with engine.begin() as connection:
+                connection.exec_driver_sql("CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public")
+            created = True
+        yield
+    finally:
+        if created:
+            with engine.begin() as connection:
+                database = connection.execute(text("SELECT current_database()")).scalar_one()
+                if database != "lumina_history_test":
+                    pytest.fail("Historical extension teardown targeted an unexpected database.")
+                connection.exec_driver_sql("DROP EXTENSION pg_trgm")
+        engine.dispose()
 
 
 @pytest.fixture(scope="session")

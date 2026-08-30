@@ -1,0 +1,17 @@
+{
+  "checksum": "sha256:b29a5c8b3bf58eb3c7649f18f1f64446c6b3b12dbbb3d59c4e639befe2fbf0e9",
+  "citation": "This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France.",
+  "coverage": "Messier 1 through Messier 110 exactly once; SIMBAD identity, object type, ICRS J2000 position, coordinate quality and coordinate bibliography.",
+  "dataset_id": "messier-j2000",
+  "documentation_url": "https://simbad.cds.unistra.fr/guide/",
+  "local_file": "data/seed/simbad-messier-j2000-v1.csv",
+  "manifest_schema_version": 1,
+  "manifest_type": "data",
+  "official_url": "https://simbad.cds.unistra.fr/simbad/sim-tap",
+  "parser_version": "simbad-messier-j2000-v1",
+  "release_version": "v1",
+  "retrieved_at": "2026-08-30T08:19:30Z",
+  "source_id": "cds-simbad",
+  "terms_or_licence": "CDS SIMBAD terms and acknowledgement apply; derived reviewed snapshot redistributed with CDS attribution under ODbL-1.0.",
+  "usage_notes": "Exact normalized CSV is 110 rows and 15068 bytes. Coordinates are ICRS J2000.0 decimal degrees. Provider object types are preserved in the artifact and mapped by an exhaustive closed mapping. M102 uses the modern 110-object operational convention while retaining the historical ambiguity note in the review evidence."
+}

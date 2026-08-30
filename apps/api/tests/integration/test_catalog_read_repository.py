@@ -164,9 +164,8 @@ async def test_fictional_entities_browse_in_deterministic_keyset_pages(
     service = CatalogReadService(
         PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
     )
-    expected_unfiltered = sorted(
-        [row[3] for row in _ENTITY_ROWS] + [row[3] for row in _FICTIONAL_ENTITY_ROWS]
-    )
+    expected_fixture_slugs = sorted(row[3] for row in _FICTIONAL_ENTITY_ROWS)
+    fixture_slugs = {row[3] for row in _FICTIONAL_ENTITY_ROWS}
 
     observed: list[str] = []
     cursor: str | None = None
@@ -179,7 +178,7 @@ async def test_fictional_entities_browse_in_deterministic_keyset_pages(
         assert page.next_cursor is not None
         cursor = page.next_cursor
 
-    assert observed == expected_unfiltered
+    assert [slug for slug in observed if slug in fixture_slugs] == expected_fixture_slugs
 
 
 @pytest.mark.asyncio
@@ -191,21 +190,29 @@ async def test_fictional_entities_support_singular_filter_limits_and_empty_final
         PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
     )
     expected = sorted(row[3] for row in _FICTIONAL_ENTITY_ROWS)
+    fixture_slugs = set(expected)
 
     first = await service.list_entities(entity_type="galaxy", limit=2)
-    assert [item.slug for item in first.items] == expected[:2]
+    assert [item.slug for item in first.items if item.slug in fixture_slugs] == expected[:2]
     assert first.has_more is True
     assert first.next_cursor is not None
 
     second = await service.list_entities(entity_type="galaxy", cursor=first.next_cursor, limit=2)
-    assert [item.slug for item in second.items] == expected[2:4]
+    assert [item.slug for item in second.items if item.slug in fixture_slugs] == expected[2:4]
     assert second.has_more is True
     assert second.next_cursor is not None
 
-    third = await service.list_entities(entity_type="galaxy", cursor=second.next_cursor, limit=10)
-    assert [item.slug for item in third.items] == expected[4:]
-    assert third.has_more is False
-    assert third.next_cursor is None
+    remaining = list(second.items)
+    cursor: str | None = second.next_cursor
+    while cursor is not None:
+        page = await service.list_entities(entity_type="galaxy", cursor=cursor, limit=10)
+        remaining.extend(page.items)
+        cursor = page.next_cursor
+        if not page.has_more:
+            assert page.next_cursor is None
+            break
+
+    assert [item.slug for item in remaining if item.slug in fixture_slugs] == expected[2:]
 
     empty = await service.list_entities(entity_type="planet", limit=1)
     assert empty.items == ()

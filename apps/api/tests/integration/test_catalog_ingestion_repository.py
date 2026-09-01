@@ -44,24 +44,6 @@ _QUANTITY_RADIUS_ID = UUID("72000000-0000-4000-8000-000000000002")
 _UNIT_KG_ID = UUID("73000000-0000-4000-8000-000000000001")
 _UNIT_M_ID = UUID("73000000-0000-4000-8000-000000000002")
 _FETCHED_AT = datetime(2026, 8, 11, 12, tzinfo=UTC)
-_REVIEWED_ENTITY_IDS = (
-    UUID("26f4b667-ecd9-524d-8121-29508723715a"),
-    UUID("bbfe8678-81ca-5e70-ac95-c597d7655540"),
-    UUID("bfd42670-3013-598e-8eb5-5a1c084dd1a0"),
-    UUID("c593bd18-c4bc-5551-8a41-09f1b501f981"),
-    UUID("403d0e71-8d81-5c52-abad-c4666c1b5cd6"),
-)
-_REVIEWED_QUANTITY_IDS = (
-    UUID("2c3626b7-647f-5180-8662-5240238e1acc"),
-    UUID("b9532ccd-e769-5d36-9046-b7c1bc138841"),
-    UUID("347f0167-0786-5d34-a4d4-a4da006343eb"),
-    UUID("3c034f43-6cac-58b0-863a-c72c01cbbd0f"),
-    UUID("18e12409-5731-5fb0-bb26-8f7033a52621"),
-)
-_REVIEWED_UNIT_IDS = (
-    UUID("4e4a920b-dc09-5556-a056-c08ba155c18a"),
-    UUID("48176d92-8406-52ae-855a-aa2f48dfd089"),
-)
 
 
 def _migration_operation[Result](
@@ -142,26 +124,22 @@ def _clean_catalog(connection: Connection) -> None:
         connection.execute(text(statement))
     connection.execute(
         text(
-            "DELETE FROM public.quantity_unit WHERE NOT ("
-            "(quantity_id = ANY(CAST(:photometry_quantity_ids AS uuid[])) "
-            "AND unit_id = :photometry_unit_id) OR "
-            "(quantity_id = ANY(CAST(:astrometry_quantity_ids AS uuid[])) "
-            "AND unit_id = :astrometry_unit_id))"
+            "DELETE FROM public.quantity_unit WHERE "
+            "quantity_id = ANY(CAST(:quantity_ids AS uuid[])) "
+            "OR unit_id = ANY(CAST(:unit_ids AS uuid[]))"
         ),
         {
-            "photometry_quantity_ids": list(_REVIEWED_QUANTITY_IDS[:3]),
-            "photometry_unit_id": _REVIEWED_UNIT_IDS[0],
-            "astrometry_quantity_ids": list(_REVIEWED_QUANTITY_IDS[3:]),
-            "astrometry_unit_id": _REVIEWED_UNIT_IDS[1],
+            "quantity_ids": [_QUANTITY_MASS_ID, _QUANTITY_RADIUS_ID],
+            "unit_ids": [_UNIT_KG_ID, _UNIT_M_ID],
         },
     )
     connection.execute(
-        text("DELETE FROM public.quantity WHERE NOT id = ANY(CAST(:quantity_ids AS uuid[]))"),
-        {"quantity_ids": list(_REVIEWED_QUANTITY_IDS)},
+        text("DELETE FROM public.quantity WHERE id = ANY(CAST(:quantity_ids AS uuid[]))"),
+        {"quantity_ids": [_QUANTITY_MASS_ID, _QUANTITY_RADIUS_ID]},
     )
     connection.execute(
-        text("DELETE FROM public.unit WHERE id <> ALL(CAST(:unit_ids AS uuid[]))"),
-        {"unit_ids": list(_REVIEWED_UNIT_IDS)},
+        text("DELETE FROM public.unit WHERE id = ANY(CAST(:unit_ids AS uuid[]))"),
+        {"unit_ids": [_UNIT_KG_ID, _UNIT_M_ID]},
     )
     connection.execute(
         text("DELETE FROM public.entity WHERE id IN (:entity_id, :entity_b_id)"),

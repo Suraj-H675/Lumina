@@ -961,6 +961,18 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "9c7e4a1d2f6b",
             "002f9ed6a50faae3828a537c038b1f3c963c26b545d4dc677943082689f5cd61",
         ),
+        (
+            "b8e5f1a2c3d4_correct_messier_target_semantics.py",
+            "b8e5f1a2c3d4",
+            "a7d4e9f2c1b3",
+            "9152832c043502a6b28772751615759166bd55fab011a4c3fc6ef514a9e49bd7",
+        ),
+        (
+            "c9f6a2b3d4e5_isolate_catalogue_operator_acl.py",
+            "c9f6a2b3d4e5",
+            "b8e5f1a2c3d4",
+            "a67567004d1db2068fcf8b7c6919a9c863fd05ea3c859ded41927aa5924f5b63",
+        ),
     ]
     assert actual_contracts == expected_contracts
     root = tmp_path / "versions"

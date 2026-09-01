@@ -1,0 +1,90 @@
+{
+  "artifact_bytes": 16889,
+  "artifact_sha256": "7d155edba33d1fc89b036da458de8dc40d387a5c898ef0c717f1463d49a38cdc",
+  "canonical_selection_fingerprint_sha256": "060455a10673f873c613ceccc4d7a401472ccb2d845342f2434b6cafd2bc2660",
+  "canonical_type_policy": {
+    "authority": "NASA modern Messier observing-target semantics",
+    "overrides": {
+      "M16": "nebula",
+      "M17": "nebula",
+      "M20": "nebula",
+      "M8": "nebula"
+    },
+    "provider_type_preserved_as": "SIMBAD otype provider evidence",
+    "rule": "canonical entity_type is reviewed target semantics and is not inferred automatically from SIMBAD otype",
+    "unchanged_rows": 106
+  },
+  "column_contract": [
+    "messier_number",
+    "canonical_name",
+    "slug",
+    "canonical_entity_type",
+    "target_scope",
+    "coordinate_role",
+    "requested_identifier",
+    "oid",
+    "main_id",
+    "otype",
+    "ra",
+    "dec",
+    "coo_qual",
+    "coo_bibcode"
+  ],
+  "coordinate_policy": {
+    "definition": "Reviewed ICRS J2000 catalogue anchor/reference position of the resolved SIMBAD provider record; not an asserted geometric target centre.",
+    "excluded_interpretations": [
+      "geometric centroid",
+      "nebular centre",
+      "physical centre of extent",
+      "NASA-defined target centre",
+      "centroid manufactured from compound components"
+    ],
+    "frame": "ICRS",
+    "representation": "J2000.0",
+    "role": "provider_record_catalogue_anchor"
+  },
+  "data_manifest_sha256": "83bb27f9dba92a35f421ad43e9c64f4fef45dace5df15a85ed361b7dae38d9a4",
+  "dataset_id": "messier-j2000",
+  "derived_from_v1_artifact_sha256": "b29a5c8b3bf58eb3c7649f18f1f64446c6b3b12dbbb3d59c4e639befe2fbf0e9",
+  "exact_query": "SELECT i.id AS requested_identifier,b.oid,b.main_id,b.otype,b.ra,b.dec,b.coo_qual,b.coo_bibcode FROM ident AS i JOIN basic AS b ON b.oid=i.oidref WHERE i.id IN ('M 1', 'M 2', 'M 3', 'M 4', 'M 5', 'M 6', 'M 7', 'M 8', 'M 9', 'M 10', 'M 11', 'M 12', 'M 13', 'M 14', 'M 15', 'M 16', 'M 17', 'M 18', 'M 19', 'M 20', 'M 21', 'M 22', 'M 23', 'M 24', 'M 25', 'M 26', 'M 27', 'M 28', 'M 29', 'M 30', 'M 31', 'M 32', 'M 33', 'M 34', 'M 35', 'M 36', 'M 37', 'M 38', 'M 39', 'M 40', 'M 41', 'M 42', 'M 43', 'M 44', 'M 45', 'M 46', 'M 47', 'M 48', 'M 49', 'M 50', 'M 51', 'M 52', 'M 53', 'M 54', 'M 55', 'M 56', 'M 57', 'M 58', 'M 59', 'M 60', 'M 61', 'M 62', 'M 63', 'M 64', 'M 65', 'M 66', 'M 67', 'M 68', 'M 69', 'M 70', 'M 71', 'M 72', 'M 73', 'M 74', 'M 75', 'M 76', 'M 77', 'M 78', 'M 79', 'M 80', 'M 81', 'M 82', 'M 83', 'M 84', 'M 85', 'M 86', 'M 87', 'M 88', 'M 89', 'M 90', 'M 91', 'M 92', 'M 93', 'M 94', 'M 95', 'M 96', 'M 97', 'M 98', 'M 99', 'M 100', 'M 101', 'M 102', 'M 103', 'M 104', 'M 105', 'M 106', 'M 107', 'M 108', 'M 109', 'M 110')",
+  "m102_policy": {
+    "alternative": "NASA HEASARC notes its electronic catalogue contains 109 entries because M102 is generally considered spurious/actually M101.",
+    "ambiguity": "Historical Messier 102 identity is disputed; some catalogues treat M102 as spurious or duplicative of M101.",
+    "operational_convention": "Modern 110-object observing convention; Messier 102 operationally represented by the Spindle Galaxy/NGC 5866 identity.",
+    "simbad_evidence": "M 102 has SIMBAD main identity M 102, type SyG, with NGC 5866 among accepted identifiers."
+  },
+  "retrieved_at": "2026-08-30T08:19:30Z",
+  "semantic_review_version": "simbad-messier-j2000-v2",
+  "source_manifest_sha256": "eb45de6ef052d19b415741c8ea34e403c4469a6cfa43d4c5806674e74d5aaccb",
+  "state_fingerprint_sha256": "01e62570fbdc51db2b605c6756a2328cf0516f12faccbe8feead98683531010c",
+  "special_cases": {
+    "M102": "SIMBAD SyG; represented as galaxy under the modern 110-object operational convention while retaining historical ambiguity.",
+    "M16": "NASA Eagle Nebula collective observing target; scope compound and explicitly encompasses IC 4703 plus NGC 6611 without creating a component graph or centroid.",
+    "M17": "NASA Omega/Swan Nebula observing target; SIMBAD OpC and NGC 6618 identity remain provider evidence.",
+    "M20": "NASA Trifid Nebula observing target; SIMBAD OpC and NGC 6514 identity remain provider evidence.",
+    "M24": "SIMBAD As* and NASA Star Cloud; represented as sky_region.",
+    "M40": "SIMBAD unknown object type; represented as system under the existing explicit mapping.",
+    "M73": "SIMBAD err / Not an Object; represented as sky_region under the existing explicit mapping.",
+    "M8": "NASA Lagoon Nebula observing target; SIMBAD OpC remains provider evidence; associated NGC 6530 does not redefine the Messier entity."
+  },
+  "target_scope_policy": {
+    "assignments": {
+      "M16": "compound",
+      "M17": "extended",
+      "M20": "extended",
+      "M24": "region",
+      "M40": "system",
+      "M73": "apparent_group",
+      "M8": "extended"
+    },
+    "closed_values": ["apparent_group", "compound", "extended", "object", "region", "system"],
+    "default": "object"
+  },
+  "terms": {
+    "nasa": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "simbad": "https://cds.unistra.fr/terms/",
+    "vizier": "https://cds.unistra.fr/vizier-org/licences_vizier.html"
+  },
+  "v1_manifest_sha256": "ae95d19fcacc8a35b636f879270be6fd00e4282180ce0de79634fc0eaa721370",
+  "vizier_verification": "Identity verification only; no VizieR rows are redistributed in this repository. NGC/IC/common-name relationships were reviewed where applicable and historical VizieR coordinates do not override selected SIMBAD positions."
+}

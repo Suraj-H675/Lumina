@@ -24,6 +24,7 @@ class _EnvCreator(Protocol):
         repository_root: Path,
         *,
         ephemeral_candidate: bool = ...,
+        ensure_catalog_operator: bool = ...,
         volume_inspection: Callable[[], object] = ...,
         candidate_volume_inspection: Callable[[str], object] = ...,
         candidate_host_port_selector: Callable[[], int] = ...,
@@ -127,8 +128,8 @@ def test_create_local_env_is_private_complete_and_idempotent(
     assert not module.create_local_env(tmp_path, volume_inspection=lambda: object())
     assert env_file.read_text(encoding="utf-8") == first
     passwords = _passwords(first)
-    assert len(passwords) == 5
-    assert len(set(passwords)) == 5
+    assert len(passwords) == 7
+    assert len(set(passwords)) == 7
     assert first.startswith("LUMINA_ENV=development\n")
     assert "POSTGRES_HOST_PORT=5432\n" in first
     assert "COMPOSE_PROJECT_NAME=" not in first
@@ -188,8 +189,8 @@ def test_ephemeral_candidate_is_isolated_private_fresh_and_non_disclosing(
     assert values["LUMINA_ENV"] == "test"
     assert values["POSTGRES_HOST_PORT"] == "15432"
     assert stat.S_IMODE(env_file.stat().st_mode) == 0o600
-    assert len(passwords) == 5
-    assert len(set(passwords)) == 5
+    assert len(passwords) == 7
+    assert len(set(passwords)) == 7
     assert not any(password in captured.out + captured.err for password in passwords)
     assert not list(tmp_path.glob(".env.*.tmp"))
 
@@ -318,7 +319,10 @@ def test_cli_rejects_unexpected_arguments_without_echoing_them(
     assert module.cli((credential_like_argument,)) == 2
     captured = capsys.readouterr()
     assert credential_like_argument not in captured.out + captured.err
-    assert captured.err == "error: expected no arguments or --ephemeral-candidate\n"
+    assert (
+        captured.err
+        == "error: expected no arguments, --ephemeral-candidate, or --ensure-catalog-operator\n"
+    )
 
 
 def test_candidate_port_selector_returns_non_default_loopback_port() -> None:

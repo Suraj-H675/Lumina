@@ -26,6 +26,14 @@ _PASSWORD_NAMES: Final = (
     "POSTGRES_MIGRATION_PASSWORD",
     "POSTGRES_TEST_RUNTIME_PASSWORD",
     "POSTGRES_TEST_MIGRATION_PASSWORD",
+    "POSTGRES_CATALOG_OPERATOR_PASSWORD",
+    "POSTGRES_TEST_CATALOG_OPERATOR_PASSWORD",
+)
+_CATALOG_OPERATOR_ENV_NAMES: Final = (
+    "POSTGRES_CATALOG_OPERATOR_PASSWORD",
+    "POSTGRES_TEST_CATALOG_OPERATOR_PASSWORD",
+    "LUMINA_CATALOG_OPERATOR_DATABASE_URL",
+    "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL",
 )
 
 
@@ -91,7 +99,7 @@ def inspect_local_database_volume(
 
 
 def _new_credentials() -> dict[str, str]:
-    """Generate five independently named, pairwise-distinct PostgreSQL credentials."""
+    """Generate independently named, pairwise-distinct PostgreSQL credentials."""
     credentials: dict[str, str] = {}
     used_values: set[str] = set()
     for name in _PASSWORD_NAMES:
@@ -128,8 +136,10 @@ def _content(
         *(f"{name}={value}" for name, value in secrets_by_name.items()),
         "LUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:${POSTGRES_RUNTIME_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina",
         "LUMINA_DATABASE_SYNC_URL=postgresql+psycopg://lumina_migrate:${POSTGRES_MIGRATION_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina",
+        "LUMINA_CATALOG_OPERATOR_DATABASE_URL=postgresql+asyncpg://lumina_catalog_operator:${POSTGRES_CATALOG_OPERATOR_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina",
         "LUMINA_TEST_DATABASE_URL=postgresql+asyncpg://lumina_test_app:${POSTGRES_TEST_RUNTIME_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina_test",
         "LUMINA_TEST_DATABASE_SYNC_URL=postgresql+psycopg://lumina_test_migrate:${POSTGRES_TEST_MIGRATION_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina_test",
+        "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL=postgresql+asyncpg://lumina_test_catalog_operator:${POSTGRES_TEST_CATALOG_OPERATOR_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina_test",
         "",
     ]
     return "\n".join(lines)
@@ -184,6 +194,70 @@ def _write_environment(repository_root: Path, content: str) -> bool:
         return True
     finally:
         os.umask(old_umask)
+
+
+def ensure_catalog_operator_environment(repository_root: Path) -> bool:
+    """Append operator credentials once without replacing the existing local environment."""
+    destination = repository_root / ".env"
+    if not destination.is_file() or destination.is_symlink():
+        raise ExistingLocalDatabaseVolumeError(
+            "An existing .env file is required before adding catalogue operator credentials."
+        )
+    content = destination.read_text(encoding="utf-8")
+    keys: dict[str, str] = {}
+    for line in content.splitlines():
+        if not line or line.lstrip().startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        if name in keys:
+            raise LocalDatabaseInspectionError("The local environment contains a duplicate key.")
+        keys[name] = value
+    existing = tuple(name for name in _CATALOG_OPERATOR_ENV_NAMES if name in keys)
+    if len(existing) == len(_CATALOG_OPERATOR_ENV_NAMES):
+        return False
+    generated = _new_credentials()
+    additions = {
+        name: generated[name]
+        for name in (
+            "POSTGRES_CATALOG_OPERATOR_PASSWORD",
+            "POSTGRES_TEST_CATALOG_OPERATOR_PASSWORD",
+        )
+        if name not in keys
+    }
+    if "LUMINA_CATALOG_OPERATOR_DATABASE_URL" not in keys:
+        additions["LUMINA_CATALOG_OPERATOR_DATABASE_URL"] = (
+            "postgresql+asyncpg://lumina_catalog_operator:${POSTGRES_CATALOG_OPERATOR_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina"
+        )
+    if "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL" not in keys:
+        additions["LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL"] = (
+            "postgresql+asyncpg://lumina_test_catalog_operator:${POSTGRES_TEST_CATALOG_OPERATOR_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina_test"
+        )
+    updated = content if content.endswith("\n") else f"{content}\n"
+    updated += "\n".join(f"{name}={value}" for name, value in additions.items()) + "\n"
+    old_umask = os.umask(0o077)
+    temporary = repository_root / f".env.{os.getpid()}.{secrets.token_hex(8)}.tmp"
+    try:
+        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+                stream.write(updated)
+                stream.flush()
+                os.fsync(stream.fileno())
+        except BaseException:
+            with suppress(FileNotFoundError):
+                temporary.unlink()
+            raise
+        os.replace(temporary, destination)
+        directory_descriptor = os.open(repository_root, os.O_RDONLY)
+        try:
+            os.fsync(directory_descriptor)
+        finally:
+            os.close(directory_descriptor)
+    finally:
+        with suppress(FileNotFoundError):
+            temporary.unlink()
+        os.umask(old_umask)
+    return True
 
 
 def create_local_env(
@@ -261,6 +335,7 @@ def main(
     repository_root: Path | None = None,
     *,
     ephemeral_candidate: bool = False,
+    ensure_catalog_operator: bool = False,
     volume_inspection: Callable[[], VolumeInspection] = inspect_local_database_volume,
     candidate_volume_inspection: Callable[[str], VolumeInspection] = inspect_database_volume,
     candidate_host_port_selector: Callable[[], int] = select_available_loopback_port,
@@ -274,6 +349,8 @@ def main(
                 volume_inspection=candidate_volume_inspection,
                 host_port_selector=candidate_host_port_selector,
             )
+        elif ensure_catalog_operator:
+            ensure_catalog_operator_environment(resolved_root)
         else:
             create_local_env(resolved_root, volume_inspection=volume_inspection)
     except (ExistingLocalDatabaseVolumeError, LocalDatabaseInspectionError) as error:
@@ -292,7 +369,12 @@ def cli(argv: Sequence[str] | None = None) -> int:
         return main()
     if arguments == ("--ephemeral-candidate",):
         return main(ephemeral_candidate=True)
-    print("error: expected no arguments or --ephemeral-candidate", file=sys.stderr)
+    if arguments == ("--ensure-catalog-operator",):
+        return main(ensure_catalog_operator=True)
+    print(
+        "error: expected no arguments, --ephemeral-candidate, or --ensure-catalog-operator",
+        file=sys.stderr,
+    )
     return 2
 
 

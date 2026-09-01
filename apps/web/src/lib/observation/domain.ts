@@ -16,6 +16,7 @@ export const MESSIER_DECLINATION_QUANTITY_CODE = "icrs_declination_j2000";
 export const MESSIER_DATASET_CODE = "messier-j2000";
 export const MESSIER_PROVIDER_CODE = "cds-simbad";
 export const MESSIER_RELEASE = "v1";
+export const MESSIER_V2_RELEASE = "v2";
 export const MESSIER_REFERENCE_EPOCH = 2000.0;
 
 type CatalogueSourceReference = NonNullable<
@@ -206,6 +207,14 @@ const ACCEPTED_COORDINATE_PROFILES: ReadonlyArray<CoordinateProfile> = [
     declination: MESSIER_DECLINATION_QUANTITY_CODE,
     epoch: MESSIER_REFERENCE_EPOCH,
   },
+  {
+    provider: MESSIER_PROVIDER_CODE,
+    dataset: MESSIER_DATASET_CODE,
+    release: MESSIER_V2_RELEASE,
+    rightAscension: MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
+    declination: MESSIER_DECLINATION_QUANTITY_CODE,
+    epoch: MESSIER_REFERENCE_EPOCH,
+  },
 ];
 
 export function coordinateProfileForSource(
@@ -240,10 +249,13 @@ export function getCoordinateDisclosure(profile: CoordinateProfile): string {
   if (
     profile.provider === MESSIER_PROVIDER_CODE &&
     profile.dataset === MESSIER_DATASET_CODE &&
-    profile.release === MESSIER_RELEASE &&
+    (profile.release === MESSIER_RELEASE || profile.release === MESSIER_V2_RELEASE) &&
     profile.rightAscension === MESSIER_RIGHT_ASCENSION_QUANTITY_CODE &&
     profile.declination === MESSIER_DECLINATION_QUANTITY_CODE
   ) {
+    if (profile.release === MESSIER_V2_RELEASE) {
+      return `SIMBAD Messier ICRS J2000 resolver-record catalogue anchor at reference epoch ${epoch}. It is not asserted to be a geometric target centre; no epoch propagation is applied.`;
+    }
     return `SIMBAD Messier J2000 catalogue position at reference epoch ${epoch}. No epoch propagation is applied.`;
   }
   return `Reviewed catalogue position at reference epoch ${epoch}. No epoch propagation is applied.`;

@@ -66,12 +66,12 @@ def test_empty_temporary_root_and_approved_production_manifests_are_valid(
     assert (PRODUCTION_MANIFEST_ROOT / ".gitkeep").is_file()
     production = validate_manifest_root(PRODUCTION_MANIFEST_ROOT)
     assert production.is_valid
-    assert len(production.manifests) == 6
+    assert len(production.manifests) == 7
     assert {manifest.manifest_type for manifest in production.manifests} == {"source", "data"}
     assert main([]) == 0
     output = capsys.readouterr()
     assert output.err == ""
-    assert output.out == "Lumina manifest validation passed: 6 manifest files.\n"
+    assert output.out == "Lumina manifest validation passed: 7 manifest files.\n"
 
 
 def test_messier_manifests_are_canonical_and_review_evidence_is_pinned() -> None:

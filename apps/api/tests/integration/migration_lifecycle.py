@@ -116,6 +116,8 @@ def normalize_historical_database_to_b2(settings: IntegrationTestSettings) -> No
         "a1a3c0f17c5e",
         "c4b9e2d7a6f1",
         _HISTORICAL_B2,
+        "b8e5f1a2c3d4",
+        "c9f6a2b3d4e5",
     }
     revision = read_historical_revision(settings)
     if revision is None:
@@ -172,7 +174,8 @@ def create_historical_database(settings: IntegrationTestSettings, admin_url: URL
             )
             connection.exec_driver_sql(
                 f"GRANT CONNECT ON DATABASE {_HISTORY_DATABASE} "
-                "TO lumina_admin, lumina_test_migrate, lumina_test_app"
+                "TO lumina_admin, lumina_test_migrate, lumina_test_app, "
+                "lumina_test_catalog_operator"
             )
     finally:
         admin_engine.dispose()
@@ -187,6 +190,9 @@ def create_historical_database(settings: IntegrationTestSettings, admin_url: URL
                 "GRANT USAGE, CREATE ON SCHEMA public TO lumina_test_migrate"
             )
             connection.exec_driver_sql("GRANT USAGE ON SCHEMA public TO lumina_test_app")
+            connection.exec_driver_sql(
+                "GRANT USAGE ON SCHEMA public TO lumina_test_catalog_operator"
+            )
         with history_engine.connect() as connection:
             owner = connection.execute(
                 text(

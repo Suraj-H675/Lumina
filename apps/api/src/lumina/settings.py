@@ -39,8 +39,10 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_BUILD_COMMIT",
         "LUMINA_DATABASE_URL",
         "LUMINA_DATABASE_SYNC_URL",
+        "LUMINA_CATALOG_OPERATOR_DATABASE_URL",
         "LUMINA_TEST_DATABASE_URL",
         "LUMINA_TEST_DATABASE_SYNC_URL",
+        "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL",
         "LUMINA_JOB_PAYLOAD_MAX_BYTES",
         "LUMINA_JOB_DEFAULT_MAX_ATTEMPTS",
         "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS",
@@ -364,6 +366,38 @@ class MigrationSettings(BaseSettings):
         )
 
 
+class CatalogOperatorSettings(BaseSettings):
+    """Validated local-only settings for the reviewed catalogue operator identity."""
+
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        extra="ignore",
+        frozen=True,
+        populate_by_name=True,
+        hide_input_in_errors=True,
+    )
+
+    database_url: SecretStr = Field(validation_alias="LUMINA_CATALOG_OPERATOR_DATABASE_URL")
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: SecretStr) -> SecretStr:
+        """Require the async driver for the local operator selection session."""
+        return _validate_database_url(
+            value,
+            drivername="postgresql+asyncpg",
+            field="Catalogue operator database URL",
+        )
+
+    @model_validator(mode="after")
+    def validate_operator_target(self) -> CatalogOperatorSettings:
+        """Keep operator credentials scoped to the development catalogue database."""
+        target = make_url(self.database_url.get_secret_value())
+        if target.database != "lumina" or target.username != "lumina_catalog_operator":
+            raise ValueError("Catalogue operator URL must target the dedicated local operator role")
+        return self
+
+
 class IntegrationTestSettings(BaseSettings):
     """Guarded settings for tests that can modify the isolated local test database."""
 
@@ -376,8 +410,11 @@ class IntegrationTestSettings(BaseSettings):
     database_sync_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_SYNC_URL")
     test_database_url: SecretStr = Field(validation_alias="LUMINA_TEST_DATABASE_URL")
     test_database_sync_url: SecretStr = Field(validation_alias="LUMINA_TEST_DATABASE_SYNC_URL")
+    test_catalog_operator_database_url: SecretStr = Field(
+        validation_alias="LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL"
+    )
 
-    @field_validator("database_url", "test_database_url")
+    @field_validator("database_url", "test_database_url", "test_catalog_operator_database_url")
     @classmethod
     def validate_async_test_urls(cls, value: SecretStr) -> SecretStr:
         return _validate_database_url(
@@ -408,8 +445,15 @@ class IntegrationTestSettings(BaseSettings):
             raise ValueError("Test database URLs must use the same _test database")
         if development.database == runtime.database:
             raise ValueError("Test and development database URLs must differ")
-        if runtime.username != "lumina_test_app" or sync.username != "lumina_test_migrate":
+        operator = make_url(self.test_catalog_operator_database_url.get_secret_value())
+        if (
+            runtime.username != "lumina_test_app"
+            or sync.username != "lumina_test_migrate"
+            or operator.username != "lumina_test_catalog_operator"
+        ):
             raise ValueError("Test database URLs must use the dedicated test roles")
+        if operator.database != "lumina_test" or operator.database != runtime.database:
+            raise ValueError("Test catalogue operator URL must target lumina_test")
 
 
 def _reject_unknown_lumina_keys(values: Mapping[str, object]) -> None:
@@ -450,6 +494,14 @@ def load_migration_settings(*, env_file: Path | None = _REPOSITORY_ENV_FILE) -> 
     """Load only the privileged synchronous migration configuration."""
     values = _load_environment_values(env_file)
     return MigrationSettings.model_validate(values)
+
+
+def load_catalog_operator_settings(
+    *, env_file: Path | None = _REPOSITORY_ENV_FILE
+) -> CatalogOperatorSettings:
+    """Load the explicit local operator URL; API and worker callers never use it."""
+    values = _load_environment_values(env_file)
+    return CatalogOperatorSettings.model_validate(values)
 
 
 def load_integration_test_settings(

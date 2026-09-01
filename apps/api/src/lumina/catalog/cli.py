@@ -15,6 +15,7 @@ from lumina.catalog.application.data_quality import ReviewedSliceDataQualityServ
 from lumina.catalog.application.ingest import CatalogIngestionService
 from lumina.catalog.application.messier import (
     MESSIER_SLICE_ID,
+    MESSIER_V2_SLICE_ID,
     MessierIngestionResult,
     MessierReviewedIngestionService,
 )
@@ -58,11 +59,22 @@ from lumina.catalog.infrastructure.postgresql.data_quality import (
 )
 from lumina.catalog.infrastructure.postgresql.ingestion import PostgreSqlCatalogIngestionStore
 from lumina.catalog.infrastructure.postgresql.messier_selection import (
+    MESSIER_V2_SELECTION_SHA256,
+    V1_SELECTION_PROFILE,
+    V2_SELECTION_PROFILE,
     PostgreSqlMessierCanonicalSelectionStore,
 )
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
 from lumina.catalog.infrastructure.simbad_messier import ARTIFACT_SHA256
-from lumina.settings import load_settings
+from lumina.catalog.infrastructure.simbad_messier_v2 import (
+    ARTIFACT_SHA256 as V2_ARTIFACT_SHA256,
+)
+from lumina.catalog.infrastructure.simbad_messier_v2 import (
+    MESSIER_V2_STATE_SHA256,
+    build_reviewed_simbad_v2_commands,
+    load_messier_v2_slice,
+)
+from lumina.settings import load_catalog_operator_settings, load_settings
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 
 _INVALID_MESSAGE = "Invalid catalogue command."
@@ -98,7 +110,9 @@ def _parser() -> _SafeArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     ingest = commands.add_parser("ingest", help="Ingest the one reviewed offline source slice.")
     ingest.add_argument(
-        "--slice", required=True, choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID, MESSIER_SLICE_ID)
+        "--slice",
+        required=True,
+        choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID, MESSIER_SLICE_ID, MESSIER_V2_SLICE_ID),
     )
     ingest.add_argument("--validate-only", action="store_true")
 
@@ -107,7 +121,9 @@ def _parser() -> _SafeArgumentParser:
         help="Validate immutable provenance and source facts for one reviewed slice.",
     )
     data_check.add_argument(
-        "--slice", required=True, choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID)
+        "--slice",
+        required=True,
+        choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID, MESSIER_V2_SLICE_ID),
     )
 
     conflicts = commands.add_parser("conflicts", help="Read source-integrity conflicts.")
@@ -145,6 +161,20 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
                 "source_record_count": validated.source_record_count,
                 "status": validated.status,
             }
+        if namespace.slice == MESSIER_V2_SLICE_ID:
+            validated = await MessierReviewedIngestionService(
+                slice_id=MESSIER_V2_SLICE_ID,
+                command_builder=build_reviewed_simbad_v2_commands,
+            ).validate()
+            return {
+                "artifact_sha256": V2_ARTIFACT_SHA256,
+                "duration_ms": _elapsed_milliseconds(started),
+                "measurement_count": validated.measurement_count,
+                "replayed_source_record_count": validated.replayed_source_record_count,
+                "slice_id": validated.slice_id,
+                "source_record_count": validated.source_record_count,
+                "status": validated.status,
+            }
         if namespace.slice == ASTROMETRY_SLICE_ID:
             validated_gaia = await ReviewedSliceIngestionService(
                 build_reviewed_gaia_astrometry_commands,
@@ -175,12 +205,35 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
             catalog_ingestion = CatalogIngestionService(
                 PostgreSqlCatalogIngestionStore(runtime.session_factory)
             )
-            if namespace.slice == MESSIER_SLICE_ID:
-                ingestion_result = await MessierReviewedIngestionService(catalog_ingestion).ingest()
-                selection_result = await PostgreSqlMessierCanonicalSelectionStore(
-                    runtime.session_factory
-                ).select_and_fingerprint()
-                artifact_sha256 = ARTIFACT_SHA256
+            if namespace.slice in {MESSIER_SLICE_ID, MESSIER_V2_SLICE_ID}:
+                if namespace.slice == MESSIER_SLICE_ID:
+                    messier_service = MessierReviewedIngestionService(catalog_ingestion)
+                    selection_profile = V1_SELECTION_PROFILE
+                    artifact_sha256 = ARTIFACT_SHA256
+                else:
+                    messier_service = MessierReviewedIngestionService(
+                        catalog_ingestion,
+                        slice_id=MESSIER_V2_SLICE_ID,
+                        command_builder=build_reviewed_simbad_v2_commands,
+                    )
+                    selection_profile = V2_SELECTION_PROFILE
+                    artifact_sha256 = V2_ARTIFACT_SHA256
+                ingestion_result = await messier_service.ingest()
+                operator_runtime = create_database_runtime(
+                    load_catalog_operator_settings().database_url
+                )
+                try:
+                    selection_result = await PostgreSqlMessierCanonicalSelectionStore(
+                        operator_runtime.session_factory,
+                        profile=selection_profile,
+                    ).select_and_fingerprint()
+                finally:
+                    await operator_runtime.engine.dispose()
+                if (
+                    namespace.slice == MESSIER_V2_SLICE_ID
+                    and selection_result.fingerprint != MESSIER_V2_SELECTION_SHA256
+                ):
+                    raise ReviewedSlicePolicyRejected()
             elif namespace.slice == ASTROMETRY_SLICE_ID:
                 ingestion_result = await ReviewedSliceIngestionService(
                     build_reviewed_gaia_astrometry_commands,
@@ -193,6 +246,19 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
                     build_reviewed_gaia_commands, catalog_ingestion
                 ).ingest(namespace.slice)
                 artifact_sha256 = _reviewed_artifact_sha256()
+            selection_payload: dict[str, object] = {}
+            if namespace.slice in {MESSIER_SLICE_ID, MESSIER_V2_SLICE_ID}:
+                selection_payload = {
+                    "state_sha256": selection_result.fingerprint,
+                    "canonical_inserted_count": selection_result.inserted_count,
+                    "canonical_unchanged_count": selection_result.unchanged_count,
+                    "canonical_superseded_count": selection_result.superseded_count,
+                }
+                if namespace.slice == MESSIER_V2_SLICE_ID:
+                    selection_payload["state_sha256"] = MESSIER_V2_STATE_SHA256
+                    selection_payload["canonical_selection_fingerprint_sha256"] = (
+                        selection_result.fingerprint
+                    )
             return {
                 "artifact_sha256": artifact_sha256,
                 "duration_ms": _elapsed_milliseconds(started),
@@ -204,20 +270,18 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
                 "slice_id": ingestion_result.slice_id,
                 "source_record_count": ingestion_result.source_record_count,
                 "status": ingestion_result.status,
-                **(
-                    {
-                        "state_sha256": selection_result.fingerprint,
-                        "canonical_inserted_count": selection_result.inserted_count,
-                        "canonical_unchanged_count": selection_result.unchanged_count,
-                        "canonical_superseded_count": selection_result.superseded_count,
-                    }
-                    if namespace.slice == MESSIER_SLICE_ID
-                    else {}
-                ),
+                **selection_payload,
             }
         if namespace.command == "data-check":
             started = perf_counter()
-            if namespace.slice == ASTROMETRY_SLICE_ID:
+            if namespace.slice == MESSIER_V2_SLICE_ID:
+                check_result = await ReviewedSliceDataQualityService(
+                    PostgreSqlCatalogDataQualityRepository(runtime.session_factory),
+                    lambda _contract: build_reviewed_simbad_v2_commands(),
+                    slice_loader=load_messier_v2_slice,
+                    expected_state_sha256=MESSIER_V2_STATE_SHA256,
+                ).check(namespace.slice)
+            elif namespace.slice == ASTROMETRY_SLICE_ID:
                 check_result = await ReviewedSliceDataQualityService(
                     PostgreSqlCatalogDataQualityRepository(runtime.session_factory),
                     build_reviewed_gaia_astrometry_commands,

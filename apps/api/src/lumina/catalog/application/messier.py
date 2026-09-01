@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Final
 
@@ -11,8 +12,15 @@ from lumina.catalog.infrastructure.simbad_messier import (
     ARTIFACT_SHA256,
     build_reviewed_simbad_commands,
 )
+from lumina.catalog.infrastructure.simbad_messier_v2 import (
+    ARTIFACT_SHA256 as V2_ARTIFACT_SHA256,
+)
+from lumina.catalog.infrastructure.simbad_messier_v2 import (
+    build_reviewed_simbad_v2_commands,
+)
 
 MESSIER_SLICE_ID: Final = "simbad-messier-j2000-v1"
+MESSIER_V2_SLICE_ID: Final = "simbad-messier-j2000-v2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,12 +38,21 @@ class MessierIngestionResult:
 class MessierReviewedIngestionService:
     """Preflight the exact 110-row adapter, then reuse generic ingestion per source record."""
 
-    def __init__(self, ingestion_service: CatalogIngestionService | None = None) -> None:
+    def __init__(
+        self,
+        ingestion_service: CatalogIngestionService | None = None,
+        *,
+        slice_id: str = MESSIER_SLICE_ID,
+        command_builder: Callable[[], tuple[IngestReviewedDatasetCommand, ...]] = (
+            build_reviewed_simbad_commands
+        ),
+    ) -> None:
         self._ingestion_service = ingestion_service
+        self._slice_id = slice_id
+        self._command_builder = command_builder
 
-    @staticmethod
-    def _commands() -> tuple[IngestReviewedDatasetCommand, ...]:
-        commands = build_reviewed_simbad_commands()
+    def _commands(self) -> tuple[IngestReviewedDatasetCommand, ...]:
+        commands = self._command_builder()
         if len(commands) != 110 or sum(len(c.source_record.measurements) for c in commands) != 220:
             raise ValueError("The reviewed Messier slice cardinality is invalid.")
         if len({c.source_record.provider_record_id for c in commands}) != 110:
@@ -45,7 +62,7 @@ class MessierReviewedIngestionService:
     async def validate(self) -> MessierIngestionResult:
         commands = self._commands()
         return MessierIngestionResult(
-            slice_id=MESSIER_SLICE_ID,
+            slice_id=self._slice_id,
             status="validated",
             source_record_count=len(commands),
             measurement_count=sum(len(c.source_record.measurements) for c in commands),
@@ -75,7 +92,7 @@ class MessierReviewedIngestionService:
             else:
                 replayed += 1
         return MessierIngestionResult(
-            slice_id=MESSIER_SLICE_ID,
+            slice_id=self._slice_id,
             status="ingested",
             source_record_count=len(commands),
             measurement_count=sum(len(c.source_record.measurements) for c in commands),
@@ -89,6 +106,9 @@ class MessierReviewedIngestionService:
 __all__ = [
     "ARTIFACT_SHA256",
     "MESSIER_SLICE_ID",
+    "MESSIER_V2_SLICE_ID",
+    "V2_ARTIFACT_SHA256",
     "MessierIngestionResult",
     "MessierReviewedIngestionService",
+    "build_reviewed_simbad_v2_commands",
 ]

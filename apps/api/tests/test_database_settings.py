@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import lumina.shared.infrastructure.database.runtime as runtime_module
 import pytest
-from lumina.settings import AppSettings, IntegrationTestSettings, MigrationSettings
+from lumina.settings import (
+    AppSettings,
+    CatalogOperatorSettings,
+    IntegrationTestSettings,
+    MigrationSettings,
+)
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 from lumina.shared.infrastructure.database.target import DatabaseTargetError
 from pydantic import SecretStr, ValidationError
@@ -56,6 +61,28 @@ def test_migration_settings_require_psycopg() -> None:
     assert "migration-private" not in repr(settings)
 
 
+def test_catalog_operator_settings_require_the_dedicated_local_role_and_database() -> None:
+    settings = CatalogOperatorSettings.model_validate(
+        {
+            "LUMINA_CATALOG_OPERATOR_DATABASE_URL": (
+                "postgresql+asyncpg://lumina_catalog_operator:operator-private@127.0.0.1:5432/lumina"
+            )
+        }
+    )
+
+    assert settings.database_url.get_secret_value().startswith("postgresql+asyncpg://")
+    assert "operator-private" not in repr(settings)
+
+    with pytest.raises(ValidationError):
+        CatalogOperatorSettings.model_validate(
+            {
+                "LUMINA_CATALOG_OPERATOR_DATABASE_URL": (
+                    "postgresql+asyncpg://lumina_app:operator-private@127.0.0.1:5432/lumina"
+                )
+            }
+        )
+
+
 def test_integration_settings_refuse_development_target() -> None:
     values = {
         "LUMINA_ENV": "test",
@@ -63,6 +90,7 @@ def test_integration_settings_refuse_development_target() -> None:
         "LUMINA_DATABASE_SYNC_URL": "postgresql+psycopg://lumina_migrate:two@127.0.0.1:5432/lumina",
         "LUMINA_TEST_DATABASE_URL": "postgresql+asyncpg://lumina_test_app:three@127.0.0.1:5432/lumina",
         "LUMINA_TEST_DATABASE_SYNC_URL": "postgresql+psycopg://lumina_test_migrate:four@127.0.0.1:5432/lumina",
+        "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL": "postgresql+asyncpg://lumina_test_catalog_operator:five@127.0.0.1:5432/lumina",
     }
     with pytest.raises(ValidationError, match="lumina_test"):
         IntegrationTestSettings.model_validate(values)
@@ -158,6 +186,9 @@ def test_integration_test_runtime_url_rejects_target_query() -> None:
         ),
         "LUMINA_TEST_DATABASE_SYNC_URL": (
             "postgresql+psycopg://lumina_test_migrate:four@127.0.0.1:5432/lumina_test"
+        ),
+        "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL": (
+            "postgresql+asyncpg://lumina_test_catalog_operator:five@127.0.0.1:5432/lumina_test"
         ),
     }
 

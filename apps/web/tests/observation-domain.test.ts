@@ -12,6 +12,7 @@ import {
   MESSIER_PROVIDER_CODE,
   MESSIER_REFERENCE_EPOCH,
   MESSIER_RELEASE,
+  MESSIER_V2_RELEASE,
   MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
   RIGHT_ASCENSION_QUANTITY_CODE,
   calculateHorizontalPosition,
@@ -224,6 +225,17 @@ describe("observation domain", () => {
         epoch: MESSIER_REFERENCE_EPOCH,
       }),
     ).not.toMatch(/Gaia DR3|J2016\.0/);
+
+    expect(
+      getCoordinateDisclosure({
+        provider: MESSIER_PROVIDER_CODE,
+        dataset: MESSIER_DATASET_CODE,
+        release: MESSIER_V2_RELEASE,
+        rightAscension: MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
+        declination: MESSIER_DECLINATION_QUANTITY_CODE,
+        epoch: MESSIER_REFERENCE_EPOCH,
+      }),
+    ).toContain("SIMBAD Messier ICRS J2000 resolver-record catalogue anchor");
   });
 
   it("handles a partial custom profile without leaking undefined metadata", () => {

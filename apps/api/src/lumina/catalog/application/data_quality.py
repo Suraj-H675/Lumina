@@ -194,7 +194,7 @@ class ReviewedSliceDataQualityService[SliceContractT]:
         repository: CatalogDataQualityRepository,
         command_builder: Callable[[SliceContractT], tuple[IngestReviewedDatasetCommand, ...]],
         slice_loader: Callable[[str], SliceContractT] | None = None,
-        expected_state_sha256: str = REVIEWED_STATE_SHA256,
+        expected_state_sha256: str | None = REVIEWED_STATE_SHA256,
     ) -> None:
         self._repository = repository
         self._command_builder = command_builder
@@ -215,7 +215,10 @@ class ReviewedSliceDataQualityService[SliceContractT]:
             state = await self._repository.load_slice_state(contract)
             self._validate_state(contract, state, commands)
             state_sha256 = _state_fingerprint(contract, state)
-            if state_sha256 != self._expected_state_sha256:
+            if (
+                self._expected_state_sha256 is not None
+                and state_sha256 != self._expected_state_sha256
+            ):
                 raise ReviewedSlicePolicyRejected()
             result = ReviewedSliceDataCheckResult(
                 slice_id=contract.slice_id,

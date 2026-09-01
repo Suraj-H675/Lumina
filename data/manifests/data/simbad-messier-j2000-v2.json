@@ -1,0 +1,17 @@
+{
+  "checksum": "sha256:7d155edba33d1fc89b036da458de8dc40d387a5c898ef0c717f1463d49a38cdc",
+  "citation": "This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France.",
+  "coverage": "Messier 1 through Messier 110 exactly once; raw SIMBAD identity, object type and ICRS J2000 evidence plus reviewed modern observing-target entity type, target scope and coordinate role.",
+  "dataset_id": "messier-j2000",
+  "documentation_url": "https://simbad.cds.unistra.fr/guide/",
+  "local_file": "data/seed/simbad-messier-j2000-v2.csv",
+  "manifest_schema_version": 1,
+  "manifest_type": "data",
+  "official_url": "https://simbad.cds.unistra.fr/simbad/sim-tap",
+  "parser_version": "simbad-messier-j2000-v2",
+  "release_version": "v2",
+  "retrieved_at": "2026-08-30T08:19:30Z",
+  "source_id": "cds-simbad",
+  "terms_or_licence": "CDS SIMBAD terms and acknowledgement apply; derived reviewed snapshot redistributed with CDS attribution under ODbL-1.0.",
+  "usage_notes": "Exact normalized CSV is 110 rows and 16889 bytes. Coordinates are ICRS J2000.0 decimal degrees. Raw SIMBAD otype values remain provider evidence; canonical entity type and target scope are review-pinned modern observing-target semantics. Coordinates are provider-record catalogue anchors, not asserted geometric target centres. The v2 release supersedes v1 selections without rewriting v1 evidence."
+}

@@ -22,6 +22,15 @@ from lumina.catalog.infrastructure.simbad_messier import (
 _SELECTION_RULE: Final = "simbad_messier_j2000"
 _SELECTION_VERSION: Final = "v1"
 _EXPLANATION: Final = "Selected from the reviewed CDS SIMBAD Messier ICRS J2000 v1 dataset."
+V2_SELECTION_RULE: Final = "simbad_messier_j2000_catalogue_anchor"
+V2_SELECTION_VERSION: Final = "v2"
+MESSIER_V2_SELECTION_SHA256: Final = (
+    "060455a10673f873c613ceccc4d7a401472ccb2d845342f2434b6cafd2bc2660"
+)
+V2_EXPLANATION: Final = (
+    "Selected from the reviewed CDS SIMBAD Messier ICRS J2000 v2 catalogue-anchor dataset; "
+    "this is the resolver-record reference position, not an asserted geometric target centre."
+)
 _SELECTION_NAMESPACE: Final = UUID("f30f9e0b-72ee-5c61-9c95-a2a2d2a7e8a1")
 _TIMEOUT_SQL = text(
     "SELECT set_config('statement_timeout', '5000ms', true), "
@@ -80,14 +89,53 @@ class MessierSelectionResult:
     superseded_count: int
 
 
+@dataclass(frozen=True, slots=True)
+class MessierSelectionProfile:
+    """One closed reviewed Messier coordinate-selection contract."""
+
+    provider: str
+    dataset: str
+    release: str
+    right_ascension: str
+    declination: str
+    selection_rule: str
+    selection_version: str
+    explanation: str
+    fingerprint_schema_version: int
+
+
+V1_SELECTION_PROFILE: Final = MessierSelectionProfile(
+    provider=EXPECTED_PROVIDER,
+    dataset=EXPECTED_DATASET,
+    release=EXPECTED_RELEASE,
+    right_ascension=RIGHT_ASCENSION_QUANTITY,
+    declination=DECLINATION_QUANTITY,
+    selection_rule=_SELECTION_RULE,
+    selection_version=_SELECTION_VERSION,
+    explanation=_EXPLANATION,
+    fingerprint_schema_version=1,
+)
+V2_SELECTION_PROFILE: Final = MessierSelectionProfile(
+    provider=EXPECTED_PROVIDER,
+    dataset=EXPECTED_DATASET,
+    release="v2",
+    right_ascension=RIGHT_ASCENSION_QUANTITY,
+    declination=DECLINATION_QUANTITY,
+    selection_rule=V2_SELECTION_RULE,
+    selection_version=V2_SELECTION_VERSION,
+    explanation=V2_EXPLANATION,
+    fingerprint_schema_version=2,
+)
+
+
 def _selection_id(entity_id: UUID, quantity_code: str, measurement_id: UUID) -> UUID:
     return uuid5(_SELECTION_NAMESPACE, f"{entity_id}:{quantity_code}:{measurement_id}")
 
 
-def _fingerprint(rows: list[dict[str, object]]) -> str:
+def _fingerprint(rows: list[dict[str, object]], *, schema_version: int = 1) -> str:
     payload = json.dumps(
         {
-            "schema_version": 1,
+            "schema_version": schema_version,
             "rows": sorted(
                 rows, key=lambda row: tuple(str(row[k]) for k in ("slug", "quantity_code"))
             ),
@@ -103,8 +151,14 @@ def _fingerprint(rows: list[dict[str, object]]) -> str:
 class PostgreSqlMessierCanonicalSelectionStore:
     """Select the reviewed pair for every Messier entity in one transaction."""
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        *,
+        profile: MessierSelectionProfile = V1_SELECTION_PROFILE,
+    ) -> None:
         self._session_factory = session_factory
+        self._profile = profile
 
     async def select_and_fingerprint(self) -> MessierSelectionResult:
         async with self._session_factory() as session, session.begin():
@@ -112,11 +166,11 @@ class PostgreSqlMessierCanonicalSelectionStore:
             result = await session.execute(
                 _ELIGIBLE_SQL,
                 {
-                    "provider_code": EXPECTED_PROVIDER,
-                    "dataset_code": EXPECTED_DATASET,
-                    "release_version": EXPECTED_RELEASE,
-                    "right_ascension": RIGHT_ASCENSION_QUANTITY,
-                    "declination": DECLINATION_QUANTITY,
+                    "provider_code": self._profile.provider,
+                    "dataset_code": self._profile.dataset,
+                    "release_version": self._profile.release,
+                    "right_ascension": self._profile.right_ascension,
+                    "declination": self._profile.declination,
                 },
             )
             rows = [dict(row) for row in result.mappings()]
@@ -133,7 +187,7 @@ class PostgreSqlMessierCanonicalSelectionStore:
                     raise MessierSelectionError("Ambiguous Messier selection set.")
                 entity_rows[quantity_code] = row
             if any(
-                set(values) != {RIGHT_ASCENSION_QUANTITY, DECLINATION_QUANTITY}
+                set(values) != {self._profile.right_ascension, self._profile.declination}
                 for values in by_entity.values()
             ):
                 raise MessierSelectionError("Missing Messier coordinate quantity.")
@@ -144,8 +198,8 @@ class PostgreSqlMessierCanonicalSelectionStore:
                     await session.execute(
                         _ACTIVE_SQL,
                         {
-                            "right_ascension": RIGHT_ASCENSION_QUANTITY,
-                            "declination": DECLINATION_QUANTITY,
+                            "right_ascension": self._profile.right_ascension,
+                            "declination": self._profile.declination,
                         },
                     )
                 ).mappings()
@@ -161,9 +215,9 @@ class PostgreSqlMessierCanonicalSelectionStore:
                     selection_id = _selection_id(entity_id, quantity_code, measurement_id)
                     if active_row is not None and (
                         active_row["measurement_id"] == measurement_id
-                        and active_row["selection_rule"] == _SELECTION_RULE
-                        and active_row["selection_version"] == _SELECTION_VERSION
-                        and active_row["explanation"] == _EXPLANATION
+                        and active_row["selection_rule"] == self._profile.selection_rule
+                        and active_row["selection_version"] == self._profile.selection_version
+                        and active_row["explanation"] == self._profile.explanation
                     ):
                         unchanged_count += 1
                     else:
@@ -177,9 +231,9 @@ class PostgreSqlMessierCanonicalSelectionStore:
                                 "entity_id": entity_id,
                                 "quantity_code": quantity_code,
                                 "measurement_id": measurement_id,
-                                "selection_rule": _SELECTION_RULE,
-                                "selection_version": _SELECTION_VERSION,
-                                "explanation": _EXPLANATION,
+                                "selection_rule": self._profile.selection_rule,
+                                "selection_version": self._profile.selection_version,
+                                "explanation": self._profile.explanation,
                             },
                         )
                         inserted_count += 1
@@ -196,13 +250,16 @@ class PostgreSqlMessierCanonicalSelectionStore:
                             "original_value": row["original_value"],
                             "original_unit": row["original_unit"],
                             "value_numeric": str(row["value_numeric"]),
-                            "selection_rule": _SELECTION_RULE,
-                            "selection_version": _SELECTION_VERSION,
-                            "explanation": _EXPLANATION,
+                            "selection_rule": self._profile.selection_rule,
+                            "selection_version": self._profile.selection_version,
+                            "explanation": self._profile.explanation,
                         }
                     )
             return MessierSelectionResult(
-                fingerprint=_fingerprint(fingerprint_rows),
+                fingerprint=_fingerprint(
+                    fingerprint_rows,
+                    schema_version=self._profile.fingerprint_schema_version,
+                ),
                 inserted_count=inserted_count,
                 unchanged_count=unchanged_count,
                 superseded_count=superseded_count,
@@ -211,6 +268,13 @@ class PostgreSqlMessierCanonicalSelectionStore:
 
 __all__ = [
     "MessierSelectionError",
+    "MessierSelectionProfile",
     "MessierSelectionResult",
+    "MESSIER_V2_SELECTION_SHA256",
     "PostgreSqlMessierCanonicalSelectionStore",
+    "V1_SELECTION_PROFILE",
+    "V2_EXPLANATION",
+    "V2_SELECTION_PROFILE",
+    "V2_SELECTION_RULE",
+    "V2_SELECTION_VERSION",
 ]

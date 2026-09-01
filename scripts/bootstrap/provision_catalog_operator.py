@@ -109,7 +109,8 @@ def _ensure_role(connection: psycopg.Connection, role: str, password: str) -> No
         elif tuple(state) != (True, False, False, False, False, False, False):
             raise ProvisioningError("An existing catalogue operator role has unsafe attributes.")
         cursor.execute(_ROLE_MEMBERSHIP_SQL, (role, role))
-        if cursor.fetchone()[0] != 0:
+        membership = cursor.fetchone()
+        if membership is None or membership[0] != 0:
             raise ProvisioningError("An existing catalogue operator role has an unsafe membership.")
 
 
@@ -131,20 +132,26 @@ def _ensure_database_access(connection: psycopg.Connection, role: str, database:
         cursor.execute(
             sql.SQL("SELECT has_schema_privilege({}, 'public', 'CREATE')").format(sql.Literal(role))
         )
-        if cursor.fetchone()[0]:
+        can_create = cursor.fetchone()
+        if can_create is None or can_create[0]:
             raise ProvisioningError("The catalogue operator role can create in public schema.")
         cursor.execute(
             sql.SQL("SELECT has_schema_privilege({}, 'public', 'USAGE')").format(sql.Literal(role))
         )
-        if not cursor.fetchone()[0]:
+        can_use = cursor.fetchone()
+        if can_use is None:
+            raise ProvisioningError("The catalogue operator schema privilege check failed.")
+        if not can_use[0]:
             cursor.execute(
                 sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(sql.Identifier(role))
             )
         cursor.execute(_ROLE_TABLE_PRIVILEGES_SQL, (role,))
-        if cursor.fetchone()[0] != 0:
+        table_privileges = cursor.fetchone()
+        if table_privileges is None or table_privileges[0] != 0:
             raise ProvisioningError("The catalogue operator role already has table privileges.")
         cursor.execute(_ROLE_COLUMN_PRIVILEGES_SQL, (role,))
-        if cursor.fetchone()[0] != 0:
+        column_privileges = cursor.fetchone()
+        if column_privileges is None or column_privileges[0] != 0:
             raise ProvisioningError("The catalogue operator role already has column privileges.")
     connection.commit()
 

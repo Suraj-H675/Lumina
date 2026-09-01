@@ -5,6 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
+    "resolveJsonModule": true,
     "plugins": [{ "name": "next" }],
     "types": ["@testing-library/jest-dom", "node", "vitest/globals"]
   },

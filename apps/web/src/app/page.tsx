@@ -1,6 +1,10 @@
 import Link from "next/link";
 
+import { ContinueLearningCard } from "../components/continue-learning-card";
+import { loadLearningContent } from "../lib/learning/content";
+
 export default function HomePage() {
+  const content = loadLearningContent();
   return (
     <article className="space-y-12">
       <section aria-labelledby="foundation-title" className="max-w-3xl space-y-6">
@@ -33,6 +37,8 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <ContinueLearningCard content={content} path={content.path} />
 
       <section
         aria-labelledby="about-heading"

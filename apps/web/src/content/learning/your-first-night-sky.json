@@ -1,0 +1,1066 @@
+{
+  "schema_version": 1,
+  "bundle_id": "your-first-night-sky-bundle-v1",
+  "path": {
+    "id": "d4f43b0c-4de5-4a31-9e6f-2c8e4e4c9e01",
+    "slug": "your-first-night-sky",
+    "title": "Your First Night Sky",
+    "content_type": "path",
+    "language": "en",
+    "status": "published",
+    "version": 1,
+    "summary": "A calm, practical first tour of the sky: orient yourself, recognise patterns, understand the Moon, and make a simple observing plan.",
+    "audience_modes": ["explorer", "student", "deep-dive"],
+    "learning_objectives": [
+      "Describe skywatching as observing the changing sky with your own eyes or simple tools.",
+      "Use patterns and directions to make a first observing session less overwhelming.",
+      "Explain why the Moon changes appearance without making its own light.",
+      "Choose an observing place and time while keeping weather and darkness as separate limits.",
+      "Record an observation honestly, including what was uncertain or not visible."
+    ],
+    "prerequisites": [],
+    "source_ids": [
+      "nasa-skywatching-faq",
+      "nasa-constellations",
+      "nasa-moon-phases",
+      "nasa-stargazing-places",
+      "nasa-skywatching-guide",
+      "nasa-eclipse-safety"
+    ],
+    "reviewed_by": ["Luna (primary engineer)"],
+    "reviewed_at": "2026-09-01T00:00:00.000Z",
+    "updated_at": "2026-09-01T00:00:00.000Z",
+    "lesson_slugs": [
+      "start-with-the-sky",
+      "find-patterns-and-directions",
+      "read-the-moon",
+      "choose-a-good-observing-place",
+      "make-your-first-observation"
+    ],
+    "completion_rule": {
+      "type": "all-lessons-mastered",
+      "mastery_threshold": 0.8
+    },
+    "mastery_concepts": [
+      "skywatching",
+      "constellations",
+      "moon-phases",
+      "light-pollution",
+      "observation-notes"
+    ],
+    "capstone_activity": {
+      "title": "Make a first-night sky note",
+      "materials": ["your eyes", "a safe observing place", "paper or a private note"],
+      "duration_minutes": 20,
+      "steps": [
+        "Before you go outside, note the date, approximate time, and the direction you will face.",
+        "Spend a few minutes letting your eyes adjust, then record two or three things you can identify.",
+        "Write one question or uncertainty instead of guessing at it.",
+        "Return another night and compare what changed: the Moon, a planet, a pattern, or the conditions."
+      ],
+      "safety": "Choose a place where you are allowed to be, scout unfamiliar ground in daylight, stay away from roads and drop-offs, and never look at the Sun without proper front-mounted solar protection.",
+      "expected_observation": "You should finish with a dated, honest note about what you saw and what remained unknown. Clouds, bright skies, and local conditions may limit the result."
+    }
+  },
+  "lessons": [
+    {
+      "id": "3d9a7f3e-35a0-4c51-8e86-0b0e0a1c1001",
+      "slug": "start-with-the-sky",
+      "title": "Start with the sky you have",
+      "content_type": "lesson",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "summary": "Skywatching begins with noticing, not with owning special equipment.",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "learning_objectives": [
+        "Define skywatching",
+        "Name simple things you can observe without a telescope",
+        "Separate observation from interpretation"
+      ],
+      "prerequisites": [],
+      "source_ids": ["nasa-skywatching-faq", "nasa-sun-star", "nasa-eclipse-safety"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "hook": "The first useful instrument is attention. Look up before you look anything up.",
+      "estimated_minutes": 8,
+      "mode_variants": {
+        "explorer": {
+          "label": "Explorer",
+          "explanation": "Skywatching means noticing what is in the sky and how it changes. Your eyes can already show you stars, the Moon, bright planets, meteors, and clouds.",
+          "deeper_question": "Which part of the sky catches your attention first, and what could you check instead of guessing?"
+        },
+        "student": {
+          "label": "Student",
+          "explanation": "Skywatching is observation of the sky, especially at night. NASA notes that you need no special equipment to begin; the important first step is describing what you actually see.",
+          "deeper_question": "How would you design a note that lets someone else tell an observation from an explanation?"
+        },
+        "deep-dive": {
+          "label": "Deep Dive",
+          "explanation": "Skywatching is an observing practice, from casual naked-eye viewing to telescope work. A useful record separates the observation, its time and direction, the conditions, and any interpretation.",
+          "deeper_question": "What information would make your observation reproducible without pretending that weather or eyesight were controlled?"
+        }
+      },
+      "sections": [
+        {
+          "id": "what-skywatching-means",
+          "heading": "What counts as skywatching?",
+          "paragraphs": [
+            "Watching the Moon change position, finding a familiar pattern, noticing a bright planet, or simply comparing a clear night with a cloudy one all count. Skywatching can be casual or detailed; it does not begin at a particular equipment level."
+          ],
+          "bullets": [
+            "Name what you see before explaining it.",
+            "Include when and where you looked.",
+            "Treat not seeing something as useful information about the conditions, not as a failure."
+          ]
+        },
+        {
+          "id": "sun-is-a-star",
+          "heading": "The daytime sky is part of the same story",
+          "paragraphs": [
+            "The Sun is our closest star. Its daylight can hide the much fainter stars from your eyes, but the stars have not switched off. Never use this lesson as permission to look directly at the Sun."
+          ],
+          "bullets": [
+            "Solar observing needs certified front-mounted protection.",
+            "Night observing is the safe default for this path.",
+            "A simple description is already a scientific start."
+          ]
+        }
+      ],
+      "interactive_references": [{ "label": "See the observation planner", "href": "/observe" }],
+      "real_object_examples": [
+        {
+          "name": "The Moon",
+          "why_it_helps": "It is bright, changes position and shape over time, and is easy to use as a first observing target.",
+          "source_ids": ["nasa-moon-phases"]
+        },
+        {
+          "name": "The Sun",
+          "why_it_helps": "It is a real example of a star, but it requires strict solar-safety practice and is not a naked-eye target.",
+          "source_ids": ["nasa-sun-star", "nasa-eclipse-safety"]
+        }
+      ],
+      "misconception_check": {
+        "prompt": "If you do not own binoculars or a telescope, can you start skywatching?",
+        "misconception": "Astronomy only starts after buying equipment.",
+        "correction": "NASA's skywatching FAQ says no special equipment is needed to get started. Equipment can reveal finer details later, but careful naked-eye observation is already skywatching.",
+        "source_ids": ["nasa-skywatching-faq"]
+      },
+      "activity": {
+        "title": "One-minute sky inventory",
+        "materials": ["your eyes", "a safe place with an open view", "a private note"],
+        "duration_minutes": 5,
+        "steps": [
+          "Stand somewhere safe and look without a device for one minute.",
+          "Write down three things you can describe without naming what you think they are.",
+          "Add the approximate time and the direction you faced.",
+          "Circle one item you want to identify later."
+        ],
+        "safety": "Do not look directly at the Sun. In darkness, avoid roads, edges, and unfamiliar ground.",
+        "expected_observation": "Your list may contain the Moon, stars, a planet, clouds, aircraft, or nothing clear. Honest uncertainty is an acceptable result."
+      },
+      "knowledge_check_ids": ["quiz-start-with-the-sky"],
+      "summary_points": [
+        "Skywatching needs attention, not special equipment.",
+        "Record observations with time, direction, and conditions.",
+        "The Sun is a star, but solar viewing needs dedicated safety."
+      ],
+      "next_actions": [
+        {
+          "label": "Continue to patterns and directions",
+          "href": "/learn/your-first-night-sky/find-patterns-and-directions"
+        }
+      ]
+    },
+    {
+      "id": "3d9a7f3e-35a0-4c51-8e86-0b0e0a1c1002",
+      "slug": "find-patterns-and-directions",
+      "title": "Find patterns and directions",
+      "content_type": "lesson",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "summary": "Use the horizon and star patterns as a map, while remembering that a pattern is not a physical group.",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "learning_objectives": [
+        "Explain what a constellation is",
+        "Recognise that visibility depends on location and time",
+        "Use a direction and a landmark as observing context"
+      ],
+      "prerequisites": ["start-with-the-sky"],
+      "source_ids": ["nasa-constellations", "iau-constellation-education"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "hook": "A pattern can help you find your way even when its stars are not neighbours in space.",
+      "estimated_minutes": 10,
+      "mode_variants": {
+        "explorer": {
+          "label": "Explorer",
+          "explanation": "A constellation is a named pattern that people see in the sky. The stars can look close together from Earth while being far apart in space.",
+          "deeper_question": "What shape could you draw between three bright points, and why would someone in another culture draw it differently?"
+        },
+        "student": {
+          "label": "Student",
+          "explanation": "The International Astronomical Union recognises 88 constellations. NASA explains that the stars in a constellation are not necessarily connected; the pattern is a viewpoint from Earth.",
+          "deeper_question": "Why does a pattern's usefulness not depend on its stars being a physical group?"
+        },
+        "deep-dive": {
+          "label": "Deep Dive",
+          "explanation": "Constellations are sky regions with official boundaries, while familiar asterisms are informal patterns such as the Big Dipper. The apparent pattern is shaped by our observing viewpoint and changes slowly with stellar motion.",
+          "deeper_question": "How would an observer far outside the Solar System describe the same stars?"
+        }
+      },
+      "sections": [
+        {
+          "id": "use-the-horizon",
+          "heading": "Start from the ground",
+          "paragraphs": [
+            "Before looking for a named pattern, identify the horizon and choose a direction: north, south, east, or west. A tree, roofline, or distant building can be a temporary landmark. Record the direction because the same sky does not look identical from every place."
+          ],
+          "bullets": [
+            "Face one direction at a time.",
+            "Use a wide open view when possible.",
+            "Record the date and approximate time."
+          ]
+        },
+        {
+          "id": "patterns-are-viewpoints",
+          "heading": "Patterns are viewpoints",
+          "paragraphs": [
+            "NASA describes constellations as patterns that can look like objects, animals, or people. Their stars may be at very different distances, so the drawing is a useful map from Earth, not a claim that the stars are attached."
+          ],
+          "bullets": [
+            "The sky changes with location and time of year.",
+            "Different cultures have told different stories about patterns.",
+            "Astronomy and astrology are different: a pattern is not evidence that stars predict a person's future."
+          ]
+        }
+      ],
+      "interactive_references": [{ "label": "Open the observation view", "href": "/observe" }],
+      "real_object_examples": [
+        {
+          "name": "The Big Dipper",
+          "why_it_helps": "It is a familiar star pattern that demonstrates how a dot-to-dot shape can guide attention without being a separate physical object.",
+          "source_ids": ["nasa-constellations"]
+        },
+        {
+          "name": "Orion",
+          "why_it_helps": "NASA uses Orion as an example of a constellation photographed from orbit and seen from the ground.",
+          "source_ids": ["nasa-constellations"]
+        }
+      ],
+      "misconception_check": {
+        "prompt": "Are all stars in one constellation the same distance from Earth?",
+        "misconception": "A constellation is a tight cluster of physically neighbouring stars.",
+        "correction": "The pattern is created by our viewpoint. Stars in it can be at different distances and are not necessarily connected to one another.",
+        "source_ids": ["nasa-constellations", "iau-constellation-education"]
+      },
+      "activity": {
+        "title": "Make a direction card",
+        "materials": [
+          "paper or a private note",
+          "a compass only if you already have one",
+          "a safe observing place"
+        ],
+        "duration_minutes": 8,
+        "steps": [
+          "Choose one horizon direction and name a fixed landmark in it.",
+          "Sketch three bright points or a shape without looking up its name yet.",
+          "Write the time and date beside the sketch.",
+          "On another night, face the same direction and compare the sketch."
+        ],
+        "safety": "Scout unfamiliar ground in daylight and stay clear of roads, water edges, and drop-offs.",
+        "expected_observation": "The same direction can contain a different mix of visible stars as the time of year and time of night change."
+      },
+      "knowledge_check_ids": ["quiz-find-patterns-and-directions"],
+      "summary_points": [
+        "A constellation is a named pattern or sky region, not necessarily a physical group.",
+        "Location and time change which patterns are visible.",
+        "Directions and landmarks turn looking into a repeatable observation."
+      ],
+      "next_actions": [
+        { "label": "Continue to the Moon", "href": "/learn/your-first-night-sky/read-the-moon" }
+      ]
+    },
+    {
+      "id": "3d9a7f3e-35a0-4c51-8e86-0b0e0a1c1003",
+      "slug": "read-the-moon",
+      "title": "Read the Moon",
+      "content_type": "lesson",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "summary": "The Moon's changing shape is a change in how much of its sunlit half we see from Earth.",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "learning_objectives": [
+        "Explain reflected sunlight",
+        "Name the eight lunar phases in order",
+        "Use the Moon as a time-and-direction observation"
+      ],
+      "prerequisites": ["start-with-the-sky"],
+      "source_ids": ["nasa-moon-phases", "nasa-skywatching-faq"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "hook": "The Moon does not change shape; our view of its sunlit half changes.",
+      "estimated_minutes": 10,
+      "mode_variants": {
+        "explorer": {
+          "label": "Explorer",
+          "explanation": "The Moon shines because it reflects sunlight. As it travels around Earth, we see different amounts of its sunlit half, creating phases.",
+          "deeper_question": "What would you expect to see if the Moon is near the horizon just after sunset?"
+        },
+        "student": {
+          "label": "Student",
+          "explanation": "NASA describes eight phases from new Moon through waxing phases to full Moon and then waning phases. The Moon is always half-lit by the Sun; the visible fraction changes from our viewpoint.",
+          "deeper_question": "Why is a full Moon near the horizon around sunset while a new Moon is up during the day?"
+        },
+        "deep-dive": {
+          "label": "Deep Dive",
+          "explanation": "Lunar phase is a viewing geometry: the Sun illuminates half the Moon while the Moon orbits Earth. The familiar phase cycle repeats about every 29.5 days, which is not the same as the Moon's orbital period relative to the stars.",
+          "deeper_question": "Which observer-Sun-Moon geometry would produce a first-quarter appearance?"
+        }
+      },
+      "sections": [
+        {
+          "id": "reflected-sunlight",
+          "heading": "Moonlight is reflected sunlight",
+          "paragraphs": [
+            "The Moon does not make its own visible light. Sunlight illuminates half of the Moon at all times; from Earth, our viewing angle determines how much of that lit half faces us."
+          ],
+          "bullets": [
+            "New Moon: the sunlit side faces mostly away from Earth.",
+            "Full Moon: the near side is facing the sunlit half.",
+            "Crescent and gibbous describe how much of the lit part we see."
+          ]
+        },
+        {
+          "id": "observe-change",
+          "heading": "Turn the phase into a habit",
+          "paragraphs": [
+            "Moonrise and moonset shift as the phase changes. A short note made on several evenings can connect appearance, direction, and time without needing a telescope."
+          ],
+          "bullets": [
+            "Sketch the shape rather than trusting memory.",
+            "Record whether the bright edge is on the left or right in your view.",
+            "Write the time and direction, then compare on another night."
+          ]
+        }
+      ],
+      "interactive_references": [{ "label": "Plan an observing session", "href": "/observe" }],
+      "real_object_examples": [
+        {
+          "name": "The Moon at first quarter",
+          "why_it_helps": "Its half-lit appearance makes the relationship between sunlight and viewing geometry easy to discuss.",
+          "source_ids": ["nasa-moon-phases"]
+        },
+        {
+          "name": "A full Moon",
+          "why_it_helps": "NASA notes that a full Moon rises around sunset, giving a useful time-and-direction check.",
+          "source_ids": ["nasa-moon-phases"]
+        }
+      ],
+      "misconception_check": {
+        "prompt": "Does the Moon's phase happen because Earth's shadow covers part of it every month?",
+        "misconception": "Ordinary lunar phases are monthly lunar eclipses.",
+        "correction": "The usual phases are caused by our changing view of the Moon's sunlit half. An eclipse is a different alignment event.",
+        "source_ids": ["nasa-moon-phases"]
+      },
+      "activity": {
+        "title": "Keep a three-night Moon log",
+        "materials": ["paper or a private note", "your eyes", "a safe observing place"],
+        "duration_minutes": 12,
+        "steps": [
+          "On three evenings, sketch the Moon's visible shape.",
+          "Record the approximate time and direction each time.",
+          "Describe the bright and dark parts without calling the dark part a missing piece.",
+          "Compare the three notes and write one question."
+        ],
+        "safety": "Do not look at the Sun while trying to find a daytime Moon. Use only safe, indirect observation during daylight.",
+        "expected_observation": "The Moon's apparent shape and position change, but the explanation stays tied to sunlight and viewpoint."
+      },
+      "knowledge_check_ids": ["quiz-read-the-moon"],
+      "summary_points": [
+        "Moonlight is reflected sunlight.",
+        "The Moon is always half-lit, while the visible lit fraction changes.",
+        "A phase log connects shape, time, and direction."
+      ],
+      "next_actions": [
+        {
+          "label": "Continue to choosing a place",
+          "href": "/learn/your-first-night-sky/choose-a-good-observing-place"
+        }
+      ]
+    },
+    {
+      "id": "3d9a7f3e-35a0-4c51-8e86-0b0e0a1c1004",
+      "slug": "choose-a-good-observing-place",
+      "title": "Choose a good observing place",
+      "content_type": "lesson",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "summary": "A useful observing plan names the limits: light, Moon, clouds, horizon, and safety.",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "learning_objectives": [
+        "Explain why darker skies reveal fainter objects",
+        "Keep weather separate from astronomical suitability",
+        "Choose a safe place with an open view"
+      ],
+      "prerequisites": ["find-patterns-and-directions", "read-the-moon"],
+      "source_ids": ["nasa-stargazing-places", "nasa-skywatching-faq"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "hook": "The sky can be astronomically ready and still hidden by a cloud, a lamp, or an unsafe path.",
+      "estimated_minutes": 10,
+      "mode_variants": {
+        "explorer": {
+          "label": "Explorer",
+          "explanation": "Darker skies make more faint stars and objects possible to see. Clouds, bright lights, the Moon, and an obstructed horizon can each change the experience.",
+          "deeper_question": "Which limit could you change tonight, and which one is simply part of the sky's current conditions?"
+        },
+        "student": {
+          "label": "Student",
+          "explanation": "Light pollution creates skyglow that hides fainter objects. NASA also recommends checking clouds, wind, smoke, the Moon, and the safety of the site; none of these should be silently treated as the same measurement.",
+          "deeper_question": "Why should a clear-sky forecast not be described as a guarantee that an object will be visible?"
+        },
+        "deep-dive": {
+          "label": "Deep Dive",
+          "explanation": "Observability is conditional. Astronomical geometry, sky brightness, transparency, seeing, horizon obstruction, and personal or equipment limits interact, while a forecast describes only one external condition.",
+          "deeper_question": "Which variables would you record to make two observing sessions comparable without claiming controlled laboratory conditions?"
+        }
+      },
+      "sections": [
+        {
+          "id": "darkness-and-light",
+          "heading": "Darkness reveals more",
+          "paragraphs": [
+            "Light from cities and other human activity scatters in the atmosphere and creates skyglow. A bright Moon can also make faint objects harder to see. You do not need a remote dark-sky site to begin, but you should set expectations based on the place you have."
+          ],
+          "bullets": [
+            "Shield your eyes from nearby lamps where possible.",
+            "Choose the direction with the least glare.",
+            "A bright sky changes what is possible; it does not make your observation worthless."
+          ]
+        },
+        {
+          "id": "weather-and-safety",
+          "heading": "Weather and safety are separate",
+          "paragraphs": [
+            "Clouds, wind, smoke, temperature, and local hazards affect whether an outing is comfortable or possible. Scout an unfamiliar place in daylight, stay away from roads and steep edges, and remember that a forecast can be wrong."
+          ],
+          "bullets": [
+            "Arrive before sunset when learning a new site.",
+            "Keep a safe distance from roads and drop-offs.",
+            "Use dim red light only if you need a light, and protect your night vision."
+          ]
+        }
+      ],
+      "interactive_references": [
+        { "label": "Open Tonight when you are ready", "href": "/tonight" }
+      ],
+      "real_object_examples": [
+        {
+          "name": "The Milky Way",
+          "why_it_helps": "NASA uses it as an example of a faint view that benefits from darker skies and can be affected by bright Moonlight.",
+          "source_ids": ["nasa-stargazing-places"]
+        },
+        {
+          "name": "Faint stars near a city",
+          "why_it_helps": "Comparing a bright urban horizon with a darker direction demonstrates that visibility is conditional, not a promise.",
+          "source_ids": ["nasa-skywatching-faq"]
+        }
+      ],
+      "misconception_check": {
+        "prompt": "If a target is above the horizon, is it guaranteed to be visible?",
+        "misconception": "Geometric position alone guarantees an observation.",
+        "correction": "Clouds, skyglow, the Moon, smoke, obstructions, eyesight, and equipment can all limit what you see. Lumina describes astronomical placement separately from weather and local conditions.",
+        "source_ids": ["nasa-stargazing-places", "nasa-skywatching-faq"]
+      },
+      "activity": {
+        "title": "Scout one safe horizon",
+        "materials": [
+          "a daytime walk-through",
+          "a private note",
+          "a dim light for later only if needed"
+        ],
+        "duration_minutes": 10,
+        "steps": [
+          "During daylight, identify one safe place where you are allowed to stand.",
+          "Note the most open horizon direction and nearby bright lights.",
+          "Check whether the route remains safe after dark.",
+          "Write what weather or Moon condition would make you postpone the outing."
+        ],
+        "safety": "Do this in daylight for an unfamiliar place. Stay away from roads, steep slopes, water edges, wildlife hazards, and private land.",
+        "expected_observation": "You will have a concrete site description and a reasoned limit, not a guarantee of clear skies."
+      },
+      "knowledge_check_ids": ["quiz-choose-a-good-observing-place"],
+      "summary_points": [
+        "Darker skies make fainter objects easier to see.",
+        "Weather, Moonlight, and light pollution are different limits.",
+        "Safety and site access come before a longer observing session."
+      ],
+      "next_actions": [
+        {
+          "label": "Continue to your first observation",
+          "href": "/learn/your-first-night-sky/make-your-first-observation"
+        }
+      ]
+    },
+    {
+      "id": "3d9a7f3e-35a0-4c51-8e86-0b0e0a1c1005",
+      "slug": "make-your-first-observation",
+      "title": "Make your first observation",
+      "content_type": "lesson",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "summary": "Turn curiosity into a repeatable note: look, record, check, and leave room for unknowns.",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "learning_objectives": [
+        "Use a short observing sequence",
+        "Record evidence without overclaiming",
+        "Plan a repeat visit"
+      ],
+      "prerequisites": ["choose-a-good-observing-place"],
+      "source_ids": ["nasa-skywatching-faq", "nasa-stargazing-places", "nasa-skywatching-guide"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "hook": "A first observation is not a performance. It is a small piece of evidence you can revisit.",
+      "estimated_minutes": 12,
+      "mode_variants": {
+        "explorer": {
+          "label": "Explorer",
+          "explanation": "Pick one thing, look carefully, and write what happened. A question you cannot answer yet is a useful ending because it gives your next night a purpose.",
+          "deeper_question": "What would you like to check again rather than decide from one glance?"
+        },
+        "student": {
+          "label": "Student",
+          "explanation": "A clear observing note includes the target or description, date, approximate time, direction, conditions, and an uncertainty. That structure helps you compare observations without inventing precision.",
+          "deeper_question": "Which parts of your note are observations, and which are labels or explanations added afterward?"
+        },
+        "deep-dive": {
+          "label": "Deep Dive",
+          "explanation": "Treat the session as a bounded observation: record context, distinguish naked-eye appearance from catalogue identification, and preserve non-detections. Repeat observations can test whether a change is in the sky or in the conditions.",
+          "deeper_question": "What repeatable evidence would make you revise a first identification?"
+        }
+      },
+      "sections": [
+        {
+          "id": "four-step-session",
+          "heading": "A four-step session",
+          "paragraphs": [
+            "Start with the place and time. Look without rushing. Describe the object or pattern before checking a name. Then record what you saw, what you did not see, and what you want to compare next time."
+          ],
+          "bullets": [
+            "Orient: date, time, direction, and a safe position.",
+            "Observe: spend enough time looking instead of glancing once.",
+            "Describe: brightness, shape, colour, motion, or uncertainty in plain language.",
+            "Review: use a trusted source or observation tool after the note, not as a replacement for it."
+          ]
+        },
+        {
+          "id": "repeat-and-revise",
+          "heading": "Let the next night teach you",
+          "paragraphs": [
+            "The Moon changes phase and position, patterns appear at different times, and conditions vary. A repeat visit can reveal a change or show that the first difference came from clouds, glare, or memory."
+          ],
+          "bullets": [
+            "Keep the original note; do not rewrite history.",
+            "Use the same direction or landmark when possible.",
+            "Mark an identification as tentative until the evidence supports it."
+          ]
+        }
+      ],
+      "interactive_references": [
+        { "label": "Plan the next observation", "href": "/observe" },
+        { "label": "Return to the learning path", "href": "/learn/your-first-night-sky" }
+      ],
+      "real_object_examples": [
+        {
+          "name": "A bright planet",
+          "why_it_helps": "NASA's skywatching guidance contrasts the steadier appearance of planets with the flicker often seen in stars, while still leaving room for observing conditions.",
+          "source_ids": ["nasa-skywatching-guide"]
+        },
+        {
+          "name": "A familiar constellation",
+          "why_it_helps": "Returning to the same pattern tests whether your direction, date, and time notes make the observation easier to repeat.",
+          "source_ids": ["nasa-constellations"]
+        }
+      ],
+      "misconception_check": {
+        "prompt": "Should you fill in an uncertain observation with the most likely answer?",
+        "misconception": "A complete-looking note is better than an honest incomplete one.",
+        "correction": "Keep uncertainty visible. A tentative label and a question preserve what you actually know and give the next observation a clear purpose.",
+        "source_ids": ["nasa-skywatching-faq"]
+      },
+      "activity": {
+        "title": "Write the capstone sky note",
+        "materials": ["your eyes", "a safe observing place", "paper or a private note"],
+        "duration_minutes": 20,
+        "steps": [
+          "Record the date, approximate time, place description, and direction.",
+          "Observe for several minutes and write two descriptions before looking up names.",
+          "Check one description against a trusted sky source or Lumina observation tool.",
+          "Mark the result as identified, tentative, or unknown, then write one next action."
+        ],
+        "safety": "Never look at the Sun without certified front-mounted solar protection. Observe from a safe, permitted place and avoid hazards that are harder to see in darkness.",
+        "expected_observation": "Your first record should contain both a finding and a limit. It is successful if another night can build on it."
+      },
+      "knowledge_check_ids": ["quiz-make-your-first-observation"],
+      "summary_points": [
+        "A repeatable note contains context, description, and uncertainty.",
+        "A source can help identify an observation without replacing it.",
+        "The next observation is part of the learning path, not a failure of the first one."
+      ],
+      "next_actions": [
+        { "label": "Review your path progress", "href": "/learn/your-first-night-sky" }
+      ]
+    }
+  ],
+  "quizzes": [
+    {
+      "id": "quiz-start-with-the-sky",
+      "slug": "quiz-start-with-the-sky",
+      "title": "Check: start with the sky",
+      "content_type": "quiz",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "lesson_slug": "start-with-the-sky",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "source_ids": [
+        "nasa-skywatching-faq",
+        "nasa-skywatching-guide",
+        "nasa-sun-star",
+        "nasa-eclipse-safety"
+      ],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "questions": [
+        {
+          "id": "start-definition",
+          "type": "single-choice",
+          "prompt": "Which description best matches skywatching?",
+          "choices": [
+            { "id": "a", "label": "Observing the sky and its changes" },
+            { "id": "b", "label": "Only photographing distant galaxies" },
+            { "id": "c", "label": "Predicting a person's future from stars" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "It can be casual or detailed.",
+          "feedback_correct": "Yes. Skywatching includes noticing the changing sky, from a casual look to careful telescope work.",
+          "feedback_incorrect": "Skywatching is broader than one type of equipment or a prediction.",
+          "explanation": "NASA describes skywatching as observing the variety of sights in the sky, including the Moon, planets, stars, and changing patterns.",
+          "concept_ids": ["skywatching"],
+          "source_ids": ["nasa-skywatching-faq"]
+        },
+        {
+          "id": "start-equipment",
+          "type": "single-choice",
+          "prompt": "What do you need to begin skywatching?",
+          "choices": [
+            { "id": "a", "label": "No special equipment" },
+            { "id": "b", "label": "A large telescope" },
+            { "id": "c", "label": "A camera with a tracking mount" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Start with the tool you already have: your eyes.",
+          "feedback_correct": "Correct. Equipment can reveal more detail later, but it is not required to start.",
+          "feedback_incorrect": "Special equipment can help later; it is not a requirement for beginning.",
+          "explanation": "NASA's skywatching FAQ says no special equipment is needed to get started.",
+          "concept_ids": ["skywatching"],
+          "source_ids": ["nasa-skywatching-faq"]
+        },
+        {
+          "id": "start-sun",
+          "type": "single-choice",
+          "prompt": "Which statement is safest and most accurate?",
+          "choices": [
+            {
+              "id": "a",
+              "label": "The Sun is a star, and direct viewing needs proper solar protection"
+            },
+            { "id": "b", "label": "The Sun is safe to look at when it is low" },
+            { "id": "c", "label": "The Sun is not part of astronomy" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "The closest star is still bright enough to injure unprotected eyes.",
+          "feedback_correct": "Correct. The Sun is a star, but this beginner path does not make direct solar viewing a casual activity.",
+          "feedback_incorrect": "The Sun is a star, and looking at it directly without proper protection is unsafe.",
+          "explanation": "NASA identifies the Sun as our closest star and says direct viewing needs specialised protection. Lumina does not treat low altitude as protection.",
+          "concept_ids": ["skywatching", "solar-safety"],
+          "source_ids": ["nasa-sun-star", "nasa-eclipse-safety"]
+        }
+      ]
+    },
+    {
+      "id": "quiz-find-patterns-and-directions",
+      "slug": "quiz-find-patterns-and-directions",
+      "title": "Check: patterns and directions",
+      "content_type": "quiz",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "lesson_slug": "find-patterns-and-directions",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "source_ids": ["nasa-constellations", "iau-constellation-education"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "questions": [
+        {
+          "id": "patterns-meaning",
+          "type": "single-choice",
+          "prompt": "What is a constellation in this lesson?",
+          "choices": [
+            { "id": "a", "label": "A named pattern or region seen from Earth" },
+            { "id": "b", "label": "A single star with a special atmosphere" },
+            { "id": "c", "label": "A group of stars physically tied together in every case" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Think of a sky map made from a viewpoint.",
+          "feedback_correct": "Yes. Constellations help people map the sky from Earth.",
+          "feedback_incorrect": "A constellation is a named pattern or region; its stars are not necessarily a physical group.",
+          "explanation": "NASA explains that constellations are patterns whose stars can be far apart, and the IAU recognises official constellation regions.",
+          "concept_ids": ["constellations"],
+          "source_ids": ["nasa-constellations", "iau-constellation-education"]
+        },
+        {
+          "id": "patterns-count",
+          "type": "single-choice",
+          "prompt": "How many constellations are officially recognised today?",
+          "choices": [
+            { "id": "a", "label": "12" },
+            { "id": "b", "label": "88" },
+            { "id": "c", "label": "365" }
+          ],
+          "correct_choice_id": "b",
+          "hint": "It is more than the number of months in a year.",
+          "feedback_correct": "Correct. NASA and IAU educational material describe 88 officially recognised constellations.",
+          "feedback_incorrect": "The reviewed source states that 88 constellations are officially recognised.",
+          "explanation": "The count refers to the official constellation set, not every informal star pattern people use.",
+          "concept_ids": ["constellations"],
+          "source_ids": ["nasa-constellations", "iau-constellation-education"]
+        },
+        {
+          "id": "patterns-context",
+          "type": "single-choice",
+          "prompt": "Why record direction, date, and time?",
+          "choices": [
+            { "id": "a", "label": "The visible sky depends on location and time" },
+            { "id": "b", "label": "Those details make every star brighter" },
+            { "id": "c", "label": "They prove the stars are connected" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "The sky is a view from a moving planet.",
+          "feedback_correct": "Yes. Context helps you repeat and compare an observation.",
+          "feedback_incorrect": "Context does not change a star's brightness or connect the stars; it tells you what view you had.",
+          "explanation": "NASA notes that the constellations visible at night depend on where you are and the time of year.",
+          "concept_ids": ["constellations", "observation-notes"],
+          "source_ids": ["nasa-constellations"]
+        }
+      ]
+    },
+    {
+      "id": "quiz-read-the-moon",
+      "slug": "quiz-read-the-moon",
+      "title": "Check: read the Moon",
+      "content_type": "quiz",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "lesson_slug": "read-the-moon",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "source_ids": ["nasa-moon-phases"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "questions": [
+        {
+          "id": "moon-light",
+          "type": "single-choice",
+          "prompt": "Where does moonlight come from?",
+          "choices": [
+            { "id": "a", "label": "Reflected sunlight" },
+            { "id": "b", "label": "A light inside the Moon" },
+            { "id": "c", "label": "Earth's city lights" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "The Moon does not make its own visible light.",
+          "feedback_correct": "Correct. The Moon reflects sunlight.",
+          "feedback_incorrect": "The reviewed explanation is reflected sunlight, not an internal lamp or city glow.",
+          "explanation": "NASA says the Moon does not make its own light; moonlight is reflected sunlight.",
+          "concept_ids": ["moon-phases"],
+          "source_ids": ["nasa-moon-phases"]
+        },
+        {
+          "id": "moon-half-lit",
+          "type": "single-choice",
+          "prompt": "What is always true about the Moon's sunlight?",
+          "choices": [
+            { "id": "a", "label": "Half of the Moon is lit by the Sun" },
+            { "id": "b", "label": "The whole Moon is dark during a new Moon" },
+            { "id": "c", "label": "The lit half changes because the Sun turns off" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "The phase is about what Earth sees.",
+          "feedback_correct": "Yes. We see different portions of the Moon's sunlit half.",
+          "feedback_incorrect": "The Sun keeps illuminating half; the visible fraction changes with geometry.",
+          "explanation": "NASA's Moon phase guide states that the Moon is always half-lit by the Sun.",
+          "concept_ids": ["moon-phases"],
+          "source_ids": ["nasa-moon-phases"]
+        },
+        {
+          "id": "moon-full-rise",
+          "type": "single-choice",
+          "prompt": "Which timing is a useful rule of thumb from NASA's Moon phase guide?",
+          "choices": [
+            { "id": "a", "label": "A full Moon rises around sunset" },
+            { "id": "b", "label": "A full Moon is up only at noon" },
+            { "id": "c", "label": "A new Moon is visible all night" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Think about which side of Earth faces the Moon at sunset.",
+          "feedback_correct": "Correct. A full Moon rises around sunset; exact local times still depend on location and date.",
+          "feedback_incorrect": "The phase guide uses a full Moon near sunset as the useful rule of thumb.",
+          "explanation": "NASA states that a full Moon rises at sunset and a new Moon is up during the day, while local rise and set times vary.",
+          "concept_ids": ["moon-phases", "observation-notes"],
+          "source_ids": ["nasa-moon-phases"]
+        }
+      ]
+    },
+    {
+      "id": "quiz-choose-a-good-observing-place",
+      "slug": "quiz-choose-a-good-observing-place",
+      "title": "Check: choose a good place",
+      "content_type": "quiz",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "lesson_slug": "choose-a-good-observing-place",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "source_ids": ["nasa-stargazing-places", "nasa-skywatching-faq"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "questions": [
+        {
+          "id": "place-darkness",
+          "type": "single-choice",
+          "prompt": "Why does a darker sky usually help you see fainter objects?",
+          "choices": [
+            { "id": "a", "label": "Less skyglow competes with their light" },
+            { "id": "b", "label": "Darkness moves objects closer" },
+            { "id": "c", "label": "Darkness guarantees no clouds" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "City light scatters into the sky.",
+          "feedback_correct": "Yes. Light pollution creates skyglow that makes faint stars and objects harder to see.",
+          "feedback_incorrect": "Darkness does not change distance or guarantee weather; it reduces a source of skyglow.",
+          "explanation": "NASA explains that artificial light scattered into the sky makes it more difficult to observe fainter stars and the Milky Way.",
+          "concept_ids": ["light-pollution"],
+          "source_ids": ["nasa-stargazing-places", "nasa-skywatching-faq"]
+        },
+        {
+          "id": "place-weather",
+          "type": "single-choice",
+          "prompt": "Which statement keeps astronomy and weather honest?",
+          "choices": [
+            {
+              "id": "a",
+              "label": "A target can be well placed astronomically while clouds still block it"
+            },
+            { "id": "b", "label": "A clear forecast guarantees you will see every target" },
+            { "id": "c", "label": "Weather is part of a star's physical brightness" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Different limits should stay separate.",
+          "feedback_correct": "Correct. Astronomical suitability is not a weather guarantee.",
+          "feedback_incorrect": "Clouds and forecasts are observing conditions, not proof of what a target will look like.",
+          "explanation": "NASA recommends checking weather and describes light, Moon, and local conditions as factors that affect skywatching.",
+          "concept_ids": ["light-pollution", "observation-notes"],
+          "source_ids": ["nasa-stargazing-places"]
+        },
+        {
+          "id": "place-safety",
+          "type": "single-choice",
+          "prompt": "What should happen before using an unfamiliar observing site at night?",
+          "choices": [
+            {
+              "id": "a",
+              "label": "Scout it in daylight and check that you are allowed to be there"
+            },
+            { "id": "b", "label": "Arrive after dark so hazards stay hidden" },
+            { "id": "c", "label": "Stand as close to the road as possible" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Safety is part of the plan.",
+          "feedback_correct": "Yes. Daylight scouting makes hazards and access easier to check.",
+          "feedback_incorrect": "Darkness makes hazards harder to see; a safe, permitted site comes first.",
+          "explanation": "NASA recommends scouting a new stargazing location during the day and being aware of access and hazards.",
+          "concept_ids": ["observation-notes"],
+          "source_ids": ["nasa-stargazing-places"]
+        }
+      ]
+    },
+    {
+      "id": "quiz-make-your-first-observation",
+      "slug": "quiz-make-your-first-observation",
+      "title": "Check: make your first observation",
+      "content_type": "quiz",
+      "language": "en",
+      "status": "published",
+      "version": 1,
+      "lesson_slug": "make-your-first-observation",
+      "audience_modes": ["explorer", "student", "deep-dive"],
+      "source_ids": ["nasa-skywatching-faq", "nasa-stargazing-places"],
+      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_at": "2026-09-01T00:00:00.000Z",
+      "updated_at": "2026-09-01T00:00:00.000Z",
+      "questions": [
+        {
+          "id": "observe-context",
+          "type": "single-choice",
+          "prompt": "Which note is most useful for repeating an observation?",
+          "choices": [
+            {
+              "id": "a",
+              "label": "Date, approximate time, direction, conditions, and description"
+            },
+            { "id": "b", "label": "Only the object's guessed name" },
+            { "id": "c", "label": "A score with no explanation" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Context makes a note comparable.",
+          "feedback_correct": "Correct. Context and description help another observation build on the first.",
+          "feedback_incorrect": "A name or score without context hides what you actually observed.",
+          "explanation": "A repeatable observation preserves its context and limits rather than presenting an unsupported certainty.",
+          "concept_ids": ["observation-notes"],
+          "source_ids": ["nasa-skywatching-faq", "nasa-stargazing-places"]
+        },
+        {
+          "id": "observe-planets",
+          "type": "single-choice",
+          "prompt": "According to NASA's skywatching guidance, how do bright planets often differ from stars to the naked eye?",
+          "choices": [
+            { "id": "a", "label": "Planets tend to glow steadily while stars often flicker" },
+            { "id": "b", "label": "Planets are always larger in the sky" },
+            { "id": "c", "label": "Planets can only be seen with a telescope" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "This is an appearance clue, not a guarantee.",
+          "feedback_correct": "Yes. NASA describes planets as tending to glow steadily while stars often flicker, subject to conditions.",
+          "feedback_incorrect": "The clue is about apparent steadiness; planets are not automatically larger or telescope-only targets.",
+          "explanation": "NASA's skywatching guide describes a steady glow as a useful naked-eye clue for planets compared with stars.",
+          "concept_ids": ["skywatching", "observation-notes"],
+          "source_ids": ["nasa-skywatching-guide"]
+        },
+        {
+          "id": "observe-unknown",
+          "type": "single-choice",
+          "prompt": "What is the scientifically honest response when one observation is not enough to identify something?",
+          "choices": [
+            { "id": "a", "label": "Mark it tentative or unknown and plan a useful follow-up" },
+            { "id": "b", "label": "Choose the most exciting explanation" },
+            { "id": "c", "label": "Delete the note" }
+          ],
+          "correct_choice_id": "a",
+          "hint": "Unknown is a valid state.",
+          "feedback_correct": "Correct. Keeping uncertainty visible protects the next observation from a false starting point.",
+          "feedback_incorrect": "A guess should not be promoted to a fact just to make a note look complete.",
+          "explanation": "Lumina's content rules require unknowns and limitations to remain visible; repeat observations can add evidence.",
+          "concept_ids": ["observation-notes"],
+          "source_ids": ["nasa-skywatching-faq"]
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "nasa-skywatching-faq",
+      "title": "Skywatching FAQ",
+      "organization_or_authors": "NASA Science",
+      "url_or_doi": "https://science.nasa.gov/skywatching/faq/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Definition of skywatching, equipment needed to begin, naked-eye objects, planet/star appearance clues, and effects of light pollution.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-skywatching-guide",
+      "title": "Skywatching Tips From NASA",
+      "organization_or_authors": "NASA Science",
+      "url_or_doi": "https://science.nasa.gov/skywatching/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Naked-eye planet and star observing guidance, including the common steadiness clue for planets.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-eclipse-safety",
+      "title": "Eclipse Viewing Safety",
+      "organization_or_authors": "NASA Science",
+      "url_or_doi": "https://science.nasa.gov/eclipses/safety/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Safe solar viewing, specialised eye protection, and front-mounted filters for optical instruments.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-constellations",
+      "title": "What Are Constellations?",
+      "organization_or_authors": "NASA Space Place",
+      "url_or_doi": "https://spaceplace.nasa.gov/constellations/en/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Constellation patterns, the viewpoint from Earth, visibility by location and time, and the 88 officially recognised constellations.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "iau-constellation-education",
+      "title": "What is a Constellation?",
+      "organization_or_authors": "International Astronomical Union astroEDU",
+      "url_or_doi": "https://astroedu.iau.org/activities/what-is-a-constellation/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Educational explanation that constellation stars can be far apart and the IAU recognises 88 constellations.",
+      "source_type": "professional-organization"
+    },
+    {
+      "id": "nasa-moon-phases",
+      "title": "Moon Phases",
+      "organization_or_authors": "NASA Science",
+      "url_or_doi": "https://science.nasa.gov/moon/moon-phases/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Reflected sunlight, the always-half-lit Moon, the eight phases, the approximate phase cycle, and full/new Moon rise and set rules of thumb.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-stargazing-places",
+      "title": "How to Find Good Places to Stargaze",
+      "organization_or_authors": "Preston Dyches / NASA Science",
+      "url_or_doi": "https://science.nasa.gov/solar-system/skywatching/how-to-find-good-places-to-stargaze/",
+      "publication_date": "2021-07-28",
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "Light pollution, Moon brightness, weather and site conditions, daylight scouting, dark adaptation, and observing safety.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-sun-star",
+      "title": "All About the Sun",
+      "organization_or_authors": "NASA Space Place",
+      "url_or_doi": "https://spaceplace.nasa.gov/all-about-the-sun/en/",
+      "publication_date": null,
+      "accessed_at": "2026-09-01T00:00:00.000Z",
+      "claim_scope": "The Sun as a star and the distinction between the Sun's daytime brightness and other stars.",
+      "source_type": "official-education"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { CatalogueSearchBox } from "../../components/catalogue-search-box";
 import {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 type ExplorePageProps = Readonly<{
-  searchParams: Promise<Readonly<{ q?: string | string[] }>>;
+  searchParams: Promise<Readonly<{ cursor?: string | string[]; q?: string | string[] }>>;
 }>;
 
 function firstValue(value: string | string[] | undefined): string | undefined {
@@ -27,6 +28,8 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   const params = await searchParams;
   const query = (firstValue(params.q) ?? "").trim();
+  const rawCursor = firstValue(params.cursor)?.trim();
+  const cursor = rawCursor === undefined || rawCursor.length === 0 ? undefined : rawCursor;
 
   // The public API origin, resolved once server-side. It carries no secrets —
   // the suggest endpoint is a public read — so the client combobox may call it
@@ -58,7 +61,11 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         />
       </div>
 
-      {committed ? <ExploreSearchSection query={query} /> : <ExploreBrowseSection />}
+      {committed ? (
+        <ExploreSearchSection query={query} />
+      ) : (
+        <ExploreBrowseSection {...(cursor === undefined ? {} : { cursor })} />
+      )}
     </div>
   );
 }
@@ -103,8 +110,8 @@ async function ExploreSearchSection({ query }: Readonly<{ query: string }>) {
 }
 
 /** Discovery state: the bounded canonical browse slice. */
-async function ExploreBrowseSection() {
-  const outcome = await loadExploreCatalogue();
+async function ExploreBrowseSection({ cursor }: Readonly<{ cursor?: string }>) {
+  const outcome = await loadExploreCatalogue(cursor === undefined ? {} : { cursor });
 
   return (
     <section aria-labelledby="browse-heading" className="space-y-5">
@@ -121,10 +128,22 @@ async function ExploreBrowseSection() {
           <>
             {!outcome.completeSlice ? (
               <p className="text-sm text-[var(--muted)]">
-                Showing the first {outcome.items.length} objects.
+                {cursor === undefined
+                  ? `Showing the first ${outcome.items.length} objects.`
+                  : `Showing the next ${outcome.items.length} objects.`}
               </p>
             ) : null}
             <EntityCardGrid items={outcome.items} />
+            {outcome.nextCursor !== null ? (
+              <nav aria-label="Catalogue pagination" className="flex justify-end">
+                <Link
+                  className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 text-sm font-semibold text-[var(--foreground)] no-underline hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+                  href={`/explore?cursor=${encodeURIComponent(outcome.nextCursor)}`}
+                >
+                  Next page
+                </Link>
+              </nav>
+            ) : null}
           </>
         )
       ) : (

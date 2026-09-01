@@ -23,6 +23,34 @@ test("explore shows the reviewed catalogue without a query", async ({ page }) =>
   }
 });
 
+test("explore follows the opaque cursor to the next stable page", async ({ page }) => {
+  await page.goto("/explore");
+
+  const firstPage = page.getByRole("list", { name: "Catalogue objects" });
+  await expect(firstPage.getByRole("link")).toHaveCount(6);
+  await expect(page.getByRole("navigation", { name: "Catalogue pagination" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Next page" })).toHaveAttribute(
+    "href",
+    "/explore?cursor=fixture-page-2",
+  );
+
+  const firstPageIds = await firstPage
+    .getByRole("link")
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  await page.getByRole("link", { name: "Next page" }).click();
+
+  await expect(page).toHaveURL(/\/explore\?cursor=fixture-page-2$/u);
+  const secondPage = page.getByRole("list", { name: "Catalogue objects" });
+  await expect(secondPage.getByRole("link", { name: "Messier 42" })).toBeVisible();
+  const secondPageIds = await secondPage
+    .getByRole("link")
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  expect(new Set([...firstPageIds, ...secondPageIds]).size).toBe(
+    firstPageIds.length + secondPageIds.length,
+  );
+  await expect(page.getByRole("navigation", { name: "Catalogue pagination" })).toHaveCount(0);
+});
+
 test("a committed search renders results and opens the Kepler object page", async ({ page }) => {
   await page.goto("/explore");
   const input = page.getByRole("combobox", { name: /search the catalogue/i });

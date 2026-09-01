@@ -62,6 +62,7 @@ const ENTITY_TYPE_VOCABULARY = {
   spacecraft: "spacecraft",
   star: "star",
   system: "system",
+  sky_region: "sky_region",
 } as const;
 
 export function isCatalogueEntityType(value: string): value is CatalogueEntityTypeFilter {
@@ -73,6 +74,7 @@ export type ExploreCatalogueOutcome =
       completeSlice: boolean;
       items: Array<EntitySummaryResponse>;
       kind: "ok";
+      nextCursor: string | null;
     }>
   | Readonly<{ kind: "invalid-query" }>
   | Readonly<{ kind: "unavailable" }>;
@@ -105,6 +107,7 @@ export type CatalogueEntityTypeFilter = {
 
 export type CatalogueSearchOptions = CatalogueLoaderOptions &
   Readonly<{
+    cursor?: string;
     entityType?: string;
     limit?: number;
   }>;
@@ -144,6 +147,7 @@ export async function loadExploreCatalogue(
     endpointWithQuery(
       catalogEntitiesEndpoint,
       new URLSearchParams({
+        ...(options.cursor === undefined ? {} : { cursor: options.cursor }),
         ...(entityType === undefined ? {} : { entity_type: entityType }),
         limit: String(EXPLORE_BROWSE_LIMIT),
       }),
@@ -156,6 +160,7 @@ export async function loadExploreCatalogue(
     completeSlice: !result.data.page.has_more,
     items: result.data.items,
     kind: "ok",
+    nextCursor: result.data.page.next_cursor,
   };
 }
 

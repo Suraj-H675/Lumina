@@ -99,6 +99,13 @@ const CATALOGUE_ENTITIES = [
 
 const CATALOGUE_ALIASES = new Map([["messier-31", ["M31", "M 31"]]]);
 
+const PAGINATED_MESSIER_FIXTURE = {
+  id: "6d4bdbe9-2fdb-5f42-b56a-922f0789bd10",
+  slug: "messier-42",
+  entity_type: "nebula",
+  canonical_name: "Messier 42",
+};
+
 const GAIA_SOURCE_IDS = new Map([
   ["26f4b667-ecd9-524d-8121-29508723715a", "1779546757669063552"],
   ["bbfe8678-81ca-5e70-ac95-c597d7655540", "2079000330051813504"],
@@ -334,9 +341,20 @@ function respondCatalogue(request, response, target) {
   const query = target.searchParams;
 
   if (path === "/api/v1/catalog/entities") {
+    if (query.get("cursor") === "fixture-page-2") {
+      sendJson(response, 200, {
+        items: [PAGINATED_MESSIER_FIXTURE],
+        page: { has_more: false, limit: Number(query.get("limit") ?? 20), next_cursor: null },
+      });
+      return;
+    }
     sendJson(response, 200, {
       items: CATALOGUE_ENTITIES,
-      page: { has_more: false, limit: Number(query.get("limit") ?? 20), next_cursor: null },
+      page: {
+        has_more: true,
+        limit: Number(query.get("limit") ?? 20),
+        next_cursor: "fixture-page-2",
+      },
     });
     return;
   }

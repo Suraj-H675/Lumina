@@ -53,6 +53,30 @@ function fetchRecording(handler: (path: string) => Response | undefined): {
 }
 
 describe("loadExploreCatalogue", () => {
+  it("forwards the opaque continuation cursor and returns the next cursor", async () => {
+    const { implementation, requests } = fetchRecording((path) =>
+      path === "/api/v1/catalog/entities?cursor=opaque-cursor&limit=60"
+        ? jsonResponse({
+            items: [summaries.k2_18],
+            page: { has_more: true, limit: 60, next_cursor: "next-opaque-cursor" },
+          })
+        : undefined,
+    );
+
+    const outcome = await loadExploreCatalogue({
+      cursor: "opaque-cursor",
+      fetchImplementation: implementation,
+    });
+
+    expect(outcome).toEqual({
+      completeSlice: false,
+      items: [summaries.k2_18],
+      kind: "ok",
+      nextCursor: "next-opaque-cursor",
+    });
+    expect(requests).toEqual([{ path: "/api/v1/catalog/entities?cursor=opaque-cursor&limit=60" }]);
+  });
+
   it("returns bounded browse items from the public list endpoint", async () => {
     const { implementation, requests } = fetchRecording((path) =>
       path === "/api/v1/catalog/entities?limit=60"
@@ -69,6 +93,7 @@ describe("loadExploreCatalogue", () => {
       completeSlice: true,
       items: [summaries.hd209458, summaries.k2_18],
       kind: "ok",
+      nextCursor: null,
     });
     expect(requests).toEqual([{ path: "/api/v1/catalog/entities?limit=60" }]);
   });
@@ -88,8 +113,39 @@ describe("loadExploreCatalogue", () => {
       fetchImplementation: implementation,
     });
 
-    expect(outcome).toEqual({ completeSlice: false, items: [summaries.hd209458], kind: "ok" });
+    expect(outcome).toEqual({
+      completeSlice: false,
+      items: [summaries.hd209458],
+      kind: "ok",
+      nextCursor: "c",
+    });
     expect(requests).toEqual([{ path: "/api/v1/catalog/entities?entity_type=star&limit=60" }]);
+  });
+
+  it("accepts the additive sky-region entity type for browse filters", async () => {
+    const { implementation, requests } = fetchRecording((path) =>
+      path === "/api/v1/catalog/entities?entity_type=sky_region&limit=60"
+        ? jsonResponse({
+            items: [summaries.k2_18],
+            page: { has_more: false, limit: 60, next_cursor: null },
+          })
+        : undefined,
+    );
+
+    const outcome = await loadExploreCatalogue({
+      entityType: "sky_region",
+      fetchImplementation: implementation,
+    });
+
+    expect(outcome).toEqual({
+      completeSlice: true,
+      items: [summaries.k2_18],
+      kind: "ok",
+      nextCursor: null,
+    });
+    expect(requests).toEqual([
+      { path: "/api/v1/catalog/entities?entity_type=sky_region&limit=60" },
+    ]);
   });
 
   it("rejects an entity-type filter outside the public vocabulary without a request", async () => {

@@ -1,0 +1,1423 @@
+{
+  "artifact_version": 2,
+  "model_version": "scale-explorer-v1",
+  "schema_version": 1,
+  "light_year_metres_approx": 9460000000000000,
+  "generated_at": "2026-09-02T09:12:28Z",
+  "definition": {
+    "slug": "scale-explorer",
+    "title": "Scale Explorer",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "audience_modes": ["explorer", "student", "deep-dive"],
+    "reviewed_by": ["Luna (primary engineer)"],
+    "reviewed_at": "2026-09-02T09:12:28Z",
+    "updated_at": "2026-09-02T09:12:28Z",
+    "model_version": "scale-explorer-v1",
+    "learning_objectives": [
+      "Read characteristic size across many orders of magnitude.",
+      "Explain why a logarithmic display is useful for comparing very different sizes.",
+      "Distinguish characteristic size from distance, location, and the size of the whole universe."
+    ],
+    "prerequisite_concepts": ["length units", "radius and diameter", "orders of magnitude"],
+    "input_schema": {
+      "name": "selected_node_id",
+      "unit": "curated node identifier",
+      "valid_values": [
+        "moon",
+        "mercury",
+        "mars",
+        "venus",
+        "earth",
+        "neptune",
+        "uranus",
+        "saturn",
+        "jupiter",
+        "sun",
+        "milky-way",
+        "observable-universe"
+      ],
+      "invalid_handling": "Reject unknown, malformed, unsupported-version, and extra-field state."
+    },
+    "default_preset": "earth",
+    "calculation_module": {
+      "canonical_unit": "m",
+      "relationships": [
+        "Convert kilometre and light-year source values to metres in the Python astronomy model before ordering.",
+        "For radius-backed planet entries: characteristic diameter = 2 × source radius.",
+        "For direct diameter entries: characteristic diameter = source diameter.",
+        "For width and extent entries: preserve the cited characteristic quantity; do not infer a diameter.",
+        "For ratio comparisons: selected characteristic size / reference characteristic size.",
+        "For visualization only: p = 100 × (log10(S) − log10(Smin)) / (log10(Smax) − log10(Smin)).",
+        "For light-year entries: 1 ly ≈ 9.46 × 10^15 m for SI normalization, ordering, and derived ratios; this is an approximate conversion, not a new measurement."
+      ],
+      "characteristic_size": {
+        "algorithm_id": "scale-characteristic-size-v1",
+        "algorithm_version": 1,
+        "inputs": "source_value, source_unit, and source_quantity in the Python astronomy model",
+        "output_unit": "m",
+        "valid_domain": "source_value is finite and greater than zero; source unit and quantity are supported",
+        "numerical_tolerance": "Deterministic floating-point checks use a relative arithmetic tolerance of 1e-12 where a tolerance is required. Source values and the 9.46 × 10^15 m/ly conversion are rounded approximations; this is not a source-uncertainty estimate.",
+        "test_references": [
+          "scale-explorer-characteristic-size-known-cases",
+          "scale-explorer-independent-source-known-cases",
+          "scale-explorer-log-endpoints-edge-cases"
+        ],
+        "generated_at": "2026-09-02T09:12:28Z"
+      },
+      "derived_comparison": {
+        "algorithm_id": "scale-relative-ratio-v1",
+        "algorithm_version": 1,
+        "inputs": "selected and reference characteristic sizes calculated by the Python astronomy model in metres",
+        "output_unit": "dimensionless ratio",
+        "valid_domain": "both canonical characteristic sizes are finite and greater than zero",
+        "numerical_tolerance": "Deterministic floating-point checks use a relative arithmetic tolerance of 1e-12. Learner-facing comparison sentences round to two significant figures; source values remain approximate and are not assigned extra precision.",
+        "test_references": [
+          "scale-explorer-derived-comparison-known-cases",
+          "scale-explorer-log-endpoints-edge-cases"
+        ],
+        "generated_at": "2026-09-02T09:12:28Z"
+      }
+    },
+    "output_schema": [
+      "selected node and adjacent curated nodes",
+      "source-preserving characteristic size and quantity label",
+      "comparison and transition explanation",
+      "logarithmic display position from 0% to 100%"
+    ],
+    "visualization_module": "A static 2D track places each curated node by logarithmic characteristic size; it never places nodes in physical space.",
+    "assumptions": [
+      "Each node uses one characteristic size chosen and labelled for that node.",
+      "Approximate or estimated source values remain approximate; no uncertainty is manufactured.",
+      "The track compares characteristic sizes only and does not model distance, nesting, or co-location.",
+      "Light-year conversion is an approximate SI normalization used for ordering and ratios, not a new measurement."
+    ],
+    "limitations": [
+      "The list is curated rather than complete and has no continuous interpolation between nodes.",
+      "Planet entries use the approximate radii in the NASA Solar System Sizes reference and a definitional diameter derivation; other NASA pages may report a differently defined equatorial diameter.",
+      "The Moon keeps the directly reported 3,475 km diameter from its cited fast-facts sheet rather than deriving a diameter from a separately rounded radius.",
+      "Galaxy and observable-universe extents are broad estimates with boundary-definition limits.",
+      "The observable universe is not the same thing as the entire universe."
+    ],
+    "references": [
+      "nasa-solar-system-sizes",
+      "nasa-moon-lithograph",
+      "nasa-sun-facts",
+      "nasa-milky-way-size",
+      "nasa-observable-universe-size",
+      "nasa-light-year"
+    ],
+    "validation_fixtures": [
+      "scale-explorer-characteristic-size-known-cases",
+      "scale-explorer-earth-reference-known-case",
+      "scale-explorer-sun-known-case",
+      "scale-explorer-derived-comparison-known-cases",
+      "scale-explorer-log-endpoints-edge-cases"
+    ],
+    "share_schema_version": 1
+  },
+  "sources": [
+    {
+      "id": "nasa-solar-system-sizes",
+      "title": "Solar System Sizes",
+      "organization_or_authors": "NASA / Lunar and Planetary Institute",
+      "url": "https://science.nasa.gov/resource/solar-system-sizes/",
+      "accessed_at": "2026-09-02",
+      "dataset_or_release": "Not applicable — official reference page, not a versioned dataset.",
+      "record_reference": "Page-level claim; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-02",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "citation": "NASA / Lunar and Planetary Institute, “Solar System Sizes”, accessed 2026-09-02.",
+      "claim_scope": "Approximate listed planetary radii for Mercury through Neptune.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "nasa-moon-lithograph",
+      "title": "Moon lithograph: fast facts",
+      "organization_or_authors": "NASA",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/01/62217main-moon-lithograph.pdf",
+      "accessed_at": "2026-09-02",
+      "dataset_or_release": "Not applicable — official reference page, not a versioned dataset.",
+      "record_reference": "Page-level claim; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-02",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "citation": "NASA, “Moon lithograph: fast facts”, accessed 2026-09-02.",
+      "claim_scope": "The Moon's fast-facts diameter of 3,475 km.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "nasa-sun-facts",
+      "title": "Our Sun: Facts",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/sun/facts/",
+      "accessed_at": "2026-09-02",
+      "dataset_or_release": "Not applicable — official reference page, not a versioned dataset.",
+      "record_reference": "Page-level claim; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-02",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "citation": "NASA Science, “Our Sun: Facts”, accessed 2026-09-02.",
+      "claim_scope": "The Sun's approximate diameter of 1.4 million km.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-milky-way-size",
+      "title": "Our Milky Way Galaxy: How Big is Space?",
+      "organization_or_authors": "NASA Science / NASA-JPL-Caltech",
+      "url": "https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/",
+      "accessed_at": "2026-09-02",
+      "dataset_or_release": "Not applicable — official reference page, not a versioned dataset.",
+      "record_reference": "Page-level claim; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-02",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "citation": "NASA Science / NASA-JPL-Caltech, “Our Milky Way Galaxy: How Big is Space?”, accessed 2026-09-02.",
+      "claim_scope": "The Milky Way's approximate galaxy-wide width of 100,000 light-years.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-observable-universe-size",
+      "title": "How Big is Space? We Asked a NASA Expert",
+      "organization_or_authors": "NASA",
+      "url": "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/",
+      "accessed_at": "2026-09-02",
+      "dataset_or_release": "Not applicable — official reference page, not a versioned dataset.",
+      "record_reference": "Page-level claim; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-02",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "citation": "NASA, “How Big is Space? We Asked a NASA Expert”, accessed 2026-09-02.",
+      "claim_scope": "An estimate of about 92 billion light-years across for the observable universe, not the whole universe.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-light-year",
+      "title": "What is a light-year?",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
+      "accessed_at": "2026-09-02",
+      "dataset_or_release": "Not applicable — official reference page, not a versioned dataset.",
+      "record_reference": "Page-level claim; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-02",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "citation": "NASA Science, “What is a light-year?”, accessed 2026-09-02.",
+      "claim_scope": "A light-year is a distance; NASA gives an approximate kilometre conversion.",
+      "source_type": "official-education"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "moon",
+      "name": "Moon",
+      "category": "moon",
+      "source_value": 3475,
+      "source_unit": "km",
+      "source_quantity": "diameter",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 3,475 km",
+      "value_status": "reported",
+      "source_basis": "NASA's fast-facts sheet reports a diameter of 3,475 km.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Start with a familiar natural satellite. Its diameter is thousands of kilometres, already far beyond everyday scales.",
+        "source_ids": ["nasa-moon-lithograph"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Moon facts",
+          "href": "https://science.nasa.gov/moon/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA Moon fast facts",
+          "href": "https://science.nasa.gov/wp-content/uploads/2024/01/62217main-moon-lithograph.pdf",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-moon-lithograph"],
+      "calculated_characteristic_size_m": 3475000,
+      "display_position_percent": 0,
+      "comparison_text": "About 0.27× Earth's characteristic diameter."
+    },
+    {
+      "id": "mercury",
+      "name": "Mercury",
+      "category": "planet",
+      "source_value": 2440,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 4.88 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 2,440 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Mercury is only about one-and-a-half Moon diameters wide. A logarithmic scale keeps that modest step visible without pretending every step is equal.",
+        "source_ids": ["nasa-solar-system-sizes", "nasa-moon-lithograph"],
+        "derived_quantity": {
+          "algorithm_id": "scale-relative-ratio-v1",
+          "algorithm_version": 1,
+          "input_node_ids": ["mercury", "moon"],
+          "input_source_ids": ["nasa-solar-system-sizes", "nasa-moon-lithograph"],
+          "input_unit": "m",
+          "output_unit": "dimensionless ratio",
+          "valid_domain": "Each input canonical characteristic size is finite and greater than zero; both inputs are distinct curated nodes.",
+          "numerical_tolerance": "Deterministic floating-point checks use a relative arithmetic tolerance of 1e-12. The learner-facing phrase is an approximate educational rounding, not a precision claim.",
+          "test_references": ["scale-explorer-transition-ratio-known-cases"],
+          "generated_at": "2026-09-02T09:12:28Z",
+          "learner_facing_rounding": "The calculated ratio is rounded to the authored phrase ‘about one-and-a-half’."
+        }
+      },
+      "entity_links": [
+        {
+          "label": "NASA Mercury facts",
+          "href": "https://science.nasa.gov/mercury/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 4880000,
+      "display_position_percent": 0.722912923167919,
+      "comparison_text": "About 0.38× Earth's characteristic diameter."
+    },
+    {
+      "id": "mars",
+      "name": "Mars",
+      "category": "planet",
+      "source_value": 3390,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 6.78 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 3,390 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Mars's characteristic size is larger than Mercury's, but still below Earth's in this curated list.",
+        "source_ids": ["nasa-solar-system-sizes"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Mars facts",
+          "href": "https://science.nasa.gov/mars/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 6780000,
+      "display_position_percent": 1.4230050994259127,
+      "comparison_text": "About 0.53× Earth's characteristic diameter."
+    },
+    {
+      "id": "venus",
+      "name": "Venus",
+      "category": "planet",
+      "source_value": 6052,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 12.1 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 6,052 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Venus and Earth are close in characteristic size in this curated list. This size comparison alone does not model surface conditions or history.",
+        "source_ids": ["nasa-solar-system-sizes"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Venus facts",
+          "href": "https://science.nasa.gov/venus/venus-facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 12104000,
+      "display_position_percent": 2.6569019806118743,
+      "comparison_text": "About 0.95× Earth's characteristic diameter."
+    },
+    {
+      "id": "earth",
+      "name": "Earth",
+      "category": "planet",
+      "source_value": 6371,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 12.7 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 6,371 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "contextual",
+        "text": "Reference point for the planetary comparisons."
+      },
+      "transition_explanation": {
+        "text": "Earth is the reference point in the planetary comparisons. The next nodes are much larger worlds, then the Sun.",
+        "source_ids": ["nasa-solar-system-sizes"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Earth facts",
+          "href": "https://science.nasa.gov/earth/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 12742000,
+      "display_position_percent": 2.766265122941635,
+      "comparison_text": "Reference point for the planetary comparisons."
+    },
+    {
+      "id": "neptune",
+      "name": "Neptune",
+      "category": "planet",
+      "source_value": 24622,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 49.2 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 24,622 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "The outer planets move us into tens of thousands of kilometres. Neptune is nearly four Earth characteristic diameters across by this characteristic measure.",
+        "source_ids": ["nasa-solar-system-sizes"],
+        "derived_quantity": {
+          "algorithm_id": "scale-relative-ratio-v1",
+          "algorithm_version": 1,
+          "input_node_ids": ["neptune", "earth"],
+          "input_source_ids": ["nasa-solar-system-sizes"],
+          "input_unit": "m",
+          "output_unit": "dimensionless ratio",
+          "valid_domain": "Each input canonical characteristic size is finite and greater than zero; both inputs are distinct curated nodes.",
+          "numerical_tolerance": "Deterministic floating-point checks use a relative arithmetic tolerance of 1e-12. The learner-facing phrase is an approximate educational rounding, not a precision claim.",
+          "test_references": ["scale-explorer-transition-ratio-known-cases"],
+          "generated_at": "2026-09-02T09:12:28Z",
+          "learner_facing_rounding": "The calculated ratio is rounded to the authored phrase ‘nearly four’."
+        }
+      },
+      "entity_links": [
+        {
+          "label": "NASA Neptune facts",
+          "href": "https://science.nasa.gov/neptune/neptune-facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 49244000,
+      "display_position_percent": 5.644463374145918,
+      "comparison_text": "About 3.9× Earth's characteristic diameter."
+    },
+    {
+      "id": "uranus",
+      "name": "Uranus",
+      "category": "planet",
+      "source_value": 25362,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 50.7 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 25,362 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Uranus is only slightly larger than Neptune in this list. The logarithmic view makes their small relative difference legible.",
+        "source_ids": ["nasa-solar-system-sizes"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Uranus facts",
+          "href": "https://science.nasa.gov/uranus/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 50724000,
+      "display_position_percent": 5.707507372098757,
+      "comparison_text": "About 4× Earth's characteristic diameter."
+    },
+    {
+      "id": "saturn",
+      "name": "Saturn",
+      "category": "planet",
+      "source_value": 58232,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 116 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 58,232 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Saturn takes another large step upward. Its rings are not included: this node represents the planet's listed characteristic size.",
+        "source_ids": ["nasa-solar-system-sizes"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Saturn facts",
+          "href": "https://science.nasa.gov/saturn/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 116464000,
+      "display_position_percent": 7.477119066533867,
+      "comparison_text": "About 9.1× Earth's characteristic diameter."
+    },
+    {
+      "id": "jupiter",
+      "name": "Jupiter",
+      "category": "planet",
+      "source_value": 69911,
+      "source_unit": "km",
+      "source_quantity": "radius",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 140 thousand km",
+      "value_status": "derived-approximate",
+      "source_basis": "NASA lists an approximate radius of 69,911 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "Jupiter is the largest planet in this curated set. The next node changes category: from a planet to a star.",
+        "source_ids": ["nasa-solar-system-sizes"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Jupiter facts",
+          "href": "https://science.nasa.gov/jupiter/jupiter-facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA planetary size reference",
+          "href": "https://science.nasa.gov/resource/solar-system-sizes/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-solar-system-sizes"],
+      "calculated_characteristic_size_m": 139822000,
+      "display_position_percent": 7.8662797184654725,
+      "comparison_text": "About 11× Earth's characteristic diameter."
+    },
+    {
+      "id": "sun",
+      "name": "Sun",
+      "category": "star",
+      "source_value": 1400000,
+      "source_unit": "km",
+      "source_quantity": "diameter",
+      "characteristic_quantity": "diameter",
+      "display_value": "about 1.4 million km",
+      "value_status": "approximate",
+      "source_basis": "NASA describes the Sun's diameter as about 1.4 million km.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "A star is a different scale category from a planet. In this curated characteristic-size comparison, the Sun is about ten times Jupiter's characteristic diameter.",
+        "source_ids": ["nasa-sun-facts", "nasa-solar-system-sizes"],
+        "derived_quantity": {
+          "algorithm_id": "scale-relative-ratio-v1",
+          "algorithm_version": 1,
+          "input_node_ids": ["sun", "jupiter"],
+          "input_source_ids": ["nasa-sun-facts", "nasa-solar-system-sizes"],
+          "input_unit": "m",
+          "output_unit": "dimensionless ratio",
+          "valid_domain": "Each input canonical characteristic size is finite and greater than zero; both inputs are distinct curated nodes.",
+          "numerical_tolerance": "Deterministic floating-point checks use a relative arithmetic tolerance of 1e-12. The learner-facing phrase is an approximate educational rounding, not a precision claim.",
+          "test_references": ["scale-explorer-transition-ratio-known-cases"],
+          "generated_at": "2026-09-02T09:12:28Z",
+          "learner_facing_rounding": "The calculated ratio is rounded to the authored phrase ‘about ten’."
+        }
+      },
+      "entity_links": [
+        {
+          "label": "NASA Sun facts",
+          "href": "https://science.nasa.gov/sun/facts/",
+          "kind": "entity-reference"
+        },
+        {
+          "label": "NASA Sun size reference",
+          "href": "https://science.nasa.gov/sun/facts/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-sun-facts"],
+      "calculated_characteristic_size_m": 1400000000,
+      "display_position_percent": 12.771255726483147,
+      "comparison_text": "About 110× Earth's characteristic diameter."
+    },
+    {
+      "id": "milky-way",
+      "name": "Milky Way galaxy",
+      "category": "galaxy",
+      "source_value": 100000,
+      "source_unit": "ly",
+      "source_quantity": "width",
+      "characteristic_quantity": "width",
+      "display_value": "about 100,000 light-years across",
+      "value_status": "approximate",
+      "source_basis": "NASA describes the Milky Way as about 100,000 light-years across; this node uses that cited galaxy-wide width as an approximate characteristic value without defining a precise boundary.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "earth"
+      },
+      "transition_explanation": {
+        "text": "The next category is a galaxy. Its approximate galaxy-wide width is expressed in light-years rather than kilometres; this track compares width, not physical location.",
+        "source_ids": ["nasa-milky-way-size", "nasa-light-year"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA Milky Way size reference",
+          "href": "https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/",
+          "kind": "source-reference"
+        },
+        {
+          "label": "NASA light-year definition",
+          "href": "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-milky-way-size", "nasa-light-year"],
+      "calculated_characteristic_size_m": 946000000000000000000,
+      "display_position_percent": 70.76391747796627,
+      "comparison_text": "About 74 trillion× Earth's characteristic diameter."
+    },
+    {
+      "id": "observable-universe",
+      "name": "Observable universe",
+      "category": "cosmological",
+      "source_value": 92000000000,
+      "source_unit": "ly",
+      "source_quantity": "extent",
+      "characteristic_quantity": "observable-extent",
+      "display_value": "about 92 billion light-years across",
+      "value_status": "model-based",
+      "source_basis": "NASA gives about 92 billion light-years across as an estimate for the observable universe; the full universe may be larger and its total size is not reliably known.",
+      "comparison": {
+        "kind": "ratio",
+        "reference_node_id": "milky-way"
+      },
+      "transition_explanation": {
+        "text": "This final node is the observable part of the universe, not a claim about the size of the entire universe. Expansion matters to the cosmological estimate.",
+        "source_ids": ["nasa-observable-universe-size", "nasa-light-year"]
+      },
+      "entity_links": [
+        {
+          "label": "NASA observable-universe estimate",
+          "href": "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/",
+          "kind": "source-reference"
+        },
+        {
+          "label": "NASA light-year definition",
+          "href": "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
+          "kind": "source-reference"
+        }
+      ],
+      "source_ids": ["nasa-observable-universe-size", "nasa-light-year"],
+      "calculated_characteristic_size_m": 8.7032e26,
+      "display_position_percent": 100,
+      "comparison_text": "About 920,000× the Milky Way galaxy's approximate width."
+    }
+  ],
+  "pairwise_ratios": [
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "mercury",
+      "ratio": 0.7120901639344263
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "mars",
+      "ratio": 0.5125368731563422
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "venus",
+      "ratio": 0.2870951751487112
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "earth",
+      "ratio": 0.2727201381258829
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "neptune",
+      "ratio": 0.07056697262610673
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "uranus",
+      "ratio": 0.06850800410062298
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "saturn",
+      "ratio": 0.029837546366259102
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "jupiter",
+      "ratio": 0.02485302742057759
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "sun",
+      "ratio": 0.0024821428571428572
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "milky-way",
+      "ratio": 3.673361522198731e-15
+    },
+    {
+      "selected_node_id": "moon",
+      "reference_node_id": "observable-universe",
+      "ratio": 3.992784263259491e-21
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "moon",
+      "ratio": 1.40431654676259
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "mars",
+      "ratio": 0.7197640117994101
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "venus",
+      "ratio": 0.403172504957039
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "earth",
+      "ratio": 0.3829854026055564
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "neptune",
+      "ratio": 0.09909836731378442
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "uranus",
+      "ratio": 0.09620692374418421
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "saturn",
+      "ratio": 0.041901360076933646
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "jupiter",
+      "ratio": 0.03490151764386148
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "sun",
+      "ratio": 0.0034857142857142856
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "milky-way",
+      "ratio": 5.1585623678646935e-15
+    },
+    {
+      "selected_node_id": "mercury",
+      "reference_node_id": "observable-universe",
+      "ratio": 5.60713300854858e-21
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "moon",
+      "ratio": 1.9510791366906475
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "mercury",
+      "ratio": 1.389344262295082
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "venus",
+      "ratio": 0.5601454064771976
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "earth",
+      "ratio": 0.5320985716528017
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "neptune",
+      "ratio": 0.13768174803021688
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "uranus",
+      "ratio": 0.13366453749704282
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "saturn",
+      "ratio": 0.05821541420524797
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "jupiter",
+      "ratio": 0.048490223283889515
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "sun",
+      "ratio": 0.004842857142857143
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "milky-way",
+      "ratio": 7.167019027484144e-15
+    },
+    {
+      "selected_node_id": "mars",
+      "reference_node_id": "observable-universe",
+      "ratio": 7.79023807335233e-21
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "moon",
+      "ratio": 3.4831654676258994
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "mercury",
+      "ratio": 2.480327868852459
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "mars",
+      "ratio": 1.7852507374631268
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "earth",
+      "ratio": 0.9499293674462408
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "neptune",
+      "ratio": 0.2457964422061571
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "uranus",
+      "ratio": 0.23862471413926348
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "saturn",
+      "ratio": 0.10392911114164033
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "jupiter",
+      "ratio": 0.08656720687731545
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "sun",
+      "ratio": 0.008645714285714286
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "milky-way",
+      "ratio": 1.279492600422833e-14
+    },
+    {
+      "selected_node_id": "venus",
+      "reference_node_id": "observable-universe",
+      "ratio": 1.3907528265465577e-20
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "moon",
+      "ratio": 3.6667625899280574
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "mercury",
+      "ratio": 2.611065573770492
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "mars",
+      "ratio": 1.8793510324483775
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "venus",
+      "ratio": 1.0527098479841375
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "neptune",
+      "ratio": 0.25875233530988545
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "uranus",
+      "ratio": 0.2512025865468023
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "saturn",
+      "ratio": 0.10940719879104273
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "jupiter",
+      "ratio": 0.09113015119223013
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "sun",
+      "ratio": 0.009101428571428571
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "milky-way",
+      "ratio": 1.3469344608879492e-14
+    },
+    {
+      "selected_node_id": "earth",
+      "reference_node_id": "observable-universe",
+      "ratio": 1.4640591966173363e-20
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "moon",
+      "ratio": 14.17093525179856
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "mercury",
+      "ratio": 10.090983606557376
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "mars",
+      "ratio": 7.263126843657817
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "venus",
+      "ratio": 4.068407138136154
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "earth",
+      "ratio": 3.864699419243447
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "uranus",
+      "ratio": 0.9708224903398786
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "saturn",
+      "ratio": 0.42282593762879517
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "jupiter",
+      "ratio": 0.35219064238817926
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "sun",
+      "ratio": 0.035174285714285713
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "milky-way",
+      "ratio": 5.2054968287526425e-14
+    },
+    {
+      "selected_node_id": "neptune",
+      "reference_node_id": "observable-universe",
+      "ratio": 5.658148726905046e-20
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "moon",
+      "ratio": 14.596834532374102
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "mercury",
+      "ratio": 10.394262295081967
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "mars",
+      "ratio": 7.48141592920354
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "venus",
+      "ratio": 4.190680766688698
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "earth",
+      "ratio": 3.980850729869722
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "neptune",
+      "ratio": 1.0300544228738526
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "saturn",
+      "ratio": 0.43553372716032424
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "jupiter",
+      "ratio": 0.3627755288867274
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "sun",
+      "ratio": 0.036231428571428574
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "milky-way",
+      "ratio": 5.3619450317124735e-14
+    },
+    {
+      "selected_node_id": "uranus",
+      "reference_node_id": "observable-universe",
+      "ratio": 5.828201121426602e-20
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "moon",
+      "ratio": 33.51482014388489
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "mercury",
+      "ratio": 23.865573770491803
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "mars",
+      "ratio": 17.17758112094395
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "venus",
+      "ratio": 9.621943159286186
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "earth",
+      "ratio": 9.14016637890441
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "neptune",
+      "ratio": 2.3650393956624156
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "uranus",
+      "ratio": 2.2960334358489076
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "jupiter",
+      "ratio": 0.8329447440316975
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "sun",
+      "ratio": 0.08318857142857143
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "milky-way",
+      "ratio": 1.2311205073995773e-13
+    },
+    {
+      "selected_node_id": "saturn",
+      "reference_node_id": "observable-universe",
+      "ratio": 1.338174464564758e-19
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "moon",
+      "ratio": 40.23654676258993
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "mercury",
+      "ratio": 28.652049180327868
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "mars",
+      "ratio": 20.622713864306785
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "venus",
+      "ratio": 11.551718440185063
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "earth",
+      "ratio": 10.973316590802073
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "neptune",
+      "ratio": 2.839371293964747
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "uranus",
+      "ratio": 2.7565255106064193
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "saturn",
+      "ratio": 1.2005598296469295
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "sun",
+      "ratio": 0.09987285714285714
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "milky-way",
+      "ratio": 1.4780338266384778e-13
+    },
+    {
+      "selected_node_id": "jupiter",
+      "reference_node_id": "observable-universe",
+      "ratio": 1.6065585072157368e-19
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "moon",
+      "ratio": 402.8776978417266
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "mercury",
+      "ratio": 286.88524590163934
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "mars",
+      "ratio": 206.4896755162242
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "venus",
+      "ratio": 115.66424322538003
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "earth",
+      "ratio": 109.8728614032334
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "neptune",
+      "ratio": 28.42985947526602
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "uranus",
+      "ratio": 27.600346975790554
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "saturn",
+      "ratio": 12.020881989284243
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "jupiter",
+      "ratio": 10.012730471599605
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "milky-way",
+      "ratio": 1.4799154334038055e-12
+    },
+    {
+      "selected_node_id": "sun",
+      "reference_node_id": "observable-universe",
+      "ratio": 1.6086037319606583e-18
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "moon",
+      "ratio": 272230215827338.12
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "mercury",
+      "ratio": 193852459016393.44
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "mars",
+      "ratio": 139528023598820.06
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "venus",
+      "ratio": 78155981493721.08
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "earth",
+      "ratio": 74242662062470.56
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "neptune",
+      "ratio": 19210462188286.9
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "uranus",
+      "ratio": 18649948742212.758
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "saturn",
+      "ratio": 8122681687044.924
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "jupiter",
+      "ratio": 6765745018666.591
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "sun",
+      "ratio": 675714285714.2858
+    },
+    {
+      "selected_node_id": "milky-way",
+      "reference_node_id": "observable-universe",
+      "ratio": 0.0000010869565217391306
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "moon",
+      "ratio": 250451798561151060000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "mercury",
+      "ratio": 178344262295081980000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "mars",
+      "ratio": 128365781710914450000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "venus",
+      "ratio": 71903502974223390000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "earth",
+      "ratio": 68303249097472926000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "neptune",
+      "ratio": 17673625213223946000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "uranus",
+      "ratio": 17157952842835739000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "saturn",
+      "ratio": 7472867152081329000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "jupiter",
+      "ratio": 6224485417173263000
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "sun",
+      "ratio": 621657142857142800
+    },
+    {
+      "selected_node_id": "observable-universe",
+      "reference_node_id": "milky-way",
+      "ratio": 920000
+    }
+  ],
+  "validation_fixtures": [
+    {
+      "id": "scale-explorer-characteristic-size-known-cases",
+      "node_id": "moon",
+      "expected_characteristic_size_m": 3475000,
+      "tolerance_m": 0,
+      "expected_position_percent": 0,
+      "position_tolerance_percent": 0,
+      "purpose": "Independent known-case check for the directly reported Moon diameter."
+    },
+    {
+      "id": "scale-explorer-earth-reference-known-case",
+      "node_id": "earth",
+      "expected_characteristic_size_m": 12742000,
+      "tolerance_m": 0,
+      "purpose": "Independent known-case check for the Earth reference diameter."
+    },
+    {
+      "id": "scale-explorer-sun-known-case",
+      "node_id": "sun",
+      "expected_characteristic_size_m": 1400000000,
+      "tolerance_m": 0,
+      "purpose": "Independent known-case check for the rounded Sun diameter."
+    },
+    {
+      "id": "scale-explorer-derived-comparison-known-cases",
+      "node_id": "milky-way",
+      "expected_characteristic_size_m": 946000000000000000000,
+      "tolerance_m": 1000000,
+      "expected_comparison": {
+        "reference_node_id": "earth",
+        "expected_ratio": 74242662062470.56,
+        "ratio_relative_tolerance": 1e-12
+      },
+      "purpose": "Independent known-case input for the large relative-comparison result."
+    },
+    {
+      "id": "scale-explorer-log-endpoints-edge-cases",
+      "node_id": "observable-universe",
+      "expected_characteristic_size_m": 8.7032e26,
+      "tolerance_m": 1000000000000,
+      "expected_position_percent": 100,
+      "position_tolerance_percent": 0,
+      "expected_comparison": {
+        "reference_node_id": "milky-way",
+        "expected_ratio": 920000,
+        "ratio_relative_tolerance": 1e-12
+      },
+      "purpose": "Upper endpoint and light-year conversion edge-case check."
+    }
+  ],
+  "scientific_validation": {
+    "id": "scale-explorer-independent-validation-v1",
+    "checked_at": "2026-09-02T09:12:28Z",
+    "method": "Independent Python standard-library Decimal arithmetic recalculates characteristic sizes, all logarithmic display positions, and all pairwise ratios from the reviewed source_value/source_unit/source_quantity fields; results are compared with the Astropy-backed astronomy model artifact using the documented tolerance.",
+    "tools": [
+      {
+        "name": "Python decimal",
+        "version": "Python 3.12 standard library; Decimal precision 50",
+        "role": "independent high-precision arithmetic cross-check"
+      }
+    ],
+    "source_ids": [
+      "nasa-solar-system-sizes",
+      "nasa-moon-lithograph",
+      "nasa-sun-facts",
+      "nasa-milky-way-size",
+      "nasa-observable-universe-size",
+      "nasa-light-year"
+    ],
+    "test_references": [
+      "scale-explorer-independent-decimal-cross-check",
+      "scale-explorer-independent-source-known-cases"
+    ]
+  }
+}

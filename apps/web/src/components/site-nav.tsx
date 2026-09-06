@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const navigationItems = [
   { href: "/explore", label: "Explore" },
   { href: "/learn", label: "Learn" },
+  { href: "/lab/scale-explorer", label: "Lab" },
   { href: "/compare", label: "Compare" },
   { href: "/observe", label: "Observe" },
   { href: "/tonight", label: "Tonight" },
@@ -21,8 +22,8 @@ export function SiteNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Primary">
-      <ul className="flex flex-wrap items-center gap-x-1 gap-y-0 sm:gap-x-2">
+    <nav aria-label="Primary" className="min-w-0 max-w-full">
+      <ul className="flex max-w-full flex-wrap items-center gap-x-1 gap-y-0 sm:gap-x-2">
         {navigationItems.map((item) => {
           // usePathname is null in non-router render contexts (e.g. bare
           // component tests); treat that as "no active section".
@@ -34,8 +35,8 @@ export function SiteNav() {
                 aria-label={item.href === "/observe" ? "Observation planner" : undefined}
                 className={
                   active
-                    ? "inline-flex min-h-11 items-center rounded-sm px-1.5 text-sm font-semibold text-[var(--accent)] underline decoration-[var(--accent)] decoration-2 underline-offset-8 sm:px-3"
-                    : "inline-flex min-h-11 items-center rounded-sm px-1.5 text-sm font-medium text-[var(--muted)] no-underline transition-colors hover:text-[var(--foreground)] sm:px-3"
+                    ? "inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm px-1.5 text-sm font-semibold text-[var(--accent)] underline decoration-[var(--accent)] decoration-2 underline-offset-8 sm:px-3"
+                    : "inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm px-1.5 text-sm font-medium text-[var(--muted)] no-underline transition-colors hover:text-[var(--foreground)] sm:px-3"
                 }
                 href={item.href}
               >

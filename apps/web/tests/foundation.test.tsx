@@ -1,13 +1,21 @@
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import GlobalError from "../src/app/global-error";
-import Loading from "../src/app/loading";
+import LearningLoading from "../src/app/learn/loading";
 import NotFound from "../src/app/not-found";
 import HomePage from "../src/app/page";
 import RouteError from "../src/app/error";
 import { SiteShell } from "../src/components/site-shell";
+
+const appDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "../src/app");
+const rootLoadingPath = resolve(appDirectory, "loading.tsx");
+const learnLoadingPath = resolve(appDirectory, "learn/loading.tsx");
 
 function renderHome() {
   return render(
@@ -77,10 +85,12 @@ describe("Lumina foundation home", () => {
 });
 
 describe("Lumina route boundaries", () => {
-  it("provides actionable loading and not-found copy", () => {
-    const { rerender } = render(<Loading />);
+  it("uses route-specific loading boundaries without requiring a root loading boundary", () => {
+    expect(existsSync(rootLoadingPath)).toBe(false);
+    expect(existsSync(learnLoadingPath)).toBe(true);
 
-    expect(screen.getByRole("status")).toHaveTextContent(/foundation page is loading/i);
+    const { rerender } = render(<LearningLoading />);
+    expect(screen.getByRole("status")).toHaveTextContent(/learning path is loading/i);
 
     rerender(<NotFound />);
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();

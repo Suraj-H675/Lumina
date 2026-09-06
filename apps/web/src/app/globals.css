@@ -113,3 +113,43 @@ button {
     --accent: #bae6fd;
   }
 }
+
+@media (forced-colors: active) {
+  :root {
+    --background: Canvas;
+    --background-raised: Canvas;
+    --surface: Canvas;
+    --surface-hover: Canvas;
+    --foreground: CanvasText;
+    --muted: CanvasText;
+    --border: ButtonText;
+    --border-strong: ButtonText;
+    --accent: LinkText;
+    --accent-strong: LinkText;
+    --link: LinkText;
+    --focus: Highlight;
+  }
+
+  html,
+  body {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  a {
+    color: LinkText;
+  }
+
+  button,
+  input,
+  select {
+    background: ButtonFace;
+    border-color: ButtonText;
+    color: ButtonText;
+  }
+
+  .skip-link {
+    background: CanvasText;
+    color: Canvas;
+  }
+}

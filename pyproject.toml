@@ -44,6 +44,10 @@ strict = true
 warn_unreachable = true
 files = ["apps/api/src", "apps/api/tests"]
 
+[[tool.mypy.overrides]]
+module = ["astropy", "astropy.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 addopts = ["--strict-config", "--strict-markers"]
 testpaths = ["apps/api/tests"]

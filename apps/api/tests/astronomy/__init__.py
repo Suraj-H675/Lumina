@@ -1,0 +1,1 @@
+"""Astronomy-domain tests."""

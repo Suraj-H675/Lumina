@@ -7,11 +7,8 @@ import type { ScaleExplorerState } from "../lib/simulations/scale-explorer";
 const InteractiveScaleExplorer = dynamic(
   () => import("./scale-explorer-view").then((module) => module.ScaleExplorerView),
   {
-    loading: () => (
-      <p aria-live="polite" className="leading-7 text-[var(--muted)]" role="status">
-        Loading interactive controls…
-      </p>
-    ),
+    // The server-rendered no-script representation is the truthful fallback while this bundle loads.
+    loading: () => null,
     ssr: false,
   },
 );

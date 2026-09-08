@@ -137,19 +137,43 @@ test.describe("Phase 3B — Scale Explorer", () => {
   }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const noScriptPage = await context.newPage();
-    await noScriptPage.goto("/lab/scale-explorer");
 
-    await expect(
-      noScriptPage.getByRole("heading", { level: 1, name: "Scale Explorer" }),
-    ).toBeVisible();
-    await expect(noScriptPage.getByRole("heading", { level: 2, name: "Earth" })).toBeVisible();
-    await expect(
-      noScriptPage.getByRole("heading", { level: 2, name: "Text and data alternative" }),
-    ).toBeVisible();
-    await expect(noScriptPage.getByRole("table")).toBeVisible();
-    await expect(
-      noScriptPage.getByRole("heading", { level: 2, name: "Model and assumptions" }),
-    ).toBeVisible();
+    const encodedSunState = encodeURIComponent(
+      JSON.stringify({ model_version: "scale-explorer-v1", node_id: "sun", version: 1 }),
+    );
+    const noScriptRoutes = [
+      { path: "/lab/scale-explorer", selected: "Earth", malformed: false },
+      {
+        path: `/lab/scale-explorer?state=${encodedSunState}`,
+        selected: "Sun",
+        malformed: false,
+      },
+      { path: "/lab/scale-explorer/sun", selected: "Sun", malformed: false },
+      { path: "/lab/scale-explorer/invalid-state", selected: "Earth", malformed: true },
+    ] as const;
+
+    for (let repetition = 0; repetition < 3; repetition += 1) {
+      for (const route of noScriptRoutes) {
+        await noScriptPage.goto(route.path);
+
+        await expect(
+          noScriptPage.getByRole("heading", { level: 1, name: "Scale Explorer" }),
+        ).toHaveCount(1);
+        await expect(
+          noScriptPage.getByRole("heading", { level: 2, name: route.selected }),
+        ).toHaveCount(1);
+        await expect(
+          noScriptPage.getByRole("heading", { level: 2, name: "Text and data alternative" }),
+        ).toHaveCount(1);
+        await expect(noScriptPage.getByRole("article")).toHaveCount(1);
+        await expect(noScriptPage.getByRole("table")).toHaveCount(1);
+        await expect(noScriptPage.getByRole("table").locator("tbody tr")).toHaveCount(12);
+        await expect(noScriptPage.getByRole("alert")).toHaveCount(route.malformed ? 1 : 0);
+        await expect(noScriptPage.getByRole("status")).toHaveCount(0);
+        await expect(noScriptPage.getByText("Loading interactive controls…")).toHaveCount(0);
+      }
+    }
+
     await expect(noScriptPage.getByText(/input unit: curated node identifier/i)).toBeVisible();
     await expect(noScriptPage.getByRole("heading", { level: 3, name: "References" })).toBeVisible();
     await expect(noScriptPage.getByRole("columnheader", { name: "Source status" })).toBeVisible();

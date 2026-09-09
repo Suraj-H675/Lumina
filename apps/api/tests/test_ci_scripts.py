@@ -60,7 +60,8 @@ OSV_IMAGE = (
 )
 SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
-    "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.1",
+    "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2",
+    "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2",
     "next@16.2.12>postcss": "8.5.25",
     "next@16.2.12>sharp": "0.35.0",
 }
@@ -208,6 +209,7 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     vulnerable_versions = {
         ("js-yaml", "4.2.0"),
         ("js-yaml", "4.3.0"),
+        ("js-yaml", "4.3.1"),
         ("nanoid", "3.3.16"),
         ("postcss", "8.4.31"),
         ("postcss", "8.5.18"),
@@ -226,7 +228,7 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     ]
     assert parser_nodes
     assert all(
-        node.get("version") == "1.4.4" and _direct_dependency_version(node, "js-yaml") == "4.3.1"
+        node.get("version") == "1.4.4" and _direct_dependency_version(node, "js-yaml") == "4.3.2"
         for node in parser_nodes
     )
 
@@ -282,7 +284,8 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
     package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
 
     assert _top_level_yaml_block(workspace, "overrides") == (
-        '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.1"',
+        '  "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2"',
+        '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2"',
         '  "next@16.2.12>postcss": "8.5.25"',
         '  "next@16.2.12>sharp": "0.35.0"',
         "",

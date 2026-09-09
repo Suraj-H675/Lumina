@@ -258,30 +258,107 @@ const SOURCE_IDS = [
   "noaa-solar-calculator-details",
 ] as const;
 
-const SOURCE_METADATA: Readonly<Record<string, Readonly<{ url: string; title: string }>>> = {
+const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   "nasa-space-place-seasons": {
-    url: "https://spaceplace.nasa.gov/seasons/en/",
     title: "What Causes the Seasons?",
+    organization_or_authors: "NASA Space Place",
+    url: "https://spaceplace.nasa.gov/seasons/en/",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — official educational reference page.",
+    record_reference: "Page-level explanation; no stable record identifier supplied.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Official NASA educational source; Lumina links to the source and does not redistribute NASA media.",
+    citation: "NASA Space Place, “What Causes the Seasons?”, accessed 2026-09-09.",
+    claim_scope:
+      "Educational explanation that Earth's seasons are primarily caused by axial tilt rather than distance from the Sun.",
+    source_type: "official-education",
   },
   "nasa-earth-facts": {
-    url: "https://science.nasa.gov/earth/facts/",
     title: "Earth Facts",
+    organization_or_authors: "NASA Science",
+    url: "https://science.nasa.gov/earth/facts/",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — official reference page.",
+    record_reference: "Page-level Earth facts; no stable record identifier supplied.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Official NASA factual/educational source; Lumina links to the source and does not redistribute NASA media.",
+    citation: "NASA Science, “Earth Facts”, accessed 2026-09-09.",
+    claim_scope: "Earth axial-tilt and annual seasonal context.",
+    source_type: "official-agency",
   },
   "jpl-approximate-planetary-elements": {
-    url: "https://ssd.jpl.nasa.gov/planets/approx_pos.html",
     title: "Approximate Positions of the Planets",
+    organization_or_authors: "NASA Jet Propulsion Laboratory Solar System Dynamics",
+    url: "https://ssd.jpl.nasa.gov/planets/approx_pos.html",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Approximate planetary elements and position reference.",
+    record_reference: "Earth/Moon barycenter row; J2000 obliquity reference in the page table.",
+    retrieved_at: "2026-09-09",
+    data_date: "J2000 reference values as identified by source.",
+    terms_or_licence:
+      "Official JPL/NASA technical reference; Lumina cites the reviewed constants and links to the source.",
+    citation:
+      "NASA JPL Solar System Dynamics, “Approximate Positions of the Planets”, accessed 2026-09-09.",
+    claim_scope:
+      "Reviewed Earth/Moon-barycenter eccentricity, longitude of perihelion, and J2000 obliquity constants used by this idealized model.",
+    source_type: "official-agency",
   },
   "usno-sun-declination": {
-    url: "https://aa.usno.navy.mil/faq/sun_approx",
     title: "Computing Approximate Solar Coordinates",
+    organization_or_authors: "U.S. Naval Observatory",
+    url: "https://aa.usno.navy.mil/faq/sun_approx",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — official astronomical reference page.",
+    record_reference:
+      "Page-level solar-coordinate definitions; no stable record identifier supplied.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Official U.S. government reference; Lumina links to the source and uses it for supporting terminology and comparison only.",
+    citation:
+      "U.S. Naval Observatory, “Computing Approximate Solar Coordinates”, accessed 2026-09-09.",
+    claim_scope:
+      "Supporting definitions for solar declination and solar-coordinate geometry; not the Lumina date-specific calculation.",
+    source_type: "official-agency",
   },
   "usno-daylight-geometry": {
-    url: "https://aa.usno.navy.mil/faq/rs_solstices",
     title: "Sunrise and Sunset Times Near the Solstices",
+    organization_or_authors: "U.S. Naval Observatory",
+    url: "https://aa.usno.navy.mil/faq/rs_solstices",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — official astronomical reference page.",
+    record_reference:
+      "Page-level daylight-geometry reference; no stable record identifier supplied.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Official U.S. government reference; Lumina links to the source and uses it for supporting geometric comparison only.",
+    citation:
+      "U.S. Naval Observatory, “Sunrise and Sunset Times Near the Solstices”, accessed 2026-09-09.",
+    claim_scope:
+      "Supporting daylight and horizon geometry context; Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
+    source_type: "official-agency",
   },
   "noaa-solar-calculator-details": {
-    url: "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
     title: "Solar Calculation Details",
+    organization_or_authors: "NOAA Global Monitoring Laboratory",
+    url: "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — official technical reference page.",
+    record_reference: "Page-level calculation details; no stable record identifier supplied.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Official NOAA technical reference; Lumina links to the source for supporting comparison and disclosure.",
+    citation:
+      "NOAA Global Monitoring Laboratory, “Solar Calculation Details”, accessed 2026-09-09.",
+    claim_scope:
+      "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Lumina v1; NOAA fractional-year declination is not used.",
+    source_type: "official-agency",
   },
 };
 
@@ -405,8 +482,7 @@ export function validateSeasonsArtifact(value: unknown): asserts value is Season
     const expectedSource = SOURCE_METADATA[source.id];
     if (
       expectedSource === undefined ||
-      source.url !== expectedSource.url ||
-      source.title !== expectedSource.title
+      Object.entries(expectedSource).some(([key, value]) => source[key] !== value)
     ) {
       failArtifact();
     }

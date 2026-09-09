@@ -120,6 +120,16 @@ describe("Seasons Simulator reviewed artifact and state boundary", () => {
     for (const [field, value] of [
       ["title", "A different official page"],
       ["url", "https://science.nasa.gov/earth/facts/"],
+      ["organization_or_authors", "Tampered source"],
+      ["accessed_at", "2099-01-01"],
+      ["dataset_or_release", "Tampered release"],
+      ["record_reference", "Tampered record"],
+      ["retrieved_at", "2099-01-01"],
+      ["data_date", "Tampered date"],
+      ["terms_or_licence", "Tampered licence"],
+      ["citation", "Tampered citation"],
+      ["claim_scope", "Tampered claim scope"],
+      ["source_type", "official-agency"],
     ] as const) {
       const mutated = structuredClone(rawSeasonsArtifact) as {
         sources: Array<Record<string, unknown>>;

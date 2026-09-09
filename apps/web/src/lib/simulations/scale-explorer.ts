@@ -226,30 +226,98 @@ export type ScaleExplorerValidationFixture = Readonly<{
 
 const SCALE_EXPLORER_ARTIFACT = scaleExplorerArtifact as ScaleExplorerArtifact;
 
-const SOURCE_METADATA: Readonly<Record<string, Readonly<{ url: string; title: string }>>> = {
+const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   "nasa-solar-system-sizes": {
-    url: "https://science.nasa.gov/resource/solar-system-sizes/",
     title: "Solar System Sizes",
+    organization_or_authors: "NASA / Lunar and Planetary Institute",
+    url: "https://science.nasa.gov/resource/solar-system-sizes/",
+    accessed_at: "2026-09-02",
+    dataset_or_release: "Not applicable — official reference page, not a versioned dataset.",
+    record_reference: "Page-level claim; no stable record identifier supplied.",
+    retrieved_at: "2026-09-02",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+    citation: "NASA / Lunar and Planetary Institute, “Solar System Sizes”, accessed 2026-09-02.",
+    claim_scope: "Approximate listed planetary radii for Mercury through Neptune.",
+    source_type: "official-education",
   },
   "nasa-moon-lithograph": {
-    url: "https://science.nasa.gov/wp-content/uploads/2024/01/62217main-moon-lithograph.pdf",
     title: "Moon lithograph: fast facts",
+    organization_or_authors: "NASA",
+    url: "https://science.nasa.gov/wp-content/uploads/2024/01/62217main-moon-lithograph.pdf",
+    accessed_at: "2026-09-02",
+    dataset_or_release: "Not applicable — official reference page, not a versioned dataset.",
+    record_reference: "Page-level claim; no stable record identifier supplied.",
+    retrieved_at: "2026-09-02",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+    citation: "NASA, “Moon lithograph: fast facts”, accessed 2026-09-02.",
+    claim_scope: "The Moon's fast-facts diameter of 3,475 km.",
+    source_type: "official-education",
   },
   "nasa-sun-facts": {
-    url: "https://science.nasa.gov/sun/facts/",
     title: "Our Sun: Facts",
+    organization_or_authors: "NASA Science",
+    url: "https://science.nasa.gov/sun/facts/",
+    accessed_at: "2026-09-02",
+    dataset_or_release: "Not applicable — official reference page, not a versioned dataset.",
+    record_reference: "Page-level claim; no stable record identifier supplied.",
+    retrieved_at: "2026-09-02",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+    citation: "NASA Science, “Our Sun: Facts”, accessed 2026-09-02.",
+    claim_scope: "The Sun's approximate diameter of 1.4 million km.",
+    source_type: "official-agency",
   },
   "nasa-milky-way-size": {
-    url: "https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/",
     title: "Our Milky Way Galaxy: How Big is Space?",
+    organization_or_authors: "NASA Science / NASA-JPL-Caltech",
+    url: "https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/",
+    accessed_at: "2026-09-02",
+    dataset_or_release: "Not applicable — official reference page, not a versioned dataset.",
+    record_reference: "Page-level claim; no stable record identifier supplied.",
+    retrieved_at: "2026-09-02",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+    citation:
+      "NASA Science / NASA-JPL-Caltech, “Our Milky Way Galaxy: How Big is Space?”, accessed 2026-09-02.",
+    claim_scope: "The Milky Way's approximate galaxy-wide width of 100,000 light-years.",
+    source_type: "official-agency",
   },
   "nasa-observable-universe-size": {
-    url: "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/",
     title: "How Big is Space? We Asked a NASA Expert",
+    organization_or_authors: "NASA",
+    url: "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/",
+    accessed_at: "2026-09-02",
+    dataset_or_release: "Not applicable — official reference page, not a versioned dataset.",
+    record_reference: "Page-level claim; no stable record identifier supplied.",
+    retrieved_at: "2026-09-02",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+    citation: "NASA, “How Big is Space? We Asked a NASA Expert”, accessed 2026-09-02.",
+    claim_scope:
+      "An estimate of about 92 billion light-years across for the observable universe, not the whole universe.",
+    source_type: "official-agency",
   },
   "nasa-light-year": {
-    url: "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
     title: "What is a light-year?",
+    organization_or_authors: "NASA Science",
+    url: "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
+    accessed_at: "2026-09-02",
+    dataset_or_release: "Not applicable — official reference page, not a versioned dataset.",
+    record_reference: "Page-level claim; no stable record identifier supplied.",
+    retrieved_at: "2026-09-02",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+    citation: "NASA Science, “What is a light-year?”, accessed 2026-09-02.",
+    claim_scope: "A light-year is a distance; NASA gives an approximate kilometre conversion.",
+    source_type: "official-education",
   },
 };
 
@@ -588,8 +656,7 @@ export function validateScaleExplorerArtifact(value: unknown): void {
     const expectedSource = SOURCE_METADATA[rawSource.id];
     if (
       expectedSource === undefined ||
-      rawSource.url !== expectedSource.url ||
-      rawSource.title !== expectedSource.title
+      Object.entries(expectedSource).some(([key, value]) => rawSource[key] !== value)
     ) {
       throw new Error("SCALE_EXPLORER_MODEL_INVALID");
     }

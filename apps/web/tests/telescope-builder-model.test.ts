@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 
+import rawTelescopeBuilderArtifact from "../../../data/seed/telescope-builder-v1.json";
+
 import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
 
 import {
   DEFAULT_TELESCOPE_BUILDER_STATE,
+  TelescopeBuilderArtifactValidationError,
   TELESCOPE_BUILDER_MODEL_VERSION,
   TELESCOPE_DEFINITION,
   TELESCOPE_SOURCES,
   buildTelescopeBuilderVisualTransform,
   decodeTelescopeBuilderState,
   encodeTelescopeBuilderState,
+  validateTelescopeBuilderArtifact,
   validateTelescopeBuilderCalculationResult,
   validateTelescopeBuilderState,
 } from "../src/lib/simulations/telescope-builder";
@@ -165,5 +169,30 @@ describe("Telescope Builder reviewed model boundary", () => {
       ),
     ).toEqual(expected);
     expect(TELESCOPE_DEFINITION.model_version).toBe(TELESCOPE_BUILDER_MODEL_VERSION);
+  });
+
+  it("rejects tampered reviewed source metadata before exposing the browser model", () => {
+    const mutations = {
+      organization_or_authors: "Tampered source",
+      accessed_at: "2099-01-01",
+      dataset_or_release: "Tampered release",
+      record_reference: "Tampered record",
+      retrieved_at: "2099-01-01",
+      data_date: "Tampered date",
+      terms_or_licence: "Tampered licence",
+      citation: "Tampered citation",
+      claim_scope: "Tampered claim scope",
+      source_type: "technical-reference",
+    } as const;
+
+    for (const [field, value] of Object.entries(mutations)) {
+      const artifact = structuredClone(rawTelescopeBuilderArtifact) as {
+        sources: Array<Record<string, unknown>>;
+      };
+      artifact.sources[0]![field] = value;
+      expect(() => validateTelescopeBuilderArtifact(artifact), field).toThrow(
+        TelescopeBuilderArtifactValidationError,
+      );
+    }
   });
 });

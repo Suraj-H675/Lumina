@@ -66,27 +66,148 @@ CLUSTER_ACCEPTED_NAMES: Final[dict[Cluster, str]] = {
     "m67": "NGC_2682",
 }
 
-EXPECTED_SOURCE_METADATA: Final[dict[str, tuple[str, str]]] = {
-    "gaia-dr3-main-source-catalogue": (
-        "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html",
-        "20.1.1 gaia_source",
-    ),
-    "gaia-dr3-astrophysical-parameters": (
-        "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_astrophysical_parameter_tables/ssec_dm_astrophysical_parameters.html",
-        "20.2.1 astrophysical_parameters",
-    ),
-    "gaia-dr3-documentation": (
-        "https://gea.esac.esa.int/archive/documentation/GDR3/",
-        "Gaia Data Release 3 Documentation release 1.3",
-    ),
-    "hunt-reffert-2024-vizier-members": (
-        "https://cdsarc.cds.unistra.fr/viz-bin/cat/J/A%2BA/686/A42",
-        "Improving the open cluster census. III. : J/A+A/686/A42",
-    ),
-    "esa-gaia-hr-diagram": (
-        "https://www.esa.int/ESA_Multimedia/Images/2018/04/Gaia_s_Hertzsprung-Russell_diagram",
-        "Gaia’s Hertzsprung-Russell diagram",
-    ),
+EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
+    "gaia-dr3-main-source-catalogue": {
+        "title": "20.1.1 gaia_source",
+        "organization_or_authors": "ESA Gaia Data Release 3 / Gaia DPAC",
+        "url": (
+            "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_dat"
+            "amodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html"
+        ),
+        "accessed_at": "2026-09-09",
+        "dataset_or_release": "Gaia Data Release 3 (DR3), gaiadr3.gaia_source",
+        "record_reference": (
+            "Gaia DR3 archive data model section 20.1.1; source identity, G "
+            "photometry, BP-RP, parallax, and parallax_error fields."
+        ),
+        "retrieved_at": "2026-09-09",
+        "data_date": "Gaia DR3 release; no per-row observation date is used by this artifact.",
+        "terms_or_licence": (
+            "ESA Gaia archive data; Lumina retains source attribution and links to "
+            "the official documentation."
+        ),
+        "citation": (
+            "ESA Gaia Data Release 3 Documentation, “20.1.1 gaia_source”, release "
+            "1.3, accessed 2026-09-09."
+        ),
+        "claim_scope": (
+            "Definitions and units for the Gaia DR3 source identity, G-band "
+            "magnitude, BP-RP colour, parallax, and parallax uncertainty fields used "
+            "in the curated records."
+        ),
+        "source_type": "official-agency",
+    },
+    "gaia-dr3-astrophysical-parameters": {
+        "title": "20.2.1 astrophysical_parameters",
+        "organization_or_authors": "ESA Gaia Data Release 3 / Gaia DPAC",
+        "url": (
+            "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_dat"
+            "amodel/sec_dm_astrophysical_parameter_tables/ssec_dm_astrophysical_parame"
+            "ters.html"
+        ),
+        "accessed_at": "2026-09-09",
+        "dataset_or_release": "Gaia Data Release 3 (DR3), gaiadr3.astrophysical_parameters",
+        "record_reference": (
+            "Gaia DR3 archive data model section 20.2.1; GSP-Phot Teff and M_G "
+            "percentiles, FLAME luminosity/stage, ESP-HS spectral tags/flags."
+        ),
+        "retrieved_at": "2026-09-09",
+        "data_date": (
+            "Gaia DR3 release; Gaia-published percentiles are retained as source values."
+        ),
+        "terms_or_licence": (
+            "ESA Gaia archive data; Lumina retains source attribution and links to "
+            "the official documentation."
+        ),
+        "citation": (
+            "ESA Gaia Data Release 3 Documentation, “20.2.1 "
+            "astrophysical_parameters”, release 1.3, accessed 2026-09-09."
+        ),
+        "claim_scope": (
+            "Field semantics, p16/p50/p84 uncertainty interpretation, "
+            "spectral-quality flag digits, and FLAME evolutionary-stage landmarks for "
+            "the source-published quantities used by this artifact."
+        ),
+        "source_type": "official-agency",
+    },
+    "gaia-dr3-documentation": {
+        "title": "Gaia Data Release 3 Documentation release 1.3",
+        "organization_or_authors": "ESA Gaia Data Release 3 / Gaia DPAC",
+        "url": "https://gea.esac.esa.int/archive/documentation/GDR3/",
+        "accessed_at": "2026-09-09",
+        "dataset_or_release": "Gaia Data Release 3 Documentation release 1.3",
+        "record_reference": (
+            "Release-level documentation landing page for the pinned DR3 data product."
+        ),
+        "retrieved_at": "2026-09-09",
+        "data_date": "Gaia DR3 documentation release 1.3.",
+        "terms_or_licence": (
+            "ESA Gaia documentation; Lumina links to the official release documentation."
+        ),
+        "citation": "ESA Gaia Data Release 3 Documentation, release 1.3, accessed 2026-09-09.",
+        "claim_scope": (
+            "Pinned release identity: this vertical uses Gaia DR3 and does not "
+            "substitute a later data release."
+        ),
+        "source_type": "official-agency",
+    },
+    "hunt-reffert-2024-vizier-members": {
+        "title": "Improving the open cluster census. III. : J/A+A/686/A42",
+        "organization_or_authors": "Hunt E.L. and Reffert S.; CDS/VizieR",
+        "url": "https://cdsarc.cds.unistra.fr/viz-bin/cat/J/A%2BA/686/A42",
+        "accessed_at": "2026-09-09",
+        "dataset_or_release": "Hunt & Reffert 2024, VizieR J/A+A/686/A42, members table.",
+        "record_reference": (
+            "VizieR members table J/A+A/686/A42/members; GaiaDR3 is the join key, "
+            "with ID, inrj, inrt, and Prob retained."
+        ),
+        "retrieved_at": "2026-09-09",
+        "data_date": "Catalogue publication/update 2024-11-21 as reported by CDS/VizieR.",
+        "terms_or_licence": (
+            "CDS/VizieR catalogue; Lumina links to and attributes the published catalogue."
+        ),
+        "citation": (
+            "Hunt E.L. and Reffert S., “Improving the open cluster census. III.”, A&A "
+            "686, A42 (2024), VizieR J/A+A/686/A42, accessed 2026-09-09."
+        ),
+        "claim_scope": (
+            "Pinned cluster membership rows and accepted-name/ID metadata for "
+            "Pleiades, Hyades, Praesepe, and M 67; no membership is inferred by "
+            "Lumina."
+        ),
+        "source_type": "catalogue",
+    },
+    "esa-gaia-hr-diagram": {
+        "title": "Gaia’s Hertzsprung-Russell diagram",
+        "organization_or_authors": "European Space Agency",
+        "url": (
+            "https://www.esa.int/ESA_Multimedia/Images/2018/04/Gaia_s_Hertzsprung-Russell_diagram"
+        ),
+        "accessed_at": "2026-09-09",
+        "dataset_or_release": (
+            "ESA educational image/explanation; explanatory support only, not the DR3 row source."
+        ),
+        "record_reference": (
+            "Page-level educational explanation of the conventional "
+            "hotter/bluer-left, cooler/redder-right and brighter-upward H-R "
+            "orientation."
+        ),
+        "retrieved_at": "2026-09-09",
+        "data_date": "Published 2018; no row data are imported from this page.",
+        "terms_or_licence": (
+            "Official ESA educational page; Lumina links to the source and does not "
+            "redistribute its media."
+        ),
+        "citation": (
+            "European Space Agency, “Gaia’s Hertzsprung-Russell diagram”, accessed 2026-09-09."
+        ),
+        "claim_scope": (
+            "Supporting explanation of H-R diagram orientation and broad population "
+            "structure; source-published Gaia values remain authoritative for plotted "
+            "records."
+        ),
+        "source_type": "official-education",
+    },
 }
 OFFICIAL_SOURCE_HOSTS: Final[frozenset[str]] = frozenset(
     {"cdsarc.cds.unistra.fr", "gea.esac.esa.int", "www.esa.int"}
@@ -532,7 +653,7 @@ def _validate_source(source: object) -> str:
     _exact_keys(mapping, source_keys)
     source_id = _string(mapping["id"])
     expected = EXPECTED_SOURCE_METADATA.get(source_id)
-    if expected is None or mapping["url"] != expected[0] or mapping["title"] != expected[1]:
+    if expected is None or any(_string(mapping[key]) != value for key, value in expected.items()):
         raise HRDiagramExplorerModelError()
     source_url = _string(mapping["url"])
     parsed = urlparse(source_url)

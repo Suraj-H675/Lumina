@@ -384,3 +384,28 @@ def test_reviewed_artifact_mutations_fail_closed(tmp_path: Path) -> None:
         _write_artifact(tmp_path, artifact)
         with pytest.raises(ScaleExplorerModelError):
             load_reviewed_scale_explorer_inputs(repository_root=tmp_path)
+
+
+def test_reviewed_artifact_source_metadata_mutations_fail_closed(tmp_path: Path) -> None:
+    for field, value in (
+        ("organization_or_authors", "Tampered source"),
+        ("accessed_at", "2099-01-01"),
+        ("dataset_or_release", "Tampered release"),
+        ("record_reference", "Tampered record"),
+        ("retrieved_at", "2099-01-01"),
+        ("data_date", "Tampered date"),
+        ("terms_or_licence", "Tampered licence"),
+        ("citation", "Tampered citation"),
+        ("claim_scope", "Tampered claim scope"),
+        ("source_type", "official-agency"),
+    ):
+        artifact = _independent_artifact()
+        sources = artifact["sources"]
+        assert isinstance(sources, list)
+        source = sources[0]
+        assert isinstance(source, dict)
+        source[field] = value
+        _write_artifact(tmp_path, artifact)
+
+        with pytest.raises(ScaleExplorerModelError):
+            load_reviewed_scale_explorer_inputs(repository_root=tmp_path)

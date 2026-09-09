@@ -141,34 +141,124 @@ type TelescopeArtifact = Readonly<{
   }>;
 }>;
 
-const SOURCE_METADATA: Readonly<Record<string, Readonly<{ url: string; title: string }>>> = {
+const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   "openstax-telescopes": {
-    url: "https://openstax.org/books/astronomy/pages/6-1-telescopes",
     title: "6.1 Telescopes",
+    organization_or_authors: "OpenStax",
+    url: "https://openstax.org/books/astronomy/pages/6-1-telescopes",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — open astronomy textbook chapter.",
+    record_reference:
+      "Section 6.1 page-level discussion of telescope aperture, focal length, and optical designs.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+    citation: "OpenStax, “6.1 Telescopes”, accessed 2026-09-09.",
+    claim_scope:
+      "Aperture determines collecting area and telescope focal length/eyepiece relationships provide first-order visual context.",
+    source_type: "official-education",
   },
   "openstax-circular-apertures": {
-    url: "https://openstax.org/books/university-physics-volume-3/pages/4-5-circular-apertures-and-resolution",
     title: "4.5 Circular Apertures and Resolution",
+    organization_or_authors: "OpenStax",
+    url: "https://openstax.org/books/university-physics-volume-3/pages/4-5-circular-apertures-and-resolution",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — open university-physics textbook chapter.",
+    record_reference: "Section 4.5 page-level Rayleigh criterion for a circular aperture.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+    citation: "OpenStax, “4.5 Circular Apertures and Resolution”, accessed 2026-09-09.",
+    claim_scope:
+      "Theoretical Rayleigh resolution relationship 1.22 lambda divided by aperture diameter for a circular aperture, with ideal assumptions.",
+    source_type: "official-education",
   },
   "sky-telescope-dawes": {
-    url: "https://skyandtelescope.org/stargazing-and-observing/pushing-limits-a-spring-sky-double-star-romp/",
     title: "Pushing Limits: A Spring Sky Double Star Romp",
+    organization_or_authors: "Sky & Telescope",
+    url: "https://skyandtelescope.org/stargazing-and-observing/pushing-limits-a-spring-sky-double-star-romp/",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — astronomy publication article.",
+    record_reference: "Article section describing the Dawes visual double-star relationship.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+    citation:
+      "Sky & Telescope, “Pushing Limits: A Spring Sky Double Star Romp”, accessed 2026-09-09.",
+    claim_scope:
+      "Dawes empirical double-star reference approximately 116 divided by aperture in millimetres; not a general resolution guarantee.",
+    source_type: "technical-reference",
   },
   "celestron-astronomy-glossary": {
-    url: "https://www.celestron.com/blogs/knowledgebase/astronomy-glossary-of-terms",
     title: "Astronomy Glossary of Terms",
+    organization_or_authors: "Celestron",
+    url: "https://www.celestron.com/blogs/knowledgebase/astronomy-glossary-of-terms",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — manufacturer technical glossary.",
+    record_reference:
+      "Page-level entries for focal length, focal ratio, eyepiece, exit pupil, field of view, and aperture.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+    citation: "Celestron, “Astronomy Glossary of Terms”, accessed 2026-09-09.",
+    claim_scope:
+      "Supporting first-order magnification, focal-ratio, exit-pupil, AFOV/TFOV, modifier, and aperture-area relationships.",
+    source_type: "technical-reference",
   },
   "wwu-astropages-telescopes": {
-    url: "https://astro101.wwu.edu/a101_telescopes.html",
     title: "Telescopes",
+    organization_or_authors: "Western Washington University Astronomy 101",
+    url: "https://astro101.wwu.edu/a101_telescopes.html",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — university astronomy educational page.",
+    record_reference:
+      "Page sections on aperture, resolution, magnification, focal ratio, and useful visual magnification.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "University educational source; Lumina links to the source and does not redistribute its text.",
+    citation: "Western Washington University Astronomy 101, “Telescopes”, accessed 2026-09-09.",
+    claim_scope:
+      "Supporting educational context that aperture controls ideal light gathering/resolution, magnification uses focal lengths, focal ratio is focal length divided by aperture, and approximately 50x per inch is a visual rule of thumb under ideal conditions.",
+    source_type: "official-education",
   },
   "celestron-exit-pupil": {
-    url: "https://www.celestron.com/blogs/knowledgebase/what-is-exit-pupil-and-eye-relief-for-sport-optics",
     title: "What is Exit Pupil and Eye Relief for Sport Optics?",
+    organization_or_authors: "Celestron",
+    url: "https://www.celestron.com/blogs/knowledgebase/what-is-exit-pupil-and-eye-relief-for-sport-optics",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — technical optics reference page.",
+    record_reference: "Page-level exit-pupil definition and human dark-adapted pupil context.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+    citation:
+      "Celestron, “What is Exit Pupil and Eye Relief for Sport Optics?”, accessed 2026-09-09.",
+    claim_scope:
+      "Supporting exit-pupil interpretation and the qualification that a 5 to 7 mm dark-adapted eye pupil is a context range, not a universal user constant.",
+    source_type: "technical-reference",
   },
   "sky-telescope-magnification": {
-    url: "https://skyandtelescope.org/astronomy-equipment/choosing-your-telescopes-magnification/",
     title: "How to Choose Your Telescope Magnification",
+    organization_or_authors: "Sky & Telescope",
+    url: "https://skyandtelescope.org/astronomy-equipment/choosing-your-telescopes-magnification/",
+    accessed_at: "2026-09-09",
+    dataset_or_release: "Not applicable — astronomy publication technical guide.",
+    record_reference:
+      "Page-level comparison reference for magnification, approximate field, exit pupil, and practical visual context.",
+    retrieved_at: "2026-09-09",
+    data_date: "Not stated by source.",
+    terms_or_licence:
+      "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+    citation: "Sky & Telescope, “How to Choose Your Telescope Magnification”, accessed 2026-09-09.",
+    claim_scope:
+      "Independent reference for the default-style first-order magnification, approximate TFOV, exit-pupil, and non-guaranteed practical magnification relationships.",
+    source_type: "technical-reference",
   },
 };
 
@@ -599,7 +689,10 @@ function validateArtifactSource(source: unknown): void {
     failArtifact();
   }
   const expected = SOURCE_METADATA[source.id];
-  if (expected === undefined || source.url !== expected.url || source.title !== expected.title) {
+  if (
+    expected === undefined ||
+    Object.entries(expected).some(([key, value]) => source[key] !== value)
+  ) {
     failArtifact();
   }
 }

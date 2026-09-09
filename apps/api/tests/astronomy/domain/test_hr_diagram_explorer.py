@@ -210,6 +210,31 @@ def test_source_title_tampering_fails_closed(tmp_path: Path) -> None:
         load_reviewed_hr_diagram_artifact(repository_root=tmp_path)
 
 
+def test_source_metadata_tampering_fails_closed(tmp_path: Path) -> None:
+    for field, value in (
+        ("organization_or_authors", "Tampered source"),
+        ("accessed_at", "2099-01-01"),
+        ("dataset_or_release", "Tampered release"),
+        ("record_reference", "Tampered record"),
+        ("retrieved_at", "2099-01-01"),
+        ("data_date", "Tampered date"),
+        ("terms_or_licence", "Tampered licence"),
+        ("citation", "Tampered citation"),
+        ("claim_scope", "Tampered claim scope"),
+        ("source_type", "official-education"),
+    ):
+        artifact = json.loads(
+            (_REPOSITORY_ROOT / "data/seed/hr-diagram-explorer-v1.json").read_text(encoding="utf-8")
+        )
+        artifact["sources"][0][field] = value
+        seed = tmp_path / "data" / "seed"
+        seed.mkdir(parents=True, exist_ok=True)
+        (seed / "hr-diagram-explorer-v1.json").write_text(json.dumps(artifact))
+
+        with pytest.raises(HRDiagramExplorerModelError, match="^HR_DIAGRAM_MODEL_INVALID$"):
+            load_reviewed_hr_diagram_artifact(repository_root=tmp_path)
+
+
 def test_source_spot_check_value_tampering_fails_closed(tmp_path: Path) -> None:
     artifact = json.loads((_REPOSITORY_ROOT / "data/seed/hr-diagram-explorer-v1.json").read_text())
     artifact["source_spot_checks"][0]["gaia_fields"]["teff_gspphot"] += 1

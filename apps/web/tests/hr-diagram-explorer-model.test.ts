@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import rawHrDiagramArtifact from "../../../data/seed/hr-diagram-explorer-v1.json";
+
 import {
   DEFAULT_HR_DIAGRAM_STATE,
+  HRDiagramArtifactValidationError,
   HR_DIAGRAM_RECORDS,
   HR_DIAGRAM_SOURCES,
   HR_DIAGRAM_VALIDATION_FIXTURES,
@@ -14,6 +17,7 @@ import {
   physicalLuminosityYFraction,
   physicalTemperatureXFraction,
   selectedHRDiagramRecord,
+  validateHRDiagramArtifact,
   validateHRDiagramState,
 } from "../src/lib/simulations/hr-diagram-explorer";
 
@@ -124,6 +128,31 @@ describe("H-R Diagram Explorer reviewed artifact and state", () => {
     expect(filtered.every((record) => ["hyades", "praesepe"].includes(record.cluster))).toBe(true);
     expect(filtered.length).toBeGreaterThan(0);
     expect(filterHRDiagramRecords({ ...DEFAULT_HR_DIAGRAM_STATE, clusters: [] })).toHaveLength(0);
+  });
+
+  it("rejects tampered reviewed source metadata before exposing the browser model", () => {
+    const mutations = {
+      organization_or_authors: "Tampered source",
+      accessed_at: "2099-01-01",
+      dataset_or_release: "Tampered release",
+      record_reference: "Tampered record",
+      retrieved_at: "2099-01-01",
+      data_date: "Tampered date",
+      terms_or_licence: "Tampered licence",
+      citation: "Tampered citation",
+      claim_scope: "Tampered claim scope",
+      source_type: "official-education",
+    } as const;
+
+    for (const [field, value] of Object.entries(mutations)) {
+      const artifact = structuredClone(rawHrDiagramArtifact) as {
+        sources: Array<Record<string, unknown>>;
+      };
+      artifact.sources[0]![field] = value;
+      expect(() => validateHRDiagramArtifact(artifact), field).toThrow(
+        HRDiagramArtifactValidationError,
+      );
+    }
   });
 
   it("round-trips canonical share state and rejects malformed, extra, duplicate, and non-canonical state", () => {

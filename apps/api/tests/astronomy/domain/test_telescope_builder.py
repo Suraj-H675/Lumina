@@ -278,6 +278,31 @@ def test_reviewed_artifact_freezes_source_id_url_and_official_title_bindings() -
     assert {key: (value["url"], value["title"]) for key, value in sources.items()} == expected
 
 
+def test_reviewed_artifact_source_metadata_mutations_fail_closed(tmp_path: Path) -> None:
+    for field, value in (
+        ("organization_or_authors", "Tampered source"),
+        ("accessed_at", "2099-01-01"),
+        ("dataset_or_release", "Tampered release"),
+        ("record_reference", "Tampered record"),
+        ("retrieved_at", "2099-01-01"),
+        ("data_date", "Tampered date"),
+        ("terms_or_licence", "Tampered licence"),
+        ("citation", "Tampered citation"),
+        ("claim_scope", "Tampered claim scope"),
+        ("source_type", "technical-reference"),
+    ):
+        artifact = json.loads(
+            (_REPOSITORY_ROOT / "data/seed/telescope-builder-v1.json").read_text(encoding="utf-8")
+        )
+        artifact["sources"][0][field] = value
+        destination = tmp_path / "data/seed/telescope-builder-v1.json"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(json.dumps(artifact), encoding="utf-8")
+
+        with pytest.raises(TelescopeBuilderModelError, match="^TELESCOPE_BUILDER_MODEL_INVALID$"):
+            load_reviewed_telescope_builder_artifact(repository_root=tmp_path)
+
+
 def test_artifact_duplicate_source_ids_cannot_be_accepted(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

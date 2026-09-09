@@ -348,6 +348,16 @@ def test_reviewed_artifact_rejects_rebound_source_metadata(tmp_path: Path) -> No
     for field, value in (
         ("title", "A different official page"),
         ("url", "https://science.nasa.gov/earth/facts/"),
+        ("organization_or_authors", "Tampered source"),
+        ("accessed_at", "2099-01-01"),
+        ("dataset_or_release", "Tampered release"),
+        ("record_reference", "Tampered record"),
+        ("retrieved_at", "2099-01-01"),
+        ("data_date", "Tampered date"),
+        ("terms_or_licence", "Tampered licence"),
+        ("citation", "Tampered citation"),
+        ("claim_scope", "Tampered claim scope"),
+        ("source_type", "official-agency"),
     ):
         artifact = cast(
             dict[str, object],

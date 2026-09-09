@@ -542,4 +542,27 @@ describe("Scale Explorer model", () => {
       );
     }
   });
+
+  it("rejects tampered reviewed source metadata before exposing the browser model", () => {
+    const mutations = {
+      organization_or_authors: "Tampered source",
+      accessed_at: "2099-01-01",
+      dataset_or_release: "Tampered release",
+      record_reference: "Tampered record",
+      retrieved_at: "2099-01-01",
+      data_date: "Tampered date",
+      terms_or_licence: "Tampered licence",
+      citation: "Tampered citation",
+      claim_scope: "Tampered claim scope",
+      source_type: "official-agency",
+    } as const;
+
+    for (const [field, value] of Object.entries(mutations)) {
+      const artifact = clonedArtifact();
+      arrayItem(artifact.sources, (item) => item.id === "nasa-solar-system-sizes")[field] = value;
+      expect(() => validateScaleExplorerArtifact(artifact), field).toThrow(
+        "SCALE_EXPLORER_MODEL_INVALID",
+      );
+    }
+  });
 });

@@ -41,7 +41,11 @@ _ECCENTRICITY_BY_PRESET: Final[dict[SeasonsEccentricityPreset, float]] = {
     "earth": EARTH_ECCENTRICITY,
     "exaggerated": EXAGGERATED_ECCENTRICITY,
 }
-_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE: Final = 1e-12
+# The angular boundary check below is an algebraically equivalent, numerically
+# stable form of x = -tan(phi)tan(delta).  Only one ulp is tolerated so valid
+# inputs immediately inside the polar circle are not swallowed by a broad
+# scientific classification tolerance.
+_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE: Final = math.ulp(math.pi / 2.0)
 _POLE_COSINE_ROUNDOFF_TOLERANCE: Final = 1e-15
 _OFFICIAL_SOURCE_HOSTS: Final = frozenset(
     {
@@ -305,8 +309,23 @@ def _clamp_trigonometric_argument(value: float) -> float:
     return max(-1.0, min(1.0, value))
 
 
+def _seasonal_position_sine(position_deg: float, position_rad: float) -> float:
+    """Preserve the exact sine at the four canonical seasonal phases."""
+
+    if position_deg in (0.0, 180.0):
+        return 0.0
+    if position_deg == 90.0:
+        return 1.0
+    if position_deg == 270.0:
+        return -1.0
+    return math.sin(position_rad)
+
+
 def _geometry_for_latitude(
-    latitude_deg: float, solar_declination_deg: float
+    latitude_deg: float,
+    solar_declination_deg: float,
+    *,
+    declination_boundary_abs_rad: float,
 ) -> SeasonsLatitudeGeometry:
     latitude_rad = math.radians(latitude_deg)
     declination_rad = math.radians(solar_declination_deg)
@@ -331,24 +350,27 @@ def _geometry_for_latitude(
             polar_state = "horizon_all_day"
             day_length_hours = None
     else:
-        sunset_argument = -sine_term / cosine_term
-        if sunset_argument <= -1.0 or math.isclose(
-            sunset_argument,
-            -1.0,
-            rel_tol=0.0,
-            abs_tol=_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE,
-        ):
+        # For |phi| + |delta| >= 90 degrees, the ordinary x quotient is
+        # needlessly ill-conditioned at the polar boundary.  The angle-sum
+        # predicate is mathematically equivalent and uses a stable declination
+        # magnitude derived from the same sin(delta) relationship.
+        polar_boundary_or_beyond = (
+            abs(latitude_rad) + declination_boundary_abs_rad > math.pi / 2.0
+            or math.isclose(
+                abs(latitude_rad) + declination_boundary_abs_rad,
+                math.pi / 2.0,
+                rel_tol=0.0,
+                abs_tol=_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE,
+            )
+        )
+        if polar_boundary_or_beyond and sine_term > 0.0:
             polar_state = "polar_day"
             day_length_hours = MEAN_SOLAR_DAY_HOURS
-        elif sunset_argument >= 1.0 or math.isclose(
-            sunset_argument,
-            1.0,
-            rel_tol=0.0,
-            abs_tol=_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE,
-        ):
+        elif polar_boundary_or_beyond and sine_term < 0.0:
             polar_state = "polar_night"
             day_length_hours = 0.0
         else:
+            sunset_argument = -sine_term / cosine_term
             hour_angle = math.acos(_clamp_trigonometric_argument(sunset_argument))
             polar_state = "none"
             day_length_hours = MEAN_SOLAR_DAY_HOURS * hour_angle / math.pi
@@ -371,16 +393,30 @@ def calculate_seasons(inputs: SeasonsSimulatorInput) -> SeasonsSimulatorResult:
 
     tilt_rad = math.radians(inputs.axial_tilt_deg)
     position_rad = math.radians(inputs.orbital_position_deg)
+    seasonal_sine = _seasonal_position_sine(inputs.orbital_position_deg, position_rad)
+    sine_declination = math.sin(tilt_rad) * seasonal_sine
     declination_rad = math.asin(
-        _clamp_trigonometric_argument(math.sin(tilt_rad) * math.sin(position_rad))
+        _clamp_trigonometric_argument(sine_declination)
     )
     solar_declination_deg = math.degrees(declination_rad)
+    # cos(delta) = sqrt(cos(epsilon)^2 + sin(epsilon)^2 cos(lambda)^2).
+    # atan2 preserves the declination magnitude near +/-90 degrees better than
+    # recovering it from asin for the boundary classification only.
+    declination_boundary_abs_rad = math.atan2(
+        abs(sine_declination),
+        math.hypot(math.cos(tilt_rad), math.sin(tilt_rad) * math.cos(position_rad)),
+    )
 
-    selected = _geometry_for_latitude(inputs.latitude_deg, solar_declination_deg)
+    selected = _geometry_for_latitude(
+        inputs.latitude_deg,
+        solar_declination_deg,
+        declination_boundary_abs_rad=declination_boundary_abs_rad,
+    )
     comparison_latitude_deg = -inputs.latitude_deg
     opposite_hemisphere = _geometry_for_latitude(
         comparison_latitude_deg,
         solar_declination_deg,
+        declination_boundary_abs_rad=declination_boundary_abs_rad,
     )
 
     eccentricity = _ECCENTRICITY_BY_PRESET[inputs.eccentricity_preset]

@@ -168,9 +168,35 @@ def test_arctic_circle_boundary_classifies_polar_day_and_polar_night() -> None:
     assert december.selected.noon_sun_altitude_deg == pytest.approx(0.0, abs=_ANGLE_TOLERANCE)
 
 
+def test_valid_point_inside_arctic_boundary_is_not_classified_as_polar_day() -> None:
+    latitude = 90.0 - EARTH_OBLIQUITY_J2000_DEG - 1e-11
+    result = calculate_seasons(_input(position=90.0, latitude=latitude, eccentricity="circular"))
+    expected_argument = -math.tan(math.radians(latitude)) * math.tan(
+        math.radians(EARTH_OBLIQUITY_J2000_DEG)
+    )
+    expected_day_length = 24.0 * math.acos(expected_argument) / math.pi
+
+    assert result.selected.polar_state == "none"
+    assert result.selected.day_length_hours == pytest.approx(
+        expected_day_length, abs=_DAY_LENGTH_TOLERANCE
+    )
+
+
+def test_high_tilt_exact_boundary_remains_polar_day() -> None:
+    tilt = 89.9
+    latitude = 90.0 - tilt
+    result = calculate_seasons(_input(tilt=tilt, position=90.0, latitude=latitude))
+
+    assert result.selected.polar_state == "polar_day"
+    assert result.selected.day_length_hours == pytest.approx(24.0, abs=_DAY_LENGTH_TOLERANCE)
+
+
+@pytest.mark.parametrize("position", [0.0, 180.0])
 @pytest.mark.parametrize("latitude", [90.0, -90.0])
-def test_pole_at_equinox_is_explicit_horizon_all_day_degeneracy(latitude: float) -> None:
-    result = calculate_seasons(_input(position=0.0, latitude=latitude))
+def test_pole_at_equinox_is_explicit_horizon_all_day_degeneracy(
+    position: float, latitude: float
+) -> None:
+    result = calculate_seasons(_input(position=position, latitude=latitude))
 
     assert result.solar_declination_deg == pytest.approx(0.0, abs=_ANGLE_TOLERANCE)
     assert result.selected.noon_sun_altitude_deg == pytest.approx(0.0, abs=_ANGLE_TOLERANCE)

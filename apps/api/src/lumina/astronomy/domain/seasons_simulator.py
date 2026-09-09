@@ -354,14 +354,13 @@ def _geometry_for_latitude(
         # needlessly ill-conditioned at the polar boundary.  The angle-sum
         # predicate is mathematically equivalent and uses a stable declination
         # magnitude derived from the same sin(delta) relationship.
-        polar_boundary_or_beyond = (
-            abs(latitude_rad) + declination_boundary_abs_rad > math.pi / 2.0
-            or math.isclose(
-                abs(latitude_rad) + declination_boundary_abs_rad,
-                math.pi / 2.0,
-                rel_tol=0.0,
-                abs_tol=_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE,
-            )
+        polar_boundary_or_beyond = abs(
+            latitude_rad
+        ) + declination_boundary_abs_rad > math.pi / 2.0 or math.isclose(
+            abs(latitude_rad) + declination_boundary_abs_rad,
+            math.pi / 2.0,
+            rel_tol=0.0,
+            abs_tol=_POLAR_BOUNDARY_ROUNDOFF_TOLERANCE,
         )
         if polar_boundary_or_beyond and sine_term > 0.0:
             polar_state = "polar_day"
@@ -395,9 +394,7 @@ def calculate_seasons(inputs: SeasonsSimulatorInput) -> SeasonsSimulatorResult:
     position_rad = math.radians(inputs.orbital_position_deg)
     seasonal_sine = _seasonal_position_sine(inputs.orbital_position_deg, position_rad)
     sine_declination = math.sin(tilt_rad) * seasonal_sine
-    declination_rad = math.asin(
-        _clamp_trigonometric_argument(sine_declination)
-    )
+    declination_rad = math.asin(_clamp_trigonometric_argument(sine_declination))
     solar_declination_deg = math.degrees(declination_rad)
     # cos(delta) = sqrt(cos(epsilon)^2 + sin(epsilon)^2 cos(lambda)^2).
     # atan2 preserves the declination magnitude near +/-90 degrees better than

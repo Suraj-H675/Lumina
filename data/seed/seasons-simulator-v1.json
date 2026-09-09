@@ -189,7 +189,7 @@
     },
     {
       "id": "usno-sun-declination",
-      "title": "Approximate Solar Coordinates",
+      "title": "Computing Approximate Solar Coordinates",
       "organization_or_authors": "U.S. Naval Observatory",
       "url": "https://aa.usno.navy.mil/faq/sun_approx",
       "accessed_at": "2026-09-09",
@@ -198,13 +198,13 @@
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
       "terms_or_licence": "Official U.S. government reference; Lumina links to the source and uses it for supporting terminology and comparison only.",
-      "citation": "U.S. Naval Observatory, “Approximate Solar Coordinates”, accessed 2026-09-09.",
+      "citation": "U.S. Naval Observatory, “Computing Approximate Solar Coordinates”, accessed 2026-09-09.",
       "claim_scope": "Supporting definitions for solar declination and solar-coordinate geometry; not the Lumina date-specific calculation.",
       "source_type": "official-agency"
     },
     {
       "id": "usno-daylight-geometry",
-      "title": "Rise, Set, and Twilight Definitions",
+      "title": "Sunrise and Sunset Times Near the Solstices",
       "organization_or_authors": "U.S. Naval Observatory",
       "url": "https://aa.usno.navy.mil/faq/rs_solstices",
       "accessed_at": "2026-09-09",
@@ -213,13 +213,13 @@
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
       "terms_or_licence": "Official U.S. government reference; Lumina links to the source and uses it for supporting geometric comparison only.",
-      "citation": "U.S. Naval Observatory, “Rise, Set, and Twilight Definitions”, accessed 2026-09-09.",
+      "citation": "U.S. Naval Observatory, “Sunrise and Sunset Times Near the Solstices”, accessed 2026-09-09.",
       "claim_scope": "Supporting daylight and horizon geometry context; Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
       "source_type": "official-agency"
     },
     {
       "id": "noaa-solar-calculator-details",
-      "title": "Solar Position Algorithm Details",
+      "title": "Solar Calculation Details",
       "organization_or_authors": "NOAA Global Monitoring Laboratory",
       "url": "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
       "accessed_at": "2026-09-09",
@@ -228,7 +228,7 @@
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
       "terms_or_licence": "Official NOAA technical reference; Lumina links to the source for supporting comparison and disclosure.",
-      "citation": "NOAA Global Monitoring Laboratory, “Solar Position Algorithm Details”, accessed 2026-09-09.",
+      "citation": "NOAA Global Monitoring Laboratory, “Solar Calculation Details”, accessed 2026-09-09.",
       "claim_scope": "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Lumina v1; NOAA fractional-year declination is not used.",
       "source_type": "official-agency"
     }

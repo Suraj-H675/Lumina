@@ -79,6 +79,34 @@ describe("Seasons Simulator reviewed artifact and state boundary", () => {
     expect(SEASONS_SOURCES.every((source) => source.url.startsWith("https://"))).toBe(true);
   });
 
+  it("binds reviewed source IDs to their official URLs and page titles", () => {
+    expect(
+      SEASONS_SOURCES.filter((source) =>
+        [
+          "usno-sun-declination",
+          "usno-daylight-geometry",
+          "noaa-solar-calculator-details",
+        ].includes(source.id),
+      ).map(({ id, url, title }) => ({ id, url, title })),
+    ).toEqual([
+      {
+        id: "usno-sun-declination",
+        url: "https://aa.usno.navy.mil/faq/sun_approx",
+        title: "Computing Approximate Solar Coordinates",
+      },
+      {
+        id: "usno-daylight-geometry",
+        url: "https://aa.usno.navy.mil/faq/rs_solstices",
+        title: "Sunrise and Sunset Times Near the Solstices",
+      },
+      {
+        id: "noaa-solar-calculator-details",
+        url: "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
+        title: "Solar Calculation Details",
+      },
+    ]);
+  });
+
   it("rejects a mutated reviewed artifact instead of exposing it to presentation", () => {
     const mutated = structuredClone(rawSeasonsArtifact) as {
       constants: { EARTH_ECCENTRICITY: number };

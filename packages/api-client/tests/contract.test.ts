@@ -7,6 +7,7 @@ import {
   catalogSuggestEndpoint,
   catalogSearchEndpoint,
   seasonsSimulatorEndpoint,
+  telescopeBuilderEndpoint,
   liveEndpoint,
   metaEndpoint,
   readyEndpoint,
@@ -18,6 +19,7 @@ import type {
   EntitySummaryResponse,
   EntityType,
   CalculateSeasonsSimulatorData,
+  CalculateTelescopeBuilderData,
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   LiveHealthLiveGetData,
@@ -293,6 +295,73 @@ describe("Seasons Simulator endpoint", () => {
 
   it("rejects additive fields in a scientific result", async () => {
     const result = await requestEndpoint("http://127.0.0.1:8000", seasonsSimulatorEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, unexpected: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+});
+
+describe("Telescope Builder endpoint", () => {
+  const response = {
+    model_version: "telescope-builder-v1",
+    schema_version: 1,
+    inputs: {
+      aperture_mm: 100,
+      telescope_focal_length_mm: 1000,
+      telescope_type: "refractor" as const,
+      eyepiece_focal_length_mm: 20,
+      eyepiece_apparent_field_deg: 50,
+      optical_modifier_kind: "none" as const,
+      optical_modifier_factor: 1,
+      target_angular_size_arcmin: 30,
+    },
+    effective_focal_length_mm: 1000,
+    native_focal_ratio: 10,
+    effective_focal_ratio: 10,
+    magnification_x: 50,
+    approx_true_field_deg: 1,
+    exit_pupil_mm: 2,
+    dawes_limit_arcsec: 1.16,
+    rayleigh_limit_arcsec: 1.3840368499180167,
+    ideal_light_gathering_ratio_vs_7mm_pupil: 204.08163265306123,
+    target_angular_size_deg: 0.5,
+    target_field_fraction: 0.5,
+    target_fit: "fits" as const,
+    warning_codes: [],
+  };
+
+  it("binds the read-only operation to its generated URL and exact result", async () => {
+    expect(telescopeBuilderEndpoint.method).toBe("GET");
+    expectTypeOf(telescopeBuilderEndpoint.path).toEqualTypeOf<
+      CalculateTelescopeBuilderData["url"]
+    >();
+
+    const result = await requestEndpoint(
+      "http://127.0.0.1:8000",
+      { ...telescopeBuilderEndpoint, path: `${telescopeBuilderEndpoint.path}?aperture_mm=100` },
+      {
+        fetchImplementation: () =>
+          Promise.resolve(
+            new Response(JSON.stringify(response), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            }),
+          ),
+      },
+    );
+
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("rejects additive optical result fields at the transport boundary", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", telescopeBuilderEndpoint, {
       fetchImplementation: () =>
         Promise.resolve(
           new Response(JSON.stringify({ ...response, unexpected: true }), {

@@ -54,6 +54,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
     assert set(document["paths"]) == {
         "/api/v1/meta",
         "/api/v1/simulations/seasons",
+        "/api/v1/simulations/telescope-builder",
         "/health/live",
         "/health/ready",
         "/api/v1/catalog/entities",
@@ -109,6 +110,29 @@ def test_seasons_calculation_openapi_is_versioned_and_read_only() -> None:
     }
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/seasons"]) == {"get"}
+
+
+def test_telescope_builder_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/telescope-builder"]["get"]
+
+    assert operation["operationId"] == "calculate_telescope_builder"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/TelescopeBuilderCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "aperture_mm",
+        "telescope_focal_length_mm",
+        "telescope_type",
+        "eyepiece_focal_length_mm",
+        "eyepiece_apparent_field_deg",
+        "optical_modifier_kind",
+        "optical_modifier_factor",
+        "target_angular_size_arcmin",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    assert set(document["paths"]["/api/v1/simulations/telescope-builder"]) == {"get"}
 
 
 def test_export_does_not_open_network_or_database_connections(

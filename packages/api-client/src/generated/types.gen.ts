@@ -659,6 +659,129 @@ export type SourceRecordResponse = {
 };
 
 /**
+ * TelescopeBuilderCalculationResponse
+ *
+ * Complete public result for one Telescope Builder evaluation.
+ */
+export type TelescopeBuilderCalculationResponse = {
+  /**
+   * Approx True Field Deg
+   */
+  approx_true_field_deg: number;
+  /**
+   * Dawes Limit Arcsec
+   */
+  dawes_limit_arcsec: number;
+  /**
+   * Effective Focal Length Mm
+   */
+  effective_focal_length_mm: number;
+  /**
+   * Effective Focal Ratio
+   */
+  effective_focal_ratio: number;
+  /**
+   * Exit Pupil Mm
+   */
+  exit_pupil_mm: number;
+  /**
+   * Ideal Light Gathering Ratio Vs 7Mm Pupil
+   */
+  ideal_light_gathering_ratio_vs_7mm_pupil: number;
+  inputs: TelescopeBuilderInputResponse;
+  /**
+   * Magnification X
+   */
+  magnification_x: number;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Native Focal Ratio
+   */
+  native_focal_ratio: number;
+  /**
+   * Rayleigh Limit Arcsec
+   */
+  rayleigh_limit_arcsec: number;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Target Angular Size Deg
+   */
+  target_angular_size_deg: number;
+  /**
+   * Target Field Fraction
+   */
+  target_field_fraction: number;
+  /**
+   * Target Fit
+   */
+  target_fit: "fits" | "does_not_fit";
+  /**
+   * Warning Codes
+   */
+  warning_codes: Array<
+    "high_magnification_guideline" | "very_small_exit_pupil" | "exit_pupil_exceeds_reference_pupil"
+  >;
+};
+
+/**
+ * TelescopeBuilderInputResponse
+ *
+ * Normalized validated inputs echoed by the deterministic result.
+ */
+export type TelescopeBuilderInputResponse = {
+  /**
+   * Aperture Mm
+   *
+   * Clear nominal aperture in millimetres.
+   */
+  aperture_mm: number;
+  /**
+   * Eyepiece Apparent Field Deg
+   *
+   * Nominal eyepiece apparent field in degrees.
+   */
+  eyepiece_apparent_field_deg: number;
+  /**
+   * Eyepiece Focal Length Mm
+   *
+   * Hypothetical eyepiece focal length in millimetres.
+   */
+  eyepiece_focal_length_mm: number;
+  /**
+   * Optical Modifier Factor
+   *
+   * Supplied effective focal-length multiplier.
+   */
+  optical_modifier_factor: number;
+  /**
+   * Optical Modifier Kind
+   */
+  optical_modifier_kind: "none" | "barlow" | "reducer";
+  /**
+   * Target Angular Size Arcmin
+   *
+   * Scalar target angular extent in arcminutes.
+   */
+  target_angular_size_arcmin: number;
+  /**
+   * Telescope Focal Length Mm
+   *
+   * Native telescope focal length in millimetres.
+   */
+  telescope_focal_length_mm: number;
+  /**
+   * Telescope Type
+   */
+  telescope_type: "refractor" | "reflector" | "catadioptric";
+};
+
+/**
  * UnitReference
  */
 export type UnitReference = {
@@ -1161,6 +1284,82 @@ export type CalculateSeasonsSimulatorResponses = {
 
 export type CalculateSeasonsSimulatorResponse =
   CalculateSeasonsSimulatorResponses[keyof CalculateSeasonsSimulatorResponses];
+
+export type CalculateTelescopeBuilderData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Aperture Mm
+     *
+     * Clear nominal aperture in millimetres, inclusive range 20 to 1000.
+     */
+    aperture_mm: number;
+    /**
+     * Telescope Focal Length Mm
+     *
+     * Native telescope focal length in millimetres, inclusive range 100 to 10000.
+     */
+    telescope_focal_length_mm: number;
+    /**
+     * Telescope Type
+     *
+     * Descriptive telescope type: refractor, reflector, or catadioptric.
+     */
+    telescope_type: "refractor" | "reflector" | "catadioptric";
+    /**
+     * Eyepiece Focal Length Mm
+     *
+     * Eyepiece focal length in millimetres, inclusive range 1 to 60.
+     */
+    eyepiece_focal_length_mm: number;
+    /**
+     * Eyepiece Apparent Field Deg
+     *
+     * Nominal eyepiece apparent field in degrees, inclusive range 30 to 120.
+     */
+    eyepiece_apparent_field_deg: number;
+    /**
+     * Optical Modifier Kind
+     *
+     * At most one idealized focal-length modifier.
+     */
+    optical_modifier_kind: "none" | "barlow" | "reducer";
+    /**
+     * Optical Modifier Factor
+     *
+     * Effective focal-length multiplier for the selected modifier.
+     */
+    optical_modifier_factor: number;
+    /**
+     * Target Angular Size Arcmin
+     *
+     * Scalar target angular extent in arcminutes, inclusive range 0.01 to 600.
+     */
+    target_angular_size_arcmin: number;
+  };
+  url: "/api/v1/simulations/telescope-builder";
+};
+
+export type CalculateTelescopeBuilderErrors = {
+  /**
+   * The Telescope Builder inputs are invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateTelescopeBuilderError =
+  CalculateTelescopeBuilderErrors[keyof CalculateTelescopeBuilderErrors];
+
+export type CalculateTelescopeBuilderResponses = {
+  /**
+   * Successful Response
+   */
+  200: TelescopeBuilderCalculationResponse;
+};
+
+export type CalculateTelescopeBuilderResponse =
+  CalculateTelescopeBuilderResponses[keyof CalculateTelescopeBuilderResponses];
 
 export type LiveHealthLiveGetData = {
   body?: never;

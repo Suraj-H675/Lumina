@@ -339,6 +339,7 @@ def test_openapi_contains_only_phase_1b2_routes() -> None:
         "/health/ready",
         "/api/v1/meta",
         "/api/v1/simulations/seasons",
+        "/api/v1/simulations/telescope-builder",
         "/api/v1/catalog/entities",
         "/api/v1/catalog/entities/by-slug/{slug}",
         "/api/v1/catalog/entities/{entity_id}",

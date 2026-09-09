@@ -15,6 +15,7 @@ const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
   "/api/v1/simulations/seasons",
+  "/api/v1/simulations/telescope-builder",
   "/health/live",
   "/health/ready",
 ]);
@@ -159,6 +160,66 @@ const SEASONS_CIRCULAR_FIXTURE = {
   eccentricity: 0,
   distance_over_semimajor_axis: 1,
   relative_solar_flux: 1,
+};
+
+// Test-only Telescope Builder fixtures. These are literal reviewed reference
+// responses; the harness never reimplements the Python model equations.
+const TELESCOPE_DEFAULT_FIXTURE = {
+  model_version: "telescope-builder-v1",
+  schema_version: 1,
+  inputs: {
+    aperture_mm: 100,
+    telescope_focal_length_mm: 1000,
+    telescope_type: "refractor",
+    eyepiece_focal_length_mm: 20,
+    eyepiece_apparent_field_deg: 50,
+    optical_modifier_kind: "none",
+    optical_modifier_factor: 1,
+    target_angular_size_arcmin: 30,
+  },
+  effective_focal_length_mm: 1000,
+  native_focal_ratio: 10,
+  effective_focal_ratio: 10,
+  magnification_x: 50,
+  approx_true_field_deg: 1,
+  exit_pupil_mm: 2,
+  dawes_limit_arcsec: 1.16,
+  rayleigh_limit_arcsec: 1.3840368499180167,
+  ideal_light_gathering_ratio_vs_7mm_pupil: 204.08163265306123,
+  target_angular_size_deg: 0.5,
+  target_field_fraction: 0.5,
+  target_fit: "fits",
+  warning_codes: [],
+};
+
+const TELESCOPE_BARLOW_FIXTURE = {
+  ...TELESCOPE_DEFAULT_FIXTURE,
+  inputs: {
+    ...TELESCOPE_DEFAULT_FIXTURE.inputs,
+    optical_modifier_kind: "barlow",
+    optical_modifier_factor: 2,
+  },
+  effective_focal_length_mm: 2000,
+  effective_focal_ratio: 20,
+  magnification_x: 100,
+  approx_true_field_deg: 0.5,
+  exit_pupil_mm: 1,
+  target_field_fraction: 1,
+};
+
+const TELESCOPE_REDUCER_FIXTURE = {
+  ...TELESCOPE_DEFAULT_FIXTURE,
+  inputs: {
+    ...TELESCOPE_DEFAULT_FIXTURE.inputs,
+    optical_modifier_kind: "reducer",
+    optical_modifier_factor: 0.5,
+  },
+  effective_focal_length_mm: 500,
+  effective_focal_ratio: 5,
+  magnification_x: 25,
+  approx_true_field_deg: 2,
+  exit_pupil_mm: 4,
+  target_field_fraction: 0.25,
 };
 
 // Test-only schema-valid fixture for the planner's missing-coordinate state.
@@ -523,6 +584,93 @@ function respondSeasons(response, target) {
   });
 }
 
+function respondTelescopeBuilder(response, target) {
+  const keys = [...target.searchParams.keys()];
+  const expectedKeys = [
+    "aperture_mm",
+    "telescope_focal_length_mm",
+    "telescope_type",
+    "eyepiece_focal_length_mm",
+    "eyepiece_apparent_field_deg",
+    "optical_modifier_kind",
+    "optical_modifier_factor",
+    "target_angular_size_arcmin",
+  ];
+  const hasExactKeys =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key));
+  if (!hasExactKeys) {
+    sendJson(response, 422, {
+      error: {
+        code: "telescope_builder.model_invalid",
+        message: "The Telescope Builder fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+
+  const query = Object.fromEntries(target.searchParams.entries());
+  const isSupportedType = ["refractor", "reflector", "catadioptric"].includes(query.telescope_type);
+  const isDefault =
+    query.aperture_mm === "100" &&
+    query.telescope_focal_length_mm === "1000" &&
+    isSupportedType &&
+    query.eyepiece_focal_length_mm === "20" &&
+    query.eyepiece_apparent_field_deg === "50" &&
+    query.optical_modifier_kind === "none" &&
+    query.optical_modifier_factor === "1" &&
+    query.target_angular_size_arcmin === "30";
+  const isBarlow =
+    query.aperture_mm === "100" &&
+    query.telescope_focal_length_mm === "1000" &&
+    isSupportedType &&
+    query.eyepiece_focal_length_mm === "20" &&
+    query.eyepiece_apparent_field_deg === "50" &&
+    query.optical_modifier_kind === "barlow" &&
+    query.optical_modifier_factor === "2" &&
+    query.target_angular_size_arcmin === "30";
+  const isReducer =
+    query.aperture_mm === "100" &&
+    query.telescope_focal_length_mm === "1000" &&
+    isSupportedType &&
+    query.eyepiece_focal_length_mm === "20" &&
+    query.eyepiece_apparent_field_deg === "50" &&
+    query.optical_modifier_kind === "reducer" &&
+    query.optical_modifier_factor === "0.5" &&
+    query.target_angular_size_arcmin === "30";
+
+  if (isDefault) {
+    sendJson(response, 200, {
+      ...TELESCOPE_DEFAULT_FIXTURE,
+      inputs: { ...TELESCOPE_DEFAULT_FIXTURE.inputs, telescope_type: query.telescope_type },
+    });
+    return;
+  }
+  if (isBarlow) {
+    sendJson(response, 200, {
+      ...TELESCOPE_BARLOW_FIXTURE,
+      inputs: { ...TELESCOPE_BARLOW_FIXTURE.inputs, telescope_type: query.telescope_type },
+    });
+    return;
+  }
+  if (isReducer) {
+    sendJson(response, 200, {
+      ...TELESCOPE_REDUCER_FIXTURE,
+      inputs: { ...TELESCOPE_REDUCER_FIXTURE.inputs, telescope_type: query.telescope_type },
+    });
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "telescope_builder.model_invalid",
+      message: "The Telescope Builder E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 // The discovery suite performs real server-side reads through this stub. It
 // runs with fullyParallel workers, while the status suite toggles the stub
 // into disconnect mode; a worker's SSR fetch can therefore land in a
@@ -710,6 +858,7 @@ const stub = http.createServer(async (request, response) => {
   let unexpectedRequest = false;
   const isCataloguePath = apiPathPrefixes.some((prefix) => path.startsWith(prefix));
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
+  const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
   if (!apiPaths.has(path) && !isCataloguePath) {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
@@ -718,7 +867,7 @@ const stub = http.createServer(async (request, response) => {
     recordViolation("unexpected-method");
     unexpectedRequest = true;
   }
-  if (target.search !== "" && !isCataloguePath && !isSeasonsPath) {
+  if (target.search !== "" && !isCataloguePath && !isSeasonsPath && !isTelescopeBuilderPath) {
     recordViolation("unexpected-query");
     unexpectedRequest = true;
   }
@@ -737,6 +886,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isSeasonsPath) {
     respondSeasons(response, target);
+    return;
+  }
+  if (isTelescopeBuilderPath) {
+    respondTelescopeBuilder(response, target);
     return;
   }
   if (mode === "disconnect") {

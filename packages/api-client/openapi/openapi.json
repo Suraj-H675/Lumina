@@ -1016,6 +1016,173 @@
         "title": "SourceRecordResponse",
         "type": "object"
       },
+      "TelescopeBuilderCalculationResponse": {
+        "additionalProperties": false,
+        "description": "Complete public result for one Telescope Builder evaluation.",
+        "properties": {
+          "approx_true_field_deg": {
+            "title": "Approx True Field Deg",
+            "type": "number"
+          },
+          "dawes_limit_arcsec": {
+            "title": "Dawes Limit Arcsec",
+            "type": "number"
+          },
+          "effective_focal_length_mm": {
+            "title": "Effective Focal Length Mm",
+            "type": "number"
+          },
+          "effective_focal_ratio": {
+            "title": "Effective Focal Ratio",
+            "type": "number"
+          },
+          "exit_pupil_mm": {
+            "title": "Exit Pupil Mm",
+            "type": "number"
+          },
+          "ideal_light_gathering_ratio_vs_7mm_pupil": {
+            "title": "Ideal Light Gathering Ratio Vs 7Mm Pupil",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/TelescopeBuilderInputResponse"
+          },
+          "magnification_x": {
+            "title": "Magnification X",
+            "type": "number"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "native_focal_ratio": {
+            "title": "Native Focal Ratio",
+            "type": "number"
+          },
+          "rayleigh_limit_arcsec": {
+            "title": "Rayleigh Limit Arcsec",
+            "type": "number"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target_angular_size_deg": {
+            "title": "Target Angular Size Deg",
+            "type": "number"
+          },
+          "target_field_fraction": {
+            "title": "Target Field Fraction",
+            "type": "number"
+          },
+          "target_fit": {
+            "enum": [
+              "fits",
+              "does_not_fit"
+            ],
+            "title": "Target Fit",
+            "type": "string"
+          },
+          "warning_codes": {
+            "items": {
+              "enum": [
+                "high_magnification_guideline",
+                "very_small_exit_pupil",
+                "exit_pupil_exceeds_reference_pupil"
+              ],
+              "type": "string"
+            },
+            "title": "Warning Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "effective_focal_length_mm",
+          "native_focal_ratio",
+          "effective_focal_ratio",
+          "magnification_x",
+          "approx_true_field_deg",
+          "exit_pupil_mm",
+          "dawes_limit_arcsec",
+          "rayleigh_limit_arcsec",
+          "ideal_light_gathering_ratio_vs_7mm_pupil",
+          "target_angular_size_deg",
+          "target_field_fraction",
+          "target_fit",
+          "warning_codes"
+        ],
+        "title": "TelescopeBuilderCalculationResponse",
+        "type": "object"
+      },
+      "TelescopeBuilderInputResponse": {
+        "additionalProperties": false,
+        "description": "Normalized validated inputs echoed by the deterministic result.",
+        "properties": {
+          "aperture_mm": {
+            "description": "Clear nominal aperture in millimetres.",
+            "title": "Aperture Mm",
+            "type": "number"
+          },
+          "eyepiece_apparent_field_deg": {
+            "description": "Nominal eyepiece apparent field in degrees.",
+            "title": "Eyepiece Apparent Field Deg",
+            "type": "number"
+          },
+          "eyepiece_focal_length_mm": {
+            "description": "Hypothetical eyepiece focal length in millimetres.",
+            "title": "Eyepiece Focal Length Mm",
+            "type": "number"
+          },
+          "optical_modifier_factor": {
+            "description": "Supplied effective focal-length multiplier.",
+            "title": "Optical Modifier Factor",
+            "type": "number"
+          },
+          "optical_modifier_kind": {
+            "enum": [
+              "none",
+              "barlow",
+              "reducer"
+            ],
+            "title": "Optical Modifier Kind",
+            "type": "string"
+          },
+          "target_angular_size_arcmin": {
+            "description": "Scalar target angular extent in arcminutes.",
+            "title": "Target Angular Size Arcmin",
+            "type": "number"
+          },
+          "telescope_focal_length_mm": {
+            "description": "Native telescope focal length in millimetres.",
+            "title": "Telescope Focal Length Mm",
+            "type": "number"
+          },
+          "telescope_type": {
+            "enum": [
+              "refractor",
+              "reflector",
+              "catadioptric"
+            ],
+            "title": "Telescope Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aperture_mm",
+          "telescope_focal_length_mm",
+          "telescope_type",
+          "eyepiece_focal_length_mm",
+          "eyepiece_apparent_field_deg",
+          "optical_modifier_kind",
+          "optical_modifier_factor",
+          "target_angular_size_arcmin"
+        ],
+        "title": "TelescopeBuilderInputResponse",
+        "type": "object"
+      },
       "UnitReference": {
         "additionalProperties": false,
         "properties": {
@@ -1909,6 +2076,138 @@
           }
         },
         "summary": "Seasons",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/telescope-builder": {
+      "get": {
+        "description": "Evaluate the read-only, versioned Telescope Builder model.",
+        "operationId": "calculate_telescope_builder",
+        "parameters": [
+          {
+            "description": "Clear nominal aperture in millimetres, inclusive range 20 to 1000.",
+            "in": "query",
+            "name": "aperture_mm",
+            "required": true,
+            "schema": {
+              "description": "Clear nominal aperture in millimetres, inclusive range 20 to 1000.",
+              "title": "Aperture Mm",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Native telescope focal length in millimetres, inclusive range 100 to 10000.",
+            "in": "query",
+            "name": "telescope_focal_length_mm",
+            "required": true,
+            "schema": {
+              "description": "Native telescope focal length in millimetres, inclusive range 100 to 10000.",
+              "title": "Telescope Focal Length Mm",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Descriptive telescope type: refractor, reflector, or catadioptric.",
+            "in": "query",
+            "name": "telescope_type",
+            "required": true,
+            "schema": {
+              "description": "Descriptive telescope type: refractor, reflector, or catadioptric.",
+              "enum": [
+                "refractor",
+                "reflector",
+                "catadioptric"
+              ],
+              "title": "Telescope Type",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Eyepiece focal length in millimetres, inclusive range 1 to 60.",
+            "in": "query",
+            "name": "eyepiece_focal_length_mm",
+            "required": true,
+            "schema": {
+              "description": "Eyepiece focal length in millimetres, inclusive range 1 to 60.",
+              "title": "Eyepiece Focal Length Mm",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Nominal eyepiece apparent field in degrees, inclusive range 30 to 120.",
+            "in": "query",
+            "name": "eyepiece_apparent_field_deg",
+            "required": true,
+            "schema": {
+              "description": "Nominal eyepiece apparent field in degrees, inclusive range 30 to 120.",
+              "title": "Eyepiece Apparent Field Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "At most one idealized focal-length modifier.",
+            "in": "query",
+            "name": "optical_modifier_kind",
+            "required": true,
+            "schema": {
+              "description": "At most one idealized focal-length modifier.",
+              "enum": [
+                "none",
+                "barlow",
+                "reducer"
+              ],
+              "title": "Optical Modifier Kind",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Effective focal-length multiplier for the selected modifier.",
+            "in": "query",
+            "name": "optical_modifier_factor",
+            "required": true,
+            "schema": {
+              "description": "Effective focal-length multiplier for the selected modifier.",
+              "title": "Optical Modifier Factor",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Scalar target angular extent in arcminutes, inclusive range 0.01 to 600.",
+            "in": "query",
+            "name": "target_angular_size_arcmin",
+            "required": true,
+            "schema": {
+              "description": "Scalar target angular extent in arcminutes, inclusive range 0.01 to 600.",
+              "title": "Target Angular Size Arcmin",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelescopeBuilderCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Telescope Builder inputs are invalid."
+          }
+        },
+        "summary": "Telescope Builder",
         "tags": [
           "simulations"
         ]

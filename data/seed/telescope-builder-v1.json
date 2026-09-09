@@ -1,0 +1,601 @@
+{
+  "artifact_version": 1,
+  "model_version": "telescope-builder-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-09T00:00:00Z",
+  "definition": {
+    "slug": "telescope-builder",
+    "title": "Telescope Builder",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "audience_modes": ["explorer", "student", "deep-dive"],
+    "reviewed_by": ["Lumina telescope-builder-v1 contract review"],
+    "reviewed_at": "2026-09-09T00:00:00Z",
+    "updated_at": "2026-09-09T00:00:00Z",
+    "model_version": "telescope-builder-v1",
+    "learning_objectives": [
+      "Explain the distinct roles of aperture, telescope focal length, focal ratio, eyepiece focal length, and eyepiece apparent field.",
+      "Calculate and interpret magnification, approximate true field of view, and exit pupil.",
+      "Show that aperture, rather than eyepiece magnification, sets the idealized diffraction and empirical resolving references and geometric collecting-area ratio.",
+      "Show how an idealized Barlow or focal reducer changes effective focal length, effective focal ratio, magnification, approximate true field, and exit pupil.",
+      "Compare a supplied scalar target angular extent with the approximate field diameter without claiming brightness, resolution, framing quality, or observability.",
+      "Recognize practical visual-observing warnings as rules of thumb rather than physical hard limits or guaranteed outcomes."
+    ],
+    "prerequisite_concepts": [
+      "angle units",
+      "ratios",
+      "focal length",
+      "telescope aperture",
+      "magnification"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "aperture_mm",
+          "meaning": "Clear nominal objective diameter supplied to the idealized model.",
+          "unit": "millimetres",
+          "valid_range": "20 <= aperture_mm <= 1000",
+          "default": 100
+        },
+        {
+          "name": "telescope_focal_length_mm",
+          "meaning": "Native telescope focal length.",
+          "unit": "millimetres",
+          "valid_range": "100 <= telescope_focal_length_mm <= 10000; native focal ratio 2 <= F/D <= 30",
+          "default": 1000
+        },
+        {
+          "name": "telescope_type",
+          "meaning": "Descriptive telescope design label; it is numeric-output invariant in v1.",
+          "unit": "enum",
+          "valid_values": ["refractor", "reflector", "catadioptric"],
+          "default": "refractor"
+        },
+        {
+          "name": "eyepiece_focal_length_mm",
+          "meaning": "Hypothetical eyepiece focal length.",
+          "unit": "millimetres",
+          "valid_range": "1 <= eyepiece_focal_length_mm <= 60",
+          "default": 20
+        },
+        {
+          "name": "eyepiece_apparent_field_deg",
+          "meaning": "Nominal apparent angular field supplied by the hypothetical eyepiece.",
+          "unit": "degrees",
+          "valid_range": "30 <= eyepiece_apparent_field_deg <= 120",
+          "default": 50
+        },
+        {
+          "name": "optical_modifier_kind",
+          "meaning": "At most one idealized effective focal-length modifier.",
+          "unit": "enum",
+          "valid_values": ["none", "barlow", "reducer"],
+          "default": "none"
+        },
+        {
+          "name": "optical_modifier_factor",
+          "meaning": "Assumed effective focal-length multiplier produced by the optical train.",
+          "unit": "dimensionless",
+          "valid_range": "none = 1; barlow 1.1 <= factor <= 5.0; reducer 0.5 <= factor <= 0.95",
+          "default": 1
+        },
+        {
+          "name": "target_angular_size_arcmin",
+          "meaning": "One characteristic scalar angular diameter or extent for field comparison.",
+          "unit": "arcminutes",
+          "valid_range": "0.01 <= target_angular_size_arcmin <= 600",
+          "default": 30
+        }
+      ],
+      "invalid_handling": "Reject non-finite values, booleans in numeric fields, unknown enums, inconsistent modifiers, out-of-range values, native focal ratios outside 2 to 30, magnification below 1x, and unsupported serialized state without calculating."
+    },
+    "default_state": {
+      "version": 1,
+      "model_version": "telescope-builder-v1",
+      "aperture_mm": 100,
+      "telescope_focal_length_mm": 1000,
+      "telescope_type": "refractor",
+      "eyepiece_focal_length_mm": 20,
+      "eyepiece_apparent_field_deg": 50,
+      "optical_modifier_kind": "none",
+      "optical_modifier_factor": 1,
+      "target_angular_size_arcmin": 30
+    },
+    "default_preset": "balanced-reference",
+    "calculation_module": {
+      "canonical_units": ["millimetres", "degrees", "arcminutes", "arcseconds", "dimensionless"],
+      "relationships": [
+        "Effective focal length is native focal length multiplied by the supplied effective modifier factor.",
+        "Native and effective focal ratios divide the corresponding focal length by aperture.",
+        "Magnification uses effective telescope focal length divided by eyepiece focal length.",
+        "Approximate true field divides eyepiece apparent field by magnification.",
+        "Exit pupil divides aperture by magnification.",
+        "Dawes and Rayleigh are aperture-only ideal/reference quantities in this model.",
+        "Geometric collecting-area ratio versus a 7 mm reference pupil is proportional to aperture squared.",
+        "Target field fraction is target angular size in degrees divided by approximate true field."
+      ],
+      "equations": {
+        "effective_focal_length": "F_eff = F * k",
+        "native_focal_ratio": "f_native = F / D",
+        "effective_focal_ratio": "f_effective = F_eff / D",
+        "magnification": "M = F_eff / f_e",
+        "approximate_true_field": "TFOV approximately AFOV / M",
+        "exit_pupil": "P = D / M",
+        "dawes_limit": "theta_Dawes_arcsec = 116.0 / aperture_mm",
+        "rayleigh_limit": "theta_R = 1.22 * lambda / D radians, with lambda = 550 nm, converted to arcseconds",
+        "ideal_collecting_area_ratio": "L = (D / 7 mm)^2",
+        "target_angular_size": "target_angular_size_deg = target_angular_size_arcmin / 60",
+        "target_field_fraction": "target_field_fraction = target_angular_size_deg / approx_true_field_deg"
+      },
+      "valid_domain": "Python double-precision arithmetic over finite validated continuous inputs, supported telescope/modifier enums, native focal ratio 2 through 30, and derived magnification at least 1x.",
+      "numerical_policy": "Use deterministic double precision. Use Astropy units for the Rayleigh wavelength conversion. Internal values are not rounded; displayed values are presentation formatting. Arithmetic tolerances are 1e-12 relative for ratios, 1e-9 mm for lengths, and 1e-9 in the relevant angular unit.",
+      "canonical_module": "apps/api/src/lumina/astronomy/domain/telescope_builder.py"
+    },
+    "output_schema": [
+      "model and schema versions",
+      "normalized validated inputs",
+      "effective focal length in millimetres",
+      "native and effective focal ratios",
+      "magnification in x",
+      "approximate true field in degrees",
+      "exit pupil in millimetres",
+      "Dawes empirical visual double-star reference in arcseconds",
+      "Rayleigh clear-circular-aperture diffraction reference in arcseconds",
+      "ideal collecting-area ratio versus a 7 mm reference pupil",
+      "target angular size in degrees and target field fraction",
+      "narrow geometric target-fit classification",
+      "deterministically ordered practical warning codes"
+    ],
+    "warning_semantics": [
+      "high_magnification_guideline: emit only when magnification is greater than 2.0 times aperture in millimetres; this is a common visual rule of thumb, not a maximum.",
+      "very_small_exit_pupil: emit only when exit pupil is less than 0.5 mm; this is a difficult visual-observing regime, not an impossibility claim.",
+      "exit_pupil_exceeds_reference_pupil: emit only when exit pupil is greater than the 7.0 mm reference pupil; this does not claim every observer has a 7.0 mm pupil.",
+      "Warnings do not invalidate a configuration and no warnings are generated for unmodelled seeing, mount, quality, brightness, or target properties."
+    ],
+    "telescope_type_disclosure": "Telescope type is descriptive in Telescope Builder v1. The model does not know this instrument's obstruction, transmission, aberrations, or optical quality, so the numeric estimates use the same ideal clear-aperture geometry as the other types. A refractor selection does not imply perfect transmission or absence of aberration.",
+    "modifier_semantics": "The modifier factor is the supplied effective focal-length multiplier actually produced by the optical train. Lumina does not derive it from lens spacing; real Barlow and reducer factors can vary with optical spacing and equipment design.",
+    "target_fit_definition": "fits means only that the supplied scalar target angular extent is no larger than the approximate field diameter. It does not mean visible, resolved, bright enough, aesthetically framed, or observable.",
+    "visualization_module": "Semantic HTML and accessible SVG render a schematic optical train and a proportional field-fit comparison from canonical outputs. Drawings are normalized or schematic, not prescriptions or physical scale; the textual result is authoritative and no visual transform changes the science.",
+    "assumptions": [
+      "The telescope is an idealized thin or first-order visual optical system.",
+      "Aperture and focal lengths are exact supplied model inputs in millimetres.",
+      "There is one eyepiece and at most one effective focal-length modifier.",
+      "The supplied modifier factor is already the effective factor, and supplied apparent field is nominal.",
+      "Dawes, Rayleigh, and collecting-area quantities use clear-circular-aperture reference geometry.",
+      "Rayleigh uses a 550 nm reference wavelength.",
+      "Collecting-area comparison and the large-exit-pupil warning use a 7 mm reference pupil."
+    ],
+    "limitations": [
+      "This is an idealized visual-observing geometry model, not a real-equipment recommender or guaranteed-view calculator.",
+      "Dawes is an empirical visual double-star reference, not a general detail threshold or seeing prediction.",
+      "Rayleigh is a clear-circular-aperture diffraction reference and ignores seeing, obstruction, aberration, optical quality, detector sampling, and observer acuity.",
+      "Ideal collecting area ignores transmission, reflectivity, obstruction, coatings, vignetting, and eye sensitivity; do not read it as a brightness multiplier.",
+      "Approximate true field uses AFOV divided by magnification because field-stop diameter and distortion are not model inputs.",
+      "The target is a scalar angular extent only; fit does not imply brightness, resolution, morphology, framing quality, or observability.",
+      "The model does not include seeing, transparency, sky brightness, target magnitude or surface brightness, mount behavior, tracking, imaging, cameras, or any excluded optical/equipment variable.",
+      "Practical warnings are rules of thumb whose real usefulness depends on optics, atmosphere, target, and observer."
+    ],
+    "references": [
+      "openstax-telescopes",
+      "openstax-circular-apertures",
+      "sky-telescope-dawes",
+      "celestron-astronomy-glossary",
+      "wwu-astropages-telescopes",
+      "celestron-exit-pupil",
+      "sky-telescope-magnification"
+    ],
+    "validation_fixtures": [
+      "default",
+      "two-times-barlow",
+      "half-times-reducer",
+      "aperture-scaling",
+      "high-magnification-small-exit-pupil",
+      "warning-boundary",
+      "large-exit-pupil",
+      "target-does-not-fit",
+      "telescope-type-invariance"
+    ],
+    "share_schema_version": 1
+  },
+  "sources": [
+    {
+      "id": "openstax-telescopes",
+      "title": "6.1 Telescopes",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/astronomy/pages/6-1-telescopes",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — open astronomy textbook chapter.",
+      "record_reference": "Section 6.1 page-level discussion of telescope aperture, focal length, and optical designs.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+      "citation": "OpenStax, “6.1 Telescopes”, accessed 2026-09-09.",
+      "claim_scope": "Aperture determines collecting area and telescope focal length/eyepiece relationships provide first-order visual context.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "openstax-circular-apertures",
+      "title": "4.5 Circular Apertures and Resolution",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-3/pages/4-5-circular-apertures-and-resolution",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — open university-physics textbook chapter.",
+      "record_reference": "Section 4.5 page-level Rayleigh criterion for a circular aperture.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+      "citation": "OpenStax, “4.5 Circular Apertures and Resolution”, accessed 2026-09-09.",
+      "claim_scope": "Theoretical Rayleigh resolution relationship 1.22 lambda divided by aperture diameter for a circular aperture, with ideal assumptions.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "sky-telescope-dawes",
+      "title": "Pushing Limits: A Spring Sky Double Star Romp",
+      "organization_or_authors": "Sky & Telescope",
+      "url": "https://skyandtelescope.org/stargazing-and-observing/pushing-limits-a-spring-sky-double-star-romp/",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — astronomy publication article.",
+      "record_reference": "Article section describing the Dawes visual double-star relationship.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+      "citation": "Sky & Telescope, “Pushing Limits: A Spring Sky Double Star Romp”, accessed 2026-09-09.",
+      "claim_scope": "Dawes empirical double-star reference approximately 116 divided by aperture in millimetres; not a general resolution guarantee.",
+      "source_type": "technical-reference"
+    },
+    {
+      "id": "celestron-astronomy-glossary",
+      "title": "Astronomy Glossary of Terms",
+      "organization_or_authors": "Celestron",
+      "url": "https://www.celestron.com/blogs/knowledgebase/astronomy-glossary-of-terms",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — manufacturer technical glossary.",
+      "record_reference": "Page-level entries for focal length, focal ratio, eyepiece, exit pupil, field of view, and aperture.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+      "citation": "Celestron, “Astronomy Glossary of Terms”, accessed 2026-09-09.",
+      "claim_scope": "Supporting first-order magnification, focal-ratio, exit-pupil, AFOV/TFOV, modifier, and aperture-area relationships.",
+      "source_type": "technical-reference"
+    },
+    {
+      "id": "wwu-astropages-telescopes",
+      "title": "Telescopes",
+      "organization_or_authors": "Western Washington University Astronomy 101",
+      "url": "https://astro101.wwu.edu/a101_telescopes.html",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — university astronomy educational page.",
+      "record_reference": "Page sections on aperture, resolution, magnification, focal ratio, and useful visual magnification.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "University educational source; Lumina links to the source and does not redistribute its text.",
+      "citation": "Western Washington University Astronomy 101, “Telescopes”, accessed 2026-09-09.",
+      "claim_scope": "Supporting educational context that aperture controls ideal light gathering/resolution, magnification uses focal lengths, focal ratio is focal length divided by aperture, and approximately 50x per inch is a visual rule of thumb under ideal conditions.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "celestron-exit-pupil",
+      "title": "What is Exit Pupil and Eye Relief for Sport Optics?",
+      "organization_or_authors": "Celestron",
+      "url": "https://www.celestron.com/blogs/knowledgebase/what-is-exit-pupil-and-eye-relief-for-sport-optics",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — technical optics reference page.",
+      "record_reference": "Page-level exit-pupil definition and human dark-adapted pupil context.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+      "citation": "Celestron, “What is Exit Pupil and Eye Relief for Sport Optics?”, accessed 2026-09-09.",
+      "claim_scope": "Supporting exit-pupil interpretation and the qualification that a 5 to 7 mm dark-adapted eye pupil is a context range, not a universal user constant.",
+      "source_type": "technical-reference"
+    },
+    {
+      "id": "sky-telescope-magnification",
+      "title": "How to Choose Your Telescope Magnification",
+      "organization_or_authors": "Sky & Telescope",
+      "url": "https://skyandtelescope.org/astronomy-equipment/choosing-your-telescopes-magnification/",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — astronomy publication technical guide.",
+      "record_reference": "Page-level comparison reference for magnification, approximate field, exit pupil, and practical visual context.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+      "citation": "Sky & Telescope, “How to Choose Your Telescope Magnification”, accessed 2026-09-09.",
+      "claim_scope": "Independent reference for the default-style first-order magnification, approximate TFOV, exit-pupil, and non-guaranteed practical magnification relationships.",
+      "source_type": "technical-reference"
+    }
+  ],
+  "constants": {
+    "DAWES_COEFFICIENT_ARCSEC_MM": 116.0,
+    "RAYLEIGH_REFERENCE_WAVELENGTH_NM": 550.0,
+    "REFERENCE_EYE_PUPIL_MM": 7.0,
+    "HIGH_MAGNIFICATION_PER_MM": 2.0,
+    "SMALL_EXIT_PUPIL_MM": 0.5,
+    "MIN_APERTURE_MM": 20.0,
+    "MAX_APERTURE_MM": 1000.0,
+    "MIN_TELESCOPE_FOCAL_LENGTH_MM": 100.0,
+    "MAX_TELESCOPE_FOCAL_LENGTH_MM": 10000.0,
+    "MIN_NATIVE_FOCAL_RATIO": 2.0,
+    "MAX_NATIVE_FOCAL_RATIO": 30.0,
+    "MIN_EYEPIECE_FOCAL_LENGTH_MM": 1.0,
+    "MAX_EYEPIECE_FOCAL_LENGTH_MM": 60.0,
+    "MIN_EYEPIECE_APPARENT_FIELD_DEG": 30.0,
+    "MAX_EYEPIECE_APPARENT_FIELD_DEG": 120.0,
+    "MIN_BARLOW_FACTOR": 1.1,
+    "MAX_BARLOW_FACTOR": 5.0,
+    "MIN_REDUCER_FACTOR": 0.5,
+    "MAX_REDUCER_FACTOR": 0.95,
+    "MIN_TARGET_ANGULAR_SIZE_ARCMIN": 0.01,
+    "MAX_TARGET_ANGULAR_SIZE_ARCMIN": 600.0,
+    "MIN_MAGNIFICATION_X": 1.0
+  },
+  "presets": {
+    "balanced-reference": {
+      "version": 1,
+      "model_version": "telescope-builder-v1",
+      "aperture_mm": 100,
+      "telescope_focal_length_mm": 1000,
+      "telescope_type": "refractor",
+      "eyepiece_focal_length_mm": 20,
+      "eyepiece_apparent_field_deg": 50,
+      "optical_modifier_kind": "none",
+      "optical_modifier_factor": 1,
+      "target_angular_size_arcmin": 30
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "default",
+      "purpose": "Balanced hypothetical reference configuration.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 20,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "native_focal_ratio": 10.0,
+        "effective_focal_ratio": 10.0,
+        "effective_focal_length_mm": 1000.0,
+        "magnification_x": 50.0,
+        "approx_true_field_deg": 1.0,
+        "exit_pupil_mm": 2.0,
+        "dawes_limit_arcsec": 1.16,
+        "rayleigh_limit_arcsec": 1.3840368499,
+        "ideal_light_gathering_ratio_vs_7mm_pupil": 204.0816326531,
+        "target_angular_size_deg": 0.5,
+        "target_field_fraction": 0.5,
+        "target_fit": "fits",
+        "warning_codes": []
+      }
+    },
+    {
+      "id": "two-times-barlow",
+      "purpose": "A 2x effective focal-length multiplier changes focal-length-derived outputs only.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 20,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "barlow",
+        "optical_modifier_factor": 2,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "effective_focal_length_mm": 2000.0,
+        "native_focal_ratio": 10.0,
+        "effective_focal_ratio": 20.0,
+        "magnification_x": 100.0,
+        "approx_true_field_deg": 0.5,
+        "exit_pupil_mm": 1.0,
+        "target_field_fraction": 1.0,
+        "target_fit": "fits",
+        "aperture_only_outputs_unchanged": true
+      }
+    },
+    {
+      "id": "half-times-reducer",
+      "purpose": "A 0.5x effective focal-length multiplier widens the approximate field.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 20,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "reducer",
+        "optical_modifier_factor": 0.5,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "effective_focal_length_mm": 500.0,
+        "native_focal_ratio": 10.0,
+        "effective_focal_ratio": 5.0,
+        "magnification_x": 25.0,
+        "approx_true_field_deg": 2.0,
+        "exit_pupil_mm": 4.0,
+        "target_field_fraction": 0.25,
+        "target_fit": "fits",
+        "aperture_only_outputs_unchanged": true
+      }
+    },
+    {
+      "id": "aperture-scaling",
+      "purpose": "Doubling aperture at fixed native focal length and eyepiece preserves magnification and field while scaling aperture references.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 200,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 20,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "magnification_x": 50.0,
+        "approx_true_field_deg": 1.0,
+        "exit_pupil_mm": 4.0,
+        "dawes_limit_arcsec": 0.58,
+        "rayleigh_limit_arcsec": 0.69201842496,
+        "ideal_light_gathering_ratio_vs_7mm_pupil": 816.3265306122
+      }
+    },
+    {
+      "id": "high-magnification-small-exit-pupil",
+      "purpose": "A valid high-power configuration emits both strict-inequality practical warnings.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 4,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "magnification_x": 250.0,
+        "exit_pupil_mm": 0.4,
+        "warning_codes": ["high_magnification_guideline", "very_small_exit_pupil"]
+      }
+    },
+    {
+      "id": "warning-boundary",
+      "purpose": "Exact 2x-per-mm and 0.5 mm exit-pupil boundaries do not warn.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 5,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "magnification_x": 200.0,
+        "exit_pupil_mm": 0.5,
+        "warning_codes": []
+      }
+    },
+    {
+      "id": "large-exit-pupil",
+      "purpose": "A valid exit pupil larger than the reference pupil emits the large-pupil context warning.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 500,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 50,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "magnification_x": 10.0,
+        "exit_pupil_mm": 10.0,
+        "warning_codes": ["exit_pupil_exceeds_reference_pupil"]
+      }
+    },
+    {
+      "id": "target-does-not-fit",
+      "purpose": "A target extent larger than the approximate field receives only the narrow geometric non-fit classification.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 20,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 120
+      },
+      "expected": {
+        "target_angular_size_deg": 2.0,
+        "approx_true_field_deg": 1.0,
+        "target_field_fraction": 2.0,
+        "target_fit": "does_not_fit"
+      }
+    },
+    {
+      "id": "telescope-type-invariance",
+      "purpose": "Descriptive telescope type changes no numeric output or warning code.",
+      "input": {
+        "version": 1,
+        "model_version": "telescope-builder-v1",
+        "aperture_mm": 100,
+        "telescope_focal_length_mm": 1000,
+        "telescope_type": "refractor",
+        "eyepiece_focal_length_mm": 20,
+        "eyepiece_apparent_field_deg": 50,
+        "optical_modifier_kind": "none",
+        "optical_modifier_factor": 1,
+        "target_angular_size_arcmin": 30
+      },
+      "expected": {
+        "compare_types": ["refractor", "reflector", "catadioptric"],
+        "numeric_outputs_and_warning_codes_unchanged": true
+      }
+    }
+  ],
+  "scientific_validation": {
+    "id": "telescope-builder-independent-validation-v1",
+    "checked_at": "2026-09-09T00:00:00Z",
+    "method": "Known-case expected values are checked as reviewed literal fixtures, not recomputed by a second production formula. Independent reference review confirms the first-order telescope relationships and the restricted interpretations of Dawes, Rayleigh, field, exit pupil, and practical magnification.",
+    "tools": [
+      {
+        "name": "OpenStax Astronomy and University Physics",
+        "version": "reviewed pages accessed 2026-09-09",
+        "role": "Independent educational reference for aperture, circular-aperture diffraction, and Rayleigh geometry."
+      },
+      {
+        "name": "Sky & Telescope",
+        "version": "reviewed pages accessed 2026-09-09",
+        "role": "Independent astronomy reference for Dawes, visual magnification context, approximate field, and exit pupil."
+      },
+      {
+        "name": "Celestron Astronomy Glossary",
+        "version": "reviewed page accessed 2026-09-09",
+        "role": "Independent technical reference for focal length, focal ratio, magnification, AFOV/TFOV, exit pupil, and aperture relationships."
+      }
+    ],
+    "source_ids": [
+      "openstax-telescopes",
+      "openstax-circular-apertures",
+      "sky-telescope-dawes",
+      "celestron-astronomy-glossary",
+      "wwu-astropages-telescopes",
+      "celestron-exit-pupil",
+      "sky-telescope-magnification"
+    ],
+    "test_references": [
+      "apps/api/tests/astronomy/domain/test_telescope_builder.py::test_default_case_matches_reviewed_literal_fixture",
+      "apps/api/tests/astronomy/domain/test_telescope_builder.py::test_aperture_scaling_and_modifier_invariants",
+      "apps/api/tests/astronomy/domain/test_telescope_builder.py::test_warning_boundaries_are_strict",
+      "apps/api/tests/astronomy/domain/test_telescope_builder.py::test_telescope_type_is_numeric_output_invariant"
+    ]
+  }
+}

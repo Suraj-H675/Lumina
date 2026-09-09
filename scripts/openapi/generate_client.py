@@ -33,6 +33,11 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
         "CalculateSeasonsSimulatorErrors",
         "CalculateSeasonsSimulatorResponse",
         "CalculateSeasonsSimulatorResponses",
+        "CalculateTelescopeBuilderData",
+        "CalculateTelescopeBuilderError",
+        "CalculateTelescopeBuilderErrors",
+        "CalculateTelescopeBuilderResponse",
+        "CalculateTelescopeBuilderResponses",
         "CatalogSearchResponse",
         "CatalogSearchResultResponse",
         "CatalogSuggestResponse",
@@ -88,6 +93,8 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
         "SeasonsCalculationResponse",
         "SeasonsInputResponse",
         "SeasonsLatitudeGeometryResponse",
+        "TelescopeBuilderCalculationResponse",
+        "TelescopeBuilderInputResponse",
         "SuggestCatalogEntitiesData",
         "SuggestCatalogEntitiesError",
         "SuggestCatalogEntitiesErrors",
@@ -125,6 +132,7 @@ _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
     {
         "zCompactSourceReference",
         "zCalculateSeasonsSimulatorResponse",
+        "zCalculateTelescopeBuilderResponse",
         "zCatalogSearchResponse",
         "zCatalogSearchResultResponse",
         "zCatalogSuggestResponse",
@@ -162,6 +170,8 @@ _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
         "zSeasonsCalculationResponse",
         "zSeasonsInputResponse",
         "zSeasonsLatitudeGeometryResponse",
+        "zTelescopeBuilderCalculationResponse",
+        "zTelescopeBuilderInputResponse",
         "zSearchCatalogEntitiesResponse",
         "zSuggestCatalogEntitiesResponse",
         "zSourceDatasetResponse",
@@ -266,6 +276,7 @@ def _validate_openapi(content: bytes) -> None:
     required_paths = (
         b'"/api/v1/meta"',
         b'"/api/v1/simulations/seasons"',
+        b'"/api/v1/simulations/telescope-builder"',
         b'"/health/live"',
         b'"/health/ready"',
         b'"/api/v1/catalog/entities"',
@@ -285,6 +296,7 @@ def _validate_openapi(content: bytes) -> None:
         b'"search_catalog_entities"',
         b'"suggest_catalog_entities"',
         b'"calculate_seasons_simulator"',
+        b'"calculate_telescope_builder"',
     )
     if any(path not in content for path in required_paths) or b'"/api/v1/sources/' in content:
         raise GenerationError("OpenAPI output is missing a required committed route")

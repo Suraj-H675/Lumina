@@ -4,6 +4,8 @@ import type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
   CalculateSeasonsSimulatorData,
+  CalculateTelescopeBuilderData,
+  TelescopeBuilderCalculationResponse,
   SeasonsCalculationResponse,
   EntityBrowsePageResponse,
   EntityDetailResponse,
@@ -24,6 +26,7 @@ import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
   zCalculateSeasonsSimulatorResponse,
+  zCalculateTelescopeBuilderResponse,
   zEntityBrowsePageResponse,
   zEntityDetailResponse,
   zEntitySummaryResponse,
@@ -97,6 +100,12 @@ export const seasonsSimulatorEndpoint = {
   path: "/api/v1/simulations/seasons" satisfies CalculateSeasonsSimulatorData["url"],
   validator: zCalculateSeasonsSimulatorResponse,
 } satisfies ApiEndpoint<SeasonsCalculationResponse, CalculateSeasonsSimulatorData["url"]>;
+
+export const telescopeBuilderEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/telescope-builder" satisfies CalculateTelescopeBuilderData["url"],
+  validator: zCalculateTelescopeBuilderResponse,
+} satisfies ApiEndpoint<TelescopeBuilderCalculationResponse, CalculateTelescopeBuilderData["url"]>;
 
 export type ValidationResult<T> = Readonly<{ data: T; valid: true }> | Readonly<{ valid: false }>;
 

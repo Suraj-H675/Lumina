@@ -27,7 +27,7 @@ export {
 } from "./transport";
 export type { ApiOriginResult, ApiTransportResult, TransportOptions } from "./transport";
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
-export { seasonsSimulatorEndpoint } from "./contract";
+export { seasonsSimulatorEndpoint, telescopeBuilderEndpoint } from "./contract";
 export {
   catalogEntitiesEndpoint,
   catalogEntityBySlugEndpoint,
@@ -47,4 +47,6 @@ export type {
   SeasonsCalculationResponse,
   SeasonsInputResponse,
   SeasonsLatitudeGeometryResponse,
+  TelescopeBuilderCalculationResponse,
+  TelescopeBuilderInputResponse,
 } from "./generated/types.gen";

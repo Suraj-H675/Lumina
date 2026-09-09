@@ -310,6 +310,52 @@ export const zSourceProvenanceResponse = z.object({
 });
 
 /**
+ * TelescopeBuilderInputResponse
+ *
+ * Normalized validated inputs echoed by the deterministic result.
+ */
+export const zTelescopeBuilderInputResponse = z.object({
+  aperture_mm: z.number(),
+  eyepiece_apparent_field_deg: z.number(),
+  eyepiece_focal_length_mm: z.number(),
+  optical_modifier_factor: z.number(),
+  optical_modifier_kind: z.enum(["none", "barlow", "reducer"]),
+  target_angular_size_arcmin: z.number(),
+  telescope_focal_length_mm: z.number(),
+  telescope_type: z.enum(["refractor", "reflector", "catadioptric"]),
+});
+
+/**
+ * TelescopeBuilderCalculationResponse
+ *
+ * Complete public result for one Telescope Builder evaluation.
+ */
+export const zTelescopeBuilderCalculationResponse = z.object({
+  approx_true_field_deg: z.number(),
+  dawes_limit_arcsec: z.number(),
+  effective_focal_length_mm: z.number(),
+  effective_focal_ratio: z.number(),
+  exit_pupil_mm: z.number(),
+  ideal_light_gathering_ratio_vs_7mm_pupil: z.number(),
+  inputs: zTelescopeBuilderInputResponse,
+  magnification_x: z.number(),
+  model_version: z.string(),
+  native_focal_ratio: z.number(),
+  rayleigh_limit_arcsec: z.number(),
+  schema_version: z.int(),
+  target_angular_size_deg: z.number(),
+  target_field_fraction: z.number(),
+  target_fit: z.enum(["fits", "does_not_fit"]),
+  warning_codes: z.array(
+    z.enum([
+      "high_magnification_guideline",
+      "very_small_exit_pupil",
+      "exit_pupil_exceeds_reference_pupil",
+    ]),
+  ),
+});
+
+/**
  * UnitReference
  */
 export const zUnitReference = z.object({
@@ -448,6 +494,11 @@ export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
  * Successful Response
  */
 export const zCalculateSeasonsSimulatorResponse = zSeasonsCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateTelescopeBuilderResponse = zTelescopeBuilderCalculationResponse;
 
 /**
  * Successful Response

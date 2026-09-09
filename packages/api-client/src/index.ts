@@ -27,6 +27,7 @@ export {
 } from "./transport";
 export type { ApiOriginResult, ApiTransportResult, TransportOptions } from "./transport";
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
+export { seasonsSimulatorEndpoint } from "./contract";
 export {
   catalogEntitiesEndpoint,
   catalogEntityBySlugEndpoint,
@@ -35,6 +36,7 @@ export {
 export type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateSeasonsSimulatorResponse,
   EntityDetailResponse,
   EntityQuantityResponse,
   EntitySummaryResponse,
@@ -42,4 +44,7 @@ export type {
   MeasurementReference,
   QuantityReference,
   SearchMatchReason,
+  SeasonsCalculationResponse,
+  SeasonsInputResponse,
+  SeasonsLatitudeGeometryResponse,
 } from "./generated/types.gen";

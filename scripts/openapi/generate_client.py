@@ -28,6 +28,11 @@ _GENERATED_NAMES: Final = frozenset({"types.gen.ts", "zod.gen.ts"})
 _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
     {
         "ClientOptions",
+        "CalculateSeasonsSimulatorData",
+        "CalculateSeasonsSimulatorError",
+        "CalculateSeasonsSimulatorErrors",
+        "CalculateSeasonsSimulatorResponse",
+        "CalculateSeasonsSimulatorResponses",
         "CatalogSearchResponse",
         "CatalogSearchResultResponse",
         "CatalogSuggestResponse",
@@ -80,6 +85,9 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
         "SearchCatalogEntitiesResponse",
         "SearchCatalogEntitiesResponses",
         "SearchMatchReason",
+        "SeasonsCalculationResponse",
+        "SeasonsInputResponse",
+        "SeasonsLatitudeGeometryResponse",
         "SuggestCatalogEntitiesData",
         "SuggestCatalogEntitiesError",
         "SuggestCatalogEntitiesErrors",
@@ -116,6 +124,7 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
 _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
     {
         "zCompactSourceReference",
+        "zCalculateSeasonsSimulatorResponse",
         "zCatalogSearchResponse",
         "zCatalogSearchResultResponse",
         "zCatalogSuggestResponse",
@@ -150,6 +159,9 @@ _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
         "zSelectionHistoryResponse",
         "zSelectionState",
         "zSearchMatchReason",
+        "zSeasonsCalculationResponse",
+        "zSeasonsInputResponse",
+        "zSeasonsLatitudeGeometryResponse",
         "zSearchCatalogEntitiesResponse",
         "zSuggestCatalogEntitiesResponse",
         "zSourceDatasetResponse",
@@ -253,6 +265,7 @@ def _validate_openapi(content: bytes) -> None:
         raise GenerationError("OpenAPI output is not stable sorted, indented JSON")
     required_paths = (
         b'"/api/v1/meta"',
+        b'"/api/v1/simulations/seasons"',
         b'"/health/live"',
         b'"/health/ready"',
         b'"/api/v1/catalog/entities"',
@@ -271,6 +284,7 @@ def _validate_openapi(content: bytes) -> None:
         b'"get_source_record_provenance"',
         b'"search_catalog_entities"',
         b'"suggest_catalog_entities"',
+        b'"calculate_seasons_simulator"',
     )
     if any(path not in content for path in required_paths) or b'"/api/v1/sources/' in content:
         raise GenerationError("OpenAPI output is missing a required committed route")

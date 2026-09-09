@@ -663,6 +663,154 @@
         "title": "SearchMatchReason",
         "type": "string"
       },
+      "SeasonsCalculationResponse": {
+        "additionalProperties": false,
+        "description": "Complete public result for one Seasons Simulator evaluation.",
+        "properties": {
+          "comparison_latitude_deg": {
+            "title": "Comparison Latitude Deg",
+            "type": "number"
+          },
+          "distance_over_semimajor_axis": {
+            "title": "Distance Over Semimajor Axis",
+            "type": "number"
+          },
+          "eccentricity": {
+            "title": "Eccentricity",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/SeasonsInputResponse"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "opposite_hemisphere": {
+            "$ref": "#/components/schemas/SeasonsLatitudeGeometryResponse"
+          },
+          "relative_solar_flux": {
+            "title": "Relative Solar Flux",
+            "type": "number"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "selected": {
+            "$ref": "#/components/schemas/SeasonsLatitudeGeometryResponse"
+          },
+          "solar_declination_deg": {
+            "title": "Solar Declination Deg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "solar_declination_deg",
+          "selected",
+          "comparison_latitude_deg",
+          "opposite_hemisphere",
+          "eccentricity",
+          "distance_over_semimajor_axis",
+          "relative_solar_flux"
+        ],
+        "title": "SeasonsCalculationResponse",
+        "type": "object"
+      },
+      "SeasonsInputResponse": {
+        "additionalProperties": false,
+        "description": "Normalized validated inputs echoed by the deterministic result.",
+        "properties": {
+          "axial_tilt_deg": {
+            "description": "Axial tilt in degrees.",
+            "title": "Axial Tilt Deg",
+            "type": "number"
+          },
+          "eccentricity_preset": {
+            "enum": [
+              "circular",
+              "earth",
+              "exaggerated"
+            ],
+            "title": "Eccentricity Preset",
+            "type": "string"
+          },
+          "latitude_deg": {
+            "description": "Observer latitude in degrees.",
+            "title": "Latitude Deg",
+            "type": "number"
+          },
+          "orbital_position_deg": {
+            "description": "Canonical idealized seasonal orbital position in degrees [0, 360).",
+            "title": "Orbital Position Deg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "axial_tilt_deg",
+          "orbital_position_deg",
+          "latitude_deg",
+          "eccentricity_preset"
+        ],
+        "title": "SeasonsInputResponse",
+        "type": "object"
+      },
+      "SeasonsLatitudeGeometryResponse": {
+        "additionalProperties": false,
+        "description": "Solar-noon and geometric daylight outputs for one latitude.",
+        "properties": {
+          "day_length_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Length Hours"
+          },
+          "illumination_incidence_deg": {
+            "title": "Illumination Incidence Deg",
+            "type": "number"
+          },
+          "latitude_deg": {
+            "title": "Latitude Deg",
+            "type": "number"
+          },
+          "noon_solar_zenith_deg": {
+            "title": "Noon Solar Zenith Deg",
+            "type": "number"
+          },
+          "noon_sun_altitude_deg": {
+            "title": "Noon Sun Altitude Deg",
+            "type": "number"
+          },
+          "polar_state": {
+            "enum": [
+              "none",
+              "polar_day",
+              "polar_night",
+              "horizon_all_day"
+            ],
+            "title": "Polar State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "latitude_deg",
+          "noon_solar_zenith_deg",
+          "noon_sun_altitude_deg",
+          "illumination_incidence_deg",
+          "day_length_hours",
+          "polar_state"
+        ],
+        "title": "SeasonsLatitudeGeometryResponse",
+        "type": "object"
+      },
       "SelectionHistoryPageResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1680,6 +1828,89 @@
         "summary": "Suggest Catalog Entities",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/simulations/seasons": {
+      "get": {
+        "description": "Evaluate the read-only, versioned Seasons Simulator model.",
+        "operationId": "calculate_seasons_simulator",
+        "parameters": [
+          {
+            "description": "Axial tilt in degrees, inclusive range 0 to 90.",
+            "in": "query",
+            "name": "axial_tilt_deg",
+            "required": true,
+            "schema": {
+              "description": "Axial tilt in degrees, inclusive range 0 to 90.",
+              "title": "Axial Tilt Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Idealized seasonal orbital position in degrees, range [0, 360).",
+            "in": "query",
+            "name": "orbital_position_deg",
+            "required": true,
+            "schema": {
+              "description": "Idealized seasonal orbital position in degrees, range [0, 360).",
+              "title": "Orbital Position Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Idealized geographic latitude in degrees, inclusive range -90 to 90.",
+            "in": "query",
+            "name": "latitude_deg",
+            "required": true,
+            "schema": {
+              "description": "Idealized geographic latitude in degrees, inclusive range -90 to 90.",
+              "title": "Latitude Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Reviewed eccentricity context preset.",
+            "in": "query",
+            "name": "eccentricity_preset",
+            "required": true,
+            "schema": {
+              "description": "Reviewed eccentricity context preset.",
+              "enum": [
+                "circular",
+                "earth",
+                "exaggerated"
+              ],
+              "title": "Eccentricity Preset",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeasonsCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Seasons model inputs are invalid."
+          }
+        },
+        "summary": "Seasons",
+        "tags": [
+          "simulations"
         ]
       }
     },

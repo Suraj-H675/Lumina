@@ -3,6 +3,8 @@ import type { ZodType } from "zod";
 import type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateSeasonsSimulatorData,
+  SeasonsCalculationResponse,
   EntityBrowsePageResponse,
   EntityDetailResponse,
   EntitySummaryResponse,
@@ -21,6 +23,7 @@ import type {
 import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
+  zCalculateSeasonsSimulatorResponse,
   zEntityBrowsePageResponse,
   zEntityDetailResponse,
   zEntitySummaryResponse,
@@ -88,6 +91,12 @@ export const catalogEntityDetailEndpoint = {
   path: "/api/v1/catalog/entities/{entity_id}" satisfies GetCatalogEntityData["url"],
   validator: zEntityDetailResponse,
 } satisfies ApiEndpoint<EntityDetailResponse, GetCatalogEntityData["url"]>;
+
+export const seasonsSimulatorEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/seasons" satisfies CalculateSeasonsSimulatorData["url"],
+  validator: zCalculateSeasonsSimulatorResponse,
+} satisfies ApiEndpoint<SeasonsCalculationResponse, CalculateSeasonsSimulatorData["url"]>;
 
 export type ValidationResult<T> = Readonly<{ data: T; valid: true }> | Readonly<{ valid: false }>;
 

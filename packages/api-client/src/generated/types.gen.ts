@@ -431,6 +431,107 @@ export type SearchMatchReason =
   | "alias_fuzzy";
 
 /**
+ * SeasonsCalculationResponse
+ *
+ * Complete public result for one Seasons Simulator evaluation.
+ */
+export type SeasonsCalculationResponse = {
+  /**
+   * Comparison Latitude Deg
+   */
+  comparison_latitude_deg: number;
+  /**
+   * Distance Over Semimajor Axis
+   */
+  distance_over_semimajor_axis: number;
+  /**
+   * Eccentricity
+   */
+  eccentricity: number;
+  inputs: SeasonsInputResponse;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  opposite_hemisphere: SeasonsLatitudeGeometryResponse;
+  /**
+   * Relative Solar Flux
+   */
+  relative_solar_flux: number;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  selected: SeasonsLatitudeGeometryResponse;
+  /**
+   * Solar Declination Deg
+   */
+  solar_declination_deg: number;
+};
+
+/**
+ * SeasonsInputResponse
+ *
+ * Normalized validated inputs echoed by the deterministic result.
+ */
+export type SeasonsInputResponse = {
+  /**
+   * Axial Tilt Deg
+   *
+   * Axial tilt in degrees.
+   */
+  axial_tilt_deg: number;
+  /**
+   * Eccentricity Preset
+   */
+  eccentricity_preset: "circular" | "earth" | "exaggerated";
+  /**
+   * Latitude Deg
+   *
+   * Observer latitude in degrees.
+   */
+  latitude_deg: number;
+  /**
+   * Orbital Position Deg
+   *
+   * Canonical idealized seasonal orbital position in degrees [0, 360).
+   */
+  orbital_position_deg: number;
+};
+
+/**
+ * SeasonsLatitudeGeometryResponse
+ *
+ * Solar-noon and geometric daylight outputs for one latitude.
+ */
+export type SeasonsLatitudeGeometryResponse = {
+  /**
+   * Day Length Hours
+   */
+  day_length_hours: number | null;
+  /**
+   * Illumination Incidence Deg
+   */
+  illumination_incidence_deg: number;
+  /**
+   * Latitude Deg
+   */
+  latitude_deg: number;
+  /**
+   * Noon Solar Zenith Deg
+   */
+  noon_solar_zenith_deg: number;
+  /**
+   * Noon Sun Altitude Deg
+   */
+  noon_sun_altitude_deg: number;
+  /**
+   * Polar State
+   */
+  polar_state: "none" | "polar_day" | "polar_night" | "horizon_all_day";
+};
+
+/**
  * SelectionHistoryPageResponse
  */
 export type SelectionHistoryPageResponse = {
@@ -1008,6 +1109,58 @@ export type SuggestCatalogEntitiesResponses = {
 
 export type SuggestCatalogEntitiesResponse =
   SuggestCatalogEntitiesResponses[keyof SuggestCatalogEntitiesResponses];
+
+export type CalculateSeasonsSimulatorData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Axial Tilt Deg
+     *
+     * Axial tilt in degrees, inclusive range 0 to 90.
+     */
+    axial_tilt_deg: number;
+    /**
+     * Orbital Position Deg
+     *
+     * Idealized seasonal orbital position in degrees, range [0, 360).
+     */
+    orbital_position_deg: number;
+    /**
+     * Latitude Deg
+     *
+     * Idealized geographic latitude in degrees, inclusive range -90 to 90.
+     */
+    latitude_deg: number;
+    /**
+     * Eccentricity Preset
+     *
+     * Reviewed eccentricity context preset.
+     */
+    eccentricity_preset: "circular" | "earth" | "exaggerated";
+  };
+  url: "/api/v1/simulations/seasons";
+};
+
+export type CalculateSeasonsSimulatorErrors = {
+  /**
+   * The Seasons model inputs are invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateSeasonsSimulatorError =
+  CalculateSeasonsSimulatorErrors[keyof CalculateSeasonsSimulatorErrors];
+
+export type CalculateSeasonsSimulatorResponses = {
+  /**
+   * Successful Response
+   */
+  200: SeasonsCalculationResponse;
+};
+
+export type CalculateSeasonsSimulatorResponse =
+  CalculateSeasonsSimulatorResponses[keyof CalculateSeasonsSimulatorResponses];
 
 export type LiveHealthLiveGetData = {
   body?: never;

@@ -15,7 +15,7 @@
   "dependencies": {
     "@lumina/api-client": "workspace:*",
     "astronomy-engine": "2.1.19",
-    "next": "16.2.12",
+    "next": "16.3.4",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "server-only": "0.0.1"
@@ -32,7 +32,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "16.3.4",
     "jest-axe": "11.0.0",
     "jsdom": "30.0.1",
     "tailwindcss": "4.3.3",

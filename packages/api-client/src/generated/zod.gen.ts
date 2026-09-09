@@ -216,6 +216,50 @@ export const zCatalogSearchResponse = z.object({
 });
 
 /**
+ * SeasonsInputResponse
+ *
+ * Normalized validated inputs echoed by the deterministic result.
+ */
+export const zSeasonsInputResponse = z.object({
+  axial_tilt_deg: z.number(),
+  eccentricity_preset: z.enum(["circular", "earth", "exaggerated"]),
+  latitude_deg: z.number(),
+  orbital_position_deg: z.number(),
+});
+
+/**
+ * SeasonsLatitudeGeometryResponse
+ *
+ * Solar-noon and geometric daylight outputs for one latitude.
+ */
+export const zSeasonsLatitudeGeometryResponse = z.object({
+  day_length_hours: z.number().nullable(),
+  illumination_incidence_deg: z.number(),
+  latitude_deg: z.number(),
+  noon_solar_zenith_deg: z.number(),
+  noon_sun_altitude_deg: z.number(),
+  polar_state: z.enum(["none", "polar_day", "polar_night", "horizon_all_day"]),
+});
+
+/**
+ * SeasonsCalculationResponse
+ *
+ * Complete public result for one Seasons Simulator evaluation.
+ */
+export const zSeasonsCalculationResponse = z.object({
+  comparison_latitude_deg: z.number(),
+  distance_over_semimajor_axis: z.number(),
+  eccentricity: z.number(),
+  inputs: zSeasonsInputResponse,
+  model_version: z.string(),
+  opposite_hemisphere: zSeasonsLatitudeGeometryResponse,
+  relative_solar_flux: z.number(),
+  schema_version: z.int(),
+  selected: zSeasonsLatitudeGeometryResponse,
+  solar_declination_deg: z.number(),
+});
+
+/**
  * SelectionState
  *
  * Public state of an immutable measurement relative to selection history.
@@ -399,6 +443,11 @@ export const zSearchCatalogEntitiesResponse = zCatalogSearchResponse;
  * Successful Response
  */
 export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateSeasonsSimulatorResponse = zSeasonsCalculationResponse;
 
 /**
  * Successful Response

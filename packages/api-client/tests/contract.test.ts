@@ -6,6 +6,7 @@ import {
   catalogEntityDetailEndpoint,
   catalogSuggestEndpoint,
   catalogSearchEndpoint,
+  seasonsSimulatorEndpoint,
   liveEndpoint,
   metaEndpoint,
   readyEndpoint,
@@ -16,6 +17,7 @@ import type {
   EntityBrowsePageResponse,
   EntitySummaryResponse,
   EntityType,
+  CalculateSeasonsSimulatorData,
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   LiveHealthLiveGetData,
@@ -44,6 +46,10 @@ describe("generated contract boundary", () => {
     expectTypeOf(liveEndpoint.path).toEqualTypeOf<LiveHealthLiveGetData["url"]>();
     expectTypeOf(readyEndpoint.path).toEqualTypeOf<ReadyHealthReadyGetData["url"]>();
     expectTypeOf(metaEndpoint.path).toEqualTypeOf<MetadataApiV1MetaGetData["url"]>();
+    expect(seasonsSimulatorEndpoint.method).toBe("GET");
+    expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
+      CalculateSeasonsSimulatorData["url"]
+    >();
   });
 
   it("accepts exact generated responses", () => {
@@ -228,5 +234,74 @@ describe("catalogue discovery endpoints", () => {
       }),
     });
     expect(detail.kind).toBe("ok");
+  });
+});
+
+describe("Seasons Simulator endpoint", () => {
+  const response = {
+    model_version: "seasons-simulator-v1",
+    schema_version: 1,
+    inputs: {
+      axial_tilt_deg: 23.43928,
+      orbital_position_deg: 90,
+      latitude_deg: 40,
+      eccentricity_preset: "earth" as const,
+    },
+    solar_declination_deg: 23.43928,
+    selected: {
+      latitude_deg: 40,
+      noon_solar_zenith_deg: 16.56072,
+      noon_sun_altitude_deg: 73.43928,
+      illumination_incidence_deg: 16.56072,
+      day_length_hours: 14.8444511275,
+      polar_state: "none" as const,
+    },
+    comparison_latitude_deg: -40,
+    opposite_hemisphere: {
+      latitude_deg: -40,
+      noon_solar_zenith_deg: 63.43928,
+      noon_sun_altitude_deg: 26.56072,
+      illumination_incidence_deg: 63.43928,
+      day_length_hours: 9.1555488725,
+      polar_state: "none" as const,
+    },
+    eccentricity: 0.01671123,
+    distance_over_semimajor_axis: 1.0162727707813541,
+    relative_solar_flux: 0.9682319752100141,
+  };
+
+  it("accepts the exact generated result shape through the transport boundary", async () => {
+    const result = await requestEndpoint(
+      "http://127.0.0.1:8000",
+      {
+        ...seasonsSimulatorEndpoint,
+        path: `${seasonsSimulatorEndpoint.path}?axial_tilt_deg=23.43928&orbital_position_deg=90&latitude_deg=40&eccentricity_preset=earth`,
+      },
+      {
+        fetchImplementation: () =>
+          Promise.resolve(
+            new Response(JSON.stringify(response), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            }),
+          ),
+      },
+    );
+
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("rejects additive fields in a scientific result", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", seasonsSimulatorEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, unexpected: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+
+    expect(result).toEqual({ kind: "malformed-response" });
   });
 });

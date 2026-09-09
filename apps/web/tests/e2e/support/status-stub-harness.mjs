@@ -12,7 +12,12 @@ if (coordinationFile === undefined || coordinationFile.length === 0) {
 
 const token = randomBytes(32).toString("hex");
 const sockets = new Set();
-const apiPaths = new Set(["/api/v1/meta", "/health/live", "/health/ready"]);
+const apiPaths = new Set([
+  "/api/v1/meta",
+  "/api/v1/simulations/seasons",
+  "/health/live",
+  "/health/ready",
+]);
 // Catalogue discovery endpoints carry query strings; matched by prefix below.
 const apiPathPrefixes = ["/api/v1/catalog/", "/api/v1/search"];
 const controlPaths = new Set([
@@ -113,6 +118,48 @@ const GAIA_SOURCE_IDS = new Map([
   ["c593bd18-c4bc-5551-8a41-09f1b501f981", "2835207319109249920"],
   ["403d0e71-8d81-5c52-abad-c4666c1b5cd6", "3910747531814692736"],
 ]);
+
+// Test-only Seasons fixtures. These are literal reviewed reference responses;
+// the harness never reimplements the Python model equations.
+const SEASONS_DEFAULT_FIXTURE = {
+  model_version: "seasons-simulator-v1",
+  schema_version: 1,
+  inputs: {
+    axial_tilt_deg: 23.43928,
+    orbital_position_deg: 90,
+    latitude_deg: 40,
+    eccentricity_preset: "earth",
+  },
+  solar_declination_deg: 23.43928,
+  selected: {
+    latitude_deg: 40,
+    noon_solar_zenith_deg: 16.56072,
+    noon_sun_altitude_deg: 73.43928,
+    illumination_incidence_deg: 16.56072,
+    day_length_hours: 14.8444511275,
+    polar_state: "none",
+  },
+  comparison_latitude_deg: -40,
+  opposite_hemisphere: {
+    latitude_deg: -40,
+    noon_solar_zenith_deg: 63.43928,
+    noon_sun_altitude_deg: 26.56072,
+    illumination_incidence_deg: 63.43928,
+    day_length_hours: 9.1555488725,
+    polar_state: "none",
+  },
+  eccentricity: 0.01671123,
+  distance_over_semimajor_axis: 1.0162727707813541,
+  relative_solar_flux: 0.9682319752100141,
+};
+
+const SEASONS_CIRCULAR_FIXTURE = {
+  ...SEASONS_DEFAULT_FIXTURE,
+  inputs: { ...SEASONS_DEFAULT_FIXTURE.inputs, eccentricity_preset: "circular" },
+  eccentricity: 0,
+  distance_over_semimajor_axis: 1,
+  relative_solar_flux: 1,
+};
 
 // Test-only schema-valid fixture for the planner's missing-coordinate state.
 // It is deliberately not included in the browse or suggestion slice.
@@ -425,6 +472,57 @@ function respondCatalogue(request, response, target) {
   sendFailure(response, 500);
 }
 
+function respondSeasons(response, target) {
+  const keys = [...target.searchParams.keys()];
+  const expectedKeys = [
+    "axial_tilt_deg",
+    "eccentricity_preset",
+    "latitude_deg",
+    "orbital_position_deg",
+  ];
+  const hasExactKeys =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key));
+  if (!hasExactKeys) {
+    sendJson(response, 422, {
+      error: {
+        code: "seasons.model_invalid",
+        message: "The Seasons fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+
+  const query = Object.fromEntries(target.searchParams.entries());
+  const isDefault =
+    query.axial_tilt_deg === "23.43928" &&
+    query.orbital_position_deg === "90" &&
+    query.latitude_deg === "40" &&
+    query.eccentricity_preset === "earth";
+  const isCircular =
+    query.axial_tilt_deg === "23.43928" &&
+    query.orbital_position_deg === "90" &&
+    query.latitude_deg === "40" &&
+    query.eccentricity_preset === "circular";
+  if (isDefault) {
+    sendJson(response, 200, SEASONS_DEFAULT_FIXTURE);
+    return;
+  }
+  if (isCircular) {
+    sendJson(response, 200, SEASONS_CIRCULAR_FIXTURE);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "seasons.model_invalid",
+      message: "The Seasons E2E fixture only exposes its reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 // The discovery suite performs real server-side reads through this stub. It
 // runs with fullyParallel workers, while the status suite toggles the stub
 // into disconnect mode; a worker's SSR fetch can therefore land in a
@@ -611,6 +709,7 @@ const stub = http.createServer(async (request, response) => {
 
   let unexpectedRequest = false;
   const isCataloguePath = apiPathPrefixes.some((prefix) => path.startsWith(prefix));
+  const isSeasonsPath = path === "/api/v1/simulations/seasons";
   if (!apiPaths.has(path) && !isCataloguePath) {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
@@ -619,7 +718,7 @@ const stub = http.createServer(async (request, response) => {
     recordViolation("unexpected-method");
     unexpectedRequest = true;
   }
-  if (target.search !== "" && !isCataloguePath) {
+  if (target.search !== "" && !isCataloguePath && !isSeasonsPath) {
     recordViolation("unexpected-query");
     unexpectedRequest = true;
   }
@@ -634,6 +733,10 @@ const stub = http.createServer(async (request, response) => {
     // always available. Keeping them outside the mode gate removes any
     // cross-suite scheduling race between the two specs.
     respondCatalogue(request, response, target);
+    return;
+  }
+  if (isSeasonsPath) {
+    respondSeasons(response, target);
     return;
   }
   if (mode === "disconnect") {

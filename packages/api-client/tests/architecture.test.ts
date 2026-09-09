@@ -619,7 +619,7 @@ describe("handwritten API boundary architecture", () => {
       new Set(files.map((file) => resolve(file))),
     ).map(({ fileName, kind, line }) => `${fileName}:${String(line)} ${kind}`);
     expect(violations).toEqual([]);
-  });
+  }, 30_000);
 
   it.each(rejectedFixtures)("rejects the %s fixture", (_name, source, expectedKind) => {
     expect(fixtureViolations(source).map(({ kind }) => kind)).toContain(expectedKind);

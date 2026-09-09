@@ -237,11 +237,12 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     ]
     assert next_nodes
     assert all(
-        node.get("version") == "16.2.12"
-        and _direct_dependency_version(node, "postcss") == "8.5.25"
-        and _direct_dependency_version(node, "sharp") == "0.35.0"
+        node.get("version") == "16.3.4"
+        and _direct_dependency_version(node, "postcss") == "8.5.23"
+        and _direct_dependency_version(node, "sharp") == "0.35.4"
         for node in next_nodes
     )
+    assert ("postcss", "8.5.23") in seen_versions
     assert ("postcss", "8.5.25") in seen_versions
     assert ("nanoid", "3.3.18") in seen_versions
 
@@ -334,17 +335,16 @@ def test_installed_next_sharp_is_the_remediated_virtual_store_copy_and_transform
     next_nodes = [node for name, node in _dependency_nodes(records) if name == "next"]
     assert len(next_nodes) == 1
     next_node = next_nodes[0]
-    assert next_node.get("version") == "16.2.12"
+    assert next_node.get("version") == "16.3.4"
     dependencies = next_node.get("dependencies")
     assert isinstance(dependencies, Mapping)
     sharp = dependencies.get("sharp")
     assert isinstance(sharp, Mapping)
-    assert sharp.get("version") == "0.35.0"
+    assert sharp.get("version") == "0.35.4"
     sharp_path = sharp.get("path")
     assert isinstance(sharp_path, str)
-    assert (
-        Path(sharp_path) == REPOSITORY_ROOT / "node_modules/.pnpm/sharp@0.35.0/node_modules/sharp"
-    )
+    sharp_virtual_store_package = Path(sharp_path).parent.parent.name
+    assert sharp_virtual_store_package.startswith("sharp@0.35.4")
 
     transform = _run(
         [
@@ -373,7 +373,7 @@ const input = Buffer.from([255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255]);
         cwd=REPOSITORY_ROOT,
     )
     result = json.loads(transform.stdout)
-    assert result["version"] == "0.35.0"
+    assert result["version"] == "0.35.4"
     assert result["format"] == "png"
     assert result["width"] == 1
     assert result["height"] == 1

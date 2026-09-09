@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException
 
 from lumina import __version__
+from lumina.astronomy.api.routes import router as astronomy_router
 from lumina.catalog.api.routes import router as catalog_router
 from lumina.catalog.api.routes import search_router
 from lumina.catalog.application.read import CatalogReadService
@@ -78,6 +79,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     )
     application.add_middleware(RequestContextMiddleware)
     application.include_router(router)
+    application.include_router(astronomy_router)
     application.include_router(catalog_router)
     application.include_router(search_router)
     return application

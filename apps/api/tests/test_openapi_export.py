@@ -53,6 +53,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
     document: dict[str, Any] = json.loads(first)
     assert set(document["paths"]) == {
         "/api/v1/meta",
+        "/api/v1/simulations/seasons",
         "/health/live",
         "/health/ready",
         "/api/v1/catalog/entities",
@@ -89,6 +90,25 @@ def test_catalog_navigation_openapi_is_singular_and_four_field() -> None:
     entity_type_parameter = entity_type_parameters[0]
     assert entity_type_parameter["required"] is False
     assert entity_type_parameter["schema"]["anyOf"][0]["$ref"] == "#/components/schemas/EntityType"
+
+
+def test_seasons_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/seasons"]["get"]
+
+    assert operation["operationId"] == "calculate_seasons_simulator"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/SeasonsCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "axial_tilt_deg",
+        "orbital_position_deg",
+        "latitude_deg",
+        "eccentricity_preset",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    assert set(document["paths"]["/api/v1/simulations/seasons"]) == {"get"}
 
 
 def test_export_does_not_open_network_or_database_connections(

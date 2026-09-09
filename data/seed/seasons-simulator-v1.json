@@ -1,0 +1,502 @@
+{
+  "artifact_version": 1,
+  "model_version": "seasons-simulator-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-09T00:00:00Z",
+  "definition": {
+    "slug": "seasons-simulator",
+    "title": "Seasons Simulator",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "audience_modes": ["explorer", "student", "deep-dive"],
+    "reviewed_by": ["Lumina seasons-simulator-v1 contract review"],
+    "reviewed_at": "2026-09-09T00:00:00Z",
+    "updated_at": "2026-09-09T00:00:00Z",
+    "model_version": "seasons-simulator-v1",
+    "learning_objectives": [
+      "Explain that axial tilt combined with orbital position changes solar declination during an orbit.",
+      "Connect solar declination and observer latitude to noon Sun altitude, incidence angle, geometric day length, and polar day or night.",
+      "Compare equal-and-opposite latitudes and explain why their seasonal solar geometry is reversed.",
+      "Demonstrate that eccentricity changes Earth-Sun distance and inverse-square flux context but does not create the opposite-hemisphere solar-geometry pattern produced by axial tilt.",
+      "Distinguish this conceptual geometry model from a date-specific ephemeris, weather, climate, surface temperature, and observed sunrise or sunset timing."
+    ],
+    "prerequisite_concepts": [
+      "latitude and hemispheres",
+      "angles in degrees",
+      "inverse-square relationship",
+      "solar declination"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "axial_tilt_deg",
+          "meaning": "Obliquity of the planet in degrees.",
+          "unit": "degree",
+          "valid_range": "0 <= axial_tilt_deg <= 90",
+          "default": 23.43928
+        },
+        {
+          "name": "orbital_position_deg",
+          "meaning": "Idealized seasonal orbital longitude.",
+          "unit": "degree",
+          "valid_range": "0 <= orbital_position_deg < 360",
+          "phase_convention": {
+            "0": "March equinox geometry",
+            "90": "June solstice geometry",
+            "180": "September equinox geometry",
+            "270": "December solstice geometry"
+          },
+          "default": 90
+        },
+        {
+          "name": "latitude_deg",
+          "meaning": "Idealized spherical geographic latitude; north is positive.",
+          "unit": "degree",
+          "valid_range": "-90 <= latitude_deg <= 90",
+          "default": 40
+        },
+        {
+          "name": "eccentricity_preset",
+          "meaning": "Closed set of reviewed distance-context presets.",
+          "unit": "dimensionless",
+          "valid_values": ["circular", "earth", "exaggerated"],
+          "default": "earth"
+        }
+      ],
+      "invalid_handling": "Reject non-finite values, booleans in numeric fields, out-of-range values, unknown presets, and unsupported serialized state without running the scientific calculation."
+    },
+    "default_preset": "June-solstice geometry at 40 degrees north with Earth eccentricity.",
+    "calculation_module": {
+      "canonical_units": ["degrees", "hours", "dimensionless"],
+      "relationships": [
+        "Solar declination depends on axial tilt and seasonal orbital position only.",
+        "Local-noon solar zenith angle depends on latitude and solar declination.",
+        "Noon incidence angle is the local-noon solar zenith angle measured from the outward surface normal.",
+        "Geometric day length uses the ideal point-Sun geometric horizon and a 24-hour mean solar day.",
+        "Eccentricity is excluded from solar geometry at a fixed orbital position.",
+        "Normalized distance uses a fixed Earth-like seasonal perihelion orientation.",
+        "Relative solar flux is the inverse square of normalized distance."
+      ],
+      "equations": {
+        "solar_declination": "delta = asin(sin(epsilon) * sin(lambda))",
+        "noon_zenith": "cos(z) = sin(phi) * sin(delta) + cos(phi) * cos(delta); z = acos(clamp(cos(z), -1, 1))",
+        "noon_altitude": "h_noon = 90 degrees - z",
+        "incidence_angle": "illumination_incidence_deg = noon_solar_zenith_deg",
+        "day_length_argument": "x = -sin(phi) * sin(delta) / (cos(phi) * cos(delta))",
+        "ordinary_day_length": "D = 24 * acos(x) / pi hours when -1 < x < 1",
+        "normalized_distance": "r_over_a = (1 - e^2) / (1 + e * cos(lambda - lambda_perihelion))",
+        "relative_solar_flux": "relative_solar_flux = 1 / (r_over_a^2)"
+      },
+      "valid_domain": "Python double-precision arithmetic; finite validated inputs; axial tilt and latitude are bounded in degrees; canonical orbital position is in [0, 360); eccentricity is selected from the reviewed closed preset set.",
+      "numerical_policy": "Clamp asin and acos arguments only to absorb floating-point roundoff. Fixture tolerances are 1e-9 degree for angles, 1e-9 hour for day length, and 1e-12 relative for dimensionless values; these are arithmetic tolerances, not observational accuracy claims.",
+      "canonical_module": "apps/api/src/lumina/astronomy/domain/seasons_simulator.py"
+    },
+    "output_schema": [
+      "model version and normalized validated inputs",
+      "solar declination",
+      "selected-latitude noon altitude, zenith or incidence angle, day length, and polar state",
+      "equal-and-opposite comparison latitude with independently calculated geometry",
+      "eccentricity value, normalized Earth-Sun distance, and inverse-square relative solar flux"
+    ],
+    "visualization_module": "The browser consumes canonical normalized outputs and applies only disclosed display transforms: normalized orbit coordinates, schematic parallel rays, angle arcs, and textual or bar comparisons. No browser formula reproduces the scientific model.",
+    "assumptions": [
+      "The planet is spherical and the observer is described by idealized geographic latitude.",
+      "The Sun's declination is fixed during one mean rotational cycle.",
+      "Local solar noon has hour angle zero.",
+      "Day length uses the Sun's centre, a geometric horizon, zero atmospheric refraction, no solar-disc radius, and no topographic horizon.",
+      "Earth-Sun distance is normalized by the semi-major axis; no absolute kilometre or AU value is manufactured.",
+      "The apsidal orientation is fixed to an Earth-like seasonal longitude for deterministic teaching context."
+    ],
+    "limitations": [
+      "This is an idealized geometric model, not a date-specific solar ephemeris.",
+      "Orbital position is a seasonal angle, not a calendar date, elapsed year fraction, or clock time.",
+      "The model does not calculate civil sunrise or sunset, equation of time, weather, climate, surface temperature, or absorbed heating.",
+      "Observed sunrise and sunset differ because real observations include atmospheric refraction, solar-disc size, terrain, and other effects.",
+      "The exaggerated eccentricity preset is a hypothetical teaching case and is not a claim about Earth or another named planet.",
+      "A constant-rate visual phase sweep is not a Kepler elapsed-time propagation and must not be described as days or months."
+    ],
+    "references": [
+      "nasa-space-place-seasons",
+      "nasa-earth-facts",
+      "jpl-approximate-planetary-elements",
+      "usno-sun-declination",
+      "usno-daylight-geometry",
+      "noaa-solar-calculator-details"
+    ],
+    "validation_fixtures": [
+      "equinox-40-north",
+      "june-solstice-40-north",
+      "december-solstice-40-north",
+      "equator-june-solstice",
+      "zero-tilt-distance-only",
+      "arctic-circle-boundary",
+      "pole-equinox-degeneracy",
+      "circular-orbit",
+      "earth-perihelion-distance",
+      "earth-aphelion-distance",
+      "exaggerated-eccentricity-distance"
+    ],
+    "share_schema_version": 1
+  },
+  "sources": [
+    {
+      "id": "nasa-space-place-seasons",
+      "title": "What Causes the Seasons?",
+      "organization_or_authors": "NASA Space Place",
+      "url": "https://spaceplace.nasa.gov/seasons/en/",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — official educational reference page.",
+      "record_reference": "Page-level explanation; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Official NASA educational source; Lumina links to the source and does not redistribute NASA media.",
+      "citation": "NASA Space Place, “What Causes the Seasons?”, accessed 2026-09-09.",
+      "claim_scope": "Educational explanation that Earth's seasons are primarily caused by axial tilt rather than distance from the Sun.",
+      "source_type": "official-education"
+    },
+    {
+      "id": "nasa-earth-facts",
+      "title": "Earth Facts",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/earth/facts/",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — official reference page.",
+      "record_reference": "Page-level Earth facts; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Official NASA factual/educational source; Lumina links to the source and does not redistribute NASA media.",
+      "citation": "NASA Science, “Earth Facts”, accessed 2026-09-09.",
+      "claim_scope": "Earth axial-tilt and annual seasonal context.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "jpl-approximate-planetary-elements",
+      "title": "Approximate Positions of the Planets",
+      "organization_or_authors": "NASA Jet Propulsion Laboratory Solar System Dynamics",
+      "url": "https://ssd.jpl.nasa.gov/planets/approx_pos.html",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Approximate planetary elements and position reference.",
+      "record_reference": "Earth/Moon barycenter row; J2000 obliquity reference in the page table.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "J2000 reference values as identified by source.",
+      "terms_or_licence": "Official JPL/NASA technical reference; Lumina cites the reviewed constants and links to the source.",
+      "citation": "NASA JPL Solar System Dynamics, “Approximate Positions of the Planets”, accessed 2026-09-09.",
+      "claim_scope": "Reviewed Earth/Moon-barycenter eccentricity, longitude of perihelion, and J2000 obliquity constants used by this idealized model.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "usno-sun-declination",
+      "title": "Approximate Solar Coordinates",
+      "organization_or_authors": "U.S. Naval Observatory",
+      "url": "https://aa.usno.navy.mil/faq/sun_approx",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — official astronomical reference page.",
+      "record_reference": "Page-level solar-coordinate definitions; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Official U.S. government reference; Lumina links to the source and uses it for supporting terminology and comparison only.",
+      "citation": "U.S. Naval Observatory, “Approximate Solar Coordinates”, accessed 2026-09-09.",
+      "claim_scope": "Supporting definitions for solar declination and solar-coordinate geometry; not the Lumina date-specific calculation.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "usno-daylight-geometry",
+      "title": "Rise, Set, and Twilight Definitions",
+      "organization_or_authors": "U.S. Naval Observatory",
+      "url": "https://aa.usno.navy.mil/faq/rs_solstices",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — official astronomical reference page.",
+      "record_reference": "Page-level daylight-geometry reference; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Official U.S. government reference; Lumina links to the source and uses it for supporting geometric comparison only.",
+      "citation": "U.S. Naval Observatory, “Rise, Set, and Twilight Definitions”, accessed 2026-09-09.",
+      "claim_scope": "Supporting daylight and horizon geometry context; Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "noaa-solar-calculator-details",
+      "title": "Solar Position Algorithm Details",
+      "organization_or_authors": "NOAA Global Monitoring Laboratory",
+      "url": "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
+      "accessed_at": "2026-09-09",
+      "dataset_or_release": "Not applicable — official technical reference page.",
+      "record_reference": "Page-level calculation details; no stable record identifier supplied.",
+      "retrieved_at": "2026-09-09",
+      "data_date": "Not stated by source.",
+      "terms_or_licence": "Official NOAA technical reference; Lumina links to the source for supporting comparison and disclosure.",
+      "citation": "NOAA Global Monitoring Laboratory, “Solar Position Algorithm Details”, accessed 2026-09-09.",
+      "claim_scope": "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Lumina v1; NOAA fractional-year declination is not used.",
+      "source_type": "official-agency"
+    }
+  ],
+  "constants": {
+    "EARTH_OBLIQUITY_J2000_DEG": 23.43928,
+    "EARTH_ECCENTRICITY": 0.01671123,
+    "EARTH_PERIHELION_LONGITUDE_DEG": 102.93768193,
+    "PERIHELION_SEASONAL_LONGITUDE_DEG": 282.93768193,
+    "MEAN_SOLAR_DAY_HOURS": 24.0,
+    "CIRCULAR_ECCENTRICITY": 0.0,
+    "EXAGGERATED_ECCENTRICITY": 0.1
+  },
+  "presets": {
+    "circular": 0.0,
+    "earth": 0.01671123,
+    "exaggerated": 0.1
+  },
+  "validation_fixtures": [
+    {
+      "id": "equinox-40-north",
+      "purpose": "Independent equinox geometry at equal-and-opposite forty-degree latitudes.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 0.0,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "solar_declination_deg": 0.0,
+        "selected": {
+          "noon_sun_altitude_deg": 50.0,
+          "illumination_incidence_deg": 40.0,
+          "day_length_hours": 12.0,
+          "polar_state": "none"
+        },
+        "opposite_hemisphere": {
+          "noon_sun_altitude_deg": 50.0,
+          "illumination_incidence_deg": 40.0,
+          "day_length_hours": 12.0,
+          "polar_state": "none"
+        }
+      }
+    },
+    {
+      "id": "june-solstice-40-north",
+      "purpose": "Independent June-solstice hemispheric contrast at forty degrees north and south.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 90.0,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "solar_declination_deg": 23.43928,
+        "selected": {
+          "noon_sun_altitude_deg": 73.43928,
+          "illumination_incidence_deg": 16.56072,
+          "day_length_hours": 14.8444511275,
+          "polar_state": "none"
+        },
+        "opposite_hemisphere": {
+          "noon_sun_altitude_deg": 26.56072,
+          "illumination_incidence_deg": 63.43928,
+          "day_length_hours": 9.1555488725,
+          "polar_state": "none"
+        }
+      }
+    },
+    {
+      "id": "december-solstice-40-north",
+      "purpose": "Independent December-solstice swap of the June equal-and-opposite geometry.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 270.0,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "solar_declination_deg": -23.43928,
+        "selected": {
+          "noon_sun_altitude_deg": 26.56072,
+          "illumination_incidence_deg": 63.43928,
+          "day_length_hours": 9.1555488725,
+          "polar_state": "none"
+        },
+        "opposite_hemisphere": {
+          "noon_sun_altitude_deg": 73.43928,
+          "illumination_incidence_deg": 16.56072,
+          "day_length_hours": 14.8444511275,
+          "polar_state": "none"
+        }
+      }
+    },
+    {
+      "id": "equator-june-solstice",
+      "purpose": "Equatorial twelve-hour day and solstitial noon geometry.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 90.0,
+        "latitude_deg": 0.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "solar_declination_deg": 23.43928,
+        "selected": {
+          "noon_sun_altitude_deg": 66.56072,
+          "illumination_incidence_deg": 23.43928,
+          "day_length_hours": 12.0,
+          "polar_state": "none"
+        }
+      }
+    },
+    {
+      "id": "zero-tilt-distance-only",
+      "purpose": "Required teaching comparison showing distance context without seasonal solar geometry.",
+      "input": {
+        "axial_tilt_deg": 0.0,
+        "orbital_position_deg": 90.0,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "exaggerated"
+      },
+      "expected": {
+        "solar_declination_deg": 0.0,
+        "selected": {
+          "noon_sun_altitude_deg": 50.0,
+          "illumination_incidence_deg": 40.0,
+          "day_length_hours": 12.0,
+          "polar_state": "none"
+        },
+        "opposite_hemisphere": {
+          "noon_sun_altitude_deg": 50.0,
+          "illumination_incidence_deg": 40.0,
+          "day_length_hours": 12.0,
+          "polar_state": "none"
+        }
+      }
+    },
+    {
+      "id": "arctic-circle-boundary",
+      "purpose": "Idealized Arctic-circle boundary classification at both solstices.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 90.0,
+        "latitude_deg": 66.56072,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "june": {
+          "day_length_hours": 24.0,
+          "polar_state": "polar_day"
+        },
+        "december": {
+          "day_length_hours": 0.0,
+          "polar_state": "polar_night",
+          "noon_sun_altitude_deg": 0.0
+        }
+      }
+    },
+    {
+      "id": "pole-equinox-degeneracy",
+      "purpose": "Exact point-Sun pole and equinox horizon-all-day degeneracy.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 0.0,
+        "latitude_deg": 90.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "north": {
+          "noon_sun_altitude_deg": 0.0,
+          "polar_state": "horizon_all_day",
+          "day_length_hours": null
+        },
+        "south": {
+          "noon_sun_altitude_deg": 0.0,
+          "polar_state": "horizon_all_day",
+          "day_length_hours": null
+        }
+      }
+    },
+    {
+      "id": "circular-orbit",
+      "purpose": "Circular distance context remains exactly normalized at every phase.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 90.0,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "circular"
+      },
+      "expected": {
+        "distance_over_semimajor_axis": 1.0,
+        "relative_solar_flux": 1.0
+      }
+    },
+    {
+      "id": "earth-perihelion-distance",
+      "purpose": "Earth preset normalized distance and inverse-square flux at seasonal perihelion.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 282.93768193,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "distance_over_semimajor_axis": 0.98328877,
+        "relative_solar_flux": 1.034279321
+      }
+    },
+    {
+      "id": "earth-aphelion-distance",
+      "purpose": "Earth preset normalized distance and inverse-square flux at the opposite orbital point.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 102.93768193,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "earth"
+      },
+      "expected": {
+        "distance_over_semimajor_axis": 1.01671123,
+        "relative_solar_flux": 0.9673970504
+      }
+    },
+    {
+      "id": "exaggerated-eccentricity-distance",
+      "purpose": "Hypothetical exaggerated preset makes the secondary distance effect visible without changing tilt geometry.",
+      "input": {
+        "axial_tilt_deg": 23.43928,
+        "orbital_position_deg": 282.93768193,
+        "latitude_deg": 40.0,
+        "eccentricity_preset": "exaggerated"
+      },
+      "expected": {
+        "perihelion": {
+          "distance_over_semimajor_axis": 0.9,
+          "relative_solar_flux": 1.2345679012
+        },
+        "aphelion": {
+          "distance_over_semimajor_axis": 1.1,
+          "relative_solar_flux": 0.826446281
+        }
+      }
+    }
+  ],
+  "scientific_validation": {
+    "id": "seasons-simulator-independent-validation-v1",
+    "checked_at": "2026-09-09T00:00:00Z",
+    "method": "Literal known-case expectations are transcribed from the reviewed Seasons Simulator contract and source-backed constants. Python tests assert those values independently of the production implementation formula; boundary, symmetry, and eccentricity-isolation cases are also exercised.",
+    "tools": [
+      {
+        "name": "Python pytest",
+        "version": "Repository-pinned pytest 9.1.1",
+        "role": "Independent contract and boundary assertions using literal scientific reference values."
+      }
+    ],
+    "source_ids": [
+      "nasa-space-place-seasons",
+      "nasa-earth-facts",
+      "jpl-approximate-planetary-elements",
+      "usno-sun-declination",
+      "usno-daylight-geometry",
+      "noaa-solar-calculator-details"
+    ],
+    "test_references": [
+      "seasons-simulator-independent-known-cases",
+      "seasons-simulator-polar-boundaries",
+      "seasons-simulator-eccentricity-isolation",
+      "seasons-simulator-state-and-artifact-integrity"
+    ]
+  }
+}

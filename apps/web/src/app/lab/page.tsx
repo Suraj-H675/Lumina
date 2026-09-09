@@ -18,6 +18,12 @@ const labs = [
     description:
       "Explore idealized visual telescope, eyepiece, focal-modifier, field, and exit-pupil geometry.",
   },
+  {
+    href: "/lab/hr-diagram-explorer",
+    title: "H-R Diagram Explorer",
+    description:
+      "Explore a curated Gaia DR3 stellar sample across physical H-R and Gaia colour–magnitude views.",
+  },
 ] as const;
 
 export const metadata = {
@@ -43,7 +49,7 @@ export default function LabPage() {
       </header>
 
       <nav aria-label="Implemented laboratories">
-        <ul className="m-0 grid list-none gap-5 p-0 md:grid-cols-3">
+        <ul className="m-0 grid list-none gap-5 p-0 md:grid-cols-2 xl:grid-cols-4">
           {labs.map((lab) => (
             <li className="flex" key={lab.href}>
               <Link

@@ -10,13 +10,14 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Lab section navigation", () => {
-  it("lists only the three implemented labs", () => {
+  it("lists only the four implemented labs", () => {
     const markup = renderToStaticMarkup(<LabPage />);
 
     expect(markup).toContain('href="/lab/scale-explorer"');
     expect(markup).toContain('href="/lab/seasons-simulator"');
     expect(markup).toContain('href="/lab/telescope-builder"');
-    expect(markup).not.toContain("H-R Diagram");
+    expect(markup).toContain('href="/lab/hr-diagram-explorer"');
+    expect(markup).toContain("H-R Diagram Explorer");
     expect(markup).not.toContain("Coming soon");
   });
 

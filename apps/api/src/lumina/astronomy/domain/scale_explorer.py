@@ -57,6 +57,29 @@ _SOURCE_IDS: Final = (
     "nasa-observable-universe-size",
     "nasa-light-year",
 )
+_EXPECTED_SOURCE_METADATA: Final[dict[str, tuple[str, str]]] = {
+    "nasa-solar-system-sizes": (
+        "https://science.nasa.gov/resource/solar-system-sizes/",
+        "Solar System Sizes",
+    ),
+    "nasa-moon-lithograph": (
+        "https://science.nasa.gov/wp-content/uploads/2024/01/62217main-moon-lithograph.pdf",
+        "Moon lithograph: fast facts",
+    ),
+    "nasa-sun-facts": ("https://science.nasa.gov/sun/facts/", "Our Sun: Facts"),
+    "nasa-milky-way-size": (
+        "https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/",
+        "Our Milky Way Galaxy: How Big is Space?",
+    ),
+    "nasa-observable-universe-size": (
+        "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/",
+        "How Big is Space? We Asked a NASA Expert",
+    ),
+    "nasa-light-year": (
+        "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
+        "What is a light-year?",
+    ),
+}
 _OFFICIAL_SOURCE_HOSTS: Final = frozenset({"science.nasa.gov", "www.nasa.gov"})
 
 
@@ -591,7 +614,15 @@ def load_reviewed_scale_explorer_inputs(
             or _string(source, "source_type") not in {"official-agency", "official-education"}
         ):
             raise ScaleExplorerModelError()
-        source_ids.append(_string(source, "id"))
+        source_id = _string(source, "id")
+        expected = _EXPECTED_SOURCE_METADATA.get(source_id)
+        if (
+            expected is None
+            or _string(source, "url") != expected[0]
+            or _string(source, "title") != expected[1]
+        ):
+            raise ScaleExplorerModelError()
+        source_ids.append(source_id)
     if tuple(source_ids) != _SOURCE_IDS or len(set(source_ids)) != len(source_ids):
         raise ScaleExplorerModelError()
 

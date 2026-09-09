@@ -322,7 +322,15 @@ def _write_artifact(root: Path, artifact: dict[str, object]) -> None:
 
 
 def test_reviewed_artifact_mutations_fail_closed(tmp_path: Path) -> None:
-    for mutation in ("ratio", "position", "definition", "source", "fixture"):
+    for mutation in (
+        "ratio",
+        "position",
+        "definition",
+        "source",
+        "source-title",
+        "source-url",
+        "fixture",
+    ):
         artifact = _independent_artifact()
         if mutation == "ratio":
             pairs = artifact["pairwise_ratios"]
@@ -354,6 +362,18 @@ def test_reviewed_artifact_mutations_fail_closed(tmp_path: Path) -> None:
             source = sources[0]
             assert isinstance(source, dict)
             source["id"] = "unreviewed-source"
+        elif mutation == "source-title":
+            sources = artifact["sources"]
+            assert isinstance(sources, list)
+            source = sources[0]
+            assert isinstance(source, dict)
+            source["title"] = "A different official page"
+        elif mutation == "source-url":
+            sources = artifact["sources"]
+            assert isinstance(sources, list)
+            source = sources[0]
+            assert isinstance(source, dict)
+            source["url"] = "https://science.nasa.gov/sun/facts/"
         else:
             fixtures = artifact["validation_fixtures"]
             assert isinstance(fixtures, list)

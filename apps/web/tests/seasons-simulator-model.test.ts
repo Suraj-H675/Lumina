@@ -116,6 +116,20 @@ describe("Seasons Simulator reviewed artifact and state boundary", () => {
     expect(() => validateSeasonsArtifact(mutated)).toThrow(SeasonsArtifactValidationError);
   });
 
+  it("rejects source metadata rebound to another official page", () => {
+    for (const [field, value] of [
+      ["title", "A different official page"],
+      ["url", "https://science.nasa.gov/earth/facts/"],
+    ] as const) {
+      const mutated = structuredClone(rawSeasonsArtifact) as {
+        sources: Array<Record<string, unknown>>;
+      };
+      mutated.sources[0]![field] = value;
+
+      expect(() => validateSeasonsArtifact(mutated)).toThrow(SeasonsArtifactValidationError);
+    }
+  });
+
   it("accepts the exact default state and emits the canonical share schema", () => {
     expect(validateSeasonsState(DEFAULT_SEASONS_STATE)).toEqual(DEFAULT_SEASONS_STATE);
     expect(encodeSeasonsState(DEFAULT_SEASONS_STATE)).toBe(

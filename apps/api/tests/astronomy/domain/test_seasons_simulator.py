@@ -341,6 +341,33 @@ def test_reviewed_artifact_rejects_duplicate_json_keys(tmp_path: Path) -> None:
         load_reviewed_seasons_artifact(repository_root=tmp_path)
 
 
+def test_reviewed_artifact_rejects_rebound_source_metadata(tmp_path: Path) -> None:
+    artifact_path = tmp_path / "data/seed/seasons-simulator-v1.json"
+    artifact_path.parent.mkdir(parents=True)
+
+    for field, value in (
+        ("title", "A different official page"),
+        ("url", "https://science.nasa.gov/earth/facts/"),
+    ):
+        artifact = cast(
+            dict[str, object],
+            json.loads(
+                (_REPOSITORY_ROOT / "data/seed/seasons-simulator-v1.json").read_text(
+                    encoding="utf-8"
+                )
+            ),
+        )
+        sources = artifact["sources"]
+        assert isinstance(sources, list)
+        source = sources[0]
+        assert isinstance(source, dict)
+        source[field] = value
+        artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+        with pytest.raises(SeasonsModelError, match="^SEASONS_MODEL_INVALID$"):
+            load_reviewed_seasons_artifact(repository_root=tmp_path)
+
+
 def test_reviewed_artifact_is_valid_json_for_independent_readers() -> None:
     artifact_path = _REPOSITORY_ROOT / "data/seed/seasons-simulator-v1.json"
     decoded = json.loads(artifact_path.read_text(encoding="utf-8"))

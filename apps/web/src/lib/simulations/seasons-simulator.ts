@@ -258,6 +258,33 @@ const SOURCE_IDS = [
   "noaa-solar-calculator-details",
 ] as const;
 
+const SOURCE_METADATA: Readonly<Record<string, Readonly<{ url: string; title: string }>>> = {
+  "nasa-space-place-seasons": {
+    url: "https://spaceplace.nasa.gov/seasons/en/",
+    title: "What Causes the Seasons?",
+  },
+  "nasa-earth-facts": {
+    url: "https://science.nasa.gov/earth/facts/",
+    title: "Earth Facts",
+  },
+  "jpl-approximate-planetary-elements": {
+    url: "https://ssd.jpl.nasa.gov/planets/approx_pos.html",
+    title: "Approximate Positions of the Planets",
+  },
+  "usno-sun-declination": {
+    url: "https://aa.usno.navy.mil/faq/sun_approx",
+    title: "Computing Approximate Solar Coordinates",
+  },
+  "usno-daylight-geometry": {
+    url: "https://aa.usno.navy.mil/faq/rs_solstices",
+    title: "Sunrise and Sunset Times Near the Solstices",
+  },
+  "noaa-solar-calculator-details": {
+    url: "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
+    title: "Solar Calculation Details",
+  },
+};
+
 const FIXTURE_IDS = [
   "equinox-40-north",
   "june-solstice-40-north",
@@ -372,6 +399,14 @@ export function validateSeasonsArtifact(value: unknown): asserts value is Season
       !isNonEmptyString(source.citation) ||
       !isNonEmptyString(source.claim_scope) ||
       (source.source_type !== "official-agency" && source.source_type !== "official-education")
+    ) {
+      failArtifact();
+    }
+    const expectedSource = SOURCE_METADATA[source.id];
+    if (
+      expectedSource === undefined ||
+      source.url !== expectedSource.url ||
+      source.title !== expectedSource.title
     ) {
       failArtifact();
     }

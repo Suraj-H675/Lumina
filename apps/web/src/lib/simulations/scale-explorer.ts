@@ -226,6 +226,33 @@ export type ScaleExplorerValidationFixture = Readonly<{
 
 const SCALE_EXPLORER_ARTIFACT = scaleExplorerArtifact as ScaleExplorerArtifact;
 
+const SOURCE_METADATA: Readonly<Record<string, Readonly<{ url: string; title: string }>>> = {
+  "nasa-solar-system-sizes": {
+    url: "https://science.nasa.gov/resource/solar-system-sizes/",
+    title: "Solar System Sizes",
+  },
+  "nasa-moon-lithograph": {
+    url: "https://science.nasa.gov/wp-content/uploads/2024/01/62217main-moon-lithograph.pdf",
+    title: "Moon lithograph: fast facts",
+  },
+  "nasa-sun-facts": {
+    url: "https://science.nasa.gov/sun/facts/",
+    title: "Our Sun: Facts",
+  },
+  "nasa-milky-way-size": {
+    url: "https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/",
+    title: "Our Milky Way Galaxy: How Big is Space?",
+  },
+  "nasa-observable-universe-size": {
+    url: "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/",
+    title: "How Big is Space? We Asked a NASA Expert",
+  },
+  "nasa-light-year": {
+    url: "https://science.nasa.gov/exoplanets/what-is-a-light-year/",
+    title: "What is a light-year?",
+  },
+};
+
 export const SCALE_EXPLORER_SOURCES = SCALE_EXPLORER_ARTIFACT.sources;
 export const SCALE_EXPLORER_NODES = SCALE_EXPLORER_ARTIFACT.nodes;
 export const SCALE_EXPLORER_VALIDATION_FIXTURES = SCALE_EXPLORER_ARTIFACT.validation_fixtures;
@@ -555,6 +582,14 @@ export function validateScaleExplorerArtifact(value: unknown): void {
       (rawSource.source_type !== "official-agency" &&
         rawSource.source_type !== "official-education") ||
       sourceIds.has(rawSource.id)
+    ) {
+      throw new Error("SCALE_EXPLORER_MODEL_INVALID");
+    }
+    const expectedSource = SOURCE_METADATA[rawSource.id];
+    if (
+      expectedSource === undefined ||
+      rawSource.url !== expectedSource.url ||
+      rawSource.title !== expectedSource.title
     ) {
       throw new Error("SCALE_EXPLORER_MODEL_INVALID");
     }

@@ -509,6 +509,20 @@ describe("Scale Explorer model", () => {
         },
       },
       {
+        name: "source-title",
+        mutate: (artifact) => {
+          arrayItem(artifact.sources, (item) => item.id === "nasa-solar-system-sizes").title =
+            "A different official page";
+        },
+      },
+      {
+        name: "source-url",
+        mutate: (artifact) => {
+          arrayItem(artifact.sources, (item) => item.id === "nasa-solar-system-sizes").url =
+            "https://science.nasa.gov/sun/facts/";
+        },
+      },
+      {
         name: "fixture",
         mutate: (artifact) => {
           const fixture = arrayItem(

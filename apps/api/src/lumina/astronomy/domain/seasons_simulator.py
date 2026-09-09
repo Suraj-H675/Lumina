@@ -62,6 +62,29 @@ _SOURCE_IDS: Final = frozenset(
         "noaa-solar-calculator-details",
     }
 )
+_EXPECTED_SOURCE_METADATA: Final[dict[str, tuple[str, str]]] = {
+    "nasa-space-place-seasons": (
+        "https://spaceplace.nasa.gov/seasons/en/",
+        "What Causes the Seasons?",
+    ),
+    "nasa-earth-facts": ("https://science.nasa.gov/earth/facts/", "Earth Facts"),
+    "jpl-approximate-planetary-elements": (
+        "https://ssd.jpl.nasa.gov/planets/approx_pos.html",
+        "Approximate Positions of the Planets",
+    ),
+    "usno-sun-declination": (
+        "https://aa.usno.navy.mil/faq/sun_approx",
+        "Computing Approximate Solar Coordinates",
+    ),
+    "usno-daylight-geometry": (
+        "https://aa.usno.navy.mil/faq/rs_solstices",
+        "Sunrise and Sunset Times Near the Solstices",
+    ),
+    "noaa-solar-calculator-details": (
+        "https://www.gml.noaa.gov/grad/solcalc/calcdetails.html",
+        "Solar Calculation Details",
+    ),
+}
 _VALIDATION_FIXTURE_IDS: Final = frozenset(
     {
         "equinox-40-north",
@@ -336,6 +359,9 @@ def _validate_source(source: object) -> str:
     )
     source_id = _string(mapping["id"])
     if source_id not in _SOURCE_IDS:
+        raise SeasonsModelError()
+    expected = _EXPECTED_SOURCE_METADATA.get(source_id)
+    if expected is None or mapping["url"] != expected[0] or mapping["title"] != expected[1]:
         raise SeasonsModelError()
     parsed = urlparse(_string(mapping["url"]))
     if parsed.scheme != "https" or parsed.hostname not in _OFFICIAL_SOURCE_HOSTS:

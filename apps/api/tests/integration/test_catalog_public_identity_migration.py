@@ -302,7 +302,7 @@ def _with_fixture_graph(
 
 def test_lineage_and_protected_history_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == ["c9f6a2b3d4e5"]
+    assert script.get_heads() == ["d7e8f9a0b1c2"]
     assert script.get_revision(_REVISION).down_revision == _PARENT_REVISION
     root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
     assert {

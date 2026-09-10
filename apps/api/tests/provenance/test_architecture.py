@@ -81,11 +81,14 @@ def test_fake_is_outside_wheel_and_only_tests_import_it() -> None:
         if "fakes.provider_runtime" in path.read_text(encoding="utf-8")
     ]
     assert runtime_production_importers == []
-    runtime_test_importers = [
-        path.relative_to(_API_ROOT).as_posix()
-        for path in (_API_ROOT / "tests").rglob("*.py")
-        if path != Path(__file__) and "fakes.provider_runtime" in path.read_text(encoding="utf-8")
-    ]
+    runtime_test_importers = sorted(
+        [
+            path.relative_to(_API_ROOT).as_posix()
+            for path in (_API_ROOT / "tests").rglob("*.py")
+            if path != Path(__file__)
+            and "fakes.provider_runtime" in path.read_text(encoding="utf-8")
+        ]
+    )
     assert runtime_test_importers == [
         "tests/integration/test_provider_runtime.py",
         "tests/provenance/test_phase4a_provider_runtime.py",

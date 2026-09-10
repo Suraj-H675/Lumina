@@ -269,7 +269,8 @@ def _effective_runtime_acl(
             for privilege, granted in connection.execute(
                 sa.text(
                     "SELECT privilege_name, "
-                    "has_table_privilege(:role, format('public.%I', :table), privilege_name) "
+                    "has_table_privilege(:role, "
+                    "format('public.%I', CAST(:table AS text)), privilege_name) "
                     "FROM unnest(CAST(:privileges AS text[])) AS privilege_name"
                 ),
                 {
@@ -285,11 +286,12 @@ def _effective_runtime_acl(
             for attribute, privilege, granted in connection.execute(
                 sa.text(
                     "SELECT attribute.attname, privilege_name, "
-                    "has_column_privilege(:role, format('public.%I', :table), "
+                    "has_column_privilege(:role, format('public.%I', CAST(:table AS text)), "
                     "attribute.attname, privilege_name) "
                     "FROM pg_attribute AS attribute "
                     "CROSS JOIN unnest(CAST(:privileges AS text[])) AS privilege_name "
-                    "WHERE attribute.attrelid = format('public.%I', :table)::regclass "
+                    "WHERE attribute.attrelid = "
+                    "format('public.%I', CAST(:table AS text))::regclass "
                     "AND attribute.attnum > 0 AND NOT attribute.attisdropped"
                 ),
                 {
@@ -312,7 +314,7 @@ def _expected_effective_acl(
         columns = connection.execute(
             sa.text(
                 "SELECT attribute.attname FROM pg_attribute AS attribute "
-                "WHERE attribute.attrelid = format('public.%I', :table)::regclass "
+                "WHERE attribute.attrelid = format('public.%I', CAST(:table AS text))::regclass "
                 "AND attribute.attnum > 0 AND NOT attribute.attisdropped"
             ),
             {"table": table_name},
@@ -340,7 +342,8 @@ def _assert_public_acl(connection: Connection) -> None:
         for privilege in _ALL_TABLE_PRIVILEGES:
             if connection.execute(
                 sa.text(
-                    "SELECT has_table_privilege('public', format('public.%I', :table), :privilege)"
+                    "SELECT has_table_privilege('public', "
+                    "format('public.%I', CAST(:table AS text)), :privilege)"
                 ),
                 {"table": table, "privilege": privilege},
             ).scalar_one():

@@ -218,13 +218,17 @@ def test_provider_runtime_acl_is_least_privilege(
             }:
                 actual = connection.execute(
                     text(
-                        "SELECT has_table_privilege(:role, format('public.%I', :table), :privilege)"
+                        "SELECT has_table_privilege(:role, "
+                        "format('public.%I', CAST(:table AS text)), :privilege)"
                     ),
                     {"role": runtime_role, "table": table, "privilege": privilege},
                 ).scalar_one()
                 assert bool(actual) is (privilege in expected)
             public_select = connection.execute(
-                text("SELECT has_table_privilege('public', format('public.%I', :table), 'SELECT')"),
+                text(
+                    "SELECT has_table_privilege('public', "
+                    "format('public.%I', CAST(:table AS text)), 'SELECT')"
+                ),
                 {"table": table},
             ).scalar_one()
             assert bool(public_select) is False

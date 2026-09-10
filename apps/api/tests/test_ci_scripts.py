@@ -980,7 +980,7 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "d7e8f9a0b1c2_create_provider_runtime.py",
             "d7e8f9a0b1c2",
             "c9f6a2b3d4e5",
-            "e6685899368078ae9e3815d42498df6579c7d7a841d6b2bf036b2f36ab48bac0",
+            "2c2fd5ad13133164484923280ac52868b0d7859cb4bb19baf5e6a67ed7db0e14",
         ),
     ]
     assert actual_contracts == expected_contracts

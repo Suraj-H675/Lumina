@@ -34,7 +34,7 @@ def test_exact_job_state_and_type_inventory() -> None:
         "failed",
         "dead_letter",
     }
-    assert list(JobType) == [JobType.SYSTEM_NOOP]
+    assert list(JobType) == [JobType.SYSTEM_NOOP, JobType.PROVIDER_SYNC]
 
 
 @pytest.mark.parametrize(
@@ -106,8 +106,9 @@ def test_max_attempts_rejects_existing_constraint_violations(attempts: int) -> N
         validate_max_attempts(attempts)
 
 
-def test_only_noop_job_type_is_accepted() -> None:
+def test_only_approved_job_types_are_accepted() -> None:
     assert validate_job_type("system.noop") is JobType.SYSTEM_NOOP
+    assert validate_job_type("provider.sync") is JobType.PROVIDER_SYNC
     with pytest.raises(JobValidationError, match="not supported"):
         validate_job_type("system.unknown")
 

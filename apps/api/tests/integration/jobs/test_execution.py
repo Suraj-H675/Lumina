@@ -17,6 +17,7 @@ from lumina.jobs.application.execution import ExecuteOneJobService, JobProcessed
 from lumina.jobs.application.failure import FailJobService
 from lumina.jobs.application.handlers import (
     StaticHandlerRegistry,
+    SystemNoopHandler,
     production_handler_registry,
 )
 from lumina.jobs.application.heartbeat import HeartbeatJobService
@@ -41,6 +42,14 @@ from ..migration_lifecycle import run_migration_operation
 
 _OWNER = "worker.integration.12345678-1234-4234-9234-123456789abc"
 _FOREIGN_OWNER = "worker.integration.foreign"
+
+
+def _noop_production_registry() -> StaticHandlerRegistry:
+    provider_sync = SystemNoopHandler()
+    return production_handler_registry(
+        provider_sync=provider_sync,
+        provider_sync_validator=provider_sync.validate_payload,
+    )
 
 
 def _guarded_execute(
@@ -298,7 +307,7 @@ async def test_successful_noop_claims_and_completes_without_payload_echo(
 
     outcome = await _executor(
         execution_runtime,
-        registry=production_handler_registry(),
+        registry=_noop_production_registry(),
     ).execute()
     row = _row(integration_settings, enqueued.id)
 
@@ -337,7 +346,7 @@ async def test_unsupported_and_incompatible_claims_use_canonical_terminal_failur
 
     await _executor(
         execution_runtime,
-        registry=production_handler_registry(),
+        registry=_noop_production_registry(),
     ).execute()
     row = _row(integration_settings, identifier)
 

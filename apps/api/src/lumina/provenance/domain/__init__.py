@@ -12,9 +12,13 @@ from .manifests import (
 from .provider import (
     ProviderAdapter,
     ProviderContractError,
+    ProviderFetchError,
+    ProviderFetchTimeout,
+    ProviderFetchUnavailable,
     ProviderNormalizationFailed,
     ProviderPayloadInvalid,
     ProviderRequestRejected,
+    ProviderRuntimeAdapter,
 )
 
 __all__ = [
@@ -24,9 +28,13 @@ __all__ = [
     "ManifestContractError",
     "ProviderAdapter",
     "ProviderContractError",
+    "ProviderFetchError",
+    "ProviderFetchTimeout",
+    "ProviderFetchUnavailable",
     "ProviderNormalizationFailed",
     "ProviderPayloadInvalid",
     "ProviderRequestRejected",
+    "ProviderRuntimeAdapter",
     "SourceManifest",
     "parse_manifest_json",
     "serialize_manifest",

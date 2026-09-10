@@ -53,6 +53,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
     document: dict[str, Any] = json.loads(first)
     assert set(document["paths"]) == {
         "/api/v1/meta",
+        "/api/v1/providers/status",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",
         "/health/live",

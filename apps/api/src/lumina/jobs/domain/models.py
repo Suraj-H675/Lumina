@@ -127,6 +127,7 @@ class JobType(StrEnum):
     """Internal allowlist of executable job types."""
 
     SYSTEM_NOOP = "system.noop"
+    PROVIDER_SYNC = "provider.sync"
 
 
 class JobStatus(StrEnum):

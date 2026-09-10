@@ -65,6 +65,7 @@ _REPLAY_SQL = text(
     "payload = CAST(:payload AS jsonb) AS payload_equal "
     "FROM public.job WHERE idempotency_key = :idempotency_key"
 )
+_SUPPORTED_PERSISTED_TYPES = frozenset(item.value for item in JobType)
 
 
 class _DatabasePhase(Enum):
@@ -162,7 +163,7 @@ class PostgreSqlEnqueueJobStore:
         if (
             not isinstance(persisted_type, str)
             or _PERSISTED_TYPE_PATTERN.fullmatch(persisted_type) is None
-            or persisted_type != JobType.SYSTEM_NOOP.value
+            or persisted_type not in _SUPPORTED_PERSISTED_TYPES
         ):
             raise JobIdempotencyConflict()
         if (
@@ -212,7 +213,7 @@ def _database_sqlstate(error: DBAPIError) -> str | None:
 
 def _outcome(row: RowMapping, *, replayed: bool) -> EnqueueJobOutcome:
     persisted_type = row["job_type"]
-    if persisted_type != JobType.SYSTEM_NOOP.value:
+    if persisted_type not in _SUPPORTED_PERSISTED_TYPES:
         raise JobIdempotencyConflict()
     return EnqueueJobOutcome(
         id=row["id"],

@@ -3,6 +3,20 @@
 import * as z from "zod";
 
 /**
+ * CacheState
+ *
+ * Computed state of the last-known-good provider cache.
+ */
+export const zCacheState = z.enum(["missing", "fresh", "stale", "expired"]);
+
+/**
+ * CircuitState
+ *
+ * Durable provider circuit states.
+ */
+export const zCircuitState = z.enum(["closed", "open", "half_open"]);
+
+/**
  * CurrentSelectionReference
  */
 export const zCurrentSelectionReference = z.object({
@@ -153,6 +167,46 @@ export const zEntityBrowsePageResponse = z.object({
 });
 
 /**
+ * ProviderFailureCode
+ *
+ * Value-free stable categories safe for status and structured logs.
+ */
+export const zProviderFailureCode = z.enum([
+  "provider.transport_unavailable",
+  "provider.timeout",
+  "provider.http_rate_limited",
+  "provider.http_rejected",
+  "provider.http_server_error",
+  "provider.response_too_large",
+  "provider.payload_invalid",
+  "provider.normalization_failed",
+  "provider.circuit_open",
+  "provider.disabled",
+  "provider.storage",
+  "provider.concurrency",
+]);
+
+/**
+ * ProviderMetricsResponse
+ *
+ * Durable low-cardinality counters for one provider.
+ */
+export const zProviderMetricsResponse = z.object({
+  circuit_open_skips: z.int(),
+  circuit_openings: z.int(),
+  concurrent_lease_skips: z.int(),
+  disabled_skips: z.int(),
+  http_requests: z.int(),
+  http_retries: z.int(),
+  quarantines: z.int(),
+  schema_failures: z.int(),
+  stale_fallbacks: z.int(),
+  sync_cycles_started: z.int(),
+  sync_successes: z.int(),
+  sync_upstream_failures: z.int(),
+});
+
+/**
  * ProviderReference
  */
 export const zProviderReference = z.object({
@@ -167,6 +221,53 @@ export const zCompactSourceReference = z.object({
   dataset: zDatasetReference,
   provider: zProviderReference,
   source_record_id: z.uuid(),
+});
+
+/**
+ * ProviderStatusResponse
+ *
+ * Safe operational projection with documentary links but no executable endpoint.
+ */
+export const zProviderStatusResponse = z.object({
+  adapter_id: z.string(),
+  adapter_version: z.string(),
+  attribution_text: z.string(),
+  cache_active: z.boolean(),
+  cache_fetched_at: z.iso.datetime().nullable(),
+  cache_fresh_until: z.iso.datetime().nullable(),
+  cache_stale_until: z.iso.datetime().nullable(),
+  cache_state: zCacheState,
+  circuit_state: zCircuitState,
+  consecutive_failures: z.int(),
+  enabled: z.boolean(),
+  last_attempt_at: z.iso.datetime().nullable(),
+  last_failure_at: z.iso.datetime().nullable(),
+  last_failure_code: zProviderFailureCode.nullable(),
+  last_http_status: z.int().nullable(),
+  last_success_at: z.iso.datetime().nullable(),
+  last_sync_duration_ms: z.int().nullable(),
+  metrics: zProviderMetricsResponse,
+  next_probe_at: z.iso.datetime().nullable(),
+  next_sync_at: z.iso.datetime().nullable(),
+  official_documentation_url: z.string(),
+  provider_code: z.string(),
+  quarantine_exists: z.boolean(),
+  quarantine_failure_code: zProviderFailureCode.nullable(),
+  quarantine_observed_at: z.iso.datetime().nullable(),
+  quarantine_raw_sha256: z.string().nullable(),
+  source_name: z.string(),
+  source_schema_version: z.string(),
+  sync_lease_active: z.boolean(),
+  terms_or_licence_url: z.string(),
+});
+
+/**
+ * ProviderStatusListResponse
+ *
+ * The finite production provider status collection.
+ */
+export const zProviderStatusListResponse = z.object({
+  providers: z.array(zProviderStatusResponse),
 });
 
 /**
@@ -479,6 +580,11 @@ export const zGetSourceRecordProvenanceResponse = zSourceProvenanceResponse;
  * Successful Response
  */
 export const zMetadataApiV1MetaGetResponse = zMetaResponse;
+
+/**
+ * Successful Response
+ */
+export const zListProviderStatusResponse = zProviderStatusListResponse;
 
 /**
  * Successful Response

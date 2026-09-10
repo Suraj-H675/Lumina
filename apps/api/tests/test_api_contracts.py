@@ -330,7 +330,7 @@ def test_cors_preflight_allows_only_current_get_contract() -> None:
     assert post_response.status_code == 400
 
 
-def test_openapi_contains_only_phase_1b2_routes() -> None:
+def test_openapi_contains_only_approved_routes() -> None:
     response = _request(_app(), "GET", "/openapi.json")
     document: dict[str, Any] = response.json()
 
@@ -338,6 +338,7 @@ def test_openapi_contains_only_phase_1b2_routes() -> None:
         "/health/live",
         "/health/ready",
         "/api/v1/meta",
+        "/api/v1/providers/status",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",
         "/api/v1/catalog/entities",

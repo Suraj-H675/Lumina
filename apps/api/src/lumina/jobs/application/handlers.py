@@ -1,4 +1,4 @@
-"""Immutable explicit registry and the internal ``system.noop`` handler."""
+"""Immutable explicit registry and production job handlers."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from lumina.jobs.domain.handler import (
     IncompatibleHandlerPayload,
     JobHandler,
 )
-from lumina.jobs.domain.models import PersistedJobTypeName
+from lumina.jobs.domain.models import JobType, PersistedJobTypeName
 from lumina.jobs.domain.payload import PersistedJobPayload
 
 
@@ -72,11 +72,21 @@ class SystemNoopHandler:
         return self.__repr__()
 
 
-def production_handler_registry() -> StaticHandlerRegistry:
-    """Construct the production registry from its sole literal registration."""
+def production_handler_registry(
+    *,
+    provider_sync: JobHandler,
+    provider_sync_validator: Callable[[PersistedJobPayload], None],
+) -> StaticHandlerRegistry:
+    """Construct the fixed registry from composition-supplied handlers."""
     return StaticHandlerRegistry(
-        {"system.noop": SystemNoopHandler()},
-        payload_validators={"system.noop": _validate_noop_payload},
+        {
+            JobType.SYSTEM_NOOP.value: SystemNoopHandler(),
+            JobType.PROVIDER_SYNC.value: provider_sync,
+        },
+        payload_validators={
+            JobType.SYSTEM_NOOP.value: _validate_noop_payload,
+            JobType.PROVIDER_SYNC.value: provider_sync_validator,
+        },
     )
 
 

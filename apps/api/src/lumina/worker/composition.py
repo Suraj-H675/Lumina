@@ -12,7 +12,6 @@ from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.execution import ExecuteOneJobService
 from lumina.jobs.application.failure import FailJobService
-from lumina.jobs.application.handlers import production_handler_registry
 from lumina.jobs.application.heartbeat import HeartbeatJobService
 from lumina.jobs.application.recovery import RecoverStaleJobsService
 from lumina.jobs.infrastructure.postgresql.claim import PostgreSqlClaimJobStore
@@ -20,6 +19,7 @@ from lumina.jobs.infrastructure.postgresql.completion import PostgreSqlJobComple
 from lumina.jobs.infrastructure.postgresql.failure import PostgreSqlFailureJobStore
 from lumina.jobs.infrastructure.postgresql.heartbeat import PostgreSqlHeartbeatJobStore
 from lumina.jobs.infrastructure.postgresql.recovery import PostgreSqlRecoverStaleJobsStore
+from lumina.provenance.composition import compose_provider_runtime
 from lumina.settings import AppSettings, load_settings
 from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
 from lumina.worker.identity import build_worker_owner_identity
@@ -189,7 +189,8 @@ async def run_worker_process(
             ),
             stale_seconds=settings.job_stale_seconds,
         )
-        registry = production_handler_registry()
+        provider_composition = compose_provider_runtime(session_factory)
+        registry = provider_composition.handler_registry
         resources.signals = install_signal_handlers(shutdown_event)
         owner = build_worker_owner_identity(settings.worker_id_prefix)
 

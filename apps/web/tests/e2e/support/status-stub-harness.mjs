@@ -14,6 +14,7 @@ const token = randomBytes(32).toString("hex");
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
+  "/api/v1/providers/status",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
   "/health/live",
@@ -21,6 +22,58 @@ const apiPaths = new Set([
 ]);
 // Catalogue discovery endpoints carry query strings; matched by prefix below.
 const apiPathPrefixes = ["/api/v1/catalog/", "/api/v1/search"];
+
+const PROVIDER_STATUS_FIXTURE = {
+  providers: [
+    {
+      provider_code: "nasa-exoplanet-archive",
+      source_name: "NASA Exoplanet Archive",
+      official_documentation_url:
+        "https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html",
+      terms_or_licence_url: "https://exoplanetarchive.ipac.caltech.edu/docs/acknowledge.html",
+      attribution_text:
+        "This research has made use of the NASA Exoplanet Archive, which is operated by the California Institute of Technology.",
+      adapter_id: "nasa-exoplanet-archive-tap-count",
+      adapter_version: "1",
+      source_schema_version: "ps-confirmed-count-v1",
+      enabled: false,
+      circuit_state: "closed",
+      cache_state: "missing",
+      cache_active: false,
+      sync_lease_active: false,
+      consecutive_failures: 0,
+      last_attempt_at: null,
+      last_success_at: null,
+      last_failure_at: null,
+      last_failure_code: null,
+      last_http_status: null,
+      last_sync_duration_ms: null,
+      next_sync_at: null,
+      next_probe_at: null,
+      cache_fetched_at: null,
+      cache_fresh_until: null,
+      cache_stale_until: null,
+      quarantine_exists: false,
+      quarantine_observed_at: null,
+      quarantine_failure_code: null,
+      quarantine_raw_sha256: null,
+      metrics: {
+        sync_cycles_started: 0,
+        sync_successes: 0,
+        sync_upstream_failures: 0,
+        http_requests: 0,
+        http_retries: 0,
+        schema_failures: 0,
+        quarantines: 0,
+        stale_fallbacks: 0,
+        circuit_openings: 0,
+        disabled_skips: 0,
+        circuit_open_skips: 0,
+        concurrent_lease_skips: 0,
+      },
+    },
+  ],
+};
 const controlPaths = new Set([
   "/__control/assert-clean",
   "/__control/clear-violations",
@@ -900,6 +953,8 @@ const stub = http.createServer(async (request, response) => {
     sendJson(response, 200, { status: "live" });
   } else if (path === "/health/ready") {
     sendJson(response, 200, { status: "ready" });
+  } else if (path === "/api/v1/providers/status") {
+    sendJson(response, 200, PROVIDER_STATUS_FIXTURE);
   } else {
     sendJson(response, 200, {
       api_version: "v1",

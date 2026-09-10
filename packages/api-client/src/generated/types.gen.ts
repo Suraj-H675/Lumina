@@ -5,6 +5,13 @@ export type ClientOptions = {
 };
 
 /**
+ * CacheState
+ *
+ * Computed state of the last-known-good provider cache.
+ */
+export type CacheState = "missing" | "fresh" | "stale" | "expired";
+
+/**
  * CatalogSearchResponse
  */
 export type CatalogSearchResponse = {
@@ -35,6 +42,13 @@ export type CatalogSuggestResponse = {
    */
   items: Array<EntitySummaryResponse>;
 };
+
+/**
+ * CircuitState
+ *
+ * Durable provider circuit states.
+ */
+export type CircuitState = "closed" | "open" | "half_open";
 
 /**
  * CompactSourceReference
@@ -379,6 +393,81 @@ export type PageResponse = {
 };
 
 /**
+ * ProviderFailureCode
+ *
+ * Value-free stable categories safe for status and structured logs.
+ */
+export type ProviderFailureCode =
+  | "provider.transport_unavailable"
+  | "provider.timeout"
+  | "provider.http_rate_limited"
+  | "provider.http_rejected"
+  | "provider.http_server_error"
+  | "provider.response_too_large"
+  | "provider.payload_invalid"
+  | "provider.normalization_failed"
+  | "provider.circuit_open"
+  | "provider.disabled"
+  | "provider.storage"
+  | "provider.concurrency";
+
+/**
+ * ProviderMetricsResponse
+ *
+ * Durable low-cardinality counters for one provider.
+ */
+export type ProviderMetricsResponse = {
+  /**
+   * Circuit Open Skips
+   */
+  circuit_open_skips: number;
+  /**
+   * Circuit Openings
+   */
+  circuit_openings: number;
+  /**
+   * Concurrent Lease Skips
+   */
+  concurrent_lease_skips: number;
+  /**
+   * Disabled Skips
+   */
+  disabled_skips: number;
+  /**
+   * Http Requests
+   */
+  http_requests: number;
+  /**
+   * Http Retries
+   */
+  http_retries: number;
+  /**
+   * Quarantines
+   */
+  quarantines: number;
+  /**
+   * Schema Failures
+   */
+  schema_failures: number;
+  /**
+   * Stale Fallbacks
+   */
+  stale_fallbacks: number;
+  /**
+   * Sync Cycles Started
+   */
+  sync_cycles_started: number;
+  /**
+   * Sync Successes
+   */
+  sync_successes: number;
+  /**
+   * Sync Upstream Failures
+   */
+  sync_upstream_failures: number;
+};
+
+/**
  * ProviderReference
  */
 export type ProviderReference = {
@@ -390,6 +479,131 @@ export type ProviderReference = {
    * Name
    */
   name: string;
+};
+
+/**
+ * ProviderStatusListResponse
+ *
+ * The finite production provider status collection.
+ */
+export type ProviderStatusListResponse = {
+  /**
+   * Providers
+   */
+  providers: Array<ProviderStatusResponse>;
+};
+
+/**
+ * ProviderStatusResponse
+ *
+ * Safe operational projection with documentary links but no executable endpoint.
+ */
+export type ProviderStatusResponse = {
+  /**
+   * Adapter Id
+   */
+  adapter_id: string;
+  /**
+   * Adapter Version
+   */
+  adapter_version: string;
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Cache Active
+   */
+  cache_active: boolean;
+  /**
+   * Cache Fetched At
+   */
+  cache_fetched_at: string | null;
+  /**
+   * Cache Fresh Until
+   */
+  cache_fresh_until: string | null;
+  /**
+   * Cache Stale Until
+   */
+  cache_stale_until: string | null;
+  cache_state: CacheState;
+  circuit_state: CircuitState;
+  /**
+   * Consecutive Failures
+   */
+  consecutive_failures: number;
+  /**
+   * Enabled
+   */
+  enabled: boolean;
+  /**
+   * Last Attempt At
+   */
+  last_attempt_at: string | null;
+  /**
+   * Last Failure At
+   */
+  last_failure_at: string | null;
+  last_failure_code: ProviderFailureCode | null;
+  /**
+   * Last Http Status
+   */
+  last_http_status: number | null;
+  /**
+   * Last Success At
+   */
+  last_success_at: string | null;
+  /**
+   * Last Sync Duration Ms
+   */
+  last_sync_duration_ms: number | null;
+  metrics: ProviderMetricsResponse;
+  /**
+   * Next Probe At
+   */
+  next_probe_at: string | null;
+  /**
+   * Next Sync At
+   */
+  next_sync_at: string | null;
+  /**
+   * Official Documentation Url
+   */
+  official_documentation_url: string;
+  /**
+   * Provider Code
+   */
+  provider_code: string;
+  /**
+   * Quarantine Exists
+   */
+  quarantine_exists: boolean;
+  quarantine_failure_code: ProviderFailureCode | null;
+  /**
+   * Quarantine Observed At
+   */
+  quarantine_observed_at: string | null;
+  /**
+   * Quarantine Raw Sha256
+   */
+  quarantine_raw_sha256: string | null;
+  /**
+   * Source Name
+   */
+  source_name: string;
+  /**
+   * Source Schema Version
+   */
+  source_schema_version: string;
+  /**
+   * Sync Lease Active
+   */
+  sync_lease_active: boolean;
+  /**
+   * Terms Or Licence Url
+   */
+  terms_or_licence_url: string;
 };
 
 /**
@@ -1116,6 +1330,32 @@ export type MetadataApiV1MetaGetResponses = {
 
 export type MetadataApiV1MetaGetResponse =
   MetadataApiV1MetaGetResponses[keyof MetadataApiV1MetaGetResponses];
+
+export type ListProviderStatusData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/providers/status";
+};
+
+export type ListProviderStatusErrors = {
+  /**
+   * Provider operational status is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type ListProviderStatusError = ListProviderStatusErrors[keyof ListProviderStatusErrors];
+
+export type ListProviderStatusResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProviderStatusListResponse;
+};
+
+export type ListProviderStatusResponse =
+  ListProviderStatusResponses[keyof ListProviderStatusResponses];
 
 export type SearchCatalogEntitiesData = {
   body?: never;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from uuid import UUID
 
 import pytest
@@ -48,6 +49,23 @@ async def test_service_builds_one_validated_enqueue() -> None:
     assert outcome == EnqueueJobOutcome(_UUID4, JobStatus.QUEUED, replayed=False)
     assert len(store.jobs) == 1
     assert store.jobs[0].max_attempts == 5
+
+
+@pytest.mark.asyncio
+async def test_provider_sync_enqueue_uses_fixed_payload_and_one_job_attempt() -> None:
+    store = RecordingStore()
+    await _service(store).enqueue(
+        job_type="provider.sync",
+        payload={"provider_code": "nasa-exoplanet-archive"},
+        idempotency_key="provider.sync:nasa-exoplanet-archive:2026091012",
+        max_attempts=1,
+    )
+
+    assert store.jobs[0].job_type.value == "provider.sync"
+    assert json.loads(store.jobs[0].payload.database_json) == {
+        "provider_code": "nasa-exoplanet-archive"
+    }
+    assert store.jobs[0].max_attempts == 1
 
 
 @pytest.mark.asyncio

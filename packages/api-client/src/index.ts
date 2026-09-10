@@ -1,9 +1,16 @@
-export { liveEndpoint, metaEndpoint, readyEndpoint, validateExactGenerated } from "./contract";
+export {
+  liveEndpoint,
+  metaEndpoint,
+  providerStatusEndpoint,
+  readyEndpoint,
+  validateExactGenerated,
+} from "./contract";
 export type {
   ApiEndpoint,
   GeneratedValidator,
   LiveResponse,
   MetaResponse,
+  ProviderStatusListResponse,
   ReadyResponse,
   ValidationResult,
 } from "./contract";
@@ -18,6 +25,7 @@ export type {
   ReadyHealthReadyGetData,
   ReadyHealthReadyGetResponse,
   ReadyResponse as GeneratedReadyResponse,
+  ProviderStatusResponse,
 } from "./generated/types.gen";
 export {
   DEFAULT_REQUEST_TIMEOUT_MS,

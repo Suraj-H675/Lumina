@@ -19,6 +19,8 @@ from lumina.catalog.application.read import CatalogReadService
 from lumina.catalog.application.search import CatalogSearchService
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
 from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
+from lumina.provenance.api.routes import router as provider_router
+from lumina.provenance.composition import compose_provider_runtime
 from lumina.settings import AppSettings
 from lumina.shared.api.errors import (
     http_exception_handler,
@@ -41,6 +43,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     catalog_read_service = CatalogReadService(catalog_read_repository)
     catalog_search_repository = PostgreSqlCatalogSearchRepository(database_runtime.session_factory)
     catalog_search_service = CatalogSearchService(catalog_search_repository)
+    provider_composition = compose_provider_runtime(database_runtime.session_factory)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -63,6 +66,8 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.state.readiness_service = readiness_service
     application.state.catalog_read_service = catalog_read_service
     application.state.catalog_search_service = catalog_search_service
+    application.state.provider_registry = provider_composition.registry
+    application.state.provider_sync_service = provider_composition.sync_service
 
     application.add_exception_handler(
         RequestValidationError,
@@ -84,4 +89,5 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(telescope_router)
     application.include_router(catalog_router)
     application.include_router(search_router)
+    application.include_router(provider_router)
     return application

@@ -64,7 +64,9 @@ def test_registry_has_no_dynamic_discovery_or_payload_dispatch() -> None:
         "exec(",
     ):
         assert forbidden not in source
-    assert '{"system.noop": SystemNoopHandler()}' in source
+    assert "JobType.SYSTEM_NOOP.value: SystemNoopHandler()" in source
+    assert "JobType.PROVIDER_SYNC.value: provider_sync" in source
+    assert "provider_sync_validator" in source
 
 
 def test_worker_identity_and_timing_stay_outside_domain() -> None:
@@ -139,4 +141,5 @@ def test_worker_has_no_dynamic_handlers_routes_or_scheduler_framework() -> None:
         "apscheduler",
     ):
         assert forbidden not in source
-    assert source.count("production_handler_registry()") == 1
+    assert source.count("compose_provider_runtime(session_factory)") == 1
+    assert "provider_composition.handler_registry" in source

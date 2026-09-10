@@ -13,6 +13,8 @@ import type {
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   ListCatalogEntitiesData,
+  ListProviderStatusData,
+  ProviderStatusListResponse as GeneratedProviderStatusListResponse,
   LiveHealthLiveGetData,
   LiveHealthLiveGetResponse,
   MetadataApiV1MetaGetData,
@@ -32,12 +34,14 @@ import {
   zEntitySummaryResponse,
   zLiveResponse,
   zMetaResponse,
+  zProviderStatusListResponse,
   zReadyResponse,
 } from "./generated/zod.gen";
 
 export type LiveResponse = LiveHealthLiveGetResponse;
 export type ReadyResponse = ReadyHealthReadyGetResponse;
 export type MetaResponse = MetadataApiV1MetaGetResponse;
+export type ProviderStatusListResponse = GeneratedProviderStatusListResponse;
 
 export type GeneratedValidator<T> = Pick<ZodType<T>, "safeParse">;
 
@@ -64,6 +68,12 @@ export const metaEndpoint = {
   path: "/api/v1/meta" satisfies MetadataApiV1MetaGetData["url"],
   validator: zMetaResponse,
 } satisfies ApiEndpoint<MetaResponse, MetadataApiV1MetaGetData["url"]>;
+
+export const providerStatusEndpoint = {
+  method: "GET",
+  path: "/api/v1/providers/status" satisfies ListProviderStatusData["url"],
+  validator: zProviderStatusListResponse,
+} satisfies ApiEndpoint<ProviderStatusListResponse, ListProviderStatusData["url"]>;
 
 export const catalogSearchEndpoint = {
   method: "GET",

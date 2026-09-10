@@ -6,15 +6,68 @@ import { join } from "node:path";
 import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ProviderStatusResponse } from "@lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
 import { StatusView } from "../src/app/status/status-view";
 import { resolveWebApiOrigin } from "../src/lib/server/api-origin";
-import { loadFoundationStatus, type FoundationStatus } from "../src/lib/server/foundation-status";
+import {
+  loadFoundationStatus,
+  type FoundationStatus,
+  type ProviderStatus,
+} from "../src/lib/server/foundation-status";
 import { SiteShell } from "../src/components/site-shell";
 
 const origin = "http://127.0.0.1:8765";
+const unavailableProvider: ProviderStatus = { kind: "unavailable" };
+const availableProvider: ProviderStatus = { kind: "available", data: { providers: [] } };
+const staleProviderEntry: ProviderStatusResponse = {
+  provider_code: "nasa-exoplanet-archive",
+  source_name: "NASA Exoplanet Archive",
+  official_documentation_url: "https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html",
+  terms_or_licence_url: "https://exoplanetarchive.ipac.caltech.edu/docs/acknowledge.html",
+  attribution_text:
+    "This research has made use of the NASA Exoplanet Archive, which is operated by the California Institute of Technology.",
+  adapter_id: "nasa-exoplanet-archive-tap-count",
+  adapter_version: "1",
+  source_schema_version: "ps-confirmed-count-v1",
+  enabled: true,
+  circuit_state: "open",
+  cache_state: "stale",
+  cache_active: true,
+  sync_lease_active: false,
+  consecutive_failures: 1,
+  last_attempt_at: "2026-09-10T12:00:00Z",
+  last_success_at: "2026-09-10T00:00:00Z",
+  last_failure_at: "2026-09-10T12:00:00Z",
+  last_failure_code: "provider.timeout",
+  last_http_status: null,
+  last_sync_duration_ms: 10,
+  next_sync_at: "2026-09-10T13:00:00Z",
+  next_probe_at: "2026-09-10T13:00:00Z",
+  cache_fetched_at: "2026-09-10T00:00:00Z",
+  cache_fresh_until: "2026-09-10T08:00:00Z",
+  cache_stale_until: "2026-09-13T08:00:00Z",
+  quarantine_exists: false,
+  quarantine_observed_at: null,
+  quarantine_failure_code: null,
+  quarantine_raw_sha256: null,
+  metrics: {
+    sync_cycles_started: 2,
+    sync_successes: 1,
+    sync_upstream_failures: 1,
+    http_requests: 4,
+    http_retries: 2,
+    schema_failures: 0,
+    quarantines: 0,
+    stale_fallbacks: 1,
+    circuit_openings: 1,
+    disabled_skips: 0,
+    circuit_open_skips: 0,
+    concurrent_lease_skips: 0,
+  },
+};
 
 type HarnessCoordination = Readonly<{
   apiOrigin: string;
@@ -90,6 +143,7 @@ function apiResponse(path: string, readyStatus = 200): Response {
       feature_flags: {},
     });
   }
+  if (path === "/api/v1/providers/status") return Response.json({ providers: [] });
   return new Response(null, { status: 404 });
 }
 
@@ -258,6 +312,7 @@ describe("foundation state mapping", () => {
     ).resolves.toEqual({
       kind: "ready",
       meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: availableProvider,
     });
   });
 
@@ -267,6 +322,7 @@ describe("foundation state mapping", () => {
     ).resolves.toEqual({
       kind: "not-ready",
       meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: availableProvider,
     });
   });
 
@@ -281,6 +337,7 @@ describe("foundation state mapping", () => {
       ).resolves.toEqual({
         kind: "available-unconfirmed",
         meta: { api_version: "v1", application_version: "0.0.0" },
+        provider: availableProvider,
       });
     },
   );
@@ -296,6 +353,7 @@ describe("foundation state mapping", () => {
     await expect(loadFoundationStatus({ fetchImplementation, origin })).resolves.toEqual({
       kind: "available-unconfirmed",
       meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: availableProvider,
     });
   });
 
@@ -306,7 +364,7 @@ describe("foundation state mapping", () => {
       origin,
     });
 
-    expect(status).toEqual({ kind: "unavailable", meta: null });
+    expect(status).toEqual({ kind: "unavailable", meta: null, provider: unavailableProvider });
     expect(JSON.stringify(status)).not.toContain(sentinel);
     expect(JSON.stringify(status)).not.toContain(origin);
   });
@@ -322,6 +380,7 @@ describe("foundation state mapping", () => {
     await expect(loadFoundationStatus({ fetchImplementation, origin })).resolves.toEqual({
       kind: "ready",
       meta: null,
+      provider: availableProvider,
     });
   });
 
@@ -336,6 +395,7 @@ describe("foundation state mapping", () => {
     await expect(loadFoundationStatus({ fetchImplementation, origin })).resolves.toEqual({
       kind: "available-unconfirmed",
       meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: availableProvider,
     });
   });
 
@@ -357,6 +417,7 @@ describe("foundation state mapping", () => {
     await expect(status).resolves.toEqual({
       kind: "available-unconfirmed",
       meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: availableProvider,
     });
   });
 
@@ -364,24 +425,36 @@ describe("foundation state mapping", () => {
     const fetchImplementation = vi.fn<typeof fetch>();
     await expect(
       loadFoundationStatus({ environment: "production", fetchImplementation }),
-    ).resolves.toEqual({ kind: "unavailable", meta: null });
+    ).resolves.toEqual({
+      kind: "unavailable",
+      meta: null,
+      provider: unavailableProvider,
+    });
     await expect(
       loadFoundationStatus({
         environment: "production",
         fetchImplementation,
         origin: "https://user:secret@example.test", // trufflehog:ignore
       }),
-    ).resolves.toEqual({ kind: "unavailable", meta: null });
+    ).resolves.toEqual({
+      kind: "unavailable",
+      meta: null,
+      provider: unavailableProvider,
+    });
     expect(fetchImplementation).not.toHaveBeenCalled();
   });
 });
 
 describe("honest status view", () => {
   it.each<FoundationStatus>([
-    { kind: "ready", meta: { api_version: "v1", application_version: "0.0.0" } },
-    { kind: "not-ready", meta: null },
-    { kind: "available-unconfirmed", meta: null },
-    { kind: "unavailable", meta: null },
+    {
+      kind: "ready",
+      meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: unavailableProvider,
+    },
+    { kind: "not-ready", meta: null, provider: unavailableProvider },
+    { kind: "available-unconfirmed", meta: null, provider: unavailableProvider },
+    { kind: "unavailable", meta: null, provider: unavailableProvider },
   ])("renders the $kind state with accessible status text", async (status) => {
     const { container } = renderStatus(status);
 
@@ -394,10 +467,59 @@ describe("honest status view", () => {
   });
 
   it("makes no catalog, provider, dashboard, or raw-error claims", () => {
-    renderStatus({ kind: "unavailable", meta: null });
+    renderStatus({ kind: "unavailable", meta: null, provider: unavailableProvider });
 
     const text = document.body.textContent ?? "";
     expect(text).not.toMatch(/catalog (?:is )?operational|provider (?:is )?operational|dashboard/i);
     expect(text).not.toMatch(/exception|stack trace|postgresql|database url/i);
+  });
+
+  it("labels stale provider data and exposes machine-readable timestamps", async () => {
+    const { container } = renderStatus({
+      kind: "ready",
+      meta: { api_version: "v1", application_version: "0.0.0" },
+      provider: { kind: "available", data: { providers: [staleProviderEntry] } },
+    });
+
+    expect(screen.getByRole("heading", { level: 2, name: "Provider status" })).toBeVisible();
+    expect(screen.getByText("Stale", { exact: true })).toBeVisible();
+    expect(screen.getByText("Open", { exact: true })).toBeVisible();
+    expect(screen.getByText("provider.timeout", { exact: true })).toBeVisible();
+    expect(
+      screen
+        .getAllByRole("time")
+        .some((element) => element.getAttribute("dateTime") === "2026-09-10T00:00:00Z"),
+    ).toBe(true);
+    expect((await axe(container)).violations).toHaveLength(0);
+  });
+
+  it("keeps enabled expired data distinct from disabled historical data", () => {
+    renderStatus({
+      kind: "ready",
+      meta: null,
+      provider: {
+        kind: "available",
+        data: {
+          providers: [
+            {
+              ...staleProviderEntry,
+              cache_state: "expired",
+              cache_active: false,
+            },
+          ],
+        },
+      },
+    });
+
+    expect(screen.getByText("Expired", { exact: true })).toBeVisible();
+    expect(screen.queryByText(/historical only while disabled/)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Official documentation" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("link", { name: "Acknowledgment and usage" })).toHaveClass("min-h-11");
+  });
+
+  it("keeps provider failure visible when the status API is unavailable", () => {
+    renderStatus({ kind: "ready", meta: null, provider: unavailableProvider });
+
+    expect(screen.getByText("Provider status unavailable.")).toBeVisible();
   });
 });

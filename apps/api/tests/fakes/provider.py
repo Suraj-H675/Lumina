@@ -158,8 +158,14 @@ class FakeProviderAdapter:
     def source_manifest(self) -> SourceManifest:
         return self._source_manifest
 
-    async def fetch(self, request: FakeRequest) -> object:
+    async def fetch(
+        self,
+        request: FakeRequest,
+        *,
+        attempt_deadline: float | None = None,
+    ) -> object:
         """Return a fresh copy after checking the typed operation declaration."""
+        del attempt_deadline
         if type(request) not in {FakeLookupRequest, FakeBatchRequest}:
             raise ProviderRequestRejected()
         if request.operation not in self._source_manifest.capabilities:

@@ -248,7 +248,11 @@ def _patch_pre_readiness_dependencies(
         "RecoverStaleJobsService",
     ):
         monkeypatch.setattr(composition, name, lambda *args, **kwargs: object())
-    monkeypatch.setattr(composition, "production_handler_registry", object)
+    monkeypatch.setattr(
+        composition,
+        "compose_provider_runtime",
+        lambda *args, **kwargs: SimpleNamespace(handler_registry=object()),
+    )
 
 
 @pytest.mark.asyncio

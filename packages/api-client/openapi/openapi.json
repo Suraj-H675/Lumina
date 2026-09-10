@@ -1,6 +1,17 @@
 {
   "components": {
     "schemas": {
+      "CacheState": {
+        "description": "Computed state of the last-known-good provider cache.",
+        "enum": [
+          "missing",
+          "fresh",
+          "stale",
+          "expired"
+        ],
+        "title": "CacheState",
+        "type": "string"
+      },
       "CatalogSearchResponse": {
         "additionalProperties": false,
         "properties": {
@@ -63,6 +74,16 @@
         ],
         "title": "CatalogSuggestResponse",
         "type": "object"
+      },
+      "CircuitState": {
+        "description": "Durable provider circuit states.",
+        "enum": [
+          "closed",
+          "open",
+          "half_open"
+        ],
+        "title": "CircuitState",
+        "type": "string"
       },
       "CompactSourceReference": {
         "additionalProperties": false,
@@ -597,6 +618,95 @@
         "title": "PageResponse",
         "type": "object"
       },
+      "ProviderFailureCode": {
+        "description": "Value-free stable categories safe for status and structured logs.",
+        "enum": [
+          "provider.transport_unavailable",
+          "provider.timeout",
+          "provider.http_rate_limited",
+          "provider.http_rejected",
+          "provider.http_server_error",
+          "provider.response_too_large",
+          "provider.payload_invalid",
+          "provider.normalization_failed",
+          "provider.circuit_open",
+          "provider.disabled",
+          "provider.storage",
+          "provider.concurrency"
+        ],
+        "title": "ProviderFailureCode",
+        "type": "string"
+      },
+      "ProviderMetricsResponse": {
+        "additionalProperties": false,
+        "description": "Durable low-cardinality counters for one provider.",
+        "properties": {
+          "circuit_open_skips": {
+            "title": "Circuit Open Skips",
+            "type": "integer"
+          },
+          "circuit_openings": {
+            "title": "Circuit Openings",
+            "type": "integer"
+          },
+          "concurrent_lease_skips": {
+            "title": "Concurrent Lease Skips",
+            "type": "integer"
+          },
+          "disabled_skips": {
+            "title": "Disabled Skips",
+            "type": "integer"
+          },
+          "http_requests": {
+            "title": "Http Requests",
+            "type": "integer"
+          },
+          "http_retries": {
+            "title": "Http Retries",
+            "type": "integer"
+          },
+          "quarantines": {
+            "title": "Quarantines",
+            "type": "integer"
+          },
+          "schema_failures": {
+            "title": "Schema Failures",
+            "type": "integer"
+          },
+          "stale_fallbacks": {
+            "title": "Stale Fallbacks",
+            "type": "integer"
+          },
+          "sync_cycles_started": {
+            "title": "Sync Cycles Started",
+            "type": "integer"
+          },
+          "sync_successes": {
+            "title": "Sync Successes",
+            "type": "integer"
+          },
+          "sync_upstream_failures": {
+            "title": "Sync Upstream Failures",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sync_cycles_started",
+          "sync_successes",
+          "sync_upstream_failures",
+          "http_requests",
+          "http_retries",
+          "schema_failures",
+          "quarantines",
+          "stale_fallbacks",
+          "circuit_openings",
+          "disabled_skips",
+          "circuit_open_skips",
+          "concurrent_lease_skips"
+        ],
+        "title": "ProviderMetricsResponse",
+        "type": "object"
+      },
       "ProviderReference": {
         "additionalProperties": false,
         "properties": {
@@ -614,6 +724,286 @@
           "name"
         ],
         "title": "ProviderReference",
+        "type": "object"
+      },
+      "ProviderStatusListResponse": {
+        "additionalProperties": false,
+        "description": "The finite production provider status collection.",
+        "properties": {
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatusResponse"
+            },
+            "title": "Providers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "providers"
+        ],
+        "title": "ProviderStatusListResponse",
+        "type": "object"
+      },
+      "ProviderStatusResponse": {
+        "additionalProperties": false,
+        "description": "Safe operational projection with documentary links but no executable endpoint.",
+        "properties": {
+          "adapter_id": {
+            "title": "Adapter Id",
+            "type": "string"
+          },
+          "adapter_version": {
+            "title": "Adapter Version",
+            "type": "string"
+          },
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "cache_active": {
+            "title": "Cache Active",
+            "type": "boolean"
+          },
+          "cache_fetched_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Fetched At"
+          },
+          "cache_fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Fresh Until"
+          },
+          "cache_stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Stale Until"
+          },
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "circuit_state": {
+            "$ref": "#/components/schemas/CircuitState"
+          },
+          "consecutive_failures": {
+            "title": "Consecutive Failures",
+            "type": "integer"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "last_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt At"
+          },
+          "last_failure_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Failure At"
+          },
+          "last_failure_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProviderFailureCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_http_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Http Status"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "last_sync_duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync Duration Ms"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/ProviderMetricsResponse"
+          },
+          "next_probe_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Probe At"
+          },
+          "next_sync_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Sync At"
+          },
+          "official_documentation_url": {
+            "title": "Official Documentation Url",
+            "type": "string"
+          },
+          "provider_code": {
+            "title": "Provider Code",
+            "type": "string"
+          },
+          "quarantine_exists": {
+            "title": "Quarantine Exists",
+            "type": "boolean"
+          },
+          "quarantine_failure_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProviderFailureCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quarantine_observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarantine Observed At"
+          },
+          "quarantine_raw_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarantine Raw Sha256"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          },
+          "source_schema_version": {
+            "title": "Source Schema Version",
+            "type": "string"
+          },
+          "sync_lease_active": {
+            "title": "Sync Lease Active",
+            "type": "boolean"
+          },
+          "terms_or_licence_url": {
+            "title": "Terms Or Licence Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_code",
+          "source_name",
+          "official_documentation_url",
+          "terms_or_licence_url",
+          "attribution_text",
+          "adapter_id",
+          "adapter_version",
+          "source_schema_version",
+          "enabled",
+          "circuit_state",
+          "cache_state",
+          "cache_active",
+          "sync_lease_active",
+          "consecutive_failures",
+          "last_attempt_at",
+          "last_success_at",
+          "last_failure_at",
+          "last_failure_code",
+          "last_http_status",
+          "last_sync_duration_ms",
+          "next_sync_at",
+          "next_probe_at",
+          "cache_fetched_at",
+          "cache_fresh_until",
+          "cache_stale_until",
+          "quarantine_exists",
+          "quarantine_observed_at",
+          "quarantine_failure_code",
+          "quarantine_raw_sha256",
+          "metrics"
+        ],
+        "title": "ProviderStatusResponse",
         "type": "object"
       },
       "QuantityReference": {
@@ -1782,6 +2172,38 @@
           }
         },
         "summary": "Metadata"
+      }
+    },
+    "/api/v1/providers/status": {
+      "get": {
+        "description": "Return safe state for every statically approved production provider.",
+        "operationId": "list_provider_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderStatusListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Provider operational status is temporarily unavailable."
+          }
+        },
+        "summary": "Provider Status",
+        "tags": [
+          "providers"
+        ]
       }
     },
     "/api/v1/search": {

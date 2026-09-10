@@ -18,6 +18,7 @@ from lumina.jobs.application.execution import (
 )
 from lumina.jobs.application.handlers import (
     StaticHandlerRegistry,
+    SystemNoopHandler,
     production_handler_registry,
 )
 from lumina.jobs.domain.completion import JobCompletionOutcomeUnknown, SuccessfulJobCompletion
@@ -48,6 +49,14 @@ from lumina.worker.timing import ExecutionTask
 _JOB_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 _OWNER = "worker.execution.12345678-1234-4234-9234-123456789abc"
 _NOW = datetime(2026, 7, 30, 12, tzinfo=UTC)
+
+
+def _noop_production_registry() -> StaticHandlerRegistry:
+    provider_sync = SystemNoopHandler()
+    return production_handler_registry(
+        provider_sync=provider_sync,
+        provider_sync_validator=provider_sync.validate_payload,
+    )
 
 
 def _claim(
@@ -379,7 +388,7 @@ async def test_incompatible_payload_fails_before_heartbeat_supervision() -> None
     claim = RecordingClaim(_claim(job_type="system.noop", payload=[]))
     service, heartbeat, completion, failure, _ = _service(
         claim=claim,
-        registry=production_handler_registry(),
+        registry=_noop_production_registry(),
     )
 
     await service.execute()

@@ -22,7 +22,7 @@ from .migration_lifecycle import (
 )
 
 _PG_TRGM_CONTRACT = ("pg_trgm", "1.6", "public", "lumina_admin")
-_CURRENT_HEAD = "c9f6a2b3d4e5"
+_CURRENT_HEAD = "d7e8f9a0b1c2"
 _PRE_OPERATOR_HEADS = {"a7d4e9f2c1b3", "b8e5f1a2c3d4"}
 _B3_REVISION = "e8f4c1a9b362"
 _ALEMBIC_TABLE_SQL = text("SELECT to_regclass('public.alembic_version')")

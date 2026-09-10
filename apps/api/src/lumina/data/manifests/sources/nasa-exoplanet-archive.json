@@ -1,0 +1,31 @@
+{
+  "adapter_id": "nasa-exoplanet-archive-tap-count",
+  "adapter_version": "1",
+  "attribution_text": "This research has made use of the NASA Exoplanet Archive, which is operated by the California Institute of Technology, under contract with the National Aeronautics and Space Administration under the Exoplanet Exploration Program.",
+  "authentication_method": "None observed or required for the current public synchronous TAP probe; no API key or credential is configured.",
+  "cache_ttl": "Fresh for 8 hours after a successful fetch; stale-if-error for the following 72 hours; expired thereafter.",
+  "capabilities": ["batch_fetch"],
+  "contact_or_user_agent_requirement": "Lumina sends a fixed identifying User-Agent without personal data.",
+  "endpoint_or_base_url": "https://exoplanetarchive.ipac.caltech.edu/TAP/sync",
+  "failure_and_fallback_behaviour": "Reject malformed or contract-breaking responses, quarantine bounded evidence, retain the last-known-good cache, and expose stale data explicitly only during the approved stale-if-error interval. Never substitute unrelated data.",
+  "fetch_time_policy": "Each accepted cache entry records the UTC fetch time and freshness deadlines; no live snapshot DataManifest is generated.",
+  "fixture_and_checksum_strategy": "Offline tests use a sanitized two-line CSV fixture bound to the observed count(pl_name) header. Accepted live responses and complete quarantined responses are hashed over their exact raw bytes with SHA-256.",
+  "known_limitations": [
+    "The confirmed-planet count is mutable external data and is not frozen as a release value.",
+    "The count probe is an operational provider-framework proof only; Lumina does not ingest exoplanet entities or measurements from it in Phase 4A.",
+    "The Planetary Systems table contains literature solutions; default_flag=1 selects the archive's default parameter set for the documented count query."
+  ],
+  "last_verified_at": "2026-09-10T10:37:55Z",
+  "manifest_schema_version": 1,
+  "manifest_type": "source",
+  "normalized_fields": ["confirmed_planet_count"],
+  "observation_or_publication_time_policy": "The probe supplies no source observation timestamp; the normalized value is identified by provider retrieval time and the Planetary Systems source schema.",
+  "official_documentation_url": "https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html",
+  "purpose": "Low-volume production-framework proof using the NASA Exoplanet Archive Planetary Systems confirmed-planet count example.",
+  "rate_or_fair_use_constraints": "One global provider lease, at most one six-hourly successful refresh, hourly recovery enqueue opportunities, at most three closed-circuit attempts with deterministic 1-second and 2-second spacing, and bounded Retry-After handling.",
+  "refresh_schedule": "External deployment cron enqueues provider.sync once per UTC hour; the provider performs network I/O only when its six-hour refresh eligibility is due.",
+  "source_id": "nasa-exoplanet-archive",
+  "source_name": "NASA Exoplanet Archive",
+  "source_schema_version": "ps-confirmed-count-v1",
+  "terms_or_licence_url": "https://exoplanetarchive.ipac.caltech.edu/docs/acknowledge.html"
+}

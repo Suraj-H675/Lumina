@@ -19,7 +19,11 @@ from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.execution import ExecuteOneJobOutcome, ExecuteOneJobService
 from lumina.jobs.application.failure import FailJobService
-from lumina.jobs.application.handlers import production_handler_registry
+from lumina.jobs.application.handlers import (
+    StaticHandlerRegistry,
+    SystemNoopHandler,
+    production_handler_registry,
+)
 from lumina.jobs.application.heartbeat import HeartbeatJobService
 from lumina.jobs.application.recovery import RecoverStaleJobsService
 from lumina.jobs.domain.heartbeat import JobOwnerToken
@@ -58,6 +62,14 @@ _JOB_IDS = (
     UUID("10000000-0000-4000-8000-000000000002"),
 )
 _SUBPROCESS_GRACE_SECONDS = 2
+
+
+def _noop_production_registry() -> StaticHandlerRegistry:
+    provider_sync = SystemNoopHandler()
+    return production_handler_registry(
+        provider_sync=provider_sync,
+        provider_sync_validator=provider_sync.validate_payload,
+    )
 
 
 class _CheckoutPool(Protocol):
@@ -241,7 +253,7 @@ async def test_initial_recovery_requeues_genuinely_stale_running_job_before_clai
     executor = ExecuteOneJobService(
         owner=JobOwnerToken(_OWNER),
         registry=ShutdownAwareRegistry(
-            production_handler_registry(),
+            _noop_production_registry(),
             shutdown_event=shutdown,
             observer=observer,
         ),
@@ -323,7 +335,7 @@ async def test_multiple_noops_complete_sequentially(
     executor = ExecuteOneJobService(
         owner=JobOwnerToken(_OWNER),
         registry=ShutdownAwareRegistry(
-            production_handler_registry(),
+            _noop_production_registry(),
             shutdown_event=shutdown,
             observer=observer,
         ),

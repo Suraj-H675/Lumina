@@ -53,6 +53,10 @@ test.describe("honest API foundation status", () => {
     ).toBeVisible();
     await expect(page.getByText("e2e-fixture")).toBeVisible();
     await expect(page.getByText("v1", { exact: true })).toBeVisible();
-    await expect(page.locator("body")).not.toContainText(/catalog is operational|provider status/i);
+    await expect(page.getByRole("heading", { level: 2, name: "Provider status" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 3, name: "NASA Exoplanet Archive" }),
+    ).toBeVisible();
+    await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
   });
 });

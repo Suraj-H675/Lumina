@@ -15,18 +15,23 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.domain.models import EnqueueJobOutcome, JobType
 from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
-from lumina.provenance.application.registry import ProviderRegistration
+from lumina.provenance.application.registry import PRODUCTION_PROVIDER_CODES, ProviderRegistration
 from lumina.provenance.composition import compose_provider_runtime
 from lumina.provenance.domain.runtime import PROVIDER_CODE, ProviderStatusSnapshot
 from lumina.settings import AppSettings, load_settings
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 
 _INVALID_MESSAGE = "Invalid provider command."
+_CONFIGURATION_MESSAGE = "Provider is not configured."
 _FAILURE_MESSAGE = "Provider command failed."
 
 
 class InvalidProviderInvocation(ValueError):
     """Fixed marker for parser failures that must not reflect an argument value."""
+
+
+class ProviderConfigurationError(InvalidProviderInvocation):
+    """Fixed marker for an enable operation without a valid provider secret."""
 
 
 class _SafeArgumentParser(argparse.ArgumentParser):
@@ -50,7 +55,7 @@ def _parser() -> _SafeArgumentParser:
         command_parser = commands.add_parser(command, help=help_text)
         command_parser.add_argument(
             "--provider",
-            choices=(PROVIDER_CODE,),
+            choices=tuple(sorted(PRODUCTION_PROVIDER_CODES)),
             default=PROVIDER_CODE,
         )
     return parser
@@ -60,7 +65,10 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
     settings = load_settings()
     runtime = create_database_runtime(settings.database_url)
     try:
-        provider_composition = compose_provider_runtime(runtime.session_factory)
+        provider_composition = compose_provider_runtime(
+            runtime.session_factory,
+            nasa_api_key=settings.nasa_api_key,
+        )
         registry = provider_composition.registry
         registration = registry.resolve(namespace.provider)
         if registration is None:
@@ -70,6 +78,8 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
             snapshot = await sync_service.status(namespace.provider)
             return _status_payload(registration, snapshot)
         if namespace.command in {"enable", "disable"}:
+            if namespace.command == "enable" and not registration.is_configured():
+                raise ProviderConfigurationError()
             snapshot = await sync_service.set_enabled(
                 namespace.provider,
                 enabled=namespace.command == "enable",
@@ -206,6 +216,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     except (KeyboardInterrupt, SystemExit):
         raise
+    except ProviderConfigurationError:
+        _write_stderr(_CONFIGURATION_MESSAGE)
+        return 2
     except InvalidProviderInvocation:
         _write_stderr(_INVALID_MESSAGE)
         return 2

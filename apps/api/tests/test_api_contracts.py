@@ -339,6 +339,7 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/health/ready",
         "/api/v1/meta",
         "/api/v1/providers/status",
+        "/api/v1/now/apod",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",
         "/api/v1/catalog/entities",
@@ -349,6 +350,11 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/api/v1/catalog/sources/{source_record_id}",
         "/api/v1/search",
         "/api/v1/search/suggest",
+    }
+    assert set(document["paths"]["/api/v1/now/apod"]["get"]["responses"]) == {
+        "200",
+        "422",
+        "503",
     }
     serialized = response.text.lower()
     for forbidden in ("/jobs", "supabase", "/api/v1/sources/"):

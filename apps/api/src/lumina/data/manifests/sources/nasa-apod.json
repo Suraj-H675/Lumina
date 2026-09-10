@@ -1,0 +1,43 @@
+{
+  "adapter_id": "nasa-apod-daily-media",
+  "adapter_version": "1",
+  "attribution_text": "NASA Astronomy Picture of the Day (APOD), provided through NASA's Open APIs. Source-provided APOD copyright and credit information is preserved when supplied; distribution through NASA does not establish ownership of third-party media.",
+  "authentication_method": "A registered NASA API key is required for production synchronization and is supplied only as the server-side LUMINA_NASA_API_KEY secret. DEMO_KEY is not accepted.",
+  "cache_ttl": "Fresh for 6 hours after a successful retrieval; stale-if-error for the following 72 hours; expired thereafter. A successful retrieval schedules the next refresh after 4 hours.",
+  "capabilities": ["batch_fetch"],
+  "contact_or_user_agent_requirement": "Lumina sends a fixed identifying User-Agent without personal data; the API key is inserted only at the final transport boundary and is never retained in diagnostics or runtime data.",
+  "endpoint_or_base_url": "https://api.nasa.gov/planetary/apod",
+  "failure_and_fallback_behaviour": "Reject malformed, oversized, future-dated, rolled-back, or contract-breaking responses, quarantine bounded evidence, retain the last-known-good cache, and expose stale data explicitly only during the approved stale-if-error interval. Never substitute unrelated data.",
+  "fetch_time_policy": "Each accepted cache entry records the UTC retrieval time and freshness deadlines; no live snapshot DataManifest is generated.",
+  "fixture_and_checksum_strategy": "Offline tests use sanitized deterministic image and video JSON fixtures, including optional-field and hostile-input cases. Accepted responses and complete quarantined responses are hashed over their exact bounded raw bytes with SHA-256.",
+  "known_limitations": [
+    "The v1 product stores only one current last-known-good APOD snapshot and does not provide historical dates, an archive, random selection, or date-range retrieval.",
+    "Lumina does not automatically request or redistribute APOD image, video, or thumbnail subresources; the Daily Visual links users to the official date-derived APOD page.",
+    "APOD records can contain media owned by third parties. Source-provided copyright is preserved, but Lumina does not infer public-domain status, NASA ownership, or a blanket reuse licence.",
+    "The content date is NASA's APOD date and is distinct from the UTC time Lumina retrieved and validated the snapshot."
+  ],
+  "last_verified_at": "2026-09-10T10:37:55Z",
+  "manifest_schema_version": 1,
+  "manifest_type": "source",
+  "normalized_fields": [
+    "copyright",
+    "date",
+    "explanation",
+    "media_type",
+    "service_version",
+    "source_hd_media_url",
+    "source_media_url",
+    "source_thumbnail_url",
+    "title"
+  ],
+  "observation_or_publication_time_policy": "The APOD date is the provider's content/publication date. It is not an observation or capture date and must not be conflated with Lumina's UTC retrieval timestamp or cache freshness state.",
+  "official_documentation_url": "https://api.nasa.gov/",
+  "purpose": "Low-volume production daily-media synchronization for Lumina's Space Now Daily Visual surface using NASA Astronomy Picture of the Day.",
+  "rate_or_fair_use_constraints": "One global provider lease, at most one successful refresh every four hours, hourly recovery enqueue opportunities, at most three closed-circuit attempts with deterministic 1-second and 2-second spacing, bounded request cycles, and no browser-direct NASA traffic.",
+  "refresh_schedule": "External deployment cron enqueues provider.sync once per UTC hour; the provider performs network I/O only when its four-hour refresh eligibility is due.",
+  "source_id": "nasa-apod",
+  "source_name": "NASA Astronomy Picture of the Day (APOD)",
+  "source_page_url": "https://apod.nasa.gov/apod/",
+  "source_schema_version": "apod-v1-json-v1",
+  "terms_or_licence_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+}

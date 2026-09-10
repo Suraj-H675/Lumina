@@ -7,7 +7,7 @@ from typing import Protocol
 
 from lumina.jobs.domain.handler import IncompatibleHandlerPayload
 from lumina.jobs.domain.payload import PersistedJobPayload
-from lumina.provenance.domain.runtime import PROVIDER_CODE
+from lumina.provenance.application.registry import PRODUCTION_PROVIDER_CODES
 
 
 class ProviderSyncPort(Protocol):
@@ -53,7 +53,7 @@ def _validate_provider_sync_payload(payload: PersistedJobPayload) -> None:
     if not isinstance(value, Mapping) or set(value) != {"provider_code"}:
         raise IncompatibleHandlerPayload()
     provider_code = value.get("provider_code")
-    if type(provider_code) is not str or provider_code != PROVIDER_CODE:
+    if type(provider_code) is not str or provider_code not in PRODUCTION_PROVIDER_CODES:
         raise IncompatibleHandlerPayload()
 
 

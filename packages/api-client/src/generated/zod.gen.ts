@@ -3,11 +3,67 @@
 import * as z from "zod";
 
 /**
+ * ApodContentResponse
+ *
+ * Safe APOD content without provider media URLs.
+ */
+export const zApodContentResponse = z.object({
+  apod_page_url: z.string(),
+  copyright: z.string().nullable(),
+  date: z.string(),
+  explanation: z.string(),
+  media_type: z.enum(["image", "video"]),
+  service_version: z.literal("v1"),
+  title: z.string(),
+});
+
+/**
+ * ApodSourceResponse
+ *
+ * Reviewed source and attribution metadata.
+ */
+export const zApodSourceResponse = z.object({
+  api_documentation_url: z.string(),
+  attribution_text: z.string(),
+  media_usage_url: z.string(),
+  name: z.string(),
+  official_url: z.string(),
+});
+
+/**
  * CacheState
  *
  * Computed state of the last-known-good provider cache.
  */
 export const zCacheState = z.enum(["missing", "fresh", "stale", "expired"]);
+
+/**
+ * ApodFreshnessResponse
+ *
+ * Cache timing separate from the provider's APOD content date.
+ */
+export const zApodFreshnessResponse = z.object({
+  cache_state: zCacheState,
+  fresh_until: z.iso.datetime().nullable(),
+  last_refresh_failure_code: z.string().nullable(),
+  retrieved_at: z.iso.datetime().nullable(),
+  stale_until: z.iso.datetime().nullable(),
+});
+
+/**
+ * ApodResponse
+ *
+ * Versioned public projection for the current/latest Daily Visual.
+ */
+export const zApodResponse = z.object({
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  content: zApodContentResponse.nullable(),
+  freshness: zApodFreshnessResponse,
+  source: zApodSourceResponse,
+  unavailable_reason: z
+    .enum(["provider_disabled", "no_cached_content", "cached_content_expired"])
+    .nullable(),
+});
 
 /**
  * CircuitState
@@ -180,6 +236,7 @@ export const zProviderFailureCode = z.enum([
   "provider.response_too_large",
   "provider.payload_invalid",
   "provider.normalization_failed",
+  "provider.not_configured",
   "provider.circuit_open",
   "provider.disabled",
   "provider.storage",
@@ -580,6 +637,11 @@ export const zGetSourceRecordProvenanceResponse = zSourceProvenanceResponse;
  * Successful Response
  */
 export const zMetadataApiV1MetaGetResponse = zMetaResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetNowApodResponse = zApodResponse;
 
 /**
  * Successful Response

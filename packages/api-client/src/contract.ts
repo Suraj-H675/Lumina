@@ -1,6 +1,7 @@
 import type { ZodType } from "zod";
 
 import type {
+  ApodResponse,
   CatalogSearchResponse,
   CatalogSuggestResponse,
   CalculateSeasonsSimulatorData,
@@ -12,6 +13,7 @@ import type {
   EntitySummaryResponse,
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
+  GetNowApodData,
   ListCatalogEntitiesData,
   ListProviderStatusData,
   ProviderStatusListResponse as GeneratedProviderStatusListResponse,
@@ -32,6 +34,7 @@ import {
   zEntityBrowsePageResponse,
   zEntityDetailResponse,
   zEntitySummaryResponse,
+  zGetNowApodResponse,
   zLiveResponse,
   zMetaResponse,
   zProviderStatusListResponse,
@@ -42,6 +45,7 @@ export type LiveResponse = LiveHealthLiveGetResponse;
 export type ReadyResponse = ReadyHealthReadyGetResponse;
 export type MetaResponse = MetadataApiV1MetaGetResponse;
 export type ProviderStatusListResponse = GeneratedProviderStatusListResponse;
+export type { ApodResponse };
 
 export type GeneratedValidator<T> = Pick<ZodType<T>, "safeParse">;
 
@@ -74,6 +78,12 @@ export const providerStatusEndpoint = {
   path: "/api/v1/providers/status" satisfies ListProviderStatusData["url"],
   validator: zProviderStatusListResponse,
 } satisfies ApiEndpoint<ProviderStatusListResponse, ListProviderStatusData["url"]>;
+
+export const apodEndpoint = {
+  method: "GET",
+  path: "/api/v1/now/apod" satisfies GetNowApodData["url"],
+  validator: zGetNowApodResponse,
+} satisfies ApiEndpoint<ApodResponse, GetNowApodData["url"]>;
 
 export const catalogSearchEndpoint = {
   method: "GET",

@@ -22,9 +22,25 @@ FIXED_QUERY: Final = "select count(pl_name) from ps where default_flag=1"
 FIXED_FORMAT: Final = "csv"
 FIXED_USER_AGENT: Final = "Lumina/0.0 Phase-4A provider-sync"
 
+APOD_PROVIDER_CODE: Final = "nasa-apod"
+APOD_ADAPTER_ID: Final = "nasa-apod-daily-media"
+APOD_ADAPTER_VERSION: Final = "1"
+APOD_CACHE_KEY: Final = "daily-media"
+APOD_SOURCE_SCHEMA_VERSION: Final = "apod-v1-json-v1"
+APOD_HOST: Final = "api.nasa.gov"
+APOD_PATH: Final = "/planetary/apod"
+APOD_FORMAT: Final = "json"
+APOD_USER_AGENT: Final = "Lumina/0.0 Phase-4B provider-sync"
+APOD_CONTENT_TYPE: Final = "application/json"
+APOD_OFFICIAL_HOST: Final = "apod.nasa.gov"
+APOD_OFFICIAL_PATH: Final = "/apod/"
+
 SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
 FRESH_TTL: Final = timedelta(hours=8)
 STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
+APOD_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=4)
+APOD_FRESH_TTL: Final = timedelta(hours=6)
+APOD_STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
 SYNC_LEASE_SECONDS: Final = 120
 PROVIDER_REQUEST_CYCLE_SECONDS: Final = 90
 PROVIDER_ATTEMPT_TOTAL_SECONDS: Final = 30
@@ -59,6 +75,7 @@ class ProviderFailureCode(StrEnum):
     RESPONSE_TOO_LARGE = "provider.response_too_large"
     PAYLOAD_INVALID = "provider.payload_invalid"
     NORMALIZATION_FAILED = "provider.normalization_failed"
+    NOT_CONFIGURED = "provider.not_configured"
     CIRCUIT_OPEN = "provider.circuit_open"
     DISABLED = "provider.disabled"
     STORAGE = "provider.storage"
@@ -76,6 +93,7 @@ class ProviderSyncOutcome(StrEnum):
     UPSTREAM_FAILURE = "upstream_failure"
     STALE_FALLBACK = "stale_fallback"
     EXPIRED = "expired"
+    NOT_CONFIGURED = "not_configured"
 
 
 class ProviderClaimOutcome(StrEnum):
@@ -136,6 +154,8 @@ class ProviderRuntimeConfig:
     stale_if_error_grace: timedelta = STALE_IF_ERROR_GRACE
     lease_seconds: int = SYNC_LEASE_SECONDS
     max_response_bytes: int = MAX_RESPONSE_BYTES
+    expected_content_type: str = "text/plain"
+    user_agent: str = FIXED_USER_AGENT
     max_transient_attempts: int = 3
     retry_delays_seconds: tuple[float, ...] = (1.0, 2.0)
     transient_failure_threshold: int = 3
@@ -146,29 +166,29 @@ class ProviderRuntimeConfig:
 
     def __post_init__(self) -> None:
         if (
-            self.provider_code != PROVIDER_CODE
-            or self.adapter_id != ADAPTER_ID
-            or self.adapter_version != ADAPTER_VERSION
-            or self.cache_key != CACHE_KEY
-            or self.source_schema_version != SOURCE_SCHEMA_VERSION
-            or self.endpoint_host != FIXED_HOST
-            or self.endpoint_path != FIXED_PATH
-            or self.query != FIXED_QUERY
-            or self.output_format != FIXED_FORMAT
+            not self.provider_code
+            or not self.adapter_id
+            or not self.adapter_version
+            or not self.cache_key
+            or not self.source_schema_version
+            or not self.endpoint_host
+            or not self.endpoint_path.startswith("/")
+            or any(character in self.endpoint_path for character in "?#")
+            or not self.output_format
             or self.lease_seconds != SYNC_LEASE_SECONDS
             or self.max_response_bytes != MAX_RESPONSE_BYTES
             or self.max_transient_attempts != 3
             or self.retry_delays_seconds != (1.0, 2.0)
             or self.transient_failure_threshold != 3
-            or self.refresh_interval != SUCCESS_REFRESH_INTERVAL
-            or self.fresh_ttl != FRESH_TTL
-            or self.stale_if_error_grace != STALE_IF_ERROR_GRACE
             or self.transient_open_interval != timedelta(hours=1)
             or self.contract_open_interval != timedelta(hours=6)
             or self.retry_after_minimum_seconds != 60
             or self.retry_after_maximum_seconds != 86_400
+            or self.expected_content_type not in {"text/plain", APOD_CONTENT_TYPE}
+            or not self.user_agent
+            or any(ord(character) < 32 or ord(character) == 127 for character in self.user_agent)
         ):
-            raise ValueError("Provider runtime configuration is not the approved Phase 4A policy")
+            raise ValueError("Provider runtime configuration is outside the approved policy")
         if (
             SYNC_LEASE_SECONDS - PROVIDER_REQUEST_CYCLE_SECONDS != 30
             or PROVIDER_ATTEMPT_TOTAL_SECONDS > PROVIDER_REQUEST_CYCLE_SECONDS
@@ -183,7 +203,7 @@ class ProviderRuntimeConfig:
             or self.source_manifest.endpoint_or_base_url
             != f"https://{self.endpoint_host}{self.endpoint_path}"
             or self.source_manifest.capabilities != ("batch_fetch",)
-            or self.source_manifest.normalized_fields != ("confirmed_planet_count",)
+            or not self.source_manifest.normalized_fields
         ):
             raise ValueError("Provider runtime configuration disagrees with its source manifest")
         if self.fresh_ttl < self.refresh_interval or self.stale_if_error_grace < timedelta(0):
@@ -301,7 +321,8 @@ class ProviderRuntimeStore(Protocol):
         *,
         now: datetime,
         lease_token: str,
-        normalized_payload: Mapping[str, int],
+        normalized_payload: NormalizedPayload,
+        payload_codec: ProviderPayloadCodec,
         raw_sha256: str,
         attempts: int,
         retries: int,
@@ -329,6 +350,7 @@ class ProviderRuntimeStore(Protocol):
         config: ProviderRuntimeConfig,
         *,
         now: datetime,
+        payload_codec: ProviderPayloadCodec,
     ) -> ProviderStatusSnapshot:
         """Read one safe provider status projection."""
         ...
@@ -339,6 +361,7 @@ class ProviderRuntimeStore(Protocol):
         *,
         enabled: bool,
         now: datetime,
+        payload_codec: ProviderPayloadCodec,
     ) -> ProviderStatusSnapshot:
         """Apply one explicit operator enable/disable transition."""
         ...
@@ -391,7 +414,28 @@ class ProviderRuntimeState:
     updated_at: datetime
 
 
-type NormalizedPayload = Mapping[str, int]
+type NormalizedScalar = str | int | float | bool | None
+type NormalizedPayload = Mapping[str, NormalizedScalar]
+
+
+class ProviderPayloadCodec(Protocol):
+    """Typed codec guarding one provider's normalized JSONB payload shape."""
+
+    def encode(self, normalized: object) -> NormalizedPayload:
+        """Validate a typed normalized result and encode its storage shape."""
+        ...
+
+    def decode(self, stored: object) -> object:
+        """Validate one value loaded from generic JSONB storage."""
+        ...
+
+    def accepts_replacement(
+        self,
+        current: NormalizedPayload | None,
+        candidate: NormalizedPayload,
+    ) -> bool:
+        """Decide whether a valid candidate may replace the current cache entry."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -462,6 +506,21 @@ def _require_utc(value: datetime) -> None:
 __all__ = [
     "ADAPTER_ID",
     "ADAPTER_VERSION",
+    "APOD_ADAPTER_ID",
+    "APOD_ADAPTER_VERSION",
+    "APOD_CACHE_KEY",
+    "APOD_CONTENT_TYPE",
+    "APOD_FORMAT",
+    "APOD_FRESH_TTL",
+    "APOD_HOST",
+    "APOD_OFFICIAL_HOST",
+    "APOD_OFFICIAL_PATH",
+    "APOD_PATH",
+    "APOD_PROVIDER_CODE",
+    "APOD_SOURCE_SCHEMA_VERSION",
+    "APOD_STALE_IF_ERROR_GRACE",
+    "APOD_SUCCESS_REFRESH_INTERVAL",
+    "APOD_USER_AGENT",
     "CACHE_KEY",
     "CacheState",
     "CircuitFailureKind",
@@ -486,6 +545,7 @@ __all__ = [
     "ProviderFinalization",
     "ProviderFinalizationOutcome",
     "ProviderLease",
+    "ProviderPayloadCodec",
     "ProviderQuarantineEntry",
     "ProviderRuntimeConfig",
     "ProviderRuntimeStore",
@@ -494,6 +554,7 @@ __all__ = [
     "ProviderStatusSnapshot",
     "ProviderSyncOutcome",
     "RawProviderResponse",
+    "NormalizedScalar",
     "RuntimeCounters",
     "SOURCE_SCHEMA_VERSION",
     "STALE_IF_ERROR_GRACE",

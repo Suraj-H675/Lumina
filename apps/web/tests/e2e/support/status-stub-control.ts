@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { expect, type TestInfo } from "@playwright/test";
 
 type StubMode = "disconnect" | "ready";
+type ApodStubMode = "fresh" | "stale" | "unavailable";
 
 type Coordination = Readonly<{
   apiOrigin: string;
@@ -26,6 +27,20 @@ async function coordination(testInfo: TestInfo): Promise<Coordination> {
 export async function setStatusStubMode(testInfo: TestInfo, mode: StubMode): Promise<void> {
   const control = await coordination(testInfo);
   const response = await fetch(`${control.apiOrigin}/__control/mode`, {
+    body: JSON.stringify({ mode }),
+    headers: {
+      Authorization: `Bearer ${control.token}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+  expect(response.status).toBe(200);
+  await response.body?.cancel();
+}
+
+export async function setApodStubMode(testInfo: TestInfo, mode: ApodStubMode): Promise<void> {
+  const control = await coordination(testInfo);
+  const response = await fetch(`${control.apiOrigin}/__control/apod-mode`, {
     body: JSON.stringify({ mode }),
     headers: {
       Authorization: `Bearer ${control.token}`,

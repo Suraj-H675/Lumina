@@ -6,7 +6,7 @@ import asyncio
 import hashlib
 import logging
 import re
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -25,11 +25,13 @@ from lumina.provenance.domain.runtime import (
     PROVIDER_ATTEMPT_TOTAL_SECONDS,
     PROVIDER_REQUEST_CYCLE_SECONDS,
     CircuitFailureKind,
+    NormalizedPayload,
     ProviderClaim,
     ProviderClaimOutcome,
     ProviderFailure,
     ProviderFailureCode,
     ProviderFinalizationOutcome,
+    ProviderPayloadCodec,
     ProviderRuntimeConfig,
     ProviderRuntimeStore,
     ProviderStatusSnapshot,
@@ -84,7 +86,7 @@ class ProviderSyncReport:
     retries: int
     cache_state: str | None
     stale_fallback: bool
-    normalized_payload: Mapping[str, int] | None = None
+    normalized_payload: NormalizedPayload | None = None
     raw_sha256: str | None = None
 
 
@@ -92,6 +94,12 @@ class _Registration(Protocol):
     config: ProviderRuntimeConfig
     adapter: ProviderRuntimeAdapter
     request_factory: Callable[[], object]
+    payload_codec: ProviderPayloadCodec
+    check_replacement: bool
+
+    def is_configured(self) -> bool:
+        """Return whether the provider can make a network request in this process."""
+        ...
 
 
 @dataclass(slots=True)
@@ -106,8 +114,9 @@ class _CycleProgress:
 class _CycleSuccess:
     """Validated result ready for lease-fenced success finalization."""
 
-    normalized_payload: Mapping[str, int]
+    normalized_payload: NormalizedPayload
     raw_sha256: str
+    raw_response: RawProviderResponse
     http_status: int
     attempts: int
     retries: int
@@ -163,6 +172,15 @@ class ProviderSyncService:
         """Handle one scheduled sync and persist all expected upstream outcomes."""
         registration = self._registration(provider_code)
         config = registration.config
+        if not registration.is_configured():
+            status = await self._store.status(
+                config,
+                now=_utc(self._clock.now()),
+                payload_codec=registration.payload_codec,
+            )
+            if not status.state.enabled:
+                return _skip_report(provider_code, ProviderClaim(ProviderClaimOutcome.DISABLED))
+            return _not_configured_report(provider_code)
         now = _utc(self._clock.now())
         token = self._lease_token_factory()
         lease_guard_started_at = self._monotonic()
@@ -207,11 +225,37 @@ class ProviderSyncService:
                 started_at=lease_guard_started_at,
             )
 
+        if registration.check_replacement:
+            current = await self._store.status(
+                config,
+                now=_utc(self._clock.now()),
+                payload_codec=registration.payload_codec,
+            )
+            current_payload = None if current.cache is None else current.cache.normalized_payload
+            if not registration.payload_codec.accepts_replacement(
+                current_payload,
+                cycle_result.normalized_payload,
+            ):
+                return await self._failure_report(
+                    config,
+                    token,
+                    ProviderFailure(
+                        code=ProviderFailureCode.PAYLOAD_INVALID,
+                        kind=CircuitFailureKind.CONTRACT,
+                        http_status=cycle_result.http_status,
+                        raw_response=cycle_result.raw_response,
+                    ),
+                    attempts=cycle_result.attempts,
+                    retries=cycle_result.retries,
+                    started_at=lease_guard_started_at,
+                )
+
         finalization = await self._store.finalize_success(
             config,
             now=_utc(self._clock.now()),
             lease_token=token,
             normalized_payload=cycle_result.normalized_payload,
+            payload_codec=registration.payload_codec,
             raw_sha256=cycle_result.raw_sha256,
             attempts=cycle_result.attempts,
             retries=cycle_result.retries,
@@ -369,7 +413,7 @@ class ProviderSyncService:
                 )
             try:
                 normalized = adapter.normalize(request, validated)
-                normalized_payload = _normalized_payload(normalized)
+                normalized_payload = registration.payload_codec.encode(normalized)
             except (ProviderNormalizationFailed, ValueError):
                 return _CycleFailure(
                     ProviderFailure(
@@ -384,6 +428,7 @@ class ProviderSyncService:
             return _CycleSuccess(
                 normalized_payload=normalized_payload,
                 raw_sha256=hashlib.sha256(raw.body).hexdigest(),
+                raw_response=raw,
                 http_status=raw.status_code,
                 attempts=progress.attempts,
                 retries=progress.retries,
@@ -393,7 +438,11 @@ class ProviderSyncService:
 
     async def status(self, provider_code: str) -> ProviderStatusSnapshot:
         registration = self._registration(provider_code)
-        return await self._store.status(registration.config, now=_utc(self._clock.now()))
+        return await self._store.status(
+            registration.config,
+            now=_utc(self._clock.now()),
+            payload_codec=registration.payload_codec,
+        )
 
     async def set_enabled(self, provider_code: str, *, enabled: bool) -> ProviderStatusSnapshot:
         registration = self._registration(provider_code)
@@ -401,6 +450,7 @@ class ProviderSyncService:
             registration.config,
             enabled=enabled,
             now=_utc(self._clock.now()),
+            payload_codec=registration.payload_codec,
         )
 
     def _registration(self, provider_code: str) -> _Registration:
@@ -517,6 +567,18 @@ def _skip_report(provider_code: str, claim: ProviderClaim) -> ProviderSyncReport
     )
 
 
+def _not_configured_report(provider_code: str) -> ProviderSyncReport:
+    return ProviderSyncReport(
+        provider_code=provider_code,
+        outcome=ProviderSyncOutcome.NOT_CONFIGURED,
+        failure_code=ProviderFailureCode.NOT_CONFIGURED.value,
+        attempts=0,
+        retries=0,
+        cache_state=None,
+        stale_fallback=False,
+    )
+
+
 def _response_failure(
     response: RawProviderResponse,
     *,
@@ -600,15 +662,6 @@ def _bounded_decimal_seconds(value: str, *, maximum: int) -> int:
     ):
         return maximum
     return int(significant, 10)
-
-
-def _normalized_payload(value: object) -> Mapping[str, int]:
-    if not isinstance(value, Mapping) or set(value) != {"confirmed_planet_count"}:
-        raise ProviderNormalizationFailed()
-    count = value.get("confirmed_planet_count")
-    if type(count) is not int or count <= 0:
-        raise ProviderNormalizationFailed()
-    return {"confirmed_planet_count": count}
 
 
 def _log_outcome(

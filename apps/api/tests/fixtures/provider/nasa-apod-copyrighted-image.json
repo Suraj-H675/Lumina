@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-08",
+  "title": "Fixture Copyrighted Image APOD",
+  "explanation": "This deterministic fixture verifies that source-provided copyright is preserved exactly.",
+  "media_type": "image",
+  "url": "https://example.invalid/apod/fixture-copyrighted.jpg",
+  "thumbnail_url": "https://example.invalid/apod/fixture-copyrighted-thumb.jpg",
+  "copyright": "Fixture Creator / Example Observatory",
+  "service_version": "v1"
+}

@@ -31,6 +31,7 @@ from lumina.provenance.domain.runtime import (
 )
 from lumina.provenance.infrastructure.http import FixedHttpRequest
 from lumina.provenance.infrastructure.nasa_exoplanet_archive import (
+    NasaCountCodec,
     NasaCountRequest,
     NasaExoplanetArchiveAdapter,
 )
@@ -76,6 +77,7 @@ class _ProviderContext:
     store: PostgreSqlProviderRuntimeStore
     clock: _Clock
     runtime: DatabaseRuntime
+    payload_codec: NasaCountCodec
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
@@ -119,6 +121,7 @@ async def provider_context(
         store=PostgreSqlProviderRuntimeStore(runtime.session_factory),
         clock=_Clock(),
         runtime=runtime,
+        payload_codec=NasaCountCodec(),
     )
     try:
         yield context
@@ -140,6 +143,7 @@ def _service(
             source_manifest=context.config.source_manifest,
         ),
         request_factory=NasaCountRequest,
+        payload_codec=context.payload_codec,
     )
     registry = StaticProviderRegistry({_PROVIDER_CODE: registration})
 
@@ -166,7 +170,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
     def operation(connection: Connection) -> None:
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == ("d7e8f9a0b1c2")
+        ).scalar_one() == ("e1f2a3b4c5d6")
         run_alembic(connection, identity, "c9f6a2b3d4e5", downgrade=True)
         remaining = set(
             connection.execute(
@@ -181,15 +185,45 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
         run_alembic(connection, identity, "head", downgrade=False)
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == ("d7e8f9a0b1c2")
-        seed = connection.execute(
+        ).scalar_one() == ("e1f2a3b4c5d6")
+        seeds = connection.execute(
             text(
-                "SELECT enabled, circuit_state FROM public.provider_runtime_state "
-                "WHERE provider_code = :provider_code"
+                "SELECT provider_code, enabled, circuit_state, consecutive_failures, "
+                "next_sync_at, last_attempt_at, last_success_at, last_failure_at, "
+                "last_failure_code, last_http_status, last_sync_duration_ms, "
+                "active_sync_lease_token, active_sync_lease_expires_at "
+                "FROM public.provider_runtime_state ORDER BY provider_code"
             ),
-            {"provider_code": _PROVIDER_CODE},
-        ).one()
-        assert tuple(seed) == (False, "closed")
+        ).all()
+        assert [row[0] for row in seeds] == ["nasa-apod", _PROVIDER_CODE]
+        expected_seed_state = (
+            False,
+            "closed",
+            0,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        assert tuple(seeds[0][1:]) == expected_seed_state
+        assert tuple(seeds[1][1:]) == expected_seed_state
+        assert (
+            connection.execute(
+                text("SELECT count(*) FROM public.provider_cache_entry")
+            ).scalar_one()
+            == 0
+        )
+        assert (
+            connection.execute(
+                text("SELECT count(*) FROM public.provider_quarantine_entry")
+            ).scalar_one()
+            == 0
+        )
 
     run_migration_operation(url, operation)
 
@@ -248,6 +282,7 @@ async def test_fake_provider_gate_success_stale_fallback_and_expiry(
         provider_context.config,
         enabled=True,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
 
     success = await service.sync(_PROVIDER_CODE)
@@ -257,6 +292,7 @@ async def test_fake_provider_gate_success_stale_fallback_and_expiry(
     fresh = await provider_context.store.status(
         provider_context.config,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert fresh.cache_state is CacheState.FRESH
     assert fresh.cache is not None
@@ -268,6 +304,7 @@ async def test_fake_provider_gate_success_stale_fallback_and_expiry(
     stale_status = await provider_context.store.status(
         provider_context.config,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert stale_status.cache_state is CacheState.STALE
     assert stale_status.cache is not None
@@ -281,6 +318,7 @@ async def test_fake_provider_gate_success_stale_fallback_and_expiry(
     expired_status = await provider_context.store.status(
         provider_context.config,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert expired_status.cache_state is CacheState.EXPIRED
 
@@ -297,6 +335,7 @@ async def test_schema_failure_quarantines_without_replacing_good_cache(
         provider_context.config,
         enabled=True,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert (await service.sync(_PROVIDER_CODE)).outcome is ProviderSyncOutcome.SUCCESS
 
@@ -307,6 +346,7 @@ async def test_schema_failure_quarantines_without_replacing_good_cache(
     status = await provider_context.store.status(
         provider_context.config,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert status.cache is not None
     assert status.cache.normalized_payload == {"confirmed_planet_count": 6360}
@@ -330,6 +370,7 @@ async def test_transient_circuit_opens_then_one_half_open_probe_recovers(
         provider_context.config,
         enabled=True,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
 
     for current in (_NOW, _NOW + timedelta(hours=1), _NOW + timedelta(hours=2)):
@@ -348,6 +389,7 @@ async def test_transient_circuit_opens_then_one_half_open_probe_recovers(
     status = await provider_context.store.status(
         provider_context.config,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert status.state.circuit_state is CircuitState.CLOSED
     assert status.state.consecutive_failures == 0
@@ -381,6 +423,7 @@ async def test_disable_fences_inflight_result_and_reenable_is_immediately_eligib
         provider_context.config,
         enabled=True,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     running = asyncio.create_task(service.sync(_PROVIDER_CODE))
     await asyncio.wait_for(transport.started.wait(), timeout=2)
@@ -391,6 +434,7 @@ async def test_disable_fences_inflight_result_and_reenable_is_immediately_eligib
         provider_context.config,
         enabled=False,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     assert disabled.state.enabled is False
     transport.release.set()
@@ -406,6 +450,7 @@ async def test_disable_fences_inflight_result_and_reenable_is_immediately_eligib
         provider_context.config,
         enabled=True,
         now=provider_context.clock.now(),
+        payload_codec=provider_context.payload_codec,
     )
     reenabled = await service.sync(_PROVIDER_CODE)
     assert reenabled.outcome is ProviderSyncOutcome.SUCCESS
@@ -420,6 +465,7 @@ async def test_expired_matching_lease_fences_success_and_failure_finalization(
         provider_context.config,
         enabled=True,
         now=_NOW,
+        payload_codec=provider_context.payload_codec,
     )
 
     first = await provider_context.store.acquire(
@@ -435,6 +481,7 @@ async def test_expired_matching_lease_fences_success_and_failure_finalization(
         now=expired_at,
         lease_token="expired-success-token",
         normalized_payload={"confirmed_planet_count": 6360},
+        payload_codec=provider_context.payload_codec,
         raw_sha256="a" * 64,
         attempts=1,
         retries=0,
@@ -466,6 +513,7 @@ async def test_expired_matching_lease_fences_success_and_failure_finalization(
     status = await provider_context.store.status(
         provider_context.config,
         now=expired_at,
+        payload_codec=provider_context.payload_codec,
     )
     assert status.cache is None
     assert status.state.counters.sync_successes == 0

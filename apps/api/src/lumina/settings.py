@@ -38,6 +38,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_ENABLE_API_DOCS",
         "LUMINA_BUILD_COMMIT",
         "LUMINA_DATABASE_URL",
+        "LUMINA_NASA_API_KEY",
         "LUMINA_DATABASE_SYNC_URL",
         "LUMINA_CATALOG_OPERATOR_DATABASE_URL",
         "LUMINA_TEST_DATABASE_URL",
@@ -69,6 +70,26 @@ def _validate_database_url(value: SecretStr, *, drivername: str, field: str) -> 
     except DatabaseTargetError:
         raise ValueError(f"{field} is invalid") from None
     return value
+
+
+def _validate_nasa_api_key(value: object) -> SecretStr | None:
+    """Accept an optional registered NASA key without retaining it in errors."""
+    if value is None:
+        return None
+    raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+    if raw == "":
+        return None
+    if (
+        not isinstance(raw, str)
+        or not 1 <= len(raw) <= 256
+        or raw == "DEMO_KEY"
+        or not raw.isascii()
+        or any(
+            character.isspace() or ord(character) < 32 or ord(character) == 127 for character in raw
+        )
+    ):
+        raise ValueError("NASA API key is invalid")
+    return SecretStr(raw)
 
 
 def _parse_cors_origins(value: object) -> object:
@@ -159,6 +180,10 @@ class AppSettings(BaseSettings):
     build_commit: str | None = Field(
         default=None,
         validation_alias="LUMINA_BUILD_COMMIT",
+    )
+    nasa_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias="LUMINA_NASA_API_KEY",
     )
     database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
     job_payload_max_bytes: int = Field(
@@ -270,6 +295,11 @@ class AppSettings(BaseSettings):
             drivername="postgresql+asyncpg",
             field="Database URL",
         )
+
+    @field_validator("nasa_api_key", mode="before")
+    @classmethod
+    def validate_nasa_api_key(cls, value: object) -> SecretStr | None:
+        return _validate_nasa_api_key(value)
 
     @field_validator("log_level", mode="before")
     @classmethod

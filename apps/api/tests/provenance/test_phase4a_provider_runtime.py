@@ -31,6 +31,10 @@ from lumina.provenance.composition import (
 )
 from lumina.provenance.domain.provider import ProviderPayloadInvalid
 from lumina.provenance.domain.runtime import (
+    APOD_CONTENT_TYPE,
+    APOD_HOST,
+    APOD_PATH,
+    APOD_USER_AGENT,
     PROVIDER_ATTEMPT_TOTAL_SECONDS,
     PROVIDER_REQUEST_CYCLE_SECONDS,
     SYNC_LEASE_SECONDS,
@@ -54,6 +58,7 @@ from lumina.provenance.infrastructure.http import (
     ProviderTransportUnavailable,
 )
 from lumina.provenance.infrastructure.nasa_exoplanet_archive import (
+    NasaCountCodec,
     NasaCountRequest,
     NasaExoplanetArchiveAdapter,
     NasaTransport,
@@ -214,12 +219,13 @@ class _CancellationStore:
         now: datetime,
         lease_token: str,
         normalized_payload: Any,
+        payload_codec: Any,
         raw_sha256: str,
         attempts: int,
         retries: int,
         duration_ms: int,
     ) -> ProviderFinalization:
-        del config, normalized_payload, raw_sha256, attempts, retries, duration_ms
+        del config, normalized_payload, payload_codec, raw_sha256, attempts, retries, duration_ms
         if not self._owns(lease_token, now):
             return ProviderFinalization(ProviderFinalizationOutcome.FENCED, None)
         self.successful_tokens.append(lease_token)
@@ -268,6 +274,7 @@ def _service(
         config=config,
         adapter=_adapter(transport),
         request_factory=NasaCountRequest,
+        payload_codec=NasaCountCodec(),
     )
     registry = SimpleNamespace(
         resolve=lambda provider_code: (
@@ -292,7 +299,7 @@ async def _completed_sleep() -> None:
 def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> None:
     registry = production_provider_registry()
 
-    assert registry.registered_codes == frozenset({"nasa-exoplanet-archive"})
+    assert registry.registered_codes == frozenset({"nasa-exoplanet-archive", "nasa-apod"})
     registration = registry.resolve("nasa-exoplanet-archive")
     assert registration is not None
     assert registration.config.adapter_id == "nasa-exoplanet-archive-tap-count"
@@ -497,6 +504,42 @@ async def test_bounded_transport_preserves_bytes_and_rejects_oversize() -> None:
     assert oversized_by_header.raw_complete is False
     assert oversized_by_header.observed_bytes == 65_537
     assert oversized_by_header.body == b""
+
+
+@pytest.mark.asyncio
+async def test_bounded_transport_redacts_apod_key_from_httpx_logs(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    secret = "fixture-apod-log-secret-2026"
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": APOD_CONTENT_TYPE},
+            content=b"{}",
+            request=request,
+        )
+
+    transport = BoundedHttpTransport(
+        timeout=_config().timeout,
+        client_factory=lambda *, timeout: httpx.AsyncClient(
+            transport=httpx.MockTransport(handler), timeout=timeout
+        ),
+    )
+    request = FixedHttpRequest(
+        url=f"https://{APOD_HOST}{APOD_PATH}",
+        params=(("api_key", secret),),
+        expected_content_type=APOD_CONTENT_TYPE,
+        user_agent=APOD_USER_AGENT,
+    )
+
+    with caplog.at_level(logging.INFO, logger="httpx"):
+        await transport.request(request)
+
+    rendered = "\n".join(record.getMessage() for record in caplog.records)
+    assert secret not in rendered
+    assert "api_key=<redacted>" in rendered
+    assert all(secret not in repr(record.args) for record in caplog.records)
 
 
 @pytest.mark.asyncio
@@ -845,6 +888,7 @@ async def test_external_cancellation_closes_transport_and_preserves_lease_fencin
         now=clock.now(),
         lease_token="cancelled-token",
         normalized_payload={"confirmed_planet_count": 6360},
+        payload_codec=NasaCountCodec(),
         raw_sha256="a" * 64,
         attempts=1,
         retries=0,

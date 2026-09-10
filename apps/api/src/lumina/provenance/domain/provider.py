@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Protocol
 
 from .manifests import SourceManifest
@@ -27,6 +26,13 @@ class ProviderRequestRejected(ProviderContractError):
 
     code = "provider.request_rejected"
     safe_message = "The provider request was rejected."
+
+
+class ProviderNotConfigured(ProviderContractError):
+    """The process has no approved credential for a provider network request."""
+
+    code = "provider.not_configured"
+    safe_message = "The provider is not configured for synchronization."
 
 
 class ProviderPayloadInvalid(ProviderContractError):
@@ -120,6 +126,6 @@ class ProviderRuntimeAdapter(Protocol):
         """Validate one untrusted provider response."""
         ...
 
-    def normalize(self, request: object, payload: object) -> Mapping[str, int]:
-        """Normalize one validated response into the runtime result shape."""
+    def normalize(self, request: object, payload: object) -> object:
+        """Normalize one validated response before the registered codec boundary."""
         ...

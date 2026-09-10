@@ -57,6 +57,11 @@ test.describe("honest API foundation status", () => {
     await expect(
       page.getByRole("heading", { level: 3, name: "NASA Exoplanet Archive" }),
     ).toBeVisible();
-    await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
+    await expect(
+      page
+        .getByRole("heading", { level: 3, name: "NASA Exoplanet Archive" })
+        .locator("..")
+        .getByText("Disabled", { exact: true }),
+    ).toBeVisible();
   });
 });

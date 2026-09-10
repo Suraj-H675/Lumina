@@ -205,6 +205,7 @@ def _settings() -> AppSettings:
         AppSettings,
         SimpleNamespace(
             database_url=object(),
+            nasa_api_key=None,
             job_operation_wait_timeout_ms=5_000,
             job_result_max_bytes=61_440,
             job_stale_seconds=120,

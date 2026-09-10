@@ -1,6 +1,219 @@
 {
   "components": {
     "schemas": {
+      "ApodContentResponse": {
+        "additionalProperties": false,
+        "description": "Safe APOD content without provider media URLs.",
+        "properties": {
+          "apod_page_url": {
+            "title": "Apod Page Url",
+            "type": "string"
+          },
+          "copyright": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Copyright"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "media_type": {
+            "enum": [
+              "image",
+              "video"
+            ],
+            "title": "Media Type",
+            "type": "string"
+          },
+          "service_version": {
+            "const": "v1",
+            "title": "Service Version",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "title",
+          "explanation",
+          "media_type",
+          "copyright",
+          "service_version",
+          "apod_page_url"
+        ],
+        "title": "ApodContentResponse",
+        "type": "object"
+      },
+      "ApodFreshnessResponse": {
+        "additionalProperties": false,
+        "description": "Cache timing separate from the provider's APOD content date.",
+        "properties": {
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fresh Until"
+          },
+          "last_refresh_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refresh Failure Code"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Until"
+          }
+        },
+        "required": [
+          "cache_state",
+          "retrieved_at",
+          "fresh_until",
+          "stale_until",
+          "last_refresh_failure_code"
+        ],
+        "title": "ApodFreshnessResponse",
+        "type": "object"
+      },
+      "ApodResponse": {
+        "additionalProperties": false,
+        "description": "Versioned public projection for the current/latest Daily Visual.",
+        "properties": {
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApodContentResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/ApodFreshnessResponse"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ApodSourceResponse"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_disabled",
+                  "no_cached_content",
+                  "cached_content_expired"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "availability",
+          "unavailable_reason",
+          "content",
+          "freshness",
+          "source"
+        ],
+        "title": "ApodResponse",
+        "type": "object"
+      },
+      "ApodSourceResponse": {
+        "additionalProperties": false,
+        "description": "Reviewed source and attribution metadata.",
+        "properties": {
+          "api_documentation_url": {
+            "title": "Api Documentation Url",
+            "type": "string"
+          },
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "media_usage_url": {
+            "title": "Media Usage Url",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "official_url": {
+            "title": "Official Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "official_url",
+          "api_documentation_url",
+          "media_usage_url",
+          "attribution_text"
+        ],
+        "title": "ApodSourceResponse",
+        "type": "object"
+      },
       "CacheState": {
         "description": "Computed state of the last-known-good provider cache.",
         "enum": [
@@ -629,6 +842,7 @@
           "provider.response_too_large",
           "provider.payload_invalid",
           "provider.normalization_failed",
+          "provider.not_configured",
           "provider.circuit_open",
           "provider.disabled",
           "provider.storage",
@@ -2172,6 +2386,48 @@
           }
         },
         "summary": "Metadata"
+      }
+    },
+    "/api/v1/now/apod": {
+      "get": {
+        "description": "Return the durable last-known-good APOD projection without fetching NASA.",
+        "operationId": "get_now_apod",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApodResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Daily Visual request must not contain query parameters."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Daily Visual read projection is temporarily unavailable."
+          }
+        },
+        "summary": "Now Apod",
+        "tags": [
+          "space-now"
+        ]
       }
     },
     "/api/v1/providers/status": {

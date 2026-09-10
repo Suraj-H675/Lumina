@@ -27,6 +27,10 @@ CANONICAL_ARTIFACTS: Final = {
 _GENERATED_NAMES: Final = frozenset({"types.gen.ts", "zod.gen.ts"})
 _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
     {
+        "ApodContentResponse",
+        "ApodFreshnessResponse",
+        "ApodResponse",
+        "ApodSourceResponse",
         "ClientOptions",
         "CalculateSeasonsSimulatorData",
         "CalculateSeasonsSimulatorError",
@@ -65,6 +69,11 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
         "GetCatalogEntityBySlugErrors",
         "GetCatalogEntityBySlugResponse",
         "GetCatalogEntityBySlugResponses",
+        "GetNowApodData",
+        "GetNowApodError",
+        "GetNowApodErrors",
+        "GetNowApodResponse",
+        "GetNowApodResponses",
         "GetSourceRecordProvenanceData",
         "GetSourceRecordProvenanceError",
         "GetSourceRecordProvenanceErrors",
@@ -141,6 +150,10 @@ _EXPECTED_TYPE_SYMBOLS: Final = frozenset(
 )
 _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
     {
+        "zApodContentResponse",
+        "zApodFreshnessResponse",
+        "zApodResponse",
+        "zApodSourceResponse",
         "zCompactSourceReference",
         "zCalculateSeasonsSimulatorResponse",
         "zCalculateTelescopeBuilderResponse",
@@ -162,6 +175,7 @@ _EXPECTED_ZOD_SYMBOLS: Final = frozenset(
         "zCircuitState",
         "zGetCatalogEntityResponse",
         "zGetCatalogEntityBySlugResponse",
+        "zGetNowApodResponse",
         "zGetSourceRecordProvenanceResponse",
         "zHistorySelectionReference",
         "zLiveHealthLiveGetResponse",
@@ -294,6 +308,7 @@ def _validate_openapi(content: bytes) -> None:
     required_paths = (
         b'"/api/v1/meta"',
         b'"/api/v1/providers/status"',
+        b'"/api/v1/now/apod"',
         b'"/api/v1/simulations/seasons"',
         b'"/api/v1/simulations/telescope-builder"',
         b'"/health/live"',
@@ -316,6 +331,7 @@ def _validate_openapi(content: bytes) -> None:
         b'"suggest_catalog_entities"',
         b'"calculate_seasons_simulator"',
         b'"calculate_telescope_builder"',
+        b'"get_now_apod"',
     )
     if any(path not in content for path in required_paths) or b'"/api/v1/sources/' in content:
         raise GenerationError("OpenAPI output is missing a required committed route")

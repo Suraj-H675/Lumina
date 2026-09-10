@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Protocol
 
 from lumina.provenance.domain.provider import ProviderRuntimeAdapter
-from lumina.provenance.domain.runtime import PROVIDER_CODE, ProviderRuntimeConfig
+from lumina.provenance.domain.runtime import (
+    APOD_PROVIDER_CODE,
+    PROVIDER_CODE,
+    ProviderPayloadCodec,
+    ProviderRuntimeConfig,
+)
+
+PRODUCTION_PROVIDER_CODES = frozenset({PROVIDER_CODE, APOD_PROVIDER_CODE})
+
+
+def _always_configured() -> bool:
+    return True
 
 
 class ProviderRequestFactory(Protocol):
@@ -26,6 +37,13 @@ class ProviderRegistration:
     config: ProviderRuntimeConfig
     adapter: ProviderRuntimeAdapter
     request_factory: ProviderRequestFactory
+    payload_codec: ProviderPayloadCodec
+    check_replacement: bool = False
+    configuration_check: Callable[[], bool] = field(default=_always_configured, repr=False)
+
+    def is_configured(self) -> bool:
+        """Return whether local configuration permits a provider network request."""
+        return self.configuration_check()
 
 
 class StaticProviderRegistry:
@@ -33,8 +51,8 @@ class StaticProviderRegistry:
 
     def __init__(self, registrations: Mapping[str, ProviderRegistration]) -> None:
         copied = dict(registrations)
-        if not copied or set(copied) != {PROVIDER_CODE}:
-            raise ValueError("Production provider registry is not the approved Phase 4A registry")
+        if not copied or not set(copied).issubset(PRODUCTION_PROVIDER_CODES):
+            raise ValueError("Production provider registry contains an unapproved provider")
         for code, registration in copied.items():
             if code != registration.config.provider_code:
                 raise ValueError("Provider registry key does not match provider configuration")
@@ -54,6 +72,7 @@ class StaticProviderRegistry:
 
 
 __all__ = [
+    "PRODUCTION_PROVIDER_CODES",
     "ProviderRegistration",
     "ProviderRequestFactory",
     "StaticProviderRegistry",

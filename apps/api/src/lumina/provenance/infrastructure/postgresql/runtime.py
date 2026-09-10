@@ -16,6 +16,7 @@ from lumina.provenance.domain.runtime import (
     CacheState,
     CircuitFailureKind,
     CircuitState,
+    NormalizedPayload,
     ProviderCacheEntry,
     ProviderClaim,
     ProviderClaimOutcome,
@@ -23,6 +24,7 @@ from lumina.provenance.domain.runtime import (
     ProviderFinalization,
     ProviderFinalizationOutcome,
     ProviderLease,
+    ProviderPayloadCodec,
     ProviderQuarantineEntry,
     ProviderRuntimeConfig,
     ProviderRuntimeState,
@@ -177,7 +179,8 @@ class PostgreSqlProviderRuntimeStore:
         *,
         now: datetime,
         lease_token: str,
-        normalized_payload: Mapping[str, int],
+        normalized_payload: NormalizedPayload,
+        payload_codec: ProviderPayloadCodec,
         raw_sha256: str,
         attempts: int,
         retries: int,
@@ -207,8 +210,9 @@ class PostgreSqlProviderRuntimeStore:
                 fetched_at = now
                 fresh_until = now + config.fresh_ttl
                 stale_until = now + config.stale_ttl
+                canonical_payload = _validated_payload(normalized_payload, payload_codec)
                 payload = json.dumps(
-                    dict(normalized_payload),
+                    dict(canonical_payload),
                     allow_nan=False,
                     ensure_ascii=False,
                     separators=(",", ":"),
@@ -384,6 +388,7 @@ class PostgreSqlProviderRuntimeStore:
         config: ProviderRuntimeConfig,
         *,
         now: datetime,
+        payload_codec: ProviderPayloadCodec,
     ) -> ProviderStatusSnapshot:
         """Read provider state and its bounded operational evidence."""
         try:
@@ -411,7 +416,9 @@ class PostgreSqlProviderRuntimeStore:
                     state_row,
                     cache_row,
                     quarantine_row,
+                    config=config,
                     now=now,
+                    payload_codec=payload_codec,
                 )
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
             raise
@@ -426,6 +433,7 @@ class PostgreSqlProviderRuntimeStore:
         *,
         enabled: bool,
         now: datetime,
+        payload_codec: ProviderPayloadCodec,
     ) -> ProviderStatusSnapshot:
         """Apply the explicit operator safety control and return its new status."""
         if type(enabled) is not bool:
@@ -476,7 +484,9 @@ class PostgreSqlProviderRuntimeStore:
                     state_row,
                     cache_row,
                     quarantine_row,
+                    config=config,
                     now=now,
+                    payload_codec=payload_codec,
                 )
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
             raise
@@ -616,19 +626,37 @@ def _cache_state_from_row(row: RowMapping | None, now: datetime) -> CacheState:
     return CacheState.EXPIRED
 
 
-def _cache_entry(row: RowMapping) -> ProviderCacheEntry:
+def _validated_payload(
+    payload: object,
+    payload_codec: ProviderPayloadCodec,
+) -> NormalizedPayload:
+    try:
+        decoded = payload_codec.decode(payload)
+        encoded = payload_codec.encode(decoded)
+    except (TypeError, ValueError):
+        raise ProviderStorageFailure() from None
+    if not isinstance(payload, Mapping) or dict(encoded) != dict(payload):
+        raise ProviderStorageFailure()
+    return encoded
+
+
+def _cache_entry(
+    row: RowMapping,
+    config: ProviderRuntimeConfig,
+    payload_codec: ProviderPayloadCodec,
+) -> ProviderCacheEntry:
+    if (
+        str(row["provider_code"]) != config.provider_code
+        or str(row["cache_key"]) != config.cache_key
+        or str(row["normalized_schema_version"]) != config.source_schema_version
+    ):
+        raise ProviderStorageFailure()
     payload = row["normalized_payload"]
-    if not isinstance(payload, Mapping):
-        raise ProviderStorageFailure()
-    if set(payload) != {"confirmed_planet_count"}:
-        raise ProviderStorageFailure()
-    count = payload.get("confirmed_planet_count")
-    if type(count) is not int or count <= 0:
-        raise ProviderStorageFailure()
+    normalized_payload = _validated_payload(payload, payload_codec)
     return ProviderCacheEntry(
         provider_code=str(row["provider_code"]),
         cache_key=str(row["cache_key"]),
-        normalized_payload={"confirmed_planet_count": count},
+        normalized_payload=normalized_payload,
         schema_version=str(row["normalized_schema_version"]),
         raw_sha256=str(row["raw_sha256"]),
         fetched_at=_required_timestamp(row["fetched_at"]),
@@ -724,9 +752,11 @@ def _status_snapshot(
     cache_row: RowMapping | None,
     quarantine_row: RowMapping | None,
     *,
+    config: ProviderRuntimeConfig,
     now: datetime,
+    payload_codec: ProviderPayloadCodec,
 ) -> ProviderStatusSnapshot:
-    cache = _cache_entry(cache_row) if cache_row is not None else None
+    cache = _cache_entry(cache_row, config, payload_codec) if cache_row is not None else None
     quarantine = _quarantine_entry(quarantine_row) if quarantine_row is not None else None
     return ProviderStatusSnapshot(
         state=_runtime_state(state_row, now=now),

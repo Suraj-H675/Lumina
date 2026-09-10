@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+import re
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final, Protocol
 from urllib.parse import urlsplit
 
@@ -17,6 +19,10 @@ from lumina.provenance.domain.provider import (
     ProviderFetchUnavailable,
 )
 from lumina.provenance.domain.runtime import (
+    APOD_CONTENT_TYPE,
+    APOD_HOST,
+    APOD_PATH,
+    APOD_USER_AGENT,
     FIXED_HOST,
     FIXED_PATH,
     FIXED_USER_AGENT,
@@ -26,6 +32,7 @@ from lumina.provenance.domain.runtime import (
 )
 
 _NASA_CSV_MEDIA_TYPE: Final = "text/plain"
+_HTTPX_API_KEY_PATTERN: Final = re.compile(r"([?&]api_key=)[^&\s\"]*", re.ASCII)
 
 
 # Compatibility aliases keep transport-focused test fixtures readable while the
@@ -35,32 +42,75 @@ ProviderTransportTimeout = ProviderFetchTimeout
 ProviderTransportUnavailable = ProviderFetchUnavailable
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, repr=False, slots=True)
 class FixedHttpRequest:
     """A provider-owned request with no caller-controlled URL or headers."""
 
     url: str
-    params: tuple[tuple[str, str], ...]
+    params: tuple[tuple[str, str], ...] = field(repr=False)
     expected_content_type: str = _NASA_CSV_MEDIA_TYPE
     max_response_bytes: int = MAX_RESPONSE_BYTES
+    user_agent: str = FIXED_USER_AGENT
 
     def __post_init__(self) -> None:
-        parsed = urlsplit(self.url)
         if (
-            parsed.scheme != "https"
-            or parsed.hostname != FIXED_HOST
-            or parsed.port is not None
-            or parsed.path != FIXED_PATH
-            or parsed.username is not None
-            or parsed.password is not None
-            or parsed.fragment
-            or parsed.query
-            or self.expected_content_type != _NASA_CSV_MEDIA_TYPE
-            or self.max_response_bytes != MAX_RESPONSE_BYTES
-            or self.params
-            != (("query", "select count(pl_name) from ps where default_flag=1"), ("format", "csv"))
+            type(self.url) is not str
+            or type(self.params) is not tuple
+            or any(
+                type(pair) is not tuple
+                or len(pair) != 2
+                or any(type(value) is not str for value in pair)
+                for pair in self.params
+            )
+            or self.url != self.url.strip()
+            or any(ord(character) < 32 or ord(character) == 127 for character in self.url)
+            or "\\" in self.url
         ):
             raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        parsed = urlsplit(self.url)
+        try:
+            hostname = parsed.hostname
+            port = parsed.port
+        except ValueError:
+            raise ValueError(
+                "Provider HTTP request is outside the approved trust boundary"
+            ) from None
+        if (
+            parsed.scheme != "https"
+            or hostname not in {FIXED_HOST, APOD_HOST}
+            or port is not None
+            or parsed.fragment
+            or parsed.query
+            or self.max_response_bytes != MAX_RESPONSE_BYTES
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        if hostname == FIXED_HOST:
+            if (
+                parsed.path != FIXED_PATH
+                or self.expected_content_type != _NASA_CSV_MEDIA_TYPE
+                or self.user_agent != FIXED_USER_AGENT
+                or self.params
+                != (
+                    ("query", "select count(pl_name) from ps where default_flag=1"),
+                    ("format", "csv"),
+                )
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        elif (
+            parsed.path != APOD_PATH
+            or self.expected_content_type != APOD_CONTENT_TYPE
+            or self.user_agent != APOD_USER_AGENT
+            or len(self.params) != 1
+            or self.params[0][0] != "api_key"
+            or not _valid_api_key(self.params[0][1])
+        ):
+            raise ValueError("Provider HTTP request is outside the approved trust boundary")
+
+    def __repr__(self) -> str:
+        """Never expose an API key-bearing parameter tuple in diagnostics."""
+        return "FixedHttpRequest(<redacted>)"
 
 
 class AsyncHttpClientFactory(Protocol):
@@ -114,6 +164,7 @@ class BoundedHttpTransport:
 
     async def _request_unbounded(self, request: FixedHttpRequest) -> RawProviderResponse:
         """Perform one request; the caller owns the total attempt deadline."""
+        _install_httpx_secret_redaction_filter()
         client = self._client_factory(
             timeout=httpx.Timeout(
                 connect=self._timeout.connect_seconds,
@@ -131,7 +182,7 @@ class BoundedHttpTransport:
                     headers={
                         "Accept": request.expected_content_type,
                         "Accept-Encoding": "identity",
-                        "User-Agent": FIXED_USER_AGENT,
+                        "User-Agent": request.user_agent,
                     },
                 ) as response:
                     headers = {key.lower(): value for key, value in response.headers.items()}
@@ -185,6 +236,28 @@ def _event_loop_time() -> float:
     return asyncio.get_running_loop().time()
 
 
+class _HttpxSecretRedactionFilter(logging.Filter):
+    """Remove API-key query values before HTTPX records reach any handler."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            rendered = record.getMessage()
+        except Exception:
+            return True
+        redacted = _HTTPX_API_KEY_PATTERN.sub(r"\1<redacted>", rendered)
+        if redacted != rendered:
+            record.msg = redacted
+            record.args = ()
+        return True
+
+
+def _install_httpx_secret_redaction_filter() -> None:
+    """Install the idempotent filter before any provider request is prepared."""
+    logger = logging.getLogger("httpx")
+    if not any(isinstance(candidate, _HttpxSecretRedactionFilter) for candidate in logger.filters):
+        logger.addFilter(_HttpxSecretRedactionFilter())
+
+
 def _production_client(*, timeout: httpx.Timeout) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         timeout=timeout,
@@ -214,6 +287,16 @@ def _content_length(value: str | None) -> int | None:
 
 def _media_type(value: str | None) -> str | None:
     return None if value is None else value.split(";", 1)[0].strip().lower()
+
+
+def _valid_api_key(value: str) -> bool:
+    return (
+        type(value) is str
+        and 1 <= len(value) <= 256
+        and value != "DEMO_KEY"
+        and value.isascii()
+        and all(not character.isspace() and 32 <= ord(character) < 127 for character in value)
+    )
 
 
 __all__ = [

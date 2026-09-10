@@ -91,6 +91,8 @@ def test_fake_is_outside_wheel_and_only_tests_import_it() -> None:
     )
     assert runtime_test_importers == [
         "tests/integration/test_provider_runtime.py",
+        "tests/provenance/test_apod_sync.py",
+        "tests/provenance/test_nasa_apod.py",
         "tests/provenance/test_phase4a_provider_runtime.py",
     ]
 
@@ -134,15 +136,18 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
         "api/schemas.py",
         "application/__init__.py",
         "application/job_handler.py",
+        "application/read.py",
         "application/registry.py",
         "application/sync.py",
         "composition.py",
         "domain/__init__.py",
+        "domain/apod.py",
         "domain/manifests.py",
         "domain/provider.py",
         "domain/runtime.py",
         "infrastructure/__init__.py",
         "infrastructure/http.py",
+        "infrastructure/nasa_apod.py",
         "infrastructure/nasa_exoplanet_archive.py",
         "infrastructure/postgresql/__init__.py",
         "infrastructure/postgresql/runtime.py",
@@ -153,6 +158,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
     assert "StaticProviderRegistry" in production_source
     assert "ProviderRuntimeConfig" in production_source
     assert "NasaExoplanetArchiveAdapter" in production_source
+    assert "NasaApodAdapter" in production_source
     assert "APIRouter" in production_source
     for forbidden in ("fixture_mode", "schedule_job", "importlib", "entry_points"):
         assert forbidden not in production_source

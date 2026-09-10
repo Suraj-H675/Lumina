@@ -189,7 +189,10 @@ async def run_worker_process(
             ),
             stale_seconds=settings.job_stale_seconds,
         )
-        provider_composition = compose_provider_runtime(session_factory)
+        provider_composition = compose_provider_runtime(
+            session_factory,
+            nasa_api_key=settings.nasa_api_key,
+        )
         registry = provider_composition.handler_registry
         resources.signals = install_signal_handlers(shutdown_event)
         owner = build_worker_owner_identity(settings.worker_id_prefix)

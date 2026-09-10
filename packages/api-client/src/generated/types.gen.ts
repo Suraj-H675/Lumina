@@ -5,6 +5,114 @@ export type ClientOptions = {
 };
 
 /**
+ * ApodContentResponse
+ *
+ * Safe APOD content without provider media URLs.
+ */
+export type ApodContentResponse = {
+  /**
+   * Apod Page Url
+   */
+  apod_page_url: string;
+  /**
+   * Copyright
+   */
+  copyright: string | null;
+  /**
+   * Date
+   */
+  date: string;
+  /**
+   * Explanation
+   */
+  explanation: string;
+  /**
+   * Media Type
+   */
+  media_type: "image" | "video";
+  /**
+   * Service Version
+   */
+  service_version: "v1";
+  /**
+   * Title
+   */
+  title: string;
+};
+
+/**
+ * ApodFreshnessResponse
+ *
+ * Cache timing separate from the provider's APOD content date.
+ */
+export type ApodFreshnessResponse = {
+  cache_state: CacheState;
+  /**
+   * Fresh Until
+   */
+  fresh_until: string | null;
+  /**
+   * Last Refresh Failure Code
+   */
+  last_refresh_failure_code: string | null;
+  /**
+   * Retrieved At
+   */
+  retrieved_at: string | null;
+  /**
+   * Stale Until
+   */
+  stale_until: string | null;
+};
+
+/**
+ * ApodResponse
+ *
+ * Versioned public projection for the current/latest Daily Visual.
+ */
+export type ApodResponse = {
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  content: ApodContentResponse | null;
+  freshness: ApodFreshnessResponse;
+  source: ApodSourceResponse;
+  /**
+   * Unavailable Reason
+   */
+  unavailable_reason: "provider_disabled" | "no_cached_content" | "cached_content_expired" | null;
+};
+
+/**
+ * ApodSourceResponse
+ *
+ * Reviewed source and attribution metadata.
+ */
+export type ApodSourceResponse = {
+  /**
+   * Api Documentation Url
+   */
+  api_documentation_url: string;
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Media Usage Url
+   */
+  media_usage_url: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Official Url
+   */
+  official_url: string;
+};
+
+/**
  * CacheState
  *
  * Computed state of the last-known-good provider cache.
@@ -406,6 +514,7 @@ export type ProviderFailureCode =
   | "provider.response_too_large"
   | "provider.payload_invalid"
   | "provider.normalization_failed"
+  | "provider.not_configured"
   | "provider.circuit_open"
   | "provider.disabled"
   | "provider.storage"
@@ -1330,6 +1439,35 @@ export type MetadataApiV1MetaGetResponses = {
 
 export type MetadataApiV1MetaGetResponse =
   MetadataApiV1MetaGetResponses[keyof MetadataApiV1MetaGetResponses];
+
+export type GetNowApodData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/now/apod";
+};
+
+export type GetNowApodErrors = {
+  /**
+   * The Daily Visual request must not contain query parameters.
+   */
+  422: ErrorResponse;
+  /**
+   * The Daily Visual read projection is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetNowApodError = GetNowApodErrors[keyof GetNowApodErrors];
+
+export type GetNowApodResponses = {
+  /**
+   * Successful Response
+   */
+  200: ApodResponse;
+};
+
+export type GetNowApodResponse = GetNowApodResponses[keyof GetNowApodResponses];
 
 export type ListProviderStatusData = {
   body?: never;

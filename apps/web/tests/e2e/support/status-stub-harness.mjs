@@ -14,6 +14,7 @@ const token = randomBytes(32).toString("hex");
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
+  "/api/v1/now/apod",
   "/api/v1/providers/status",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
@@ -72,9 +73,112 @@ const PROVIDER_STATUS_FIXTURE = {
         concurrent_lease_skips: 0,
       },
     },
+    {
+      provider_code: "nasa-apod",
+      source_name: "NASA Astronomy Picture of the Day (APOD)",
+      official_documentation_url: "https://api.nasa.gov/",
+      terms_or_licence_url: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      attribution_text:
+        "NASA Astronomy Picture of the Day (APOD), provided through NASA's Open APIs.",
+      adapter_id: "nasa-apod-daily-media",
+      adapter_version: "1",
+      source_schema_version: "apod-v1-json-v1",
+      enabled: false,
+      circuit_state: "closed",
+      cache_state: "missing",
+      cache_active: false,
+      sync_lease_active: false,
+      consecutive_failures: 0,
+      last_attempt_at: null,
+      last_success_at: null,
+      last_failure_at: null,
+      last_failure_code: null,
+      last_http_status: null,
+      last_sync_duration_ms: null,
+      next_sync_at: null,
+      next_probe_at: null,
+      cache_fetched_at: null,
+      cache_fresh_until: null,
+      cache_stale_until: null,
+      quarantine_exists: false,
+      quarantine_observed_at: null,
+      quarantine_failure_code: null,
+      quarantine_raw_sha256: null,
+      metrics: {
+        sync_cycles_started: 0,
+        sync_successes: 0,
+        sync_upstream_failures: 0,
+        http_requests: 0,
+        http_retries: 0,
+        schema_failures: 0,
+        quarantines: 0,
+        stale_fallbacks: 0,
+        circuit_openings: 0,
+        disabled_skips: 0,
+        circuit_open_skips: 0,
+        concurrent_lease_skips: 0,
+      },
+    },
   ],
 };
+
+const NOW_APOD_FIXTURE = {
+  availability: "fresh",
+  unavailable_reason: null,
+  content: {
+    date: "2026-09-09",
+    title: "Fixture Daily Visual",
+    explanation: "A deterministic server-rendered APOD fixture for production browser tests.",
+    media_type: "image",
+    copyright: null,
+    service_version: "v1",
+    apod_page_url: "https://apod.nasa.gov/apod/ap260909.html",
+  },
+  freshness: {
+    cache_state: "fresh",
+    retrieved_at: "2026-09-10T12:00:00Z",
+    fresh_until: "2026-09-10T18:00:00Z",
+    stale_until: "2026-09-13T18:00:00Z",
+    last_refresh_failure_code: null,
+  },
+  source: {
+    name: "NASA Astronomy Picture of the Day (APOD)",
+    official_url: "https://apod.nasa.gov/apod/",
+    api_documentation_url: "https://api.nasa.gov/",
+    media_usage_url: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    attribution_text:
+      "NASA Astronomy Picture of the Day (APOD), provided through NASA's Open APIs.",
+  },
+};
+
+function nowApodFixtureForMode() {
+  if (apodMode === "stale") {
+    return {
+      ...NOW_APOD_FIXTURE,
+      availability: "stale",
+      freshness: {
+        ...NOW_APOD_FIXTURE.freshness,
+        cache_state: "stale",
+        last_refresh_failure_code: "provider.timeout",
+      },
+    };
+  }
+  if (apodMode === "unavailable") {
+    return {
+      ...NOW_APOD_FIXTURE,
+      availability: "unavailable",
+      unavailable_reason: "cached_content_expired",
+      content: null,
+      freshness: {
+        ...NOW_APOD_FIXTURE.freshness,
+        cache_state: "expired",
+      },
+    };
+  }
+  return NOW_APOD_FIXTURE;
+}
 const controlPaths = new Set([
+  "/__control/apod-mode",
   "/__control/assert-clean",
   "/__control/clear-violations",
   "/__control/mode",
@@ -100,6 +204,7 @@ const maximumViolations = 100;
 const violationCounts = new Map();
 let violationTotal = 0;
 let mode = "disconnect";
+let apodMode = "fresh";
 let webProcess;
 let shutdownPhase = "running";
 let childShutdownBarrierReached = false;
@@ -883,6 +988,32 @@ const stub = http.createServer(async (request, response) => {
       return;
     }
 
+    if (path === "/__control/apod-mode") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["fresh", "stale", "unavailable"].includes(body.mode)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        apodMode = body.mode;
+        sendJson(response, 200, { mode: apodMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
+
     try {
       if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
         throw new Error("control request media type is invalid");
@@ -943,6 +1074,13 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isTelescopeBuilderPath) {
     respondTelescopeBuilder(response, target);
+    return;
+  }
+  if (path === "/api/v1/now/apod") {
+    // The APOD product fixture is independent of the status-suite mode. The
+    // APOD-specific control state lets its E2E suite prove stale and expired
+    // cache projections without racing the operational status suite.
+    sendJson(response, 200, nowApodFixtureForMode());
     return;
   }
   if (mode === "disconnect") {

@@ -141,5 +141,6 @@ def test_worker_has_no_dynamic_handlers_routes_or_scheduler_framework() -> None:
         "apscheduler",
     ):
         assert forbidden not in source
-    assert source.count("compose_provider_runtime(session_factory)") == 1
+    assert source.count("compose_provider_runtime(") == 1
+    assert "nasa_api_key=settings.nasa_api_key" in source
     assert "provider_composition.handler_registry" in source

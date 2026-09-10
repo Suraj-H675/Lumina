@@ -230,6 +230,7 @@ class SourceManifest(_ManifestModel):
     adapter_version: StableToken
     purpose: NarrativeText
     official_documentation_url: HttpUrl
+    source_page_url: HttpUrl | None = Field(default=None, exclude_if=lambda value: value is None)
     terms_or_licence_url: HttpUrl
     attribution_text: NarrativeText
     endpoint_or_base_url: HttpUrl | None

@@ -7,6 +7,7 @@ const navigationItems = [
   { href: "/explore", label: "Explore" },
   { href: "/learn", label: "Learn" },
   { href: "/lab", label: "Lab" },
+  { href: "/now", label: "Space Now" },
   { href: "/compare", label: "Compare" },
   { href: "/observe", label: "Observe" },
   { href: "/tonight", label: "Tonight" },

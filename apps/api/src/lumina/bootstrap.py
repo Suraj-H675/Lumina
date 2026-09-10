@@ -32,6 +32,8 @@ from lumina.shared.application.readiness import DatabaseReadinessService
 from lumina.shared.infrastructure.database.probe import SqlAlchemyDatabaseProbe
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 from lumina.shared.logging import configure_logging
+from lumina.space_now.api.routes import router as space_now_router
+from lumina.space_now.application.read import ApodReadService
 
 
 def create_app(settings: AppSettings) -> FastAPI:
@@ -43,7 +45,10 @@ def create_app(settings: AppSettings) -> FastAPI:
     catalog_read_service = CatalogReadService(catalog_read_repository)
     catalog_search_repository = PostgreSqlCatalogSearchRepository(database_runtime.session_factory)
     catalog_search_service = CatalogSearchService(catalog_search_repository)
-    provider_composition = compose_provider_runtime(database_runtime.session_factory)
+    provider_composition = compose_provider_runtime(
+        database_runtime.session_factory,
+        nasa_api_key=settings.nasa_api_key,
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -68,6 +73,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.state.catalog_search_service = catalog_search_service
     application.state.provider_registry = provider_composition.registry
     application.state.provider_sync_service = provider_composition.sync_service
+    application.state.apod_read_service = ApodReadService(provider_composition.snapshot_reader)
 
     application.add_exception_handler(
         RequestValidationError,
@@ -90,4 +96,5 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(catalog_router)
     application.include_router(search_router)
     application.include_router(provider_router)
+    application.include_router(space_now_router)
     return application

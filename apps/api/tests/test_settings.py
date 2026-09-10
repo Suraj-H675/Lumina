@@ -8,7 +8,7 @@ from pathlib import Path
 import lumina.settings as settings_module
 import pytest
 from lumina.settings import AppSettings, UnknownLuminaSettingError, load_settings
-from pydantic import ValidationError
+from pydantic import SecretStr, ValidationError
 
 _DATABASE_URL = "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test"
 
@@ -318,6 +318,46 @@ def test_cancellation_grace_cannot_exceed_handler_timeout() -> None:
 def test_valid_explicit_bind_hosts(host: str) -> None:
     settings = _settings({"LUMINA_ENV": "test", "LUMINA_API_HOST": host})
     assert settings.api_host == host
+
+
+@pytest.mark.parametrize("value", [None, "", SecretStr("")])
+def test_nasa_api_key_is_optional_and_empty_is_unconfigured(value: object) -> None:
+    settings = _settings({"LUMINA_ENV": "test", "LUMINA_NASA_API_KEY": value})
+
+    assert settings.nasa_api_key is None
+
+
+def test_nasa_api_key_is_secret_and_is_not_reflected_in_settings_repr() -> None:
+    secret = "fixture-apod-key-2026"
+    settings = _settings({"LUMINA_ENV": "test", "LUMINA_NASA_API_KEY": secret})
+
+    assert settings.nasa_api_key is not None
+    assert settings.nasa_api_key.get_secret_value() == secret
+    assert secret not in repr(settings)
+    assert secret not in str(settings)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "DEMO_KEY",
+        " leading-space",
+        "trailing-space ",
+        "key\nwith-control",
+        "key\x7f",
+        "clé-with-non-ascii",
+        "x" * 257,
+        42,
+        False,
+    ],
+)
+def test_nasa_api_key_rejects_example_or_malformed_values_without_echoing_input(
+    value: object,
+) -> None:
+    with pytest.raises(ValidationError) as captured:
+        _settings({"LUMINA_ENV": "test", "LUMINA_NASA_API_KEY": value})
+
+    assert str(value) not in str(captured.value)
 
 
 @pytest.mark.parametrize(

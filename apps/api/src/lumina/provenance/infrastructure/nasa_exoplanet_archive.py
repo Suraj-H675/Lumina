@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import pkgutil
+from collections.abc import Mapping
 from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
@@ -26,6 +27,7 @@ from lumina.provenance.domain.runtime import (
     PROVIDER_CODE,
     SOURCE_SCHEMA_VERSION,
     NormalizedPayload,
+    ProviderPayloadCodec,
     RawProviderResponse,
 )
 
@@ -63,6 +65,30 @@ class NasaCountPayload:
     """Strict validated wire payload with the observed NASA CSV header."""
 
     count: int
+
+
+class NasaCountCodec(ProviderPayloadCodec):
+    """Validate the Exoplanet count shape at every generic-cache boundary."""
+
+    def encode(self, normalized: object) -> NormalizedPayload:
+        if not isinstance(normalized, Mapping) or set(normalized) != {"confirmed_planet_count"}:
+            raise ValueError("NASA count normalized payload is invalid")
+        count = normalized.get("confirmed_planet_count")
+        if type(count) is not int or count <= 0:
+            raise ValueError("NASA count normalized payload is invalid")
+        return {"confirmed_planet_count": count}
+
+    def decode(self, stored: object) -> NormalizedPayload:
+        return self.encode(stored)
+
+    def accepts_replacement(
+        self,
+        current: NormalizedPayload | None,
+        candidate: NormalizedPayload,
+    ) -> bool:
+        del current
+        self.encode(candidate)
+        return True
 
 
 class NasaTransport(Protocol):
@@ -189,6 +215,7 @@ def load_nasa_source_manifest(
 
 
 __all__ = [
+    "NasaCountCodec",
     "NasaCountPayload",
     "NasaCountRequest",
     "NasaExoplanetArchiveAdapter",

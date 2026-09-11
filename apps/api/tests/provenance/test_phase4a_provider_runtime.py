@@ -535,6 +535,7 @@ async def test_bounded_transport_redacts_apod_key_from_httpx_logs(
 
     with caplog.at_level(logging.INFO, logger="httpx"):
         await transport.request(request)
+        logging.getLogger("httpx").info("GET %s?api_key=%s", request.url, secret)
 
     rendered = "\n".join(record.getMessage() for record in caplog.records)
     assert secret not in rendered

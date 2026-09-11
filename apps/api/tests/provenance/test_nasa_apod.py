@@ -27,6 +27,7 @@ _NOW = datetime(2026, 9, 10, 12, 0, tzinfo=UTC)
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 _TEST_KEY = "fixture-apod-key-2026"
 _TEST_SECRET = SecretStr(_TEST_KEY)
+_INVALID_AUTHORITY_URL = "https://user:pass@example.invalid/apod.jpg"  # trufflehog:ignore
 
 
 def _json_response(
@@ -230,7 +231,10 @@ async def test_video_fixture_requires_no_hd_url_and_remains_link_only_at_normali
         json.dumps({**_base_payload(), "url": "http://example.invalid/apod.jpg"}).encode(),
         json.dumps({**_base_payload(), "url": "javascript:alert(1)"}).encode(),
         json.dumps(
-            {**_base_payload(), "url": "https://user:pass@example.invalid/apod.jpg"}
+            {
+                **_base_payload(),
+                "url": _INVALID_AUTHORITY_URL,
+            }
         ).encode(),
         json.dumps({**_base_payload(), "url": "https://example.invalid:bad/apod.jpg"}).encode(),
         b'{"date":"2026-09-10","date":"2026-09-10","title":"x","explanation":"x","media_type":"image","url":"https://example.invalid/x","service_version":"v1"}',

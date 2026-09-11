@@ -108,7 +108,7 @@ EXPECTED_MIGRATIONS = (
         filename="e1f2a3b4c5d6_add_nasa_apod_provider.py",
         revision="e1f2a3b4c5d6",
         down_revision="d7e8f9a0b1c2",
-        sha256="789664e182dc9d909745ee3e7771443f60df5dc74e1528b907fc41b8be481de4",
+        sha256="12bd038f9516dcdfe654b8f886d5213b0caf1dae838f9a63117c239c6ad078ab",
     ),
 )
 

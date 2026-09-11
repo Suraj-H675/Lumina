@@ -81,16 +81,12 @@ def _assert_no_apod_rows(connection: Connection) -> None:
         {"provider_code": _PROVIDER_CODE},
     ).scalar_one_or_none()
     cache = connection.execute(
-        sa.text(
-            "SELECT 1 FROM public.provider_cache_entry "
-            "WHERE provider_code = :provider_code"
-        ),
+        sa.text("SELECT 1 FROM public.provider_cache_entry WHERE provider_code = :provider_code"),
         {"provider_code": _PROVIDER_CODE},
     ).scalar_one_or_none()
     quarantine = connection.execute(
         sa.text(
-            "SELECT 1 FROM public.provider_quarantine_entry "
-            "WHERE provider_code = :provider_code"
+            "SELECT 1 FROM public.provider_quarantine_entry WHERE provider_code = :provider_code"
         ),
         {"provider_code": _PROVIDER_CODE},
     ).scalar_one_or_none()
@@ -137,16 +133,12 @@ def downgrade() -> None:
     _assert_revision(connection, revision)
     _assert_runtime_tables(connection)
     cache = connection.execute(
-        sa.text(
-            "SELECT 1 FROM public.provider_cache_entry "
-            "WHERE provider_code = :provider_code"
-        ),
+        sa.text("SELECT 1 FROM public.provider_cache_entry WHERE provider_code = :provider_code"),
         {"provider_code": _PROVIDER_CODE},
     ).scalar_one_or_none()
     quarantine = connection.execute(
         sa.text(
-            "SELECT 1 FROM public.provider_quarantine_entry "
-            "WHERE provider_code = :provider_code"
+            "SELECT 1 FROM public.provider_quarantine_entry WHERE provider_code = :provider_code"
         ),
         {"provider_code": _PROVIDER_CODE},
     ).scalar_one_or_none()
@@ -162,8 +154,7 @@ def downgrade() -> None:
     if row is not None:
         connection.execute(
             sa.text(
-                "DELETE FROM public.provider_runtime_state "
-                "WHERE provider_code = :provider_code"
+                "DELETE FROM public.provider_runtime_state WHERE provider_code = :provider_code"
             ),
             {"provider_code": _PROVIDER_CODE},
         )

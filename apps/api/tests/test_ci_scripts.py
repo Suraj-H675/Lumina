@@ -68,6 +68,12 @@ EXPECTED_PNPM_OVERRIDES = {
 HISTORICAL_TRUFFLEHOG_EXCEPTIONS = (
     (
         "URI",
+        "7dd8ba38622489b5d671e835e4a106a7972657a2",
+        "apps/api/tests/provenance/test_nasa_apod.py",
+        233,
+    ),
+    (
+        "URI",
         "804283dd7b4c7ac295cc23d754f95a1e94fb466f",
         "apps/api/tests/provenance/test_manifests.py",
         68,
@@ -986,7 +992,7 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "e1f2a3b4c5d6_add_nasa_apod_provider.py",
             "e1f2a3b4c5d6",
             "d7e8f9a0b1c2",
-            "789664e182dc9d909745ee3e7771443f60df5dc74e1528b907fc41b8be481de4",
+            "12bd038f9516dcdfe654b8f886d5213b0caf1dae838f9a63117c239c6ad078ab",
         ),
     ]
     assert actual_contracts == expected_contracts
@@ -1044,6 +1050,7 @@ def test_root_commands_and_issue_forms_are_publication_complete() -> None:
 def test_current_fictional_uri_inputs_use_only_inline_trufflehog_ignore_markers() -> None:
     marker = "trufflehog" + ":ignore"
     fixture_credentials = "user" + ":secret"
+    apod_fixture_credentials = "user" + ":pass"
     transport_credentials = "user" + ":password"
     fixture_marker_line = (
         f'_INVALID_TERMS_URL = "https://{fixture_credentials}@fixtures.invalid/terms"  # {marker}'
@@ -1051,6 +1058,12 @@ def test_current_fictional_uri_inputs_use_only_inline_trufflehog_ignore_markers(
     marker_lines = {
         "apps/api/tests/provenance/test_manifests.py": {
             fixture_marker_line,
+        },
+        "apps/api/tests/provenance/test_nasa_apod.py": {
+            (
+                f'_INVALID_AUTHORITY_URL = "https://{apod_fixture_credentials}@'
+                f'example.invalid/apod.jpg"  # {marker}'
+            ),
         },
         "apps/web/tests/status.test.tsx": {
             f'const url = "https://{fixture_credentials}@example.test"; // {marker}',

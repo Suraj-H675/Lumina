@@ -186,6 +186,7 @@ const fs = require("node:fs");
 
 const [scope, output] = process.argv.slice(2);
 const allowedHistoryTuples = new Set([
+  "URI|7dd8ba38622489b5d671e835e4a106a7972657a2|apps/api/tests/provenance/test_nasa_apod.py|233",
   "URI|804283dd7b4c7ac295cc23d754f95a1e94fb466f|apps/api/tests/provenance/test_manifests.py|68",
   "URI|926d4f273332b8fe476ca5caa76de841dfc547ca|apps/web/tests/status.test.tsx|137",
   "URI|926d4f273332b8fe476ca5caa76de841dfc547ca|apps/web/tests/status.test.tsx|138",

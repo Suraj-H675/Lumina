@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from importlib import resources
+from logging.handlers import BufferingHandler
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -507,9 +508,7 @@ async def test_bounded_transport_preserves_bytes_and_rejects_oversize() -> None:
 
 
 @pytest.mark.asyncio
-async def test_bounded_transport_redacts_apod_key_from_httpx_logs(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
+async def test_bounded_transport_redacts_apod_key_from_httpx_logs() -> None:
     secret = "fixture-apod-log-secret-2026"
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -533,14 +532,34 @@ async def test_bounded_transport_redacts_apod_key_from_httpx_logs(
         user_agent=APOD_USER_AGENT,
     )
 
-    with caplog.at_level(logging.INFO, logger="httpx"):
+    logger = logging.getLogger("httpx")
+    capture_handler = BufferingHandler(capacity=100)
+    was_disabled = logger.disabled
+    was_propagating = logger.propagate
+    logger.addHandler(capture_handler)
+    logger.disabled = False
+    logger.propagate = False
+    try:
         await transport.request(request)
-        logging.getLogger("httpx").info("GET %s?api_key=%s", request.url, secret)
+        record = logger.makeRecord(
+            logger.name,
+            logging.INFO,
+            __file__,
+            0,
+            "GET %s?api_key=%s",
+            (request.url, secret),
+            None,
+        )
+        logger.handle(record)
+    finally:
+        logger.removeHandler(capture_handler)
+        logger.disabled = was_disabled
+        logger.propagate = was_propagating
 
-    rendered = "\n".join(record.getMessage() for record in caplog.records)
+    rendered = "\n".join(record.getMessage() for record in capture_handler.buffer)
     assert secret not in rendered
     assert "api_key=<redacted>" in rendered
-    assert all(secret not in repr(record.args) for record in caplog.records)
+    assert all(secret not in repr(record.args) for record in capture_handler.buffer)
 
 
 @pytest.mark.asyncio

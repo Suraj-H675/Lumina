@@ -195,7 +195,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
                 "FROM public.provider_runtime_state ORDER BY provider_code"
             ),
         ).all()
-        assert [row[0] for row in seeds] == ["nasa-apod", "nasa-neows", _PROVIDER_CODE]
+        assert [row[0] for row in seeds] == ["nasa-apod", _PROVIDER_CODE, "nasa-neows"]
         expected_seed_state = (
             False,
             "closed",

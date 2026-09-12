@@ -31,6 +31,7 @@ from lumina.provenance.domain.runtime import (
     ProviderStatusSnapshot,
     ProviderStorageFailure,
     RuntimeCounters,
+    validate_normalized_payload,
 )
 
 _OPERATION_TIMEOUT = "5000ms"
@@ -580,11 +581,14 @@ async def _upsert_quarantine(
     response = failure.raw_response
     if response is None:
         return
+    quarantine_body = (
+        response.body if response.quarantine_body is None else response.quarantine_body
+    )
     raw_sha256 = None
     if response.raw_complete:
         import hashlib
 
-        raw_sha256 = hashlib.sha256(response.body).hexdigest()
+        raw_sha256 = hashlib.sha256(quarantine_body).hexdigest()
     await connection.execute(
         text(
             "INSERT INTO public.provider_quarantine_entry "
@@ -606,7 +610,7 @@ async def _upsert_quarantine(
             "raw_complete": response.raw_complete,
             "observed_bytes": response.observed_bytes,
             "raw_sha256": raw_sha256,
-            "raw_body": response.body if response.raw_complete else None,
+            "raw_body": quarantine_body if response.raw_complete else None,
             "http_status": response.status_code,
         },
     )
@@ -633,11 +637,12 @@ def _validated_payload(
     try:
         decoded = payload_codec.decode(payload)
         encoded = payload_codec.encode(decoded)
+        validated = validate_normalized_payload(encoded)
     except (TypeError, ValueError):
         raise ProviderStorageFailure() from None
-    if not isinstance(payload, Mapping) or dict(encoded) != dict(payload):
+    if not isinstance(payload, Mapping) or dict(validated) != dict(payload):
         raise ProviderStorageFailure()
-    return encoded
+    return validated
 
 
 def _cache_entry(

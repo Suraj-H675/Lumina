@@ -110,6 +110,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="d7e8f9a0b1c2",
         sha256="12bd038f9516dcdfe654b8f886d5213b0caf1dae838f9a63117c239c6ad078ab",
     ),
+    MigrationContract(
+        filename="f3a4b5c6d7e8_add_nasa_neows_provider.py",
+        revision="f3a4b5c6d7e8",
+        down_revision="e1f2a3b4c5d6",
+        sha256="68de64dd3cff5d98c7b36c6dca5fcf73044b23bee4e7c8b64bd7f26ccc798255",
+    ),
 )
 
 
@@ -170,7 +176,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 15 accepted revisions, head e1f2a3b4c5d6.")
+    print("Migration integrity passed: 16 accepted revisions, head f3a4b5c6d7e8.")
     return 0
 
 

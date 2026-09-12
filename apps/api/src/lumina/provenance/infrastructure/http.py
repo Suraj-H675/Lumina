@@ -8,6 +8,7 @@ import re
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Final, Protocol
 from urllib.parse import urlsplit
 
@@ -26,7 +27,13 @@ from lumina.provenance.domain.runtime import (
     FIXED_HOST,
     FIXED_PATH,
     FIXED_USER_AGENT,
+    FRAMEWORK_MAX_RAW_RESPONSE_BYTES,
     MAX_RESPONSE_BYTES,
+    NEOWS_CONTENT_TYPE,
+    NEOWS_HOST,
+    NEOWS_MAX_RESPONSE_BYTES,
+    NEOWS_PATH,
+    NEOWS_USER_AGENT,
     HttpTimeoutPolicy,
     RawProviderResponse,
 )
@@ -77,11 +84,11 @@ class FixedHttpRequest:
             ) from None
         if (
             parsed.scheme != "https"
-            or hostname not in {FIXED_HOST, APOD_HOST}
+            or hostname not in {FIXED_HOST, APOD_HOST, NEOWS_HOST}
             or port is not None
             or parsed.fragment
             or parsed.query
-            or self.max_response_bytes != MAX_RESPONSE_BYTES
+            or not 1 <= self.max_response_bytes <= FRAMEWORK_MAX_RAW_RESPONSE_BYTES
             or parsed.username is not None
             or parsed.password is not None
         ):
@@ -98,14 +105,29 @@ class FixedHttpRequest:
                 )
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
-        elif (
-            parsed.path != APOD_PATH
-            or self.expected_content_type != APOD_CONTENT_TYPE
-            or self.user_agent != APOD_USER_AGENT
-            or len(self.params) != 1
-            or self.params[0][0] != "api_key"
-            or not _valid_api_key(self.params[0][1])
-        ):
+        elif parsed.path == APOD_PATH:
+            if (
+                self.expected_content_type != APOD_CONTENT_TYPE
+                or self.user_agent != APOD_USER_AGENT
+                or self.max_response_bytes != MAX_RESPONSE_BYTES
+                or len(self.params) != 1
+                or self.params[0][0] != "api_key"
+                or not _valid_api_key(self.params[0][1])
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        elif parsed.path == NEOWS_PATH:
+            if (
+                self.expected_content_type != NEOWS_CONTENT_TYPE
+                or self.user_agent != NEOWS_USER_AGENT
+                or self.max_response_bytes != NEOWS_MAX_RESPONSE_BYTES
+                or len(self.params) != 3
+                or tuple(key for key, _ in self.params) != ("start_date", "end_date", "api_key")
+                or not _valid_date(self.params[0][1])
+                or not _valid_date(self.params[1][1])
+                or not _valid_api_key(self.params[2][1])
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        else:
             raise ValueError("Provider HTTP request is outside the approved trust boundary")
 
     def __repr__(self) -> str:
@@ -188,7 +210,9 @@ class BoundedHttpTransport:
                     headers = {key.lower(): value for key, value in response.headers.items()}
                     if headers.get("content-encoding", "identity").lower() != "identity":
                         raise ProviderTransportUnavailable()
-                    content_length = _content_length(headers.get("content-length"))
+                    content_length = _content_length(
+                        headers.get("content-length"), request.max_response_bytes
+                    )
                     if content_length is not None and content_length > request.max_response_bytes:
                         return RawProviderResponse(
                             status_code=response.status_code,
@@ -197,6 +221,7 @@ class BoundedHttpTransport:
                             raw_complete=False,
                             observed_bytes=content_length,
                             content_type_valid=False,
+                            max_response_bytes=request.max_response_bytes,
                         )
                     body = bytearray()
                     observed = 0
@@ -213,6 +238,7 @@ class BoundedHttpTransport:
                                 raw_complete=False,
                                 observed_bytes=observed,
                                 content_type_valid=False,
+                                max_response_bytes=request.max_response_bytes,
                             )
                         body.extend(chunk)
                     return RawProviderResponse(
@@ -223,6 +249,7 @@ class BoundedHttpTransport:
                         observed_bytes=observed,
                         content_type_valid=_media_type(headers.get("content-type"))
                         == request.expected_content_type,
+                        max_response_bytes=request.max_response_bytes,
                     )
             except ProviderFetchError:
                 raise
@@ -271,18 +298,39 @@ def _production_client(*, timeout: httpx.Timeout) -> httpx.AsyncClient:
     )
 
 
-def _content_length(value: str | None) -> int | None:
+def _content_length(value: str | None, maximum: int) -> int | None:
     if value is None:
         return None
     if not value.isascii() or not value.isdecimal() or (len(value) > 1 and value.startswith("0")):
         raise ProviderTransportUnavailable()
     significant = value.lstrip("0") or "0"
-    maximum_text = str(MAX_RESPONSE_BYTES)
+    maximum_text = str(maximum)
     if len(significant) > len(maximum_text) or (
         len(significant) == len(maximum_text) and significant > maximum_text
     ):
-        return MAX_RESPONSE_BYTES + 1
+        return maximum + 1
     return int(significant, 10)
+
+
+def _valid_date(value: str) -> bool:
+    if (
+        type(value) is not str
+        or len(value) != 10
+        or value[4] != "-"
+        or value[7] != "-"
+        or not value[:4].isascii()
+        or not value[5:7].isascii()
+        or not value[8:].isascii()
+        or not value[:4].isdigit()
+        or not value[5:7].isdigit()
+        or not value[8:].isdigit()
+    ):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
 
 
 def _media_type(value: str | None) -> str | None:

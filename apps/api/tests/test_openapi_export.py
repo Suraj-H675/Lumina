@@ -55,6 +55,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/meta",
         "/api/v1/providers/status",
         "/api/v1/now/apod",
+        "/api/v1/now/near-earth",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",
         "/health/live",

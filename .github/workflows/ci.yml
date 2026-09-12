@@ -201,17 +201,17 @@ jobs:
           uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
           uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
           LUMINA_ENV=test uv run pytest -q
-          test "$(uv run alembic heads)" = "e1f2a3b4c5d6 (head)"
+          test "$(uv run alembic heads)" = "f3a4b5c6d7e8 (head)"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina -Atqc \
               'SELECT version_num FROM alembic_version'
-          )" = "e1f2a3b4c5d6"
+          )" = "f3a4b5c6d7e8"
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
               psql -U lumina_admin -d lumina_test -Atqc \
               'SELECT version_num FROM alembic_version'
-          )" = "e1f2a3b4c5d6"
+          )" = "f3a4b5c6d7e8"
           uv run python scripts/ci/check_migration_integrity.py
 
       - name: Remove PostgreSQL and generated environment

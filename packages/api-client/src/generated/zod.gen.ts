@@ -206,6 +206,81 @@ export const zMetaResponse = z.object({
 });
 
 /**
+ * NearEarthEncounterResponse
+ *
+ * One public-safe Earth close-approach event.
+ */
+export const zNearEarthEncounterResponse = z.object({
+  absolute_magnitude_h: z.number(),
+  approach_date: z.string(),
+  approach_time_text: z.string(),
+  distance_uncertainty_status: z.literal("not_provided_by_source"),
+  encounter_id: z.string(),
+  estimated_diameter_max_m: z.number(),
+  estimated_diameter_min_m: z.number(),
+  is_potentially_hazardous_asteroid: z.boolean(),
+  name: z.string(),
+  neo_reference_id: z.string(),
+  nominal_distance_km: z.number(),
+  nominal_distance_lunar: z.number(),
+  object_id: z.string(),
+  relative_velocity_km_s: z.number(),
+  time_uncertainty_status: z.literal("not_provided_by_source"),
+});
+
+/**
+ * NearEarthFreshnessResponse
+ *
+ * Cache timing kept separate from the provider approach time.
+ */
+export const zNearEarthFreshnessResponse = z.object({
+  cache_state: zCacheState,
+  fresh_until: z.iso.datetime().nullable(),
+  last_refresh_failure_code: z.string().nullable(),
+  retrieved_at: z.iso.datetime().nullable(),
+  stale_until: z.iso.datetime().nullable(),
+});
+
+/**
+ * NearEarthSourceResponse
+ *
+ * Reviewed NeoWs source and attribution metadata.
+ */
+export const zNearEarthSourceResponse = z.object({
+  attribution_text: z.string(),
+  name: z.string(),
+  official_documentation_url: z.string(),
+});
+
+/**
+ * NearEarthWindowResponse
+ *
+ * The exact seven-date window represented by the cached feed.
+ */
+export const zNearEarthWindowResponse = z.object({
+  end_date: z.string(),
+  start_date: z.string(),
+});
+
+/**
+ * NearEarthResponse
+ *
+ * Versioned public projection for the current NeoWs approach feed.
+ */
+export const zNearEarthResponse = z.object({
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  encounters: z.array(zNearEarthEncounterResponse),
+  freshness: zNearEarthFreshnessResponse,
+  returned_encounter_count: z.int(),
+  source: zNearEarthSourceResponse,
+  total_encounter_count: z.int(),
+  unavailable_reason: z
+    .enum(["provider_disabled", "no_cached_content", "cached_content_expired"])
+    .nullable(),
+  window: zNearEarthWindowResponse.nullable(),
+});
+
+/**
  * PageResponse
  */
 export const zPageResponse = z.object({
@@ -642,6 +717,11 @@ export const zMetadataApiV1MetaGetResponse = zMetaResponse;
  * Successful Response
  */
 export const zGetNowApodResponse = zApodResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetNowNearEarthResponse = zNearEarthResponse;
 
 /**
  * Successful Response

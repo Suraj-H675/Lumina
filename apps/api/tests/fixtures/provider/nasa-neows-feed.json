@@ -1,0 +1,127 @@
+{
+  "links": {
+    "self": "https://api.nasa.gov/neo/rest/v1/feed?start_date=2026-09-12&end_date=2026-09-18&api_key=fixture-key"
+  },
+  "element_count": 3,
+  "near_earth_objects": {
+    "2026-09-14": [
+      {
+        "links": {
+          "self": "https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=fixture-key"
+        },
+        "id": "3542519",
+        "neo_reference_id": "3542519",
+        "name": "(2026 AB)",
+        "nasa_jpl_url": "https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=3542519",
+        "absolute_magnitude_h": 25.1,
+        "estimated_diameter": {
+          "kilometers": {
+            "estimated_diameter_min": 0.01,
+            "estimated_diameter_max": 0.02
+          },
+          "meters": {
+            "estimated_diameter_min": 10.0,
+            "estimated_diameter_max": 20.0
+          },
+          "miles": {
+            "estimated_diameter_min": 0.006,
+            "estimated_diameter_max": 0.012
+          },
+          "feet": {
+            "estimated_diameter_min": 32.8,
+            "estimated_diameter_max": 65.6
+          }
+        },
+        "is_potentially_hazardous_asteroid": false,
+        "is_sentry_object": true,
+        "close_approach_data": [
+          {
+            "close_approach_date": "2026-09-14",
+            "close_approach_date_full": "2026-Sep-14 10:20",
+            "epoch_date_close_approach": 1789371600000,
+            "relative_velocity": {
+              "kilometers_per_second": "12.340123"
+            },
+            "miss_distance": {
+              "astronomical": "0.006",
+              "lunar": "2.4",
+              "kilometers": "910000.5",
+              "miles": "565441.2"
+            },
+            "orbiting_body": "Earth"
+          },
+          {
+            "close_approach_date": "2027-01-01",
+            "close_approach_date_full": "2027-Jan-01 10:20",
+            "epoch_date_close_approach": 1798798800000,
+            "relative_velocity": {
+              "kilometers_per_second": "13.0"
+            },
+            "miss_distance": {
+              "lunar": "3.1",
+              "kilometers": "1179000",
+              "miles": "732700"
+            },
+            "orbiting_body": "Earth"
+          }
+        ]
+      },
+      {
+        "neo_reference_id": "2000001",
+        "name": "(2024 QX)",
+        "absolute_magnitude_h": 22.3,
+        "estimated_diameter": {
+          "meters": {
+            "estimated_diameter_min": 180.0,
+            "estimated_diameter_max": 410.0
+          }
+        },
+        "is_potentially_hazardous_asteroid": true,
+        "close_approach_data": [
+          {
+            "close_approach_date": "2026-09-14",
+            "close_approach_date_full": "2026-Sep-14 08:05",
+            "epoch_date_close_approach": 1789363500000,
+            "relative_velocity": {
+              "kilometers_per_second": "19.5"
+            },
+            "miss_distance": {
+              "kilometers": "3500000",
+              "lunar": "9.1"
+            },
+            "orbiting_body": "Earth"
+          }
+        ]
+      }
+    ],
+    "2026-09-17": [
+      {
+        "neo_reference_id": "3000002",
+        "name": "2026 RX",
+        "absolute_magnitude_h": 28.8,
+        "estimated_diameter": {
+          "meters": {
+            "estimated_diameter_min": 5.2,
+            "estimated_diameter_max": 11.7
+          }
+        },
+        "is_potentially_hazardous_asteroid": false,
+        "close_approach_data": [
+          {
+            "close_approach_date": "2026-09-17",
+            "close_approach_date_full": "2026-Sep-17 22:40",
+            "epoch_date_close_approach": 1789675200000,
+            "relative_velocity": {
+              "kilometers_per_second": "8.2"
+            },
+            "miss_distance": {
+              "kilometers": "520000",
+              "lunar": "1.35"
+            },
+            "orbiting_body": "Earth"
+          }
+        ]
+      }
+    ]
+  }
+}

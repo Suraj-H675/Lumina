@@ -10,12 +10,13 @@ from typing import Protocol
 from lumina.provenance.domain.provider import ProviderRuntimeAdapter
 from lumina.provenance.domain.runtime import (
     APOD_PROVIDER_CODE,
+    NEOWS_PROVIDER_CODE,
     PROVIDER_CODE,
     ProviderPayloadCodec,
     ProviderRuntimeConfig,
 )
 
-PRODUCTION_PROVIDER_CODES = frozenset({PROVIDER_CODE, APOD_PROVIDER_CODE})
+PRODUCTION_PROVIDER_CODES = frozenset({PROVIDER_CODE, APOD_PROVIDER_CODE, NEOWS_PROVIDER_CODE})
 
 
 def _always_configured() -> bool:

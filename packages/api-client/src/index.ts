@@ -1,5 +1,6 @@
 export {
   apodEndpoint,
+  nearEarthEndpoint,
   liveEndpoint,
   metaEndpoint,
   providerStatusEndpoint,
@@ -9,6 +10,7 @@ export {
 export type {
   ApiEndpoint,
   ApodResponse,
+  NearEarthResponse,
   GeneratedValidator,
   LiveResponse,
   MetaResponse,
@@ -32,6 +34,11 @@ export type {
   GetNowApodErrors,
   GetNowApodResponse,
   GetNowApodResponses,
+  GetNowNearEarthData,
+  GetNowNearEarthError,
+  GetNowNearEarthErrors,
+  GetNowNearEarthResponse,
+  GetNowNearEarthResponses,
   ProviderStatusResponse,
 } from "./generated/types.gen";
 export {

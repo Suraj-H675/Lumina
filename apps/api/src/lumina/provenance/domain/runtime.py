@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import math
+import unicodedata
 from collections.abc import Mapping
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from types import MappingProxyType
@@ -35,6 +38,17 @@ APOD_CONTENT_TYPE: Final = "application/json"
 APOD_OFFICIAL_HOST: Final = "apod.nasa.gov"
 APOD_OFFICIAL_PATH: Final = "/apod/"
 
+NEOWS_PROVIDER_CODE: Final = "nasa-neows"
+NEOWS_ADAPTER_ID: Final = "nasa-neows-feed"
+NEOWS_ADAPTER_VERSION: Final = "1"
+NEOWS_CACHE_KEY: Final = "earth-close-approaches"
+NEOWS_SOURCE_SCHEMA_VERSION: Final = "neows-feed-v1-json-v1"
+NEOWS_HOST: Final = "api.nasa.gov"
+NEOWS_PATH: Final = "/neo/rest/v1/feed"
+NEOWS_FORMAT: Final = "json"
+NEOWS_USER_AGENT: Final = "Lumina/0.0 Phase-4B provider-sync"
+NEOWS_CONTENT_TYPE: Final = "application/json"
+
 SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
 FRESH_TTL: Final = timedelta(hours=8)
 STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
@@ -45,6 +59,13 @@ SYNC_LEASE_SECONDS: Final = 120
 PROVIDER_REQUEST_CYCLE_SECONDS: Final = 90
 PROVIDER_ATTEMPT_TOTAL_SECONDS: Final = 30
 MAX_RESPONSE_BYTES: Final = 65_536
+NEOWS_MAX_RESPONSE_BYTES: Final = 1_048_576
+FRAMEWORK_MAX_RAW_RESPONSE_BYTES: Final = NEOWS_MAX_RESPONSE_BYTES
+MAX_NORMALIZED_PAYLOAD_BYTES: Final = 524_288
+MAX_NORMALIZED_JSON_DEPTH: Final = 8
+NEOWS_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=2)
+NEOWS_FRESH_TTL: Final = timedelta(hours=3)
+NEOWS_STALE_IF_ERROR_GRACE: Final = timedelta(hours=12)
 
 
 class CircuitState(StrEnum):
@@ -176,7 +197,7 @@ class ProviderRuntimeConfig:
             or any(character in self.endpoint_path for character in "?#")
             or not self.output_format
             or self.lease_seconds != SYNC_LEASE_SECONDS
-            or self.max_response_bytes != MAX_RESPONSE_BYTES
+            or not 1 <= self.max_response_bytes <= FRAMEWORK_MAX_RAW_RESPONSE_BYTES
             or self.max_transient_attempts != 3
             or self.retry_delays_seconds != (1.0, 2.0)
             or self.transient_failure_threshold != 3
@@ -184,7 +205,8 @@ class ProviderRuntimeConfig:
             or self.contract_open_interval != timedelta(hours=6)
             or self.retry_after_minimum_seconds != 60
             or self.retry_after_maximum_seconds != 86_400
-            or self.expected_content_type not in {"text/plain", APOD_CONTENT_TYPE}
+            or self.expected_content_type
+            not in {"text/plain", APOD_CONTENT_TYPE, NEOWS_CONTENT_TYPE}
             or not self.user_agent
             or any(ord(character) < 32 or ord(character) == 127 for character in self.user_agent)
         ):
@@ -217,7 +239,7 @@ class ProviderRuntimeConfig:
         return self.fresh_ttl + self.stale_if_error_grace
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, repr=False, slots=True)
 class RawProviderResponse:
     """Bounded exact response evidence returned by one transport attempt."""
 
@@ -227,7 +249,9 @@ class RawProviderResponse:
     raw_complete: bool
     observed_bytes: int
     content_type_valid: bool
+    max_response_bytes: int = MAX_RESPONSE_BYTES
     retry_after_seconds: int | None = None
+    quarantine_body: bytes | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         if (
@@ -236,7 +260,14 @@ class RawProviderResponse:
             or self.status_code > 599
             or type(self.observed_bytes) is not int
             or self.observed_bytes < 0
-            or len(self.body) > MAX_RESPONSE_BYTES
+            or type(self.max_response_bytes) is not int
+            or not 1 <= self.max_response_bytes <= FRAMEWORK_MAX_RAW_RESPONSE_BYTES
+            or len(self.body) > self.max_response_bytes
+            or self.quarantine_body is not None
+            and (
+                type(self.quarantine_body) is not bytes
+                or len(self.quarantine_body) > self.max_response_bytes
+            )
             or self.raw_complete
             and self.observed_bytes != len(self.body)
             or not self.raw_complete
@@ -244,6 +275,10 @@ class RawProviderResponse:
         ):
             raise ValueError("Raw provider response is invalid")
         object.__setattr__(self, "headers", MappingProxyType(dict(self.headers)))
+
+    def __repr__(self) -> str:
+        """Keep response bytes and provider metadata out of diagnostics."""
+        return "RawProviderResponse(<redacted>)"
 
 
 @dataclass(frozen=True, repr=False, slots=True)
@@ -415,7 +450,77 @@ class ProviderRuntimeState:
 
 
 type NormalizedScalar = str | int | float | bool | None
-type NormalizedPayload = Mapping[str, NormalizedScalar]
+type NormalizedJsonValue = (
+    None | bool | int | float | str | list[NormalizedJsonValue] | dict[str, NormalizedJsonValue]
+)
+type NormalizedPayload = Mapping[str, NormalizedJsonValue]
+
+
+def validate_normalized_payload(value: object) -> NormalizedPayload:
+    """Validate the bounded recursive JSON representation used by provider caches."""
+
+    active_containers: set[int] = set()
+
+    def visit(candidate: object, depth: int) -> NormalizedJsonValue:
+        if depth > MAX_NORMALIZED_JSON_DEPTH:
+            raise ValueError("Normalized payload nesting is too deep")
+        if candidate is None or type(candidate) is bool:
+            return candidate
+        if type(candidate) is int:
+            if not -(2**63) <= candidate <= 2**63 - 1:
+                raise ValueError("Normalized integer is outside the signed 64-bit range")
+            return candidate
+        if type(candidate) is float:
+            if not math.isfinite(candidate):
+                raise ValueError("Normalized number is not finite")
+            return candidate
+        if type(candidate) is str:
+            if any(unicodedata.category(character) == "Cs" for character in candidate):
+                raise ValueError("Normalized text contains a surrogate")
+            return candidate
+        if type(candidate) is list:
+            marker = id(candidate)
+            if marker in active_containers:
+                raise ValueError("Normalized payload contains a cycle")
+            active_containers.add(marker)
+            try:
+                return [visit(item, depth + 1) for item in candidate]
+            finally:
+                active_containers.remove(marker)
+        if type(candidate) is dict:
+            marker = id(candidate)
+            if marker in active_containers:
+                raise ValueError("Normalized payload contains a cycle")
+            active_containers.add(marker)
+            try:
+                normalized: dict[str, NormalizedJsonValue] = {}
+                for key, item in candidate.items():
+                    if type(key) is not str:
+                        raise ValueError("Normalized object keys must be strings")
+                    if any(unicodedata.category(character) == "Cs" for character in key):
+                        raise ValueError("Normalized object key contains a surrogate")
+                    normalized[key] = visit(item, depth + 1)
+                return normalized
+            finally:
+                active_containers.remove(marker)
+        raise ValueError("Normalized payload contains a non-JSON value")
+
+    normalized = visit(value, 0)
+    if not isinstance(normalized, dict):
+        raise ValueError("Normalized payload must be a JSON object")
+    try:
+        encoded = json.dumps(
+            normalized,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    except (TypeError, ValueError, UnicodeEncodeError):
+        raise ValueError("Normalized payload is not canonical JSON") from None
+    if len(encoded) > MAX_NORMALIZED_PAYLOAD_BYTES:
+        raise ValueError("Normalized payload exceeds the storage bound")
+    return normalized
 
 
 class ProviderPayloadCodec(Protocol):
@@ -477,7 +582,7 @@ class ProviderQuarantineEntry:
 
     def __post_init__(self) -> None:
         if self.raw_complete:
-            if self.raw_body is None or len(self.raw_body) > MAX_RESPONSE_BYTES:
+            if self.raw_body is None or len(self.raw_body) > FRAMEWORK_MAX_RAW_RESPONSE_BYTES:
                 raise ValueError("Complete quarantine evidence must be bounded")
             if self.raw_sha256 is None:
                 raise ValueError("Complete quarantine evidence requires a checksum")
@@ -530,9 +635,27 @@ __all__ = [
     "FIXED_PATH",
     "FIXED_QUERY",
     "FIXED_USER_AGENT",
+    "FRAMEWORK_MAX_RAW_RESPONSE_BYTES",
     "FRESH_TTL",
     "HttpTimeoutPolicy",
+    "MAX_NORMALIZED_JSON_DEPTH",
+    "MAX_NORMALIZED_PAYLOAD_BYTES",
     "MAX_RESPONSE_BYTES",
+    "NEOWS_ADAPTER_ID",
+    "NEOWS_ADAPTER_VERSION",
+    "NEOWS_CACHE_KEY",
+    "NEOWS_CONTENT_TYPE",
+    "NEOWS_FORMAT",
+    "NEOWS_FRESH_TTL",
+    "NEOWS_HOST",
+    "NEOWS_MAX_RESPONSE_BYTES",
+    "NEOWS_PATH",
+    "NEOWS_PROVIDER_CODE",
+    "NEOWS_SOURCE_SCHEMA_VERSION",
+    "NEOWS_STALE_IF_ERROR_GRACE",
+    "NEOWS_SUCCESS_REFRESH_INTERVAL",
+    "NEOWS_USER_AGENT",
+    "NormalizedJsonValue",
     "NormalizedPayload",
     "PROVIDER_ATTEMPT_TOTAL_SECONDS",
     "PROVIDER_CODE",
@@ -560,4 +683,5 @@ __all__ = [
     "STALE_IF_ERROR_GRACE",
     "SUCCESS_REFRESH_INTERVAL",
     "SYNC_LEASE_SECONDS",
+    "validate_normalized_payload",
 ]

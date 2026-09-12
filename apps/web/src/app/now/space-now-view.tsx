@@ -1,4 +1,5 @@
 import type { ApodResponse } from "@lumina/api-client";
+import Link from "next/link";
 
 import type { NowApodOutcome } from "../../lib/server/space-now";
 
@@ -17,7 +18,34 @@ export function SpaceNowView({ outcome }: Readonly<{ outcome: NowApodOutcome }>)
       </header>
 
       {outcome.kind === "ok" ? <DailyVisual response={outcome.data} /> : <UnavailableDailyVisual />}
+      <NearEarthNavigation />
     </article>
+  );
+}
+
+function NearEarthNavigation() {
+  return (
+    <section
+      aria-labelledby="near-earth-navigation-heading"
+      className="space-y-4 border-t border-[var(--border)] pt-8"
+    >
+      <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
+        Near-Earth approaches
+      </p>
+      <h2 className="text-2xl font-semibold" id="near-earth-navigation-heading">
+        See the next NASA NeoWs close approaches
+      </h2>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">
+        Review predicted Earth close-approach times, nominal distances, relative speeds, estimated
+        diameter ranges, and source classifications in a separate current-feed view.
+      </p>
+      <Link
+        className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
+        href="/now/near-earth"
+      >
+        View near-Earth approaches
+      </Link>
+    </section>
   );
 }
 

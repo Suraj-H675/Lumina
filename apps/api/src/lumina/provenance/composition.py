@@ -34,6 +34,20 @@ from lumina.provenance.domain.runtime import (
     FIXED_HOST,
     FIXED_PATH,
     FIXED_QUERY,
+    NEOWS_ADAPTER_ID,
+    NEOWS_ADAPTER_VERSION,
+    NEOWS_CACHE_KEY,
+    NEOWS_CONTENT_TYPE,
+    NEOWS_FORMAT,
+    NEOWS_FRESH_TTL,
+    NEOWS_HOST,
+    NEOWS_MAX_RESPONSE_BYTES,
+    NEOWS_PATH,
+    NEOWS_PROVIDER_CODE,
+    NEOWS_SOURCE_SCHEMA_VERSION,
+    NEOWS_STALE_IF_ERROR_GRACE,
+    NEOWS_SUCCESS_REFRESH_INTERVAL,
+    NEOWS_USER_AGENT,
     PROVIDER_CODE,
     SOURCE_SCHEMA_VERSION,
     HttpTimeoutPolicy,
@@ -50,6 +64,10 @@ from lumina.provenance.infrastructure.nasa_exoplanet_archive import (
     NasaCountRequest,
     NasaExoplanetArchiveAdapter,
     load_nasa_source_manifest,
+)
+from lumina.provenance.infrastructure.nasa_neows import (
+    NasaNeowsAdapter,
+    load_nasa_neows_source_manifest,
 )
 from lumina.provenance.infrastructure.postgresql.runtime import PostgreSqlProviderRuntimeStore
 
@@ -105,12 +123,37 @@ def nasa_apod_runtime_config(*, repository_root: Path | None = None) -> Provider
     )
 
 
+def nasa_neows_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
+    """Build the immutable NeoWs policy after loading its reviewed manifest."""
+    source_manifest = load_nasa_neows_source_manifest(repository_root)
+    return ProviderRuntimeConfig(
+        provider_code=NEOWS_PROVIDER_CODE,
+        adapter_id=NEOWS_ADAPTER_ID,
+        adapter_version=NEOWS_ADAPTER_VERSION,
+        cache_key=NEOWS_CACHE_KEY,
+        source_schema_version=NEOWS_SOURCE_SCHEMA_VERSION,
+        source_manifest=source_manifest,
+        endpoint_host=NEOWS_HOST,
+        endpoint_path=NEOWS_PATH,
+        query="start_date,end_date,api_key",
+        output_format=NEOWS_FORMAT,
+        timeout=HttpTimeoutPolicy(),
+        refresh_interval=NEOWS_SUCCESS_REFRESH_INTERVAL,
+        fresh_ttl=NEOWS_FRESH_TTL,
+        stale_if_error_grace=NEOWS_STALE_IF_ERROR_GRACE,
+        max_response_bytes=NEOWS_MAX_RESPONSE_BYTES,
+        expected_content_type=NEOWS_CONTENT_TYPE,
+        user_agent=NEOWS_USER_AGENT,
+    )
+
+
 def production_provider_registry(
     *, repository_root: Path | None = None, nasa_api_key: SecretStr | None = None
 ) -> StaticProviderRegistry:
     """Construct the exact production registrations without performing network I/O."""
     exoplanet_config = nasa_runtime_config(repository_root=repository_root)
     apod_config = nasa_apod_runtime_config(repository_root=repository_root)
+    neows_config = nasa_neows_runtime_config(repository_root=repository_root)
     exoplanet_adapter = NasaExoplanetArchiveAdapter(
         BoundedHttpTransport(timeout=exoplanet_config.timeout),
         source_manifest=exoplanet_config.source_manifest,
@@ -119,6 +162,11 @@ def production_provider_registry(
         BoundedHttpTransport(timeout=apod_config.timeout),
         api_key=nasa_api_key,
         source_manifest=apod_config.source_manifest,
+    )
+    neows_adapter = NasaNeowsAdapter(
+        BoundedHttpTransport(timeout=neows_config.timeout),
+        api_key=nasa_api_key,
+        source_manifest=neows_config.source_manifest,
     )
     return StaticProviderRegistry(
         {
@@ -135,6 +183,14 @@ def production_provider_registry(
                 payload_codec=apod_adapter.codec,
                 check_replacement=True,
                 configuration_check=apod_adapter.is_configured,
+            ),
+            NEOWS_PROVIDER_CODE: ProviderRegistration(
+                config=neows_config,
+                adapter=neows_adapter,
+                request_factory=neows_adapter.new_request,
+                payload_codec=neows_adapter.codec,
+                check_replacement=True,
+                configuration_check=neows_adapter.is_configured,
             ),
         }
     )
@@ -175,5 +231,6 @@ __all__ = [
     "compose_provider_runtime",
     "nasa_runtime_config",
     "nasa_apod_runtime_config",
+    "nasa_neows_runtime_config",
     "production_provider_registry",
 ]

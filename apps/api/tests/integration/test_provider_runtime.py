@@ -170,7 +170,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
     def operation(connection: Connection) -> None:
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == ("e1f2a3b4c5d6")
+        ).scalar_one() == ("f3a4b5c6d7e8")
         run_alembic(connection, identity, "c9f6a2b3d4e5", downgrade=True)
         remaining = set(
             connection.execute(
@@ -185,7 +185,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
         run_alembic(connection, identity, "head", downgrade=False)
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == ("e1f2a3b4c5d6")
+        ).scalar_one() == ("f3a4b5c6d7e8")
         seeds = connection.execute(
             text(
                 "SELECT provider_code, enabled, circuit_state, consecutive_failures, "
@@ -195,7 +195,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
                 "FROM public.provider_runtime_state ORDER BY provider_code"
             ),
         ).all()
-        assert [row[0] for row in seeds] == ["nasa-apod", _PROVIDER_CODE]
+        assert [row[0] for row in seeds] == ["nasa-apod", "nasa-neows", _PROVIDER_CODE]
         expected_seed_state = (
             False,
             "closed",
@@ -212,6 +212,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
         )
         assert tuple(seeds[0][1:]) == expected_seed_state
         assert tuple(seeds[1][1:]) == expected_seed_state
+        assert tuple(seeds[2][1:]) == expected_seed_state
         assert (
             connection.execute(
                 text("SELECT count(*) FROM public.provider_cache_entry")

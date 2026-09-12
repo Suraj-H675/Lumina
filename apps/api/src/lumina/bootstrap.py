@@ -33,7 +33,7 @@ from lumina.shared.infrastructure.database.probe import SqlAlchemyDatabaseProbe
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 from lumina.shared.logging import configure_logging
 from lumina.space_now.api.routes import router as space_now_router
-from lumina.space_now.application.read import ApodReadService
+from lumina.space_now.application.read import ApodReadService, NearEarthReadService
 
 
 def create_app(settings: AppSettings) -> FastAPI:
@@ -74,6 +74,9 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.state.provider_registry = provider_composition.registry
     application.state.provider_sync_service = provider_composition.sync_service
     application.state.apod_read_service = ApodReadService(provider_composition.snapshot_reader)
+    application.state.near_earth_read_service = NearEarthReadService(
+        provider_composition.snapshot_reader
+    )
 
     application.add_exception_handler(
         RequestValidationError,

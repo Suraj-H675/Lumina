@@ -15,6 +15,7 @@ const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
   "/api/v1/now/apod",
+  "/api/v1/now/near-earth",
   "/api/v1/providers/status",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
@@ -119,6 +120,51 @@ const PROVIDER_STATUS_FIXTURE = {
         concurrent_lease_skips: 0,
       },
     },
+    {
+      provider_code: "nasa-neows",
+      source_name: "NASA Asteroids NeoWs",
+      official_documentation_url: "https://api.nasa.gov/",
+      terms_or_licence_url: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      attribution_text: "NASA Asteroids NeoWs, provided through NASA's Open APIs.",
+      adapter_id: "nasa-neows-feed",
+      adapter_version: "1",
+      source_schema_version: "neows-feed-v1-json-v1",
+      enabled: false,
+      circuit_state: "closed",
+      cache_state: "missing",
+      cache_active: false,
+      sync_lease_active: false,
+      consecutive_failures: 0,
+      last_attempt_at: null,
+      last_success_at: null,
+      last_failure_at: null,
+      last_failure_code: null,
+      last_http_status: null,
+      last_sync_duration_ms: null,
+      next_sync_at: null,
+      next_probe_at: null,
+      cache_fetched_at: null,
+      cache_fresh_until: null,
+      cache_stale_until: null,
+      quarantine_exists: false,
+      quarantine_observed_at: null,
+      quarantine_failure_code: null,
+      quarantine_raw_sha256: null,
+      metrics: {
+        sync_cycles_started: 0,
+        sync_successes: 0,
+        sync_upstream_failures: 0,
+        http_requests: 0,
+        http_retries: 0,
+        schema_failures: 0,
+        quarantines: 0,
+        stale_fallbacks: 0,
+        circuit_openings: 0,
+        disabled_skips: 0,
+        circuit_open_skips: 0,
+        concurrent_lease_skips: 0,
+      },
+    },
   ],
 };
 
@@ -177,8 +223,77 @@ function nowApodFixtureForMode() {
   }
   return NOW_APOD_FIXTURE;
 }
+const NOW_NEAR_EARTH_FIXTURE = {
+  availability: "fresh",
+  unavailable_reason: null,
+  window: { start_date: "2026-09-12", end_date: "2026-09-18" },
+  total_encounter_count: 1,
+  returned_encounter_count: 1,
+  encounters: [
+    {
+      encounter_id: "nasa-neows-3000001-2026-09-12",
+      object_id: "nasa-neows-3000001",
+      neo_reference_id: "3000001",
+      name: "Fixture NEO 1",
+      approach_date: "2026-09-12",
+      approach_time_text: "2026-Sep-12 08:05",
+      absolute_magnitude_h: 20.01,
+      nominal_distance_km: 500001,
+      nominal_distance_lunar: 1.3,
+      relative_velocity_km_s: 12.01,
+      estimated_diameter_min_m: 10.1,
+      estimated_diameter_max_m: 20.1,
+      is_potentially_hazardous_asteroid: true,
+      distance_uncertainty_status: "not_provided_by_source",
+      time_uncertainty_status: "not_provided_by_source",
+    },
+  ],
+  freshness: {
+    cache_state: "fresh",
+    retrieved_at: "2026-09-12T12:00:00Z",
+    fresh_until: "2026-09-12T15:00:00Z",
+    stale_until: "2026-09-13T03:00:00Z",
+    last_refresh_failure_code: null,
+  },
+  source: {
+    name: "NASA Asteroids NeoWs",
+    official_documentation_url: "https://api.nasa.gov/",
+    attribution_text: "NASA Asteroids NeoWs, provided through NASA's Open APIs.",
+  },
+};
+
+function nowNearEarthFixtureForMode() {
+  if (neowsMode === "stale") {
+    return {
+      ...NOW_NEAR_EARTH_FIXTURE,
+      availability: "stale",
+      freshness: {
+        ...NOW_NEAR_EARTH_FIXTURE.freshness,
+        cache_state: "stale",
+        last_refresh_failure_code: "provider.timeout",
+      },
+    };
+  }
+  if (neowsMode === "unavailable") {
+    return {
+      ...NOW_NEAR_EARTH_FIXTURE,
+      availability: "unavailable",
+      unavailable_reason: "cached_content_expired",
+      window: null,
+      total_encounter_count: 0,
+      returned_encounter_count: 0,
+      encounters: [],
+      freshness: {
+        ...NOW_NEAR_EARTH_FIXTURE.freshness,
+        cache_state: "expired",
+      },
+    };
+  }
+  return NOW_NEAR_EARTH_FIXTURE;
+}
 const controlPaths = new Set([
   "/__control/apod-mode",
+  "/__control/neows-mode",
   "/__control/assert-clean",
   "/__control/clear-violations",
   "/__control/mode",
@@ -205,6 +320,7 @@ const violationCounts = new Map();
 let violationTotal = 0;
 let mode = "disconnect";
 let apodMode = "fresh";
+let neowsMode = "fresh";
 let webProcess;
 let shutdownPhase = "running";
 let childShutdownBarrierReached = false;
@@ -1013,6 +1129,31 @@ const stub = http.createServer(async (request, response) => {
       }
       return;
     }
+    if (path === "/__control/neows-mode") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["fresh", "stale", "unavailable"].includes(body.mode)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        neowsMode = body.mode;
+        sendJson(response, 200, { mode: neowsMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
 
     try {
       if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
@@ -1081,6 +1222,12 @@ const stub = http.createServer(async (request, response) => {
     // APOD-specific control state lets its E2E suite prove stale and expired
     // cache projections without racing the operational status suite.
     sendJson(response, 200, nowApodFixtureForMode());
+    return;
+  }
+  if (path === "/api/v1/now/near-earth") {
+    // The NEO fixture has its own mode so APOD and NEO can be tested as
+    // independently resilient Space Now products.
+    sendJson(response, 200, nowNearEarthFixtureForMode());
     return;
   }
   if (mode === "disconnect") {

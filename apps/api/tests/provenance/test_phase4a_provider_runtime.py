@@ -300,7 +300,9 @@ async def _completed_sleep() -> None:
 def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> None:
     registry = production_provider_registry()
 
-    assert registry.registered_codes == frozenset({"nasa-exoplanet-archive", "nasa-apod"})
+    assert registry.registered_codes == frozenset(
+        {"nasa-exoplanet-archive", "nasa-apod", "nasa-neows"}
+    )
     registration = registry.resolve("nasa-exoplanet-archive")
     assert registration is not None
     assert registration.config.adapter_id == "nasa-exoplanet-archive-tap-count"
@@ -308,6 +310,9 @@ def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> 
     assert registration.config.source_manifest.normalized_fields == ("confirmed_planet_count",)
     adapter = registration.adapter
     assert adapter.source_manifest is registration.config.source_manifest
+    neows_registration = registry.resolve("nasa-neows")
+    assert neows_registration is not None
+    assert neows_registration.check_replacement is True
 
 
 def test_nasa_source_manifest_pins_official_provenance_without_a_licence_claim() -> None:

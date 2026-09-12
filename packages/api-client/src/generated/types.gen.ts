@@ -483,6 +483,166 @@ export type MetaResponse = {
 };
 
 /**
+ * NearEarthEncounterResponse
+ *
+ * One public-safe Earth close-approach event.
+ */
+export type NearEarthEncounterResponse = {
+  /**
+   * Absolute Magnitude H
+   */
+  absolute_magnitude_h: number;
+  /**
+   * Approach Date
+   */
+  approach_date: string;
+  /**
+   * Approach Time Text
+   */
+  approach_time_text: string;
+  /**
+   * Distance Uncertainty Status
+   */
+  distance_uncertainty_status: "not_provided_by_source";
+  /**
+   * Encounter Id
+   */
+  encounter_id: string;
+  /**
+   * Estimated Diameter Max M
+   */
+  estimated_diameter_max_m: number;
+  /**
+   * Estimated Diameter Min M
+   */
+  estimated_diameter_min_m: number;
+  /**
+   * Is Potentially Hazardous Asteroid
+   */
+  is_potentially_hazardous_asteroid: boolean;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Neo Reference Id
+   */
+  neo_reference_id: string;
+  /**
+   * Nominal Distance Km
+   */
+  nominal_distance_km: number;
+  /**
+   * Nominal Distance Lunar
+   */
+  nominal_distance_lunar: number;
+  /**
+   * Object Id
+   */
+  object_id: string;
+  /**
+   * Relative Velocity Km S
+   */
+  relative_velocity_km_s: number;
+  /**
+   * Time Uncertainty Status
+   */
+  time_uncertainty_status: "not_provided_by_source";
+};
+
+/**
+ * NearEarthFreshnessResponse
+ *
+ * Cache timing kept separate from the provider approach time.
+ */
+export type NearEarthFreshnessResponse = {
+  cache_state: CacheState;
+  /**
+   * Fresh Until
+   */
+  fresh_until: string | null;
+  /**
+   * Last Refresh Failure Code
+   */
+  last_refresh_failure_code: string | null;
+  /**
+   * Retrieved At
+   */
+  retrieved_at: string | null;
+  /**
+   * Stale Until
+   */
+  stale_until: string | null;
+};
+
+/**
+ * NearEarthResponse
+ *
+ * Versioned public projection for the current NeoWs approach feed.
+ */
+export type NearEarthResponse = {
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  /**
+   * Encounters
+   */
+  encounters: Array<NearEarthEncounterResponse>;
+  freshness: NearEarthFreshnessResponse;
+  /**
+   * Returned Encounter Count
+   */
+  returned_encounter_count: number;
+  source: NearEarthSourceResponse;
+  /**
+   * Total Encounter Count
+   */
+  total_encounter_count: number;
+  /**
+   * Unavailable Reason
+   */
+  unavailable_reason: "provider_disabled" | "no_cached_content" | "cached_content_expired" | null;
+  window: NearEarthWindowResponse | null;
+};
+
+/**
+ * NearEarthSourceResponse
+ *
+ * Reviewed NeoWs source and attribution metadata.
+ */
+export type NearEarthSourceResponse = {
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Official Documentation Url
+   */
+  official_documentation_url: string;
+};
+
+/**
+ * NearEarthWindowResponse
+ *
+ * The exact seven-date window represented by the cached feed.
+ */
+export type NearEarthWindowResponse = {
+  /**
+   * End Date
+   */
+  end_date: string;
+  /**
+   * Start Date
+   */
+  start_date: string;
+};
+
+/**
  * PageResponse
  */
 export type PageResponse = {
@@ -1468,6 +1628,35 @@ export type GetNowApodResponses = {
 };
 
 export type GetNowApodResponse = GetNowApodResponses[keyof GetNowApodResponses];
+
+export type GetNowNearEarthData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/now/near-earth";
+};
+
+export type GetNowNearEarthErrors = {
+  /**
+   * The Near-Earth Objects request must not contain query parameters.
+   */
+  422: ErrorResponse;
+  /**
+   * The Near-Earth Objects read projection is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetNowNearEarthError = GetNowNearEarthErrors[keyof GetNowNearEarthErrors];
+
+export type GetNowNearEarthResponses = {
+  /**
+   * Successful Response
+   */
+  200: NearEarthResponse;
+};
+
+export type GetNowNearEarthResponse = GetNowNearEarthResponses[keyof GetNowNearEarthResponses];
 
 export type ListProviderStatusData = {
   body?: never;

@@ -994,6 +994,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "d7e8f9a0b1c2",
             "12bd038f9516dcdfe654b8f886d5213b0caf1dae838f9a63117c239c6ad078ab",
         ),
+        (
+            "f3a4b5c6d7e8_add_nasa_neows_provider.py",
+            "f3a4b5c6d7e8",
+            "e1f2a3b4c5d6",
+            "68de64dd3cff5d98c7b36c6dca5fcf73044b23bee4e7c8b64bd7f26ccc798255",
+        ),
     ]
     assert actual_contracts == expected_contracts
     root = tmp_path / "versions"

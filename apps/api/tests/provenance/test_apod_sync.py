@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
 from dataclasses import dataclass, field, fields
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -19,6 +18,7 @@ from lumina.provenance.domain.runtime import (
     CacheState,
     CircuitFailureKind,
     CircuitState,
+    NormalizedPayload,
     ProviderCacheEntry,
     ProviderClaim,
     ProviderClaimOutcome,
@@ -144,7 +144,7 @@ class _ApodStore:
         *,
         now: datetime,
         lease_token: str,
-        normalized_payload: Mapping[str, str | int | float | bool | None],
+        normalized_payload: NormalizedPayload,
         payload_codec: ProviderPayloadCodec,
         raw_sha256: str,
         attempts: int,

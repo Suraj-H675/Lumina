@@ -798,6 +798,277 @@
         "title": "MetaResponse",
         "type": "object"
       },
+      "NearEarthEncounterResponse": {
+        "additionalProperties": false,
+        "description": "One public-safe Earth close-approach event.",
+        "properties": {
+          "absolute_magnitude_h": {
+            "title": "Absolute Magnitude H",
+            "type": "number"
+          },
+          "approach_date": {
+            "title": "Approach Date",
+            "type": "string"
+          },
+          "approach_time_text": {
+            "title": "Approach Time Text",
+            "type": "string"
+          },
+          "distance_uncertainty_status": {
+            "const": "not_provided_by_source",
+            "title": "Distance Uncertainty Status",
+            "type": "string"
+          },
+          "encounter_id": {
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "estimated_diameter_max_m": {
+            "title": "Estimated Diameter Max M",
+            "type": "number"
+          },
+          "estimated_diameter_min_m": {
+            "title": "Estimated Diameter Min M",
+            "type": "number"
+          },
+          "is_potentially_hazardous_asteroid": {
+            "title": "Is Potentially Hazardous Asteroid",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "neo_reference_id": {
+            "title": "Neo Reference Id",
+            "type": "string"
+          },
+          "nominal_distance_km": {
+            "title": "Nominal Distance Km",
+            "type": "number"
+          },
+          "nominal_distance_lunar": {
+            "title": "Nominal Distance Lunar",
+            "type": "number"
+          },
+          "object_id": {
+            "title": "Object Id",
+            "type": "string"
+          },
+          "relative_velocity_km_s": {
+            "title": "Relative Velocity Km S",
+            "type": "number"
+          },
+          "time_uncertainty_status": {
+            "const": "not_provided_by_source",
+            "title": "Time Uncertainty Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "object_id",
+          "neo_reference_id",
+          "name",
+          "approach_date",
+          "approach_time_text",
+          "absolute_magnitude_h",
+          "nominal_distance_km",
+          "nominal_distance_lunar",
+          "relative_velocity_km_s",
+          "estimated_diameter_min_m",
+          "estimated_diameter_max_m",
+          "is_potentially_hazardous_asteroid",
+          "distance_uncertainty_status",
+          "time_uncertainty_status"
+        ],
+        "title": "NearEarthEncounterResponse",
+        "type": "object"
+      },
+      "NearEarthFreshnessResponse": {
+        "additionalProperties": false,
+        "description": "Cache timing kept separate from the provider approach time.",
+        "properties": {
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fresh Until"
+          },
+          "last_refresh_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refresh Failure Code"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Until"
+          }
+        },
+        "required": [
+          "cache_state",
+          "retrieved_at",
+          "fresh_until",
+          "stale_until",
+          "last_refresh_failure_code"
+        ],
+        "title": "NearEarthFreshnessResponse",
+        "type": "object"
+      },
+      "NearEarthResponse": {
+        "additionalProperties": false,
+        "description": "Versioned public projection for the current NeoWs approach feed.",
+        "properties": {
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "encounters": {
+            "items": {
+              "$ref": "#/components/schemas/NearEarthEncounterResponse"
+            },
+            "title": "Encounters",
+            "type": "array"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/NearEarthFreshnessResponse"
+          },
+          "returned_encounter_count": {
+            "title": "Returned Encounter Count",
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/components/schemas/NearEarthSourceResponse"
+          },
+          "total_encounter_count": {
+            "title": "Total Encounter Count",
+            "type": "integer"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_disabled",
+                  "no_cached_content",
+                  "cached_content_expired"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NearEarthWindowResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "availability",
+          "unavailable_reason",
+          "window",
+          "total_encounter_count",
+          "returned_encounter_count",
+          "encounters",
+          "freshness",
+          "source"
+        ],
+        "title": "NearEarthResponse",
+        "type": "object"
+      },
+      "NearEarthSourceResponse": {
+        "additionalProperties": false,
+        "description": "Reviewed NeoWs source and attribution metadata.",
+        "properties": {
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "official_documentation_url": {
+            "title": "Official Documentation Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "official_documentation_url",
+          "attribution_text"
+        ],
+        "title": "NearEarthSourceResponse",
+        "type": "object"
+      },
+      "NearEarthWindowResponse": {
+        "additionalProperties": false,
+        "description": "The exact seven-date window represented by the cached feed.",
+        "properties": {
+          "end_date": {
+            "title": "End Date",
+            "type": "string"
+          },
+          "start_date": {
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "NearEarthWindowResponse",
+        "type": "object"
+      },
       "PageResponse": {
         "additionalProperties": false,
         "properties": {
@@ -2425,6 +2696,48 @@
           }
         },
         "summary": "Now Apod",
+        "tags": [
+          "space-now"
+        ]
+      }
+    },
+    "/api/v1/now/near-earth": {
+      "get": {
+        "description": "Return the durable last-known-good NeoWs projection without fetching NASA.",
+        "operationId": "get_now_near_earth",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearEarthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Near-Earth Objects request must not contain query parameters."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Near-Earth Objects read projection is temporarily unavailable."
+          }
+        },
+        "summary": "Now Near Earth",
         "tags": [
           "space-now"
         ]

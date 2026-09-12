@@ -116,6 +116,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="e1f2a3b4c5d6",
         sha256="68de64dd3cff5d98c7b36c6dca5fcf73044b23bee4e7c8b64bd7f26ccc798255",
     ),
+    MigrationContract(
+        filename="a4b5c6d7e8f9_add_noaa_swpc_provider.py",
+        revision="a4b5c6d7e8f9",
+        down_revision="f3a4b5c6d7e8",
+        sha256="421d6708785d4c2ec5c503537737b07eb622d1a918f65946d66f43b3dbf8c46b",
+    ),
 )
 
 
@@ -176,7 +182,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 16 accepted revisions, head f3a4b5c6d7e8.")
+    print("Migration integrity passed: 17 accepted revisions, head a4b5c6d7e8f9.")
     return 0
 
 

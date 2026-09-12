@@ -3,6 +3,7 @@ import type { ZodType } from "zod";
 import type {
   ApodResponse,
   NearEarthResponse,
+  SpaceWeatherResponse,
   CatalogSearchResponse,
   CatalogSuggestResponse,
   CalculateSeasonsSimulatorData,
@@ -16,6 +17,7 @@ import type {
   GetCatalogEntityData,
   GetNowApodData,
   GetNowNearEarthData,
+  GetNowSpaceWeatherData,
   ListCatalogEntitiesData,
   ListProviderStatusData,
   ProviderStatusListResponse as GeneratedProviderStatusListResponse,
@@ -38,6 +40,7 @@ import {
   zEntitySummaryResponse,
   zGetNowApodResponse,
   zGetNowNearEarthResponse,
+  zGetNowSpaceWeatherResponse,
   zLiveResponse,
   zMetaResponse,
   zProviderStatusListResponse,
@@ -48,7 +51,7 @@ export type LiveResponse = LiveHealthLiveGetResponse;
 export type ReadyResponse = ReadyHealthReadyGetResponse;
 export type MetaResponse = MetadataApiV1MetaGetResponse;
 export type ProviderStatusListResponse = GeneratedProviderStatusListResponse;
-export type { ApodResponse, NearEarthResponse };
+export type { ApodResponse, NearEarthResponse, SpaceWeatherResponse };
 
 export type GeneratedValidator<T> = Pick<ZodType<T>, "safeParse">;
 
@@ -93,6 +96,12 @@ export const nearEarthEndpoint = {
   path: "/api/v1/now/near-earth" satisfies GetNowNearEarthData["url"],
   validator: zGetNowNearEarthResponse,
 } satisfies ApiEndpoint<NearEarthResponse, GetNowNearEarthData["url"]>;
+
+export const spaceWeatherEndpoint = {
+  method: "GET",
+  path: "/api/v1/now/space-weather" satisfies GetNowSpaceWeatherData["url"],
+  validator: zGetNowSpaceWeatherResponse,
+} satisfies ApiEndpoint<SpaceWeatherResponse, GetNowSpaceWeatherData["url"]>;
 
 export const catalogSearchEndpoint = {
   method: "GET",

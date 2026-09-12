@@ -543,6 +543,142 @@ export const zSourceProvenanceResponse = z.object({
 });
 
 /**
+ * SpaceWeatherAuroraResponse
+ *
+ * Official NOAA aurora link and model limitation explanation.
+ */
+export const zSpaceWeatherAuroraResponse = z.object({
+  explanation: z.string(),
+  label: z.string(),
+  mode: z.literal("official_link"),
+  official_url: z.string(),
+});
+
+/**
+ * SpaceWeatherFreshnessResponse
+ *
+ * Lumina cache timing separate from NOAA source times.
+ */
+export const zSpaceWeatherFreshnessResponse = z.object({
+  cache_state: zCacheState,
+  fresh_until: z.iso.datetime().nullable(),
+  last_refresh_failure_code: z.string().nullable(),
+  retrieved_at: z.iso.datetime().nullable(),
+  stale_until: z.iso.datetime().nullable(),
+});
+
+/**
+ * SpaceWeatherImpactResponse
+ *
+ * Concise source-bound family context, not a Lumina risk score.
+ */
+export const zSpaceWeatherImpactResponse = z.object({
+  family: z.enum(["R", "S", "G"]),
+  summary: z.string(),
+});
+
+/**
+ * SpaceWeatherKpRowResponse
+ *
+ * One Kp value with NOAA's source status preserved.
+ */
+export const zSpaceWeatherKpRowResponse = z.object({
+  kp: z.number(),
+  noaa_scale: z.string().nullable(),
+  status: z.enum(["observed", "estimated", "predicted"]),
+  time_text: z.string(),
+});
+
+/**
+ * SpaceWeatherKpResponse
+ *
+ * Observed, estimated, and predicted Kp facts without merging them.
+ */
+export const zSpaceWeatherKpResponse = z.object({
+  forecast: z.array(zSpaceWeatherKpRowResponse),
+  latest_estimated: zSpaceWeatherKpRowResponse.nullable(),
+  latest_observed: zSpaceWeatherKpRowResponse.nullable(),
+});
+
+/**
+ * SpaceWeatherNotificationResponse
+ *
+ * Bounded provider text; no derived active/severity classification.
+ */
+export const zSpaceWeatherNotificationResponse = z.object({
+  issue_time_text: z.string(),
+  message: z.string(),
+  product_id: z.string(),
+});
+
+/**
+ * SpaceWeatherScaleResponse
+ *
+ * One literal NOAA R/S/G scale value and source description.
+ */
+export const zSpaceWeatherScaleResponse = z.object({
+  level: z.int(),
+  text: z.string().nullable(),
+});
+
+/**
+ * SpaceWeatherScalesResponse
+ *
+ * Current-period NOAA scales kept as three separate families.
+ */
+export const zSpaceWeatherScalesResponse = z.object({
+  date_text: z.string(),
+  geomagnetic: zSpaceWeatherScaleResponse,
+  radio_blackout: zSpaceWeatherScaleResponse,
+  solar_radiation: zSpaceWeatherScaleResponse,
+  time_text: z.string(),
+});
+
+/**
+ * SpaceWeatherSolarWindResponse
+ *
+ * Solar-wind source measurements with visible units represented by field names.
+ */
+export const zSpaceWeatherSolarWindResponse = z.object({
+  bt_nt: z.number().nullable(),
+  bz_gsm_nt: z.number().nullable(),
+  field_time_utc: z.string().nullable(),
+  proton_speed_km_s: z.number().nullable(),
+  speed_time_utc: z.string().nullable(),
+});
+
+/**
+ * SpaceWeatherSourceResponse
+ *
+ * NOAA attribution and human-facing documentation link.
+ */
+export const zSpaceWeatherSourceResponse = z.object({
+  attribution_text: z.string(),
+  name: z.string(),
+  official_documentation_url: z.string(),
+});
+
+/**
+ * SpaceWeatherResponse
+ *
+ * Versioned public projection for one atomic NOAA SWPC snapshot.
+ */
+export const zSpaceWeatherResponse = z.object({
+  aurora: zSpaceWeatherAuroraResponse,
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  freshness: zSpaceWeatherFreshnessResponse,
+  impacts: z.array(zSpaceWeatherImpactResponse),
+  kp: zSpaceWeatherKpResponse,
+  latest_notifications: z.array(zSpaceWeatherNotificationResponse),
+  scales: zSpaceWeatherScalesResponse.nullable(),
+  solar_wind: zSpaceWeatherSolarWindResponse.nullable(),
+  source: zSpaceWeatherSourceResponse,
+  unavailable_reason: z
+    .enum(["provider_disabled", "no_cached_content", "cached_content_expired"])
+    .nullable(),
+});
+
+/**
  * TelescopeBuilderInputResponse
  *
  * Normalized validated inputs echoed by the deterministic result.
@@ -722,6 +858,11 @@ export const zGetNowApodResponse = zApodResponse;
  * Successful Response
  */
 export const zGetNowNearEarthResponse = zNearEarthResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetNowSpaceWeatherResponse = zSpaceWeatherResponse;
 
 /**
  * Successful Response

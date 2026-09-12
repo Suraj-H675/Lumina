@@ -16,6 +16,7 @@ const apiPaths = new Set([
   "/api/v1/meta",
   "/api/v1/now/apod",
   "/api/v1/now/near-earth",
+  "/api/v1/now/space-weather",
   "/api/v1/providers/status",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
@@ -291,6 +292,73 @@ function nowNearEarthFixtureForMode() {
   }
   return NOW_NEAR_EARTH_FIXTURE;
 }
+
+const NOW_SPACE_WEATHER_FIXTURE = {
+  availability: "fresh",
+  unavailable_reason: null,
+  scales: {
+    date_text: "2026-09-12",
+    time_text: "12:00:00",
+    radio_blackout: { level: 1, text: "Minor" },
+    solar_radiation: { level: 0, text: "Below NOAA scale thresholds" },
+    geomagnetic: { level: 2, text: "Moderate" },
+  },
+  kp: {
+    latest_observed: {
+      time_text: "2026-09-12T09:00:00",
+      kp: 2.33,
+      status: "observed",
+      noaa_scale: null,
+    },
+    latest_estimated: {
+      time_text: "2026-09-12T12:00:00",
+      kp: 4,
+      status: "estimated",
+      noaa_scale: "G1",
+    },
+    forecast: [
+      { time_text: "2026-09-12T15:00:00", kp: 5.67, status: "predicted", noaa_scale: "G2" },
+    ],
+  },
+  solar_wind: {
+    speed_time_utc: "2026-09-12T11:55:00Z",
+    proton_speed_km_s: 404,
+    field_time_utc: "2026-09-12T11:55:00Z",
+    bt_nt: 6,
+    bz_gsm_nt: -3,
+  },
+  latest_notifications: [
+    {
+      product_id: "WSA",
+      issue_time_text: "2026-09-12 11:30:00",
+      message: "Plain provider notification text.",
+    },
+  ],
+  impacts: [
+    { family: "R", summary: "HF radio impacts are possible on the sunlit side." },
+    { family: "S", summary: "Spacecraft and high-frequency communications can be affected." },
+    { family: "G", summary: "Power systems and navigation can be affected at higher levels." },
+  ],
+  freshness: {
+    cache_state: "fresh",
+    retrieved_at: "2026-09-12T12:00:00Z",
+    fresh_until: "2026-09-12T12:10:00Z",
+    stale_until: "2026-09-12T13:00:00Z",
+    last_refresh_failure_code: null,
+  },
+  source: {
+    name: "NOAA / NWS Space Weather Prediction Center",
+    official_documentation_url: "https://www.swpc.noaa.gov/",
+    attribution_text: "NOAA / NWS Space Weather Prediction Center.",
+  },
+  aurora: {
+    mode: "official_link",
+    official_url: "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
+    label: "NOAA Aurora 30-Minute Forecast",
+    explanation:
+      "The NOAA OVATION-based forecast is model guidance and does not guarantee visibility from a particular place.",
+  },
+};
 const controlPaths = new Set([
   "/__control/apod-mode",
   "/__control/neows-mode",
@@ -1228,6 +1296,10 @@ const stub = http.createServer(async (request, response) => {
     // The NEO fixture has its own mode so APOD and NEO can be tested as
     // independently resilient Space Now products.
     sendJson(response, 200, nowNearEarthFixtureForMode());
+    return;
+  }
+  if (path === "/api/v1/now/space-weather") {
+    sendJson(response, 200, NOW_SPACE_WEATHER_FIXTURE);
     return;
   }
   if (mode === "disconnect") {

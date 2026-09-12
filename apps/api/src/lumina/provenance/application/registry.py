@@ -8,15 +8,22 @@ from types import MappingProxyType
 from typing import Protocol
 
 from lumina.provenance.domain.provider import ProviderRuntimeAdapter
+from lumina.provenance.domain.request_plan import (
+    ProviderComponentResult,
+    ProviderRequestPlan,
+)
 from lumina.provenance.domain.runtime import (
     APOD_PROVIDER_CODE,
     NEOWS_PROVIDER_CODE,
     PROVIDER_CODE,
+    SWPC_PROVIDER_CODE,
     ProviderPayloadCodec,
     ProviderRuntimeConfig,
 )
 
-PRODUCTION_PROVIDER_CODES = frozenset({PROVIDER_CODE, APOD_PROVIDER_CODE, NEOWS_PROVIDER_CODE})
+PRODUCTION_PROVIDER_CODES = frozenset(
+    {PROVIDER_CODE, APOD_PROVIDER_CODE, NEOWS_PROVIDER_CODE, SWPC_PROVIDER_CODE}
+)
 
 
 def _always_configured() -> bool:
@@ -31,6 +38,18 @@ class ProviderRequestFactory(Protocol):
         ...
 
 
+class ProviderSnapshotNormalizer(Protocol):
+    """Combine one complete ordered request plan into one normalized snapshot."""
+
+    def __call__(
+        self,
+        plan: ProviderRequestPlan,
+        results: tuple[ProviderComponentResult, ...],
+    ) -> object:
+        """Return one provider-owned normalized result after all components succeed."""
+        ...
+
+
 @dataclass(frozen=True, slots=True)
 class ProviderRegistration:
     """One explicit provider code, policy, and already-constructed adapter."""
@@ -41,10 +60,18 @@ class ProviderRegistration:
     payload_codec: ProviderPayloadCodec
     check_replacement: bool = False
     configuration_check: Callable[[], bool] = field(default=_always_configured, repr=False)
+    snapshot_normalizer: ProviderSnapshotNormalizer | None = field(default=None, repr=False)
 
     def is_configured(self) -> bool:
         """Return whether local configuration permits a provider network request."""
         return self.configuration_check()
+
+    def request_plan(self) -> ProviderRequestPlan:
+        """Return a finite plan, wrapping existing providers as one-component plans."""
+        request = self.request_factory()
+        if isinstance(request, ProviderRequestPlan):
+            return request
+        return ProviderRequestPlan.single(request, self.config.max_response_bytes)
 
 
 class StaticProviderRegistry:
@@ -76,5 +103,6 @@ __all__ = [
     "PRODUCTION_PROVIDER_CODES",
     "ProviderRegistration",
     "ProviderRequestFactory",
+    "ProviderSnapshotNormalizer",
     "StaticProviderRegistry",
 ]

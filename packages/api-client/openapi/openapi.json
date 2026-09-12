@@ -1891,6 +1891,479 @@
         "title": "SourceRecordResponse",
         "type": "object"
       },
+      "SpaceWeatherAuroraResponse": {
+        "additionalProperties": false,
+        "description": "Official NOAA aurora link and model limitation explanation.",
+        "properties": {
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "mode": {
+            "const": "official_link",
+            "title": "Mode",
+            "type": "string"
+          },
+          "official_url": {
+            "title": "Official Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "official_url",
+          "label",
+          "explanation"
+        ],
+        "title": "SpaceWeatherAuroraResponse",
+        "type": "object"
+      },
+      "SpaceWeatherFreshnessResponse": {
+        "additionalProperties": false,
+        "description": "Lumina cache timing separate from NOAA source times.",
+        "properties": {
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fresh Until"
+          },
+          "last_refresh_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refresh Failure Code"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Until"
+          }
+        },
+        "required": [
+          "cache_state",
+          "retrieved_at",
+          "fresh_until",
+          "stale_until",
+          "last_refresh_failure_code"
+        ],
+        "title": "SpaceWeatherFreshnessResponse",
+        "type": "object"
+      },
+      "SpaceWeatherImpactResponse": {
+        "additionalProperties": false,
+        "description": "Concise source-bound family context, not a Lumina risk score.",
+        "properties": {
+          "family": {
+            "enum": [
+              "R",
+              "S",
+              "G"
+            ],
+            "title": "Family",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "summary"
+        ],
+        "title": "SpaceWeatherImpactResponse",
+        "type": "object"
+      },
+      "SpaceWeatherKpResponse": {
+        "additionalProperties": false,
+        "description": "Observed, estimated, and predicted Kp facts without merging them.",
+        "properties": {
+          "forecast": {
+            "items": {
+              "$ref": "#/components/schemas/SpaceWeatherKpRowResponse"
+            },
+            "title": "Forecast",
+            "type": "array"
+          },
+          "latest_estimated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpaceWeatherKpRowResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_observed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpaceWeatherKpRowResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "latest_observed",
+          "latest_estimated",
+          "forecast"
+        ],
+        "title": "SpaceWeatherKpResponse",
+        "type": "object"
+      },
+      "SpaceWeatherKpRowResponse": {
+        "additionalProperties": false,
+        "description": "One Kp value with NOAA's source status preserved.",
+        "properties": {
+          "kp": {
+            "title": "Kp",
+            "type": "number"
+          },
+          "noaa_scale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noaa Scale"
+          },
+          "status": {
+            "enum": [
+              "observed",
+              "estimated",
+              "predicted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "time_text": {
+            "title": "Time Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_text",
+          "kp",
+          "status",
+          "noaa_scale"
+        ],
+        "title": "SpaceWeatherKpRowResponse",
+        "type": "object"
+      },
+      "SpaceWeatherNotificationResponse": {
+        "additionalProperties": false,
+        "description": "Bounded provider text; no derived active/severity classification.",
+        "properties": {
+          "issue_time_text": {
+            "title": "Issue Time Text",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product_id",
+          "issue_time_text",
+          "message"
+        ],
+        "title": "SpaceWeatherNotificationResponse",
+        "type": "object"
+      },
+      "SpaceWeatherResponse": {
+        "additionalProperties": false,
+        "description": "Versioned public projection for one atomic NOAA SWPC snapshot.",
+        "properties": {
+          "aurora": {
+            "$ref": "#/components/schemas/SpaceWeatherAuroraResponse"
+          },
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/SpaceWeatherFreshnessResponse"
+          },
+          "impacts": {
+            "items": {
+              "$ref": "#/components/schemas/SpaceWeatherImpactResponse"
+            },
+            "title": "Impacts",
+            "type": "array"
+          },
+          "kp": {
+            "$ref": "#/components/schemas/SpaceWeatherKpResponse"
+          },
+          "latest_notifications": {
+            "items": {
+              "$ref": "#/components/schemas/SpaceWeatherNotificationResponse"
+            },
+            "title": "Latest Notifications",
+            "type": "array"
+          },
+          "scales": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpaceWeatherScalesResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "solar_wind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpaceWeatherSolarWindResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/SpaceWeatherSourceResponse"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_disabled",
+                  "no_cached_content",
+                  "cached_content_expired"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "availability",
+          "unavailable_reason",
+          "scales",
+          "kp",
+          "solar_wind",
+          "latest_notifications",
+          "impacts",
+          "freshness",
+          "source",
+          "aurora"
+        ],
+        "title": "SpaceWeatherResponse",
+        "type": "object"
+      },
+      "SpaceWeatherScaleResponse": {
+        "additionalProperties": false,
+        "description": "One literal NOAA R/S/G scale value and source description.",
+        "properties": {
+          "level": {
+            "title": "Level",
+            "type": "integer"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "required": [
+          "level",
+          "text"
+        ],
+        "title": "SpaceWeatherScaleResponse",
+        "type": "object"
+      },
+      "SpaceWeatherScalesResponse": {
+        "additionalProperties": false,
+        "description": "Current-period NOAA scales kept as three separate families.",
+        "properties": {
+          "date_text": {
+            "title": "Date Text",
+            "type": "string"
+          },
+          "geomagnetic": {
+            "$ref": "#/components/schemas/SpaceWeatherScaleResponse"
+          },
+          "radio_blackout": {
+            "$ref": "#/components/schemas/SpaceWeatherScaleResponse"
+          },
+          "solar_radiation": {
+            "$ref": "#/components/schemas/SpaceWeatherScaleResponse"
+          },
+          "time_text": {
+            "title": "Time Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date_text",
+          "time_text",
+          "radio_blackout",
+          "solar_radiation",
+          "geomagnetic"
+        ],
+        "title": "SpaceWeatherScalesResponse",
+        "type": "object"
+      },
+      "SpaceWeatherSolarWindResponse": {
+        "additionalProperties": false,
+        "description": "Solar-wind source measurements with visible units represented by field names.",
+        "properties": {
+          "bt_nt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bt Nt"
+          },
+          "bz_gsm_nt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bz Gsm Nt"
+          },
+          "field_time_utc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Time Utc"
+          },
+          "proton_speed_km_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proton Speed Km S"
+          },
+          "speed_time_utc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed Time Utc"
+          }
+        },
+        "required": [
+          "speed_time_utc",
+          "proton_speed_km_s",
+          "field_time_utc",
+          "bt_nt",
+          "bz_gsm_nt"
+        ],
+        "title": "SpaceWeatherSolarWindResponse",
+        "type": "object"
+      },
+      "SpaceWeatherSourceResponse": {
+        "additionalProperties": false,
+        "description": "NOAA attribution and human-facing documentation link.",
+        "properties": {
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "official_documentation_url": {
+            "title": "Official Documentation Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "official_documentation_url",
+          "attribution_text"
+        ],
+        "title": "SpaceWeatherSourceResponse",
+        "type": "object"
+      },
       "TelescopeBuilderCalculationResponse": {
         "additionalProperties": false,
         "description": "Complete public result for one Telescope Builder evaluation.",
@@ -2738,6 +3211,48 @@
           }
         },
         "summary": "Now Near Earth",
+        "tags": [
+          "space-now"
+        ]
+      }
+    },
+    "/api/v1/now/space-weather": {
+      "get": {
+        "description": "Return the durable SWPC projection without fetching NOAA.",
+        "operationId": "get_now_space_weather",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceWeatherResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Space Weather request must not contain query parameters."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Space Weather read projection is temporarily unavailable."
+          }
+        },
+        "summary": "Now Space Weather",
         "tags": [
           "space-now"
         ]

@@ -141,3 +141,134 @@ class NearEarthResponse(BaseModel):
     encounters: tuple[NearEarthEncounterResponse, ...]
     freshness: NearEarthFreshnessResponse
     source: NearEarthSourceResponse
+
+
+SpaceWeatherAvailability = Literal["fresh", "stale", "unavailable"]
+SpaceWeatherUnavailableReason = Literal[
+    "provider_disabled",
+    "no_cached_content",
+    "cached_content_expired",
+]
+
+
+class SpaceWeatherScaleResponse(BaseModel):
+    """One literal NOAA R/S/G scale value and source description."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    level: int
+    text: str | None
+
+
+class SpaceWeatherScalesResponse(BaseModel):
+    """Current-period NOAA scales kept as three separate families."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    date_text: str
+    time_text: str
+    radio_blackout: SpaceWeatherScaleResponse
+    solar_radiation: SpaceWeatherScaleResponse
+    geomagnetic: SpaceWeatherScaleResponse
+
+
+class SpaceWeatherKpRowResponse(BaseModel):
+    """One Kp value with NOAA's source status preserved."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    time_text: str
+    kp: float
+    status: Literal["observed", "estimated", "predicted"]
+    noaa_scale: str | None
+
+
+class SpaceWeatherKpResponse(BaseModel):
+    """Observed, estimated, and predicted Kp facts without merging them."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    latest_observed: SpaceWeatherKpRowResponse | None
+    latest_estimated: SpaceWeatherKpRowResponse | None
+    forecast: tuple[SpaceWeatherKpRowResponse, ...]
+
+
+class SpaceWeatherSolarWindResponse(BaseModel):
+    """Solar-wind source measurements with visible units represented by field names."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    speed_time_utc: str | None
+    proton_speed_km_s: float | None
+    field_time_utc: str | None
+    bt_nt: float | None
+    bz_gsm_nt: float | None
+
+
+class SpaceWeatherNotificationResponse(BaseModel):
+    """Bounded provider text; no derived active/severity classification."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    product_id: str
+    issue_time_text: str
+    message: str
+
+
+class SpaceWeatherImpactResponse(BaseModel):
+    """Concise source-bound family context, not a Lumina risk score."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    family: Literal["R", "S", "G"]
+    summary: str
+
+
+class SpaceWeatherAuroraResponse(BaseModel):
+    """Official NOAA aurora link and model limitation explanation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    mode: Literal["official_link"]
+    official_url: str
+    label: str
+    explanation: str
+
+
+class SpaceWeatherFreshnessResponse(BaseModel):
+    """Lumina cache timing separate from NOAA source times."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    cache_state: CacheState
+    retrieved_at: datetime | None
+    fresh_until: datetime | None
+    stale_until: datetime | None
+    last_refresh_failure_code: str | None
+
+
+class SpaceWeatherSourceResponse(BaseModel):
+    """NOAA attribution and human-facing documentation link."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    official_documentation_url: str
+    attribution_text: str
+
+
+class SpaceWeatherResponse(BaseModel):
+    """Versioned public projection for one atomic NOAA SWPC snapshot."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    availability: SpaceWeatherAvailability
+    unavailable_reason: SpaceWeatherUnavailableReason | None
+    scales: SpaceWeatherScalesResponse | None
+    kp: SpaceWeatherKpResponse
+    solar_wind: SpaceWeatherSolarWindResponse | None
+    latest_notifications: tuple[SpaceWeatherNotificationResponse, ...]
+    impacts: tuple[SpaceWeatherImpactResponse, ...]
+    freshness: SpaceWeatherFreshnessResponse
+    source: SpaceWeatherSourceResponse
+    aurora: SpaceWeatherAuroraResponse

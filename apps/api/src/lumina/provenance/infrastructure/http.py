@@ -34,6 +34,10 @@ from lumina.provenance.domain.runtime import (
     NEOWS_MAX_RESPONSE_BYTES,
     NEOWS_PATH,
     NEOWS_USER_AGENT,
+    SWPC_APPROVED_PATHS,
+    SWPC_CONTENT_TYPE,
+    SWPC_HOST,
+    SWPC_USER_AGENT,
     HttpTimeoutPolicy,
     RawProviderResponse,
 )
@@ -84,7 +88,7 @@ class FixedHttpRequest:
             ) from None
         if (
             parsed.scheme != "https"
-            or hostname not in {FIXED_HOST, APOD_HOST, NEOWS_HOST}
+            or hostname not in {FIXED_HOST, APOD_HOST, NEOWS_HOST, SWPC_HOST}
             or port is not None
             or parsed.fragment
             or parsed.query
@@ -103,6 +107,14 @@ class FixedHttpRequest:
                     ("query", "select count(pl_name) from ps where default_flag=1"),
                     ("format", "csv"),
                 )
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        elif hostname == SWPC_HOST:
+            if (
+                parsed.path not in SWPC_APPROVED_PATHS
+                or self.expected_content_type != SWPC_CONTENT_TYPE
+                or self.user_agent != SWPC_USER_AGENT
+                or self.params
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif parsed.path == APOD_PATH:

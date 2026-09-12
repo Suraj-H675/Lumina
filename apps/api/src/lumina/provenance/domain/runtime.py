@@ -49,6 +49,37 @@ NEOWS_FORMAT: Final = "json"
 NEOWS_USER_AGENT: Final = "Lumina/0.0 Phase-4B provider-sync"
 NEOWS_CONTENT_TYPE: Final = "application/json"
 
+SWPC_PROVIDER_CODE: Final = "noaa-swpc"
+SWPC_ADAPTER_ID: Final = "noaa-swpc-space-weather-snapshot"
+SWPC_ADAPTER_VERSION: Final = "1"
+SWPC_CACHE_KEY: Final = "space-weather-snapshot"
+SWPC_SOURCE_SCHEMA_VERSION: Final = "swpc-space-weather-v1"
+SWPC_HOST: Final = "services.swpc.noaa.gov"
+SWPC_BASE_PATH: Final = "/"
+SWPC_CONTENT_TYPE: Final = "application/json"
+SWPC_USER_AGENT: Final = "Lumina/0.0 Phase-4B provider-sync"
+SWPC_SUCCESS_REFRESH_INTERVAL: Final = timedelta(minutes=5)
+SWPC_FRESH_TTL: Final = timedelta(minutes=10)
+SWPC_STALE_IF_ERROR_GRACE: Final = timedelta(minutes=50)
+SWPC_MAX_TOTAL_RESPONSE_BYTES: Final = 262_144
+SWPC_SCALES_PATH: Final = "/products/noaa-scales.json"
+SWPC_KP_PATH: Final = "/products/noaa-planetary-k-index-forecast.json"
+SWPC_SOLAR_WIND_SPEED_PATH: Final = "/products/summary/solar-wind-speed.json"
+SWPC_SOLAR_WIND_FIELD_PATH: Final = "/products/summary/solar-wind-mag-field.json"
+SWPC_NOTIFICATIONS_PATH: Final = "/products/alerts.json"
+SWPC_APPROVED_PATHS: Final = (
+    SWPC_SCALES_PATH,
+    SWPC_KP_PATH,
+    SWPC_SOLAR_WIND_SPEED_PATH,
+    SWPC_SOLAR_WIND_FIELD_PATH,
+    SWPC_NOTIFICATIONS_PATH,
+)
+SWPC_SCALES_MAX_RESPONSE_BYTES: Final = 16_384
+SWPC_KP_MAX_RESPONSE_BYTES: Final = 65_536
+SWPC_SOLAR_WIND_SPEED_MAX_RESPONSE_BYTES: Final = 8_192
+SWPC_SOLAR_WIND_FIELD_MAX_RESPONSE_BYTES: Final = 8_192
+SWPC_NOTIFICATIONS_MAX_RESPONSE_BYTES: Final = 131_072
+
 SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
 FRESH_TTL: Final = timedelta(hours=8)
 STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
@@ -206,7 +237,7 @@ class ProviderRuntimeConfig:
             or self.retry_after_minimum_seconds != 60
             or self.retry_after_maximum_seconds != 86_400
             or self.expected_content_type
-            not in {"text/plain", APOD_CONTENT_TYPE, NEOWS_CONTENT_TYPE}
+            not in {"text/plain", APOD_CONTENT_TYPE, NEOWS_CONTENT_TYPE, SWPC_CONTENT_TYPE}
             or not self.user_agent
             or any(ord(character) < 32 or ord(character) == 127 for character in self.user_agent)
         ):
@@ -313,10 +344,20 @@ class ProviderFailure:
     http_status: int | None = None
     retry_after_seconds: int | None = None
     raw_response: RawProviderResponse | None = None
+    component_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.http_status is not None and not 100 <= self.http_status <= 599:
             raise ValueError("Provider HTTP status is invalid")
+        if self.component_id is not None and (
+            type(self.component_id) is not str
+            or not self.component_id
+            or any(
+                not (character.isascii() and (character.isalnum() or character in "_-"))
+                for character in self.component_id
+            )
+        ):
+            raise ValueError("Provider component identity is invalid")
 
 
 class ProviderFinalizationOutcome(StrEnum):
@@ -655,6 +696,30 @@ __all__ = [
     "NEOWS_STALE_IF_ERROR_GRACE",
     "NEOWS_SUCCESS_REFRESH_INTERVAL",
     "NEOWS_USER_AGENT",
+    "SWPC_ADAPTER_ID",
+    "SWPC_ADAPTER_VERSION",
+    "SWPC_APPROVED_PATHS",
+    "SWPC_BASE_PATH",
+    "SWPC_CACHE_KEY",
+    "SWPC_CONTENT_TYPE",
+    "SWPC_FRESH_TTL",
+    "SWPC_HOST",
+    "SWPC_KP_MAX_RESPONSE_BYTES",
+    "SWPC_KP_PATH",
+    "SWPC_MAX_TOTAL_RESPONSE_BYTES",
+    "SWPC_NOTIFICATIONS_MAX_RESPONSE_BYTES",
+    "SWPC_NOTIFICATIONS_PATH",
+    "SWPC_PROVIDER_CODE",
+    "SWPC_SCALES_MAX_RESPONSE_BYTES",
+    "SWPC_SCALES_PATH",
+    "SWPC_SOURCE_SCHEMA_VERSION",
+    "SWPC_SOLAR_WIND_FIELD_MAX_RESPONSE_BYTES",
+    "SWPC_SOLAR_WIND_FIELD_PATH",
+    "SWPC_SOLAR_WIND_SPEED_MAX_RESPONSE_BYTES",
+    "SWPC_SOLAR_WIND_SPEED_PATH",
+    "SWPC_STALE_IF_ERROR_GRACE",
+    "SWPC_SUCCESS_REFRESH_INTERVAL",
+    "SWPC_USER_AGENT",
     "NormalizedJsonValue",
     "NormalizedPayload",
     "PROVIDER_ATTEMPT_TOTAL_SECONDS",

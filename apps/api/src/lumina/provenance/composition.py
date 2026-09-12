@@ -50,6 +50,19 @@ from lumina.provenance.domain.runtime import (
     NEOWS_USER_AGENT,
     PROVIDER_CODE,
     SOURCE_SCHEMA_VERSION,
+    SWPC_ADAPTER_ID,
+    SWPC_ADAPTER_VERSION,
+    SWPC_BASE_PATH,
+    SWPC_CACHE_KEY,
+    SWPC_CONTENT_TYPE,
+    SWPC_FRESH_TTL,
+    SWPC_HOST,
+    SWPC_MAX_TOTAL_RESPONSE_BYTES,
+    SWPC_PROVIDER_CODE,
+    SWPC_SOURCE_SCHEMA_VERSION,
+    SWPC_STALE_IF_ERROR_GRACE,
+    SWPC_SUCCESS_REFRESH_INTERVAL,
+    SWPC_USER_AGENT,
     HttpTimeoutPolicy,
     ProviderRuntimeConfig,
 )
@@ -68,6 +81,12 @@ from lumina.provenance.infrastructure.nasa_exoplanet_archive import (
 from lumina.provenance.infrastructure.nasa_neows import (
     NasaNeowsAdapter,
     load_nasa_neows_source_manifest,
+)
+from lumina.provenance.infrastructure.noaa_swpc import (
+    NoaaSwpcAdapter,
+    compose_swpc_snapshot,
+    load_noaa_swpc_source_manifest,
+    noaa_swpc_request_plan,
 )
 from lumina.provenance.infrastructure.postgresql.runtime import PostgreSqlProviderRuntimeStore
 
@@ -147,6 +166,30 @@ def nasa_neows_runtime_config(*, repository_root: Path | None = None) -> Provide
     )
 
 
+def noaa_swpc_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
+    """Build the fixed NOAA SWPC atomic-snapshot policy."""
+    source_manifest = load_noaa_swpc_source_manifest(repository_root)
+    return ProviderRuntimeConfig(
+        provider_code=SWPC_PROVIDER_CODE,
+        adapter_id=SWPC_ADAPTER_ID,
+        adapter_version=SWPC_ADAPTER_VERSION,
+        cache_key=SWPC_CACHE_KEY,
+        source_schema_version=SWPC_SOURCE_SCHEMA_VERSION,
+        source_manifest=source_manifest,
+        endpoint_host=SWPC_HOST,
+        endpoint_path=SWPC_BASE_PATH,
+        query="",
+        output_format="json",
+        timeout=HttpTimeoutPolicy(),
+        refresh_interval=SWPC_SUCCESS_REFRESH_INTERVAL,
+        fresh_ttl=SWPC_FRESH_TTL,
+        stale_if_error_grace=SWPC_STALE_IF_ERROR_GRACE,
+        max_response_bytes=SWPC_MAX_TOTAL_RESPONSE_BYTES,
+        expected_content_type=SWPC_CONTENT_TYPE,
+        user_agent=SWPC_USER_AGENT,
+    )
+
+
 def production_provider_registry(
     *, repository_root: Path | None = None, nasa_api_key: SecretStr | None = None
 ) -> StaticProviderRegistry:
@@ -154,6 +197,7 @@ def production_provider_registry(
     exoplanet_config = nasa_runtime_config(repository_root=repository_root)
     apod_config = nasa_apod_runtime_config(repository_root=repository_root)
     neows_config = nasa_neows_runtime_config(repository_root=repository_root)
+    swpc_config = noaa_swpc_runtime_config(repository_root=repository_root)
     exoplanet_adapter = NasaExoplanetArchiveAdapter(
         BoundedHttpTransport(timeout=exoplanet_config.timeout),
         source_manifest=exoplanet_config.source_manifest,
@@ -167,6 +211,10 @@ def production_provider_registry(
         BoundedHttpTransport(timeout=neows_config.timeout),
         api_key=nasa_api_key,
         source_manifest=neows_config.source_manifest,
+    )
+    swpc_adapter = NoaaSwpcAdapter(
+        BoundedHttpTransport(timeout=swpc_config.timeout),
+        source_manifest=swpc_config.source_manifest,
     )
     return StaticProviderRegistry(
         {
@@ -191,6 +239,13 @@ def production_provider_registry(
                 payload_codec=neows_adapter.codec,
                 check_replacement=True,
                 configuration_check=neows_adapter.is_configured,
+            ),
+            SWPC_PROVIDER_CODE: ProviderRegistration(
+                config=swpc_config,
+                adapter=swpc_adapter,
+                request_factory=noaa_swpc_request_plan,
+                payload_codec=swpc_adapter.codec,
+                snapshot_normalizer=compose_swpc_snapshot,
             ),
         }
     )
@@ -232,5 +287,6 @@ __all__ = [
     "nasa_runtime_config",
     "nasa_apod_runtime_config",
     "nasa_neows_runtime_config",
+    "noaa_swpc_runtime_config",
     "production_provider_registry",
 ]

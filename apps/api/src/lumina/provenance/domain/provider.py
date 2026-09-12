@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from .manifests import SourceManifest
 
@@ -128,4 +128,17 @@ class ProviderRuntimeAdapter(Protocol):
 
     def normalize(self, request: object, payload: object) -> object:
         """Normalize one validated response before the registered codec boundary."""
+        ...
+
+
+@runtime_checkable
+class ProviderBatchAdapter(ProviderRuntimeAdapter, Protocol):
+    """Optional adapter seam for validating and normalizing planned components."""
+
+    def validate_component_payload(self, request: object, payload: object) -> object:
+        """Validate one response with its statically declared component context."""
+        ...
+
+    def normalize_component(self, request: object, payload: object) -> object:
+        """Normalize one validated component before snapshot composition."""
         ...

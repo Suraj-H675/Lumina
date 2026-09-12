@@ -14,12 +14,17 @@ from email.utils import parsedate_to_datetime
 from typing import Protocol, cast
 
 from lumina.provenance.domain.provider import (
+    ProviderBatchAdapter,
     ProviderFetchError,
     ProviderFetchTimeout,
     ProviderFetchUnavailable,
     ProviderNormalizationFailed,
     ProviderPayloadInvalid,
     ProviderRuntimeAdapter,
+)
+from lumina.provenance.domain.request_plan import (
+    ProviderComponentResult,
+    ProviderRequestPlan,
 )
 from lumina.provenance.domain.runtime import (
     PROVIDER_ATTEMPT_TOTAL_SECONDS,
@@ -96,9 +101,16 @@ class _Registration(Protocol):
     request_factory: Callable[[], object]
     payload_codec: ProviderPayloadCodec
     check_replacement: bool
+    snapshot_normalizer: (
+        Callable[[ProviderRequestPlan, tuple[ProviderComponentResult, ...]], object] | None
+    )
 
     def is_configured(self) -> bool:
         """Return whether the provider can make a network request in this process."""
+        ...
+
+    def request_plan(self) -> ProviderRequestPlan:
+        """Return the finite fixed request plan for one provider cycle."""
         ...
 
 
@@ -305,136 +317,229 @@ class ProviderSyncService:
         cycle_deadline: float,
         progress: _CycleProgress,
     ) -> _CycleResult:
-        """Run network, retry, validation, and normalization inside one absolute deadline."""
+        """Run one finite request plan inside one absolute deadline.
+
+        Component responses remain process-local until every required component has
+        validated and the registered snapshot normalizer has produced one complete
+        normalized result.  This is deliberately the only place where planned
+        multi-request providers are composed, so the existing one-request providers
+        retain their original behavior as one-component plans.
+        """
         config = registration.config
         adapter = registration.adapter
+        plan = registration.request_plan()
         half_open_probe = claim.lease is not None and claim.lease.half_open_probe
         max_attempts = 1 if half_open_probe else config.max_transient_attempts
-        request = registration.request_factory()
-        while progress.attempts < max_attempts:
-            attempt_started_at = self._monotonic()
-            if attempt_started_at >= cycle_deadline:
-                return _CycleFailure(
-                    failure=ProviderFailure(
+        component_results: list[ProviderComponentResult] = []
+        response_bodies: list[bytes] = []
+        total_response_bytes = 0
+        last_response: RawProviderResponse | None = None
+
+        for component in plan.components:
+            component_attempts = 0
+            while component_attempts < max_attempts:
+                attempt_started_at = self._monotonic()
+                if attempt_started_at >= cycle_deadline:
+                    return _timeout_failure(progress, component_id=component.component_id)
+                component_attempts += 1
+                progress.attempts += 1
+                attempt_deadline = min(
+                    attempt_started_at + PROVIDER_ATTEMPT_TOTAL_SECONDS,
+                    cycle_deadline,
+                )
+                try:
+                    raw = await adapter.fetch(
+                        component.request,
+                        attempt_deadline=attempt_deadline,
+                    )
+                except ProviderFetchTimeout:
+                    failure = ProviderFailure(
                         code=ProviderFailureCode.TIMEOUT,
                         kind=CircuitFailureKind.TRANSIENT,
-                    ),
-                    attempts=progress.attempts,
-                    retries=progress.retries,
-                )
-            progress.attempts += 1
-            attempt_deadline = min(
-                attempt_started_at + PROVIDER_ATTEMPT_TOTAL_SECONDS,
-                cycle_deadline,
-            )
-            try:
-                raw = await adapter.fetch(request, attempt_deadline=attempt_deadline)
-            except ProviderFetchTimeout:
-                failure = ProviderFailure(
-                    code=ProviderFailureCode.TIMEOUT,
-                    kind=CircuitFailureKind.TRANSIENT,
-                )
-                if self._monotonic() >= cycle_deadline:
-                    return _timeout_failure(progress)
-                if self._retry_if_allowed(claim, progress.attempts, max_attempts, cycle_deadline):
-                    progress.retries += 1
-                    await self._sleeper(config.retry_delays_seconds[progress.retries - 1])
-                    continue
-                return _CycleFailure(failure, progress.attempts, progress.retries)
-            except ProviderFetchUnavailable:
-                failure = ProviderFailure(
-                    code=ProviderFailureCode.TRANSPORT_UNAVAILABLE,
-                    kind=CircuitFailureKind.TRANSIENT,
-                )
-                if self._monotonic() >= cycle_deadline:
-                    return _timeout_failure(progress)
-                if self._retry_if_allowed(claim, progress.attempts, max_attempts, cycle_deadline):
-                    progress.retries += 1
-                    await self._sleeper(config.retry_delays_seconds[progress.retries - 1])
-                    continue
-                return _CycleFailure(failure, progress.attempts, progress.retries)
-            except ProviderFetchError:
-                if self._monotonic() >= cycle_deadline:
-                    return _timeout_failure(progress)
-                return _CycleFailure(
-                    ProviderFailure(
+                        component_id=component.component_id,
+                    )
+                    if self._monotonic() >= cycle_deadline:
+                        return _timeout_failure(progress, component_id=component.component_id)
+                    if self._retry_if_allowed(
+                        claim,
+                        component_attempts,
+                        max_attempts,
+                        cycle_deadline,
+                    ):
+                        progress.retries += 1
+                        await self._sleeper(config.retry_delays_seconds[component_attempts - 1])
+                        continue
+                    return _CycleFailure(failure, progress.attempts, progress.retries)
+                except ProviderFetchUnavailable:
+                    failure = ProviderFailure(
                         code=ProviderFailureCode.TRANSPORT_UNAVAILABLE,
                         kind=CircuitFailureKind.TRANSIENT,
-                    ),
-                    progress.attempts,
-                    progress.retries,
-                )
+                        component_id=component.component_id,
+                    )
+                    if self._monotonic() >= cycle_deadline:
+                        return _timeout_failure(progress, component_id=component.component_id)
+                    if self._retry_if_allowed(
+                        claim,
+                        component_attempts,
+                        max_attempts,
+                        cycle_deadline,
+                    ):
+                        progress.retries += 1
+                        await self._sleeper(config.retry_delays_seconds[component_attempts - 1])
+                        continue
+                    return _CycleFailure(failure, progress.attempts, progress.retries)
+                except ProviderFetchError:
+                    if self._monotonic() >= cycle_deadline:
+                        return _timeout_failure(progress, component_id=component.component_id)
+                    return _CycleFailure(
+                        ProviderFailure(
+                            code=ProviderFailureCode.TRANSPORT_UNAVAILABLE,
+                            kind=CircuitFailureKind.TRANSIENT,
+                            component_id=component.component_id,
+                        ),
+                        progress.attempts,
+                        progress.retries,
+                    )
 
-            if self._monotonic() >= cycle_deadline:
-                return _timeout_failure(progress)
-            if not isinstance(raw, RawProviderResponse):
-                return _CycleFailure(
-                    ProviderFailure(
-                        code=ProviderFailureCode.PAYLOAD_INVALID,
-                        kind=CircuitFailureKind.CONTRACT,
-                    ),
-                    progress.attempts,
-                    progress.retries,
-                )
-            if not raw.raw_complete:
-                return _CycleFailure(
-                    ProviderFailure(
-                        code=ProviderFailureCode.RESPONSE_TOO_LARGE,
-                        kind=CircuitFailureKind.CONTRACT,
-                        http_status=raw.status_code,
-                        raw_response=raw,
-                    ),
-                    progress.attempts,
-                    progress.retries,
-                )
-
-            response_failure = _response_failure(raw, now=_utc(self._clock.now()), config=config)
-            if response_failure is not None:
-                if response_failure.kind is CircuitFailureKind.TRANSIENT and self._retry_if_allowed(
-                    claim, progress.attempts, max_attempts, cycle_deadline
+                if self._monotonic() >= cycle_deadline:
+                    return _timeout_failure(progress, component_id=component.component_id)
+                if not isinstance(raw, RawProviderResponse):
+                    return _CycleFailure(
+                        ProviderFailure(
+                            code=ProviderFailureCode.PAYLOAD_INVALID,
+                            kind=CircuitFailureKind.CONTRACT,
+                            component_id=component.component_id,
+                        ),
+                        progress.attempts,
+                        progress.retries,
+                    )
+                last_response = raw
+                if (
+                    not raw.raw_complete
+                    or raw.observed_bytes > component.max_response_bytes
+                    or len(raw.body) > component.max_response_bytes
+                    or raw.max_response_bytes != component.max_response_bytes
                 ):
-                    progress.retries += 1
-                    await self._sleeper(config.retry_delays_seconds[progress.retries - 1])
-                    continue
-                return _CycleFailure(response_failure, progress.attempts, progress.retries)
+                    return _CycleFailure(
+                        ProviderFailure(
+                            code=ProviderFailureCode.RESPONSE_TOO_LARGE,
+                            kind=CircuitFailureKind.CONTRACT,
+                            http_status=raw.status_code,
+                            raw_response=raw,
+                            component_id=component.component_id,
+                        ),
+                        progress.attempts,
+                        progress.retries,
+                    )
 
-            try:
-                validated = adapter.validate_payload(raw)
-            except ProviderPayloadInvalid:
-                return _CycleFailure(
-                    ProviderFailure(
-                        code=ProviderFailureCode.PAYLOAD_INVALID,
-                        kind=CircuitFailureKind.CONTRACT,
-                        http_status=raw.status_code,
-                        raw_response=raw,
-                    ),
-                    progress.attempts,
-                    progress.retries,
+                response_failure = _response_failure(
+                    raw,
+                    now=_utc(self._clock.now()),
+                    config=config,
+                    component_id=component.component_id,
                 )
-            try:
-                normalized = adapter.normalize(request, validated)
-                normalized_payload = registration.payload_codec.encode(normalized)
-            except (ProviderNormalizationFailed, ValueError):
-                return _CycleFailure(
-                    ProviderFailure(
-                        code=ProviderFailureCode.NORMALIZATION_FAILED,
-                        kind=CircuitFailureKind.CONTRACT,
-                        http_status=raw.status_code,
-                        raw_response=raw,
-                    ),
-                    progress.attempts,
-                    progress.retries,
+                if response_failure is not None:
+                    if response_failure.kind is CircuitFailureKind.TRANSIENT and (
+                        self._retry_if_allowed(
+                            claim, component_attempts, max_attempts, cycle_deadline
+                        )
+                    ):
+                        progress.retries += 1
+                        await self._sleeper(config.retry_delays_seconds[component_attempts - 1])
+                        continue
+                    return _CycleFailure(response_failure, progress.attempts, progress.retries)
+
+                try:
+                    if isinstance(adapter, ProviderBatchAdapter):
+                        validated = adapter.validate_component_payload(component.request, raw)
+                        normalized = adapter.normalize_component(component.request, validated)
+                    elif len(plan.components) == 1 and registration.snapshot_normalizer is None:
+                        validated = adapter.validate_payload(raw)
+                        normalized = adapter.normalize(component.request, validated)
+                    else:
+                        raise ProviderNormalizationFailed()
+                except ProviderPayloadInvalid:
+                    return _CycleFailure(
+                        ProviderFailure(
+                            code=ProviderFailureCode.PAYLOAD_INVALID,
+                            kind=CircuitFailureKind.CONTRACT,
+                            http_status=raw.status_code,
+                            raw_response=raw,
+                            component_id=component.component_id,
+                        ),
+                        progress.attempts,
+                        progress.retries,
+                    )
+                except (ProviderNormalizationFailed, TypeError, ValueError):
+                    return _CycleFailure(
+                        ProviderFailure(
+                            code=ProviderFailureCode.NORMALIZATION_FAILED,
+                            kind=CircuitFailureKind.CONTRACT,
+                            http_status=raw.status_code,
+                            raw_response=raw,
+                            component_id=component.component_id,
+                        ),
+                        progress.attempts,
+                        progress.retries,
+                    )
+
+                component_results.append(
+                    ProviderComponentResult(
+                        component_id=component.component_id,
+                        normalized=normalized,
+                        raw_sha256=hashlib.sha256(raw.body).hexdigest(),
+                    )
                 )
-            return _CycleSuccess(
-                normalized_payload=normalized_payload,
-                raw_sha256=hashlib.sha256(raw.body).hexdigest(),
-                raw_response=raw,
-                http_status=raw.status_code,
-                attempts=progress.attempts,
-                retries=progress.retries,
+                response_bodies.append(raw.body)
+                total_response_bytes += len(raw.body)
+                if (
+                    plan.max_total_response_bytes is not None
+                    and total_response_bytes > plan.max_total_response_bytes
+                ):
+                    return _CycleFailure(
+                        ProviderFailure(
+                            code=ProviderFailureCode.RESPONSE_TOO_LARGE,
+                            kind=CircuitFailureKind.CONTRACT,
+                            component_id=component.component_id,
+                        ),
+                        progress.attempts,
+                        progress.retries,
+                    )
+                break
+            else:
+                raise ProviderRuntimeError()
+
+        try:
+            if registration.snapshot_normalizer is not None:
+                normalized = registration.snapshot_normalizer(
+                    plan,
+                    tuple(component_results),
+                )
+            elif len(component_results) == 1:
+                normalized = component_results[0].normalized
+            else:
+                raise ProviderNormalizationFailed()
+            normalized_payload = registration.payload_codec.encode(normalized)
+        except (ProviderNormalizationFailed, TypeError, ValueError):
+            return _CycleFailure(
+                ProviderFailure(
+                    code=ProviderFailureCode.NORMALIZATION_FAILED,
+                    kind=CircuitFailureKind.CONTRACT,
+                    http_status=None if last_response is None else last_response.status_code,
+                ),
+                progress.attempts,
+                progress.retries,
             )
-
-        raise ProviderRuntimeError()
+        if last_response is None:
+            raise ProviderRuntimeError()
+        return _CycleSuccess(
+            normalized_payload=normalized_payload,
+            raw_sha256=plan.aggregate_sha256(tuple(response_bodies)),
+            raw_response=last_response,
+            http_status=last_response.status_code,
+            attempts=progress.attempts,
+            retries=progress.retries,
+        )
 
     async def status(self, provider_code: str) -> ProviderStatusSnapshot:
         registration = self._registration(provider_code)
@@ -532,12 +637,17 @@ def _duration_ms(started: float, ended: float) -> int:
     return max(0, round((ended - started) * 1_000))
 
 
-def _timeout_failure(progress: _CycleProgress) -> _CycleFailure:
+def _timeout_failure(
+    progress: _CycleProgress,
+    *,
+    component_id: str | None = None,
+) -> _CycleFailure:
     """Create the single transient failure for an exhausted request-cycle budget."""
     return _CycleFailure(
         failure=ProviderFailure(
             code=ProviderFailureCode.TIMEOUT,
             kind=CircuitFailureKind.TRANSIENT,
+            component_id=component_id,
         ),
         attempts=progress.attempts,
         retries=progress.retries,
@@ -584,6 +694,7 @@ def _response_failure(
     *,
     now: datetime,
     config: ProviderRuntimeConfig,
+    component_id: str | None = None,
 ) -> ProviderFailure | None:
     status = response.status_code
     retry_after = _retry_after_seconds(response, now=now, config=config)
@@ -593,12 +704,14 @@ def _response_failure(
             kind=CircuitFailureKind.RATE_LIMIT,
             http_status=status,
             retry_after_seconds=retry_after or _DEFAULT_RETRY_AFTER_SECONDS,
+            component_id=component_id,
         )
     if status == 408:
         return ProviderFailure(
             code=ProviderFailureCode.TIMEOUT,
             kind=CircuitFailureKind.TRANSIENT,
             http_status=status,
+            component_id=component_id,
         )
     if 500 <= status <= 599:
         if retry_after is not None:
@@ -607,17 +720,20 @@ def _response_failure(
                 kind=CircuitFailureKind.RATE_LIMIT,
                 http_status=status,
                 retry_after_seconds=retry_after,
+                component_id=component_id,
             )
         return ProviderFailure(
             code=ProviderFailureCode.HTTP_SERVER_ERROR,
             kind=CircuitFailureKind.TRANSIENT,
             http_status=status,
+            component_id=component_id,
         )
     if status != 200:
         return ProviderFailure(
             code=ProviderFailureCode.HTTP_REJECTED,
             kind=CircuitFailureKind.CONTRACT,
             http_status=status,
+            component_id=component_id,
         )
     return None
 

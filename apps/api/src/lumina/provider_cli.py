@@ -17,7 +17,11 @@ from lumina.jobs.domain.models import EnqueueJobOutcome, JobType
 from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
 from lumina.provenance.application.registry import PRODUCTION_PROVIDER_CODES, ProviderRegistration
 from lumina.provenance.composition import compose_provider_runtime
-from lumina.provenance.domain.runtime import PROVIDER_CODE, ProviderStatusSnapshot
+from lumina.provenance.domain.runtime import (
+    PROVIDER_CODE,
+    SWPC_PROVIDER_CODE,
+    ProviderStatusSnapshot,
+)
 from lumina.settings import AppSettings, load_settings
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 
@@ -50,7 +54,7 @@ def _parser() -> _SafeArgumentParser:
         ("status", "Read safe provider runtime status."),
         ("enable", "Enable provider synchronization."),
         ("disable", "Disable provider synchronization."),
-        ("enqueue-sync", "Enqueue the current UTC-hour provider sync."),
+        ("enqueue-sync", "Enqueue the provider sync for its approved UTC cadence."),
     ):
         command_parser = commands.add_parser(command, help=help_text)
         command_parser.add_argument(
@@ -97,7 +101,7 @@ async def _enqueue_sync(
     session_factory: async_sessionmaker[AsyncSession],
     provider_code: str,
 ) -> dict[str, object]:
-    """Enqueue only the fixed provider payload and current UTC-hour key."""
+    """Enqueue only the fixed provider payload and provider-specific cadence key."""
     job_service = EnqueueJobService(
         PostgreSqlEnqueueJobStore(
             session_factory,
@@ -106,8 +110,8 @@ async def _enqueue_sync(
         payload_max_bytes=settings.job_payload_max_bytes,
         default_max_attempts=settings.job_default_max_attempts,
     )
-    hour = datetime.now(UTC).strftime("%Y%m%d%H")
-    idempotency_key = f"provider.sync:{provider_code}:{hour}"
+    bucket = _sync_bucket(datetime.now(UTC), provider_code)
+    idempotency_key = f"provider.sync:{provider_code}:{bucket}"
     outcome = await job_service.enqueue(
         job_type=JobType.PROVIDER_SYNC,
         payload={"provider_code": provider_code},
@@ -115,6 +119,14 @@ async def _enqueue_sync(
         max_attempts=1,
     )
     return _enqueue_payload(outcome, idempotency_key, provider_code)
+
+
+def _sync_bucket(now: datetime, provider_code: str) -> str:
+    """Return the fixed UTC idempotency bucket for one approved provider."""
+    if provider_code == SWPC_PROVIDER_CODE:
+        minute_bucket = (now.minute // 5) * 5
+        return now.replace(minute=minute_bucket, second=0, microsecond=0).strftime("%Y%m%d%H%M")
+    return now.strftime("%Y%m%d%H")
 
 
 def _status_payload(

@@ -1,0 +1,23 @@
+{
+  "-1": {
+    "DateStamp": "2026-09-11",
+    "TimeStamp": "06:57:00",
+    "R": { "Scale": "1", "Text": "minor", "MinorProb": 1, "MajorProb": 0 },
+    "S": { "Scale": "0", "Text": "none", "Prob": 0 },
+    "G": { "Scale": "1", "Text": "minor" }
+  },
+  "0": {
+    "DateStamp": "2026-09-12",
+    "TimeStamp": "06:57:00",
+    "R": { "Scale": "2", "Text": "moderate", "MinorProb": 0, "MajorProb": 0 },
+    "S": { "Scale": "1", "Text": "minor", "Prob": 0 },
+    "G": { "Scale": "3", "Text": "strong" }
+  },
+  "1": {
+    "DateStamp": "2026-09-13",
+    "TimeStamp": "06:57:00",
+    "R": { "Scale": null, "Text": null },
+    "S": { "Scale": null, "Text": null },
+    "G": { "Scale": null, "Text": null }
+  }
+}

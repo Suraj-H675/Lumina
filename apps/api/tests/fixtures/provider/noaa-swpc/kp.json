@@ -1,0 +1,6 @@
+[
+  { "time_tag": "2026-09-12T00:00:00", "kp": 2.0, "observed": "observed", "noaa_scale": null },
+  { "time_tag": "2026-09-12T03:00:00", "kp": 2.67, "observed": "estimated", "noaa_scale": "" },
+  { "time_tag": "2026-09-12T06:00:00", "kp": 4.5, "observed": "predicted", "noaa_scale": "G1" },
+  { "time_tag": "2026-09-12T09:00:00", "kp": 5.0, "observed": "predicted", "noaa_scale": "G1" }
+]

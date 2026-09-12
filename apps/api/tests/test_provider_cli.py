@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from uuid import UUID
 
 import lumina.provider_cli as cli
@@ -42,3 +43,10 @@ def test_enqueue_payload_is_fixed_and_safe() -> None:
         "idempotency_key": "provider.sync:nasa-exoplanet-archive:2026091012",
     }
     assert "secret" not in json.dumps(payload)
+
+
+def test_provider_sync_buckets_preserve_hourly_phase4a_and_add_five_minute_swpc() -> None:
+    moment = datetime(2026, 9, 12, 14, 17, 42, 123456, tzinfo=UTC)
+
+    assert cli._sync_bucket(moment, "nasa-neows") == "2026091214"
+    assert cli._sync_bucket(moment, "noaa-swpc") == "202609121415"

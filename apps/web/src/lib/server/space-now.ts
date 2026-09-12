@@ -3,10 +3,12 @@ import "server-only";
 import {
   apodEndpoint,
   nearEarthEndpoint,
+  spaceWeatherEndpoint,
   requestEndpoint,
   type ApodResponse,
   type ApiTransportResult,
   type NearEarthResponse,
+  type SpaceWeatherResponse,
   type TransportOptions,
 } from "@lumina/api-client";
 
@@ -17,6 +19,9 @@ export type NowApodOutcome =
 
 export type NowNearEarthOutcome =
   Readonly<{ data: NearEarthResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
+
+export type NowSpaceWeatherOutcome =
+  Readonly<{ data: SpaceWeatherResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
 
 export type NowApodLoaderOptions = TransportOptions &
   Readonly<{
@@ -54,6 +59,20 @@ export async function loadNowNearEarth(
   const result: ApiTransportResult<NearEarthResponse> = await requestEndpoint(
     configured.origin,
     nearEarthEndpoint,
+    transportOptions(options),
+  );
+  return result.kind === "ok" ? { data: result.data, kind: "ok" } : { kind: "unavailable" };
+}
+
+export async function loadNowSpaceWeather(
+  options: NowApodLoaderOptions = {},
+): Promise<NowSpaceWeatherOutcome> {
+  const configured = resolveWebApiOrigin(options.origin, options.environment);
+  if (!configured.valid) return { kind: "unavailable" };
+
+  const result: ApiTransportResult<SpaceWeatherResponse> = await requestEndpoint(
+    configured.origin,
+    spaceWeatherEndpoint,
     transportOptions(options),
   );
   return result.kind === "ok" ? { data: result.data, kind: "ok" } : { kind: "unavailable" };

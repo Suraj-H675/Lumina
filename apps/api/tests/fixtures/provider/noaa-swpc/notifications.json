@@ -1,0 +1,17 @@
+[
+  {
+    "product_id": "EF3A",
+    "issue_datetime": "2026-09-12 06:45:35.603",
+    "message": "CONTINUED ALERT: Electron flux remains elevated. <script>alert(1)</script>\r\nSource text remains plain text."
+  },
+  {
+    "product_id": "SUMX",
+    "issue_datetime": "2026-09-12 05:00:00",
+    "message": "SUMMARY: Quiet geomagnetic conditions."
+  },
+  {
+    "product_id": "WATA",
+    "issue_datetime": "2026-09-11 23:00:00",
+    "message": "CANCELLATION: This provider message is not an active-state signal."
+  }
+]

@@ -19,6 +19,7 @@ export function SpaceNowView({ outcome }: Readonly<{ outcome: NowApodOutcome }>)
 
       {outcome.kind === "ok" ? <DailyVisual response={outcome.data} /> : <UnavailableDailyVisual />}
       <NearEarthNavigation />
+      <SpaceWeatherNavigation />
     </article>
   );
 }
@@ -44,6 +45,32 @@ function NearEarthNavigation() {
         href="/now/near-earth"
       >
         View near-Earth approaches
+      </Link>
+    </section>
+  );
+}
+
+function SpaceWeatherNavigation() {
+  return (
+    <section
+      aria-labelledby="space-weather-navigation-heading"
+      className="space-y-4 border-t border-[var(--border)] pt-8"
+    >
+      <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
+        NOAA Space Weather
+      </p>
+      <h2 className="text-2xl font-semibold" id="space-weather-navigation-heading">
+        See separate NOAA scales, Kp, solar wind, and notifications
+      </h2>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">
+        Review current R/S/G scale values, observed and predicted planetary Kp, source-timestamped
+        solar-wind measurements, and recent SWPC notifications in an educational snapshot.
+      </p>
+      <Link
+        className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
+        href="/now/space-weather"
+      >
+        View Space Weather
       </Link>
     </section>
   );

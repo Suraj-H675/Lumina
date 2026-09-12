@@ -22,7 +22,8 @@ from .migration_lifecycle import (
 )
 
 _PG_TRGM_CONTRACT = ("pg_trgm", "1.6", "public", "lumina_admin")
-_CURRENT_HEAD = "f3a4b5c6d7e8"
+_CURRENT_HEAD = "a4b5c6d7e8f9"
+_PRE_SWPC_HEAD = "f3a4b5c6d7e8"
 _PRE_NEO_HEAD = "e1f2a3b4c5d6"
 _PRE_OPERATOR_HEADS = {"a7d4e9f2c1b3", "b8e5f1a2c3d4"}
 _B3_REVISION = "e8f4c1a9b362"
@@ -99,7 +100,13 @@ def migrated_test_database(
         )
         if read_revision() != "b7f3a2c81d4e":
             pytest.fail("Historical lineage did not commit exactly to the accepted B2 revision.")
-    elif revision in {_B3_REVISION, *_PRE_OPERATOR_HEADS, _PRE_NEO_HEAD, _CURRENT_HEAD}:
+    elif revision in {
+        _B3_REVISION,
+        *_PRE_OPERATOR_HEADS,
+        _PRE_NEO_HEAD,
+        _PRE_SWPC_HEAD,
+        _CURRENT_HEAD,
+    }:
         state = _pg_trgm_state(integration_settings, postgres_admin_sync_url)
         if state is None or tuple(state) != _PG_TRGM_CONTRACT:
             pytest.fail("Existing guarded test database has an invalid Phase 1B3 contract.")

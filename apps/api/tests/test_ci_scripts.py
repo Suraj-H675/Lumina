@@ -1000,6 +1000,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "e1f2a3b4c5d6",
             "68de64dd3cff5d98c7b36c6dca5fcf73044b23bee4e7c8b64bd7f26ccc798255",
         ),
+        (
+            "a4b5c6d7e8f9_add_noaa_swpc_provider.py",
+            "a4b5c6d7e8f9",
+            "f3a4b5c6d7e8",
+            "421d6708785d4c2ec5c503537737b07eb622d1a918f65946d66f43b3dbf8c46b",
+        ),
     ]
     assert actual_contracts == expected_contracts
     root = tmp_path / "versions"

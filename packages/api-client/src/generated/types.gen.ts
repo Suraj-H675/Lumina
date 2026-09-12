@@ -1142,6 +1142,242 @@ export type SourceRecordResponse = {
 };
 
 /**
+ * SpaceWeatherAuroraResponse
+ *
+ * Official NOAA aurora link and model limitation explanation.
+ */
+export type SpaceWeatherAuroraResponse = {
+  /**
+   * Explanation
+   */
+  explanation: string;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Mode
+   */
+  mode: "official_link";
+  /**
+   * Official Url
+   */
+  official_url: string;
+};
+
+/**
+ * SpaceWeatherFreshnessResponse
+ *
+ * Lumina cache timing separate from NOAA source times.
+ */
+export type SpaceWeatherFreshnessResponse = {
+  cache_state: CacheState;
+  /**
+   * Fresh Until
+   */
+  fresh_until: string | null;
+  /**
+   * Last Refresh Failure Code
+   */
+  last_refresh_failure_code: string | null;
+  /**
+   * Retrieved At
+   */
+  retrieved_at: string | null;
+  /**
+   * Stale Until
+   */
+  stale_until: string | null;
+};
+
+/**
+ * SpaceWeatherImpactResponse
+ *
+ * Concise source-bound family context, not a Lumina risk score.
+ */
+export type SpaceWeatherImpactResponse = {
+  /**
+   * Family
+   */
+  family: "R" | "S" | "G";
+  /**
+   * Summary
+   */
+  summary: string;
+};
+
+/**
+ * SpaceWeatherKpResponse
+ *
+ * Observed, estimated, and predicted Kp facts without merging them.
+ */
+export type SpaceWeatherKpResponse = {
+  /**
+   * Forecast
+   */
+  forecast: Array<SpaceWeatherKpRowResponse>;
+  latest_estimated: SpaceWeatherKpRowResponse | null;
+  latest_observed: SpaceWeatherKpRowResponse | null;
+};
+
+/**
+ * SpaceWeatherKpRowResponse
+ *
+ * One Kp value with NOAA's source status preserved.
+ */
+export type SpaceWeatherKpRowResponse = {
+  /**
+   * Kp
+   */
+  kp: number;
+  /**
+   * Noaa Scale
+   */
+  noaa_scale: string | null;
+  /**
+   * Status
+   */
+  status: "observed" | "estimated" | "predicted";
+  /**
+   * Time Text
+   */
+  time_text: string;
+};
+
+/**
+ * SpaceWeatherNotificationResponse
+ *
+ * Bounded provider text; no derived active/severity classification.
+ */
+export type SpaceWeatherNotificationResponse = {
+  /**
+   * Issue Time Text
+   */
+  issue_time_text: string;
+  /**
+   * Message
+   */
+  message: string;
+  /**
+   * Product Id
+   */
+  product_id: string;
+};
+
+/**
+ * SpaceWeatherResponse
+ *
+ * Versioned public projection for one atomic NOAA SWPC snapshot.
+ */
+export type SpaceWeatherResponse = {
+  aurora: SpaceWeatherAuroraResponse;
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  freshness: SpaceWeatherFreshnessResponse;
+  /**
+   * Impacts
+   */
+  impacts: Array<SpaceWeatherImpactResponse>;
+  kp: SpaceWeatherKpResponse;
+  /**
+   * Latest Notifications
+   */
+  latest_notifications: Array<SpaceWeatherNotificationResponse>;
+  scales: SpaceWeatherScalesResponse | null;
+  solar_wind: SpaceWeatherSolarWindResponse | null;
+  source: SpaceWeatherSourceResponse;
+  /**
+   * Unavailable Reason
+   */
+  unavailable_reason: "provider_disabled" | "no_cached_content" | "cached_content_expired" | null;
+};
+
+/**
+ * SpaceWeatherScaleResponse
+ *
+ * One literal NOAA R/S/G scale value and source description.
+ */
+export type SpaceWeatherScaleResponse = {
+  /**
+   * Level
+   */
+  level: number;
+  /**
+   * Text
+   */
+  text: string | null;
+};
+
+/**
+ * SpaceWeatherScalesResponse
+ *
+ * Current-period NOAA scales kept as three separate families.
+ */
+export type SpaceWeatherScalesResponse = {
+  /**
+   * Date Text
+   */
+  date_text: string;
+  geomagnetic: SpaceWeatherScaleResponse;
+  radio_blackout: SpaceWeatherScaleResponse;
+  solar_radiation: SpaceWeatherScaleResponse;
+  /**
+   * Time Text
+   */
+  time_text: string;
+};
+
+/**
+ * SpaceWeatherSolarWindResponse
+ *
+ * Solar-wind source measurements with visible units represented by field names.
+ */
+export type SpaceWeatherSolarWindResponse = {
+  /**
+   * Bt Nt
+   */
+  bt_nt: number | null;
+  /**
+   * Bz Gsm Nt
+   */
+  bz_gsm_nt: number | null;
+  /**
+   * Field Time Utc
+   */
+  field_time_utc: string | null;
+  /**
+   * Proton Speed Km S
+   */
+  proton_speed_km_s: number | null;
+  /**
+   * Speed Time Utc
+   */
+  speed_time_utc: string | null;
+};
+
+/**
+ * SpaceWeatherSourceResponse
+ *
+ * NOAA attribution and human-facing documentation link.
+ */
+export type SpaceWeatherSourceResponse = {
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Official Documentation Url
+   */
+  official_documentation_url: string;
+};
+
+/**
  * TelescopeBuilderCalculationResponse
  *
  * Complete public result for one Telescope Builder evaluation.
@@ -1657,6 +1893,36 @@ export type GetNowNearEarthResponses = {
 };
 
 export type GetNowNearEarthResponse = GetNowNearEarthResponses[keyof GetNowNearEarthResponses];
+
+export type GetNowSpaceWeatherData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/now/space-weather";
+};
+
+export type GetNowSpaceWeatherErrors = {
+  /**
+   * The Space Weather request must not contain query parameters.
+   */
+  422: ErrorResponse;
+  /**
+   * The Space Weather read projection is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetNowSpaceWeatherError = GetNowSpaceWeatherErrors[keyof GetNowSpaceWeatherErrors];
+
+export type GetNowSpaceWeatherResponses = {
+  /**
+   * Successful Response
+   */
+  200: SpaceWeatherResponse;
+};
+
+export type GetNowSpaceWeatherResponse =
+  GetNowSpaceWeatherResponses[keyof GetNowSpaceWeatherResponses];
 
 export type ListProviderStatusData = {
   body?: never;

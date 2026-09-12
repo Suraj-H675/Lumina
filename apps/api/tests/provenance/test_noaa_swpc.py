@@ -12,7 +12,7 @@ from typing import Final, cast
 import pytest
 from lumina.provenance.domain.provider import ProviderPayloadInvalid
 from lumina.provenance.domain.request_plan import ProviderComponentResult
-from lumina.provenance.domain.runtime import RawProviderResponse
+from lumina.provenance.domain.runtime import NormalizedJsonValue, RawProviderResponse
 from lumina.provenance.domain.space_weather import (
     SwpcCodec,
     SwpcKpRow,
@@ -230,13 +230,15 @@ def test_swpc_codec_accepts_canonical_order_and_rejects_reordered_storage() -> N
     notifications = encoded["notifications"]
     assert isinstance(kp_rows, list)
     assert isinstance(notifications, list)
-    reordered["kp_rows"] = [kp_rows[1], kp_rows[0], kp_rows[2]]
-    reordered["notifications"] = [notifications[1], notifications[0]]
+    reordered_kp_rows = cast(list[dict[str, object]], [kp_rows[1], kp_rows[0], kp_rows[2]])
+    reordered_notifications = cast(list[dict[str, object]], [notifications[1], notifications[0]])
+    reordered["kp_rows"] = cast(list[NormalizedJsonValue], reordered_kp_rows)
+    reordered["notifications"] = cast(list[NormalizedJsonValue], reordered_notifications)
 
     # Before the codec assertion, these persisted positions would have made
     # the public "latest" and first-notification projections select old data.
-    assert reordered["kp_rows"][1]["time_text"] == "2026-09-12T00:00:00"
-    assert reordered["notifications"][0]["product_id"] == "OLD"
+    assert reordered_kp_rows[1]["time_text"] == "2026-09-12T00:00:00"
+    assert reordered_notifications[0]["product_id"] == "OLD"
 
     with pytest.raises(ValueError, match="canonically ordered"):
         codec.decode(reordered)

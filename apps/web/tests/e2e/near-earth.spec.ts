@@ -1,18 +1,81 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { assertStatusStubClean, setNeowsStubMode } from "./support/status-stub-control";
+import {
+  assertStatusStubClean,
+  setApodStubMode,
+  setNeowsStubMode,
+} from "./support/status-stub-control";
 
 test.describe("Space Now Near-Earth Objects", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({}, testInfo) => {
+    await setApodStubMode(testInfo, "fresh");
     await setNeowsStubMode(testInfo, "fresh");
   });
 
   test.afterEach(async ({}, testInfo) => {
     await assertStatusStubClean(testInfo);
+    await setApodStubMode(testInfo, "fresh");
     await setNeowsStubMode(testInfo, "fresh");
+  });
+
+  test("keeps APOD and NeoWs content isolated across provider states", async ({
+    page,
+  }, testInfo) => {
+    await setApodStubMode(testInfo, "fresh");
+    await setNeowsStubMode(testInfo, "fresh");
+    await page.goto("/now");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Fixture Daily Visual" }),
+    ).toBeVisible();
+    await page.goto("/now/near-earth");
+    await expect(page.getByText("Fixture NEO 1")).toBeVisible();
+
+    await setApodStubMode(testInfo, "fresh");
+    await setNeowsStubMode(testInfo, "unavailable");
+    await page.goto("/now");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Fixture Daily Visual" }),
+    ).toBeVisible();
+    await page.goto("/now/near-earth");
+    await expect(
+      page.getByRole("heading", {
+        level: 2,
+        name: "Near-Earth approach data is currently unavailable.",
+      }),
+    ).toBeVisible();
+
+    await setApodStubMode(testInfo, "unavailable");
+    await setNeowsStubMode(testInfo, "fresh");
+    await page.goto("/now");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Daily Visual is currently unavailable." }),
+    ).toBeVisible();
+    await page.goto("/now/near-earth");
+    await expect(page.getByText("Fixture NEO 1")).toBeVisible();
+
+    await setApodStubMode(testInfo, "stale");
+    await setNeowsStubMode(testInfo, "stale");
+    await page.goto("/now");
+    await expect(page.getByRole("status")).toContainText("Stale Daily Visual snapshot");
+    await page.goto("/now/near-earth");
+    await expect(page.getByRole("status")).toContainText("Stale near-Earth approach snapshot");
+
+    await setApodStubMode(testInfo, "unavailable");
+    await setNeowsStubMode(testInfo, "unavailable");
+    await page.goto("/now");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Daily Visual is currently unavailable." }),
+    ).toBeVisible();
+    await page.goto("/now/near-earth");
+    await expect(
+      page.getByRole("heading", {
+        level: 2,
+        name: "Near-Earth approach data is currently unavailable.",
+      }),
+    ).toBeVisible();
   });
 
   test("renders the server-projected feed without browser-direct NASA traffic", async ({

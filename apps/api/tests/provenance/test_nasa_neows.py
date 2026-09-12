@@ -241,6 +241,18 @@ def test_neows_rejects_malformed_json_duplicate_keys_and_wrong_top_level(body: b
         lambda value: value["near_earth_objects"]["2026-09-14"][0]["close_approach_data"][0][
             "miss_distance"
         ].update({"kilometers": "-1"}),
+        lambda value: value["near_earth_objects"]["2026-09-14"][0].update(
+            {"absolute_magnitude_h": "25.1"}
+        ),
+        lambda value: value["near_earth_objects"]["2026-09-14"][0]["estimated_diameter"][
+            "meters"
+        ].update({"estimated_diameter_min": "10.0"}),
+        lambda value: value["near_earth_objects"]["2026-09-14"][0]["close_approach_data"][0][
+            "relative_velocity"
+        ].update({"kilometers_per_second": 12.34}),
+        lambda value: value["near_earth_objects"]["2026-09-14"][0]["close_approach_data"][0].update(
+            {"epoch_date_close_approach": "1789371600000"}
+        ),
         lambda value: value["near_earth_objects"]["2026-09-14"][0]["estimated_diameter"][
             "meters"
         ].update({"estimated_diameter_min": 20.0, "estimated_diameter_max": 10.0}),

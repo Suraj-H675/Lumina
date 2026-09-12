@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { NowNearEarthOutcome } from "../../../lib/server/space-now";
 
 const PHA_EXPLANATION =
-  "Potentially hazardous is a technical NASA/JPL classification based on orbital proximity and brightness. It does not mean an impact is predicted.";
+  "Potentially hazardous is a technical NASA/JPL classification based on orbital proximity and brightness that identifies objects with potential for close approaches. It does not mean an impact is predicted.";
 const UNCERTAINTY_EXPLANATION =
   "Close-approach uncertainty is not provided by the NeoWs feed used in this version.";
 

@@ -56,7 +56,6 @@ _NUMBER_PATTERN: Final = re.compile(
     r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?",
     re.ASCII,
 )
-_INTEGER_PATTERN: Final = re.compile(r"[+-]?[0-9]+", re.ASCII)
 _MAX_WIRE_DEPTH: Final = 32
 _MAX_WIRE_LIST_LENGTH: Final = 512
 _MAX_APPROACH_TIME_LENGTH: Final = 128
@@ -349,26 +348,32 @@ class NasaNeowsAdapter(ProviderAdapter[NasaNeowsRequest, NasaNeowsPayload, NasaN
                             absolute_magnitude_h=_parse_number(
                                 source_object.absolute_magnitude_h,
                                 positive=False,
+                                source_type="number",
                             ),
                             nominal_distance_km=_parse_number(
                                 approach.miss_distance.kilometers,
                                 positive=True,
+                                source_type="string",
                             ),
                             nominal_distance_lunar=_parse_number(
                                 approach.miss_distance.lunar,
                                 positive=True,
+                                source_type="string",
                             ),
                             relative_velocity_km_s=_parse_number(
                                 approach.relative_velocity.kilometers_per_second,
                                 positive=True,
+                                source_type="string",
                             ),
                             estimated_diameter_min_m=_parse_number(
                                 source_object.estimated_diameter.meters.estimated_diameter_min,
                                 positive=True,
+                                source_type="number",
                             ),
                             estimated_diameter_max_m=_parse_number(
                                 source_object.estimated_diameter.meters.estimated_diameter_max,
                                 positive=True,
+                                source_type="number",
                             ),
                             is_potentially_hazardous_asteroid=(
                                 source_object.is_potentially_hazardous_asteroid
@@ -492,21 +497,29 @@ def _validate_source_payload(payload: NasaNeowsPayload) -> None:
                 raise ValueError("NeoWs encounter count exceeds the bound")
             neows_object_id(source_object.neo_reference_id)
             _validate_text(source_object.name, maximum=_MAX_SOURCE_TEXT_LENGTH)
-            _parse_number(source_object.absolute_magnitude_h, positive=False)
+            _parse_number(
+                source_object.absolute_magnitude_h,
+                positive=False,
+                source_type="number",
+            )
             _parse_number(
                 source_object.estimated_diameter.meters.estimated_diameter_min,
                 positive=True,
+                source_type="number",
             )
             _parse_number(
                 source_object.estimated_diameter.meters.estimated_diameter_max,
                 positive=True,
+                source_type="number",
             )
             if _parse_number(
                 source_object.estimated_diameter.meters.estimated_diameter_min,
                 positive=True,
+                source_type="number",
             ) > _parse_number(
                 source_object.estimated_diameter.meters.estimated_diameter_max,
                 positive=True,
+                source_type="number",
             ):
                 raise ValueError("NeoWs estimated diameter range is inverted")
             if source_object.neo_reference_id in object_ids:
@@ -523,9 +536,21 @@ def _validate_source_payload(payload: NasaNeowsPayload) -> None:
                     maximum=_MAX_APPROACH_TIME_LENGTH,
                 )
                 _parse_exact_integer(approach.epoch_date_close_approach)
-                _parse_number(approach.relative_velocity.kilometers_per_second, positive=True)
-                _parse_number(approach.miss_distance.kilometers, positive=True)
-                _parse_number(approach.miss_distance.lunar, positive=True)
+                _parse_number(
+                    approach.relative_velocity.kilometers_per_second,
+                    positive=True,
+                    source_type="string",
+                )
+                _parse_number(
+                    approach.miss_distance.kilometers,
+                    positive=True,
+                    source_type="string",
+                )
+                _parse_number(
+                    approach.miss_distance.lunar,
+                    positive=True,
+                    source_type="string",
+                )
                 _validate_text(approach.orbiting_body, maximum=64)
 
 
@@ -543,26 +568,24 @@ def _parse_exact_integer(value: object) -> int:
         if value < 0:
             raise ValueError("NeoWs integer is negative")
         return value
-    if type(value) is not str or _INTEGER_PATTERN.fullmatch(value) is None:
-        raise ValueError("NeoWs integer is invalid")
-    if len(value) > 1 and value.startswith("0"):
-        raise ValueError("NeoWs integer is not canonical")
-    parsed = int(value, 10)
-    if parsed < 0:
-        raise ValueError("NeoWs integer is negative")
-    return parsed
+    raise ValueError("NeoWs integer is invalid")
 
 
-def _parse_number(value: object, *, positive: bool) -> float:
+def _parse_number(
+    value: object,
+    *,
+    positive: bool,
+    source_type: Literal["number", "string"],
+) -> float:
     if type(value) is bool:
         raise ValueError("NeoWs number is invalid")
-    if type(value) is int:
+    if source_type == "number" and type(value) is int:
         text = str(value)
-    elif type(value) is float:
+    elif source_type == "number" and type(value) is float:
         if not math.isfinite(value):
             raise ValueError("NeoWs number is not finite")
         text = repr(value)
-    elif type(value) is str:
+    elif source_type == "string" and type(value) is str:
         if _NUMBER_PATTERN.fullmatch(value) is None:
             raise ValueError("NeoWs number is invalid")
         text = value

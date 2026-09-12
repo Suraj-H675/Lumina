@@ -25,6 +25,7 @@ APOD_NORMALIZED_FIELDS: Final = (
     "copyright",
     "service_version",
 )
+APOD_PUBLIC_CONTENT_MAX_BYTES: Final = 57_344
 _DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", re.ASCII)
 _MEDIA_TYPES = frozenset({"image", "video"})
 _ALLOWED_TEXT_CONTROLS = frozenset({"\t", "\n", "\r"})
@@ -125,6 +126,31 @@ def apod_page_url(content_date: str) -> str:
     return f"https://apod.nasa.gov/apod/ap{parsed:%y%m%d}.html"
 
 
+def validate_apod_public_compatibility(value: NasaApodNormalized) -> None:
+    """Ensure the public APOD content fits the existing web transport contract."""
+    _validate_normalized(value)
+    public_content = {
+        "date": value.date,
+        "title": value.title,
+        "explanation": value.explanation,
+        "media_type": value.media_type,
+        "copyright": value.copyright,
+        "service_version": value.service_version,
+        "apod_page_url": apod_page_url(value.date),
+    }
+    try:
+        encoded = json.dumps(
+            public_content,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except (TypeError, ValueError, UnicodeEncodeError):
+        raise ValueError("APOD public content is not canonical JSON") from None
+    if len(encoded) > APOD_PUBLIC_CONTENT_MAX_BYTES:
+        raise ValueError("APOD public content exceeds the compatibility bound")
+
+
 def _validate_normalized(value: NasaApodNormalized) -> None:
     content_date = _parse_content_date(value.date)
     if content_date < APOD_MIN_CONTENT_DATE:
@@ -159,7 +185,7 @@ def _validate_text(value: str, *, maximum: int) -> None:
         or not value
         or len(value) > maximum
         or any(
-            unicodedata.category(character) in {"Cc", "Cs"}
+            unicodedata.category(character) in {"Cc", "Cf", "Cs"}
             and character not in _ALLOWED_TEXT_CONTROLS
             for character in value
         )
@@ -210,8 +236,10 @@ def _ensure_storage_bound(payload: NormalizedPayload) -> None:
 
 __all__ = [
     "APOD_MIN_CONTENT_DATE",
+    "APOD_PUBLIC_CONTENT_MAX_BYTES",
     "APOD_NORMALIZED_FIELDS",
     "NasaApodCodec",
     "NasaApodNormalized",
     "apod_page_url",
+    "validate_apod_public_compatibility",
 ]

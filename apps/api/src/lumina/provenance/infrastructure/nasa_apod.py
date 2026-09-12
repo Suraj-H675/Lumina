@@ -16,6 +16,7 @@ from lumina.provenance.domain.apod import (
     APOD_MIN_CONTENT_DATE,
     NasaApodCodec,
     NasaApodNormalized,
+    validate_apod_public_compatibility,
 )
 from lumina.provenance.domain.manifests import SourceManifest, parse_manifest_json
 from lumina.provenance.domain.provider import (
@@ -238,6 +239,7 @@ class NasaApodAdapter(ProviderAdapter[NasaApodRequest, NasaApodPayload, NasaApod
             service_version=payload.service_version,
         )
         try:
+            validate_apod_public_compatibility(normalized)
             self._codec.encode(normalized)
         except ValueError:
             raise ProviderNormalizationFailed() from None

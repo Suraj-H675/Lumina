@@ -12,7 +12,7 @@ from fakes.provider_runtime import DeterministicNasaTransport, timeout
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_apod_runtime_config
-from lumina.provenance.domain.apod import NasaApodCodec
+from lumina.provenance.domain.apod import NasaApodCodec, NasaApodNormalized
 from lumina.provenance.domain.runtime import (
     APOD_PROVIDER_CODE,
     CacheState,
@@ -76,6 +76,47 @@ def _rollback_body() -> bytes:
         },
         separators=(",", ":"),
     ).encode()
+
+
+def _oversized_apod_body() -> bytes:
+    return json.dumps(
+        {
+            "date": "2026-09-10",
+            "title": "T" * 512,
+            "explanation": "x" * 60_000,
+            "media_type": "image",
+            "url": "https://example.invalid/apod/fixture.jpg",
+            "hdurl": "https://example.invalid/apod/fixture-hd.jpg",
+            "thumbnail_url": "https://example.invalid/apod/fixture-thumb.jpg",
+            "copyright": "C" * 512,
+            "service_version": "v1",
+        },
+        separators=(",", ":"),
+    ).encode()
+
+
+def _legacy_oversized_cache() -> ProviderCacheEntry:
+    normalized = NasaApodNormalized(
+        date="2026-09-09",
+        title="T" * 512,
+        explanation="x" * 60_000,
+        media_type="image",
+        source_media_url="https://example.invalid/apod/fixture.jpg",
+        source_hd_media_url="https://example.invalid/apod/fixture-hd.jpg",
+        source_thumbnail_url="https://example.invalid/apod/fixture-thumb.jpg",
+        copyright="C" * 512,
+        service_version="v1",
+    )
+    return ProviderCacheEntry(
+        provider_code=APOD_PROVIDER_CODE,
+        cache_key="daily-media",
+        normalized_payload=NasaApodCodec().encode(normalized),
+        schema_version="apod-v1-json-v1",
+        raw_sha256="a" * 64,
+        fetched_at=_NOW,
+        fresh_until=_NOW + timedelta(hours=6),
+        stale_until=_NOW + timedelta(hours=78),
+    )
 
 
 @dataclass
@@ -565,3 +606,37 @@ async def test_apod_payload_schema_failure_is_quarantined_and_does_not_replace_c
     assert store.quarantine_exists is True
     assert store.cache == original
     assert store.counters.schema_failures == 1
+
+
+@pytest.mark.asyncio
+async def test_oversized_apod_content_fails_normalization_and_preserves_last_good_cache() -> None:
+    clock = _Clock()
+    original = _legacy_oversized_cache()
+    store = _ApodStore(cache=original)
+    transport = DeterministicNasaTransport([_json_response(_oversized_apod_body())])
+    service = _service(transport, store, clock)
+
+    report = await service.sync(APOD_PROVIDER_CODE)
+
+    assert report.outcome is ProviderSyncOutcome.UPSTREAM_FAILURE
+    assert report.failure_code == ProviderFailureCode.NORMALIZATION_FAILED.value
+    assert store.cache == original
+    assert store.failure_calls[-1].code is ProviderFailureCode.NORMALIZATION_FAILED
+    assert store.failure_calls[-1].raw_response is not None
+    assert store.quarantine_exists is True
+
+
+@pytest.mark.asyncio
+async def test_valid_apod_replacement_recovers_from_legacy_oversized_cache() -> None:
+    clock = _Clock()
+    store = _ApodStore(cache=_legacy_oversized_cache())
+    transport = DeterministicNasaTransport([_json_response(_fixture("nasa-apod-image.json"))])
+    service = _service(transport, store, clock)
+
+    report = await service.sync(APOD_PROVIDER_CODE)
+
+    assert report.outcome is ProviderSyncOutcome.SUCCESS
+    assert store.cache is not None
+    assert store.cache.normalized_payload["date"] == "2026-09-09"
+    assert store.cache.normalized_payload["title"] == "Fixture Image APOD"
+    assert store.cache.normalized_payload["explanation"] != "x" * 60_000

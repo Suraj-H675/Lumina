@@ -11,7 +11,11 @@ from lumina.provenance.application.read import (
     ProviderSnapshotReader,
     ProviderSnapshotReadError,
 )
-from lumina.provenance.domain.apod import NasaApodNormalized, apod_page_url
+from lumina.provenance.domain.apod import (
+    NasaApodNormalized,
+    apod_page_url,
+    validate_apod_public_compatibility,
+)
 from lumina.provenance.domain.neows import (
     NEOWS_PUBLIC_ENCOUNTER_LIMIT,
     NasaNeowsEncounter,
@@ -172,6 +176,10 @@ def _content_projection(snapshot: ProviderSnapshot) -> ApodContentProjection:
         raise ProviderSnapshotReadError() from None
     if not isinstance(decoded, NasaApodNormalized):
         raise ProviderSnapshotReadError()
+    try:
+        validate_apod_public_compatibility(decoded)
+    except (TypeError, ValueError):
+        raise ProviderSnapshotReadError() from None
     return ApodContentProjection(
         date=decoded.date,
         title=decoded.title,

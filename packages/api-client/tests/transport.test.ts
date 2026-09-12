@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { liveEndpoint, metaEndpoint } from "../src/contract";
+import { apodEndpoint, liveEndpoint, metaEndpoint } from "../src/contract";
 import { MAX_RESPONSE_BYTES, normalizeApiOrigin, requestEndpoint } from "../src/transport";
 
 function jsonResponse(body: unknown, contentType = "application/json"): Response {
@@ -8,6 +8,55 @@ function jsonResponse(body: unknown, contentType = "application/json"): Response
     headers: { "Content-Type": contentType },
     status: 200,
   });
+}
+
+function encodedJsonBytes(value: unknown): number {
+  return new TextEncoder().encode(JSON.stringify(value)).byteLength;
+}
+
+function maximumAcceptedApodResponse(): Readonly<Record<string, unknown>> {
+  const contentFor = (explanationLength: number) => ({
+    date: "2026-09-09",
+    title: "T".repeat(512),
+    explanation: "x".repeat(explanationLength),
+    media_type: "image",
+    copyright: "C".repeat(512),
+    service_version: "v1",
+    apod_page_url: "https://apod.nasa.gov/apod/ap260909.html",
+  });
+  let low = 0;
+  let high = 60_000;
+  while (low < high) {
+    const midpoint = Math.ceil((low + high) / 2);
+    if (encodedJsonBytes(contentFor(midpoint)) <= 57_344) {
+      low = midpoint;
+    } else {
+      high = midpoint - 1;
+    }
+  }
+  const content = contentFor(low);
+  if (encodedJsonBytes(content) !== 57_344) {
+    throw new Error("test APOD content did not reach the approved byte boundary");
+  }
+  return {
+    availability: "stale",
+    unavailable_reason: null,
+    content,
+    freshness: {
+      cache_state: "stale",
+      retrieved_at: "2026-09-10T12:00:00Z",
+      fresh_until: "2026-09-10T18:00:00Z",
+      stale_until: "2026-09-13T18:00:00Z",
+      last_refresh_failure_code: "provider.normalization_failed",
+    },
+    source: {
+      name: "NASA Astronomy Picture of the Day (APOD)",
+      official_url: "https://apod.nasa.gov/apod/",
+      api_documentation_url: "https://api.nasa.gov/",
+      media_usage_url: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      attribution_text: "NASA APOD; source media remains link-only and is not embedded by Lumina.",
+    },
+  };
 }
 
 afterEach(() => {
@@ -53,6 +102,27 @@ describe("API origin normalization", () => {
 });
 
 describe("bounded native-fetch transport", () => {
+  it("accepts the maximum APOD response that fits the shared byte boundary", async () => {
+    const body = maximumAcceptedApodResponse();
+    const serialized = JSON.stringify(body);
+    const byteLength = encodedJsonBytes(body);
+    expect(byteLength).toBeLessThanOrEqual(MAX_RESPONSE_BYTES);
+
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(serialized, {
+        headers: {
+          "Content-Length": String(byteLength),
+          "Content-Type": "application/json",
+        },
+        status: 200,
+      }),
+    );
+
+    await expect(
+      requestEndpoint("http://127.0.0.1:8000", apodEndpoint, { fetchImplementation }),
+    ).resolves.toEqual({ data: body, kind: "ok", status: 200 });
+  });
+
   it("uses the generated GET path and requests uncached JSON", async () => {
     const fetchImplementation = vi
       .fn<typeof fetch>()

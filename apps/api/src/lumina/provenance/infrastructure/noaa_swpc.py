@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import pkgutil
 import re
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
@@ -569,6 +570,7 @@ def _validate_notification(value: SwpcNotification) -> None:
         raise ValueError("SWPC notification message is invalid")
     if any(
         (ord(character) < 32 and character not in {"\t", "\n", "\r"})
+        or unicodedata.category(character) == "Cf"
         or 0xD800 <= ord(character) <= 0xDFFF
         for character in value.message
     ):

@@ -235,12 +235,26 @@ def _validate_normalized(value: SwpcNormalized) -> None:
         raise ValueError("SWPC Kp row set is too large")
     for row in value.kp_rows:
         _validate_kp_row(row)
+    try:
+        expected_kp_order = tuple(sorted(value.kp_rows, key=kp_sort_key))
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError("SWPC Kp rows are not canonically ordered") from None
+    if tuple(value.kp_rows) != expected_kp_order:
+        raise ValueError("SWPC Kp rows are not canonically ordered")
     _validate_speed(value.solar_wind_speed)
     _validate_field(value.solar_wind_field)
     if len(value.notifications) > SWPC_NOTIFICATION_LIMIT:
         raise ValueError("SWPC notification set is too large")
     for notification in value.notifications:
         _validate_notification(notification)
+    try:
+        expected_notification_order = tuple(
+            sorted(value.notifications, key=notification_sort_key, reverse=True)
+        )
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError("SWPC notifications are not canonically ordered") from None
+    if tuple(value.notifications) != expected_notification_order:
+        raise ValueError("SWPC notifications are not canonically ordered")
     for checksum in (
         value.source_evidence.scales_sha256,
         value.source_evidence.kp_sha256,
@@ -316,7 +330,7 @@ def _validate_text(
     if (len(value.encode("utf-8")) if maximum_is_bytes else len(value)) > maximum:
         raise ValueError("SWPC text is too long")
     if any(
-        unicodedata.category(character) in {"Cc", "Cs"} and character not in _ALLOWED_CONTROLS
+        unicodedata.category(character) in {"Cc", "Cf", "Cs"} and character not in _ALLOWED_CONTROLS
         for character in value
     ):
         raise ValueError("SWPC text contains an unsafe control character")

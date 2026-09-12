@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Final, cast
 
@@ -13,7 +13,17 @@ import pytest
 from lumina.provenance.domain.provider import ProviderPayloadInvalid
 from lumina.provenance.domain.request_plan import ProviderComponentResult
 from lumina.provenance.domain.runtime import RawProviderResponse
-from lumina.provenance.domain.space_weather import SwpcCodec, SwpcNormalized
+from lumina.provenance.domain.space_weather import (
+    SwpcCodec,
+    SwpcKpRow,
+    SwpcNormalized,
+    SwpcNotification,
+    SwpcScales,
+    SwpcScaleState,
+    SwpcSolarWindField,
+    SwpcSolarWindSpeed,
+    SwpcSourceEvidence,
+)
 from lumina.provenance.infrastructure.http import FixedHttpRequest
 from lumina.provenance.infrastructure.noaa_swpc import (
     NoaaSwpcAdapter,
@@ -170,6 +180,98 @@ def test_adapter_normalizes_all_components_and_preserves_science_statuses() -> N
     )
 
 
+def _canonical_ordering_fixture() -> SwpcNormalized:
+    return SwpcNormalized(
+        scales=SwpcScales(
+            date_text="2026-09-12",
+            time_text="06:57:00",
+            radio_blackout=SwpcScaleState(0, "quiet"),
+            solar_radiation=SwpcScaleState(0, "quiet"),
+            geomagnetic=SwpcScaleState(0, "quiet"),
+        ),
+        kp_rows=(
+            SwpcKpRow("2026-09-12T00:00:00", 1.0, "observed", None),
+            SwpcKpRow("2026-09-12T06:00:00", 2.0, "observed", None),
+            SwpcKpRow("2026-09-12T09:00:00", 3.0, "estimated", "G1"),
+        ),
+        solar_wind_speed=SwpcSolarWindSpeed(None, None),
+        solar_wind_field=SwpcSolarWindField(None, None, None),
+        notifications=(
+            SwpcNotification("NEW", "2026-09-12 06:00:00", "newest"),
+            SwpcNotification("OLD", "2026-09-12 05:00:00", "older"),
+        ),
+        source_evidence=SwpcSourceEvidence(*(["a" * 64] * 5)),
+    )
+
+
+def test_swpc_codec_accepts_canonical_order_and_rejects_reordered_storage() -> None:
+    codec = SwpcCodec()
+    canonical = _canonical_ordering_fixture()
+    encoded = codec.encode(canonical)
+
+    assert codec.decode(encoded).kp_rows[1].time_text == "2026-09-12T06:00:00"
+    assert codec.decode(encoded).notifications[0].product_id == "NEW"
+
+    unicode_value = replace(
+        canonical,
+        scales=replace(
+            canonical.scales,
+            radio_blackout=SwpcScaleState(0, "activité — quiet"),
+        ),
+        notifications=(
+            SwpcNotification("NEW", "2026-09-12 06:00:00", "Aurora – activité"),
+            canonical.notifications[1],
+        ),
+    )
+    assert codec.decode(codec.encode(unicode_value)) == unicode_value
+
+    reordered = dict(encoded)
+    kp_rows = encoded["kp_rows"]
+    notifications = encoded["notifications"]
+    assert isinstance(kp_rows, list)
+    assert isinstance(notifications, list)
+    reordered["kp_rows"] = [kp_rows[1], kp_rows[0], kp_rows[2]]
+    reordered["notifications"] = [notifications[1], notifications[0]]
+
+    # Before the codec assertion, these persisted positions would have made
+    # the public "latest" and first-notification projections select old data.
+    assert reordered["kp_rows"][1]["time_text"] == "2026-09-12T00:00:00"
+    assert reordered["notifications"][0]["product_id"] == "OLD"
+
+    with pytest.raises(ValueError, match="canonically ordered"):
+        codec.decode(reordered)
+
+
+def test_swpc_codec_keeps_status_and_tie_break_order_deterministic() -> None:
+    codec = SwpcCodec()
+    fixture = _canonical_ordering_fixture()
+    canonical = replace(
+        fixture,
+        kp_rows=(
+            SwpcKpRow("2026-09-12T06:00:00", 1.0, "observed", None),
+            SwpcKpRow("2026-09-12T06:00:00", 2.0, "estimated", None),
+            SwpcKpRow("2026-09-12T06:00:00", 3.0, "predicted", "G1"),
+        ),
+        notifications=(
+            SwpcNotification("B", "2026-09-12 06:00:00", "same time, B"),
+            SwpcNotification("A", "2026-09-12 06:00:00", "same time, A"),
+        ),
+    )
+    encoded = codec.encode(canonical)
+    assert codec.decode(encoded) == canonical
+
+    reordered = dict(encoded)
+    kp_rows = encoded["kp_rows"]
+    notifications = encoded["notifications"]
+    assert isinstance(kp_rows, list)
+    assert isinstance(notifications, list)
+    reordered["kp_rows"] = [kp_rows[1], kp_rows[0], kp_rows[2]]
+    reordered["notifications"] = [notifications[1], notifications[0]]
+
+    with pytest.raises(ValueError, match="canonically ordered"):
+        codec.decode(reordered)
+
+
 @pytest.mark.parametrize(
     ("component_index", "mutator"),
     [
@@ -181,6 +283,39 @@ def test_adapter_normalizes_all_components_and_preserves_science_statuses() -> N
     ],
 )
 def test_component_contract_failures_are_rejected(
+    component_index: int,
+    mutator: object,
+) -> None:
+    value = json.loads(_body(_COMPONENT_FILES[component_index]))
+    mutated = mutator(value)  # type: ignore[operator]
+    body = json.dumps(mutated, separators=(",", ":")).encode()
+    adapter = _adapter(_Transport([]))
+    component = noaa_swpc_request_plan().components[component_index]
+
+    with pytest.raises(ProviderPayloadInvalid):
+        adapter.validate_component_payload(
+            component.request,
+            _raw(body, component.max_response_bytes),
+        )
+
+
+@pytest.mark.parametrize(
+    ("component_index", "mutator"),
+    [
+        (
+            0,
+            lambda value: {
+                **value,
+                "0": {**value["0"], "R": {**value["0"]["R"], "Text": "safe\u202ecod.exe"}},
+            },
+        ),
+        (
+            4,
+            lambda value: [{**value[0], "message": "safe\u2066notification"}],
+        ),
+    ],
+)
+def test_swpc_rejects_unicode_format_controls_in_provider_text(
     component_index: int,
     mutator: object,
 ) -> None:

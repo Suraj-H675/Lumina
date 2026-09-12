@@ -74,7 +74,9 @@ _SPACE_WEATHER_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
         "description": "The Space Weather read projection is temporarily unavailable.",
     },
 }
-_SPACE_WEATHER_PUBLIC_RESPONSE_MAX_BYTES: Final = 61_440
+_SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES: Final = 61_440
+# Kept as a compatibility alias for the existing SWPC boundary tests.
+_SPACE_WEATHER_PUBLIC_RESPONSE_MAX_BYTES: Final = _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
 
 
 @router.get(
@@ -102,7 +104,15 @@ async def now_apod(request: Request) -> ApodResponse | JSONResponse:
             code="now.apod_unavailable",
             message="The Daily Visual is temporarily unavailable.",
         )
-    return _response(projection)
+    response = _response(projection)
+    if _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES:
+        return error_response(
+            request,
+            status_code=503,
+            code="now.apod_unavailable",
+            message="The Daily Visual is temporarily unavailable.",
+        )
+    return response
 
 
 @router.get(
@@ -333,7 +343,7 @@ def _space_weather_response(projection: SpaceWeatherProjection) -> SpaceWeatherR
                 separators=(",", ":"),
             ).encode("utf-8")
         )
-        > _SPACE_WEATHER_PUBLIC_RESPONSE_MAX_BYTES
+        > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
         and response.latest_notifications
     ):
         response = response.model_copy(
@@ -349,6 +359,21 @@ def _space_weather_kp_row(value: Any) -> SpaceWeatherKpRowResponse:
         status=value.status,
         noaa_scale=value.noaa_scale,
     )
+
+
+def _serialized_response_size(response: Any) -> int:
+    """Return the compact UTF-8 size used by the server/client JSON contract."""
+    try:
+        return len(
+            json.dumps(
+                response.model_dump(mode="json"),
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+    except (AttributeError, TypeError, ValueError, UnicodeEncodeError):
+        return _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES + 1
 
 
 __all__ = ["router"]

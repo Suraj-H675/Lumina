@@ -9,7 +9,13 @@ from typing import Any
 
 import pytest
 from fakes.provider_runtime import DeterministicNasaTransport
-from lumina.provenance.domain.apod import NasaApodCodec, NasaApodNormalized, apod_page_url
+from lumina.provenance.domain.apod import (
+    APOD_PUBLIC_CONTENT_MAX_BYTES,
+    NasaApodCodec,
+    NasaApodNormalized,
+    apod_page_url,
+    validate_apod_public_compatibility,
+)
 from lumina.provenance.domain.provider import (
     ProviderNotConfigured,
     ProviderPayloadInvalid,
@@ -72,6 +78,68 @@ def _base_payload() -> dict[str, object]:
         "url": "https://example.invalid/apod/fixture.jpg",
         "service_version": "v1",
     }
+
+
+def _public_content_bytes(value: NasaApodNormalized) -> bytes:
+    return json.dumps(
+        {
+            "date": value.date,
+            "title": value.title,
+            "explanation": value.explanation,
+            "media_type": value.media_type,
+            "copyright": value.copyright,
+            "service_version": value.service_version,
+            "apod_page_url": apod_page_url(value.date),
+        },
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def _public_budget_value(explanation: str) -> NasaApodNormalized:
+    return NasaApodNormalized(
+        date="2026-09-10",
+        title="T" * 512,
+        explanation=explanation,
+        media_type="image",
+        source_media_url="https://example.invalid/apod/fixture.jpg",
+        source_hd_media_url="https://example.invalid/apod/fixture-hd.jpg",
+        source_thumbnail_url="https://example.invalid/apod/fixture-thumb.jpg",
+        copyright="C" * 512,
+        service_version="v1",
+    )
+
+
+def test_apod_public_content_budget_uses_canonical_utf8_json_bytes() -> None:
+    low = 0
+    high = 60_000
+    while low < high:
+        midpoint = (low + high + 1) // 2
+        candidate = _public_budget_value("x" * midpoint)
+        if len(_public_content_bytes(candidate)) <= APOD_PUBLIC_CONTENT_MAX_BYTES:
+            low = midpoint
+        else:
+            high = midpoint - 1
+
+    accepted = _public_budget_value("x" * low)
+    assert len(_public_content_bytes(accepted)) == APOD_PUBLIC_CONTENT_MAX_BYTES
+    validate_apod_public_compatibility(accepted)
+    NasaApodCodec().encode(accepted)
+
+    rejected = _public_budget_value("x" * (low + 1))
+    assert len(_public_content_bytes(rejected)) > APOD_PUBLIC_CONTENT_MAX_BYTES
+    with pytest.raises(ValueError, match="compatibility bound"):
+        validate_apod_public_compatibility(rejected)
+
+
+def test_apod_public_content_budget_counts_unicode_and_json_escaping() -> None:
+    value = _public_budget_value('😀"\\\n\t' * 6_000)
+
+    assert len(value.explanation) < 60_000
+    assert len(_public_content_bytes(value)) > APOD_PUBLIC_CONTENT_MAX_BYTES
+    with pytest.raises(ValueError, match="compatibility bound"):
+        validate_apod_public_compatibility(value)
 
 
 def test_apod_manifest_and_runtime_identity_are_reviewed_and_exact() -> None:
@@ -189,6 +257,28 @@ async def test_multiline_nasa_text_is_preserved_as_plain_text() -> None:
 
 
 @pytest.mark.asyncio
+async def test_apod_scientific_unicode_text_remains_valid() -> None:
+    transport = DeterministicNasaTransport(
+        [
+            _json_response(
+                json.dumps(
+                    {
+                        **_base_payload(),
+                        "title": "Soleil — étoile",
+                        "explanation": "Aurora: activité scientifique.",
+                    }
+                ).encode()
+            )
+        ]
+    )
+    adapter = _adapter(transport)
+
+    payload = adapter.validate_payload(await adapter.fetch(NasaApodRequest()))
+
+    assert payload.title == "Soleil — étoile"
+
+
+@pytest.mark.asyncio
 async def test_copyrighted_image_preserves_exact_source_value() -> None:
     adapter = _adapter(
         DeterministicNasaTransport([_json_response(_fixture("nasa-apod-copyrighted-image.json"))])
@@ -222,6 +312,9 @@ async def test_video_fixture_requires_no_hd_url_and_remains_link_only_at_normali
         json.dumps({**_base_payload(), "media_type": "audio"}).encode(),
         json.dumps({key: value for key, value in _base_payload().items() if key != "url"}).encode(),
         json.dumps({**_base_payload(), "title": ["not text"]}).encode(),
+        json.dumps({**_base_payload(), "title": "safe\u202ecod.exe"}).encode(),
+        json.dumps({**_base_payload(), "explanation": "safe\u2066text"}).encode(),
+        json.dumps({**_base_payload(), "copyright": "safe\u202ecopyright"}).encode(),
         json.dumps({**_base_payload(), "hdurl": {"not": "text"}}).encode(),
         json.dumps({**_base_payload(), "service_version": "v2"}).encode(),
         json.dumps({**_base_payload(), "date": "2026-2-10"}).encode(),

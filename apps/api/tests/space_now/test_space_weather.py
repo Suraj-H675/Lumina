@@ -78,6 +78,7 @@ def _normalized() -> SwpcNormalized:
                 "2026-09-12 06:45:35.603",
                 "Plain provider text <script>alert(1)</script>",
             ),
+            SwpcNotification("OLD", "2026-09-12 06:40:00", "Older provider text."),
         ),
         source_evidence=SwpcSourceEvidence(*("a" * 64 for _ in range(5))),
     )
@@ -241,6 +242,39 @@ def test_public_space_weather_response_is_cache_only_and_safe() -> None:
     assert "services.swpc.noaa.gov/products" not in response.text
 
 
+def test_public_space_weather_rejects_noncanonical_persisted_ordering() -> None:
+    canonical = _cache()
+    payload = dict(canonical.normalized_payload)
+    kp_rows = payload["kp_rows"]
+    notifications = payload["notifications"]
+    assert isinstance(kp_rows, list)
+    assert isinstance(notifications, list)
+    payload["kp_rows"] = [kp_rows[1], kp_rows[0], kp_rows[2]]
+    payload["notifications"] = [notifications[1], notifications[0]]
+    corrupted = ProviderCacheEntry(
+        provider_code=canonical.provider_code,
+        cache_key=canonical.cache_key,
+        normalized_payload=payload,
+        schema_version=canonical.schema_version,
+        raw_sha256=canonical.raw_sha256,
+        fetched_at=canonical.fetched_at,
+        fresh_until=canonical.fresh_until,
+        stale_until=canonical.stale_until,
+    )
+
+    response = _request(
+        _app(
+            SpaceWeatherReadService(
+                _Reader(_snapshot(cache=corrupted, cache_state=CacheState.FRESH))
+            )
+        ),
+        "/api/v1/now/space-weather",
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "now.space_weather_unavailable"
+
+
 def test_public_space_weather_response_keeps_complete_notifications_within_transport_bound() -> (
     None
 ):
@@ -251,7 +285,7 @@ def test_public_space_weather_response_keeps_complete_notifications_within_trans
             f"2026-09-12 06:{i:02d}:00",
             "x" * 16_384,
         )
-        for i in range(12)
+        for i in reversed(range(12))
     )
     large_cache = _cache(
         fetched_at=_NOW,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
@@ -16,7 +17,12 @@ from lumina.provenance.application.read import (
     ProviderSnapshotReadError,
 )
 from lumina.provenance.composition import nasa_apod_runtime_config
-from lumina.provenance.domain.apod import NasaApodCodec, NasaApodNormalized
+from lumina.provenance.domain.apod import (
+    APOD_PUBLIC_CONTENT_MAX_BYTES,
+    NasaApodCodec,
+    NasaApodNormalized,
+    apod_page_url,
+)
 from lumina.provenance.domain.runtime import (
     APOD_PROVIDER_CODE,
     CacheState,
@@ -28,7 +34,13 @@ from lumina.provenance.domain.runtime import (
     RuntimeCounters,
 )
 from lumina.settings import AppSettings
-from lumina.space_now.application.read import ApodReadService
+from lumina.space_now.application.read import (
+    ApodContentProjection,
+    ApodFreshnessProjection,
+    ApodProjection,
+    ApodReadService,
+    ApodSourceProjection,
+)
 
 _NOW = datetime(2026, 9, 10, 12, 0, tzinfo=UTC)
 _SOURCE_MEDIA_URL = "https://media.example.invalid/private-fixture.jpg"
@@ -51,13 +63,14 @@ def _cache(
     date: str = "2026-09-09",
     fetched_at: datetime = _NOW,
     title: str = "Fixture APOD title",
+    explanation: str = "NASA-supplied fixture explanation.",
     media_type: Literal["image", "video"] = "image",
     copyright: str | None = None,
 ) -> ProviderCacheEntry:
     normalized = NasaApodNormalized(
         date=date,
         title=title,
-        explanation="NASA-supplied fixture explanation.",
+        explanation=explanation,
         media_type=media_type,
         source_media_url=_SOURCE_MEDIA_URL,
         source_hd_media_url="https://media.example.invalid/private-fixture-hd.jpg",
@@ -76,6 +89,64 @@ def _cache(
         fresh_until=fetched_at + timedelta(hours=6),
         stale_until=fetched_at + timedelta(hours=78),
     )
+
+
+def _public_content_bytes(value: NasaApodNormalized) -> bytes:
+    return json.dumps(
+        {
+            "date": value.date,
+            "title": value.title,
+            "explanation": value.explanation,
+            "media_type": value.media_type,
+            "copyright": value.copyright,
+            "service_version": value.service_version,
+            "apod_page_url": apod_page_url(value.date),
+        },
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def _max_budget_normalized() -> NasaApodNormalized:
+    low = 0
+    high = 60_000
+    while low < high:
+        midpoint = (low + high + 1) // 2
+        candidate = NasaApodNormalized(
+            date="2026-09-09",
+            title="T" * 512,
+            explanation="x" * midpoint,
+            media_type="image",
+            source_media_url=_SOURCE_MEDIA_URL,
+            source_hd_media_url="https://media.example.invalid/private-fixture-hd.jpg",
+            source_thumbnail_url="https://media.example.invalid/private-fixture-thumb.jpg",
+            copyright="C" * 512,
+            service_version="v1",
+        )
+        if len(_public_content_bytes(candidate)) <= APOD_PUBLIC_CONTENT_MAX_BYTES:
+            low = midpoint
+        else:
+            high = midpoint - 1
+    return NasaApodNormalized(
+        date="2026-09-09",
+        title="T" * 512,
+        explanation="x" * low,
+        media_type="image",
+        source_media_url=_SOURCE_MEDIA_URL,
+        source_hd_media_url="https://media.example.invalid/private-fixture-hd.jpg",
+        source_thumbnail_url="https://media.example.invalid/private-fixture-thumb.jpg",
+        copyright="C" * 512,
+        service_version="v1",
+    )
+
+
+class _OversizedProjectionService(ApodReadService):
+    def __init__(self, projection: ApodProjection) -> None:
+        self._projection = projection
+
+    async def read(self) -> ApodProjection:
+        return self._projection
 
 
 def _snapshot(
@@ -283,3 +354,91 @@ def test_public_apod_route_uses_the_standard_safe_error_for_read_failures() -> N
     assert response.json()["error"]["code"] == "now.apod_unavailable"
     assert response.json()["error"]["message"] == "The Daily Visual is temporarily unavailable."
     assert "Provider snapshot" not in response.text
+
+
+def test_maximum_accepted_apod_content_fits_the_full_success_response_bound() -> None:
+    normalized = _max_budget_normalized()
+    assert len(_public_content_bytes(normalized)) == APOD_PUBLIC_CONTENT_MAX_BYTES
+
+    cache = _cache(
+        date=normalized.date,
+        title=normalized.title,
+        explanation=normalized.explanation,
+        copyright=normalized.copyright,
+        fetched_at=_NOW - timedelta(hours=7),
+    )
+    response = _request(
+        _app(
+            ApodReadService(
+                _Reader(
+                    _snapshot(
+                        cache=cache,
+                        cache_state=CacheState.STALE,
+                        last_failure_code=ProviderFailureCode.NORMALIZATION_FAILED,
+                    )
+                )
+            )
+        ),
+        "/api/v1/now/apod",
+    )
+
+    assert response.status_code == 200
+    assert len(response.content) <= 61_440
+    assert response.json()["content"]["explanation"] == normalized.explanation
+
+
+def test_legacy_oversized_apod_cache_is_readable_but_never_emitted() -> None:
+    legacy = _cache(
+        title="T" * 512,
+        explanation="x" * 60_000,
+        copyright="C" * 512,
+    )
+    decoded = NasaApodCodec().decode(legacy.normalized_payload)
+    assert decoded.explanation == "x" * 60_000
+
+    response = _request(
+        _app(ApodReadService(_Reader(_snapshot(cache=legacy, cache_state=CacheState.FRESH)))),
+        "/api/v1/now/apod",
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "now.apod_unavailable"
+    assert "x" * 1_000 not in response.text
+
+
+def test_apod_route_has_a_final_fail_closed_response_size_guard() -> None:
+    manifest = nasa_apod_runtime_config().source_manifest
+    projection = ApodProjection(
+        availability="fresh",
+        unavailable_reason=None,
+        content=ApodContentProjection(
+            date="2026-09-09",
+            title="T" * 512,
+            explanation="x" * 60_000,
+            media_type="image",
+            copyright="C" * 512,
+            service_version="v1",
+            apod_page_url=apod_page_url("2026-09-09"),
+        ),
+        freshness=ApodFreshnessProjection(
+            cache_state=CacheState.FRESH,
+            retrieved_at=_NOW,
+            fresh_until=_NOW + timedelta(hours=6),
+            stale_until=_NOW + timedelta(hours=78),
+            last_refresh_failure_code=None,
+        ),
+        source=ApodSourceProjection(
+            name=manifest.source_name,
+            official_url=str(manifest.source_page_url),
+            api_documentation_url=str(manifest.official_documentation_url),
+            media_usage_url=str(manifest.terms_or_licence_url),
+            attribution_text=manifest.attribution_text,
+        ),
+    )
+    response = _request(
+        _app(_OversizedProjectionService(projection)),
+        "/api/v1/now/apod",
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "now.apod_unavailable"

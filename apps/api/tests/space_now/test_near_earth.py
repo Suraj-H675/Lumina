@@ -44,10 +44,15 @@ class _Reader(ProviderSnapshotReader):
         return self.snapshot
 
 
-def _encounter(index: int, *, epoch: int | None = None) -> NasaNeowsEncounter:
+def _encounter(
+    index: int,
+    *,
+    epoch: int | None = None,
+    name: str | None = None,
+) -> NasaNeowsEncounter:
     return NasaNeowsEncounter(
         neo_reference_id=str(3_000_000 + index),
-        name=f"Fixture NEO {index}",
+        name=f"Fixture NEO {index}" if name is None else name,
         approach_date="2026-09-12",
         approach_time_text=f"2026-Sep-12 {index % 24:02d}:00",
         provider_epoch_ms=str(epoch if epoch is not None else 1_800_000_000_000 + index),
@@ -252,6 +257,34 @@ def test_public_near_earth_response_is_safe_and_cache_only() -> None:
     assert "api_key" not in response.text
     assert "nasa_jpl_url" not in response.text
     assert "raw_sha256" not in response.text
+
+
+def test_public_near_earth_response_trims_to_generated_client_byte_limit() -> None:
+    large_name = "😀" * 500
+    encounters = tuple(_encounter(index, name=f"{large_name} {index}") for index in range(32))
+    response = _request(
+        _app(
+            NearEarthReadService(
+                _Reader(
+                    _snapshot(
+                        cache=_cache(encounters=encounters),
+                        cache_state=CacheState.FRESH,
+                    )
+                )
+            )
+        ),
+        "/api/v1/now/near-earth",
+    )
+
+    assert response.status_code == 200
+    assert len(response.content) <= 61_440
+    body = response.json()
+    assert body["total_encounter_count"] == 32
+    assert 0 < body["returned_encounter_count"] < 32
+    assert body["returned_encounter_count"] == len(body["encounters"])
+    assert body["encounters"][0]["neo_reference_id"] == "3000000"
+    returned_ids = [encounter["neo_reference_id"] for encounter in body["encounters"]]
+    assert returned_ids == [str(3_000_000 + index) for index in range(len(returned_ids))]
 
 
 def test_public_near_earth_route_rejects_query_parameters_without_reading_state() -> None:

@@ -140,7 +140,26 @@ async def now_near_earth(request: Request) -> NearEarthResponse | JSONResponse:
             code="now.near_earth_unavailable",
             message="Near-Earth approach data is temporarily unavailable.",
         )
-    return _near_earth_response(projection)
+    response = _near_earth_response(projection)
+    while (
+        _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
+        and response.encounters
+    ):
+        encounters = response.encounters[:-1]
+        response = response.model_copy(
+            update={
+                "encounters": encounters,
+                "returned_encounter_count": len(encounters),
+            }
+        )
+    if _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES:
+        return error_response(
+            request,
+            status_code=503,
+            code="now.near_earth_unavailable",
+            message="Near-Earth approach data is temporarily unavailable.",
+        )
+    return response
 
 
 @router.get(

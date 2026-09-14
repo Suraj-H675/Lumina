@@ -17,6 +17,7 @@ from lumina.provenance.domain.apod import (
     validate_apod_public_compatibility,
 )
 from lumina.provenance.domain.provider import (
+    ProviderNormalizationFailed,
     ProviderNotConfigured,
     ProviderPayloadInvalid,
 )
@@ -213,6 +214,56 @@ async def test_missing_or_invalid_apod_key_makes_zero_requests(
         await adapter.fetch(NasaApodRequest())
 
     assert transport.requests == []
+
+
+@pytest.mark.asyncio
+async def test_apod_rejects_server_secret_reflection_and_redacts_quarantine_evidence() -> None:
+    reflected = json.dumps(
+        {
+            **_base_payload(),
+            "title": f"Reflected {_TEST_KEY}",
+            "explanation": f"Credential {_TEST_KEY} must never be cached.",
+        },
+        separators=(",", ":"),
+    ).encode()
+    adapter = _adapter(DeterministicNasaTransport([_json_response(reflected)]))
+
+    raw = await adapter.fetch(NasaApodRequest())
+    assert isinstance(raw, RawProviderResponse)
+    payload = adapter.validate_payload(raw)
+
+    assert _TEST_KEY.encode() in raw.body
+    assert raw.quarantine_body is not None
+    assert _TEST_KEY.encode() not in raw.quarantine_body
+    with pytest.raises(ProviderNormalizationFailed):
+        adapter.normalize(NasaApodRequest(), payload)
+
+
+@pytest.mark.asyncio
+async def test_apod_rejects_percent_encoded_server_secret_in_media_url() -> None:
+    secret = "fixture/key+2026"
+    encoded = "fixture%2Fkey%2B2026"
+    body = json.dumps(
+        {
+            **_base_payload(),
+            "url": f"https://example.invalid/apod/{encoded}",
+        },
+        separators=(",", ":"),
+    ).encode()
+    adapter = _adapter(
+        DeterministicNasaTransport([_json_response(body)]),
+        api_key=SecretStr(secret),
+    )
+
+    raw = await adapter.fetch(NasaApodRequest())
+    assert isinstance(raw, RawProviderResponse)
+    payload = adapter.validate_payload(raw)
+
+    assert encoded.encode() in raw.body
+    assert raw.quarantine_body is not None
+    assert encoded.encode() not in raw.quarantine_body
+    with pytest.raises(ProviderNormalizationFailed):
+        adapter.normalize(NasaApodRequest(), payload)
 
 
 @pytest.mark.asyncio

@@ -552,6 +552,38 @@ async def test_disabled_apod_stays_disabled_even_without_a_key() -> None:
 
 
 @pytest.mark.asyncio
+async def test_apod_secret_reflection_fails_closed_with_redacted_quarantine_body() -> None:
+    clock = _Clock()
+    store = _ApodStore()
+    reflected = json.dumps(
+        {
+            "date": "2026-09-10",
+            "title": f"Reflected {_TEST_KEY}",
+            "explanation": "A compromised upstream must not persist the server credential.",
+            "media_type": "image",
+            "url": "https://example.invalid/apod/reflected.jpg",
+            "service_version": "v1",
+        },
+        separators=(",", ":"),
+    ).encode()
+    service = _service(
+        DeterministicNasaTransport([_json_response(reflected)]),
+        store,
+        clock,
+    )
+
+    report = await service.sync(APOD_PROVIDER_CODE)
+
+    assert report.outcome is ProviderSyncOutcome.UPSTREAM_FAILURE
+    assert report.failure_code == ProviderFailureCode.NORMALIZATION_FAILED.value
+    assert store.cache is None
+    failure = store.failure_calls[-1]
+    assert failure.raw_response is not None
+    assert failure.raw_response.quarantine_body is not None
+    assert _TEST_KEY.encode() not in failure.raw_response.quarantine_body
+
+
+@pytest.mark.asyncio
 async def test_older_apod_response_is_quarantined_without_rolling_back_cache() -> None:
     clock = _Clock()
     store = _ApodStore()

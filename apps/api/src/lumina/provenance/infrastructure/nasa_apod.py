@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 import pkgutil
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Final, Literal, Protocol
+from urllib.parse import quote, quote_plus, unquote, unquote_plus
 
 from pydantic import BaseModel, ConfigDict, SecretStr, StrictStr, ValidationError
 
@@ -161,15 +162,20 @@ class NasaApodAdapter(ProviderAdapter[NasaApodRequest, NasaApodPayload, NasaApod
         if not self.is_configured():
             raise ProviderNotConfigured()
         assert self._api_key is not None
-        return await self._transport.request(
+        secret = self._api_key.get_secret_value()
+        raw = await self._transport.request(
             FixedHttpRequest(
                 url=f"https://{APOD_HOST}{APOD_PATH}",
-                params=(("api_key", self._api_key.get_secret_value()),),
+                params=(("api_key", secret),),
                 expected_content_type=EXPECTED_CONTENT_TYPE,
                 max_response_bytes=MAX_RESPONSE_BYTES,
                 user_agent=APOD_USER_AGENT,
             ),
             attempt_deadline=attempt_deadline,
+        )
+        return replace(
+            raw,
+            quarantine_body=_redact_quarantine_body(raw.body, secret),
         )
 
     def validate_payload(self, payload: object) -> NasaApodPayload:
@@ -238,12 +244,79 @@ class NasaApodAdapter(ProviderAdapter[NasaApodRequest, NasaApodPayload, NasaApod
             copyright=payload.copyright,
             service_version=payload.service_version,
         )
+        if self._api_key is not None and _normalized_contains_secret(
+            normalized, self._api_key.get_secret_value()
+        ):
+            raise ProviderNormalizationFailed()
         try:
             validate_apod_public_compatibility(normalized)
             self._codec.encode(normalized)
         except ValueError:
             raise ProviderNormalizationFailed() from None
         return normalized
+
+
+_REDACTION_MARKER: Final = b"<redacted>"
+_REDACTION_MASK_CHARS: Final = b"~!@#$%^&*()_+-={}[]|:;,.?"
+
+
+def _redact_quarantine_body(body: bytes, secret: str) -> bytes:
+    """Keep invalid-response evidence without retaining the NASA credential."""
+    secret_bytes = secret.encode("ascii")
+    json_encoded = json.dumps(secret, ensure_ascii=True)[1:-1].encode("ascii")
+    candidates = {
+        quote(secret, safe="").encode("ascii"),
+        quote_plus(secret).encode("ascii"),
+        json_encoded,
+    }
+    if secret_bytes not in {b'"', b"\\"}:
+        candidates.add(secret_bytes)
+    redacted = body
+    for candidate in sorted(candidates, key=len, reverse=True):
+        if candidate:
+            redacted = redacted.replace(
+                candidate,
+                _redaction_replacement(candidate, secret_bytes),
+            )
+    return redacted
+
+
+def _redaction_replacement(candidate: bytes, secret: bytes) -> bytes:
+    """Choose a non-expanding replacement that cannot contain the secret."""
+    if len(candidate) >= len(_REDACTION_MARKER) and secret not in _REDACTION_MARKER:
+        return _REDACTION_MARKER
+    for character in _REDACTION_MASK_CHARS:
+        mask = bytes((character,))
+        if mask not in secret:
+            return mask * len(candidate)
+    return b"\x00" * len(candidate)
+
+
+def _normalized_contains_secret(value: NasaApodNormalized, secret: str) -> bool:
+    """Reject provider-controlled values that could reflect the server credential."""
+    candidates = [
+        value.title,
+        value.explanation,
+        value.source_media_url,
+        value.date,
+        value.service_version,
+    ]
+    candidates.extend(
+        candidate
+        for candidate in (
+            value.source_hd_media_url,
+            value.source_thumbnail_url,
+            value.copyright,
+        )
+        if candidate is not None
+    )
+    return any(_text_contains_secret(candidate, secret) for candidate in candidates)
+
+
+def _text_contains_secret(value: str, secret: str) -> bool:
+    if secret in value:
+        return True
+    return secret in unquote(value) or secret in unquote_plus(value)
 
 
 def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:

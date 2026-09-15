@@ -52,6 +52,14 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
           A small but honest slice of the universe: every value Lumina publishes is traceable to its
           source. Start with a name — or browse below.
         </p>
+        <div className="flex justify-center pt-1">
+          <Link
+            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
+            href="/explore/deep-sky"
+          >
+            Open the deep-sky atlas →
+          </Link>
+        </div>
       </header>
 
       <div className="relative mx-auto max-w-2xl">

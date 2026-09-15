@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Folder Name="Lumina reviewed sky layers" Group="Explorer">
+  <ImageSet BandPass="Visible" BaseDegreesPerTile="180" BaseTileLevel="0" BottomsUp="False" CenterX="0" CenterY="0" DataSetType="Sky" ElevationModel="False" FileType=".png" Generic="False" Name="Digitized Sky Survey (Color)" Projection="Toast" QuadTreeMap="0123" Rotation="0" Sparse="False" StockSet="True" TileLevels="12" Url="https://cdn.worldwidetelescope.org/wwtweb/dss.aspx?q={1},{2},{3}" WidthFactor="2">
+    <Credits>Copyright DSS Consortium. These data are from the DSS2 survey.</Credits>
+    <CreditsUrl>https://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm</CreditsUrl>
+  </ImageSet>
+  <ImageSet BandPass="IR" BaseDegreesPerTile="180" BaseTileLevel="0" BottomsUp="False" CenterX="0" CenterY="0" DataSetType="Sky" ElevationModel="False" FileType=".png" Generic="False" Name="WISE All Sky (Infrared)" Projection="Toast" QuadTreeMap="" Rotation="0" Sparse="False" StockSet="False" TileLevels="7" Url="https://www.worldwidetelescope.org/wwtweb/tiles.aspx?q={L},{X},{Y},wise" WidthFactor="2">
+    <Credits>NASA/JPL-Caltech/UCLA</Credits>
+    <CreditsUrl>https://wise.ssl.berkeley.edu/</CreditsUrl>
+  </ImageSet>
+  <ImageSet BandPass="Ultraviolet" BaseDegreesPerTile="180" BaseTileLevel="0" BottomsUp="False" CenterX="0" CenterY="0" DataSetType="Sky" ElevationModel="False" FileType=".png" Generic="False" Name="GALEX (Ultraviolet)" Projection="Toast" QuadTreeMap="0123" Rotation="0" Sparse="False" StockSet="False" TileLevels="10" Url="https://www.worldwidetelescope.org/wwtweb/galexTOAST.aspx?q={1},{2},{3}" WidthFactor="2">
+    <Credits>Space Telescope Science Institute. TOAST-formatted data was obtained from NASA's SkyView Virtual Telescope. The Galaxy Explorer instrument allows observations to be made in ultraviolet bands Far UV 1350-1780A and Near UV 1770-2730A. This is the GR2/3 release.</Credits>
+    <CreditsUrl>https://archive.stsci.edu/missions-and-data/galex</CreditsUrl>
+  </ImageSet>
+  <ImageSet BandPass="Microwave" BaseDegreesPerTile="180" BaseTileLevel="0" BottomsUp="False" CenterX="0" CenterY="0" DataSetType="Sky" ElevationModel="False" FileType=".png" Generic="False" Name="Planck CMB" Projection="Toast" QuadTreeMap="" Rotation="0" Sparse="False" StockSet="False" TileLevels="6" Url="https://www.worldwidetelescope.org/wwtweb/tiles.aspx?q={1},{2},{3},planck" WidthFactor="2">
+    <Credits>Planck is a European Space Agency mission, with significant participation from NASA. NASA's Planck Project Office is based at JPL. JPL contributed mission-enabling technology for both of Planck's science instruments. European, Canadian and U.S. Planck scientists work together to analyze the Planck data.</Credits>
+    <CreditsUrl>https://science.nasa.gov/mission/planck/</CreditsUrl>
+  </ImageSet>
+</Folder>

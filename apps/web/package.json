@@ -4,7 +4,7 @@
   "private": true,
   "description": "Lumina accessible web foundation",
   "scripts": {
-    "build": "next build",
+    "build": "next build && node ../../scripts/ci/check_wwt_bundle_isolation.mjs",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@lumina/api-client": "workspace:*",
+    "@wwtelescope/engine": "7.40.0",
+    "@wwtelescope/engine-helpers": "0.18.0",
     "astronomy-engine": "2.1.19",
     "next": "16.3.4",
     "react": "19.2.0",

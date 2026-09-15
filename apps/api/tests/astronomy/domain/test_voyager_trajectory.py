@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from typing import cast
 
 import pytest
 from lumina.astronomy.domain.voyager_trajectory import (
@@ -17,7 +18,7 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
 def _samples(payload: dict[str, object]) -> list[dict[str, object]]:
     samples = payload["trajectory_samples"]
     assert isinstance(samples, list)
-    return samples  # type: ignore[return-value]
+    return cast(list[dict[str, object]], samples)
 
 
 def test_committed_artifact_matches_exact_pinned_horizons_model() -> None:
@@ -56,17 +57,19 @@ def test_radius_is_derived_from_xyz_and_grows_to_interstellar_scale() -> None:
     samples = _samples(build_voyager_trajectory_artifact(repository_root=_REPOSITORY_ROOT))
     for sample in (samples[0], samples[10], samples[-1]):
         expected = math.sqrt(
-            float(sample["x_au"]) ** 2 + float(sample["y_au"]) ** 2 + float(sample["z_au"]) ** 2
+            cast(float, sample["x_au"]) ** 2
+            + cast(float, sample["y_au"]) ** 2
+            + cast(float, sample["z_au"]) ** 2
         )
-        assert math.isclose(float(sample["radius_au"]), expected, rel_tol=0, abs_tol=1e-12)
-    assert float(samples[-1]["radius_au"]) > 170
+        assert math.isclose(cast(float, sample["radius_au"]), expected, rel_tol=0, abs_tol=1e-12)
+    assert cast(float, samples[-1]["radius_au"]) > 170
 
 
 def test_model_states_projection_sampling_and_trajectory_provenance_limits() -> None:
     payload = build_voyager_trajectory_artifact(repository_root=_REPOSITORY_ROOT)
     definition = payload["definition"]
     assert isinstance(definition, dict)
-    limitations = " ".join(definition["limitations"])  # type: ignore[arg-type]
+    limitations = " ".join(cast(list[str], definition["limitations"]))
     assert "XY trajectory is a projection" in limitations
     assert "Annual sampling" in limitations
     assert "pre-1981 section as a rough patched-conic" in limitations

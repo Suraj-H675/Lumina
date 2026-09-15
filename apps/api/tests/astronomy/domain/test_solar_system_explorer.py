@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from typing import cast
 
 import pytest
 from lumina.astronomy.domain.solar_system_explorer import (
@@ -20,7 +21,7 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
 def _bodies(payload: dict[str, object]) -> list[dict[str, object]]:
     bodies = payload["bodies"]
     assert isinstance(bodies, list)
-    return bodies  # type: ignore[return-value]
+    return cast(list[dict[str, object]], bodies)
 
 
 def test_reviewed_artifact_is_exact_deterministic_model_output() -> None:
@@ -58,8 +59,8 @@ def test_reviewed_body_order_and_distances_match_nasa_reference() -> None:
 
 def test_linear_and_log_positions_are_monotonic_and_bounded() -> None:
     planets = _bodies(build_solar_system_distance_artifact())[1:]
-    linear = [float(body["linear_position_percent"]) for body in planets]
-    logarithmic = [float(body["log_position_percent"]) for body in planets]
+    linear = [cast(float, body["linear_position_percent"]) for body in planets]
+    logarithmic = [cast(float, body["log_position_percent"]) for body in planets]
     assert linear == sorted(linear)
     assert logarithmic == sorted(logarithmic)
     assert 0 < linear[0] < linear[-1] == 100.0
@@ -72,8 +73,8 @@ def test_model_explicitly_rejects_false_spatial_semantics() -> None:
     payload = build_solar_system_distance_artifact()
     definition = payload["definition"]
     assert isinstance(definition, dict)
-    assumptions = " ".join(definition["assumptions"])  # type: ignore[arg-type]
-    limitations = " ".join(definition["limitations"])  # type: ignore[arg-type]
+    assumptions = " ".join(cast(list[str], definition["assumptions"]))
+    limitations = " ".join(cast(list[str], definition["limitations"]))
     assert "does not compute or display current planetary positions" in assumptions
     assert "uniform presentation size" in assumptions
     assert "not an ephemeris" in limitations

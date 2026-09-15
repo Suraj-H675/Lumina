@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 from lumina.astronomy.domain.system_scale_compare import (
@@ -18,7 +19,7 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
 def _items(payload: dict[str, object]) -> list[dict[str, object]]:
     items = payload["items"]
     assert isinstance(items, list)
-    return items  # type: ignore[return-value]
+    return cast(list[dict[str, object]], items)
 
 
 def test_committed_composition_is_exact_deterministic_output() -> None:
@@ -42,7 +43,7 @@ def test_default_references_keep_distinct_quantity_semantics() -> None:
     assert items["solar:earth"]["quantity_label"] == "Mean distance from the Sun"
     assert items["exoplanet:kepler-452-b"]["value_au"] == 1.046
     assert items["exoplanet:kepler-452-b"]["quantity_label"] == "Orbit semi-major axis"
-    assert float(items["voyager:2026"]["value_au"]) > 170
+    assert cast(float, items["voyager:2026"]["value_au"]) > 170
     assert items["voyager:2026"]["quantity_label"] == "Heliocentric position-vector magnitude"
     assert {item["detail_href"] for item in items.values()} == {
         "/explore/solar-system",
@@ -54,12 +55,15 @@ def test_default_references_keep_distinct_quantity_semantics() -> None:
 def test_shared_axis_is_bounded_and_earth_reference_ratio_is_unit_arithmetic_only() -> None:
     payload = build_system_scale_compare_artifact(repository_root=_REPOSITORY_ROOT)
     items = _items(payload)
-    assert all(0 < float(item["linear_position_percent"]) <= 100 for item in items)
-    assert all(0 <= float(item["log_position_percent"]) <= 100 for item in items)
-    assert all(float(item["earth_reference_ratio"]) == float(item["value_au"]) for item in items)
+    assert all(0 < cast(float, item["linear_position_percent"]) <= 100 for item in items)
+    assert all(0 <= cast(float, item["log_position_percent"]) <= 100 for item in items)
+    assert all(
+        cast(float, item["earth_reference_ratio"]) == cast(float, item["value_au"])
+        for item in items
+    )
     definition = payload["definition"]
     assert isinstance(definition, dict)
-    limits = " ".join(definition["limitations"])  # type: ignore[arg-type]
+    limits = " ".join(cast(list[str], definition["limitations"]))
     assert "distinct quantities" in limits
     assert "does not make the quantities interchangeable" in limits
     assert "does not rank, score, recommend" in limits

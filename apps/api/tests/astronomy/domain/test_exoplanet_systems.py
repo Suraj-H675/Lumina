@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 from lumina.astronomy.domain.exoplanet_systems import (
@@ -17,7 +18,13 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
 def _systems(payload: dict[str, object]) -> list[dict[str, object]]:
     systems = payload["systems"]
     assert isinstance(systems, list)
-    return systems  # type: ignore[return-value]
+    return cast(list[dict[str, object]], systems)
+
+
+def _planets(system: dict[str, object]) -> list[dict[str, object]]:
+    planets = system["planets"]
+    assert isinstance(planets, list)
+    return cast(list[dict[str, object]], planets)
 
 
 def test_committed_artifact_is_exact_deterministic_model_output() -> None:
@@ -35,24 +42,27 @@ def test_snapshot_contains_exact_five_reviewed_hosts_and_ten_planets() -> None:
         ("Kepler-186", 5),
         ("Kepler-452", 1),
     ]
-    assert sum(len(system["planets"]) for system in systems) == 10
+    assert sum(len(_planets(system)) for system in systems) == 10
 
 
 def test_known_values_and_parameter_level_references_are_preserved() -> None:
     systems = _systems(build_exoplanet_system_artifact(repository_root=_REPOSITORY_ROOT))
     kepler_186 = next(system for system in systems if system["display_name"] == "Kepler-186")
-    planets = kepler_186["planets"]
-    assert isinstance(planets, list)
+    planets = _planets(kepler_186)
     planet_f = next(planet for planet in planets if planet["name"] == "Kepler-186 f")
     assert planet_f["semimajor_axis_au"] == 0.432
     assert planet_f["orbital_period_days"] == 129.9441
-    assert planet_f["semimajor_axis_reference"]["text"] == "Torres et al. 2015"
-    assert planet_f["orbital_period_reference"]["text"] == "Torres et al. 2015"
+    axis_ref = cast(dict[str, object], planet_f["semimajor_axis_reference"])
+    period_ref = cast(dict[str, object], planet_f["orbital_period_reference"])
+    assert axis_ref["text"] == "Torres et al. 2015"
+    assert period_ref["text"] == "Torres et al. 2015"
 
     hd_209458 = next(system for system in systems if system["display_name"] == "HD 209458")
-    planet = hd_209458["planets"][0]
-    assert planet["semimajor_axis_reference"]["text"] == "Bonomo et al. 2017"
-    assert planet["orbital_period_reference"]["text"] == "Stassun et al. 2017"
+    planet = _planets(hd_209458)[0]
+    axis_ref = cast(dict[str, object], planet["semimajor_axis_reference"])
+    period_ref = cast(dict[str, object], planet["orbital_period_reference"])
+    assert axis_ref["text"] == "Bonomo et al. 2017"
+    assert period_ref["text"] == "Stassun et al. 2017"
 
 
 def test_layout_is_shared_bounded_and_never_encodes_current_position() -> None:
@@ -61,13 +71,13 @@ def test_layout_is_shared_bounded_and_never_encodes_current_position() -> None:
     positions = [
         planet[field]
         for system in systems
-        for planet in system["planets"]
+        for planet in _planets(system)
         for field in ("linear_position_percent", "log_position_percent")
     ]
-    assert all(0 <= float(position) <= 100 for position in positions)
+    assert all(0 <= cast(float, position) <= 100 for position in positions)
     definition = payload["definition"]
     assert isinstance(definition, dict)
-    limitations = " ".join(definition["limitations"])  # type: ignore[arg-type]
+    limitations = " ".join(cast(list[str], definition["limitations"]))
     assert "not the planet's current star distance" in limitations
     assert "not orbital phase or sky position" in limitations
     assert "PSCompPars is composite" in limitations

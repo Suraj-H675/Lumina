@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from typing import Any, Final, cast
+from uuid import UUID
 
 from fastapi import APIRouter, Request
 from starlette.responses import JSONResponse
@@ -11,6 +12,11 @@ from starlette.responses import JSONResponse
 from lumina.provenance.application.read import ProviderSnapshotReadError
 from lumina.provenance.domain.runtime import ProviderStorageFailure
 from lumina.shared.api.errors import ErrorResponse, error_response
+from lumina.space_now.application.launches import (
+    LaunchListProjection,
+    LaunchProjection,
+    LaunchReadService,
+)
 from lumina.space_now.application.read import (
     ApodProjection,
     ApodReadService,
@@ -25,6 +31,17 @@ from .schemas import (
     ApodFreshnessResponse,
     ApodResponse,
     ApodSourceResponse,
+    LaunchAgencyResponse,
+    LaunchDetailResponse,
+    LaunchFreshnessResponse,
+    LaunchItemResponse,
+    LaunchListResponse,
+    LaunchMissionResponse,
+    LaunchSiteResponse,
+    LaunchSourceResponse,
+    LaunchStatusResponse,
+    LaunchTimingResponse,
+    LaunchVehicleResponse,
     NearEarthEncounterResponse,
     NearEarthFreshnessResponse,
     NearEarthResponse,
@@ -62,6 +79,22 @@ _NEAR_EARTH_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
     503: {
         "model": ErrorResponse,
         "description": "The Near-Earth Objects read projection is temporarily unavailable.",
+    },
+}
+_LAUNCH_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
+    404: {
+        "model": ErrorResponse,
+        "description": (
+            "The requested launch is not present in the bounded current launch snapshot."
+        ),
+    },
+    422: {
+        "model": ErrorResponse,
+        "description": "The Launch Center request could not be validated.",
+    },
+    503: {
+        "model": ErrorResponse,
+        "description": "The Launch Center read projection is temporarily unavailable.",
     },
 }
 _SPACE_WEATHER_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
@@ -163,6 +196,102 @@ async def now_near_earth(request: Request) -> NearEarthResponse | JSONResponse:
 
 
 @router.get(
+    "/launches",
+    operation_id="get_now_launches",
+    response_model=LaunchListResponse,
+    responses=cast(Any, _LAUNCH_ERROR_RESPONSES),
+)
+async def now_launches(request: Request) -> LaunchListResponse | JSONResponse:
+    """Return the bounded durable LL2 launch projection without fetching upstream."""
+    if request.query_params:
+        return error_response(
+            request,
+            status_code=422,
+            code="request.validation_failed",
+            message="The request could not be validated.",
+        )
+    service: LaunchReadService = request.app.state.launch_read_service
+    try:
+        projection = await service.read()
+    except (ProviderSnapshotReadError, ProviderStorageFailure):
+        return error_response(
+            request,
+            status_code=503,
+            code="now.launches_unavailable",
+            message="Launch Center data is temporarily unavailable.",
+        )
+    response = _launch_list_response(projection)
+    while (
+        _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
+        and response.launches
+    ):
+        launches = response.launches[:-1]
+        visible_ids = {launch.launch_id for launch in launches}
+        response = response.model_copy(
+            update={
+                "launches": launches,
+                "returned_launch_count": len(launches),
+                "active_mission_launch_ids": tuple(
+                    launch_id
+                    for launch_id in response.active_mission_launch_ids
+                    if launch_id in visible_ids
+                ),
+            }
+        )
+    if _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES:
+        return error_response(
+            request,
+            status_code=503,
+            code="now.launches_unavailable",
+            message="Launch Center data is temporarily unavailable.",
+        )
+    return response
+
+
+@router.get(
+    "/launches/{launch_id}",
+    operation_id="get_now_launch",
+    response_model=LaunchDetailResponse,
+    responses=cast(Any, _LAUNCH_ERROR_RESPONSES),
+)
+async def now_launch(launch_id: UUID, request: Request) -> LaunchDetailResponse | JSONResponse:
+    """Return one launch from the same durable bounded LL2 snapshot."""
+    if request.query_params:
+        return error_response(
+            request,
+            status_code=422,
+            code="request.validation_failed",
+            message="The request could not be validated.",
+        )
+    service: LaunchReadService = request.app.state.launch_read_service
+    try:
+        projection, launch = await service.read_one(str(launch_id))
+    except (ProviderSnapshotReadError, ProviderStorageFailure):
+        return error_response(
+            request,
+            status_code=503,
+            code="now.launches_unavailable",
+            message="Launch Center data is temporarily unavailable.",
+        )
+    if projection.availability != "unavailable" and launch is None:
+        return error_response(
+            request,
+            status_code=404,
+            code="now.launch_not_found",
+            message="The requested launch was not found in the current launch snapshot.",
+        )
+    response = _launch_detail_response(projection, launch)
+    if _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES:
+        return error_response(
+            request,
+            status_code=503,
+            code="now.launches_unavailable",
+            message="Launch Center data is temporarily unavailable.",
+        )
+    return response
+
+
+@router.get(
     "/space-weather",
     operation_id="get_now_space_weather",
     response_model=SpaceWeatherResponse,
@@ -188,6 +317,116 @@ async def now_space_weather(request: Request) -> SpaceWeatherResponse | JSONResp
             message="Space Weather data is currently unavailable.",
         )
     return _space_weather_response(projection)
+
+
+def _launch_list_response(projection: LaunchListProjection) -> LaunchListResponse:
+    return LaunchListResponse(
+        availability=projection.availability,
+        unavailable_reason=projection.unavailable_reason,
+        total_launch_count=projection.total_launch_count,
+        returned_launch_count=projection.returned_launch_count,
+        launches=tuple(_launch_item_response(item) for item in projection.launches),
+        active_mission_launch_ids=projection.active_mission_launch_ids,
+        freshness=_launch_freshness_response(projection),
+        source=_launch_source_response(projection),
+    )
+
+
+def _launch_detail_response(
+    projection: LaunchListProjection, launch: LaunchProjection | None
+) -> LaunchDetailResponse:
+    return LaunchDetailResponse(
+        availability=projection.availability,
+        unavailable_reason=projection.unavailable_reason,
+        launch=None if launch is None else _launch_item_response(launch),
+        freshness=_launch_freshness_response(projection),
+        source=_launch_source_response(projection),
+    )
+
+
+def _launch_item_response(value: LaunchProjection) -> LaunchItemResponse:
+    return LaunchItemResponse(
+        launch_id=value.launch_id,
+        slug=value.slug,
+        name=value.name,
+        status=LaunchStatusResponse(
+            id=value.status.id, name=value.status.name, abbreviation=value.status.abbreviation
+        ),
+        timing=LaunchTimingResponse(
+            net_utc=value.timing.net_utc,
+            precision_id=value.timing.precision_id,
+            precision_name=value.timing.precision_name,
+            precision_abbreviation=value.timing.precision_abbreviation,
+            window_start_utc=value.timing.window_start_utc,
+            window_end_utc=value.timing.window_end_utc,
+            provider_updated_at=value.timing.provider_updated_at,
+            countdown_eligible=value.timing.countdown_eligible,
+            calendar_eligible=value.timing.calendar_eligible,
+        ),
+        agency=(
+            None
+            if value.agency is None
+            else LaunchAgencyResponse(id=value.agency.id, name=value.agency.name)
+        ),
+        vehicle=(
+            None
+            if value.vehicle is None
+            else LaunchVehicleResponse(
+                configuration_id=value.vehicle.configuration_id,
+                name=value.vehicle.name,
+                full_name=value.vehicle.full_name,
+                variant=value.vehicle.variant,
+            )
+        ),
+        mission=(
+            None
+            if value.mission is None
+            else LaunchMissionResponse(
+                id=value.mission.id,
+                name=value.mission.name,
+                mission_type=value.mission.mission_type,
+                description=value.mission.description,
+                orbit_name=value.mission.orbit_name,
+                orbit_abbreviation=value.mission.orbit_abbreviation,
+                destination_body=value.mission.destination_body,
+                agency_names=value.mission.agency_names,
+            )
+        ),
+        site=(
+            None
+            if value.site is None
+            else LaunchSiteResponse(
+                pad_id=value.site.pad_id,
+                pad_name=value.site.pad_name,
+                location_name=value.site.location_name,
+                country_name=value.site.country_name,
+                country_code=value.site.country_code,
+            )
+        ),
+        official_page_url=value.official_page_url,
+        official_webcast_url=value.official_webcast_url,
+        webcast_live=value.webcast_live,
+    )
+
+
+def _launch_freshness_response(projection: LaunchListProjection) -> LaunchFreshnessResponse:
+    return LaunchFreshnessResponse(
+        cache_state=projection.freshness.cache_state,
+        retrieved_at=projection.freshness.retrieved_at,
+        fresh_until=projection.freshness.fresh_until,
+        stale_until=projection.freshness.stale_until,
+        last_refresh_failure_code=projection.freshness.last_refresh_failure_code,
+        snapshot_latest_updated_utc=projection.freshness.snapshot_latest_updated_utc,
+    )
+
+
+def _launch_source_response(projection: LaunchListProjection) -> LaunchSourceResponse:
+    return LaunchSourceResponse(
+        name=projection.source.name,
+        official_documentation_url=projection.source.official_documentation_url,
+        terms_url=projection.source.terms_url,
+        attribution_text=projection.source.attribution_text,
+    )
 
 
 def _response(projection: ApodProjection) -> ApodResponse:

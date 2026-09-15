@@ -272,3 +272,132 @@ class SpaceWeatherResponse(BaseModel):
     freshness: SpaceWeatherFreshnessResponse
     source: SpaceWeatherSourceResponse
     aurora: SpaceWeatherAuroraResponse
+
+
+LaunchAvailability = Literal["fresh", "stale", "unavailable"]
+LaunchUnavailableReason = Literal[
+    "provider_disabled",
+    "no_cached_content",
+    "cached_content_expired",
+]
+
+
+class LaunchStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    name: str
+    abbreviation: str
+
+
+class LaunchTimingResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    net_utc: str
+    precision_id: int
+    precision_name: str
+    precision_abbreviation: str
+    window_start_utc: str | None
+    window_end_utc: str | None
+    provider_updated_at: str
+    countdown_eligible: bool
+    calendar_eligible: bool
+
+
+class LaunchAgencyResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    name: str
+
+
+class LaunchVehicleResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    configuration_id: int
+    name: str
+    full_name: str
+    variant: str | None
+
+
+class LaunchMissionResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    name: str
+    mission_type: str | None
+    description: str | None
+    orbit_name: str | None
+    orbit_abbreviation: str | None
+    destination_body: str | None
+    agency_names: tuple[str, ...]
+
+
+class LaunchSiteResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    pad_id: int
+    pad_name: str
+    location_name: str | None
+    country_name: str | None
+    country_code: str | None
+
+
+class LaunchItemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    launch_id: str
+    slug: str
+    name: str
+    status: LaunchStatusResponse
+    timing: LaunchTimingResponse
+    agency: LaunchAgencyResponse | None
+    vehicle: LaunchVehicleResponse | None
+    mission: LaunchMissionResponse | None
+    site: LaunchSiteResponse | None
+    official_page_url: str | None
+    official_webcast_url: str | None
+    webcast_live: bool
+
+
+class LaunchFreshnessResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    cache_state: CacheState
+    retrieved_at: datetime | None
+    fresh_until: datetime | None
+    stale_until: datetime | None
+    last_refresh_failure_code: str | None
+    snapshot_latest_updated_utc: str | None
+
+
+class LaunchSourceResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    official_documentation_url: str
+    terms_url: str
+    attribution_text: str
+
+
+class LaunchListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    availability: LaunchAvailability
+    unavailable_reason: LaunchUnavailableReason | None
+    total_launch_count: int
+    returned_launch_count: int
+    launches: tuple[LaunchItemResponse, ...]
+    active_mission_launch_ids: tuple[str, ...]
+    freshness: LaunchFreshnessResponse
+    source: LaunchSourceResponse
+
+
+class LaunchDetailResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    availability: LaunchAvailability
+    unavailable_reason: LaunchUnavailableReason | None
+    launch: LaunchItemResponse | None
+    freshness: LaunchFreshnessResponse
+    source: LaunchSourceResponse

@@ -3,6 +3,8 @@ import type { ZodType } from "zod";
 import type {
   ApodResponse,
   NearEarthResponse,
+  LaunchDetailResponse,
+  LaunchListResponse,
   SpaceWeatherResponse,
   CatalogSearchResponse,
   CatalogSuggestResponse,
@@ -16,6 +18,8 @@ import type {
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   GetNowApodData,
+  GetNowLaunchData,
+  GetNowLaunchesData,
   GetNowNearEarthData,
   GetNowSpaceWeatherData,
   ListCatalogEntitiesData,
@@ -39,6 +43,8 @@ import {
   zEntityDetailResponse,
   zEntitySummaryResponse,
   zGetNowApodResponse,
+  zGetNowLaunchResponse,
+  zGetNowLaunchesResponse,
   zGetNowNearEarthResponse,
   zGetNowSpaceWeatherResponse,
   zLiveResponse,
@@ -51,7 +57,13 @@ export type LiveResponse = LiveHealthLiveGetResponse;
 export type ReadyResponse = ReadyHealthReadyGetResponse;
 export type MetaResponse = MetadataApiV1MetaGetResponse;
 export type ProviderStatusListResponse = GeneratedProviderStatusListResponse;
-export type { ApodResponse, NearEarthResponse, SpaceWeatherResponse };
+export type {
+  ApodResponse,
+  LaunchDetailResponse,
+  LaunchListResponse,
+  NearEarthResponse,
+  SpaceWeatherResponse,
+};
 
 export type GeneratedValidator<T> = Pick<ZodType<T>, "safeParse">;
 
@@ -90,6 +102,26 @@ export const apodEndpoint = {
   path: "/api/v1/now/apod" satisfies GetNowApodData["url"],
   validator: zGetNowApodResponse,
 } satisfies ApiEndpoint<ApodResponse, GetNowApodData["url"]>;
+
+export const launchesEndpoint = {
+  method: "GET",
+  path: "/api/v1/now/launches" satisfies GetNowLaunchesData["url"],
+  validator: zGetNowLaunchesResponse,
+} satisfies ApiEndpoint<LaunchListResponse, GetNowLaunchesData["url"]>;
+
+export const launchDetailTemplateEndpoint = {
+  method: "GET",
+  path: "/api/v1/now/launches/{launch_id}" satisfies GetNowLaunchData["url"],
+  validator: zGetNowLaunchResponse,
+} satisfies ApiEndpoint<LaunchDetailResponse, GetNowLaunchData["url"]>;
+
+export function launchDetailEndpoint(launchId: string): ApiEndpoint<LaunchDetailResponse> {
+  return {
+    method: "GET",
+    path: `/api/v1/now/launches/${encodeURIComponent(launchId)}`,
+    validator: zGetNowLaunchResponse,
+  };
+}
 
 export const nearEarthEndpoint = {
   method: "GET",

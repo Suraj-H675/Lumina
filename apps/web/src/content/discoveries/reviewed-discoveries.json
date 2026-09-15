@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "bundle_id": "reviewed-discoveries-2026-09",
+  "reviewed_at": "2026-09-15T00:00:00.000Z",
+  "reviewed_by": ["Lumina Phase 4C source review"],
+  "entries": [
+    {
+      "id": "hubble-webb-small-tnos-2026",
+      "slug": "hubble-webb-small-trans-neptunian-objects",
+      "title": "Hubble and Webb probe unusually small trans-Neptunian objects",
+      "content_type": "science-release",
+      "event_date": null,
+      "publication_date": "2026-09-08",
+      "summary": "NASA reports that coordinated Hubble and Webb observations characterized 27 newly discovered small trans-Neptunian objects. The teams found fewer very small objects than some models predicted, while their colour relationships remained similar to larger members of the same populations.",
+      "why_it_matters": "These bodies preserve evidence about early planetesimal formation beyond Neptune, while the reported size distribution gives researchers another constraint on models of how small planetary building blocks formed.",
+      "independent_confirmation_state": "peer-reviewed-publication",
+      "sources": [
+        {
+          "title": "NASA’s Hubble, Webb Find Far-out Solar System Objects ‘Remember’ Past",
+          "organization": "NASA Science",
+          "url": "https://science.nasa.gov/missions/hubble/nasas-hubble-webb-find-far-out-solar-system-objects-remember-past/",
+          "source_kind": "official-agency"
+        }
+      ]
+    },
+    {
+      "id": "bepicolombo-mtm-separation-2026",
+      "slug": "bepicolombo-mercury-transfer-module-separation",
+      "title": "BepiColombo begins its Mercury arrival sequence",
+      "content_type": "mission-update",
+      "event_date": "2026-09-03",
+      "publication_date": "2026-09-07",
+      "summary": "ESA confirmed that BepiColombo’s Mercury Transfer Module separated successfully on 3 September 2026 after carrying the mission through its interplanetary cruise. ESA’s Mercury Planetary Orbiter and JAXA’s Mio continue toward the remaining Mercury-arrival manoeuvres.",
+      "why_it_matters": "The separation is the first major configuration change in BepiColombo’s arrival phase and transfers responsibility for the next part of the approach away from the cruise module that powered most of the journey.",
+      "independent_confirmation_state": "official-source-only",
+      "sources": [
+        {
+          "title": "BepiColombo begins Mercury arrival with MTM separation success",
+          "organization": "European Space Agency",
+          "url": "https://www.esa.int/Enabling_Support/Operations/BepiColombo_begins_Mercury_arrival_with_MTM_separation_success",
+          "source_kind": "official-agency"
+        }
+      ]
+    },
+    {
+      "id": "euclid-ancient-quasars-2026",
+      "slug": "euclid-ancient-quasars",
+      "title": "Euclid identifies a new population of very early quasars",
+      "content_type": "paper",
+      "event_date": null,
+      "publication_date": "2026-07-06",
+      "summary": "ESA reports that Euclid found 31 quasars from the early Universe, including two with redshifts 7.77 and 7.69. The work adds 12 quasars at redshift 7 or above and was published in Astronomy & Astrophysics.",
+      "why_it_matters": "A larger sample of quasars from the Universe’s first billion years gives astronomers a stronger observational basis for studying how early supermassive black holes and their host galaxies formed and grew.",
+      "independent_confirmation_state": "peer-reviewed-publication",
+      "sources": [
+        {
+          "title": "Euclid discovers the most ancient quasar in the Universe",
+          "organization": "European Space Agency",
+          "url": "https://www.esa.int/Science_Exploration/Space_Science/Euclid/Euclid_discovers_the_most_ancient_quasar_in_the_Universe",
+          "source_kind": "official-agency"
+        },
+        {
+          "title": "Euclid: Discovery of 31 new quasars at 6.6<z<7.8",
+          "organization": "Astronomy & Astrophysics",
+          "url": "https://doi.org/10.1051/0004-6361/202658883",
+          "source_kind": "peer-reviewed-paper"
+        }
+      ]
+    }
+  ]
+}

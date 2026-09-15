@@ -5,6 +5,7 @@ import { expect, type TestInfo } from "@playwright/test";
 type StubMode = "disconnect" | "ready";
 type ApodStubMode = "fresh" | "stale" | "unavailable";
 type NeowsStubMode = "fresh" | "stale" | "unavailable";
+type LaunchStubMode = "fresh" | "stale" | "unavailable";
 
 type Coordination = Readonly<{
   apiOrigin: string;
@@ -56,6 +57,20 @@ export async function setApodStubMode(testInfo: TestInfo, mode: ApodStubMode): P
 export async function setNeowsStubMode(testInfo: TestInfo, mode: NeowsStubMode): Promise<void> {
   const control = await coordination(testInfo);
   const response = await fetch(`${control.apiOrigin}/__control/neows-mode`, {
+    body: JSON.stringify({ mode }),
+    headers: {
+      Authorization: `Bearer ${control.token}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+  expect(response.status).toBe(200);
+  await response.body?.cancel();
+}
+
+export async function setLaunchStubMode(testInfo: TestInfo, mode: LaunchStubMode): Promise<void> {
+  const control = await coordination(testInfo);
+  const response = await fetch(`${control.apiOrigin}/__control/launch-mode`, {
     body: JSON.stringify({ mode }),
     headers: {
       Authorization: `Bearer ${control.token}`,

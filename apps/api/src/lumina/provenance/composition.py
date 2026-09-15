@@ -34,6 +34,20 @@ from lumina.provenance.domain.runtime import (
     FIXED_HOST,
     FIXED_PATH,
     FIXED_QUERY,
+    LL2_ADAPTER_ID,
+    LL2_ADAPTER_VERSION,
+    LL2_CACHE_KEY,
+    LL2_CONTENT_TYPE,
+    LL2_FORMAT,
+    LL2_FRESH_TTL,
+    LL2_HOST,
+    LL2_MAX_RESPONSE_BYTES,
+    LL2_PATH,
+    LL2_PROVIDER_CODE,
+    LL2_SOURCE_SCHEMA_VERSION,
+    LL2_STALE_IF_ERROR_GRACE,
+    LL2_SUCCESS_REFRESH_INTERVAL,
+    LL2_USER_AGENT,
     NEOWS_ADAPTER_ID,
     NEOWS_ADAPTER_VERSION,
     NEOWS_CACHE_KEY,
@@ -67,6 +81,11 @@ from lumina.provenance.domain.runtime import (
     ProviderRuntimeConfig,
 )
 from lumina.provenance.infrastructure.http import BoundedHttpTransport
+from lumina.provenance.infrastructure.launch_library import (
+    LaunchLibraryAdapter,
+    LaunchLibraryRequest,
+    load_launch_library_source_manifest,
+)
 from lumina.provenance.infrastructure.nasa_apod import (
     NasaApodAdapter,
     NasaApodRequest,
@@ -190,6 +209,30 @@ def noaa_swpc_runtime_config(*, repository_root: Path | None = None) -> Provider
     )
 
 
+def launch_library_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
+    """Build the fixed Launch Library 2 upcoming-launch policy."""
+    source_manifest = load_launch_library_source_manifest(repository_root)
+    return ProviderRuntimeConfig(
+        provider_code=LL2_PROVIDER_CODE,
+        adapter_id=LL2_ADAPTER_ID,
+        adapter_version=LL2_ADAPTER_VERSION,
+        cache_key=LL2_CACHE_KEY,
+        source_schema_version=LL2_SOURCE_SCHEMA_VERSION,
+        source_manifest=source_manifest,
+        endpoint_host=LL2_HOST,
+        endpoint_path=LL2_PATH,
+        query="format=json,limit=20,mode=detailed,ordering=net",
+        output_format=LL2_FORMAT,
+        timeout=HttpTimeoutPolicy(),
+        refresh_interval=LL2_SUCCESS_REFRESH_INTERVAL,
+        fresh_ttl=LL2_FRESH_TTL,
+        stale_if_error_grace=LL2_STALE_IF_ERROR_GRACE,
+        max_response_bytes=LL2_MAX_RESPONSE_BYTES,
+        expected_content_type=LL2_CONTENT_TYPE,
+        user_agent=LL2_USER_AGENT,
+    )
+
+
 def production_provider_registry(
     *, repository_root: Path | None = None, nasa_api_key: SecretStr | None = None
 ) -> StaticProviderRegistry:
@@ -198,6 +241,7 @@ def production_provider_registry(
     apod_config = nasa_apod_runtime_config(repository_root=repository_root)
     neows_config = nasa_neows_runtime_config(repository_root=repository_root)
     swpc_config = noaa_swpc_runtime_config(repository_root=repository_root)
+    ll2_config = launch_library_runtime_config(repository_root=repository_root)
     exoplanet_adapter = NasaExoplanetArchiveAdapter(
         BoundedHttpTransport(timeout=exoplanet_config.timeout),
         source_manifest=exoplanet_config.source_manifest,
@@ -215,6 +259,10 @@ def production_provider_registry(
     swpc_adapter = NoaaSwpcAdapter(
         BoundedHttpTransport(timeout=swpc_config.timeout),
         source_manifest=swpc_config.source_manifest,
+    )
+    ll2_adapter = LaunchLibraryAdapter(
+        BoundedHttpTransport(timeout=ll2_config.timeout),
+        source_manifest=ll2_config.source_manifest,
     )
     return StaticProviderRegistry(
         {
@@ -246,6 +294,13 @@ def production_provider_registry(
                 request_factory=noaa_swpc_request_plan,
                 payload_codec=swpc_adapter.codec,
                 snapshot_normalizer=compose_swpc_snapshot,
+            ),
+            LL2_PROVIDER_CODE: ProviderRegistration(
+                config=ll2_config,
+                adapter=ll2_adapter,
+                request_factory=LaunchLibraryRequest,
+                payload_codec=ll2_adapter.codec,
+                check_replacement=True,
             ),
         }
     )
@@ -284,6 +339,7 @@ def compose_provider_runtime(
 __all__ = [
     "ProviderComposition",
     "compose_provider_runtime",
+    "launch_library_runtime_config",
     "nasa_runtime_config",
     "nasa_apod_runtime_config",
     "nasa_neows_runtime_config",

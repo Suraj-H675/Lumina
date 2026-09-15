@@ -17,6 +17,7 @@ const apiPaths = new Set([
   "/api/v1/now/apod",
   "/api/v1/now/near-earth",
   "/api/v1/now/space-weather",
+  "/api/v1/now/launches",
   "/api/v1/providers/status",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
@@ -293,6 +294,149 @@ function nowNearEarthFixtureForMode() {
   return NOW_NEAR_EARTH_FIXTURE;
 }
 
+const NOW_LAUNCHES_FIXTURE = {
+  availability: "fresh",
+  unavailable_reason: null,
+  total_launch_count: 2,
+  returned_launch_count: 2,
+  active_mission_launch_ids: [
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
+  ],
+  launches: [
+    {
+      launch_id: "11111111-1111-4111-8111-111111111111",
+      slug: "fixture-go-launch",
+      name: "Fixture Go Launch",
+      status: { id: 1, name: "Go for Launch", abbreviation: "Go" },
+      timing: {
+        net_utc: "2026-09-20T12:30:00Z",
+        precision_id: 1,
+        precision_name: "Minute",
+        precision_abbreviation: "MIN",
+        window_start_utc: "2026-09-20T12:25:00Z",
+        window_end_utc: "2026-09-20T12:35:00Z",
+        provider_updated_at: "2026-09-15T00:01:00Z",
+        countdown_eligible: true,
+        calendar_eligible: true,
+      },
+      agency: { id: 1, name: "Fixture Space Agency" },
+      vehicle: {
+        configuration_id: 11,
+        name: "Fixture Rocket",
+        full_name: "Fixture Rocket Block 1",
+        variant: "Block 1",
+      },
+      mission: {
+        id: 101,
+        name: "Fixture Mission One",
+        mission_type: "Science",
+        description: "A deterministic mission description for browser certification.",
+        orbit_name: "Low Earth Orbit",
+        orbit_abbreviation: "LEO",
+        destination_body: "Earth",
+        agency_names: ["Fixture Space Agency"],
+      },
+      site: {
+        pad_id: 201,
+        pad_name: "Fixture Pad A",
+        location_name: "Fixture Spaceport",
+        country_name: "United States",
+        country_code: "US",
+      },
+      official_page_url: "https://www.nasa.gov/fixture-launch",
+      official_webcast_url: "https://www.youtube.com/watch?v=fixture-launch",
+      webcast_live: false,
+    },
+    {
+      launch_id: "22222222-2222-4222-8222-222222222222",
+      slug: "fixture-tbc-launch",
+      name: "Fixture TBC Launch",
+      status: { id: 8, name: "To Be Confirmed", abbreviation: "TBC" },
+      timing: {
+        net_utc: "2026-10-10T00:00:00Z",
+        precision_id: 5,
+        precision_name: "Day",
+        precision_abbreviation: "DAY",
+        window_start_utc: null,
+        window_end_utc: null,
+        provider_updated_at: "2026-09-15T00:02:00Z",
+        countdown_eligible: false,
+        calendar_eligible: false,
+      },
+      agency: { id: 2, name: "Fixture Exploration Agency" },
+      vehicle: {
+        configuration_id: 12,
+        name: "Fixture Heavy",
+        full_name: "Fixture Heavy",
+        variant: null,
+      },
+      mission: {
+        id: 102,
+        name: "Fixture Mission Two",
+        mission_type: "Exploration",
+        description: null,
+        orbit_name: null,
+        orbit_abbreviation: null,
+        destination_body: "Moon",
+        agency_names: ["Fixture Exploration Agency"],
+      },
+      site: {
+        pad_id: 202,
+        pad_name: "Fixture Pad B",
+        location_name: "Fixture Range",
+        country_name: "United States",
+        country_code: "US",
+      },
+      official_page_url: null,
+      official_webcast_url: null,
+      webcast_live: false,
+    },
+  ],
+  freshness: {
+    cache_state: "fresh",
+    retrieved_at: "2026-09-15T00:05:00Z",
+    fresh_until: "2026-09-15T02:05:00Z",
+    stale_until: "2026-09-16T00:05:00Z",
+    last_refresh_failure_code: null,
+    snapshot_latest_updated_utc: "2026-09-15T00:02:00Z",
+  },
+  source: {
+    name: "Launch Library 2 by The Space Devs",
+    official_documentation_url: "https://ll.thespacedevs.com/",
+    terms_url: "https://ll.thespacedevs.com/",
+    attribution_text:
+      "Launch schedule metadata is provided by Launch Library 2, a community-maintained spaceflight aggregator operated by The Space Devs.",
+  },
+};
+
+function nowLaunchesFixtureForMode() {
+  if (launchMode === "stale") {
+    return {
+      ...NOW_LAUNCHES_FIXTURE,
+      availability: "stale",
+      freshness: {
+        ...NOW_LAUNCHES_FIXTURE.freshness,
+        cache_state: "stale",
+        last_refresh_failure_code: "provider.http_rate_limited",
+      },
+    };
+  }
+  if (launchMode === "unavailable") {
+    return {
+      ...NOW_LAUNCHES_FIXTURE,
+      availability: "unavailable",
+      unavailable_reason: "cached_content_expired",
+      total_launch_count: 0,
+      returned_launch_count: 0,
+      active_mission_launch_ids: [],
+      launches: [],
+      freshness: { ...NOW_LAUNCHES_FIXTURE.freshness, cache_state: "expired" },
+    };
+  }
+  return NOW_LAUNCHES_FIXTURE;
+}
+
 const NOW_SPACE_WEATHER_FIXTURE = {
   availability: "fresh",
   unavailable_reason: null,
@@ -362,6 +506,7 @@ const NOW_SPACE_WEATHER_FIXTURE = {
 const controlPaths = new Set([
   "/__control/apod-mode",
   "/__control/neows-mode",
+  "/__control/launch-mode",
   "/__control/assert-clean",
   "/__control/clear-violations",
   "/__control/mode",
@@ -389,6 +534,7 @@ let violationTotal = 0;
 let mode = "disconnect";
 let apodMode = "fresh";
 let neowsMode = "fresh";
+let launchMode = "fresh";
 let webProcess;
 let shutdownPhase = "running";
 let childShutdownBarrierReached = false;
@@ -1223,6 +1369,32 @@ const stub = http.createServer(async (request, response) => {
       return;
     }
 
+    if (path === "/__control/launch-mode") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["fresh", "stale", "unavailable"].includes(body.mode)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        launchMode = body.mode;
+        sendJson(response, 200, { mode: launchMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
+
     try {
       if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
         throw new Error("control request media type is invalid");
@@ -1250,9 +1422,11 @@ const stub = http.createServer(async (request, response) => {
 
   let unexpectedRequest = false;
   const isCataloguePath = apiPathPrefixes.some((prefix) => path.startsWith(prefix));
+  const isLaunchPath =
+    path === "/api/v1/now/launches" || /^\/api\/v1\/now\/launches\/[0-9a-f-]{36}$/u.test(path);
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
-  if (!apiPaths.has(path) && !isCataloguePath) {
+  if (!apiPaths.has(path) && !isCataloguePath && !isLaunchPath) {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
   }
@@ -1296,6 +1470,33 @@ const stub = http.createServer(async (request, response) => {
     // The NEO fixture has its own mode so APOD and NEO can be tested as
     // independently resilient Space Now products.
     sendJson(response, 200, nowNearEarthFixtureForMode());
+    return;
+  }
+  if (path === "/api/v1/now/launches") {
+    sendJson(response, 200, nowLaunchesFixtureForMode());
+    return;
+  }
+  const launchDetailMatch = /^\/api\/v1\/now\/launches\/([0-9a-f-]{36})$/u.exec(path);
+  if (launchDetailMatch !== null) {
+    const listing = nowLaunchesFixtureForMode();
+    const launch = listing.launches.find((item) => item.launch_id === launchDetailMatch[1]) ?? null;
+    if (listing.availability !== "unavailable" && launch === null) {
+      sendJson(response, 404, {
+        error: {
+          code: "now.launch_not_found",
+          message: "Launch not found in the current snapshot.",
+          request_id: "e2e-fixture",
+        },
+      });
+      return;
+    }
+    sendJson(response, 200, {
+      availability: listing.availability,
+      unavailable_reason: listing.unavailable_reason,
+      launch,
+      freshness: listing.freshness,
+      source: listing.source,
+    });
     return;
   }
   if (path === "/api/v1/now/space-weather") {

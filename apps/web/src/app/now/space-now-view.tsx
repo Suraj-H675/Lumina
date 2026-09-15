@@ -18,9 +18,37 @@ export function SpaceNowView({ outcome }: Readonly<{ outcome: NowApodOutcome }>)
       </header>
 
       {outcome.kind === "ok" ? <DailyVisual response={outcome.data} /> : <UnavailableDailyVisual />}
+      <LaunchNavigation />
       <NearEarthNavigation />
       <SpaceWeatherNavigation />
     </article>
+  );
+}
+
+function LaunchNavigation() {
+  return (
+    <section
+      aria-labelledby="launch-navigation-heading"
+      className="space-y-4 border-t border-[var(--border)] pt-8"
+    >
+      <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
+        Launch Center
+      </p>
+      <h2 className="text-2xl font-semibold" id="launch-navigation-heading">
+        Follow upcoming launches without fake precision
+      </h2>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">
+        See source status, NET precision, launch windows, mission, vehicle, site, official links,
+        and provider update times. Exact countdowns appear only when the source marks a Go launch
+        precise to the second or minute.
+      </p>
+      <Link
+        className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
+        href="/now/launches"
+      >
+        Open Launch Center
+      </Link>
+    </section>
   );
 }
 

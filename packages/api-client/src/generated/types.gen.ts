@@ -385,6 +385,300 @@ export type HistorySelectionReference = {
 };
 
 /**
+ * LaunchAgencyResponse
+ */
+export type LaunchAgencyResponse = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
+ * LaunchDetailResponse
+ */
+export type LaunchDetailResponse = {
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  freshness: LaunchFreshnessResponse;
+  launch: LaunchItemResponse | null;
+  source: LaunchSourceResponse;
+  /**
+   * Unavailable Reason
+   */
+  unavailable_reason: "provider_disabled" | "no_cached_content" | "cached_content_expired" | null;
+};
+
+/**
+ * LaunchFreshnessResponse
+ */
+export type LaunchFreshnessResponse = {
+  cache_state: CacheState;
+  /**
+   * Fresh Until
+   */
+  fresh_until: string | null;
+  /**
+   * Last Refresh Failure Code
+   */
+  last_refresh_failure_code: string | null;
+  /**
+   * Retrieved At
+   */
+  retrieved_at: string | null;
+  /**
+   * Snapshot Latest Updated Utc
+   */
+  snapshot_latest_updated_utc: string | null;
+  /**
+   * Stale Until
+   */
+  stale_until: string | null;
+};
+
+/**
+ * LaunchItemResponse
+ */
+export type LaunchItemResponse = {
+  agency: LaunchAgencyResponse | null;
+  /**
+   * Launch Id
+   */
+  launch_id: string;
+  mission: LaunchMissionResponse | null;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Official Page Url
+   */
+  official_page_url: string | null;
+  /**
+   * Official Webcast Url
+   */
+  official_webcast_url: string | null;
+  site: LaunchSiteResponse | null;
+  /**
+   * Slug
+   */
+  slug: string;
+  status: LaunchStatusResponse;
+  timing: LaunchTimingResponse;
+  vehicle: LaunchVehicleResponse | null;
+  /**
+   * Webcast Live
+   */
+  webcast_live: boolean;
+};
+
+/**
+ * LaunchListResponse
+ */
+export type LaunchListResponse = {
+  /**
+   * Active Mission Launch Ids
+   */
+  active_mission_launch_ids: Array<string>;
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  freshness: LaunchFreshnessResponse;
+  /**
+   * Launches
+   */
+  launches: Array<LaunchItemResponse>;
+  /**
+   * Returned Launch Count
+   */
+  returned_launch_count: number;
+  source: LaunchSourceResponse;
+  /**
+   * Total Launch Count
+   */
+  total_launch_count: number;
+  /**
+   * Unavailable Reason
+   */
+  unavailable_reason: "provider_disabled" | "no_cached_content" | "cached_content_expired" | null;
+};
+
+/**
+ * LaunchMissionResponse
+ */
+export type LaunchMissionResponse = {
+  /**
+   * Agency Names
+   */
+  agency_names: Array<string>;
+  /**
+   * Description
+   */
+  description: string | null;
+  /**
+   * Destination Body
+   */
+  destination_body: string | null;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Mission Type
+   */
+  mission_type: string | null;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Orbit Abbreviation
+   */
+  orbit_abbreviation: string | null;
+  /**
+   * Orbit Name
+   */
+  orbit_name: string | null;
+};
+
+/**
+ * LaunchSiteResponse
+ */
+export type LaunchSiteResponse = {
+  /**
+   * Country Code
+   */
+  country_code: string | null;
+  /**
+   * Country Name
+   */
+  country_name: string | null;
+  /**
+   * Location Name
+   */
+  location_name: string | null;
+  /**
+   * Pad Id
+   */
+  pad_id: number;
+  /**
+   * Pad Name
+   */
+  pad_name: string;
+};
+
+/**
+ * LaunchSourceResponse
+ */
+export type LaunchSourceResponse = {
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Official Documentation Url
+   */
+  official_documentation_url: string;
+  /**
+   * Terms Url
+   */
+  terms_url: string;
+};
+
+/**
+ * LaunchStatusResponse
+ */
+export type LaunchStatusResponse = {
+  /**
+   * Abbreviation
+   */
+  abbreviation: string;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
+ * LaunchTimingResponse
+ */
+export type LaunchTimingResponse = {
+  /**
+   * Calendar Eligible
+   */
+  calendar_eligible: boolean;
+  /**
+   * Countdown Eligible
+   */
+  countdown_eligible: boolean;
+  /**
+   * Net Utc
+   */
+  net_utc: string;
+  /**
+   * Precision Abbreviation
+   */
+  precision_abbreviation: string;
+  /**
+   * Precision Id
+   */
+  precision_id: number;
+  /**
+   * Precision Name
+   */
+  precision_name: string;
+  /**
+   * Provider Updated At
+   */
+  provider_updated_at: string;
+  /**
+   * Window End Utc
+   */
+  window_end_utc: string | null;
+  /**
+   * Window Start Utc
+   */
+  window_start_utc: string | null;
+};
+
+/**
+ * LaunchVehicleResponse
+ */
+export type LaunchVehicleResponse = {
+  /**
+   * Configuration Id
+   */
+  configuration_id: number;
+  /**
+   * Full Name
+   */
+  full_name: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Variant
+   */
+  variant: string | null;
+};
+
+/**
  * LiveResponse
  *
  * Dependency-free process liveness.
@@ -1864,6 +2158,77 @@ export type GetNowApodResponses = {
 };
 
 export type GetNowApodResponse = GetNowApodResponses[keyof GetNowApodResponses];
+
+export type GetNowLaunchesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/now/launches";
+};
+
+export type GetNowLaunchesErrors = {
+  /**
+   * The requested launch is not present in the bounded current launch snapshot.
+   */
+  404: ErrorResponse;
+  /**
+   * The Launch Center request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The Launch Center read projection is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetNowLaunchesError = GetNowLaunchesErrors[keyof GetNowLaunchesErrors];
+
+export type GetNowLaunchesResponses = {
+  /**
+   * Successful Response
+   */
+  200: LaunchListResponse;
+};
+
+export type GetNowLaunchesResponse = GetNowLaunchesResponses[keyof GetNowLaunchesResponses];
+
+export type GetNowLaunchData = {
+  body?: never;
+  path: {
+    /**
+     * Launch Id
+     */
+    launch_id: string;
+  };
+  query?: never;
+  url: "/api/v1/now/launches/{launch_id}";
+};
+
+export type GetNowLaunchErrors = {
+  /**
+   * The requested launch is not present in the bounded current launch snapshot.
+   */
+  404: ErrorResponse;
+  /**
+   * The Launch Center request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * The Launch Center read projection is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetNowLaunchError = GetNowLaunchErrors[keyof GetNowLaunchErrors];
+
+export type GetNowLaunchResponses = {
+  /**
+   * Successful Response
+   */
+  200: LaunchDetailResponse;
+};
+
+export type GetNowLaunchResponse = GetNowLaunchResponses[keyof GetNowLaunchResponses];
 
 export type GetNowNearEarthData = {
   body?: never;

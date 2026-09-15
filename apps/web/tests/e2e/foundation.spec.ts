@@ -1,15 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("the foundation home page loads with an honest under-construction message", async ({
-  page,
-}) => {
+test("Mission Control home loads with an honest construction-state message", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page).toHaveTitle(/Lumina — Foundation/);
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Lumina is under construction" }),
-  ).toBeVisible();
+  await expect(page).toHaveTitle(/Mission Control/);
+  await expect(page.getByRole("heading", { level: 1, name: "Mission Control" })).toBeVisible();
 });
 
 test("the skip link moves keyboard focus to the main content", async ({ page }) => {
@@ -37,9 +33,7 @@ test("the home page is accessible and usable at 320 CSS pixels without horizonta
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto("/");
 
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Lumina is under construction" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Mission Control" })).toBeVisible();
   const exploreLink = page.getByRole("link", { name: "Explore the catalogue" }).first();
   await expect(exploreLink).toBeVisible();
 

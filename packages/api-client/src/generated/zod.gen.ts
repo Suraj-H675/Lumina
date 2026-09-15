@@ -184,6 +184,142 @@ export const zHistorySelectionReference = z.object({
 });
 
 /**
+ * LaunchAgencyResponse
+ */
+export const zLaunchAgencyResponse = z.object({
+  id: z.int(),
+  name: z.string(),
+});
+
+/**
+ * LaunchFreshnessResponse
+ */
+export const zLaunchFreshnessResponse = z.object({
+  cache_state: zCacheState,
+  fresh_until: z.iso.datetime().nullable(),
+  last_refresh_failure_code: z.string().nullable(),
+  retrieved_at: z.iso.datetime().nullable(),
+  snapshot_latest_updated_utc: z.string().nullable(),
+  stale_until: z.iso.datetime().nullable(),
+});
+
+/**
+ * LaunchMissionResponse
+ */
+export const zLaunchMissionResponse = z.object({
+  agency_names: z.array(z.string()),
+  description: z.string().nullable(),
+  destination_body: z.string().nullable(),
+  id: z.int(),
+  mission_type: z.string().nullable(),
+  name: z.string(),
+  orbit_abbreviation: z.string().nullable(),
+  orbit_name: z.string().nullable(),
+});
+
+/**
+ * LaunchSiteResponse
+ */
+export const zLaunchSiteResponse = z.object({
+  country_code: z.string().nullable(),
+  country_name: z.string().nullable(),
+  location_name: z.string().nullable(),
+  pad_id: z.int(),
+  pad_name: z.string(),
+});
+
+/**
+ * LaunchSourceResponse
+ */
+export const zLaunchSourceResponse = z.object({
+  attribution_text: z.string(),
+  name: z.string(),
+  official_documentation_url: z.string(),
+  terms_url: z.string(),
+});
+
+/**
+ * LaunchStatusResponse
+ */
+export const zLaunchStatusResponse = z.object({
+  abbreviation: z.string(),
+  id: z.int(),
+  name: z.string(),
+});
+
+/**
+ * LaunchTimingResponse
+ */
+export const zLaunchTimingResponse = z.object({
+  calendar_eligible: z.boolean(),
+  countdown_eligible: z.boolean(),
+  net_utc: z.string(),
+  precision_abbreviation: z.string(),
+  precision_id: z.int(),
+  precision_name: z.string(),
+  provider_updated_at: z.string(),
+  window_end_utc: z.string().nullable(),
+  window_start_utc: z.string().nullable(),
+});
+
+/**
+ * LaunchVehicleResponse
+ */
+export const zLaunchVehicleResponse = z.object({
+  configuration_id: z.int(),
+  full_name: z.string(),
+  name: z.string(),
+  variant: z.string().nullable(),
+});
+
+/**
+ * LaunchItemResponse
+ */
+export const zLaunchItemResponse = z.object({
+  agency: zLaunchAgencyResponse.nullable(),
+  launch_id: z.string(),
+  mission: zLaunchMissionResponse.nullable(),
+  name: z.string(),
+  official_page_url: z.string().nullable(),
+  official_webcast_url: z.string().nullable(),
+  site: zLaunchSiteResponse.nullable(),
+  slug: z.string(),
+  status: zLaunchStatusResponse,
+  timing: zLaunchTimingResponse,
+  vehicle: zLaunchVehicleResponse.nullable(),
+  webcast_live: z.boolean(),
+});
+
+/**
+ * LaunchDetailResponse
+ */
+export const zLaunchDetailResponse = z.object({
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  freshness: zLaunchFreshnessResponse,
+  launch: zLaunchItemResponse.nullable(),
+  source: zLaunchSourceResponse,
+  unavailable_reason: z
+    .enum(["provider_disabled", "no_cached_content", "cached_content_expired"])
+    .nullable(),
+});
+
+/**
+ * LaunchListResponse
+ */
+export const zLaunchListResponse = z.object({
+  active_mission_launch_ids: z.array(z.string()),
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  freshness: zLaunchFreshnessResponse,
+  launches: z.array(zLaunchItemResponse),
+  returned_launch_count: z.int(),
+  source: zLaunchSourceResponse,
+  total_launch_count: z.int(),
+  unavailable_reason: z
+    .enum(["provider_disabled", "no_cached_content", "cached_content_expired"])
+    .nullable(),
+});
+
+/**
  * LiveResponse
  *
  * Dependency-free process liveness.
@@ -853,6 +989,16 @@ export const zMetadataApiV1MetaGetResponse = zMetaResponse;
  * Successful Response
  */
 export const zGetNowApodResponse = zApodResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetNowLaunchesResponse = zLaunchListResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetNowLaunchResponse = zLaunchDetailResponse;
 
 /**
  * Successful Response

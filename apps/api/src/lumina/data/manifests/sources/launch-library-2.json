@@ -1,0 +1,33 @@
+{
+  "adapter_id": "launch-library-2-upcoming",
+  "adapter_version": "1",
+  "attribution_text": "Launch schedule metadata is provided by Launch Library 2, a community-maintained spaceflight aggregator operated by The Space Devs. Lumina preserves source status, schedule precision, windows, and update timestamps and does not treat LL2 as a scientific authority.",
+  "authentication_method": "The production integration uses the free unauthenticated Launch Library 2 tier and sends no user credentials or personal data.",
+  "cache_ttl": "Fresh for 2 hours after a successful retrieval; stale-if-error for the following 22 hours; expired thereafter. A successful retrieval schedules the next refresh after 1 hour.",
+  "capabilities": ["batch_fetch"],
+  "contact_or_user_agent_requirement": "Lumina sends a fixed identifying User-Agent without personal data and performs only server-side requests.",
+  "endpoint_or_base_url": "https://ll.thespacedevs.com/2.3.0/launches/upcoming/",
+  "failure_and_fallback_behaviour": "Reject malformed, oversized, duplicate, non-HTTPS official-link, unknown status/precision-contract, or otherwise contract-breaking responses; retain the last-known-good cache and expose stale data explicitly only during the approved stale-if-error interval. Never convert coarse or placeholder provider dates into an unlabelled exact countdown.",
+  "fetch_time_policy": "Each accepted snapshot records Lumina's UTC retrieval time and cache freshness deadlines separately from LL2's per-launch last_updated timestamps.",
+  "fixture_and_checksum_strategy": "Offline tests use deterministic sanitized LL2 2.3 fixtures covering Go, TBC, TBD, launch windows, official links, missions, vehicles, sites, null optional fields, schedule changes, duplicates, and hostile inputs. Accepted responses are hashed over their exact bounded raw response bytes with SHA-256.",
+  "known_limitations": [
+    "Launch Library 2 is an aggregator and may contain delayed, incomplete, or incorrect records; Lumina labels provider provenance and preserves source update timestamps.",
+    "The v1 integration uses one bounded upcoming-launch page rather than the complete LL2 historical catalogue.",
+    "Only provider-classified Official Page and Official Webcast HTTPS links are projected; images and arbitrary media are not ingested.",
+    "The active mission board is limited to mission-bearing records in the cached upcoming-launch snapshot and is not a catalogue of every active spacecraft mission.",
+    "Calendar export is offered only for Second, Minute, or Hour precision; coarser placeholder schedule values remain visible in Lumina but are not converted into precise calendar instants."
+  ],
+  "last_verified_at": "2026-09-14T00:00:00Z",
+  "manifest_schema_version": 1,
+  "manifest_type": "source",
+  "normalized_fields": ["launches", "snapshot_latest_updated_utc"],
+  "observation_or_publication_time_policy": "LL2 net, window_start, window_end, net_precision, status, and last_updated are retained as distinct source facts. Lumina uses exact countdowns only for Go records with Second or Minute precision and never relabels TBC, TBD, or coarse precision as confirmed exact timing.",
+  "official_documentation_url": "https://ll.thespacedevs.com/",
+  "purpose": "Low-volume server-side synchronization of Launch Library 2 upcoming launch metadata for Lumina's launch center and Mission Control surfaces.",
+  "rate_or_fair_use_constraints": "The unauthenticated production API is documented at 15 calls per hour. Lumina performs at most one due synchronization per hour under the global provider lease/retry policy, uses one bounded page request per attempt, caches results server-side, and never makes browser-direct LL2 requests.",
+  "refresh_schedule": "External deployment cron enqueues provider.sync once per UTC hour; the provider performs network I/O only when its one-hour refresh eligibility is due.",
+  "source_id": "launch-library-2",
+  "source_name": "Launch Library 2 by The Space Devs",
+  "source_schema_version": "ll2-upcoming-v2.3-json-v1",
+  "terms_or_licence_url": "https://ll.thespacedevs.com/"
+}

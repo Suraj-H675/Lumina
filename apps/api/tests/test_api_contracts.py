@@ -341,6 +341,8 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/api/v1/providers/status",
         "/api/v1/now/apod",
         "/api/v1/now/near-earth",
+        "/api/v1/now/launches",
+        "/api/v1/now/launches/{launch_id}",
         "/api/v1/now/space-weather",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",

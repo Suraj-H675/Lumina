@@ -80,6 +80,21 @@ SWPC_SOLAR_WIND_SPEED_MAX_RESPONSE_BYTES: Final = 8_192
 SWPC_SOLAR_WIND_FIELD_MAX_RESPONSE_BYTES: Final = 8_192
 SWPC_NOTIFICATIONS_MAX_RESPONSE_BYTES: Final = 131_072
 
+LL2_PROVIDER_CODE: Final = "launch-library-2"
+LL2_ADAPTER_ID: Final = "launch-library-2-upcoming"
+LL2_ADAPTER_VERSION: Final = "1"
+LL2_CACHE_KEY: Final = "upcoming-launches"
+LL2_SOURCE_SCHEMA_VERSION: Final = "ll2-upcoming-v2.3-json-v1"
+LL2_HOST: Final = "ll.thespacedevs.com"
+LL2_PATH: Final = "/2.3.0/launches/upcoming/"
+LL2_FORMAT: Final = "json"
+LL2_CONTENT_TYPE: Final = "application/json"
+LL2_USER_AGENT: Final = "Lumina/0.0 Phase-4C provider-sync"
+LL2_MAX_RESPONSE_BYTES: Final = 1_048_576
+LL2_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=1)
+LL2_FRESH_TTL: Final = timedelta(hours=2)
+LL2_STALE_IF_ERROR_GRACE: Final = timedelta(hours=22)
+
 SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
 FRESH_TTL: Final = timedelta(hours=8)
 STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
@@ -237,7 +252,13 @@ class ProviderRuntimeConfig:
             or self.retry_after_minimum_seconds != 60
             or self.retry_after_maximum_seconds != 86_400
             or self.expected_content_type
-            not in {"text/plain", APOD_CONTENT_TYPE, NEOWS_CONTENT_TYPE, SWPC_CONTENT_TYPE}
+            not in {
+                "text/plain",
+                APOD_CONTENT_TYPE,
+                NEOWS_CONTENT_TYPE,
+                SWPC_CONTENT_TYPE,
+                LL2_CONTENT_TYPE,
+            }
             or not self.user_agent
             or any(ord(character) < 32 or ord(character) == 127 for character in self.user_agent)
         ):
@@ -679,6 +700,20 @@ __all__ = [
     "FRAMEWORK_MAX_RAW_RESPONSE_BYTES",
     "FRESH_TTL",
     "HttpTimeoutPolicy",
+    "LL2_ADAPTER_ID",
+    "LL2_ADAPTER_VERSION",
+    "LL2_CACHE_KEY",
+    "LL2_CONTENT_TYPE",
+    "LL2_FORMAT",
+    "LL2_FRESH_TTL",
+    "LL2_HOST",
+    "LL2_MAX_RESPONSE_BYTES",
+    "LL2_PATH",
+    "LL2_PROVIDER_CODE",
+    "LL2_SOURCE_SCHEMA_VERSION",
+    "LL2_STALE_IF_ERROR_GRACE",
+    "LL2_SUCCESS_REFRESH_INTERVAL",
+    "LL2_USER_AGENT",
     "MAX_NORMALIZED_JSON_DEPTH",
     "MAX_NORMALIZED_PAYLOAD_BYTES",
     "MAX_RESPONSE_BYTES",

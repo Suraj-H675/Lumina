@@ -28,6 +28,11 @@ from lumina.provenance.domain.runtime import (
     FIXED_PATH,
     FIXED_USER_AGENT,
     FRAMEWORK_MAX_RAW_RESPONSE_BYTES,
+    LL2_CONTENT_TYPE,
+    LL2_HOST,
+    LL2_MAX_RESPONSE_BYTES,
+    LL2_PATH,
+    LL2_USER_AGENT,
     MAX_RESPONSE_BYTES,
     NEOWS_CONTENT_TYPE,
     NEOWS_HOST,
@@ -88,7 +93,7 @@ class FixedHttpRequest:
             ) from None
         if (
             parsed.scheme != "https"
-            or hostname not in {FIXED_HOST, APOD_HOST, NEOWS_HOST, SWPC_HOST}
+            or hostname not in {FIXED_HOST, APOD_HOST, NEOWS_HOST, SWPC_HOST, LL2_HOST}
             or port is not None
             or parsed.fragment
             or parsed.query
@@ -115,6 +120,21 @@ class FixedHttpRequest:
                 or self.expected_content_type != SWPC_CONTENT_TYPE
                 or self.user_agent != SWPC_USER_AGENT
                 or self.params
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        elif hostname == LL2_HOST:
+            if (
+                parsed.path != LL2_PATH
+                or self.expected_content_type != LL2_CONTENT_TYPE
+                or self.user_agent != LL2_USER_AGENT
+                or self.max_response_bytes != LL2_MAX_RESPONSE_BYTES
+                or self.params
+                != (
+                    ("format", "json"),
+                    ("limit", "20"),
+                    ("mode", "detailed"),
+                    ("ordering", "net"),
+                )
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif parsed.path == APOD_PATH:

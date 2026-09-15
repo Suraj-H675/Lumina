@@ -9,7 +9,8 @@ import { describe, expect, it, vi } from "vitest";
 import GlobalError from "../src/app/global-error";
 import LearningLoading from "../src/app/learn/loading";
 import NotFound from "../src/app/not-found";
-import HomePage from "../src/app/page";
+import { MissionControlHome } from "../src/app/mission-control-home";
+import { loadReviewedDiscoveries } from "../src/lib/discoveries/content";
 import RouteError from "../src/app/error";
 import { SiteShell } from "../src/components/site-shell";
 
@@ -20,35 +21,35 @@ const learnLoadingPath = resolve(appDirectory, "learn/loading.tsx");
 function renderHome() {
   return render(
     <SiteShell>
-      <HomePage />
+      <MissionControlHome
+        discoveries={loadReviewedDiscoveries().entries}
+        launchOutcome={{ kind: "unavailable" }}
+      />
     </SiteShell>,
   );
 }
 
-describe("Lumina foundation home", () => {
-  it("states honestly that Lumina is under construction", () => {
+describe("Lumina Mission Control home", () => {
+  it("renders Mission Control while keeping the construction state honest", () => {
     renderHome();
 
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Lumina is under construction" }),
-    ).toBeVisible();
-    expect(screen.getByText(/first public capability is live/i)).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Mission Control" })).toBeVisible();
+    expect(screen.getByText(/Lumina is still under construction/i)).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "Current mission event" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: /Hubble and Webb probe/i })).toBeVisible();
   });
 
-  it("does not present catalog or live-service claims", () => {
+  it("does not invent a live mission claim when the provider snapshot is unavailable", () => {
     renderHome();
 
-    const pageText = document.body.textContent ?? "";
-    expect(pageText).not.toMatch(
-      /catalog is available|live data is available|provider status|current mission/i,
-    );
-    expect(pageText).not.toMatch(/\b\d+[,+]\s+(objects|missions|catalog entries)\b/i);
+    expect(screen.getByText(/No validated Launch Library 2 snapshot is available/i)).toBeVisible();
+    expect(document.body.textContent ?? "").not.toMatch(/exact countdown/i);
   });
 
-  it("links to the API foundation status after C2", () => {
+  it("links to the current source-status surface", () => {
     renderHome();
 
-    expect(screen.getByRole("link", { name: "Check the API foundation status" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check source status" })).toHaveAttribute(
       "href",
       "/status",
     );

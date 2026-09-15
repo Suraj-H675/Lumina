@@ -635,6 +635,630 @@
         "title": "HistorySelectionReference",
         "type": "object"
       },
+      "LaunchAgencyResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "LaunchAgencyResponse",
+        "type": "object"
+      },
+      "LaunchDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/LaunchFreshnessResponse"
+          },
+          "launch": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LaunchItemResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/LaunchSourceResponse"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_disabled",
+                  "no_cached_content",
+                  "cached_content_expired"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "availability",
+          "unavailable_reason",
+          "launch",
+          "freshness",
+          "source"
+        ],
+        "title": "LaunchDetailResponse",
+        "type": "object"
+      },
+      "LaunchFreshnessResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fresh Until"
+          },
+          "last_refresh_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refresh Failure Code"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "snapshot_latest_updated_utc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Latest Updated Utc"
+          },
+          "stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Until"
+          }
+        },
+        "required": [
+          "cache_state",
+          "retrieved_at",
+          "fresh_until",
+          "stale_until",
+          "last_refresh_failure_code",
+          "snapshot_latest_updated_utc"
+        ],
+        "title": "LaunchFreshnessResponse",
+        "type": "object"
+      },
+      "LaunchItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "agency": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LaunchAgencyResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "launch_id": {
+            "title": "Launch Id",
+            "type": "string"
+          },
+          "mission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LaunchMissionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "official_page_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Official Page Url"
+          },
+          "official_webcast_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Official Webcast Url"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LaunchSiteResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LaunchStatusResponse"
+          },
+          "timing": {
+            "$ref": "#/components/schemas/LaunchTimingResponse"
+          },
+          "vehicle": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LaunchVehicleResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "webcast_live": {
+            "title": "Webcast Live",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "launch_id",
+          "slug",
+          "name",
+          "status",
+          "timing",
+          "agency",
+          "vehicle",
+          "mission",
+          "site",
+          "official_page_url",
+          "official_webcast_url",
+          "webcast_live"
+        ],
+        "title": "LaunchItemResponse",
+        "type": "object"
+      },
+      "LaunchListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "active_mission_launch_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Mission Launch Ids",
+            "type": "array"
+          },
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/LaunchFreshnessResponse"
+          },
+          "launches": {
+            "items": {
+              "$ref": "#/components/schemas/LaunchItemResponse"
+            },
+            "title": "Launches",
+            "type": "array"
+          },
+          "returned_launch_count": {
+            "title": "Returned Launch Count",
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LaunchSourceResponse"
+          },
+          "total_launch_count": {
+            "title": "Total Launch Count",
+            "type": "integer"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_disabled",
+                  "no_cached_content",
+                  "cached_content_expired"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "availability",
+          "unavailable_reason",
+          "total_launch_count",
+          "returned_launch_count",
+          "launches",
+          "active_mission_launch_ids",
+          "freshness",
+          "source"
+        ],
+        "title": "LaunchListResponse",
+        "type": "object"
+      },
+      "LaunchMissionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "agency_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Agency Names",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "destination_body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Body"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "mission_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mission Type"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "orbit_abbreviation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orbit Abbreviation"
+          },
+          "orbit_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orbit Name"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "mission_type",
+          "description",
+          "orbit_name",
+          "orbit_abbreviation",
+          "destination_body",
+          "agency_names"
+        ],
+        "title": "LaunchMissionResponse",
+        "type": "object"
+      },
+      "LaunchSiteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          },
+          "country_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Name"
+          },
+          "location_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name"
+          },
+          "pad_id": {
+            "title": "Pad Id",
+            "type": "integer"
+          },
+          "pad_name": {
+            "title": "Pad Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pad_id",
+          "pad_name",
+          "location_name",
+          "country_name",
+          "country_code"
+        ],
+        "title": "LaunchSiteResponse",
+        "type": "object"
+      },
+      "LaunchSourceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "official_documentation_url": {
+            "title": "Official Documentation Url",
+            "type": "string"
+          },
+          "terms_url": {
+            "title": "Terms Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "official_documentation_url",
+          "terms_url",
+          "attribution_text"
+        ],
+        "title": "LaunchSourceResponse",
+        "type": "object"
+      },
+      "LaunchStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "abbreviation": {
+            "title": "Abbreviation",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "abbreviation"
+        ],
+        "title": "LaunchStatusResponse",
+        "type": "object"
+      },
+      "LaunchTimingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calendar_eligible": {
+            "title": "Calendar Eligible",
+            "type": "boolean"
+          },
+          "countdown_eligible": {
+            "title": "Countdown Eligible",
+            "type": "boolean"
+          },
+          "net_utc": {
+            "title": "Net Utc",
+            "type": "string"
+          },
+          "precision_abbreviation": {
+            "title": "Precision Abbreviation",
+            "type": "string"
+          },
+          "precision_id": {
+            "title": "Precision Id",
+            "type": "integer"
+          },
+          "precision_name": {
+            "title": "Precision Name",
+            "type": "string"
+          },
+          "provider_updated_at": {
+            "title": "Provider Updated At",
+            "type": "string"
+          },
+          "window_end_utc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End Utc"
+          },
+          "window_start_utc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start Utc"
+          }
+        },
+        "required": [
+          "net_utc",
+          "precision_id",
+          "precision_name",
+          "precision_abbreviation",
+          "window_start_utc",
+          "window_end_utc",
+          "provider_updated_at",
+          "countdown_eligible",
+          "calendar_eligible"
+        ],
+        "title": "LaunchTimingResponse",
+        "type": "object"
+      },
+      "LaunchVehicleResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_id": {
+            "title": "Configuration Id",
+            "type": "integer"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "variant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variant"
+          }
+        },
+        "required": [
+          "configuration_id",
+          "name",
+          "full_name",
+          "variant"
+        ],
+        "title": "LaunchVehicleResponse",
+        "type": "object"
+      },
       "LiveResponse": {
         "additionalProperties": false,
         "description": "Dependency-free process liveness.",
@@ -3169,6 +3793,122 @@
           }
         },
         "summary": "Now Apod",
+        "tags": [
+          "space-now"
+        ]
+      }
+    },
+    "/api/v1/now/launches": {
+      "get": {
+        "description": "Return the bounded durable LL2 launch projection without fetching upstream.",
+        "operationId": "get_now_launches",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested launch is not present in the bounded current launch snapshot."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Launch Center request could not be validated."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Launch Center read projection is temporarily unavailable."
+          }
+        },
+        "summary": "Now Launches",
+        "tags": [
+          "space-now"
+        ]
+      }
+    },
+    "/api/v1/now/launches/{launch_id}": {
+      "get": {
+        "description": "Return one launch from the same durable bounded LL2 snapshot.",
+        "operationId": "get_now_launch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "launch_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Launch Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested launch is not present in the bounded current launch snapshot."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Launch Center request could not be validated."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Launch Center read projection is temporarily unavailable."
+          }
+        },
+        "summary": "Now Launch",
         "tags": [
           "space-now"
         ]

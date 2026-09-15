@@ -2,11 +2,15 @@ import "server-only";
 
 import {
   apodEndpoint,
+  launchDetailEndpoint,
+  launchesEndpoint,
   nearEarthEndpoint,
   spaceWeatherEndpoint,
   requestEndpoint,
   type ApodResponse,
   type ApiTransportResult,
+  type LaunchDetailResponse,
+  type LaunchListResponse,
   type NearEarthResponse,
   type SpaceWeatherResponse,
   type TransportOptions,
@@ -16,6 +20,14 @@ import { resolveWebApiOrigin } from "./api-origin";
 
 export type NowApodOutcome =
   Readonly<{ data: ApodResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
+
+export type NowLaunchesOutcome =
+  Readonly<{ data: LaunchListResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
+
+export type NowLaunchDetailOutcome =
+  | Readonly<{ data: LaunchDetailResponse; kind: "ok" }>
+  | Readonly<{ kind: "not-found" }>
+  | Readonly<{ kind: "unavailable" }>;
 
 export type NowNearEarthOutcome =
   Readonly<{ data: NearEarthResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
@@ -48,6 +60,37 @@ export async function loadNowApod(options: NowApodLoaderOptions = {}): Promise<N
     transportOptions(options),
   );
   return result.kind === "ok" ? { data: result.data, kind: "ok" } : { kind: "unavailable" };
+}
+
+export async function loadNowLaunches(
+  options: NowApodLoaderOptions = {},
+): Promise<NowLaunchesOutcome> {
+  const configured = resolveWebApiOrigin(options.origin, options.environment);
+  if (!configured.valid) return { kind: "unavailable" };
+
+  const result: ApiTransportResult<LaunchListResponse> = await requestEndpoint(
+    configured.origin,
+    launchesEndpoint,
+    transportOptions(options),
+  );
+  return result.kind === "ok" ? { data: result.data, kind: "ok" } : { kind: "unavailable" };
+}
+
+export async function loadNowLaunch(
+  launchId: string,
+  options: NowApodLoaderOptions = {},
+): Promise<NowLaunchDetailOutcome> {
+  const configured = resolveWebApiOrigin(options.origin, options.environment);
+  if (!configured.valid) return { kind: "unavailable" };
+
+  const result: ApiTransportResult<LaunchDetailResponse> = await requestEndpoint(
+    configured.origin,
+    launchDetailEndpoint(launchId),
+    transportOptions(options),
+  );
+  if (result.kind === "ok") return { data: result.data, kind: "ok" };
+  if (result.kind === "http-error" && result.status === 404) return { kind: "not-found" };
+  return { kind: "unavailable" };
 }
 
 export async function loadNowNearEarth(

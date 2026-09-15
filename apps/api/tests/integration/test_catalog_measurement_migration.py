@@ -390,7 +390,7 @@ def phase1a2_schema(
 def test_repository_head_and_phase1a2_lineage_are_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
     current_head = _head()
-    assert current_head == "a4b5c6d7e8f9"
+    assert current_head == "b5c6d7e8f9a0"
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _PHASE_1A2_PARENT
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
 
@@ -1164,7 +1164,7 @@ def test_upgrade_from_phase1a1_downgrade_and_reupgrade(
     sync_url = historical_sync_url(integration_settings)
     identity = historical_migration_identity(integration_settings)
     phase1a2 = _PHASE_1A2_HEAD
-    assert _head() == "a4b5c6d7e8f9"
+    assert _head() == "b5c6d7e8f9a0"
 
     if True:
         run_migration_operation(

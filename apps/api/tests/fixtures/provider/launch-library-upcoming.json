@@ -1,0 +1,171 @@
+{
+  "count": 2,
+  "results": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "slug": "aurora-science-1",
+      "name": "Falcon 9 | Aurora Science 1",
+      "status": {
+        "id": 1,
+        "name": "Go for Launch",
+        "abbrev": "Go",
+        "description": "ignored"
+      },
+      "last_updated": "2026-09-15T00:10:00Z",
+      "net": "2026-09-16T12:30:00Z",
+      "net_precision": {
+        "id": 1,
+        "name": "Minute",
+        "abbrev": "MIN",
+        "description": "ignored"
+      },
+      "window_start": "2026-09-16T12:30:00Z",
+      "window_end": "2026-09-16T13:00:00Z",
+      "launch_service_provider": {
+        "id": 121,
+        "name": "SpaceX",
+        "abbrev": "SpX"
+      },
+      "rocket": {
+        "id": 1,
+        "configuration": {
+          "id": 164,
+          "name": "Falcon 9",
+          "full_name": "Falcon 9 Block 5",
+          "variant": "Block 5"
+        }
+      },
+      "mission": {
+        "id": 7001,
+        "name": "Aurora Science 1",
+        "type": "Earth Science",
+        "description": "A deterministic fixture mission for provider contract testing.\r\nSecond source paragraph.",
+        "orbit": {
+          "id": 17,
+          "name": "Sun-Synchronous Orbit",
+          "abbrev": "SSO",
+          "celestial_body": {
+            "id": 1,
+            "name": "Earth"
+          }
+        },
+        "agencies": [
+          {
+            "id": 44,
+            "name": "NASA"
+          }
+        ]
+      },
+      "pad": {
+        "id": 80,
+        "name": "Space Launch Complex 40",
+        "country": {
+          "name": "United States of America",
+          "alpha_2_code": "US"
+        },
+        "location": {
+          "name": "Cape Canaveral SFS, FL, USA"
+        }
+      },
+      "info_urls": [
+        {
+          "priority": 10,
+          "url": "https://example.org/official-launch",
+          "type": {
+            "id": 1,
+            "name": "Official Page"
+          }
+        },
+        {
+          "priority": 1,
+          "url": "https://example.org/wiki",
+          "type": {
+            "id": 3,
+            "name": "Wikipedia"
+          }
+        }
+      ],
+      "vid_urls": [
+        {
+          "priority": 20,
+          "url": "https://www.youtube.com/watch?v=fixture",
+          "type": {
+            "id": 1,
+            "name": "Official Webcast"
+          }
+        },
+        {
+          "priority": 1,
+          "url": "https://example.org/unofficial",
+          "type": {
+            "id": 3,
+            "name": "Unofficial Webcast"
+          }
+        }
+      ],
+      "webcast_live": true
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "slug": "lunar-relay-2",
+      "name": "Vega-C | Lunar Relay 2",
+      "status": {
+        "id": 8,
+        "name": "To Be Confirmed",
+        "abbrev": "TBC"
+      },
+      "last_updated": "2026-09-14T18:00:00Z",
+      "net": "2026-10-02T00:00:00Z",
+      "net_precision": {
+        "id": 5,
+        "name": "Day",
+        "abbrev": "DAY"
+      },
+      "window_start": null,
+      "window_end": null,
+      "launch_service_provider": {
+        "id": 159,
+        "name": "Avio S.p.A"
+      },
+      "rocket": {
+        "id": 2,
+        "configuration": {
+          "id": 127,
+          "name": "Vega-C",
+          "full_name": "Vega-C",
+          "variant": ""
+        }
+      },
+      "mission": {
+        "id": 7002,
+        "name": "Lunar Relay 2",
+        "type": "Communications",
+        "description": null,
+        "orbit": {
+          "id": 10,
+          "name": "Lunar Orbit",
+          "abbrev": "LO",
+          "celestial_body": {
+            "id": 10,
+            "name": "Moon"
+          }
+        },
+        "agencies": []
+      },
+      "pad": {
+        "id": 34,
+        "name": "Ariane Launch Area 1 (ELV)",
+        "country": {
+          "name": "French Guiana",
+          "alpha_2_code": "GF"
+        },
+        "location": {
+          "name": "Guiana Space Centre, French Guiana"
+        }
+      },
+      "info_urls": [],
+      "vid_urls": [],
+      "webcast_live": false
+    }
+  ]
+}

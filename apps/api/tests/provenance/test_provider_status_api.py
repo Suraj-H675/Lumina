@@ -168,8 +168,9 @@ def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None
 
     assert response.status_code == 200
     body = response.json()
-    assert len(body["providers"]) == 4
+    assert len(body["providers"]) == 5
     assert {entry["provider_code"] for entry in body["providers"]} == {
+        "launch-library-2",
         "nasa-exoplanet-archive",
         "nasa-apod",
         "nasa-neows",

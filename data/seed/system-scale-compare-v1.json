@@ -1,0 +1,1239 @@
+{
+  "artifact_version": 1,
+  "model_version": "system-scale-compare-v1",
+  "schema_version": 1,
+  "generated_at": "2026-09-15T11:15:00Z",
+  "definition": {
+    "slug": "system-scale-compare",
+    "title": "System Scale Compare",
+    "content_type": "interactive-reference-model",
+    "status": "ready",
+    "version": 1,
+    "reviewed_at": "2026-09-15",
+    "model_version": "system-scale-compare-v1",
+    "shared_domain_au": {
+      "minimum": 0.0343,
+      "maximum": 171.67334210725835
+    },
+    "default_item_ids": ["solar:earth", "exoplanet:kepler-452-b", "voyager:2026"],
+    "assumptions": [
+      "Only positive AU-valued outputs from three already-reviewed Phase 5B artifacts are composed.",
+      "The shared axis compares numeric reference lengths, not scientific quantity identity.",
+      "Earth's reviewed 1 AU mean Sun distance is the arithmetic reference for displayed multiples."
+    ],
+    "limitations": [
+      "Mean Sun distance, orbit semi-major axis, and vector magnitude are distinct quantities.",
+      "A shared unit allows numeric scale comparison but does not make the quantities interchangeable.",
+      "The comparison does not rank, score, recommend, or infer physical similarity.",
+      "Log spacing is a visualization transform and must not be read as physical placement between systems."
+    ]
+  },
+  "items": [
+    {
+      "id": "solar:mercury",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Mercury",
+      "value_au": 0.387,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 0.2254281271918208,
+      "log_position_percent": 28.448244527332456,
+      "earth_reference_ratio": 0.387
+    },
+    {
+      "id": "solar:venus",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Venus",
+      "value_au": 0.723,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 0.4211486717304559,
+      "log_position_percent": 35.78529082874679,
+      "earth_reference_ratio": 0.723
+    },
+    {
+      "id": "solar:earth",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Earth",
+      "value_au": 1.0,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 0.5825016206506997,
+      "log_position_percent": 39.59297234033685,
+      "earth_reference_ratio": 1.0
+    },
+    {
+      "id": "solar:mars",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Mars",
+      "value_au": 1.524,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 0.8877324698716663,
+      "log_position_percent": 44.539302410017335,
+      "earth_reference_ratio": 1.524
+    },
+    {
+      "id": "solar:jupiter",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Jupiter",
+      "value_au": 5.2,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 3.0290084273836384,
+      "log_position_percent": 58.94750690460657,
+      "earth_reference_ratio": 5.2
+    },
+    {
+      "id": "solar:saturn",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Saturn",
+      "value_au": 9.58,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 5.580365525833703,
+      "log_position_percent": 66.12060357906854,
+      "earth_reference_ratio": 9.58
+    },
+    {
+      "id": "solar:uranus",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Uranus",
+      "value_au": 19.2,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 11.184031116493435,
+      "log_position_percent": 74.28233267380094,
+      "earth_reference_ratio": 19.2
+    },
+    {
+      "id": "solar:neptune",
+      "kind": "solar-mean-distance",
+      "group_label": "Solar System",
+      "name": "Neptune",
+      "value_au": 30.05,
+      "quantity_label": "Mean distance from the Sun",
+      "semantic_note": "NASA-reviewed mean Sun distance; not a current planet position or orbit shape.",
+      "source": {
+        "label": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+        "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/"
+      },
+      "detail_href": "/explore/solar-system",
+      "linear_position_percent": 17.504173700553526,
+      "log_position_percent": 79.54109863358875,
+      "earth_reference_ratio": 30.05
+    },
+    {
+      "id": "exoplanet:51-peg-b",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · 51 Pegasi",
+      "name": "51 Peg b",
+      "value_au": 0.052,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Cont et al. 2026",
+        "url": "https://ui.adsabs.harvard.edu/abs/2026A&A...710A.345C/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.030290084273836382,
+      "log_position_percent": 4.884813660700176,
+      "earth_reference_ratio": 0.052
+    },
+    {
+      "id": "exoplanet:hd-209458-b",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · HD 209458",
+      "name": "HD 209458 b",
+      "value_au": 0.04707,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Bonomo et al. 2017",
+        "url": "https://ui.adsabs.harvard.edu/abs/2017A&A...602A.107B/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.027418351284028433,
+      "log_position_percent": 3.7154607087641525,
+      "earth_reference_ratio": 0.04707
+    },
+    {
+      "id": "exoplanet:k2-18-c",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · K2-18",
+      "name": "K2-18 c",
+      "value_au": 0.06,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Cloutier et al. 2017",
+        "url": "https://ui.adsabs.harvard.edu/abs/2017A&A...608A..35C/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.03495009723904199,
+      "log_position_percent": 6.564755269857015,
+      "earth_reference_ratio": 0.06
+    },
+    {
+      "id": "exoplanet:k2-18-b",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · K2-18",
+      "name": "K2-18 b",
+      "value_au": 0.1429,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Sarkis et al. 2018",
+        "url": "https://ui.adsabs.harvard.edu/abs/2018AJ....155..257S/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.083239481590985,
+      "log_position_percent": 16.752355632406317,
+      "earth_reference_ratio": 0.1429
+    },
+    {
+      "id": "exoplanet:kepler-186-b",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · Kepler-186",
+      "name": "Kepler-186 b",
+      "value_au": 0.0343,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Quintana et al. 2014",
+        "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.019979805588319,
+      "log_position_percent": 0.0,
+      "earth_reference_ratio": 0.0343
+    },
+    {
+      "id": "exoplanet:kepler-186-c",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · Kepler-186",
+      "name": "Kepler-186 c",
+      "value_au": 0.0451,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Quintana et al. 2014",
+        "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.02627082309134656,
+      "log_position_percent": 3.213551951884286,
+      "earth_reference_ratio": 0.0451
+    },
+    {
+      "id": "exoplanet:kepler-186-d",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · Kepler-186",
+      "name": "Kepler-186 d",
+      "value_au": 0.0781,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Quintana et al. 2014",
+        "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.04549337657281965,
+      "log_position_percent": 9.659838605612645,
+      "earth_reference_ratio": 0.0781
+    },
+    {
+      "id": "exoplanet:kepler-186-e",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · Kepler-186",
+      "name": "Kepler-186 e",
+      "value_au": 0.11,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Quintana et al. 2014",
+        "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.06407517827157698,
+      "log_position_percent": 13.680525738509008,
+      "earth_reference_ratio": 0.11
+    },
+    {
+      "id": "exoplanet:kepler-186-f",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · Kepler-186",
+      "name": "Kepler-186 f",
+      "value_au": 0.432,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Torres et al. 2015",
+        "url": "https://ui.adsabs.harvard.edu/abs/2015ApJ...800...99T/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.2516407001211023,
+      "log_position_percent": 29.73960715115509,
+      "earth_reference_ratio": 0.432
+    },
+    {
+      "id": "exoplanet:kepler-452-b",
+      "kind": "exoplanet-semimajor-axis",
+      "group_label": "Exoplanet · Kepler-452",
+      "name": "Kepler-452 b",
+      "value_au": 1.046,
+      "quantity_label": "Orbit semi-major axis",
+      "semantic_note": "NASA Exoplanet Archive PSCompPars orbital reference length; not current star distance or orbital phase.",
+      "source": {
+        "label": "Jenkins et al. 2015",
+        "url": "https://ui.adsabs.harvard.edu/abs/2015AJ....150...56J/abstract"
+      },
+      "detail_href": "/explore/exoplanet-systems",
+      "linear_position_percent": 0.6092966952006319,
+      "log_position_percent": 40.12094007501186,
+      "earth_reference_ratio": 1.046
+    },
+    {
+      "id": "voyager:1977",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1977",
+      "value_au": 1.0082024880403022,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1977-Sep-06 00:00:00.0000",
+      "linear_position_percent": 0.5872795832275438,
+      "log_position_percent": 39.68887320185479,
+      "earth_reference_ratio": 1.0082024880403022
+    },
+    {
+      "id": "voyager:1978",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1978",
+      "value_au": 4.086809056208336,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1978-Sep-06 00:00:00.0000",
+      "linear_position_percent": 2.3805728985313124,
+      "log_position_percent": 56.119514545751144,
+      "earth_reference_ratio": 4.086809056208336
+    },
+    {
+      "id": "voyager:1979",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1979",
+      "value_au": 6.116986914926595,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1979-Sep-06 00:00:00.0000",
+      "linear_position_percent": 3.5631547914438655,
+      "log_position_percent": 60.854141525666314,
+      "earth_reference_ratio": 6.116986914926595
+    },
+    {
+      "id": "voyager:1980",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1980",
+      "value_au": 8.913523059084465,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1980-Sep-06 00:00:00.0000",
+      "linear_position_percent": 5.192141627624084,
+      "log_position_percent": 65.2740867724275,
+      "earth_reference_ratio": 8.913523059084465
+    },
+    {
+      "id": "voyager:1981",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1981",
+      "value_au": 11.216999483703193,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1981-Sep-06 00:00:00.0000",
+      "linear_position_percent": 6.533920378095172,
+      "log_position_percent": 67.97255332521756,
+      "earth_reference_ratio": 11.216999483703193
+    },
+    {
+      "id": "voyager:1982",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1982",
+      "value_au": 14.05652792694684,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1982-Sep-06 00:00:00.0000",
+      "linear_position_percent": 8.187950298168355,
+      "log_position_percent": 70.62166205383755,
+      "earth_reference_ratio": 14.05652792694684
+    },
+    {
+      "id": "voyager:1983",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1983",
+      "value_au": 17.30559553040195,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1983-Sep-06 00:00:00.0000",
+      "linear_position_percent": 10.08053744278464,
+      "log_position_percent": 73.06282213132623,
+      "earth_reference_ratio": 17.30559553040195
+    },
+    {
+      "id": "voyager:1984",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1984",
+      "value_au": 20.756575934819185,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1984-Sep-06 00:00:00.0000",
+      "linear_position_percent": 12.090739121191488,
+      "log_position_percent": 75.1974649627982,
+      "earth_reference_ratio": 20.756575934819185
+    },
+    {
+      "id": "voyager:1985",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1985",
+      "value_au": 24.2929541362516,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1985-Sep-06 00:00:00.0000",
+      "linear_position_percent": 14.150685154759676,
+      "log_position_percent": 77.04437138511881,
+      "earth_reference_ratio": 24.2929541362516
+    },
+    {
+      "id": "voyager:1986",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1986",
+      "value_au": 27.878090390188518,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1986-Sep-06 00:00:00.0000",
+      "linear_position_percent": 16.23903283293151,
+      "log_position_percent": 78.66037804483591,
+      "earth_reference_ratio": 27.878090390188518
+    },
+    {
+      "id": "voyager:1987",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1987",
+      "value_au": 31.48909970319682,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1987-Sep-06 00:00:00.0000",
+      "linear_position_percent": 18.342451609943616,
+      "log_position_percent": 80.09026119144134,
+      "earth_reference_ratio": 31.48909970319682
+    },
+    {
+      "id": "voyager:1988",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1988",
+      "value_au": 35.12385395429247,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1988-Sep-06 00:00:00.0000",
+      "linear_position_percent": 20.459701851873852,
+      "log_position_percent": 81.37268013937444,
+      "earth_reference_ratio": 35.12385395429247
+    },
+    {
+      "id": "voyager:1989",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1989",
+      "value_au": 38.75567977338068,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1989-Sep-06 00:00:00.0000",
+      "linear_position_percent": 22.57524627741379,
+      "log_position_percent": 82.52781597604637,
+      "earth_reference_ratio": 38.75567977338068
+    },
+    {
+      "id": "voyager:1990",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1990",
+      "value_au": 42.39033584633166,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1990-Sep-06 00:00:00.0000",
+      "linear_position_percent": 24.69243933041564,
+      "log_position_percent": 83.58018680834948,
+      "earth_reference_ratio": 42.39033584633166
+    },
+    {
+      "id": "voyager:1991",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1991",
+      "value_au": 46.02510969217922,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1991-Sep-06 00:00:00.0000",
+      "linear_position_percent": 26.80970098632062,
+      "log_position_percent": 84.54596208103523,
+      "earth_reference_ratio": 46.02510969217922
+    },
+    {
+      "id": "voyager:1992",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1992",
+      "value_au": 49.66810320444188,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1992-Sep-06 00:00:00.0000",
+      "linear_position_percent": 28.93175061123361,
+      "log_position_percent": 85.44023316414987,
+      "earth_reference_ratio": 49.66810320444188
+    },
+    {
+      "id": "voyager:1993",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1993",
+      "value_au": 53.298155155444626,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1993-Sep-06 00:00:00.0000",
+      "linear_position_percent": 31.04626175573894,
+      "log_position_percent": 86.26832770675054,
+      "earth_reference_ratio": 53.298155155444626
+    },
+    {
+      "id": "voyager:1994",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1994",
+      "value_au": 56.924413846136886,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1994-Sep-06 00:00:00.0000",
+      "linear_position_percent": 33.158563319965864,
+      "log_position_percent": 87.04105633954693,
+      "earth_reference_ratio": 56.924413846136886
+    },
+    {
+      "id": "voyager:1995",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1995",
+      "value_au": 60.54641063459922,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1995-Sep-06 00:00:00.0000",
+      "linear_position_percent": 35.26838231923681,
+      "log_position_percent": 87.76522164619246,
+      "earth_reference_ratio": 60.54641063459922
+    },
+    {
+      "id": "voyager:1996",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1996",
+      "value_au": 64.17391118720468,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1996-Sep-06 00:00:00.0000",
+      "linear_position_percent": 37.381407270040796,
+      "log_position_percent": 88.44830666474306,
+      "earth_reference_ratio": 64.17391118720468
+    },
+    {
+      "id": "voyager:1997",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1997",
+      "value_au": 67.78730480825594,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1997-Sep-06 00:00:00.0000",
+      "linear_position_percent": 39.48621491035206,
+      "log_position_percent": 89.09137856239336,
+      "earth_reference_ratio": 67.78730480825594
+    },
+    {
+      "id": "voyager:1998",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1998",
+      "value_au": 71.39702945533661,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1998-Sep-06 00:00:00.0000",
+      "linear_position_percent": 41.58888536737932,
+      "log_position_percent": 89.70044280920987,
+      "earth_reference_ratio": 71.39702945533661
+    },
+    {
+      "id": "voyager:1999",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 1999",
+      "value_au": 75.00384451816427,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 1999-Sep-06 00:00:00.0000",
+      "linear_position_percent": 43.689860986863785,
+      "log_position_percent": 90.27900504598091,
+      "earth_reference_ratio": 75.00384451816427
+    },
+    {
+      "id": "voyager:2000",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2000",
+      "value_au": 78.61833571119956,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2000-Sep-06 00:00:00.0000",
+      "linear_position_percent": 45.79530796463453,
+      "log_position_percent": 90.83153444920494,
+      "earth_reference_ratio": 78.61833571119956
+    },
+    {
+      "id": "voyager:2001",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2001",
+      "value_au": 82.22117424651172,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2001-Sep-06 00:00:00.0000",
+      "linear_position_percent": 47.89396725039665,
+      "log_position_percent": 91.35755983168856,
+      "earth_reference_ratio": 82.22117424651172
+    },
+    {
+      "id": "voyager:2002",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2002",
+      "value_au": 85.82229137505686,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2002-Sep-06 00:00:00.0000",
+      "linear_position_percent": 49.99162381392719,
+      "log_position_percent": 91.86078702328987,
+      "earth_reference_ratio": 85.82229137505686
+    },
+    {
+      "id": "voyager:2003",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2003",
+      "value_au": 89.4214412671343,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2003-Sep-06 00:00:00.0000",
+      "linear_position_percent": 52.08813445902709,
+      "log_position_percent": 92.34306841062553,
+      "earth_reference_ratio": 89.4214412671343
+    },
+    {
+      "id": "voyager:2004",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2004",
+      "value_au": 93.02810446058312,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2004-Sep-06 00:00:00.0000",
+      "linear_position_percent": 54.189021614352264,
+      "log_position_percent": 92.80726438500542,
+      "earth_reference_ratio": 93.02810446058312
+    },
+    {
+      "id": "voyager:2005",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2005",
+      "value_au": 96.62219407819607,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2005-Sep-06 00:00:00.0000",
+      "linear_position_percent": 56.28258464137566,
+      "log_position_percent": 93.25227396404343,
+      "earth_reference_ratio": 96.62219407819607
+    },
+    {
+      "id": "voyager:2006",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2006",
+      "value_au": 100.21324109080273,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2006-Sep-06 00:00:00.0000",
+      "linear_position_percent": 58.374375346051885,
+      "log_position_percent": 93.68067250696296,
+      "earth_reference_ratio": 100.21324109080273
+    },
+    {
+      "id": "voyager:2007",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2007",
+      "value_au": 103.80105797349381,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2007-Sep-06 00:00:00.0000",
+      "linear_position_percent": 60.46428449481739,
+      "log_position_percent": 94.093621515394,
+      "earth_reference_ratio": 103.80105797349381
+    },
+    {
+      "id": "voyager:2008",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2008",
+      "value_au": 107.39546079396723,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2008-Sep-06 00:00:00.0000",
+      "linear_position_percent": 62.5580299630146,
+      "log_position_percent": 94.49325688336742,
+      "earth_reference_ratio": 107.39546079396723
+    },
+    {
+      "id": "voyager:2009",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2009",
+      "value_au": 110.97706471495472,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2009-Sep-06 00:00:00.0000",
+      "linear_position_percent": 64.6443200515187,
+      "log_position_percent": 94.87838080509094,
+      "earth_reference_ratio": 110.97706471495472
+    },
+    {
+      "id": "voyager:2010",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2010",
+      "value_au": 114.5562598927158,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2010-Sep-06 00:00:00.0000",
+      "linear_position_percent": 66.7292070431897,
+      "log_position_percent": 95.251023928868,
+      "earth_reference_ratio": 114.5562598927158
+    },
+    {
+      "id": "voyager:2011",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2011",
+      "value_au": 118.13377103188029,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2011-Sep-06 00:00:00.0000",
+      "linear_position_percent": 68.81311307964894,
+      "log_position_percent": 95.61203409216616,
+      "earth_reference_ratio": 118.13377103188029
+    },
+    {
+      "id": "voyager:2012",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2012",
+      "value_au": 121.72006513211629,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2012-Sep-06 00:00:00.0000",
+      "linear_position_percent": 70.90213520516646,
+      "log_position_percent": 95.96312015416139,
+      "earth_reference_ratio": 121.72006513211629
+    },
+    {
+      "id": "voyager:2013",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2013",
+      "value_au": 125.29589600027955,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2013-Sep-06 00:00:00.0000",
+      "linear_position_percent": 72.98506248104437,
+      "log_position_percent": 96.30303041944461,
+      "earth_reference_ratio": 125.29589600027955
+    },
+    {
+      "id": "voyager:2014",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2014",
+      "value_au": 128.8710222119957,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2014-Sep-06 00:00:00.0000",
+      "linear_position_percent": 75.06757929339982,
+      "log_position_percent": 96.63331096120092,
+      "earth_reference_ratio": 128.8710222119957
+    },
+    {
+      "id": "voyager:2015",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2015",
+      "value_au": 132.44513934083932,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2015-Sep-06 00:00:00.0000",
+      "linear_position_percent": 77.14950831334664,
+      "log_position_percent": 96.95446366481941,
+      "earth_reference_ratio": 132.44513934083932
+    },
+    {
+      "id": "voyager:2016",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2016",
+      "value_au": 136.0276059679825,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2016-Sep-06 00:00:00.0000",
+      "linear_position_percent": 79.2363009295846,
+      "log_position_percent": 97.26778481832119,
+      "earth_reference_ratio": 136.0276059679825
+    },
+    {
+      "id": "voyager:2017",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2017",
+      "value_au": 139.59840753659418,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2017-Sep-06 00:00:00.0000",
+      "linear_position_percent": 81.31629863032298,
+      "log_position_percent": 97.57197962856593,
+      "earth_reference_ratio": 139.59840753659418
+    },
+    {
+      "id": "voyager:2018",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2018",
+      "value_au": 143.16699019754904,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2018-Sep-06 00:00:00.0000",
+      "linear_position_percent": 83.39500381375515,
+      "log_position_percent": 97.86830889414561,
+      "earth_reference_ratio": 143.16699019754904
+    },
+    {
+      "id": "voyager:2019",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2019",
+      "value_au": 146.73312836768216,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2019-Sep-06 00:00:00.0000",
+      "linear_position_percent": 85.47228507732201,
+      "log_position_percent": 98.15714645498294,
+      "earth_reference_ratio": 146.73312836768216
+    },
+    {
+      "id": "voyager:2020",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2020",
+      "value_au": 150.3065760098006,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2020-Sep-06 00:00:00.0000",
+      "linear_position_percent": 87.55382412016644,
+      "log_position_percent": 98.43961875112976,
+      "earth_reference_ratio": 150.3065760098006
+    },
+    {
+      "id": "voyager:2021",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2021",
+      "value_au": 153.8680859070377,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2021-Sep-06 00:00:00.0000",
+      "linear_position_percent": 89.62840940727055,
+      "log_position_percent": 98.71454294339533,
+      "earth_reference_ratio": 153.8680859070377
+    },
+    {
+      "id": "voyager:2022",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2022",
+      "value_au": 157.427984444527,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2022-Sep-06 00:00:00.0000",
+      "linear_position_percent": 91.70205607471013,
+      "log_position_percent": 98.98305568754546,
+      "earth_reference_ratio": 157.427984444527
+    },
+    {
+      "id": "voyager:2023",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2023",
+      "value_au": 160.98701708275584,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2023-Sep-06 00:00:00.0000",
+      "linear_position_percent": 93.77519835442716,
+      "log_position_percent": 99.24550082193333,
+      "earth_reference_ratio": 160.98701708275584
+    },
+    {
+      "id": "voyager:2024",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2024",
+      "value_au": 164.5555704890323,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2024-Sep-06 00:00:00.0000",
+      "linear_position_percent": 95.85388649696178,
+      "log_position_percent": 99.50288614252365,
+      "earth_reference_ratio": 164.5555704890323
+    },
+    {
+      "id": "voyager:2025",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2025",
+      "value_au": 168.11444977444543,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2025-Sep-06 00:00:00.0000",
+      "linear_position_percent": 97.92693944841513,
+      "log_position_percent": 99.7540737154649,
+      "earth_reference_ratio": 168.11444977444543
+    },
+    {
+      "id": "voyager:2026",
+      "kind": "voyager-radius",
+      "group_label": "Voyager 1",
+      "name": "Voyager 1 · 2026",
+      "value_au": 171.67334210725835,
+      "quantity_label": "Heliocentric position-vector magnitude",
+      "semantic_note": "Derived from the pinned Sun-centered J2000-ecliptic Horizons XYZ vector at this annual TDB sample epoch.",
+      "source": {
+        "label": "NASA/JPL Horizons API",
+        "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+      },
+      "detail_href": "/explore/missions/voyager-1",
+      "epoch_tdb": "A.D. 2026-Sep-06 00:00:00.0000",
+      "linear_position_percent": 100.0,
+      "log_position_percent": 100.0,
+      "earth_reference_ratio": 171.67334210725835
+    }
+  ]
+}

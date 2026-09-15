@@ -1,0 +1,515 @@
+{
+  "artifact_version": 1,
+  "model_version": "voyager-1-trajectory-v1",
+  "schema_version": 1,
+  "generated_at": "2026-09-15T10:45:00Z",
+  "definition": {
+    "slug": "voyager-1-mission-trajectory",
+    "title": "Voyager 1 Mission Timeline and Trajectory",
+    "content_type": "interactive-reference-model",
+    "status": "ready",
+    "version": 1,
+    "reviewed_at": "2026-09-15",
+    "model_version": "voyager-1-trajectory-v1",
+    "assumptions": [
+      "Mission milestones use NASA historical mission documentation, not Horizons event text.",
+      "Trajectory samples are Sun-centered geometric Cartesian positions from JPL Horizons.",
+      "The trajectory is sampled once per calendar year in the J2000 ecliptic reference frame.",
+      "Heliocentric distance is derived as sqrt(x² + y² + z²) from the pinned vectors."
+    ],
+    "limitations": [
+      "The XY trajectory is a projection; Z is omitted visually but remains in the data table.",
+      "Annual sampling does not reproduce the continuous flight path between samples.",
+      "Horizons describes the pre-1981 section as a rough patched-conic mission-design trajectory.",
+      "The post-1981 trajectory is a 2022 refit/extrapolation using tracking data through 1992.",
+      "NASA mission dates and Horizons TDB sample epochs are separate source contracts."
+    ]
+  },
+  "sources": [
+    {
+      "id": "nasa-voyager-1-mission",
+      "title": "Voyager 1",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/mission/voyager/voyager-1/",
+      "accessed_at": "2026-09-15",
+      "claim_scope": "Mission launch, planetary flybys, extended-mission milestones, termination shock, 100 AU, and entry into interstellar space."
+    },
+    {
+      "id": "jpl-horizons-api",
+      "title": "Horizons API",
+      "organization_or_authors": "NASA/JPL Solar System Dynamics",
+      "url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html",
+      "accessed_at": "2026-09-15",
+      "claim_scope": "Machine-readable Horizons query semantics and vector ephemeris contract."
+    }
+  ],
+  "raw_snapshot": {
+    "path": "data/seed/jpl-horizons-voyager-1-heliocentric-v1.txt",
+    "sha256": "827e0323d9a64632fc7dedf5d9d905adf2690adf7270d4e7251ea03ef7042d1f",
+    "bytes": 13303,
+    "retrieved_at": "2026-09-15",
+    "provider": "NASA/JPL Horizons API",
+    "target_id": "-31",
+    "center": "Sun (10)",
+    "reference_frame": "Ecliptic of J2000.0",
+    "output_units": "AU-D",
+    "output_type": "GEOMETRIC cartesian states",
+    "sample_step": "1 calendar year",
+    "start_tdb": "1977-09-06T00:00:00",
+    "stop_request_tdb": "2026-09-16T00:00:00",
+    "last_sample_tdb": "2026-09-06T00:00:00",
+    "api_documentation_url": "https://ssd-api.jpl.nasa.gov/doc/horizons.html"
+  },
+  "milestones": [
+    {
+      "date": "1977-09-05",
+      "title": "Launch",
+      "detail": "Voyager 1 launched from Cape Canaveral at 12:56:01 UT.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "1979-03-05",
+      "title": "Jupiter closest approach",
+      "detail": "Voyager 1 made its closest approach to Jupiter.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "1980-11-12",
+      "title": "Saturn closest approach",
+      "detail": "Voyager 1 made its closest approach to Saturn.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "1990-01-01",
+      "title": "Voyager Interstellar Mission begins",
+      "detail": "NASA marks the official start of the Voyager Interstellar Mission.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "1998-02-17",
+      "title": "Most distant human-made object",
+      "detail": "Voyager 1 overtook Pioneer 10 in distance from Earth.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "2004-12-16",
+      "title": "Termination shock",
+      "detail": "Voyager 1 reached the termination shock and entered the heliosheath.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "2006-08-16",
+      "title": "100 AU reached",
+      "detail": "Voyager 1 reached a heliocentric distance of 100 astronomical units.",
+      "source_id": "nasa-voyager-1-mission"
+    },
+    {
+      "date": "2012-08-25",
+      "title": "Interstellar space",
+      "detail": "Voyager 1 crossed the heliopause and entered interstellar space.",
+      "source_id": "nasa-voyager-1-mission"
+    }
+  ],
+  "trajectory_samples": [
+    {
+      "jd_tdb": 2443392.5,
+      "epoch_tdb": "A.D. 1977-Sep-06 00:00:00.0000",
+      "x_au": 0.9679318511236246,
+      "y_au": -0.2820995554599118,
+      "z_au": 0.0001711150759918104,
+      "radius_au": 1.0082024880403022
+    },
+    {
+      "jd_tdb": 2443757.5,
+      "epoch_tdb": "A.D. 1978-Sep-06 00:00:00.0000",
+      "x_au": -1.829373643784753,
+      "y_au": 3.654110756080424,
+      "z_au": 0.05361823970924268,
+      "radius_au": 4.086809056208336
+    },
+    {
+      "jd_tdb": 2444122.5,
+      "epoch_tdb": "A.D. 1979-Sep-06 00:00:00.0000",
+      "x_au": -5.357854771655224,
+      "y_au": 2.947008461158934,
+      "z_au": 0.1614382020842152,
+      "radius_au": 6.116986914926595
+    },
+    {
+      "jd_tdb": 2444488.5,
+      "epoch_tdb": "A.D. 1980-Sep-06 00:00:00.0000",
+      "x_au": -8.90516102337612,
+      "y_au": 0.164200256046193,
+      "z_au": 0.3493404478264966,
+      "radius_au": 8.913523059084465
+    },
+    {
+      "jd_tdb": 2444853.5,
+      "epoch_tdb": "A.D. 1981-Sep-06 00:00:00.0000",
+      "x_au": -10.46719345514533,
+      "y_au": -3.206998476579781,
+      "z_au": 2.4441970790375,
+      "radius_au": 11.216999483703193
+    },
+    {
+      "jd_tdb": 2445218.5,
+      "epoch_tdb": "A.D. 1982-Sep-06 00:00:00.0000",
+      "x_au": -11.38728134737529,
+      "y_au": -6.617706222845857,
+      "z_au": 4.91139137361934,
+      "radius_au": 14.05652792694684
+    },
+    {
+      "jd_tdb": 2445583.5,
+      "epoch_tdb": "A.D. 1983-Sep-06 00:00:00.0000",
+      "x_au": -12.13897307875921,
+      "y_au": -9.934846739953317,
+      "z_au": 7.309431544837532,
+      "radius_au": 17.30559553040195
+    },
+    {
+      "jd_tdb": 2445949.5,
+      "epoch_tdb": "A.D. 1984-Sep-06 00:00:00.0000",
+      "x_au": -12.79656620035074,
+      "y_au": -13.18362378209318,
+      "z_au": 9.657919133549578,
+      "radius_au": 20.756575934819185
+    },
+    {
+      "jd_tdb": 2446314.5,
+      "epoch_tdb": "A.D. 1985-Sep-06 00:00:00.0000",
+      "x_au": -13.39464699902435,
+      "y_au": -16.36345576335896,
+      "z_au": 11.95693806616669,
+      "radius_au": 24.2929541362516
+    },
+    {
+      "jd_tdb": 2446679.5,
+      "epoch_tdb": "A.D. 1986-Sep-06 00:00:00.0000",
+      "x_au": -13.95609539344387,
+      "y_au": -19.49686250955941,
+      "z_au": 14.22278726044768,
+      "radius_au": 27.878090390188518
+    },
+    {
+      "jd_tdb": 2447044.5,
+      "epoch_tdb": "A.D. 1987-Sep-06 00:00:00.0000",
+      "x_au": -14.4931217844335,
+      "y_au": -22.59414830114297,
+      "z_au": 16.46260257691376,
+      "radius_au": 31.48909970319682
+    },
+    {
+      "jd_tdb": 2447410.5,
+      "epoch_tdb": "A.D. 1988-Sep-06 00:00:00.0000",
+      "x_au": -15.01435618093005,
+      "y_au": -25.67152824406424,
+      "z_au": 18.68761254651985,
+      "radius_au": 35.12385395429247
+    },
+    {
+      "jd_tdb": 2447775.5,
+      "epoch_tdb": "A.D. 1989-Sep-06 00:00:00.0000",
+      "x_au": -15.52119471939412,
+      "y_au": -28.71804179197989,
+      "z_au": 20.88945439243393,
+      "radius_au": 38.75567977338068
+    },
+    {
+      "jd_tdb": 2448140.5,
+      "epoch_tdb": "A.D. 1990-Sep-06 00:00:00.0000",
+      "x_au": -16.01753287360752,
+      "y_au": -31.74628654467533,
+      "z_au": 23.07709913379625,
+      "radius_au": 42.39033584633166
+    },
+    {
+      "jd_tdb": 2448505.5,
+      "epoch_tdb": "A.D. 1991-Sep-06 00:00:00.0000",
+      "x_au": -16.50494514684707,
+      "y_au": -34.75911578433279,
+      "z_au": 25.25274990507065,
+      "radius_au": 46.02510969217922
+    },
+    {
+      "jd_tdb": 2448871.5,
+      "epoch_tdb": "A.D. 1992-Sep-06 00:00:00.0000",
+      "x_au": -16.9859329386681,
+      "y_au": -37.76664463390098,
+      "z_au": 27.42406080847251,
+      "radius_au": 49.66810320444188
+    },
+    {
+      "jd_tdb": 2449236.5,
+      "epoch_tdb": "A.D. 1993-Sep-06 00:00:00.0000",
+      "x_au": -17.45891962969304,
+      "y_au": -40.75377346249458,
+      "z_au": 29.5805580898238,
+      "radius_au": 53.298155155444626
+    },
+    {
+      "jd_tdb": 2449601.5,
+      "epoch_tdb": "A.D. 1994-Sep-06 00:00:00.0000",
+      "x_au": -17.92626666687035,
+      "y_au": -43.72971902546976,
+      "z_au": 31.72931655532438,
+      "radius_au": 56.924413846136886
+    },
+    {
+      "jd_tdb": 2449966.5,
+      "epoch_tdb": "A.D. 1995-Sep-06 00:00:00.0000",
+      "x_au": -18.38905153069829,
+      "y_au": -46.69526510075795,
+      "z_au": 33.87126867574891,
+      "radius_au": 60.54641063459922
+    },
+    {
+      "jd_tdb": 2450332.5,
+      "epoch_tdb": "A.D. 1996-Sep-06 00:00:00.0000",
+      "x_au": -18.8496495427839,
+      "y_au": -49.65926497482179,
+      "z_au": 36.01303918496605,
+      "radius_au": 64.17391118720468
+    },
+    {
+      "jd_tdb": 2450697.5,
+      "epoch_tdb": "A.D. 1997-Sep-06 00:00:00.0000",
+      "x_au": -19.30671083555552,
+      "y_au": -52.606428119084,
+      "z_au": 38.14358832662825,
+      "radius_au": 67.78730480825594
+    },
+    {
+      "jd_tdb": 2451062.5,
+      "epoch_tdb": "A.D. 1998-Sep-06 00:00:00.0000",
+      "x_au": -19.76252172879908,
+      "y_au": -55.54600638227815,
+      "z_au": 40.26933976296186,
+      "radius_au": 71.39702945533661
+    },
+    {
+      "jd_tdb": 2451427.5,
+      "epoch_tdb": "A.D. 1999-Sep-06 00:00:00.0000",
+      "x_au": -20.21774573577348,
+      "y_au": -58.47941409714262,
+      "z_au": 42.39077230628725,
+      "radius_au": 75.00384451816427
+    },
+    {
+      "jd_tdb": 2451793.5,
+      "epoch_tdb": "A.D. 2000-Sep-06 00:00:00.0000",
+      "x_au": -20.67375427869719,
+      "y_au": -61.41607842692854,
+      "z_au": 44.51408658706016,
+      "radius_au": 78.61833571119956
+    },
+    {
+      "jd_tdb": 2452158.5,
+      "epoch_tdb": "A.D. 2001-Sep-06 00:00:00.0000",
+      "x_au": -21.12765384804926,
+      "y_au": -64.34105711544875,
+      "z_au": 46.6280184719318,
+      "radius_au": 82.22117424651172
+    },
+    {
+      "jd_tdb": 2452523.5,
+      "epoch_tdb": "A.D. 2002-Sep-06 00:00:00.0000",
+      "x_au": -21.58008354706437,
+      "y_au": -67.26297978858832,
+      "z_au": 48.73866269120276,
+      "radius_au": 85.82229137505686
+    },
+    {
+      "jd_tdb": 2452888.5,
+      "epoch_tdb": "A.D. 2003-Sep-06 00:00:00.0000",
+      "x_au": -22.03049400517671,
+      "y_au": -70.18196551026213,
+      "z_au": 50.84627035777353,
+      "radius_au": 89.4214412671343
+    },
+    {
+      "jd_tdb": 2453254.5,
+      "epoch_tdb": "A.D. 2004-Sep-06 00:00:00.0000",
+      "x_au": -22.47977815065276,
+      "y_au": -73.10582873352121,
+      "z_au": 52.95682769022014,
+      "radius_au": 93.02810446058312
+    },
+    {
+      "jd_tdb": 2453619.5,
+      "epoch_tdb": "A.D. 2005-Sep-06 00:00:00.0000",
+      "x_au": -22.92542780635813,
+      "y_au": -76.01828113854847,
+      "z_au": 55.05900544979591,
+      "radius_au": 96.62219407819607
+    },
+    {
+      "jd_tdb": 2453984.5,
+      "epoch_tdb": "A.D. 2006-Sep-06 00:00:00.0000",
+      "x_au": -23.36886862630597,
+      "y_au": -78.92696510062379,
+      "z_au": 57.15876003776427,
+      "radius_au": 100.21324109080273
+    },
+    {
+      "jd_tdb": 2454349.5,
+      "epoch_tdb": "A.D. 2007-Sep-06 00:00:00.0000",
+      "x_au": -23.8105265303367,
+      "y_au": -81.83161790800561,
+      "z_au": 59.25626357882288,
+      "radius_au": 103.80105797349381
+    },
+    {
+      "jd_tdb": 2454715.5,
+      "epoch_tdb": "A.D. 2008-Sep-06 00:00:00.0000",
+      "x_au": -24.25226031297301,
+      "y_au": -84.74007518519737,
+      "z_au": 61.35741623037466,
+      "radius_au": 107.39546079396723
+    },
+    {
+      "jd_tdb": 2455080.5,
+      "epoch_tdb": "A.D. 2009-Sep-06 00:00:00.0000",
+      "x_au": -24.69240490899442,
+      "y_au": -87.63663036514467,
+      "z_au": 63.45088691894322,
+      "radius_au": 110.97706471495472
+    },
+    {
+      "jd_tdb": 2455445.5,
+      "epoch_tdb": "A.D. 2010-Sep-06 00:00:00.0000",
+      "x_au": -25.13287213192149,
+      "y_au": -90.52982115609838,
+      "z_au": 65.54255793339753,
+      "radius_au": 114.5562598927158
+    },
+    {
+      "jd_tdb": 2455810.5,
+      "epoch_tdb": "A.D. 2011-Sep-06 00:00:00.0000",
+      "x_au": -25.57403002933071,
+      "y_au": -93.4205270617483,
+      "z_au": 67.63255111096106,
+      "radius_au": 118.13377103188029
+    },
+    {
+      "jd_tdb": 2456176.5,
+      "epoch_tdb": "A.D. 2012-Sep-06 00:00:00.0000",
+      "x_au": -26.01693901840058,
+      "y_au": -96.317612081286,
+      "z_au": 69.72668601646265,
+      "radius_au": 121.72006513211629
+    },
+    {
+      "jd_tdb": 2456541.5,
+      "epoch_tdb": "A.D. 2013-Sep-06 00:00:00.0000",
+      "x_au": -26.45861646114234,
+      "y_au": -99.20589612137005,
+      "z_au": 71.81360138741807,
+      "radius_au": 125.29589600027955
+    },
+    {
+      "jd_tdb": 2456906.5,
+      "epoch_tdb": "A.D. 2014-Sep-06 00:00:00.0000",
+      "x_au": -26.89955284910442,
+      "y_au": -102.0934816920023,
+      "z_au": 73.89908942935439,
+      "radius_au": 128.8710222119957
+    },
+    {
+      "jd_tdb": 2457271.5,
+      "epoch_tdb": "A.D. 2015-Sep-06 00:00:00.0000",
+      "x_au": -27.33915559586417,
+      "y_au": -104.9801736546773,
+      "z_au": 75.98321292070554,
+      "radius_au": 132.44513934083932
+    },
+    {
+      "jd_tdb": 2457637.5,
+      "epoch_tdb": "A.D. 2016-Sep-06 00:00:00.0000",
+      "x_au": -27.77829679297276,
+      "y_au": -107.8734416510531,
+      "z_au": 78.07173879848634,
+      "radius_au": 136.0276059679825
+    },
+    {
+      "jd_tdb": 2458002.5,
+      "epoch_tdb": "A.D. 2017-Sep-06 00:00:00.0000",
+      "x_au": -28.21451325757421,
+      "y_au": -110.7569524317919,
+      "z_au": 80.15331631575197,
+      "radius_au": 139.59840753659418
+    },
+    {
+      "jd_tdb": 2458367.5,
+      "epoch_tdb": "A.D. 2018-Sep-06 00:00:00.0000",
+      "x_au": -28.64921628755774,
+      "y_au": -113.63813308315,
+      "z_au": 82.23371691532697,
+      "radius_au": 143.16699019754904
+    },
+    {
+      "jd_tdb": 2458732.5,
+      "epoch_tdb": "A.D. 2019-Sep-06 00:00:00.0000",
+      "x_au": -29.08285913884788,
+      "y_au": -116.5165881469454,
+      "z_au": 84.31300582633574,
+      "radius_au": 146.73312836768216
+    },
+    {
+      "jd_tdb": 2459098.5,
+      "epoch_tdb": "A.D. 2020-Sep-06 00:00:00.0000",
+      "x_au": -29.51726215603603,
+      "y_au": -119.4000277812893,
+      "z_au": 86.39694087425295,
+      "radius_au": 150.3065760098006
+    },
+    {
+      "jd_tdb": 2459463.5,
+      "epoch_tdb": "A.D. 2021-Sep-06 00:00:00.0000",
+      "x_au": -29.95081616123353,
+      "y_au": -122.272859423521,
+      "z_au": 88.47420143955755,
+      "radius_au": 153.8680859070377
+    },
+    {
+      "jd_tdb": 2459828.5,
+      "epoch_tdb": "A.D. 2022-Sep-06 00:00:00.0000",
+      "x_au": -30.38534608832278,
+      "y_au": -125.143517074281,
+      "z_au": 90.55054480033915,
+      "radius_au": 157.427984444527
+    },
+    {
+      "jd_tdb": 2460193.5,
+      "epoch_tdb": "A.D. 2023-Sep-06 00:00:00.0000",
+      "x_au": -30.82112993180812,
+      "y_au": -128.0128801540784,
+      "z_au": 92.62602298267849,
+      "radius_au": 160.98701708275584
+    },
+    {
+      "jd_tdb": 2460559.5,
+      "epoch_tdb": "A.D. 2024-Sep-06 00:00:00.0000",
+      "x_au": -31.25913339798766,
+      "y_au": -130.8896795330166,
+      "z_au": 94.7063574947422,
+      "radius_au": 164.5555704890323
+    },
+    {
+      "jd_tdb": 2460924.5,
+      "epoch_tdb": "A.D. 2025-Sep-06 00:00:00.0000",
+      "x_au": -31.69631681093029,
+      "y_au": -133.7587515148549,
+      "z_au": 96.78020519079804,
+      "radius_au": 168.11444977444543
+    },
+    {
+      "jd_tdb": 2461289.5,
+      "epoch_tdb": "A.D. 2026-Sep-06 00:00:00.0000",
+      "x_au": -32.13313396310912,
+      "y_au": -136.6280685490722,
+      "z_au": 98.85326993344566,
+      "radius_au": 171.67334210725835
+    }
+  ]
+}

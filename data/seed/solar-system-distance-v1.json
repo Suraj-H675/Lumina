@@ -1,0 +1,213 @@
+{
+  "artifact_version": 1,
+  "model_version": "solar-system-distance-v1",
+  "schema_version": 1,
+  "generated_at": "2026-09-15T10:00:00Z",
+  "definition": {
+    "slug": "solar-system-distance-explorer",
+    "title": "Solar System Distance Explorer",
+    "content_type": "interactive-reference-model",
+    "status": "ready",
+    "version": 1,
+    "reviewed_at": "2026-09-15",
+    "model_version": "solar-system-distance-v1",
+    "default_scale": "log",
+    "calculation": {
+      "log_distance": "log10(mean Sun distance in AU), normalized from Mercury=0% to Neptune=100%; the Sun is excluded because log10(0) is undefined.",
+      "linear_distance": "mean Sun distance / Neptune mean Sun distance × 100%."
+    },
+    "assumptions": [
+      "NASA's cited mean Sun distances are used as fixed reference distances.",
+      "The visual does not compute or display current planetary positions.",
+      "Planet markers use a uniform presentation size; body diameter is not encoded."
+    ],
+    "limitations": [
+      "The track is not an ephemeris, orbit propagator, or current Solar System snapshot.",
+      "The logarithmic view intentionally distorts linear spacing so inner and outer planets fit together.",
+      "The linear view compares the cited mean distances only; it does not draw orbital eccentricity or inclination.",
+      "The Sun is an origin marker at 0 AU and is not included in the logarithmic transform."
+    ],
+    "references": ["nasa-basics-solar-system-distances", "nasa-basics-au-definition"]
+  },
+  "sources": [
+    {
+      "id": "nasa-basics-solar-system-distances",
+      "title": "Basics of Space Flight, Chapter 1: The Solar System",
+      "organization_or_authors": "NASA Science / Jet Propulsion Laboratory",
+      "url": "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-2/",
+      "accessed_at": "2026-09-15",
+      "dataset_or_release": "NASA Basics of Space Flight web reference; not a versioned dataset.",
+      "record_reference": "Terrestrial and Jovian planetary-data tables on the chapter page.",
+      "retrieved_at": "2026-09-15",
+      "data_date": "Page publication metadata is not a planetary-element epoch.",
+      "terms_or_licence": "NASA factual/educational source; Lumina republishes cited numeric facts and links only, not NASA media or identifiers.",
+      "citation": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight, Chapter 1: The Solar System”, accessed 2026-09-15.",
+      "claim_scope": "Approximate mean distances from the Sun and light-time context for the eight planets.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "nasa-basics-au-definition",
+      "title": "Basics of Space Flight: Units of Measure",
+      "organization_or_authors": "NASA Science / Jet Propulsion Laboratory",
+      "url": "https://science.nasa.gov/learn/basics-of-space-flight/units/",
+      "accessed_at": "2026-09-15",
+      "dataset_or_release": "NASA Basics of Space Flight web reference; not a versioned dataset.",
+      "record_reference": "Astronomical-unit entry in the units reference.",
+      "retrieved_at": "2026-09-15",
+      "data_date": "Not applicable — unit-definition reference.",
+      "terms_or_licence": "NASA factual/educational source; Lumina republishes cited unit context and links only, not NASA media or identifiers.",
+      "citation": "NASA Science / Jet Propulsion Laboratory, “Basics of Space Flight: Units of Measure”, accessed 2026-09-15.",
+      "claim_scope": "Astronomical-unit definition and distance-unit context.",
+      "source_type": "official-agency"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "sun",
+      "name": "Sun",
+      "kind": "star",
+      "mean_distance_au": 0.0,
+      "light_time_value": 0.0,
+      "light_time_unit": "minutes",
+      "linear_position_percent": 0.0,
+      "log_position_percent": null,
+      "earth_distance_ratio": 0.0,
+      "scale_explorer_node_id": "sun",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "mercury",
+      "name": "Mercury",
+      "kind": "terrestrial",
+      "mean_distance_au": 0.387,
+      "light_time_value": 3.2,
+      "light_time_unit": "minutes",
+      "linear_position_percent": 1.2878535773710482,
+      "log_position_percent": 0.0,
+      "earth_distance_ratio": 0.387,
+      "scale_explorer_node_id": "mercury",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "venus",
+      "name": "Venus",
+      "kind": "terrestrial",
+      "mean_distance_au": 0.723,
+      "light_time_value": 6.0,
+      "light_time_unit": "minutes",
+      "linear_position_percent": 2.4059900166389347,
+      "log_position_percent": 14.360220092922773,
+      "earth_distance_ratio": 0.723,
+      "scale_explorer_node_id": "venus",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "earth",
+      "name": "Earth",
+      "kind": "terrestrial",
+      "mean_distance_au": 1.0,
+      "light_time_value": 8.3,
+      "light_time_unit": "minutes",
+      "linear_position_percent": 3.3277870216306153,
+      "log_position_percent": 21.81269378654603,
+      "earth_distance_ratio": 1.0,
+      "scale_explorer_node_id": "earth",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "mars",
+      "name": "Mars",
+      "kind": "terrestrial",
+      "mean_distance_au": 1.524,
+      "light_time_value": 12.7,
+      "light_time_unit": "minutes",
+      "linear_position_percent": 5.071547420965058,
+      "log_position_percent": 31.49375419353318,
+      "earth_distance_ratio": 1.524,
+      "scale_explorer_node_id": "mars",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "jupiter",
+      "name": "Jupiter",
+      "kind": "giant",
+      "mean_distance_au": 5.2,
+      "light_time_value": 0.72,
+      "light_time_unit": "hours",
+      "linear_position_percent": 17.304492512479204,
+      "log_position_percent": 59.69379262674524,
+      "earth_distance_ratio": 5.2,
+      "scale_explorer_node_id": "jupiter",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "saturn",
+      "name": "Saturn",
+      "kind": "giant",
+      "mean_distance_au": 9.58,
+      "light_time_value": 1.3,
+      "light_time_unit": "hours",
+      "linear_position_percent": 31.880199667221298,
+      "log_position_percent": 73.73312708933818,
+      "earth_distance_ratio": 9.58,
+      "scale_explorer_node_id": "saturn",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "uranus",
+      "name": "Uranus",
+      "kind": "giant",
+      "mean_distance_au": 19.2,
+      "light_time_value": 2.7,
+      "light_time_unit": "hours",
+      "linear_position_percent": 63.89351081530782,
+      "log_position_percent": 89.70743355058751,
+      "earth_distance_ratio": 19.2,
+      "scale_explorer_node_id": "uranus",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    },
+    {
+      "id": "neptune",
+      "name": "Neptune",
+      "kind": "giant",
+      "mean_distance_au": 30.05,
+      "light_time_value": 4.2,
+      "light_time_unit": "hours",
+      "linear_position_percent": 100.0,
+      "log_position_percent": 100.0,
+      "earth_distance_ratio": 30.05,
+      "scale_explorer_node_id": "neptune",
+      "source_ids": ["nasa-basics-solar-system-distances"]
+    }
+  ],
+  "validation_fixtures": [
+    {
+      "id": "earth-linear-reference",
+      "body_id": "earth",
+      "field": "linear_position_percent",
+      "expected": 3.3277870216306153,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "id": "mercury-log-minimum",
+      "body_id": "mercury",
+      "field": "log_position_percent",
+      "expected": 0.0,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "id": "neptune-both-maxima",
+      "body_id": "neptune",
+      "field": "linear_position_percent",
+      "expected": 100.0,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "id": "neptune-log-maximum",
+      "body_id": "neptune",
+      "field": "log_position_percent",
+      "expected": 100.0,
+      "absolute_tolerance": 1e-12
+    }
+  ]
+}

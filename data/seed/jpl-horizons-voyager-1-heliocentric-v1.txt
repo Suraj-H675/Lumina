@@ -1,0 +1,199 @@
+API VERSION: 1.2
+API SOURCE: NASA/JPL Horizons API
+
+*******************************************************************************
+ Revised: Aug 19, 2022   Voyager 1 Spacecraft (interplanetary) / (Sun)     -31
+                        http://www.jpl.nasa.gov/missions/voyager-1/
+
+ BACKGROUND
+   See the web-page above for information on the Voyager Mission
+
+ TIMELINE
+   1977-Sep-06  Launch from Kennedy Space Center @ 12:56 UTC
+   1979-Mar-05  Jupiter closest-approach, Io imaging
+   1980-Nov-12  Saturn encounter, Titan
+   1990-Jan-01  Interstellar mission begins
+   1990-Feb-14  Final Voyager image return
+   1992-Apr-24  Final two-way tracking measurements
+   1998-Feb-17  Exceeds Pioneer 10 distance (most distant man-made object)
+   2004-Dec-15  Crosses solar system "bow shock" boundary
+   2012-Aug-25  Passes heliopause and termination shock boundary
+
+ SPACECRAFT TRAJECTORY:
+   This trajectory is composed of two merged sections:
+
+     #1) 1977-Sep-5 to 1981-Jan-1:
+          A patched conic mission-design type trajectory in which the conics 
+          were constructed to approximately match specific events, such as
+          satellite encounters, providing a rough accuracy. 
+
+     #2) 1981-Jan-1 to 2100-Jan-1 
+          Refit of tracking data spanning 1981-1992 (end of two-way coherent 
+          transponder data). Done in 2022 by R. Jacobson (former Voyager
+          navigation) using DE440 to generate a new solution and prediction. 
+
+   The reconstruction done in 2022 estimated:
+      - Epoch state vector
+      - Constant and stochastic non-gravitational accelerations 
+         (to account for the activity of three-axis attitude control system)
+      - Thermal radiation from RTG power sources
+      - Mismodelling of solar pressure  
+      - 96 impulsive maneuvers through Feb 1992
+
+   Note there has been no new tracking data possible since 1992. This is a
+   different issue from on-board telemetry, which continued beyond that date. 
+
+   The 2022 update refit the existing old tracking data using modern approaches
+   and standards to allow consistent extrapolation to 2100.
+
+   Formal predicted geocentric pointing uncertainty on 2030-Jan-1:
+     RA +/- 1.701 arcseconds, DEC +/- 1.535 arcseconds
+
+   This uncertainty is consistent with the new solution's difference with 
+   the A54206 prediction made in 1990. 
+ 
+   Tracking data used in 2022 solution:
+     Points Type       First point            Last point       residual rms
+       2366   F2   01-JAN-1981 05:14:00  15-APR-1989 08:09:00  0.133 mm/s
+       2084   F3   07-JAN-1981 12:15:00  24-APR-1992 14:04:00  0.153 mm/s
+       5191  PRA   01-JAN-1981 03:52:18  20-JAN-1989 14:13:59  228 m
+         67  SRA   04-MAR-1989 10:58:56  13-OCT-1991 04:49:30  227 m
+*******************************************************************************
+
+
+*******************************************************************************
+Ephemeris / API_USER Tue Sep 15 03:33:40 2026 Pasadena, USA      / Horizons
+*******************************************************************************
+Target body name: Voyager 1 (spacecraft) (-31)    {source: Voyager_1_ST+refit2022_m}
+Center body name: Sun (10)                        {source: Voyager_1_ST+refit2022_m}
+Center-site name: BODY CENTER
+*******************************************************************************
+Start time      : A.D. 1977-Sep-06 00:00:00.0000 TDB
+Stop  time      : A.D. 2026-Sep-16 00:00:00.0000 TDB
+Step-size       : 1  calendar years
+*******************************************************************************
+Center geodetic : 0.0, 0.0, 0.0                   {E-lon(deg),Lat(deg),Alt(km)}
+Center cylindric: 0.0, 0.0, 0.0                   {E-lon(deg),Dxy(km),Dz(km)}
+Center radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}
+Output units    : AU-D
+Calendar mode   : Mixed Julian/Gregorian
+Output type     : GEOMETRIC cartesian states
+Output format   : 1 (position only)
+Reference frame : Ecliptic of J2000.0
+*******************************************************************************
+            JDTDB,            Calendar Date (TDB),                      X,                      Y,                      Z,
+**************************************************************************************************************************
+$$SOE
+2443392.500000000, A.D. 1977-Sep-06 00:00:00.0000,  9.679318511236246E-01, -2.820995554599118E-01,  1.711150759918104E-04,
+2443757.500000000, A.D. 1978-Sep-06 00:00:00.0000, -1.829373643784753E+00,  3.654110756080424E+00,  5.361823970924268E-02,
+2444122.500000000, A.D. 1979-Sep-06 00:00:00.0000, -5.357854771655224E+00,  2.947008461158934E+00,  1.614382020842152E-01,
+2444488.500000000, A.D. 1980-Sep-06 00:00:00.0000, -8.905161023376120E+00,  1.642002560461930E-01,  3.493404478264966E-01,
+2444853.500000000, A.D. 1981-Sep-06 00:00:00.0000, -1.046719345514533E+01, -3.206998476579781E+00,  2.444197079037500E+00,
+2445218.500000000, A.D. 1982-Sep-06 00:00:00.0000, -1.138728134737529E+01, -6.617706222845857E+00,  4.911391373619340E+00,
+2445583.500000000, A.D. 1983-Sep-06 00:00:00.0000, -1.213897307875921E+01, -9.934846739953317E+00,  7.309431544837532E+00,
+2445949.500000000, A.D. 1984-Sep-06 00:00:00.0000, -1.279656620035074E+01, -1.318362378209318E+01,  9.657919133549578E+00,
+2446314.500000000, A.D. 1985-Sep-06 00:00:00.0000, -1.339464699902435E+01, -1.636345576335896E+01,  1.195693806616669E+01,
+2446679.500000000, A.D. 1986-Sep-06 00:00:00.0000, -1.395609539344387E+01, -1.949686250955941E+01,  1.422278726044768E+01,
+2447044.500000000, A.D. 1987-Sep-06 00:00:00.0000, -1.449312178443350E+01, -2.259414830114297E+01,  1.646260257691376E+01,
+2447410.500000000, A.D. 1988-Sep-06 00:00:00.0000, -1.501435618093005E+01, -2.567152824406424E+01,  1.868761254651985E+01,
+2447775.500000000, A.D. 1989-Sep-06 00:00:00.0000, -1.552119471939412E+01, -2.871804179197989E+01,  2.088945439243393E+01,
+2448140.500000000, A.D. 1990-Sep-06 00:00:00.0000, -1.601753287360752E+01, -3.174628654467533E+01,  2.307709913379625E+01,
+2448505.500000000, A.D. 1991-Sep-06 00:00:00.0000, -1.650494514684707E+01, -3.475911578433279E+01,  2.525274990507065E+01,
+2448871.500000000, A.D. 1992-Sep-06 00:00:00.0000, -1.698593293866810E+01, -3.776664463390098E+01,  2.742406080847251E+01,
+2449236.500000000, A.D. 1993-Sep-06 00:00:00.0000, -1.745891962969304E+01, -4.075377346249458E+01,  2.958055808982380E+01,
+2449601.500000000, A.D. 1994-Sep-06 00:00:00.0000, -1.792626666687035E+01, -4.372971902546976E+01,  3.172931655532438E+01,
+2449966.500000000, A.D. 1995-Sep-06 00:00:00.0000, -1.838905153069829E+01, -4.669526510075795E+01,  3.387126867574891E+01,
+2450332.500000000, A.D. 1996-Sep-06 00:00:00.0000, -1.884964954278390E+01, -4.965926497482179E+01,  3.601303918496605E+01,
+2450697.500000000, A.D. 1997-Sep-06 00:00:00.0000, -1.930671083555552E+01, -5.260642811908400E+01,  3.814358832662825E+01,
+2451062.500000000, A.D. 1998-Sep-06 00:00:00.0000, -1.976252172879908E+01, -5.554600638227815E+01,  4.026933976296186E+01,
+2451427.500000000, A.D. 1999-Sep-06 00:00:00.0000, -2.021774573577348E+01, -5.847941409714262E+01,  4.239077230628725E+01,
+2451793.500000000, A.D. 2000-Sep-06 00:00:00.0000, -2.067375427869719E+01, -6.141607842692854E+01,  4.451408658706016E+01,
+2452158.500000000, A.D. 2001-Sep-06 00:00:00.0000, -2.112765384804926E+01, -6.434105711544875E+01,  4.662801847193180E+01,
+2452523.500000000, A.D. 2002-Sep-06 00:00:00.0000, -2.158008354706437E+01, -6.726297978858832E+01,  4.873866269120276E+01,
+2452888.500000000, A.D. 2003-Sep-06 00:00:00.0000, -2.203049400517671E+01, -7.018196551026213E+01,  5.084627035777353E+01,
+2453254.500000000, A.D. 2004-Sep-06 00:00:00.0000, -2.247977815065276E+01, -7.310582873352121E+01,  5.295682769022014E+01,
+2453619.500000000, A.D. 2005-Sep-06 00:00:00.0000, -2.292542780635813E+01, -7.601828113854847E+01,  5.505900544979591E+01,
+2453984.500000000, A.D. 2006-Sep-06 00:00:00.0000, -2.336886862630597E+01, -7.892696510062379E+01,  5.715876003776427E+01,
+2454349.500000000, A.D. 2007-Sep-06 00:00:00.0000, -2.381052653033670E+01, -8.183161790800561E+01,  5.925626357882288E+01,
+2454715.500000000, A.D. 2008-Sep-06 00:00:00.0000, -2.425226031297301E+01, -8.474007518519737E+01,  6.135741623037466E+01,
+2455080.500000000, A.D. 2009-Sep-06 00:00:00.0000, -2.469240490899442E+01, -8.763663036514467E+01,  6.345088691894322E+01,
+2455445.500000000, A.D. 2010-Sep-06 00:00:00.0000, -2.513287213192149E+01, -9.052982115609838E+01,  6.554255793339753E+01,
+2455810.500000000, A.D. 2011-Sep-06 00:00:00.0000, -2.557403002933071E+01, -9.342052706174830E+01,  6.763255111096106E+01,
+2456176.500000000, A.D. 2012-Sep-06 00:00:00.0000, -2.601693901840058E+01, -9.631761208128600E+01,  6.972668601646265E+01,
+2456541.500000000, A.D. 2013-Sep-06 00:00:00.0000, -2.645861646114234E+01, -9.920589612137005E+01,  7.181360138741807E+01,
+2456906.500000000, A.D. 2014-Sep-06 00:00:00.0000, -2.689955284910442E+01, -1.020934816920023E+02,  7.389908942935439E+01,
+2457271.500000000, A.D. 2015-Sep-06 00:00:00.0000, -2.733915559586417E+01, -1.049801736546773E+02,  7.598321292070554E+01,
+2457637.500000000, A.D. 2016-Sep-06 00:00:00.0000, -2.777829679297276E+01, -1.078734416510531E+02,  7.807173879848634E+01,
+2458002.500000000, A.D. 2017-Sep-06 00:00:00.0000, -2.821451325757421E+01, -1.107569524317919E+02,  8.015331631575197E+01,
+2458367.500000000, A.D. 2018-Sep-06 00:00:00.0000, -2.864921628755774E+01, -1.136381330831500E+02,  8.223371691532697E+01,
+2458732.500000000, A.D. 2019-Sep-06 00:00:00.0000, -2.908285913884788E+01, -1.165165881469454E+02,  8.431300582633574E+01,
+2459098.500000000, A.D. 2020-Sep-06 00:00:00.0000, -2.951726215603603E+01, -1.194000277812893E+02,  8.639694087425295E+01,
+2459463.500000000, A.D. 2021-Sep-06 00:00:00.0000, -2.995081616123353E+01, -1.222728594235210E+02,  8.847420143955755E+01,
+2459828.500000000, A.D. 2022-Sep-06 00:00:00.0000, -3.038534608832278E+01, -1.251435170742810E+02,  9.055054480033915E+01,
+2460193.500000000, A.D. 2023-Sep-06 00:00:00.0000, -3.082112993180812E+01, -1.280128801540784E+02,  9.262602298267849E+01,
+2460559.500000000, A.D. 2024-Sep-06 00:00:00.0000, -3.125913339798766E+01, -1.308896795330166E+02,  9.470635749474221E+01,
+2460924.500000000, A.D. 2025-Sep-06 00:00:00.0000, -3.169631681093029E+01, -1.337587515148549E+02,  9.678020519079804E+01,
+2461289.500000000, A.D. 2026-Sep-06 00:00:00.0000, -3.213313396310912E+01, -1.366280685490722E+02,  9.885326993344566E+01,
+$$EOE
+**************************************************************************************************************************
+ 
+TIME
+
+  Barycentric Dynamical Time ("TDB" or T_eph) output was requested. This
+continuous coordinate time is equivalent to the relativistic proper time
+of a clock at rest in a reference frame co-moving with the solar system
+barycenter but outside the system's gravity well. It is the independent
+variable in the solar system relativistic equations of motion.
+
+  TDB runs at a uniform rate of one SI second per second and is independent
+of irregularities in Earth's rotation.
+ 
+CALENDAR SYSTEM
+
+  Mixed calendar mode was active such that calendar dates after AD 1582-Oct-15
+(if any) are in the modern Gregorian system. Dates prior to 1582-Oct-5 (if any)
+are in the Julian calendar system, which is automatically extended for dates
+prior to its adoption on 45-Jan-1 BC.  The Julian calendar is useful for
+matching historical dates. The Gregorian calendar more accurately corresponds
+to the Earth's orbital motion and seasons. A "Gregorian-only" calendar mode is
+available if such physical events are the primary interest.
+
+REFERENCE FRAME AND COORDINATES
+
+  Ecliptic at the standard reference epoch
+
+    Reference epoch: J2000.0
+    X-Y plane: adopted Earth orbital plane at the reference epoch
+               Note: IAU76 obliquity of 84381.448 arcseconds wrt ICRF X-Y plane
+    X-axis   : ICRF
+    Z-axis   : perpendicular to the X-Y plane in the directional (+ or -) sense
+               of Earth's north pole at the reference epoch.
+
+  Symbol meaning [1 au= 149597870.700 km, 1 day= 86400.0 s]:
+
+    JDTDB    Julian Day Number, Barycentric Dynamical Time
+      X      X-component of position vector (au)
+      Y      Y-component of position vector (au)
+      Z      Z-component of position vector (au)
+
+ABERRATIONS AND CORRECTIONS
+
+ Geometric state vectors have NO corrections or aberrations applied.
+
+Computations by ...
+
+    Solar System Dynamics Group, Horizons On-Line Ephemeris System
+    4800 Oak Grove Drive, Jet Propulsion Laboratory
+    Pasadena, CA  91109   USA
+
+    General site: https://ssd.jpl.nasa.gov/
+    Mailing list: https://ssd.jpl.nasa.gov/email_list.html
+    System news : https://ssd.jpl.nasa.gov/horizons/news.html
+    User Guide  : https://ssd.jpl.nasa.gov/horizons/manual.html
+    Connect     : browser        https://ssd.jpl.nasa.gov/horizons/app.html#/x
+                  API            https://ssd-api.jpl.nasa.gov/doc/horizons.html
+                  command-line   telnet ssd.jpl.nasa.gov 6775
+                  e-mail/batch   https://ssd.jpl.nasa.gov/ftp/ssd/horizons_batch.txt
+                  scripts        https://ssd.jpl.nasa.gov/ftp/ssd/SCRIPTS
+    Inquiries   : Jon.D.Giorgini@jpl.nasa.gov
+*******************************************************************************

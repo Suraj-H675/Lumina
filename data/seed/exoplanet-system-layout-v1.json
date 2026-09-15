@@ -1,0 +1,336 @@
+{
+  "artifact_version": 1,
+  "model_version": "exoplanet-system-layout-v1",
+  "schema_version": 1,
+  "generated_at": "2026-09-15T10:20:00Z",
+  "raw_snapshot": {
+    "path": "data/seed/nasa-exoplanet-archive-known-host-systems-v1.csv",
+    "sha256": "74a1dde951b63b630653c94c36880cfd9b015faa2c600315f5e06fa22596c9db",
+    "bytes": 4202,
+    "retrieved_at": "2026-09-15",
+    "provider": "NASA Exoplanet Archive",
+    "table": "pscomppars",
+    "tap_endpoint": "https://exoplanetarchive.ipac.caltech.edu/TAP/sync",
+    "query": "select pl_name,hostname,sy_pnum,pl_orbsmax,pl_orbsmaxerr1,pl_orbsmaxerr2,pl_orbsmaxlim,pl_orbsmax_reflink,pl_orbper,pl_orbpererr1,pl_orbpererr2,pl_orbperlim,pl_orbper_reflink,disc_year,discoverymethod from pscomppars where hostname in ('HD 209458','Kepler-186','Kepler-452','51 Peg','51 Pegasi','K2-18') order by hostname,pl_orbsmax,pl_name",
+    "documentation_url": "https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html",
+    "column_documentation_url": "https://exoplanetarchive.ipac.caltech.edu/docs/API_PS_columns.html"
+  },
+  "definition": {
+    "slug": "exoplanet-system-layout",
+    "title": "Exoplanet System Layout",
+    "content_type": "interactive-reference-model",
+    "status": "ready",
+    "version": 1,
+    "reviewed_at": "2026-09-15",
+    "model_version": "exoplanet-system-layout-v1",
+    "default_scale": "log",
+    "shared_scale_domain_au": {
+      "minimum": 0.0343,
+      "maximum": 1.046
+    },
+    "assumptions": [
+      "Only confirmed PSCompPars rows for Lumina's five reviewed host stars are included.",
+      "Only positive, non-limit semi-major-axis values are eligible for layout.",
+      "All systems share one axis domain so cross-system spacing remains comparable.",
+      "Planet markers use a uniform presentation size and do not encode planet radius."
+    ],
+    "limitations": [
+      "Semi-major axis is an orbital reference length, not the planet's current star distance.",
+      "Marker position on the one-dimensional track is not orbital phase or sky position.",
+      "The track does not encode eccentricity, inclination, orientation, or current epoch.",
+      "PSCompPars is composite: different parameters may cite different publications."
+    ]
+  },
+  "systems": [
+    {
+      "archive_hostname": "51 Peg",
+      "display_name": "51 Pegasi",
+      "host_slug": "51-pegasi",
+      "archive_planet_count": 1,
+      "planets": [
+        {
+          "name": "51 Peg b",
+          "semimajor_axis_au": 0.052,
+          "semimajor_axis_uncertainty_au": {
+            "plus": null,
+            "minus": null
+          },
+          "semimajor_axis_reference": {
+            "text": "Cont et al. 2026",
+            "url": "https://ui.adsabs.harvard.edu/abs/2026A&A...710A.345C/abstract"
+          },
+          "orbital_period_days": 4.2307966,
+          "orbital_period_uncertainty_days": {
+            "plus": 2.7e-6,
+            "minus": -2.7e-6
+          },
+          "orbital_period_reference": {
+            "text": "Cont et al. 2026",
+            "url": "https://ui.adsabs.harvard.edu/abs/2026A&A...710A.345C/abstract"
+          },
+          "discovery_year": 1995,
+          "discovery_method": "Radial Velocity",
+          "linear_position_percent": 4.971319311663479,
+          "log_position_percent": 12.17522234416072
+        }
+      ]
+    },
+    {
+      "archive_hostname": "HD 209458",
+      "display_name": "HD 209458",
+      "host_slug": "hd-209458",
+      "archive_planet_count": 1,
+      "planets": [
+        {
+          "name": "HD 209458 b",
+          "semimajor_axis_au": 0.04707,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.00045,
+            "minus": -0.00047
+          },
+          "semimajor_axis_reference": {
+            "text": "Bonomo et al. 2017",
+            "url": "https://ui.adsabs.harvard.edu/abs/2017A&A...602A.107B/abstract"
+          },
+          "orbital_period_days": 3.52474859,
+          "orbital_period_uncertainty_days": {
+            "plus": 3.8e-7,
+            "minus": -3.8e-7
+          },
+          "orbital_period_reference": {
+            "text": "Stassun et al. 2017",
+            "url": "https://ui.adsabs.harvard.edu/abs/2017AJ....153..136S/abstract"
+          },
+          "discovery_year": 1999,
+          "discovery_method": "Radial Velocity",
+          "linear_position_percent": 4.5,
+          "log_position_percent": 9.260652172699755
+        }
+      ]
+    },
+    {
+      "archive_hostname": "K2-18",
+      "display_name": "K2-18",
+      "host_slug": "k2-18",
+      "archive_planet_count": 2,
+      "planets": [
+        {
+          "name": "K2-18 c",
+          "semimajor_axis_au": 0.06,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.003,
+            "minus": -0.003
+          },
+          "semimajor_axis_reference": {
+            "text": "Cloutier et al. 2017",
+            "url": "https://ui.adsabs.harvard.edu/abs/2017A&A...608A..35C/abstract"
+          },
+          "orbital_period_days": 8.962,
+          "orbital_period_uncertainty_days": {
+            "plus": 0.008,
+            "minus": -0.008
+          },
+          "orbital_period_reference": {
+            "text": "Cloutier et al. 2017",
+            "url": "https://ui.adsabs.harvard.edu/abs/2017A&A...608A..35C/abstract"
+          },
+          "discovery_year": 2017,
+          "discovery_method": "Radial Velocity",
+          "linear_position_percent": 5.736137667304015,
+          "log_position_percent": 16.362416378039153
+        },
+        {
+          "name": "K2-18 b",
+          "semimajor_axis_au": 0.1429,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.006,
+            "minus": -0.0065
+          },
+          "semimajor_axis_reference": {
+            "text": "Sarkis et al. 2018",
+            "url": "https://ui.adsabs.harvard.edu/abs/2018AJ....155..257S/abstract"
+          },
+          "orbital_period_days": 32.939623,
+          "orbital_period_uncertainty_days": {
+            "plus": 9.5e-5,
+            "minus": -0.0001
+          },
+          "orbital_period_reference": {
+            "text": "Sarkis et al. 2018",
+            "url": "https://ui.adsabs.harvard.edu/abs/2018AJ....155..257S/abstract"
+          },
+          "discovery_year": 2015,
+          "discovery_method": "Transit",
+          "linear_position_percent": 13.661567877629063,
+          "log_position_percent": 41.754643837072074
+        }
+      ]
+    },
+    {
+      "archive_hostname": "Kepler-186",
+      "display_name": "Kepler-186",
+      "host_slug": "kepler-186",
+      "archive_planet_count": 5,
+      "planets": [
+        {
+          "name": "Kepler-186 b",
+          "semimajor_axis_au": 0.0343,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.0046,
+            "minus": -0.0046
+          },
+          "semimajor_axis_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "orbital_period_days": 3.8867907,
+          "orbital_period_uncertainty_days": {
+            "plus": 6.2e-6,
+            "minus": -6.3e-6
+          },
+          "orbital_period_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "discovery_year": 2014,
+          "discovery_method": "Transit",
+          "linear_position_percent": 3.279158699808795,
+          "log_position_percent": 0.0
+        },
+        {
+          "name": "Kepler-186 c",
+          "semimajor_axis_au": 0.0451,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.007,
+            "minus": -0.007
+          },
+          "semimajor_axis_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "orbital_period_days": 7.267302,
+          "orbital_period_uncertainty_days": {
+            "plus": 1.2e-5,
+            "minus": -1.1e-5
+          },
+          "orbital_period_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "discovery_year": 2014,
+          "discovery_method": "Transit",
+          "linear_position_percent": 4.311663479923518,
+          "log_position_percent": 8.009662649668948
+        },
+        {
+          "name": "Kepler-186 d",
+          "semimajor_axis_au": 0.0781,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.01,
+            "minus": -0.01
+          },
+          "semimajor_axis_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "orbital_period_days": 13.342996,
+          "orbital_period_uncertainty_days": {
+            "plus": 2.5e-5,
+            "minus": -2.4e-5
+          },
+          "orbital_period_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "discovery_year": 2014,
+          "discovery_method": "Transit",
+          "linear_position_percent": 7.466539196940726,
+          "log_position_percent": 24.076800263284433
+        },
+        {
+          "name": "Kepler-186 e",
+          "semimajor_axis_au": 0.11,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.015,
+            "minus": -0.015
+          },
+          "semimajor_axis_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "orbital_period_days": 22.407704,
+          "orbital_period_uncertainty_days": {
+            "plus": 7.4e-5,
+            "minus": -7.2e-5
+          },
+          "orbital_period_reference": {
+            "text": "Quintana et al. 2014",
+            "url": "https://ui.adsabs.harvard.edu/abs/2014Sci...344..277Q/abstract"
+          },
+          "discovery_year": 2014,
+          "discovery_method": "Transit",
+          "linear_position_percent": 10.51625239005736,
+          "log_position_percent": 34.09821831924003
+        },
+        {
+          "name": "Kepler-186 f",
+          "semimajor_axis_au": 0.432,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.171,
+            "minus": -0.053
+          },
+          "semimajor_axis_reference": {
+            "text": "Torres et al. 2015",
+            "url": "https://ui.adsabs.harvard.edu/abs/2015ApJ...800...99T/abstract"
+          },
+          "orbital_period_days": 129.9441,
+          "orbital_period_uncertainty_days": {
+            "plus": 0.0013,
+            "minus": -0.0012
+          },
+          "orbital_period_reference": {
+            "text": "Torres et al. 2015",
+            "url": "https://ui.adsabs.harvard.edu/abs/2015ApJ...800...99T/abstract"
+          },
+          "discovery_year": 2014,
+          "discovery_method": "Transit",
+          "linear_position_percent": 41.30019120458891,
+          "log_position_percent": 74.12490110040449
+        }
+      ]
+    },
+    {
+      "archive_hostname": "Kepler-452",
+      "display_name": "Kepler-452",
+      "host_slug": "kepler-452",
+      "archive_planet_count": 1,
+      "planets": [
+        {
+          "name": "Kepler-452 b",
+          "semimajor_axis_au": 1.046,
+          "semimajor_axis_uncertainty_au": {
+            "plus": 0.019,
+            "minus": -0.015
+          },
+          "semimajor_axis_reference": {
+            "text": "Jenkins et al. 2015",
+            "url": "https://ui.adsabs.harvard.edu/abs/2015AJ....150...56J/abstract"
+          },
+          "orbital_period_days": 384.843,
+          "orbital_period_uncertainty_days": {
+            "plus": 0.007,
+            "minus": -0.012
+          },
+          "orbital_period_reference": {
+            "text": "Jenkins et al. 2015",
+            "url": "https://ui.adsabs.harvard.edu/abs/2015AJ....150...56J/abstract"
+          },
+          "discovery_year": 2015,
+          "discovery_method": "Transit",
+          "linear_position_percent": 100.0,
+          "log_position_percent": 100.0
+        }
+      ]
+    }
+  ]
+}

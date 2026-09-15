@@ -405,6 +405,9 @@ def test_local_runtime_version_policy_accepts_node_major_24_and_pinned_uv_metada
 
 def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+    assert '"b5c6d7e8f9a0 (head)"' in workflow
+    assert workflow.count(')" = "b5c6d7e8f9a0"') == 2
+    assert '"a4b5c6d7e8f9 (head)"' not in workflow
     repository = _workflow_job(workflow, "repository", "python_postgres")
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
     web = _workflow_job(workflow, "web_e2e", "security")

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from uuid import UUID
 
 import pytest
@@ -24,7 +24,6 @@ _REVISION = "d8e9f0a1b2c3"
 _PARENT_REVISION = "c6d7e8f9a0b1"
 _TABLE = "identification_submission"
 _SUBMISSION_ID = UUID("61000000-0000-4000-8000-000000000001")
-_NOW = datetime(2026, 9, 15, 12, tzinfo=UTC)
 
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
@@ -93,6 +92,22 @@ def test_identification_schema_and_private_scrub_contract_are_exact(
             "deleted_at",
             "created_at",
         ]
+        assert [bool(row[2]) for row in columns] == [
+            False,
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+            True,
+            False,
+            False,
+            False,
+            True,
+            False,
+        ]
         assert columns[10][3] == "false"
         assert columns[13][3] == "CURRENT_TIMESTAMP"
 
@@ -101,7 +116,8 @@ def test_identification_schema_and_private_scrub_contract_are_exact(
             for name, definition in connection.execute(
                 text(
                     "SELECT conname, pg_get_constraintdef(oid, true) FROM pg_constraint "
-                    "WHERE conrelid = 'public.identification_submission'::regclass"
+                    "WHERE conrelid = 'public.identification_submission'::regclass "
+                    "AND contype <> 'n'"
                 )
             )
         }
@@ -201,16 +217,21 @@ def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
                     "height, sha256, solver_type, consent_remote_processing, "
                     "retention_until) VALUES "
                     "(:id, :key, :filename, 'image/png', 1234, 120, 80, :sha256, 'fake', false, "
-                    ":retention_until)"
+                    "CURRENT_TIMESTAMP + interval '24 hours')"
                 ),
                 {
                     "id": _SUBMISSION_ID,
                     "key": "a" * 32,
                     "filename": "night.png",
                     "sha256": "b" * 64,
-                    "retention_until": _NOW + timedelta(days=1),
                 },
             )
+            created_at = connection.execute(
+                text("SELECT created_at FROM public.identification_submission WHERE id = :id"),
+                {"id": _SUBMISSION_ID},
+            ).scalar_one()
+            assert isinstance(created_at, datetime)
+            deleted_at = created_at + timedelta(hours=1)
 
         with pytest.raises(ProgrammingError), engine.begin() as connection:
             connection.execute(
@@ -236,7 +257,6 @@ def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
                     "id": UUID("61000000-0000-4000-8000-000000000002"),
                     "key": "c" * 32,
                     "sha256": "d" * 64,
-                    "retention_until": _NOW + timedelta(days=1),
                 },
             )
 
@@ -247,7 +267,7 @@ def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
                     "original_filename = NULL, sha256 = NULL, deleted_at = :deleted_at "
                     "WHERE id = :id"
                 ),
-                {"id": _SUBMISSION_ID, "deleted_at": _NOW + timedelta(hours=1)},
+                {"id": _SUBMISSION_ID, "deleted_at": deleted_at},
             )
         with engine.connect() as connection:
             row = connection.execute(
@@ -258,7 +278,7 @@ def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
                 {"id": _SUBMISSION_ID},
             ).one()
             assert tuple(row[:3]) == (None, None, None)
-            assert row[3] == _NOW + timedelta(hours=1)
+            assert row[3] == deleted_at
     finally:
         engine.dispose()
         _cleanup(integration_settings)

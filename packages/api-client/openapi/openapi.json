@@ -214,6 +214,25 @@
         "title": "ApodSourceResponse",
         "type": "object"
       },
+      "Body_create_identification_submission": {
+        "properties": {
+          "consent_remote_processing": {
+            "default": false,
+            "title": "Consent Remote Processing",
+            "type": "boolean"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_identification_submission",
+        "type": "object"
+      },
       "CacheState": {
         "description": "Computed state of the last-known-good provider cache.",
         "enum": [
@@ -584,6 +603,37 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "FakeSolverResultResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "const": "fixture_solved",
+            "default": "fixture_solved",
+            "title": "Outcome",
+            "type": "string"
+          },
+          "solver_type": {
+            "const": "fake",
+            "default": "fake",
+            "title": "Solver Type",
+            "type": "string"
+          },
+          "solver_version": {
+            "const": "phase6a-fixture-v1",
+            "default": "phase6a-fixture-v1",
+            "title": "Solver Version",
+            "type": "string"
+          },
+          "synthetic": {
+            "const": true,
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "title": "FakeSolverResultResponse",
+        "type": "object"
+      },
       "FeatureFlags": {
         "additionalProperties": false,
         "description": "Environment-safe public feature flags for the current phase.",
@@ -634,6 +684,247 @@
         ],
         "title": "HistorySelectionReference",
         "type": "object"
+      },
+      "IdentificationCapabilitiesResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_media_types": {
+            "default": [
+              "image/jpeg",
+              "image/png"
+            ],
+            "items": {
+              "enum": [
+                "image/jpeg",
+                "image/png"
+              ],
+              "type": "string"
+            },
+            "title": "Accepted Media Types",
+            "type": "array"
+          },
+          "deletion_supported": {
+            "const": true,
+            "default": true,
+            "title": "Deletion Supported",
+            "type": "boolean"
+          },
+          "max_bytes": {
+            "maximum": 104857600.0,
+            "minimum": 1.0,
+            "title": "Max Bytes",
+            "type": "integer"
+          },
+          "max_pixels": {
+            "maximum": 100000000.0,
+            "minimum": 1.0,
+            "title": "Max Pixels",
+            "type": "integer"
+          },
+          "min_dimension_px": {
+            "const": 32,
+            "default": 32,
+            "title": "Min Dimension Px",
+            "type": "integer"
+          },
+          "remote_processing": {
+            "const": false,
+            "default": false,
+            "title": "Remote Processing",
+            "type": "boolean"
+          },
+          "retention_hours": {
+            "maximum": 168.0,
+            "minimum": 1.0,
+            "title": "Retention Hours",
+            "type": "integer"
+          },
+          "solver_type": {
+            "const": "fake",
+            "default": "fake",
+            "title": "Solver Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "max_bytes",
+          "max_pixels",
+          "retention_hours"
+        ],
+        "title": "IdentificationCapabilitiesResponse",
+        "type": "object"
+      },
+      "IdentificationCreateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "remote_processing": {
+            "const": false,
+            "default": false,
+            "title": "Remote Processing",
+            "type": "boolean"
+          },
+          "retention_hours": {
+            "maximum": 168.0,
+            "minimum": 1.0,
+            "title": "Retention Hours",
+            "type": "integer"
+          },
+          "solver_type": {
+            "const": "fake",
+            "default": "fake",
+            "title": "Solver Type",
+            "type": "string"
+          },
+          "status": {
+            "const": "queued",
+            "default": "queued",
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "submission_id",
+          "job_id",
+          "retention_hours"
+        ],
+        "title": "IdentificationCreateResponse",
+        "type": "object"
+      },
+      "IdentificationStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "progress": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Progress",
+            "type": "number"
+          },
+          "remote_processing": {
+            "const": false,
+            "default": false,
+            "title": "Remote Processing",
+            "type": "boolean"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FakeSolverResultResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retention_hours": {
+            "maximum": 168.0,
+            "minimum": 1.0,
+            "title": "Retention Hours",
+            "type": "integer"
+          },
+          "solver_type": {
+            "const": "fake",
+            "default": "fake",
+            "title": "Solver Type",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IdentificationSubmissionState"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "submission_id",
+          "job_id",
+          "status",
+          "progress",
+          "result",
+          "error_code",
+          "created_at",
+          "completed_at",
+          "deleted_at",
+          "retention_hours"
+        ],
+        "title": "IdentificationStatusResponse",
+        "type": "object"
+      },
+      "IdentificationSubmissionState": {
+        "enum": [
+          "created",
+          "queued",
+          "running",
+          "succeeded",
+          "failed",
+          "dead_letter",
+          "deleted"
+        ],
+        "title": "IdentificationSubmissionState",
+        "type": "string"
       },
       "LaunchAgencyResponse": {
         "additionalProperties": false,
@@ -4223,6 +4514,219 @@
         "summary": "Get Source Record Provenance",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/identification/capabilities": {
+      "get": {
+        "description": "Expose only safe Phase 6A upload and retention policy facts.",
+        "operationId": "get_identification_capabilities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentificationCapabilitiesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Identification Capabilities",
+        "tags": [
+          "identification"
+        ]
+      }
+    },
+    "/api/v1/identification/submissions": {
+      "post": {
+        "description": "Accept one bounded private raster and enqueue only the local fake solver.",
+        "operationId": "create_identification_submission",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_identification_submission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentificationCreateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The upload exceeds the approved body bound."
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The upload media type is not accepted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The identification upload is invalid."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Identification is temporarily unavailable."
+          }
+        },
+        "summary": "Create Identification Submission",
+        "tags": [
+          "identification"
+        ]
+      }
+    },
+    "/api/v1/identification/submissions/{submission_id}": {
+      "delete": {
+        "description": "Delete private bytes and scrub private metadata; repeat deletion is safe.",
+        "operationId": "delete_identification_submission",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Submission Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The submission changed during deletion."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The submission identifier is invalid."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Identification deletion is unavailable."
+          }
+        },
+        "summary": "Delete Identification Submission",
+        "tags": [
+          "identification"
+        ]
+      },
+      "get": {
+        "description": "Return only safe lifecycle state and a validated synthetic result.",
+        "operationId": "get_identification_submission",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Submission Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentificationStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The submission does not exist."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The submission identifier is invalid."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Identification status is unavailable."
+          }
+        },
+        "summary": "Get Identification Submission",
+        "tags": [
+          "identification"
         ]
       }
     },

@@ -66,7 +66,9 @@ def test_registry_has_no_dynamic_discovery_or_payload_dispatch() -> None:
         assert forbidden not in source
     assert "JobType.SYSTEM_NOOP.value: SystemNoopHandler()" in source
     assert "JobType.PROVIDER_SYNC.value: provider_sync" in source
+    assert "JobType.IDENTIFICATION_SOLVE.value: identification_solve" in source
     assert "provider_sync_validator" in source
+    assert "identification_solve_validator" in source
 
 
 def test_worker_identity_and_timing_stay_outside_domain() -> None:
@@ -143,4 +145,6 @@ def test_worker_has_no_dynamic_handlers_routes_or_scheduler_framework() -> None:
         assert forbidden not in source
     assert source.count("compose_provider_runtime(") == 1
     assert "nasa_api_key=settings.nasa_api_key" in source
-    assert "provider_composition.handler_registry" in source
+    assert "provider_composition.sync_handler" in source
+    assert "FakePlateSolverHandler(" in source
+    assert "production_handler_registry(" in source

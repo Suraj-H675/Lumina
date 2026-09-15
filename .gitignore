@@ -31,3 +31,6 @@ htmlcov/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Private development upload storage
+var/storage/

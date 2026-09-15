@@ -34,7 +34,11 @@ def test_exact_job_state_and_type_inventory() -> None:
         "failed",
         "dead_letter",
     }
-    assert list(JobType) == [JobType.SYSTEM_NOOP, JobType.PROVIDER_SYNC]
+    assert list(JobType) == [
+        JobType.SYSTEM_NOOP,
+        JobType.PROVIDER_SYNC,
+        JobType.IDENTIFICATION_SOLVE,
+    ]
 
 
 @pytest.mark.parametrize(

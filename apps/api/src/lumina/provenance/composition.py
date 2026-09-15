@@ -8,7 +8,6 @@ from pathlib import Path
 from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from lumina.jobs.application.handlers import StaticHandlerRegistry, production_handler_registry
 from lumina.provenance.application.job_handler import ProviderSyncHandler
 from lumina.provenance.application.read import CachedProviderSnapshotReader, ProviderSnapshotReader
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
@@ -137,7 +136,7 @@ class ProviderComposition:
     registry: StaticProviderRegistry
     sync_service: ProviderSyncService
     snapshot_reader: ProviderSnapshotReader
-    handler_registry: StaticHandlerRegistry
+    sync_handler: ProviderSyncHandler
 
 
 def nasa_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
@@ -381,15 +380,11 @@ def compose_provider_runtime(
     )
     snapshot_reader = CachedProviderSnapshotReader(registry=registry, store=store)
     provider_handler = ProviderSyncHandler(sync_service)
-    handler_registry = production_handler_registry(
-        provider_sync=provider_handler,
-        provider_sync_validator=provider_handler.validate_payload,
-    )
     return ProviderComposition(
         registry=registry,
         sync_service=sync_service,
         snapshot_reader=snapshot_reader,
-        handler_registry=handler_registry,
+        sync_handler=provider_handler,
     )
 
 

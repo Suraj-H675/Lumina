@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -19,6 +20,21 @@ from lumina.catalog.application.read import CatalogReadService
 from lumina.catalog.application.search import CatalogSearchService
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
 from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
+from lumina.identification.api.routes import router as identification_router
+from lumina.identification.application.submissions import (
+    CreateSubmissionService,
+    DeleteSubmissionService,
+    ReadIdentificationStatusService,
+    SubmitIdentificationService,
+)
+from lumina.identification.application.uploads import StoreValidatedUploadService
+from lumina.identification.domain.uploads import UploadValidationPolicy
+from lumina.identification.infrastructure.filesystem import FilesystemPrivateObjectStore
+from lumina.identification.infrastructure.postgresql import (
+    PostgreSqlIdentificationSubmissionRepository,
+)
+from lumina.jobs.application.enqueue import EnqueueJobService
+from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
 from lumina.provenance.api.routes import router as provider_router
 from lumina.provenance.composition import compose_provider_runtime
 from lumina.satellites.infrastructure.skyfield import SkyfieldSatellitePassEngine
@@ -56,6 +72,46 @@ def create_app(settings: AppSettings) -> FastAPI:
         database_runtime.session_factory,
         nasa_api_key=settings.nasa_api_key,
     )
+    identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
+    identification_repository = PostgreSqlIdentificationSubmissionRepository(
+        database_runtime.session_factory,
+        operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
+    )
+    identification_uploads = StoreValidatedUploadService(
+        identification_store,
+        UploadValidationPolicy(
+            max_bytes=settings.upload_max_bytes,
+            max_pixels=settings.upload_max_pixels,
+            min_dimension=32,
+        ),
+    )
+    identification_create = CreateSubmissionService(
+        identification_uploads,
+        identification_repository,
+        identification_store,
+        now=lambda: datetime.now(UTC),
+        provisional_retention=timedelta(hours=settings.upload_retention_hours),
+    )
+    identification_delete = DeleteSubmissionService(
+        identification_repository,
+        identification_store,
+        now=lambda: datetime.now(UTC),
+    )
+    identification_enqueue = EnqueueJobService(
+        PostgreSqlEnqueueJobStore(
+            database_runtime.session_factory,
+            wait_timeout_ms=settings.job_enqueue_wait_timeout_ms,
+        ),
+        payload_max_bytes=settings.job_payload_max_bytes,
+        default_max_attempts=settings.job_default_max_attempts,
+    )
+    identification_submit = SubmitIdentificationService(
+        identification_create,
+        identification_enqueue,
+        identification_repository,
+        identification_delete,
+    )
+    identification_status = ReadIdentificationStatusService(identification_repository)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -95,6 +151,9 @@ def create_app(settings: AppSettings) -> FastAPI:
         provider_composition.snapshot_reader,
         SkyfieldSatellitePassEngine(),
     )
+    application.state.identification_submit_service = identification_submit
+    application.state.identification_status_service = identification_status
+    application.state.identification_delete_service = identification_delete
 
     application.add_exception_handler(
         RequestValidationError,
@@ -106,13 +165,16 @@ def create_app(settings: AppSettings) -> FastAPI:
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
+        allow_methods=["GET", "POST", "DELETE"],
         allow_headers=["Accept", "Content-Type", "X-Request-ID"],
         expose_headers=["X-Request-ID"],
     )
     application.add_middleware(
         BoundedRequestBodyMiddleware,
-        limits={("POST", "/api/v1/now/satellites/passes"): 4_096},
+        limits={
+            ("POST", "/api/v1/now/satellites/passes"): 4_096,
+            ("POST", "/api/v1/identification/submissions"): settings.upload_max_bytes + 65_536,
+        },
     )
     application.add_middleware(RequestContextMiddleware)
     application.include_router(router)
@@ -122,4 +184,5 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(search_router)
     application.include_router(provider_router)
     application.include_router(space_now_router)
+    application.include_router(identification_router)
     return application

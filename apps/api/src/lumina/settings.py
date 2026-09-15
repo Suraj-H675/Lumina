@@ -22,6 +22,7 @@ from lumina.shared.infrastructure.database.target import (
 
 RuntimeEnvironment = Literal["development", "test", "staging", "production"]
 LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
+StorageBackend = Literal["filesystem", "s3"]
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 _REPOSITORY_ENV_FILE = _REPOSITORY_ROOT / ".env"
@@ -55,6 +56,11 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
         "LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
         "LUMINA_WORKER_POLL_SECONDS",
+        "LUMINA_STORAGE_BACKEND",
+        "LUMINA_STORAGE_LOCAL_ROOT",
+        "LUMINA_UPLOAD_MAX_BYTES",
+        "LUMINA_UPLOAD_MAX_PIXELS",
+        "LUMINA_UPLOAD_RETENTION_HOURS",
     }
 )
 
@@ -250,6 +256,32 @@ class AppSettings(BaseSettings):
         le=60,
         validation_alias="LUMINA_WORKER_POLL_SECONDS",
     )
+    storage_backend: StorageBackend = Field(
+        default="filesystem",
+        validation_alias="LUMINA_STORAGE_BACKEND",
+    )
+    storage_local_root: Path = Field(
+        default=_REPOSITORY_ROOT / "var" / "storage",
+        validation_alias="LUMINA_STORAGE_LOCAL_ROOT",
+    )
+    upload_max_bytes: int = Field(
+        default=25 * 1024 * 1024,
+        ge=1,
+        le=100 * 1024 * 1024,
+        validation_alias="LUMINA_UPLOAD_MAX_BYTES",
+    )
+    upload_max_pixels: int = Field(
+        default=50_000_000,
+        ge=1,
+        le=100_000_000,
+        validation_alias="LUMINA_UPLOAD_MAX_PIXELS",
+    )
+    upload_retention_hours: int = Field(
+        default=24,
+        ge=1,
+        le=168,
+        validation_alias="LUMINA_UPLOAD_RETENTION_HOURS",
+    )
 
     @field_validator(
         "job_stale_seconds",
@@ -257,6 +289,9 @@ class AppSettings(BaseSettings):
         "job_handler_timeout_seconds",
         "job_cancellation_grace_seconds",
         "worker_poll_seconds",
+        "upload_max_bytes",
+        "upload_max_pixels",
+        "upload_retention_hours",
         mode="before",
     )
     @classmethod
@@ -266,7 +301,20 @@ class AppSettings(BaseSettings):
             return value
         if isinstance(value, str) and re.fullmatch(r"-?[0-9]+", value, re.ASCII):
             return int(value)
-        raise ValueError("Job timing setting must be an exact integer")
+        raise ValueError("Integer setting must be an exact base-10 integer")
+
+    @field_validator("storage_local_root", mode="before")
+    @classmethod
+    def validate_storage_local_root(cls, value: object) -> Path:
+        if isinstance(value, Path):
+            path = value
+        elif isinstance(value, str) and value and value == value.strip() and "\x00" not in value:
+            path = Path(value)
+        else:
+            raise ValueError("Local storage root is invalid")
+        if not path.is_absolute():
+            path = _REPOSITORY_ROOT / path
+        return path.absolute()
 
     @field_validator("worker_id_prefix")
     @classmethod
@@ -278,12 +326,14 @@ class AppSettings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_job_execution_relationships(self) -> AppSettings:
-        """Validate worker timing relationships before future engine construction."""
+        """Validate worker timing relationships and the Phase 6A storage backend."""
         operation_seconds = (self.job_operation_wait_timeout_ms + 999) // 1_000
         if self.job_stale_seconds < 2 * self.job_heartbeat_seconds + operation_seconds:
             raise ValueError("Job stale threshold is incompatible with heartbeat timing")
         if self.job_cancellation_grace_seconds > self.job_handler_timeout_seconds:
             raise ValueError("Job cancellation grace exceeds the handler timeout")
+        if self.storage_backend != "filesystem":
+            raise ValueError("Only filesystem private storage is supported in Phase 6A")
         return self
 
     @field_validator("database_url")

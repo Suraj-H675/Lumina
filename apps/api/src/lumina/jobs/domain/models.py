@@ -128,6 +128,7 @@ class JobType(StrEnum):
 
     SYSTEM_NOOP = "system.noop"
     PROVIDER_SYNC = "provider.sync"
+    IDENTIFICATION_SOLVE = "identification.solve"
 
 
 class JobStatus(StrEnum):

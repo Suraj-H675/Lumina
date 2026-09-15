@@ -144,3 +144,21 @@ export type {
   TelescopeBuilderCalculationResponse,
   TelescopeBuilderInputResponse,
 } from "./generated/types.gen";
+
+export {
+  identificationCapabilitiesEndpoint,
+  identificationStatusEndpoint,
+  identificationStatusTemplateEndpoint,
+} from "./contract";
+export {
+  createIdentificationSubmission,
+  deleteIdentificationSubmission,
+  IDENTIFICATION_UPLOAD_TIMEOUT_MS,
+  validateIdentificationStatus,
+} from "./identification";
+export type {
+  IdentificationCapabilitiesResponse,
+  IdentificationCreateResponse,
+  IdentificationStatusResponse,
+  IdentificationSubmissionState,
+} from "./generated/types.gen";

@@ -113,6 +113,20 @@ export type ApodSourceResponse = {
 };
 
 /**
+ * Body_create_identification_submission
+ */
+export type BodyCreateIdentificationSubmission = {
+  /**
+   * Consent Remote Processing
+   */
+  consent_remote_processing?: boolean;
+  /**
+   * File
+   */
+  file: Blob | File;
+};
+
+/**
  * CacheState
  *
  * Computed state of the last-known-good provider cache.
@@ -348,6 +362,28 @@ export type ErrorResponse = {
 };
 
 /**
+ * FakeSolverResultResponse
+ */
+export type FakeSolverResultResponse = {
+  /**
+   * Outcome
+   */
+  outcome?: "fixture_solved";
+  /**
+   * Solver Type
+   */
+  solver_type?: "fake";
+  /**
+   * Solver Version
+   */
+  solver_version?: "phase6a-fixture-v1";
+  /**
+   * Synthetic
+   */
+  synthetic?: true;
+};
+
+/**
  * FeatureFlags
  *
  * Environment-safe public feature flags for the current phase.
@@ -383,6 +419,128 @@ export type HistorySelectionReference = {
    */
   version: string;
 };
+
+/**
+ * IdentificationCapabilitiesResponse
+ */
+export type IdentificationCapabilitiesResponse = {
+  /**
+   * Accepted Media Types
+   */
+  accepted_media_types?: Array<"image/jpeg" | "image/png">;
+  /**
+   * Deletion Supported
+   */
+  deletion_supported?: true;
+  /**
+   * Max Bytes
+   */
+  max_bytes: number;
+  /**
+   * Max Pixels
+   */
+  max_pixels: number;
+  /**
+   * Min Dimension Px
+   */
+  min_dimension_px?: 32;
+  /**
+   * Remote Processing
+   */
+  remote_processing?: false;
+  /**
+   * Retention Hours
+   */
+  retention_hours: number;
+  /**
+   * Solver Type
+   */
+  solver_type?: "fake";
+};
+
+/**
+ * IdentificationCreateResponse
+ */
+export type IdentificationCreateResponse = {
+  /**
+   * Job Id
+   */
+  job_id: string;
+  /**
+   * Remote Processing
+   */
+  remote_processing?: false;
+  /**
+   * Retention Hours
+   */
+  retention_hours: number;
+  /**
+   * Solver Type
+   */
+  solver_type?: "fake";
+  /**
+   * Status
+   */
+  status?: "queued";
+  /**
+   * Submission Id
+   */
+  submission_id: string;
+};
+
+/**
+ * IdentificationStatusResponse
+ */
+export type IdentificationStatusResponse = {
+  /**
+   * Completed At
+   */
+  completed_at: string | null;
+  /**
+   * Created At
+   */
+  created_at: string;
+  /**
+   * Deleted At
+   */
+  deleted_at: string | null;
+  /**
+   * Error Code
+   */
+  error_code: string | null;
+  /**
+   * Job Id
+   */
+  job_id: string | null;
+  /**
+   * Progress
+   */
+  progress: number;
+  /**
+   * Remote Processing
+   */
+  remote_processing?: false;
+  result: FakeSolverResultResponse | null;
+  /**
+   * Retention Hours
+   */
+  retention_hours: number;
+  /**
+   * Solver Type
+   */
+  solver_type?: "fake";
+  status: IdentificationSubmissionState;
+  /**
+   * Submission Id
+   */
+  submission_id: string;
+};
+
+/**
+ * IdentificationSubmissionState
+ */
+export type IdentificationSubmissionState =
+  "created" | "queued" | "running" | "succeeded" | "failed" | "dead_letter" | "deleted";
 
 /**
  * LaunchAgencyResponse
@@ -2389,6 +2547,142 @@ export type GetSourceRecordProvenanceResponses = {
 
 export type GetSourceRecordProvenanceResponse =
   GetSourceRecordProvenanceResponses[keyof GetSourceRecordProvenanceResponses];
+
+export type GetIdentificationCapabilitiesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/identification/capabilities";
+};
+
+export type GetIdentificationCapabilitiesResponses = {
+  /**
+   * Successful Response
+   */
+  200: IdentificationCapabilitiesResponse;
+};
+
+export type GetIdentificationCapabilitiesResponse =
+  GetIdentificationCapabilitiesResponses[keyof GetIdentificationCapabilitiesResponses];
+
+export type CreateIdentificationSubmissionData = {
+  body: BodyCreateIdentificationSubmission;
+  path?: never;
+  query?: never;
+  url: "/api/v1/identification/submissions";
+};
+
+export type CreateIdentificationSubmissionErrors = {
+  /**
+   * The upload exceeds the approved body bound.
+   */
+  413: ErrorResponse;
+  /**
+   * The upload media type is not accepted.
+   */
+  415: ErrorResponse;
+  /**
+   * The identification upload is invalid.
+   */
+  422: ErrorResponse;
+  /**
+   * Identification is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type CreateIdentificationSubmissionError =
+  CreateIdentificationSubmissionErrors[keyof CreateIdentificationSubmissionErrors];
+
+export type CreateIdentificationSubmissionResponses = {
+  /**
+   * Successful Response
+   */
+  202: IdentificationCreateResponse;
+};
+
+export type CreateIdentificationSubmissionResponse =
+  CreateIdentificationSubmissionResponses[keyof CreateIdentificationSubmissionResponses];
+
+export type DeleteIdentificationSubmissionData = {
+  body?: never;
+  path: {
+    /**
+     * Submission Id
+     */
+    submission_id: string;
+  };
+  query?: never;
+  url: "/api/v1/identification/submissions/{submission_id}";
+};
+
+export type DeleteIdentificationSubmissionErrors = {
+  /**
+   * The submission changed during deletion.
+   */
+  409: ErrorResponse;
+  /**
+   * The submission identifier is invalid.
+   */
+  422: ErrorResponse;
+  /**
+   * Identification deletion is unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type DeleteIdentificationSubmissionError =
+  DeleteIdentificationSubmissionErrors[keyof DeleteIdentificationSubmissionErrors];
+
+export type DeleteIdentificationSubmissionResponses = {
+  /**
+   * Successful Response
+   */
+  204: void;
+};
+
+export type DeleteIdentificationSubmissionResponse =
+  DeleteIdentificationSubmissionResponses[keyof DeleteIdentificationSubmissionResponses];
+
+export type GetIdentificationSubmissionData = {
+  body?: never;
+  path: {
+    /**
+     * Submission Id
+     */
+    submission_id: string;
+  };
+  query?: never;
+  url: "/api/v1/identification/submissions/{submission_id}";
+};
+
+export type GetIdentificationSubmissionErrors = {
+  /**
+   * The submission does not exist.
+   */
+  404: ErrorResponse;
+  /**
+   * The submission identifier is invalid.
+   */
+  422: ErrorResponse;
+  /**
+   * Identification status is unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetIdentificationSubmissionError =
+  GetIdentificationSubmissionErrors[keyof GetIdentificationSubmissionErrors];
+
+export type GetIdentificationSubmissionResponses = {
+  /**
+   * Successful Response
+   */
+  200: IdentificationStatusResponse;
+};
+
+export type GetIdentificationSubmissionResponse =
+  GetIdentificationSubmissionResponses[keyof GetIdentificationSubmissionResponses];
 
 export type MetadataApiV1MetaGetData = {
   body?: never;

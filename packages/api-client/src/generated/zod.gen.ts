@@ -31,6 +31,14 @@ export const zApodSourceResponse = z.object({
 });
 
 /**
+ * Body_create_identification_submission
+ */
+export const zBodyCreateIdentificationSubmission = z.object({
+  consent_remote_processing: z.boolean().optional().default(false),
+  file: z.string(),
+});
+
+/**
  * CacheState
  *
  * Computed state of the last-known-good provider cache.
@@ -166,6 +174,16 @@ export const zErrorResponse = z.object({
 });
 
 /**
+ * FakeSolverResultResponse
+ */
+export const zFakeSolverResultResponse = z.object({
+  outcome: z.literal("fixture_solved").optional().default("fixture_solved"),
+  solver_type: z.literal("fake").optional().default("fake"),
+  solver_version: z.literal("phase6a-fixture-v1").optional().default("phase6a-fixture-v1"),
+  synthetic: z.literal(true).optional().default(true),
+});
+
+/**
  * FeatureFlags
  *
  * Environment-safe public feature flags for the current phase.
@@ -181,6 +199,66 @@ export const zHistorySelectionReference = z.object({
   selected_at: z.iso.datetime(),
   superseded_at: z.iso.datetime().nullable(),
   version: z.string(),
+});
+
+/**
+ * IdentificationCapabilitiesResponse
+ */
+export const zIdentificationCapabilitiesResponse = z.object({
+  accepted_media_types: z
+    .array(z.enum(["image/jpeg", "image/png"]))
+    .optional()
+    .default(["image/jpeg", "image/png"]),
+  deletion_supported: z.literal(true).optional().default(true),
+  max_bytes: z.int().gte(1).lte(104857600),
+  max_pixels: z.int().gte(1).lte(100000000),
+  min_dimension_px: z.literal(32).optional().default(32),
+  remote_processing: z.literal(false).optional().default(false),
+  retention_hours: z.int().gte(1).lte(168),
+  solver_type: z.literal("fake").optional().default("fake"),
+});
+
+/**
+ * IdentificationCreateResponse
+ */
+export const zIdentificationCreateResponse = z.object({
+  job_id: z.uuid(),
+  remote_processing: z.literal(false).optional().default(false),
+  retention_hours: z.int().gte(1).lte(168),
+  solver_type: z.literal("fake").optional().default("fake"),
+  status: z.literal("queued").optional().default("queued"),
+  submission_id: z.uuid(),
+});
+
+/**
+ * IdentificationSubmissionState
+ */
+export const zIdentificationSubmissionState = z.enum([
+  "created",
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "dead_letter",
+  "deleted",
+]);
+
+/**
+ * IdentificationStatusResponse
+ */
+export const zIdentificationStatusResponse = z.object({
+  completed_at: z.iso.datetime().nullable(),
+  created_at: z.iso.datetime(),
+  deleted_at: z.iso.datetime().nullable(),
+  error_code: z.string().nullable(),
+  job_id: z.uuid().nullable(),
+  progress: z.number().gte(0).lte(1),
+  remote_processing: z.literal(false).optional().default(false),
+  result: zFakeSolverResultResponse.nullable(),
+  retention_hours: z.int().gte(1).lte(168),
+  solver_type: z.literal("fake").optional().default("fake"),
+  status: zIdentificationSubmissionState,
+  submission_id: z.uuid(),
 });
 
 /**
@@ -1121,6 +1199,26 @@ export const zListCatalogEntityMeasurementsResponse = zMeasurementPageResponse;
  * Successful Response
  */
 export const zGetSourceRecordProvenanceResponse = zSourceProvenanceResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetIdentificationCapabilitiesResponse = zIdentificationCapabilitiesResponse;
+
+/**
+ * Successful Response
+ */
+export const zCreateIdentificationSubmissionResponse = zIdentificationCreateResponse;
+
+/**
+ * Successful Response
+ */
+export const zDeleteIdentificationSubmissionResponse = z.void();
+
+/**
+ * Successful Response
+ */
+export const zGetIdentificationSubmissionResponse = zIdentificationStatusResponse;
 
 /**
  * Successful Response

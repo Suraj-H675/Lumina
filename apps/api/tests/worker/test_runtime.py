@@ -1208,3 +1208,129 @@ async def test_uncooperative_scheduler_wait_hard_terminates_once_without_later_w
     await asyncio.sleep(0)
     assert timing.task.done()
     assert cast(_TaskDiagnostics, timing.task)._log_traceback is False
+
+
+class RecordingRetentionCleanup:
+    def __init__(
+        self,
+        events: list[str],
+        *,
+        fail: bool = False,
+        shutdown_after: int | None = None,
+        shutdown: asyncio.Event | None = None,
+    ) -> None:
+        self.events = events
+        self.fail = fail
+        self.shutdown_after = shutdown_after
+        self.shutdown = shutdown
+        self.calls = 0
+
+    async def cleanup(self, *, limit: int = 50) -> int:
+        self.calls += 1
+        self.events.append("retention-cleanup")
+        assert limit == 50
+        if self.fail:
+            raise RuntimeError("private")
+        if self.shutdown_after == self.calls and self.shutdown is not None:
+            self.shutdown.set()
+        return 0
+
+
+@pytest.mark.asyncio
+async def test_initial_retention_cleanup_precedes_first_claim() -> None:
+    events: list[str] = []
+    shutdown = asyncio.Event()
+    executor = StopAfterProcessed(events, shutdown)
+    cleanup = RecordingRetentionCleanup(events)
+    runtime = WorkerRuntime(
+        recovery=RecordingRecovery(events),
+        executor=executor,
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=2,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+        retention_cleanup=cleanup,
+    )
+
+    assert await runtime.run() == 0
+    assert events == ["recover", "retention-cleanup", "execute"]
+    assert cleanup.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_retention_cleanup_failure_prevents_claim() -> None:
+    events: list[str] = []
+    shutdown = asyncio.Event()
+    executor = StopAfterProcessed(events, shutdown)
+    runtime = WorkerRuntime(
+        recovery=RecordingRecovery(events),
+        executor=executor,
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=2,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+        retention_cleanup=RecordingRetentionCleanup(events, fail=True),
+    )
+
+    assert await runtime.run() == 1
+    assert events == ["recover", "retention-cleanup"]
+    assert executor.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_retention_cleanup_runs_on_its_own_cadence() -> None:
+    events: list[str] = []
+    shutdown = asyncio.Event()
+    timing = ScriptedSchedulerTiming()
+
+    class NoJob:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def execute(self) -> NoJobExecuted:
+            self.calls += 1
+            events.append("execute")
+            return NoJobExecuted()
+
+    cleanup = RecordingRetentionCleanup(
+        events,
+        shutdown_after=2,
+        shutdown=shutdown,
+    )
+    executor = NoJob()
+    runtime = WorkerRuntime(
+        recovery=RecordingRecovery(events),
+        executor=executor,
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=2,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+        retention_cleanup=cleanup,
+        retention_cleanup_seconds=3,
+        timing=timing,
+    )
+
+    task = asyncio.create_task(runtime.run())
+    await timing.wait_for_wait(1)
+    assert timing.deadlines == [2]
+    timing.release(0)
+    await timing.wait_for_wait(2)
+    assert timing.deadlines == [2, 3]
+    timing.release(1)
+
+    assert await task == 0
+    assert cleanup.calls == 2
+    assert executor.calls == 2
+    assert events == [
+        "recover",
+        "retention-cleanup",
+        "execute",
+        "execute",
+        "retention-cleanup",
+    ]

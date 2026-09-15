@@ -18,6 +18,10 @@ import type {
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   GetNowApodData,
+  GetIdentificationCapabilitiesData,
+  GetIdentificationSubmissionData,
+  IdentificationCapabilitiesResponse,
+  IdentificationStatusResponse,
   GetNowLaunchData,
   GetNowLaunchesData,
   GetNowNearEarthData,
@@ -48,6 +52,8 @@ import {
   zEntityDetailResponse,
   zEntitySummaryResponse,
   zGetNowApodResponse,
+  zGetIdentificationCapabilitiesResponse,
+  zGetIdentificationSubmissionResponse,
   zGetNowLaunchResponse,
   zGetNowLaunchesResponse,
   zGetNowNearEarthResponse,
@@ -114,6 +120,31 @@ export const metaEndpoint = {
   path: "/api/v1/meta" satisfies MetadataApiV1MetaGetData["url"],
   validator: zMetaResponse,
 } satisfies ApiEndpoint<MetaResponse, MetadataApiV1MetaGetData["url"]>;
+
+export const identificationCapabilitiesEndpoint = {
+  method: "GET",
+  path: "/api/v1/identification/capabilities" satisfies GetIdentificationCapabilitiesData["url"],
+  validator: zGetIdentificationCapabilitiesResponse,
+} satisfies ApiEndpoint<
+  IdentificationCapabilitiesResponse,
+  GetIdentificationCapabilitiesData["url"]
+>;
+
+export const identificationStatusTemplateEndpoint = {
+  method: "GET",
+  path: "/api/v1/identification/submissions/{submission_id}" satisfies GetIdentificationSubmissionData["url"],
+  validator: zGetIdentificationSubmissionResponse,
+} satisfies ApiEndpoint<IdentificationStatusResponse, GetIdentificationSubmissionData["url"]>;
+
+export function identificationStatusEndpoint(
+  submissionId: string,
+): ApiEndpoint<IdentificationStatusResponse> {
+  return {
+    method: "GET",
+    path: `/api/v1/identification/submissions/${encodeURIComponent(submissionId)}`,
+    validator: zGetIdentificationSubmissionResponse,
+  };
+}
 
 export const providerStatusEndpoint = {
   method: "GET",

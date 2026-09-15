@@ -25,7 +25,7 @@ from .migration_lifecycle import (
 _PARENT_REVISION = "a1a3c0f17c5e"
 _REVISION = "c4b9e2d7a6f1"
 _HISTORICAL_B2 = "b7f3a2c81d4e"
-_CURRENT_HEAD = "c6d7e8f9a0b1"
+_CURRENT_HEAD = "d8e9f0a1b2c3"
 _SAFE_ERROR = "Gaia DR3 seed migration precondition failed."
 
 _ENTITY_ROWS = (

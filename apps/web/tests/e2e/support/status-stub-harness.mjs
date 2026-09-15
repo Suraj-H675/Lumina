@@ -14,6 +14,8 @@ const token = randomBytes(32).toString("hex");
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
+  "/api/v1/identification/capabilities",
+  "/api/v1/identification/submissions",
   "/api/v1/now/apod",
   "/api/v1/now/near-earth",
   "/api/v1/now/space-weather",
@@ -647,6 +649,10 @@ let apodMode = "fresh";
 let neowsMode = "fresh";
 let launchMode = "fresh";
 let satelliteMode = "fresh";
+let identificationPollCount = 0;
+let identificationDeleted = false;
+const identificationSubmissionId = "71000000-0000-4000-8000-000000000001";
+const identificationJobId = "72000000-0000-4000-8000-000000000001";
 let webProcess;
 let shutdownPhase = "running";
 let childShutdownBarrierReached = false;
@@ -1288,6 +1294,36 @@ function sendJson(response, status, body) {
   response.end(content);
 }
 
+function sendEmpty(response, status) {
+  response.writeHead(status, {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Length": "0",
+  });
+  response.end();
+}
+
+function sendIdentificationPreflight(response) {
+  response.writeHead(204, {
+    "Access-Control-Allow-Headers": "Accept, Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Max-Age": "600",
+    "Content-Length": "0",
+  });
+  response.end();
+}
+
+async function readBoundedApiBody(request, maximumBytes) {
+  const chunks = [];
+  let length = 0;
+  for await (const chunk of request) {
+    length += chunk.length;
+    if (length > maximumBytes) throw new Error("api request is too large");
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
 function sendFailure(response, status) {
   sendJson(response, status, { error: "stub request rejected" });
 }
@@ -1564,12 +1600,28 @@ const stub = http.createServer(async (request, response) => {
     path === "/api/v1/now/launches" || /^\/api\/v1\/now\/launches\/[0-9a-f-]{36}$/u.test(path);
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
-  if (!apiPaths.has(path) && !isCataloguePath && !isLaunchPath) {
+  const identificationMatch = /^\/api\/v1\/identification\/submissions\/([0-9a-f-]{36})$/u.exec(
+    path,
+  );
+  const isIdentificationPath =
+    path === "/api/v1/identification/capabilities" ||
+    path === "/api/v1/identification/submissions" ||
+    identificationMatch !== null;
+  if (!apiPaths.has(path) && !isCataloguePath && !isLaunchPath && !isIdentificationPath) {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
   }
-  const expectedMethod = path === "/api/v1/now/satellites/passes" ? "POST" : "GET";
-  if (request.method !== expectedMethod) {
+  if (request.method === "OPTIONS" && isIdentificationPath) {
+    sendIdentificationPreflight(response);
+    return;
+  }
+  const allowedMethod =
+    identificationMatch !== null
+      ? request.method === "GET" || request.method === "DELETE"
+      : path === "/api/v1/identification/submissions"
+        ? request.method === "POST"
+        : request.method === (path === "/api/v1/now/satellites/passes" ? "POST" : "GET");
+  if (!allowedMethod) {
     recordViolation("unexpected-method");
     unexpectedRequest = true;
   }
@@ -1580,6 +1632,99 @@ const stub = http.createServer(async (request, response) => {
   if (unexpectedRequest) {
     sendFailure(response, 500);
     return;
+  }
+  if (isIdentificationPath) {
+    if (path === "/api/v1/identification/capabilities") {
+      sendJson(response, 200, {
+        solver_type: "fake",
+        remote_processing: false,
+        accepted_media_types: ["image/jpeg", "image/png"],
+        max_bytes: 26214400,
+        max_pixels: 50000000,
+        min_dimension_px: 32,
+        retention_hours: 24,
+        deletion_supported: true,
+      });
+      return;
+    }
+    if (path === "/api/v1/identification/submissions") {
+      try {
+        const mediaType = request.headers["content-type"] ?? "";
+        if (!mediaType.toLowerCase().startsWith("multipart/form-data; boundary=")) {
+          throw new Error("identification multipart boundary missing");
+        }
+        const body = await readBoundedApiBody(request, 1_048_576);
+        if (body.length === 0 || !body.includes(Buffer.from("consent_remote_processing"))) {
+          throw new Error("identification form is incomplete");
+        }
+        identificationPollCount = 0;
+        identificationDeleted = false;
+        sendJson(response, 202, {
+          submission_id: identificationSubmissionId,
+          job_id: identificationJobId,
+          status: "queued",
+          solver_type: "fake",
+          remote_processing: false,
+          retention_hours: 24,
+        });
+      } catch {
+        recordViolation("malformed-api-request");
+        sendFailure(response, 422);
+      }
+      return;
+    }
+    if (identificationMatch !== null) {
+      if (identificationMatch[1] !== identificationSubmissionId) {
+        sendFailure(response, 404);
+        return;
+      }
+      if (request.method === "DELETE") {
+        identificationDeleted = true;
+        sendEmpty(response, 204);
+        return;
+      }
+      if (identificationDeleted) {
+        sendJson(response, 200, {
+          submission_id: identificationSubmissionId,
+          job_id: identificationJobId,
+          status: "deleted",
+          progress: 1,
+          result: null,
+          error_code: null,
+          created_at: "2026-09-15T12:00:00Z",
+          completed_at: "2026-09-15T12:00:01Z",
+          deleted_at: "2026-09-15T12:00:02Z",
+          solver_type: "fake",
+          remote_processing: false,
+          retention_hours: 24,
+        });
+        return;
+      }
+      identificationPollCount += 1;
+      const succeeded = identificationPollCount >= 2;
+      sendJson(response, 200, {
+        submission_id: identificationSubmissionId,
+        job_id: identificationJobId,
+        status: succeeded ? "succeeded" : "running",
+        progress: succeeded ? 1 : 0.5,
+        result: succeeded
+          ? {
+              outcome: "fixture_solved",
+              solver_type: "fake",
+              solver_version: "phase6a-fixture-v1",
+              synthetic: true,
+            }
+          : null,
+        error_code: null,
+        created_at: "2026-09-15T12:00:00Z",
+        completed_at: succeeded ? "2026-09-15T12:00:01Z" : null,
+        deleted_at: null,
+        solver_type: "fake",
+        remote_processing: false,
+        retention_hours: 24,
+      });
+      return;
+    }
   }
   if (isCataloguePath) {
     // Catalogue fixture responses are deliberately independent of the

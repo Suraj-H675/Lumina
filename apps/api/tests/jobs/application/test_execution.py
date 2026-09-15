@@ -53,9 +53,12 @@ _NOW = datetime(2026, 7, 30, 12, tzinfo=UTC)
 
 def _noop_production_registry() -> StaticHandlerRegistry:
     provider_sync = SystemNoopHandler()
+    identification_solve = SystemNoopHandler()
     return production_handler_registry(
         provider_sync=provider_sync,
         provider_sync_validator=provider_sync.validate_payload,
+        identification_solve=identification_solve,
+        identification_solve_validator=identification_solve.validate_payload,
     )
 
 

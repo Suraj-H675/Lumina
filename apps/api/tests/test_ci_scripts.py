@@ -405,8 +405,8 @@ def test_local_runtime_version_policy_accepts_node_major_24_and_pinned_uv_metada
 
 def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
-    assert '"c6d7e8f9a0b1 (head)"' in workflow
-    assert workflow.count(')" = "c6d7e8f9a0b1"') == 2
+    assert '"d8e9f0a1b2c3 (head)"' in workflow
+    assert workflow.count(')" = "d8e9f0a1b2c3"') == 2
     assert '"b5c6d7e8f9a0 (head)"' not in workflow
     repository = _workflow_job(workflow, "repository", "python_postgres")
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
@@ -1020,6 +1020,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "c6d7e8f9a0b1",
             "b5c6d7e8f9a0",
             "0dd8e17182559918f96374ba1f60e5f4f5ffe30f4a246854d3178bce60264370",
+        ),
+        (
+            "d8e9f0a1b2c3_create_identification_submission.py",
+            "d8e9f0a1b2c3",
+            "c6d7e8f9a0b1",
+            "7bde95c23778ca584fa3c438d00fd9e01cb48439261803ebaeac520a2e44d107",
         ),
     ]
     assert actual_contracts == expected_contracts

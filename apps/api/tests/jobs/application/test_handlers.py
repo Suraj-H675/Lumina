@@ -48,12 +48,17 @@ def test_registry_copies_explicit_mapping_and_uses_exact_lookup() -> None:
 
 def test_production_registry_contains_exactly_approved_handlers() -> None:
     provider_sync = ProviderSyncHandler(SyncServiceSpy())
+    identification_solve = FixtureHandler()
     registry = production_handler_registry(
         provider_sync=provider_sync,
         provider_sync_validator=provider_sync.validate_payload,
+        identification_solve=identification_solve,
+        identification_solve_validator=identification_solve.validate_payload,
     )
 
-    assert registry.registered_types == frozenset({"system.noop", "provider.sync"})
+    assert registry.registered_types == frozenset(
+        {"system.noop", "provider.sync", "identification.solve"}
+    )
     assert isinstance(
         registry.resolve(PersistedJobTypeName("system.noop")),
         SystemNoopHandler,
@@ -62,6 +67,7 @@ def test_production_registry_contains_exactly_approved_handlers() -> None:
         registry.resolve(PersistedJobTypeName("provider.sync")),
         ProviderSyncHandler,
     )
+    assert registry.resolve(PersistedJobTypeName("identification.solve")) is identification_solve
 
 
 @pytest.mark.asyncio

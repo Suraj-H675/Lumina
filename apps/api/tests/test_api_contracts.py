@@ -305,7 +305,7 @@ def test_configured_cors_origin_is_allowed_without_credentials() -> None:
     assert "Access-Control-Allow-Credentials" not in response.headers
 
 
-def test_cors_preflight_allows_only_current_get_and_satellite_post_contract() -> None:
+def test_cors_preflight_allows_current_get_post_and_identification_delete_contract() -> None:
     app = _app(LUMINA_CORS_ORIGINS="https://example.com")
     headers = {
         "Origin": "https://example.com",
@@ -325,7 +325,7 @@ def test_cors_preflight_allows_only_current_get_and_satellite_post_contract() ->
     )
 
     assert get_response.status_code == 200
-    assert get_response.headers["Access-Control-Allow-Methods"] == "GET, POST"
+    assert get_response.headers["Access-Control-Allow-Methods"] == "GET, POST, DELETE"
     assert "x-request-id" in get_response.headers["Access-Control-Allow-Headers"].lower()
     assert post_response.status_code == 200
 
@@ -338,6 +338,9 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/health/live",
         "/health/ready",
         "/api/v1/meta",
+        "/api/v1/identification/capabilities",
+        "/api/v1/identification/submissions",
+        "/api/v1/identification/submissions/{submission_id}",
         "/api/v1/providers/status",
         "/api/v1/now/apod",
         "/api/v1/now/near-earth",

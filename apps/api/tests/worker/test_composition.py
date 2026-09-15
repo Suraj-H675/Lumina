@@ -7,10 +7,12 @@ import asyncio
 import inspect
 from collections.abc import Callable, Coroutine
 from contextvars import Context
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, NoReturn, cast
 
 import pytest
+from lumina.jobs.application.handlers import SystemNoopHandler
 from lumina.settings import AppSettings
 from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
 from lumina.worker import composition
@@ -214,6 +216,8 @@ def _settings() -> AppSettings:
             job_handler_timeout_seconds=30,
             job_cancellation_grace_seconds=1,
             worker_poll_seconds=2,
+            storage_local_root=Path("/tmp/lumina-worker-fixture-storage"),
+            upload_retention_hours=24,
         ),
     )
 
@@ -252,7 +256,26 @@ def _patch_pre_readiness_dependencies(
     monkeypatch.setattr(
         composition,
         "compose_provider_runtime",
-        lambda *args, **kwargs: SimpleNamespace(handler_registry=object()),
+        lambda *args, **kwargs: SimpleNamespace(sync_handler=SystemNoopHandler()),
+    )
+    monkeypatch.setattr(
+        composition, "FilesystemPrivateObjectStore", lambda *args, **kwargs: object()
+    )
+    monkeypatch.setattr(
+        composition,
+        "PostgreSqlIdentificationSubmissionRepository",
+        lambda *args, **kwargs: object(),
+    )
+    fake_identification = SystemNoopHandler()
+    monkeypatch.setattr(
+        composition,
+        "FakePlateSolverHandler",
+        lambda *args, **kwargs: fake_identification,
+    )
+    monkeypatch.setattr(
+        composition,
+        "production_handler_registry",
+        lambda **kwargs: object(),
     )
 
 

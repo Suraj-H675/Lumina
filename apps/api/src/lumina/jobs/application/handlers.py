@@ -76,16 +76,20 @@ def production_handler_registry(
     *,
     provider_sync: JobHandler,
     provider_sync_validator: Callable[[PersistedJobPayload], None],
+    identification_solve: JobHandler,
+    identification_solve_validator: Callable[[PersistedJobPayload], None],
 ) -> StaticHandlerRegistry:
-    """Construct the fixed registry from composition-supplied handlers."""
+    """Construct the complete fixed production registry from supplied handlers."""
     return StaticHandlerRegistry(
         {
             JobType.SYSTEM_NOOP.value: SystemNoopHandler(),
             JobType.PROVIDER_SYNC.value: provider_sync,
+            JobType.IDENTIFICATION_SOLVE.value: identification_solve,
         },
         payload_validators={
             JobType.SYSTEM_NOOP.value: _validate_noop_payload,
             JobType.PROVIDER_SYNC.value: provider_sync_validator,
+            JobType.IDENTIFICATION_SOLVE.value: identification_solve_validator,
         },
     )
 

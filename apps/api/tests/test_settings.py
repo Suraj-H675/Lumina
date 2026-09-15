@@ -141,6 +141,11 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.job_handler_timeout_seconds == 300
     assert settings.job_cancellation_grace_seconds == 5
     assert settings.worker_poll_seconds == 2
+    assert settings.storage_backend == "filesystem"
+    assert settings.storage_local_root == settings_module._REPOSITORY_ROOT / "var" / "storage"
+    assert settings.upload_max_bytes == 25 * 1024 * 1024
+    assert settings.upload_max_pixels == 50_000_000
+    assert settings.upload_retention_hours == 24
 
 
 @pytest.mark.parametrize(
@@ -202,6 +207,51 @@ def test_job_settings_accept_documented_overrides() -> None:
     assert settings.job_handler_timeout_seconds == 600
     assert settings.job_cancellation_grace_seconds == 10
     assert settings.worker_poll_seconds == 7
+
+
+def test_phase6a_storage_settings_accept_bounded_overrides(tmp_path: Path) -> None:
+    root = tmp_path / "private"
+    settings = _settings(
+        {
+            "LUMINA_ENV": "test",
+            "LUMINA_STORAGE_BACKEND": "filesystem",
+            "LUMINA_STORAGE_LOCAL_ROOT": str(root),
+            "LUMINA_UPLOAD_MAX_BYTES": "1048576",
+            "LUMINA_UPLOAD_MAX_PIXELS": "12000000",
+            "LUMINA_UPLOAD_RETENTION_HOURS": "48",
+        }
+    )
+    assert settings.storage_local_root == root
+    assert settings.upload_max_bytes == 1_048_576
+    assert settings.upload_max_pixels == 12_000_000
+    assert settings.upload_retention_hours == 48
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("LUMINA_UPLOAD_MAX_BYTES", 0),
+        ("LUMINA_UPLOAD_MAX_BYTES", 100 * 1024 * 1024 + 1),
+        ("LUMINA_UPLOAD_MAX_PIXELS", 0),
+        ("LUMINA_UPLOAD_MAX_PIXELS", 100_000_001),
+        ("LUMINA_UPLOAD_RETENTION_HOURS", 0),
+        ("LUMINA_UPLOAD_RETENTION_HOURS", 169),
+    ],
+)
+def test_phase6a_storage_setting_bounds(name: str, value: int) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", name: value})
+
+
+@pytest.mark.parametrize("value", [True, 1.0, " 24", "24 ", "+24", "1e2", ""])
+def test_phase6a_integer_settings_reject_coercion(value: object) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_UPLOAD_RETENTION_HOURS": value})
+
+
+def test_phase6a_rejects_unimplemented_s3_backend() -> None:
+    with pytest.raises(ValidationError, match="filesystem private storage"):
+        _settings({"LUMINA_ENV": "test", "LUMINA_STORAGE_BACKEND": "s3"})
 
 
 @pytest.mark.parametrize(

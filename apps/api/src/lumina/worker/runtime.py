@@ -111,6 +111,14 @@ class ExecuteOne(Protocol):
         ...
 
 
+class CleanupExpiredSubmissions(Protocol):
+    """One bounded private-upload retention cleanup invocation."""
+
+    async def cleanup(self, *, limit: int = 50) -> int:
+        """Delete and scrub at most ``limit`` expired submissions."""
+        ...
+
+
 class FatalTermination(Protocol):
     """Hard-termination capability for a settlement-unknown live task."""
 
@@ -340,6 +348,9 @@ class WorkerRuntime:
         poll_seconds: int,
         stale_seconds: int,
         cancellation_grace_seconds: int,
+        retention_cleanup: CleanupExpiredSubmissions | None = None,
+        retention_cleanup_seconds: int = 60,
+        retention_cleanup_limit: int = 50,
         timing: RuntimeTiming | None = None,
     ) -> None:
         if (
@@ -349,6 +360,10 @@ class WorkerRuntime:
             or not 2 <= stale_seconds <= 86_400
             or type(cancellation_grace_seconds) is not int
             or not 1 <= cancellation_grace_seconds <= 60
+            or type(retention_cleanup_seconds) is not int
+            or not 1 <= retention_cleanup_seconds <= 3_600
+            or type(retention_cleanup_limit) is not int
+            or not 1 <= retention_cleanup_limit <= 100
         ):
             raise WorkerRuntimeError()
         self._recovery = recovery
@@ -359,6 +374,9 @@ class WorkerRuntime:
         self._poll_seconds = poll_seconds
         self._recovery_cadence = max(1, min(60, stale_seconds // 2))
         self._cancellation_grace = cancellation_grace_seconds
+        self._retention_cleanup = retention_cleanup
+        self._retention_cleanup_cadence = retention_cleanup_seconds
+        self._retention_cleanup_limit = retention_cleanup_limit
         self._timing = timing or EventLoopRuntimeTiming()
         self._owned_tasks: set[asyncio.Task[object]] = set()
         self._cancel_requested: set[asyncio.Task[object]] = set()
@@ -384,7 +402,16 @@ class WorkerRuntime:
                 return 1
             if self._shutdown_event.is_set():
                 return 0
+            if self._retention_cleanup is not None:
+                cleanup_status = await self._cleanup_retention_once(shutdown_wait=shutdown_wait)
+                if cleanup_status is not None:
+                    return cleanup_status
             next_recovery = self._timing.monotonic() + self._recovery_cadence
+            next_cleanup = (
+                self._timing.monotonic() + self._retention_cleanup_cadence
+                if self._retention_cleanup is not None
+                else None
+            )
             next_claim: float | None = None
             while not self._shutdown_event.is_set():
                 now = self._timing.monotonic()
@@ -395,9 +422,17 @@ class WorkerRuntime:
                     if self._shutdown_event.is_set():
                         return 0
                     continue
+                if next_cleanup is not None and now >= next_cleanup:
+                    cleanup_status = await self._cleanup_retention_once(shutdown_wait=shutdown_wait)
+                    if cleanup_status is not None:
+                        return cleanup_status
+                    next_cleanup = self._timing.monotonic() + self._retention_cleanup_cadence
+                    continue
                 if next_claim is not None and now < next_claim:
-                    due = min(next_claim, next_recovery)
-                    if await self._wait_until(due, shutdown_wait=shutdown_wait):
+                    deadlines = [next_claim, next_recovery]
+                    if next_cleanup is not None:
+                        deadlines.append(next_cleanup)
+                    if await self._wait_until(min(deadlines), shutdown_wait=shutdown_wait):
                         return 0
                     continue
                 self._observer.mark(ExecutionPhase.SCHEDULING)
@@ -432,6 +467,48 @@ class WorkerRuntime:
         except BaseException:
             return False
         return type(result) is RecoverStaleJobsResult
+
+    async def _cleanup_retention_once(
+        self,
+        *,
+        shutdown_wait: asyncio.Task[bool],
+    ) -> int | None:
+        cleanup = self._retention_cleanup
+        if cleanup is None:
+            return None
+        task = asyncio.create_task(
+            cleanup.cleanup(limit=self._retention_cleanup_limit),
+            name="lumina.worker.identification-retention-cleanup",
+        )
+        self._owned_tasks.add(task)
+        try:
+            done, _ = await asyncio.wait(
+                (task, shutdown_wait),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if shutdown_wait in done and task not in done:
+                self._request_cancel(task)
+                deadline = self._get_cleanup_deadline()
+                if not await _observe_bounded(task, deadline=deadline):
+                    self._owned_tasks.discard(task)
+                    self._attach_eventual_consumer(task)
+                    await self._hard_terminate(None)
+                return 0
+            cleaned = task.result()
+            if type(cleaned) is not int or not 0 <= cleaned <= self._retention_cleanup_limit:
+                return 1
+            return None
+        except asyncio.CancelledError:
+            return 0 if self._shutdown_event.is_set() else 1
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException:
+            return 1
+        finally:
+            if task.done() and task in self._owned_tasks:
+                _consume_task(task)
+                self._owned_tasks.discard(task)
+                self._cancel_requested.discard(task)
 
     async def _execute_once(
         self,

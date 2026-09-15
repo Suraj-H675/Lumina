@@ -5,13 +5,21 @@ from __future__ import annotations
 import asyncio
 from contextlib import suppress
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from enum import Enum, auto
 from typing import Protocol
 
+from lumina.identification.application.fake_solver import FakePlateSolverHandler
+from lumina.identification.application.submissions import RetentionCleanupService
+from lumina.identification.infrastructure.filesystem import FilesystemPrivateObjectStore
+from lumina.identification.infrastructure.postgresql import (
+    PostgreSqlIdentificationSubmissionRepository,
+)
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.execution import ExecuteOneJobService
 from lumina.jobs.application.failure import FailJobService
+from lumina.jobs.application.handlers import production_handler_registry
 from lumina.jobs.application.heartbeat import HeartbeatJobService
 from lumina.jobs.application.recovery import RecoverStaleJobsService
 from lumina.jobs.infrastructure.postgresql.claim import PostgreSqlClaimJobStore
@@ -193,7 +201,27 @@ async def run_worker_process(
             session_factory,
             nasa_api_key=settings.nasa_api_key,
         )
-        registry = provider_composition.handler_registry
+        identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
+        identification_repository = PostgreSqlIdentificationSubmissionRepository(
+            session_factory,
+            operation_wait_timeout_ms=operation_timeout,
+        )
+        identification_handler = FakePlateSolverHandler(
+            identification_repository,
+            identification_store,
+        )
+        identification_retention_cleanup = RetentionCleanupService(
+            identification_repository,
+            identification_store,
+            now=lambda: datetime.now(UTC),
+            terminal_retention=timedelta(hours=settings.upload_retention_hours),
+        )
+        registry = production_handler_registry(
+            provider_sync=provider_composition.sync_handler,
+            provider_sync_validator=provider_composition.sync_handler.validate_payload,
+            identification_solve=identification_handler,
+            identification_solve_validator=identification_handler.validate_payload,
+        )
         resources.signals = install_signal_handlers(shutdown_event)
         owner = build_worker_owner_identity(settings.worker_id_prefix)
 
@@ -244,6 +272,9 @@ async def run_worker_process(
                     poll_seconds=settings.worker_poll_seconds,
                     stale_seconds=settings.job_stale_seconds,
                     cancellation_grace_seconds=settings.job_cancellation_grace_seconds,
+                    retention_cleanup=identification_retention_cleanup,
+                    retention_cleanup_seconds=60,
+                    retention_cleanup_limit=50,
                 )
                 status = await runtime.run()
     except TerminatorReturned:

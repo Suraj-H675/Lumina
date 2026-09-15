@@ -16,6 +16,7 @@ dependencies = [
     "uvicorn==0.51.0",
     "skyfield==1.55",
     "sgp4==2.27",
+    "python-multipart==0.0.32",
 ]
 
 [project.scripts]

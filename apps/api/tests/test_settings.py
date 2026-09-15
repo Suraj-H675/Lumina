@@ -146,6 +146,14 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.upload_max_bytes == 25 * 1024 * 1024
     assert settings.upload_max_pixels == 50_000_000
     assert settings.upload_retention_hours == 24
+    assert settings.enable_remote_astrometry is False
+    assert settings.astrometry_api_url == "https://nova.astrometry.net/api"
+    assert settings.astrometry_api_key is None
+    assert settings.astrometry_publicly_visible == "n"
+    assert settings.astrometry_allow_modifications == "n"
+    assert settings.astrometry_allow_commercial_use == "n"
+    assert settings.astrometry_poll_seconds == 5
+    assert settings.astrometry_timeout_seconds == 900
 
 
 @pytest.mark.parametrize(
@@ -476,3 +484,92 @@ def test_invalid_api_docs_boolean_text_is_rejected(value: str) -> None:
 def test_unsafe_build_commit_is_rejected(build_commit: str) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", "LUMINA_BUILD_COMMIT": build_commit})
+
+
+def test_phase6b_remote_astrometry_requires_secret_key_only_when_enabled() -> None:
+    disabled = _settings({"LUMINA_ENV": "test"})
+    assert disabled.enable_remote_astrometry is False
+    assert disabled.astrometry_api_key is None
+
+    with pytest.raises(ValidationError, match="requires a configured server API key"):
+        _settings({"LUMINA_ENV": "test", "LUMINA_ENABLE_REMOTE_ASTROMETRY": "true"})
+
+    secret = "fixture-nova-key-2026"
+    enabled = _settings(
+        {
+            "LUMINA_ENV": "test",
+            "LUMINA_ENABLE_REMOTE_ASTROMETRY": "true",
+            "LUMINA_ASTROMETRY_API_KEY": secret,
+        }
+    )
+    assert enabled.enable_remote_astrometry is True
+    assert enabled.astrometry_api_key is not None
+    assert enabled.astrometry_api_key.get_secret_value() == secret
+    assert secret not in repr(enabled)
+    assert secret not in str(enabled)
+
+
+@pytest.mark.parametrize("value", ["yes", "1", "TRUE", "False", 1, 0, None, ""])
+def test_phase6b_remote_enable_rejects_boolean_coercion(value: object) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_ENABLE_REMOTE_ASTROMETRY": value})
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "http://nova.astrometry.net/api",
+        "https://nova.astrometry.net/api/",
+        "https://nova.astrometry.net/api?x=1",
+        "https://nova.astrometry.net/api#fragment",
+        "https://user@nova.astrometry.net/api",
+        "https://example.com/api",
+        " https://nova.astrometry.net/api",
+    ],
+)
+def test_phase6b_astrometry_api_url_is_locked_to_reviewed_https_nova(value: str) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_ASTROMETRY_API_URL": value})
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "LUMINA_ASTROMETRY_PUBLICLY_VISIBLE",
+        "LUMINA_ASTROMETRY_ALLOW_MODIFICATIONS",
+        "LUMINA_ASTROMETRY_ALLOW_COMMERCIAL_USE",
+    ],
+)
+def test_phase6b_remote_privacy_flags_cannot_be_relaxed(name: str) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", name: "y"})
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("LUMINA_ASTROMETRY_POLL_SECONDS", 0),
+        ("LUMINA_ASTROMETRY_POLL_SECONDS", 61),
+        ("LUMINA_ASTROMETRY_TIMEOUT_SECONDS", 29),
+        ("LUMINA_ASTROMETRY_TIMEOUT_SECONDS", 3_601),
+    ],
+)
+def test_phase6b_remote_timing_bounds(name: str, value: int) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", name: value})
+
+
+@pytest.mark.parametrize("value", [True, 1.0, " 5", "5 ", "+5", "1e2", ""])
+def test_phase6b_remote_timing_requires_exact_integers(value: object) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_ASTROMETRY_POLL_SECONDS": value})
+
+
+@pytest.mark.parametrize(
+    "value",
+    [" leading", "trailing ", "key\nline", "key\x7f", "clé", "x" * 257, 42, False],
+)
+def test_phase6b_astrometry_key_rejects_malformed_values_without_echo(value: object) -> None:
+    with pytest.raises(ValidationError) as captured:
+        _settings({"LUMINA_ENV": "test", "LUMINA_ASTROMETRY_API_KEY": value})
+    assert str(value) not in str(captured.value)

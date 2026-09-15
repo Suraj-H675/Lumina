@@ -61,6 +61,14 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_UPLOAD_MAX_BYTES",
         "LUMINA_UPLOAD_MAX_PIXELS",
         "LUMINA_UPLOAD_RETENTION_HOURS",
+        "LUMINA_ENABLE_REMOTE_ASTROMETRY",
+        "LUMINA_ASTROMETRY_API_URL",
+        "LUMINA_ASTROMETRY_API_KEY",
+        "LUMINA_ASTROMETRY_PUBLICLY_VISIBLE",
+        "LUMINA_ASTROMETRY_ALLOW_MODIFICATIONS",
+        "LUMINA_ASTROMETRY_ALLOW_COMMERCIAL_USE",
+        "LUMINA_ASTROMETRY_POLL_SECONDS",
+        "LUMINA_ASTROMETRY_TIMEOUT_SECONDS",
     }
 )
 
@@ -96,6 +104,53 @@ def _validate_nasa_api_key(value: object) -> SecretStr | None:
     ):
         raise ValueError("NASA API key is invalid")
     return SecretStr(raw)
+
+
+def _validate_astrometry_api_key(value: object) -> SecretStr | None:
+    """Accept an optional Nova key without reflecting it in validation errors."""
+    if value is None:
+        return None
+    raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+    if raw == "":
+        return None
+    if (
+        not isinstance(raw, str)
+        or not 1 <= len(raw) <= 256
+        or not raw.isascii()
+        or any(not 33 <= ord(character) <= 126 for character in raw)
+    ):
+        raise ValueError("Astrometry.net API key is invalid")
+    return SecretStr(raw)
+
+
+def _validate_astrometry_api_url(value: str) -> str:
+    """Lock Phase 6B remote processing to Nova's reviewed HTTPS API origin."""
+    if value != "https://nova.astrometry.net/api":
+        raise ValueError("Astrometry.net API URL is not the reviewed Nova HTTPS endpoint")
+    parsed = urlsplit(value)
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != "nova.astrometry.net"
+        or parsed.port is not None
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path != "/api"
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("Astrometry.net API URL is invalid")
+    return value
+
+
+def _parse_strict_boolean(value: object, *, field: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        if value == "true":
+            return True
+        if value == "false":
+            return False
+    raise ValueError(f"{field} must be true or false")
 
 
 def _parse_cors_origins(value: object) -> object:
@@ -190,6 +245,42 @@ class AppSettings(BaseSettings):
     nasa_api_key: SecretStr | None = Field(
         default=None,
         validation_alias="LUMINA_NASA_API_KEY",
+    )
+    enable_remote_astrometry: bool = Field(
+        default=False,
+        validation_alias="LUMINA_ENABLE_REMOTE_ASTROMETRY",
+    )
+    astrometry_api_url: str = Field(
+        default="https://nova.astrometry.net/api",
+        validation_alias="LUMINA_ASTROMETRY_API_URL",
+    )
+    astrometry_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias="LUMINA_ASTROMETRY_API_KEY",
+    )
+    astrometry_publicly_visible: Literal["n"] = Field(
+        default="n",
+        validation_alias="LUMINA_ASTROMETRY_PUBLICLY_VISIBLE",
+    )
+    astrometry_allow_modifications: Literal["n"] = Field(
+        default="n",
+        validation_alias="LUMINA_ASTROMETRY_ALLOW_MODIFICATIONS",
+    )
+    astrometry_allow_commercial_use: Literal["n"] = Field(
+        default="n",
+        validation_alias="LUMINA_ASTROMETRY_ALLOW_COMMERCIAL_USE",
+    )
+    astrometry_poll_seconds: int = Field(
+        default=5,
+        ge=1,
+        le=60,
+        validation_alias="LUMINA_ASTROMETRY_POLL_SECONDS",
+    )
+    astrometry_timeout_seconds: int = Field(
+        default=900,
+        ge=30,
+        le=3_600,
+        validation_alias="LUMINA_ASTROMETRY_TIMEOUT_SECONDS",
     )
     database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
     job_payload_max_bytes: int = Field(
@@ -292,6 +383,8 @@ class AppSettings(BaseSettings):
         "upload_max_bytes",
         "upload_max_pixels",
         "upload_retention_hours",
+        "astrometry_poll_seconds",
+        "astrometry_timeout_seconds",
         mode="before",
     )
     @classmethod
@@ -334,6 +427,8 @@ class AppSettings(BaseSettings):
             raise ValueError("Job cancellation grace exceeds the handler timeout")
         if self.storage_backend != "filesystem":
             raise ValueError("Only filesystem private storage is supported in Phase 6A")
+        if self.enable_remote_astrometry and self.astrometry_api_key is None:
+            raise ValueError("Remote Astrometry.net requires a configured server API key")
         return self
 
     @field_validator("database_url")
@@ -350,6 +445,21 @@ class AppSettings(BaseSettings):
     @classmethod
     def validate_nasa_api_key(cls, value: object) -> SecretStr | None:
         return _validate_nasa_api_key(value)
+
+    @field_validator("enable_remote_astrometry", mode="before")
+    @classmethod
+    def validate_remote_astrometry_enabled(cls, value: object) -> bool:
+        return _parse_strict_boolean(value, field="Remote Astrometry.net enable setting")
+
+    @field_validator("astrometry_api_url")
+    @classmethod
+    def validate_astrometry_api_url(cls, value: str) -> str:
+        return _validate_astrometry_api_url(value)
+
+    @field_validator("astrometry_api_key", mode="before")
+    @classmethod
+    def validate_astrometry_api_key(cls, value: object) -> SecretStr | None:
+        return _validate_astrometry_api_key(value)
 
     @field_validator("log_level", mode="before")
     @classmethod

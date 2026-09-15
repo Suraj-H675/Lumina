@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { apodEndpoint, liveEndpoint, metaEndpoint } from "../src/contract";
-import { MAX_RESPONSE_BYTES, normalizeApiOrigin, requestEndpoint } from "../src/transport";
+import { apodEndpoint, liveEndpoint, metaEndpoint, satellitePassEndpoint } from "../src/contract";
+import {
+  MAX_RESPONSE_BYTES,
+  normalizeApiOrigin,
+  requestEndpoint,
+  requestJsonEndpoint,
+} from "../src/transport";
 
 function jsonResponse(body: unknown, contentType = "application/json"): Response {
   return new Response(JSON.stringify(body), {
@@ -121,6 +126,84 @@ describe("bounded native-fetch transport", () => {
     await expect(
       requestEndpoint("http://127.0.0.1:8000", apodEndpoint, { fetchImplementation }),
     ).resolves.toEqual({ data: body, kind: "ok", status: 200 });
+  });
+
+  it("sends the satellite pass request as bounded generated-contract JSON", async () => {
+    const request = {
+      catalog_number: 25544,
+      observer: { elevation_m: 1600, latitude_deg: 35.1234, longitude_deg: -105.5678 },
+      start_utc: "2026-06-19T12:00:00Z",
+    };
+    const body = {
+      prediction: {
+        algorithm: {
+          algorithm_version: "lumina-satellite-pass-v1",
+          altitude_threshold_deg: 10,
+          gravity_model: "WGS72",
+          observer_ellipsoid: "WGS84",
+          propagation_model: "SGP4",
+          shadow_policy: "cylindrical-earth-shadow-v1",
+          window_hours: 24,
+        },
+        element_age_hours_at_start: 0.27823296,
+        maximum_element_offset_hours: 23.72176704,
+        passes: [],
+        refusal_reason: "unsupported_event_sequence",
+        stale_element_warning: false,
+        state: "refused",
+      },
+      requested_start_utc: "2026-06-19T12:00:00Z",
+      satellite: {
+        catalog_number: 25544,
+        element_age_hours: 1.72176704,
+        element_epoch_utc: "2026-06-19T12:16:41.638656Z",
+        groups: ["STATIONS", "VISUAL"],
+        name: "ISS (ZARYA)",
+        object_id: "1998-067A",
+        pass_prediction_runtime_supported: true,
+        stale_element_warning: false,
+      },
+      source: {
+        attribution_text: "CelesTrak attribution",
+        name: "CelesTrak Current GP Data",
+        official_documentation_url: "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
+        terms_url: "https://celestrak.org/usage-policy.php",
+      },
+    };
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(body));
+
+    await expect(
+      requestJsonEndpoint("http://127.0.0.1:8000", satellitePassEndpoint, request, {
+        fetchImplementation,
+      }),
+    ).resolves.toEqual({ data: body, kind: "ok", status: 200 });
+
+    const [url, options] = fetchImplementation.mock.calls[0] ?? [];
+    expect(url).toEqual(new URL("http://127.0.0.1:8000/api/v1/now/satellites/passes"));
+    expect(options).toMatchObject({
+      body: JSON.stringify(request),
+      cache: "no-store",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      method: "POST",
+      redirect: "error",
+    });
+  });
+
+  it("rejects an additive satellite pass request before fetch", async () => {
+    const fetchImplementation = vi.fn<typeof fetch>();
+    const result = await requestJsonEndpoint(
+      "http://127.0.0.1:8000",
+      satellitePassEndpoint,
+      {
+        catalog_number: 25544,
+        observer: { elevation_m: 0, latitude_deg: 0, longitude_deg: 0 },
+        start_utc: "2026-06-19T12:00:00Z",
+        unexpected: true,
+      } as never,
+      { fetchImplementation },
+    );
+    expect(result).toEqual({ kind: "invalid-request" });
+    expect(fetchImplementation).not.toHaveBeenCalled();
   });
 
   it("uses the generated GET path and requests uncached JSON", async () => {

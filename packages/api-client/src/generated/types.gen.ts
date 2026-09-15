@@ -1196,6 +1196,283 @@ export type ReadyResponse = {
 };
 
 /**
+ * SatelliteAlgorithmResponse
+ */
+export type SatelliteAlgorithmResponse = {
+  /**
+   * Algorithm Version
+   */
+  algorithm_version: string;
+  /**
+   * Altitude Threshold Deg
+   */
+  altitude_threshold_deg: number;
+  /**
+   * Gravity Model
+   */
+  gravity_model: string;
+  /**
+   * Observer Ellipsoid
+   */
+  observer_ellipsoid: string;
+  /**
+   * Propagation Model
+   */
+  propagation_model: string;
+  /**
+   * Shadow Policy
+   */
+  shadow_policy: string;
+  /**
+   * Window Hours
+   */
+  window_hours: number;
+};
+
+/**
+ * SatelliteFreshnessResponse
+ */
+export type SatelliteFreshnessResponse = {
+  cache_state: CacheState;
+  /**
+   * Fresh Until
+   */
+  fresh_until: string | null;
+  /**
+   * Last Refresh Failure Code
+   */
+  last_refresh_failure_code: string | null;
+  /**
+   * Retrieved At
+   */
+  retrieved_at: string | null;
+  /**
+   * Snapshot Latest Epoch Utc
+   */
+  snapshot_latest_epoch_utc: string | null;
+  /**
+   * Stale Until
+   */
+  stale_until: string | null;
+};
+
+/**
+ * SatelliteItemResponse
+ */
+export type SatelliteItemResponse = {
+  /**
+   * Catalog Number
+   */
+  catalog_number: number;
+  /**
+   * Element Age Hours
+   */
+  element_age_hours: number;
+  /**
+   * Element Epoch Utc
+   */
+  element_epoch_utc: string;
+  /**
+   * Groups
+   */
+  groups: Array<"STATIONS" | "VISUAL">;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Object Id
+   */
+  object_id: string | null;
+  /**
+   * Pass Prediction Runtime Supported
+   */
+  pass_prediction_runtime_supported: boolean;
+  /**
+   * Stale Element Warning
+   */
+  stale_element_warning: boolean;
+};
+
+/**
+ * SatelliteListResponse
+ */
+export type SatelliteListResponse = {
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  freshness: SatelliteFreshnessResponse;
+  /**
+   * Returned Satellite Count
+   */
+  returned_satellite_count: number;
+  /**
+   * Satellites
+   */
+  satellites: Array<SatelliteItemResponse>;
+  source: SatelliteSourceResponse;
+  /**
+   * Total Satellite Count
+   */
+  total_satellite_count: number;
+  /**
+   * Unavailable Reason
+   */
+  unavailable_reason: "provider_disabled" | "no_cached_content" | "cached_content_expired" | null;
+};
+
+/**
+ * SatelliteObserverRequest
+ */
+export type SatelliteObserverRequest = {
+  /**
+   * Elevation M
+   */
+  elevation_m?: number;
+  /**
+   * Latitude Deg
+   */
+  latitude_deg: number;
+  /**
+   * Longitude Deg
+   */
+  longitude_deg: number;
+};
+
+/**
+ * SatellitePassEventResponse
+ */
+export type SatellitePassEventResponse = {
+  /**
+   * Azimuth Deg
+   */
+  azimuth_deg: number;
+  /**
+   * Direction
+   */
+  direction: string;
+  /**
+   * Time Utc
+   */
+  time_utc: string;
+};
+
+/**
+ * SatellitePassItemResponse
+ */
+export type SatellitePassItemResponse = {
+  /**
+   * Observer Sky State At Peak
+   */
+  observer_sky_state_at_peak:
+    "daylight" | "civil_twilight" | "nautical_twilight" | "astronomical_twilight" | "night";
+  /**
+   * Observer Sun Altitude Deg At Peak
+   */
+  observer_sun_altitude_deg_at_peak: number;
+  peak: SatellitePassEventResponse;
+  /**
+   * Peak Altitude Deg
+   */
+  peak_altitude_deg: number;
+  rise: SatellitePassEventResponse;
+  /**
+   * Satellite Sunlit At Peak
+   */
+  satellite_sunlit_at_peak: boolean;
+  set: SatellitePassEventResponse;
+};
+
+/**
+ * SatellitePassPredictionResponse
+ */
+export type SatellitePassPredictionResponse = {
+  algorithm: SatelliteAlgorithmResponse;
+  /**
+   * Element Age Hours At Start
+   */
+  element_age_hours_at_start: number;
+  /**
+   * Maximum Element Offset Hours
+   */
+  maximum_element_offset_hours: number;
+  /**
+   * Passes
+   */
+  passes: Array<SatellitePassItemResponse>;
+  /**
+   * Refusal Reason
+   */
+  refusal_reason:
+    | "elements_outside_supported_age"
+    | "catalog_number_unsupported_by_sgp4"
+    | "unsupported_sgp4_state"
+    | "unsupported_event_sequence"
+    | null;
+  /**
+   * Stale Element Warning
+   */
+  stale_element_warning: boolean;
+  /**
+   * State
+   */
+  state: "available" | "no_passes" | "refused";
+};
+
+/**
+ * SatellitePassRequest
+ */
+export type SatellitePassRequest = {
+  /**
+   * Catalog Number
+   */
+  catalog_number: number;
+  observer: SatelliteObserverRequest;
+  /**
+   * Start Utc
+   */
+  start_utc: string;
+};
+
+/**
+ * SatellitePassResponse
+ *
+ * Local pass result that intentionally does not echo the private observer coordinates.
+ */
+export type SatellitePassResponse = {
+  prediction: SatellitePassPredictionResponse;
+  /**
+   * Requested Start Utc
+   */
+  requested_start_utc: string;
+  satellite: SatelliteItemResponse;
+  source: SatelliteSourceResponse;
+};
+
+/**
+ * SatelliteSourceResponse
+ */
+export type SatelliteSourceResponse = {
+  /**
+   * Attribution Text
+   */
+  attribution_text: string;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Official Documentation Url
+   */
+  official_documentation_url: string;
+  /**
+   * Terms Url
+   */
+  terms_url: string;
+};
+
+/**
  * SearchMatchReason
  */
 export type SearchMatchReason =
@@ -2258,6 +2535,82 @@ export type GetNowNearEarthResponses = {
 };
 
 export type GetNowNearEarthResponse = GetNowNearEarthResponses[keyof GetNowNearEarthResponses];
+
+export type GetNowSatellitesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/now/satellites";
+};
+
+export type GetNowSatellitesErrors = {
+  /**
+   * The requested satellite is not present in the current selected-group snapshot.
+   */
+  404: ErrorResponse;
+  /**
+   * The satellite pass request body exceeds the approved bound.
+   */
+  413: ErrorResponse;
+  /**
+   * The satellite request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * Satellite data is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetNowSatellitesError = GetNowSatellitesErrors[keyof GetNowSatellitesErrors];
+
+export type GetNowSatellitesResponses = {
+  /**
+   * Successful Response
+   */
+  200: SatelliteListResponse;
+};
+
+export type GetNowSatellitesResponse = GetNowSatellitesResponses[keyof GetNowSatellitesResponses];
+
+export type PostNowSatellitePassesData = {
+  body: SatellitePassRequest;
+  path?: never;
+  query?: never;
+  url: "/api/v1/now/satellites/passes";
+};
+
+export type PostNowSatellitePassesErrors = {
+  /**
+   * The requested satellite is not present in the current selected-group snapshot.
+   */
+  404: ErrorResponse;
+  /**
+   * The satellite pass request body exceeds the approved bound.
+   */
+  413: ErrorResponse;
+  /**
+   * The satellite request could not be validated.
+   */
+  422: ErrorResponse;
+  /**
+   * Satellite data is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type PostNowSatellitePassesError =
+  PostNowSatellitePassesErrors[keyof PostNowSatellitePassesErrors];
+
+export type PostNowSatellitePassesResponses = {
+  /**
+   * Successful Response
+   */
+  200: SatellitePassResponse;
+};
+
+export type PostNowSatellitePassesResponse =
+  PostNowSatellitePassesResponses[keyof PostNowSatellitePassesResponses];
 
 export type GetNowSpaceWeatherData = {
   body?: never;

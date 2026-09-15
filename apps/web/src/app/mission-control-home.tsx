@@ -57,6 +57,12 @@ export function MissionControlHome({
           </Link>
           <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
+            href="/now/satellites"
+          >
+            Find satellite passes
+          </Link>
+          <Link
+            className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
             href="/explore"
           >
             Explore the catalogue

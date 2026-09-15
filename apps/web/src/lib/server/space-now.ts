@@ -5,6 +5,7 @@ import {
   launchDetailEndpoint,
   launchesEndpoint,
   nearEarthEndpoint,
+  satellitesEndpoint,
   spaceWeatherEndpoint,
   requestEndpoint,
   type ApodResponse,
@@ -12,6 +13,7 @@ import {
   type LaunchDetailResponse,
   type LaunchListResponse,
   type NearEarthResponse,
+  type SatelliteListResponse,
   type SpaceWeatherResponse,
   type TransportOptions,
 } from "@lumina/api-client";
@@ -31,6 +33,9 @@ export type NowLaunchDetailOutcome =
 
 export type NowNearEarthOutcome =
   Readonly<{ data: NearEarthResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
+
+export type NowSatellitesOutcome =
+  Readonly<{ data: SatelliteListResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
 
 export type NowSpaceWeatherOutcome =
   Readonly<{ data: SpaceWeatherResponse; kind: "ok" }> | Readonly<{ kind: "unavailable" }>;
@@ -102,6 +107,20 @@ export async function loadNowNearEarth(
   const result: ApiTransportResult<NearEarthResponse> = await requestEndpoint(
     configured.origin,
     nearEarthEndpoint,
+    transportOptions(options),
+  );
+  return result.kind === "ok" ? { data: result.data, kind: "ok" } : { kind: "unavailable" };
+}
+
+export async function loadNowSatellites(
+  options: NowApodLoaderOptions = {},
+): Promise<NowSatellitesOutcome> {
+  const configured = resolveWebApiOrigin(options.origin, options.environment);
+  if (!configured.valid) return { kind: "unavailable" };
+
+  const result: ApiTransportResult<SatelliteListResponse> = await requestEndpoint(
+    configured.origin,
+    satellitesEndpoint,
     transportOptions(options),
   );
   return result.kind === "ok" ? { data: result.data, kind: "ok" } : { kind: "unavailable" };

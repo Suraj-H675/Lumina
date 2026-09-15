@@ -11,6 +11,8 @@ import {
   liveEndpoint,
   metaEndpoint,
   readyEndpoint,
+  satellitePassEndpoint,
+  satellitesEndpoint,
   validateExactGenerated,
 } from "../src/contract";
 import { requestEndpoint } from "../src/transport";
@@ -23,8 +25,10 @@ import type {
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   LiveHealthLiveGetData,
+  GetNowSatellitesData,
   ListCatalogEntitiesData,
   MetadataApiV1MetaGetData,
+  PostNowSatellitePassesData,
   ReadyHealthReadyGetData,
   SearchCatalogEntitiesData,
   SuggestCatalogEntitiesData,
@@ -48,6 +52,10 @@ describe("generated contract boundary", () => {
     expectTypeOf(liveEndpoint.path).toEqualTypeOf<LiveHealthLiveGetData["url"]>();
     expectTypeOf(readyEndpoint.path).toEqualTypeOf<ReadyHealthReadyGetData["url"]>();
     expectTypeOf(metaEndpoint.path).toEqualTypeOf<MetadataApiV1MetaGetData["url"]>();
+    expect(satellitesEndpoint.method).toBe("GET");
+    expect(satellitePassEndpoint.method).toBe("POST");
+    expectTypeOf(satellitesEndpoint.path).toEqualTypeOf<GetNowSatellitesData["url"]>();
+    expectTypeOf(satellitePassEndpoint.path).toEqualTypeOf<PostNowSatellitePassesData["url"]>();
     expect(seasonsSimulatorEndpoint.method).toBe("GET");
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]

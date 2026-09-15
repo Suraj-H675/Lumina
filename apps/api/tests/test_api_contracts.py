@@ -305,7 +305,7 @@ def test_configured_cors_origin_is_allowed_without_credentials() -> None:
     assert "Access-Control-Allow-Credentials" not in response.headers
 
 
-def test_cors_preflight_allows_only_current_get_contract() -> None:
+def test_cors_preflight_allows_only_current_get_and_satellite_post_contract() -> None:
     app = _app(LUMINA_CORS_ORIGINS="https://example.com")
     headers = {
         "Origin": "https://example.com",
@@ -325,9 +325,9 @@ def test_cors_preflight_allows_only_current_get_contract() -> None:
     )
 
     assert get_response.status_code == 200
-    assert get_response.headers["Access-Control-Allow-Methods"] == "GET"
+    assert get_response.headers["Access-Control-Allow-Methods"] == "GET, POST"
     assert "x-request-id" in get_response.headers["Access-Control-Allow-Headers"].lower()
-    assert post_response.status_code == 400
+    assert post_response.status_code == 200
 
 
 def test_openapi_contains_only_approved_routes() -> None:
@@ -343,6 +343,8 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/api/v1/now/near-earth",
         "/api/v1/now/launches",
         "/api/v1/now/launches/{launch_id}",
+        "/api/v1/now/satellites",
+        "/api/v1/now/satellites/passes",
         "/api/v1/now/space-weather",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",

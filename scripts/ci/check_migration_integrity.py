@@ -128,6 +128,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="a4b5c6d7e8f9",
         sha256="8f62c9fc68ae124d87d18fc0bdb3aa00612c8bf9efb289a96048192807ece0b2",
     ),
+    MigrationContract(
+        filename="c6d7e8f9a0b1_add_celestrak_provider.py",
+        revision="c6d7e8f9a0b1",
+        down_revision="b5c6d7e8f9a0",
+        sha256="0dd8e17182559918f96374ba1f60e5f4f5ffe30f4a246854d3178bce60264370",
+    ),
 )
 
 
@@ -188,7 +194,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 18 accepted revisions, head b5c6d7e8f9a0.")
+    print("Migration integrity passed: 19 accepted revisions, head c6d7e8f9a0b1.")
     return 0
 
 

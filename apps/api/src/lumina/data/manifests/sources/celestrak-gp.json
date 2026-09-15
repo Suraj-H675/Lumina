@@ -1,0 +1,33 @@
+{
+  "adapter_id": "celestrak-gp-selected-groups",
+  "adapter_version": "1",
+  "attribution_text": "Satellite general-perturbations element data is provided by CelesTrak. Lumina preserves NORAD catalog identity, selected-group membership, element epoch, source freshness, and algorithm limitations and does not claim real-time tracking or guaranteed optical visibility.",
+  "authentication_method": "The production integration uses CelesTrak's public current-GP endpoint and sends no user credentials, observer coordinates, or personal data upstream.",
+  "cache_ttl": "Fresh for 3 hours after a successful retrieval; stale-if-error for the following 21 hours; expired thereafter. A successful retrieval schedules the next refresh after 2 hours. Pass prediction applies a separate element-age safety policy.",
+  "capabilities": ["batch_fetch"],
+  "contact_or_user_agent_requirement": "Lumina sends a fixed identifying User-Agent without personal data and performs only server-side requests.",
+  "endpoint_or_base_url": "https://celestrak.org/NORAD/elements/gp.php",
+  "failure_and_fallback_behaviour": "Fetch exactly the fixed STATIONS and VISUAL OMM-keyword JSON groups as one atomic snapshot. Reject malformed, oversized, duplicate-key, non-finite, schema-drifted, conflicting duplicate-catalog, or otherwise contract-breaking data; retain the last-known-good cache and label stale data. Pass requests never trigger provider traffic.",
+  "fetch_time_policy": "Each accepted snapshot records Lumina's UTC retrieval and cache deadlines separately from each source OMM element epoch.",
+  "fixture_and_checksum_strategy": "Offline tests use deterministic OMM JSON fixtures for STATIONS and VISUAL, including exact cross-group duplicates, malformed values, duplicate JSON keys, conflicting catalog states, epoch regression, and provider failures. Multi-component raw evidence uses a domain-separated aggregate SHA-256 checksum.",
+  "known_limitations": [
+    "Phase 4D v1 ingests only the fixed STATIONS and VISUAL groups and is not a mirror of the complete satellite catalog.",
+    "General-perturbations elements are model inputs rather than real-time measured spacecraft positions; prediction quality degrades away from the element epoch.",
+    "Lumina warns after 24 hours of element age and refuses pass prediction after 72 hours as a conservative product policy; these thresholds are not universal SGP4 validity limits.",
+    "Satellite illumination and observer sky state are contextual model outputs. Lumina implements no optical-magnitude model and does not claim that a pass is visible.",
+    "Exact observer coordinates are never sent to CelesTrak; pass propagation is local to Lumina's API process from cached elements."
+  ],
+  "last_verified_at": "2026-09-15T00:00:00Z",
+  "manifest_schema_version": 1,
+  "manifest_type": "source",
+  "normalized_fields": ["satellites", "snapshot_latest_epoch_utc"],
+  "observation_or_publication_time_policy": "The OMM EPOCH is retained as the source element epoch. Lumina retrieval time is a separate cache-freshness fact. Pass predictions expose element age at the requested start time and the SGP4 algorithm/version policy.",
+  "official_documentation_url": "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
+  "purpose": "Low-volume server-side synchronization of selected CelesTrak current-GP OMM JSON groups for deterministic local satellite pass prediction.",
+  "rate_or_fair_use_constraints": "CelesTrak states that current GP data updates once every two hours and should be requested only once per update. Lumina requests each of the two fixed selected groups no more than once per two-hour refresh cycle, caches them server-side, never queries user-selected catalog numbers upstream, and never makes browser-direct requests.",
+  "refresh_schedule": "External deployment cron may enqueue provider.sync hourly; the provider performs network I/O only when its two-hour refresh eligibility is due.",
+  "source_id": "celestrak-gp",
+  "source_name": "CelesTrak Current GP Data",
+  "source_schema_version": "celestrak-omm-json-v1",
+  "terms_or_licence_url": "https://celestrak.org/usage-policy.php"
+}

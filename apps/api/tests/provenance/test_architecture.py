@@ -142,6 +142,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
         "composition.py",
         "domain/__init__.py",
         "domain/apod.py",
+        "domain/celestrak.py",
         "domain/launch_library.py",
         "domain/manifests.py",
         "domain/neows.py",
@@ -150,6 +151,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
         "domain/runtime.py",
         "domain/space_weather.py",
         "infrastructure/__init__.py",
+        "infrastructure/celestrak.py",
         "infrastructure/http.py",
         "infrastructure/launch_library.py",
         "infrastructure/nasa_apod.py",
@@ -166,6 +168,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
     assert "ProviderRuntimeConfig" in production_source
     assert "NasaExoplanetArchiveAdapter" in production_source
     assert "NasaApodAdapter" in production_source
+    assert "CelestrakAdapter" in production_source
     assert "APIRouter" in production_source
     for forbidden in ("fixture_mode", "schedule_job", "importlib", "entry_points"):
         assert forbidden not in production_source

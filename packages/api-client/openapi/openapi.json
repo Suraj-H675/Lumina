@@ -2149,6 +2149,495 @@
         "title": "ReadyResponse",
         "type": "object"
       },
+      "SatelliteAlgorithmResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "algorithm_version": {
+            "title": "Algorithm Version",
+            "type": "string"
+          },
+          "altitude_threshold_deg": {
+            "title": "Altitude Threshold Deg",
+            "type": "number"
+          },
+          "gravity_model": {
+            "title": "Gravity Model",
+            "type": "string"
+          },
+          "observer_ellipsoid": {
+            "title": "Observer Ellipsoid",
+            "type": "string"
+          },
+          "propagation_model": {
+            "title": "Propagation Model",
+            "type": "string"
+          },
+          "shadow_policy": {
+            "title": "Shadow Policy",
+            "type": "string"
+          },
+          "window_hours": {
+            "title": "Window Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "algorithm_version",
+          "propagation_model",
+          "gravity_model",
+          "observer_ellipsoid",
+          "altitude_threshold_deg",
+          "window_hours",
+          "shadow_policy"
+        ],
+        "title": "SatelliteAlgorithmResponse",
+        "type": "object"
+      },
+      "SatelliteFreshnessResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fresh Until"
+          },
+          "last_refresh_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refresh Failure Code"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "snapshot_latest_epoch_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Latest Epoch Utc"
+          },
+          "stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Until"
+          }
+        },
+        "required": [
+          "cache_state",
+          "retrieved_at",
+          "fresh_until",
+          "stale_until",
+          "last_refresh_failure_code",
+          "snapshot_latest_epoch_utc"
+        ],
+        "title": "SatelliteFreshnessResponse",
+        "type": "object"
+      },
+      "SatelliteItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog_number": {
+            "title": "Catalog Number",
+            "type": "integer"
+          },
+          "element_age_hours": {
+            "title": "Element Age Hours",
+            "type": "number"
+          },
+          "element_epoch_utc": {
+            "format": "date-time",
+            "title": "Element Epoch Utc",
+            "type": "string"
+          },
+          "groups": {
+            "items": {
+              "enum": [
+                "STATIONS",
+                "VISUAL"
+              ],
+              "type": "string"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "object_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Id"
+          },
+          "pass_prediction_runtime_supported": {
+            "title": "Pass Prediction Runtime Supported",
+            "type": "boolean"
+          },
+          "stale_element_warning": {
+            "title": "Stale Element Warning",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "catalog_number",
+          "name",
+          "object_id",
+          "groups",
+          "element_epoch_utc",
+          "element_age_hours",
+          "stale_element_warning",
+          "pass_prediction_runtime_supported"
+        ],
+        "title": "SatelliteItemResponse",
+        "type": "object"
+      },
+      "SatelliteListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/SatelliteFreshnessResponse"
+          },
+          "returned_satellite_count": {
+            "title": "Returned Satellite Count",
+            "type": "integer"
+          },
+          "satellites": {
+            "items": {
+              "$ref": "#/components/schemas/SatelliteItemResponse"
+            },
+            "title": "Satellites",
+            "type": "array"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SatelliteSourceResponse"
+          },
+          "total_satellite_count": {
+            "title": "Total Satellite Count",
+            "type": "integer"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_disabled",
+                  "no_cached_content",
+                  "cached_content_expired"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "availability",
+          "unavailable_reason",
+          "total_satellite_count",
+          "returned_satellite_count",
+          "satellites",
+          "freshness",
+          "source"
+        ],
+        "title": "SatelliteListResponse",
+        "type": "object"
+      },
+      "SatelliteObserverRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "elevation_m": {
+            "default": 0.0,
+            "title": "Elevation M",
+            "type": "number"
+          },
+          "latitude_deg": {
+            "title": "Latitude Deg",
+            "type": "number"
+          },
+          "longitude_deg": {
+            "title": "Longitude Deg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "latitude_deg",
+          "longitude_deg"
+        ],
+        "title": "SatelliteObserverRequest",
+        "type": "object"
+      },
+      "SatellitePassEventResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "azimuth_deg": {
+            "title": "Azimuth Deg",
+            "type": "number"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "time_utc": {
+            "format": "date-time",
+            "title": "Time Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_utc",
+          "azimuth_deg",
+          "direction"
+        ],
+        "title": "SatellitePassEventResponse",
+        "type": "object"
+      },
+      "SatellitePassItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "observer_sky_state_at_peak": {
+            "enum": [
+              "daylight",
+              "civil_twilight",
+              "nautical_twilight",
+              "astronomical_twilight",
+              "night"
+            ],
+            "title": "Observer Sky State At Peak",
+            "type": "string"
+          },
+          "observer_sun_altitude_deg_at_peak": {
+            "title": "Observer Sun Altitude Deg At Peak",
+            "type": "number"
+          },
+          "peak": {
+            "$ref": "#/components/schemas/SatellitePassEventResponse"
+          },
+          "peak_altitude_deg": {
+            "title": "Peak Altitude Deg",
+            "type": "number"
+          },
+          "rise": {
+            "$ref": "#/components/schemas/SatellitePassEventResponse"
+          },
+          "satellite_sunlit_at_peak": {
+            "title": "Satellite Sunlit At Peak",
+            "type": "boolean"
+          },
+          "set": {
+            "$ref": "#/components/schemas/SatellitePassEventResponse"
+          }
+        },
+        "required": [
+          "rise",
+          "peak",
+          "set",
+          "peak_altitude_deg",
+          "satellite_sunlit_at_peak",
+          "observer_sun_altitude_deg_at_peak",
+          "observer_sky_state_at_peak"
+        ],
+        "title": "SatellitePassItemResponse",
+        "type": "object"
+      },
+      "SatellitePassPredictionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "$ref": "#/components/schemas/SatelliteAlgorithmResponse"
+          },
+          "element_age_hours_at_start": {
+            "title": "Element Age Hours At Start",
+            "type": "number"
+          },
+          "maximum_element_offset_hours": {
+            "title": "Maximum Element Offset Hours",
+            "type": "number"
+          },
+          "passes": {
+            "items": {
+              "$ref": "#/components/schemas/SatellitePassItemResponse"
+            },
+            "title": "Passes",
+            "type": "array"
+          },
+          "refusal_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "elements_outside_supported_age",
+                  "catalog_number_unsupported_by_sgp4",
+                  "unsupported_sgp4_state",
+                  "unsupported_event_sequence"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refusal Reason"
+          },
+          "stale_element_warning": {
+            "title": "Stale Element Warning",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "no_passes",
+              "refused"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "refusal_reason",
+          "element_age_hours_at_start",
+          "maximum_element_offset_hours",
+          "stale_element_warning",
+          "passes",
+          "algorithm"
+        ],
+        "title": "SatellitePassPredictionResponse",
+        "type": "object"
+      },
+      "SatellitePassRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog_number": {
+            "title": "Catalog Number",
+            "type": "integer"
+          },
+          "observer": {
+            "$ref": "#/components/schemas/SatelliteObserverRequest"
+          },
+          "start_utc": {
+            "format": "date-time",
+            "title": "Start Utc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalog_number",
+          "observer",
+          "start_utc"
+        ],
+        "title": "SatellitePassRequest",
+        "type": "object"
+      },
+      "SatellitePassResponse": {
+        "additionalProperties": false,
+        "description": "Local pass result that intentionally does not echo the private observer coordinates.",
+        "properties": {
+          "prediction": {
+            "$ref": "#/components/schemas/SatellitePassPredictionResponse"
+          },
+          "requested_start_utc": {
+            "format": "date-time",
+            "title": "Requested Start Utc",
+            "type": "string"
+          },
+          "satellite": {
+            "$ref": "#/components/schemas/SatelliteItemResponse"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SatelliteSourceResponse"
+          }
+        },
+        "required": [
+          "satellite",
+          "requested_start_utc",
+          "prediction",
+          "source"
+        ],
+        "title": "SatellitePassResponse",
+        "type": "object"
+      },
+      "SatelliteSourceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution_text": {
+            "title": "Attribution Text",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "official_documentation_url": {
+            "title": "Official Documentation Url",
+            "type": "string"
+          },
+          "terms_url": {
+            "title": "Terms Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "official_documentation_url",
+          "terms_url",
+          "attribution_text"
+        ],
+        "title": "SatelliteSourceResponse",
+        "type": "object"
+      },
       "SearchMatchReason": {
         "enum": [
           "exact_slug",
@@ -3951,6 +4440,140 @@
           }
         },
         "summary": "Now Near Earth",
+        "tags": [
+          "space-now"
+        ]
+      }
+    },
+    "/api/v1/now/satellites": {
+      "get": {
+        "description": "Return the durable selected-group satellite cache without fetching CelesTrak.",
+        "operationId": "get_now_satellites",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SatelliteListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested satellite is not present in the current selected-group snapshot."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The satellite pass request body exceeds the approved bound."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The satellite request could not be validated."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Satellite data is temporarily unavailable."
+          }
+        },
+        "summary": "Now Satellites",
+        "tags": [
+          "space-now"
+        ]
+      }
+    },
+    "/api/v1/now/satellites/passes": {
+      "post": {
+        "description": "Compute one local 24-hour pass window from cached elements and transient coordinates.",
+        "operationId": "post_now_satellite_passes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SatellitePassRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SatellitePassResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The requested satellite is not present in the current selected-group snapshot."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The satellite pass request body exceeds the approved bound."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The satellite request could not be validated."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Satellite data is temporarily unavailable."
+          }
+        },
+        "summary": "Now Satellite Passes",
         "tags": [
           "space-now"
         ]

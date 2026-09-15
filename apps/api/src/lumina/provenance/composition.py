@@ -30,6 +30,20 @@ from lumina.provenance.domain.runtime import (
     APOD_SUCCESS_REFRESH_INTERVAL,
     APOD_USER_AGENT,
     CACHE_KEY,
+    CELESTRAK_ADAPTER_ID,
+    CELESTRAK_ADAPTER_VERSION,
+    CELESTRAK_CACHE_KEY,
+    CELESTRAK_CONTENT_TYPE,
+    CELESTRAK_FORMAT,
+    CELESTRAK_FRESH_TTL,
+    CELESTRAK_HOST,
+    CELESTRAK_MAX_TOTAL_RESPONSE_BYTES,
+    CELESTRAK_PATH,
+    CELESTRAK_PROVIDER_CODE,
+    CELESTRAK_SOURCE_SCHEMA_VERSION,
+    CELESTRAK_STALE_IF_ERROR_GRACE,
+    CELESTRAK_SUCCESS_REFRESH_INTERVAL,
+    CELESTRAK_USER_AGENT,
     FIXED_FORMAT,
     FIXED_HOST,
     FIXED_PATH,
@@ -79,6 +93,12 @@ from lumina.provenance.domain.runtime import (
     SWPC_USER_AGENT,
     HttpTimeoutPolicy,
     ProviderRuntimeConfig,
+)
+from lumina.provenance.infrastructure.celestrak import (
+    CelestrakAdapter,
+    celestrak_request_plan,
+    compose_celestrak_snapshot,
+    load_celestrak_source_manifest,
 )
 from lumina.provenance.infrastructure.http import BoundedHttpTransport
 from lumina.provenance.infrastructure.launch_library import (
@@ -233,6 +253,30 @@ def launch_library_runtime_config(*, repository_root: Path | None = None) -> Pro
     )
 
 
+def celestrak_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
+    """Build the fixed selected-group CelesTrak OMM policy."""
+    source_manifest = load_celestrak_source_manifest(repository_root)
+    return ProviderRuntimeConfig(
+        provider_code=CELESTRAK_PROVIDER_CODE,
+        adapter_id=CELESTRAK_ADAPTER_ID,
+        adapter_version=CELESTRAK_ADAPTER_VERSION,
+        cache_key=CELESTRAK_CACHE_KEY,
+        source_schema_version=CELESTRAK_SOURCE_SCHEMA_VERSION,
+        source_manifest=source_manifest,
+        endpoint_host=CELESTRAK_HOST,
+        endpoint_path=CELESTRAK_PATH,
+        query="GROUP=STATIONS|VISUAL,FORMAT=JSON",
+        output_format=CELESTRAK_FORMAT,
+        timeout=HttpTimeoutPolicy(),
+        refresh_interval=CELESTRAK_SUCCESS_REFRESH_INTERVAL,
+        fresh_ttl=CELESTRAK_FRESH_TTL,
+        stale_if_error_grace=CELESTRAK_STALE_IF_ERROR_GRACE,
+        max_response_bytes=CELESTRAK_MAX_TOTAL_RESPONSE_BYTES,
+        expected_content_type=CELESTRAK_CONTENT_TYPE,
+        user_agent=CELESTRAK_USER_AGENT,
+    )
+
+
 def production_provider_registry(
     *, repository_root: Path | None = None, nasa_api_key: SecretStr | None = None
 ) -> StaticProviderRegistry:
@@ -242,6 +286,7 @@ def production_provider_registry(
     neows_config = nasa_neows_runtime_config(repository_root=repository_root)
     swpc_config = noaa_swpc_runtime_config(repository_root=repository_root)
     ll2_config = launch_library_runtime_config(repository_root=repository_root)
+    celestrak_config = celestrak_runtime_config(repository_root=repository_root)
     exoplanet_adapter = NasaExoplanetArchiveAdapter(
         BoundedHttpTransport(timeout=exoplanet_config.timeout),
         source_manifest=exoplanet_config.source_manifest,
@@ -263,6 +308,10 @@ def production_provider_registry(
     ll2_adapter = LaunchLibraryAdapter(
         BoundedHttpTransport(timeout=ll2_config.timeout),
         source_manifest=ll2_config.source_manifest,
+    )
+    celestrak_adapter = CelestrakAdapter(
+        BoundedHttpTransport(timeout=celestrak_config.timeout),
+        source_manifest=celestrak_config.source_manifest,
     )
     return StaticProviderRegistry(
         {
@@ -302,6 +351,14 @@ def production_provider_registry(
                 payload_codec=ll2_adapter.codec,
                 check_replacement=True,
             ),
+            CELESTRAK_PROVIDER_CODE: ProviderRegistration(
+                config=celestrak_config,
+                adapter=celestrak_adapter,
+                request_factory=celestrak_request_plan,
+                payload_codec=celestrak_adapter.codec,
+                check_replacement=True,
+                snapshot_normalizer=compose_celestrak_snapshot,
+            ),
         }
     )
 
@@ -338,6 +395,7 @@ def compose_provider_runtime(
 
 __all__ = [
     "ProviderComposition",
+    "celestrak_runtime_config",
     "compose_provider_runtime",
     "launch_library_runtime_config",
     "nasa_runtime_config",

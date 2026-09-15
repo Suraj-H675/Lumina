@@ -24,6 +24,12 @@ from lumina.provenance.domain.runtime import (
     APOD_HOST,
     APOD_PATH,
     APOD_USER_AGENT,
+    CELESTRAK_CONTENT_TYPE,
+    CELESTRAK_HOST,
+    CELESTRAK_PATH,
+    CELESTRAK_STATIONS_MAX_RESPONSE_BYTES,
+    CELESTRAK_USER_AGENT,
+    CELESTRAK_VISUAL_MAX_RESPONSE_BYTES,
     FIXED_HOST,
     FIXED_PATH,
     FIXED_USER_AGENT,
@@ -93,7 +99,8 @@ class FixedHttpRequest:
             ) from None
         if (
             parsed.scheme != "https"
-            or hostname not in {FIXED_HOST, APOD_HOST, NEOWS_HOST, SWPC_HOST, LL2_HOST}
+            or hostname
+            not in {FIXED_HOST, APOD_HOST, NEOWS_HOST, SWPC_HOST, LL2_HOST, CELESTRAK_HOST}
             or port is not None
             or parsed.fragment
             or parsed.query
@@ -120,6 +127,18 @@ class FixedHttpRequest:
                 or self.expected_content_type != SWPC_CONTENT_TYPE
                 or self.user_agent != SWPC_USER_AGENT
                 or self.params
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        elif hostname == CELESTRAK_HOST:
+            approved: dict[tuple[tuple[str, str], ...], int] = {
+                (("GROUP", "STATIONS"), ("FORMAT", "JSON")): CELESTRAK_STATIONS_MAX_RESPONSE_BYTES,
+                (("GROUP", "VISUAL"), ("FORMAT", "JSON")): CELESTRAK_VISUAL_MAX_RESPONSE_BYTES,
+            }
+            if (
+                parsed.path != CELESTRAK_PATH
+                or self.expected_content_type != CELESTRAK_CONTENT_TYPE
+                or self.user_agent != CELESTRAK_USER_AGENT
+                or approved.get(self.params) != self.max_response_bytes
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif hostname == LL2_HOST:

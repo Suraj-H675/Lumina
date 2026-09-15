@@ -56,6 +56,8 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/providers/status",
         "/api/v1/now/apod",
         "/api/v1/now/near-earth",
+        "/api/v1/now/satellites",
+        "/api/v1/now/satellites/passes",
         "/api/v1/now/launches",
         "/api/v1/now/launches/{launch_id}",
         "/api/v1/now/space-weather",
@@ -139,6 +141,23 @@ def test_telescope_builder_calculation_openapi_is_versioned_and_read_only() -> N
     }
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/telescope-builder"]) == {"get"}
+
+
+def test_satellite_pass_openapi_is_post_only_bounded_and_typed() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    path = document["paths"]["/api/v1/now/satellites/passes"]
+
+    assert set(path) == {"post"}
+    operation = path["post"]
+    assert operation["operationId"] == "post_now_satellite_passes"
+    assert operation["requestBody"]["required"] is True
+    assert operation["requestBody"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/SatellitePassRequest"
+    )
+    assert set(operation["responses"]) == {"200", "404", "413", "422", "503"}
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/SatellitePassResponse"
+    )
 
 
 def test_export_does_not_open_network_or_database_connections(

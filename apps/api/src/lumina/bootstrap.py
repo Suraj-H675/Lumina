@@ -21,12 +21,13 @@ from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadR
 from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
 from lumina.provenance.api.routes import router as provider_router
 from lumina.provenance.composition import compose_provider_runtime
+from lumina.satellites.infrastructure.skyfield import SkyfieldSatellitePassEngine
 from lumina.settings import AppSettings
 from lumina.shared.api.errors import (
     http_exception_handler,
     request_validation_exception_handler,
 )
-from lumina.shared.api.middleware import RequestContextMiddleware
+from lumina.shared.api.middleware import BoundedRequestBodyMiddleware, RequestContextMiddleware
 from lumina.shared.api.routes import router
 from lumina.shared.application.readiness import DatabaseReadinessService
 from lumina.shared.infrastructure.database.probe import SqlAlchemyDatabaseProbe
@@ -39,6 +40,7 @@ from lumina.space_now.application.read import (
     NearEarthReadService,
     SpaceWeatherReadService,
 )
+from lumina.space_now.application.satellites import SatellitePassService, SatelliteReadService
 
 
 def create_app(settings: AppSettings) -> FastAPI:
@@ -86,6 +88,13 @@ def create_app(settings: AppSettings) -> FastAPI:
         provider_composition.snapshot_reader
     )
     application.state.launch_read_service = LaunchReadService(provider_composition.snapshot_reader)
+    application.state.satellite_read_service = SatelliteReadService(
+        provider_composition.snapshot_reader
+    )
+    application.state.satellite_pass_service = SatellitePassService(
+        provider_composition.snapshot_reader,
+        SkyfieldSatellitePassEngine(),
+    )
 
     application.add_exception_handler(
         RequestValidationError,
@@ -97,9 +106,13 @@ def create_app(settings: AppSettings) -> FastAPI:
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
         allow_credentials=False,
-        allow_methods=["GET"],
+        allow_methods=["GET", "POST"],
         allow_headers=["Accept", "Content-Type", "X-Request-ID"],
         expose_headers=["X-Request-ID"],
+    )
+    application.add_middleware(
+        BoundedRequestBodyMiddleware,
+        limits={("POST", "/api/v1/now/satellites/passes"): 4_096},
     )
     application.add_middleware(RequestContextMiddleware)
     application.include_router(router)

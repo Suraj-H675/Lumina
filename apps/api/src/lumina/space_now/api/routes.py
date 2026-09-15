@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 
 from lumina.provenance.application.read import ProviderSnapshotReadError
 from lumina.provenance.domain.runtime import ProviderStorageFailure
+from lumina.satellites.domain.models import ObserverLocation
 from lumina.shared.api.errors import ErrorResponse, error_response
 from lumina.space_now.application.launches import (
     LaunchListProjection,
@@ -24,6 +25,14 @@ from lumina.space_now.application.read import (
     NearEarthReadService,
     SpaceWeatherProjection,
     SpaceWeatherReadService,
+)
+from lumina.space_now.application.satellites import (
+    SatelliteDataUnavailableError,
+    SatelliteListProjection,
+    SatelliteNotFoundError,
+    SatellitePassProjection,
+    SatellitePassService,
+    SatelliteReadService,
 )
 
 from .schemas import (
@@ -47,6 +56,16 @@ from .schemas import (
     NearEarthResponse,
     NearEarthSourceResponse,
     NearEarthWindowResponse,
+    SatelliteAlgorithmResponse,
+    SatelliteFreshnessResponse,
+    SatelliteItemResponse,
+    SatelliteListResponse,
+    SatellitePassEventResponse,
+    SatellitePassItemResponse,
+    SatellitePassPredictionResponse,
+    SatellitePassRequest,
+    SatellitePassResponse,
+    SatelliteSourceResponse,
     SpaceWeatherAuroraResponse,
     SpaceWeatherFreshnessResponse,
     SpaceWeatherImpactResponse,
@@ -95,6 +114,26 @@ _LAUNCH_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
     503: {
         "model": ErrorResponse,
         "description": "The Launch Center read projection is temporarily unavailable.",
+    },
+}
+_SATELLITE_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
+    404: {
+        "model": ErrorResponse,
+        "description": (
+            "The requested satellite is not present in the current selected-group snapshot."
+        ),
+    },
+    413: {
+        "model": ErrorResponse,
+        "description": "The satellite pass request body exceeds the approved bound.",
+    },
+    422: {
+        "model": ErrorResponse,
+        "description": "The satellite request could not be validated.",
+    },
+    503: {
+        "model": ErrorResponse,
+        "description": "Satellite data is temporarily unavailable.",
     },
 }
 _SPACE_WEATHER_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
@@ -292,6 +331,112 @@ async def now_launch(launch_id: UUID, request: Request) -> LaunchDetailResponse 
 
 
 @router.get(
+    "/satellites",
+    operation_id="get_now_satellites",
+    response_model=SatelliteListResponse,
+    responses=cast(Any, _SATELLITE_ERROR_RESPONSES),
+)
+async def now_satellites(request: Request) -> SatelliteListResponse | JSONResponse:
+    """Return the durable selected-group satellite cache without fetching CelesTrak."""
+    if request.query_params:
+        return error_response(
+            request,
+            status_code=422,
+            code="request.validation_failed",
+            message="The request could not be validated.",
+        )
+    service: SatelliteReadService = request.app.state.satellite_read_service
+    try:
+        projection = await service.read()
+    except (ProviderSnapshotReadError, ProviderStorageFailure, ValueError):
+        return error_response(
+            request,
+            status_code=503,
+            code="now.satellites_unavailable",
+            message="Satellite data is temporarily unavailable.",
+        )
+    response = _satellite_list_response(projection)
+    while (
+        _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
+        and response.satellites
+    ):
+        satellites = response.satellites[:-1]
+        response = response.model_copy(
+            update={
+                "satellites": satellites,
+                "returned_satellite_count": len(satellites),
+            }
+        )
+    if _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES:
+        return error_response(
+            request,
+            status_code=503,
+            code="now.satellites_unavailable",
+            message="Satellite data is temporarily unavailable.",
+        )
+    return response
+
+
+@router.post(
+    "/satellites/passes",
+    operation_id="post_now_satellite_passes",
+    response_model=SatellitePassResponse,
+    responses=cast(Any, _SATELLITE_ERROR_RESPONSES),
+)
+async def now_satellite_passes(
+    payload: SatellitePassRequest, request: Request
+) -> SatellitePassResponse | JSONResponse:
+    """Compute one local 24-hour pass window from cached elements and transient coordinates."""
+    if request.query_params:
+        return error_response(
+            request,
+            status_code=422,
+            code="request.validation_failed",
+            message="The request could not be validated.",
+        )
+    service: SatellitePassService = request.app.state.satellite_pass_service
+    try:
+        observer = ObserverLocation(
+            latitude_deg=payload.observer.latitude_deg,
+            longitude_deg=payload.observer.longitude_deg,
+            elevation_m=payload.observer.elevation_m,
+        )
+        projection = await service.predict(
+            catalog_number=payload.catalog_number,
+            observer=observer,
+            start_utc=payload.start_utc,
+        )
+    except SatelliteNotFoundError:
+        return error_response(
+            request,
+            status_code=404,
+            code="now.satellite_not_found",
+            message="The requested satellite was not found in the current satellite snapshot.",
+        )
+    except (
+        SatelliteDataUnavailableError,
+        ProviderSnapshotReadError,
+        ProviderStorageFailure,
+        ValueError,
+    ):
+        return error_response(
+            request,
+            status_code=503,
+            code="now.satellites_unavailable",
+            message="Satellite data is temporarily unavailable.",
+        )
+    response = _satellite_pass_response(projection)
+    if _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES:
+        return error_response(
+            request,
+            status_code=503,
+            code="now.satellites_unavailable",
+            message="Satellite data is temporarily unavailable.",
+        )
+    return response
+
+
+@router.get(
     "/space-weather",
     operation_id="get_now_space_weather",
     response_model=SpaceWeatherResponse,
@@ -317,6 +462,94 @@ async def now_space_weather(request: Request) -> SpaceWeatherResponse | JSONResp
             message="Space Weather data is currently unavailable.",
         )
     return _space_weather_response(projection)
+
+
+def _satellite_item_response(value: Any) -> SatelliteItemResponse:
+    return SatelliteItemResponse(
+        catalog_number=value.catalog_number,
+        name=value.name,
+        object_id=value.object_id,
+        groups=value.groups,
+        element_epoch_utc=value.element_epoch_utc,
+        element_age_hours=value.element_age_hours,
+        stale_element_warning=value.stale_element_warning,
+        pass_prediction_runtime_supported=value.pass_prediction_runtime_supported,
+    )
+
+
+def _satellite_source_response(value: Any) -> SatelliteSourceResponse:
+    return SatelliteSourceResponse(
+        name=value.name,
+        official_documentation_url=value.official_documentation_url,
+        terms_url=value.terms_url,
+        attribution_text=value.attribution_text,
+    )
+
+
+def _satellite_list_response(projection: SatelliteListProjection) -> SatelliteListResponse:
+    return SatelliteListResponse(
+        availability=projection.availability,
+        unavailable_reason=projection.unavailable_reason,
+        total_satellite_count=projection.total_satellite_count,
+        returned_satellite_count=projection.returned_satellite_count,
+        satellites=tuple(_satellite_item_response(item) for item in projection.satellites),
+        freshness=SatelliteFreshnessResponse(
+            cache_state=projection.freshness.cache_state,
+            retrieved_at=projection.freshness.retrieved_at,
+            fresh_until=projection.freshness.fresh_until,
+            stale_until=projection.freshness.stale_until,
+            last_refresh_failure_code=projection.freshness.last_refresh_failure_code,
+            snapshot_latest_epoch_utc=projection.freshness.snapshot_latest_epoch_utc,
+        ),
+        source=_satellite_source_response(projection.source),
+    )
+
+
+def _satellite_pass_event_response(value: Any) -> SatellitePassEventResponse:
+    return SatellitePassEventResponse(
+        time_utc=value.time_utc,
+        azimuth_deg=value.azimuth_deg,
+        direction=value.direction,
+    )
+
+
+def _satellite_pass_item_response(value: Any) -> SatellitePassItemResponse:
+    return SatellitePassItemResponse(
+        rise=_satellite_pass_event_response(value.rise),
+        peak=_satellite_pass_event_response(value.peak),
+        set=_satellite_pass_event_response(value.set),
+        peak_altitude_deg=value.peak_altitude_deg,
+        satellite_sunlit_at_peak=value.satellite_sunlit_at_peak,
+        observer_sun_altitude_deg_at_peak=value.observer_sun_altitude_deg_at_peak,
+        observer_sky_state_at_peak=value.observer_sky_state_at_peak,
+    )
+
+
+def _satellite_pass_response(projection: SatellitePassProjection) -> SatellitePassResponse:
+    prediction = projection.prediction
+    algorithm = prediction.algorithm
+    return SatellitePassResponse(
+        satellite=_satellite_item_response(projection.satellite),
+        requested_start_utc=projection.requested_start_utc,
+        prediction=SatellitePassPredictionResponse(
+            state=prediction.state,
+            refusal_reason=prediction.refusal_reason,
+            element_age_hours_at_start=abs(prediction.element_offset_hours_at_start),
+            maximum_element_offset_hours=prediction.maximum_element_offset_hours,
+            stale_element_warning=prediction.stale_element_warning,
+            passes=tuple(_satellite_pass_item_response(item) for item in prediction.passes),
+            algorithm=SatelliteAlgorithmResponse(
+                algorithm_version=algorithm.algorithm_version,
+                propagation_model=algorithm.propagation_model,
+                gravity_model=algorithm.gravity_model,
+                observer_ellipsoid=algorithm.observer_ellipsoid,
+                altitude_threshold_deg=algorithm.altitude_threshold_deg,
+                window_hours=algorithm.window_hours,
+                shadow_policy=algorithm.shadow_policy,
+            ),
+        ),
+        source=_satellite_source_response(projection.source),
+    )
 
 
 def _launch_list_response(projection: LaunchListProjection) -> LaunchListResponse:

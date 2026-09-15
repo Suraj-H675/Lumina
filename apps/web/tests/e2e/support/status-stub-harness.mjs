@@ -18,6 +18,8 @@ const apiPaths = new Set([
   "/api/v1/now/near-earth",
   "/api/v1/now/space-weather",
   "/api/v1/now/launches",
+  "/api/v1/now/satellites",
+  "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
@@ -437,6 +439,114 @@ function nowLaunchesFixtureForMode() {
   return NOW_LAUNCHES_FIXTURE;
 }
 
+const NOW_SATELLITES_FIXTURE = {
+  availability: "fresh",
+  unavailable_reason: null,
+  total_satellite_count: 2,
+  returned_satellite_count: 2,
+  satellites: [
+    {
+      catalog_number: 25544,
+      name: "ISS (ZARYA)",
+      object_id: "1998-067A",
+      groups: ["STATIONS", "VISUAL"],
+      element_epoch_utc: "2026-09-15T03:00:00Z",
+      element_age_hours: 2.5,
+      stale_element_warning: false,
+      pass_prediction_runtime_supported: true,
+    },
+    {
+      catalog_number: 340000,
+      name: "LARGE ID TEST SAT",
+      object_id: null,
+      groups: ["VISUAL"],
+      element_epoch_utc: "2026-09-15T02:30:00Z",
+      element_age_hours: 3,
+      stale_element_warning: false,
+      pass_prediction_runtime_supported: false,
+    },
+  ],
+  freshness: {
+    cache_state: "fresh",
+    retrieved_at: "2026-09-15T05:00:00Z",
+    fresh_until: "2026-09-15T08:00:00Z",
+    stale_until: "2026-09-16T05:00:00Z",
+    last_refresh_failure_code: null,
+    snapshot_latest_epoch_utc: "2026-09-15T03:00:00Z",
+  },
+  source: {
+    name: "CelesTrak Current GP Data",
+    official_documentation_url: "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
+    terms_url: "https://celestrak.org/usage-policy.php",
+    attribution_text:
+      "Satellite general-perturbations element data is provided by CelesTrak. Lumina preserves source freshness and model limitations and does not claim real-time tracking or guaranteed optical visibility.",
+  },
+};
+
+function nowSatellitesFixtureForMode() {
+  if (satelliteMode === "stale") {
+    return {
+      ...NOW_SATELLITES_FIXTURE,
+      availability: "stale",
+      satellites: NOW_SATELLITES_FIXTURE.satellites.map((item, index) =>
+        index === 0 ? { ...item, element_age_hours: 30, stale_element_warning: true } : item,
+      ),
+      freshness: {
+        ...NOW_SATELLITES_FIXTURE.freshness,
+        cache_state: "stale",
+        last_refresh_failure_code: "provider.timeout",
+      },
+    };
+  }
+  if (satelliteMode === "unavailable") {
+    return {
+      ...NOW_SATELLITES_FIXTURE,
+      availability: "unavailable",
+      unavailable_reason: "cached_content_expired",
+      total_satellite_count: 0,
+      returned_satellite_count: 0,
+      satellites: [],
+      freshness: { ...NOW_SATELLITES_FIXTURE.freshness, cache_state: "expired" },
+    };
+  }
+  return NOW_SATELLITES_FIXTURE;
+}
+
+function satellitePassFixture(startUtc) {
+  return {
+    satellite: NOW_SATELLITES_FIXTURE.satellites[0],
+    requested_start_utc: startUtc,
+    prediction: {
+      state: "available",
+      refusal_reason: null,
+      element_age_hours_at_start: 3,
+      maximum_element_offset_hours: 27,
+      stale_element_warning: false,
+      passes: [
+        {
+          rise: { time_utc: "2026-09-15T20:01:16Z", azimuth_deg: 173.5, direction: "S" },
+          peak: { time_utc: "2026-09-15T20:03:47Z", azimuth_deg: 124.5, direction: "SE" },
+          set: { time_utc: "2026-09-15T20:06:19Z", azimuth_deg: 75.6, direction: "ENE" },
+          peak_altitude_deg: 19.7,
+          satellite_sunlit_at_peak: false,
+          observer_sun_altitude_deg_at_peak: -31.2,
+          observer_sky_state_at_peak: "night",
+        },
+      ],
+      algorithm: {
+        algorithm_version: "lumina-satellite-pass-v1",
+        propagation_model: "SGP4",
+        gravity_model: "WGS72",
+        observer_ellipsoid: "WGS84",
+        altitude_threshold_deg: 10,
+        window_hours: 24,
+        shadow_policy: "cylindrical-earth-shadow-v1",
+      },
+    },
+    source: NOW_SATELLITES_FIXTURE.source,
+  };
+}
+
 const NOW_SPACE_WEATHER_FIXTURE = {
   availability: "fresh",
   unavailable_reason: null,
@@ -507,6 +617,7 @@ const controlPaths = new Set([
   "/__control/apod-mode",
   "/__control/neows-mode",
   "/__control/launch-mode",
+  "/__control/satellite-mode",
   "/__control/assert-clean",
   "/__control/clear-violations",
   "/__control/mode",
@@ -535,6 +646,7 @@ let mode = "disconnect";
 let apodMode = "fresh";
 let neowsMode = "fresh";
 let launchMode = "fresh";
+let satelliteMode = "fresh";
 let webProcess;
 let shutdownPhase = "running";
 let childShutdownBarrierReached = false;
@@ -1395,6 +1507,32 @@ const stub = http.createServer(async (request, response) => {
       return;
     }
 
+    if (path === "/__control/satellite-mode") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["fresh", "stale", "unavailable"].includes(body.mode)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        satelliteMode = body.mode;
+        sendJson(response, 200, { mode: satelliteMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
+
     try {
       if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
         throw new Error("control request media type is invalid");
@@ -1430,7 +1568,8 @@ const stub = http.createServer(async (request, response) => {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
   }
-  if (request.method !== "GET") {
+  const expectedMethod = path === "/api/v1/now/satellites/passes" ? "POST" : "GET";
+  if (request.method !== expectedMethod) {
     recordViolation("unexpected-method");
     unexpectedRequest = true;
   }
@@ -1497,6 +1636,43 @@ const stub = http.createServer(async (request, response) => {
       freshness: listing.freshness,
       source: listing.source,
     });
+    return;
+  }
+  if (path === "/api/v1/now/satellites") {
+    sendJson(response, 200, nowSatellitesFixtureForMode());
+    return;
+  }
+  if (path === "/api/v1/now/satellites/passes") {
+    if (satelliteMode === "unavailable") {
+      sendJson(response, 503, { error: { code: "now.satellites_unavailable" } });
+      return;
+    }
+    try {
+      if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+        throw new Error("satellite pass media type is invalid");
+      }
+      const body = await readControlBody(request);
+      if (
+        body === null ||
+        typeof body !== "object" ||
+        Array.isArray(body) ||
+        Object.keys(body).sort().join(",") !== "catalog_number,observer,start_utc" ||
+        body.catalog_number !== 25544 ||
+        typeof body.start_utc !== "string" ||
+        body.observer === null ||
+        typeof body.observer !== "object" ||
+        Array.isArray(body.observer) ||
+        !Number.isFinite(body.observer.latitude_deg) ||
+        !Number.isFinite(body.observer.longitude_deg) ||
+        !Number.isFinite(body.observer.elevation_m)
+      ) {
+        throw new Error("satellite pass request is invalid");
+      }
+      sendJson(response, 200, satellitePassFixture(body.start_utc));
+    } catch {
+      recordViolation("malformed-api-request");
+      sendFailure(response, 422);
+    }
     return;
   }
   if (path === "/api/v1/now/space-weather") {

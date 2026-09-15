@@ -405,9 +405,9 @@ def test_local_runtime_version_policy_accepts_node_major_24_and_pinned_uv_metada
 
 def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
-    assert '"b5c6d7e8f9a0 (head)"' in workflow
-    assert workflow.count(')" = "b5c6d7e8f9a0"') == 2
-    assert '"a4b5c6d7e8f9 (head)"' not in workflow
+    assert '"c6d7e8f9a0b1 (head)"' in workflow
+    assert workflow.count(')" = "c6d7e8f9a0b1"') == 2
+    assert '"b5c6d7e8f9a0 (head)"' not in workflow
     repository = _workflow_job(workflow, "repository", "python_postgres")
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
     web = _workflow_job(workflow, "web_e2e", "security")
@@ -1014,6 +1014,12 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
             "b5c6d7e8f9a0",
             "a4b5c6d7e8f9",
             "8f62c9fc68ae124d87d18fc0bdb3aa00612c8bf9efb289a96048192807ece0b2",
+        ),
+        (
+            "c6d7e8f9a0b1_add_celestrak_provider.py",
+            "c6d7e8f9a0b1",
+            "b5c6d7e8f9a0",
+            "0dd8e17182559918f96374ba1f60e5f4f5ffe30f4a246854d3178bce60264370",
         ),
     ]
     assert actual_contracts == expected_contracts

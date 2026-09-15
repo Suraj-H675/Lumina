@@ -168,8 +168,9 @@ def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None
 
     assert response.status_code == 200
     body = response.json()
-    assert len(body["providers"]) == 5
+    assert len(body["providers"]) == 6
     assert {entry["provider_code"] for entry in body["providers"]} == {
+        "celestrak-gp",
         "launch-library-2",
         "nasa-exoplanet-archive",
         "nasa-apod",
@@ -202,6 +203,13 @@ def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None
     assert neows["enabled"] is False
     assert neows["cache_state"] == "missing"
     assert neows["official_documentation_url"] == "https://api.nasa.gov/"
+    celestrak = next(
+        entry for entry in body["providers"] if entry["provider_code"] == "celestrak-gp"
+    )
+    assert celestrak["source_name"] == "CelesTrak Current GP Data"
+    assert celestrak["enabled"] is False
+    assert celestrak["cache_state"] == "missing"
+    assert celestrak["official_documentation_url"].endswith("/gp-data-formats.php")
 
 
 def test_status_failure_is_safe_and_does_not_leak_exception_detail() -> None:

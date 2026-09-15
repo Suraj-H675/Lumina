@@ -556,6 +556,148 @@ export const zReadyResponse = z.object({
 });
 
 /**
+ * SatelliteAlgorithmResponse
+ */
+export const zSatelliteAlgorithmResponse = z.object({
+  algorithm_version: z.string(),
+  altitude_threshold_deg: z.number(),
+  gravity_model: z.string(),
+  observer_ellipsoid: z.string(),
+  propagation_model: z.string(),
+  shadow_policy: z.string(),
+  window_hours: z.int(),
+});
+
+/**
+ * SatelliteFreshnessResponse
+ */
+export const zSatelliteFreshnessResponse = z.object({
+  cache_state: zCacheState,
+  fresh_until: z.iso.datetime().nullable(),
+  last_refresh_failure_code: z.string().nullable(),
+  retrieved_at: z.iso.datetime().nullable(),
+  snapshot_latest_epoch_utc: z.iso.datetime().nullable(),
+  stale_until: z.iso.datetime().nullable(),
+});
+
+/**
+ * SatelliteItemResponse
+ */
+export const zSatelliteItemResponse = z.object({
+  catalog_number: z.int(),
+  element_age_hours: z.number(),
+  element_epoch_utc: z.iso.datetime(),
+  groups: z.array(z.enum(["STATIONS", "VISUAL"])),
+  name: z.string(),
+  object_id: z.string().nullable(),
+  pass_prediction_runtime_supported: z.boolean(),
+  stale_element_warning: z.boolean(),
+});
+
+/**
+ * SatelliteObserverRequest
+ */
+export const zSatelliteObserverRequest = z.object({
+  elevation_m: z.number().optional().default(0),
+  latitude_deg: z.number(),
+  longitude_deg: z.number(),
+});
+
+/**
+ * SatellitePassEventResponse
+ */
+export const zSatellitePassEventResponse = z.object({
+  azimuth_deg: z.number(),
+  direction: z.string(),
+  time_utc: z.iso.datetime(),
+});
+
+/**
+ * SatellitePassItemResponse
+ */
+export const zSatellitePassItemResponse = z.object({
+  observer_sky_state_at_peak: z.enum([
+    "daylight",
+    "civil_twilight",
+    "nautical_twilight",
+    "astronomical_twilight",
+    "night",
+  ]),
+  observer_sun_altitude_deg_at_peak: z.number(),
+  peak: zSatellitePassEventResponse,
+  peak_altitude_deg: z.number(),
+  rise: zSatellitePassEventResponse,
+  satellite_sunlit_at_peak: z.boolean(),
+  set: zSatellitePassEventResponse,
+});
+
+/**
+ * SatellitePassPredictionResponse
+ */
+export const zSatellitePassPredictionResponse = z.object({
+  algorithm: zSatelliteAlgorithmResponse,
+  element_age_hours_at_start: z.number(),
+  maximum_element_offset_hours: z.number(),
+  passes: z.array(zSatellitePassItemResponse),
+  refusal_reason: z
+    .enum([
+      "elements_outside_supported_age",
+      "catalog_number_unsupported_by_sgp4",
+      "unsupported_sgp4_state",
+      "unsupported_event_sequence",
+    ])
+    .nullable(),
+  stale_element_warning: z.boolean(),
+  state: z.enum(["available", "no_passes", "refused"]),
+});
+
+/**
+ * SatellitePassRequest
+ */
+export const zSatellitePassRequest = z.object({
+  catalog_number: z.int(),
+  observer: zSatelliteObserverRequest,
+  start_utc: z.iso.datetime(),
+});
+
+/**
+ * SatelliteSourceResponse
+ */
+export const zSatelliteSourceResponse = z.object({
+  attribution_text: z.string(),
+  name: z.string(),
+  official_documentation_url: z.string(),
+  terms_url: z.string(),
+});
+
+/**
+ * SatelliteListResponse
+ */
+export const zSatelliteListResponse = z.object({
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  freshness: zSatelliteFreshnessResponse,
+  returned_satellite_count: z.int(),
+  satellites: z.array(zSatelliteItemResponse),
+  source: zSatelliteSourceResponse,
+  total_satellite_count: z.int(),
+  unavailable_reason: z
+    .enum(["provider_disabled", "no_cached_content", "cached_content_expired"])
+    .nullable(),
+});
+
+/**
+ * SatellitePassResponse
+ *
+ * Local pass result that intentionally does not echo the private observer coordinates.
+ */
+export const zSatellitePassResponse = z.object({
+  prediction: zSatellitePassPredictionResponse,
+  requested_start_utc: z.iso.datetime(),
+  satellite: zSatelliteItemResponse,
+  source: zSatelliteSourceResponse,
+});
+
+/**
  * SearchMatchReason
  */
 export const zSearchMatchReason = z.enum([
@@ -1004,6 +1146,16 @@ export const zGetNowLaunchResponse = zLaunchDetailResponse;
  * Successful Response
  */
 export const zGetNowNearEarthResponse = zNearEarthResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetNowSatellitesResponse = zSatelliteListResponse;
+
+/**
+ * Successful Response
+ */
+export const zPostNowSatellitePassesResponse = zSatellitePassResponse;
 
 /**
  * Successful Response

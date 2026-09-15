@@ -1,8 +1,9 @@
-import type { ApiEndpoint } from "./contract";
+import type { ApiEndpoint, ApiJsonEndpoint } from "./contract";
 import { validateExactGenerated } from "./contract";
 
 export const DEFAULT_REQUEST_TIMEOUT_MS = 5_000;
 export const MAX_RESPONSE_BYTES = 61_440;
+export const MAX_REQUEST_BYTES = 4_096;
 
 export type ApiOriginResult =
   Readonly<{ origin: string; valid: true }> | Readonly<{ valid: false }>;
@@ -12,6 +13,9 @@ export type ApiTransportResult<T> =
   | Readonly<{ kind: "http-error"; status: number }>
   | Readonly<{ kind: "malformed-response" }>
   | Readonly<{ kind: "unavailable"; reason: "timeout" | "transport" }>;
+
+export type ApiJsonTransportResult<T> =
+  ApiTransportResult<T> | Readonly<{ kind: "invalid-request" }>;
 
 export type TransportOptions = Readonly<{
   fetchImplementation?: typeof fetch;
@@ -122,9 +126,41 @@ export async function requestEndpoint<T>(
   endpoint: ApiEndpoint<T>,
   options: TransportOptions = {},
 ): Promise<ApiTransportResult<T>> {
+  return performRequest(origin, endpoint, undefined, options);
+}
+
+export async function requestJsonEndpoint<TResponse, TRequest>(
+  origin: string,
+  endpoint: ApiJsonEndpoint<TResponse, TRequest>,
+  body: TRequest,
+  options: TransportOptions = {},
+): Promise<ApiJsonTransportResult<TResponse>> {
+  const parsed = validateExactGenerated(endpoint.requestValidator, body);
+  if (!parsed.valid) return { kind: "invalid-request" };
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(parsed.data);
+  } catch {
+    return { kind: "invalid-request" };
+  }
+  if (new TextEncoder().encode(serialized).byteLength > MAX_REQUEST_BYTES) {
+    return { kind: "invalid-request" };
+  }
+  return performRequest(origin, endpoint, serialized, options);
+}
+
+async function performRequest<T>(
+  origin: string,
+  endpoint: ApiEndpoint<T, string, "GET" | "POST">,
+  body: string | undefined,
+  options: TransportOptions,
+): Promise<ApiTransportResult<T>> {
   const normalized = normalizeApiOrigin(origin);
   const timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
   if (!normalized.valid || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 5_000) {
+    return { kind: "unavailable", reason: "transport" };
+  }
+  if ((endpoint.method === "GET") !== (body === undefined)) {
     return { kind: "unavailable", reason: "transport" };
   }
 
@@ -145,8 +181,12 @@ export async function requestEndpoint<T>(
       response = await (options.fetchImplementation ?? fetch)(
         new URL(endpoint.path, `${normalized.origin}/`),
         {
+          ...(body === undefined ? {} : { body }),
           cache: "no-store",
-          headers: { Accept: "application/json" },
+          headers:
+            body === undefined
+              ? { Accept: "application/json" }
+              : { Accept: "application/json", "Content-Type": "application/json" },
           method: endpoint.method,
           redirect: "error",
           signal: controller.signal,

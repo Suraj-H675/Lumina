@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import math
+from datetime import UTC, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from lumina.provenance.domain.runtime import CacheState
 
@@ -401,3 +402,170 @@ class LaunchDetailResponse(BaseModel):
     launch: LaunchItemResponse | None
     freshness: LaunchFreshnessResponse
     source: LaunchSourceResponse
+
+
+SatelliteAvailability = Literal["fresh", "stale", "unavailable"]
+SatelliteUnavailableReason = Literal[
+    "provider_disabled",
+    "no_cached_content",
+    "cached_content_expired",
+]
+SatellitePredictionState = Literal["available", "no_passes", "refused"]
+SatellitePredictionRefusalReason = Literal[
+    "elements_outside_supported_age",
+    "catalog_number_unsupported_by_sgp4",
+    "unsupported_sgp4_state",
+    "unsupported_event_sequence",
+]
+SatelliteSkyState = Literal[
+    "daylight",
+    "civil_twilight",
+    "nautical_twilight",
+    "astronomical_twilight",
+    "night",
+]
+
+
+class SatelliteItemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    catalog_number: int
+    name: str
+    object_id: str | None
+    groups: tuple[Literal["STATIONS", "VISUAL"], ...]
+    element_epoch_utc: datetime
+    element_age_hours: float
+    stale_element_warning: bool
+    pass_prediction_runtime_supported: bool
+
+
+class SatelliteFreshnessResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    cache_state: CacheState
+    retrieved_at: datetime | None
+    fresh_until: datetime | None
+    stale_until: datetime | None
+    last_refresh_failure_code: str | None
+    snapshot_latest_epoch_utc: datetime | None
+
+
+class SatelliteSourceResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    official_documentation_url: str
+    terms_url: str
+    attribution_text: str
+
+
+class SatelliteListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    availability: SatelliteAvailability
+    unavailable_reason: SatelliteUnavailableReason | None
+    total_satellite_count: int
+    returned_satellite_count: int
+    satellites: tuple[SatelliteItemResponse, ...]
+    freshness: SatelliteFreshnessResponse
+    source: SatelliteSourceResponse
+
+
+class SatelliteObserverRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    latitude_deg: float
+    longitude_deg: float
+    elevation_m: float = 0.0
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> SatelliteObserverRequest:
+        if not all(
+            math.isfinite(value)
+            for value in (self.latitude_deg, self.longitude_deg, self.elevation_m)
+        ):
+            raise ValueError("observer coordinates must be finite")
+        if not -90.0 <= self.latitude_deg <= 90.0:
+            raise ValueError("latitude outside supported range")
+        if not -180.0 <= self.longitude_deg <= 180.0:
+            raise ValueError("longitude outside supported range")
+        if not -500.0 <= self.elevation_m <= 10_000.0:
+            raise ValueError("elevation outside supported range")
+        return self
+
+
+class SatellitePassRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    catalog_number: int
+    observer: SatelliteObserverRequest
+    start_utc: datetime
+
+    @field_validator("catalog_number", mode="before")
+    @classmethod
+    def validate_catalog_number(cls, value: int) -> int:
+        if type(value) is not int or not 1 <= value <= 999_999_999:
+            raise ValueError("catalog number outside supported range")
+        return value
+
+    @field_validator("start_utc")
+    @classmethod
+    def validate_start_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() != UTC.utcoffset(value):
+            raise ValueError("start_utc must use UTC")
+        return value.astimezone(UTC)
+
+
+class SatellitePassEventResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    time_utc: datetime
+    azimuth_deg: float
+    direction: str
+
+
+class SatellitePassItemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    rise: SatellitePassEventResponse
+    peak: SatellitePassEventResponse
+    set: SatellitePassEventResponse
+    peak_altitude_deg: float
+    satellite_sunlit_at_peak: bool
+    observer_sun_altitude_deg_at_peak: float
+    observer_sky_state_at_peak: SatelliteSkyState
+
+
+class SatelliteAlgorithmResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    algorithm_version: str
+    propagation_model: str
+    gravity_model: str
+    observer_ellipsoid: str
+    altitude_threshold_deg: float
+    window_hours: int
+    shadow_policy: str
+
+
+class SatellitePassPredictionResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    state: SatellitePredictionState
+    refusal_reason: SatellitePredictionRefusalReason | None
+    element_age_hours_at_start: float
+    maximum_element_offset_hours: float
+    stale_element_warning: bool
+    passes: tuple[SatellitePassItemResponse, ...]
+    algorithm: SatelliteAlgorithmResponse
+
+
+class SatellitePassResponse(BaseModel):
+    """Local pass result that intentionally does not echo the private observer coordinates."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    satellite: SatelliteItemResponse
+    requested_start_utc: datetime
+    prediction: SatellitePassPredictionResponse
+    source: SatelliteSourceResponse

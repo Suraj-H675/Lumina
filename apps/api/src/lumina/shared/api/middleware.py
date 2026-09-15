@@ -9,8 +9,9 @@ from uuid import UUID, uuid4
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from lumina.shared.api.errors import unhandled_exception_response
+from lumina.shared.api.errors import error_response, unhandled_exception_response
 from lumina.shared.logging import bind_request_id, reset_request_id
 
 _LOGGER = logging.getLogger("lumina.http")
@@ -65,6 +66,95 @@ def _content_security_policy(request: Request) -> str:
             _STRICT_CONTENT_SECURITY_POLICY,
         )
     return _STRICT_CONTENT_SECURITY_POLICY
+
+
+class BoundedRequestBodyMiddleware:
+    """Bound selected request bodies before framework JSON parsing allocates them."""
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        limits: dict[tuple[str, str], int],
+    ) -> None:
+        if not limits or any(limit < 1 for limit in limits.values()):
+            raise ValueError("Request body limits must be positive")
+        self._app = app
+        self._limits = dict(limits)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self._app(scope, receive, send)
+            return
+        method = str(scope.get("method", ""))
+        path = str(scope.get("path", ""))
+        limit = self._limits.get((method, path))
+        if limit is None:
+            await self._app(scope, receive, send)
+            return
+
+        declared = _declared_content_length(scope)
+        if declared is not None and declared > limit:
+            await _send_body_too_large(scope, receive, send)
+            return
+
+        body = bytearray()
+        while True:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            if message["type"] != "http.request":
+                await _send_body_too_large(scope, receive, send)
+                return
+            chunk = message.get("body", b"")
+            if not isinstance(chunk, bytes):
+                await _send_body_too_large(scope, receive, send)
+                return
+            if len(chunk) > limit - len(body):
+                await _send_body_too_large(scope, receive, send)
+                return
+            body.extend(chunk)
+            if not message.get("more_body", False):
+                break
+
+        replayed = False
+
+        async def replay() -> Message:
+            nonlocal replayed
+            if replayed:
+                return {"type": "http.disconnect"}
+            replayed = True
+            return {"type": "http.request", "body": bytes(body), "more_body": False}
+
+        await self._app(scope, replay, send)
+
+
+def _declared_content_length(scope: Scope) -> int | None:
+    values = [
+        value for name, value in scope.get("headers", ()) if name.lower() == b"content-length"
+    ]
+    if not values:
+        return None
+    if len(values) != 1:
+        return 2**63 - 1
+    raw = values[0]
+    if not raw.isdigit():
+        return 2**63 - 1
+    try:
+        return int(raw)
+    except ValueError:
+        return 2**63 - 1
+
+
+async def _send_body_too_large(scope: Scope, receive: Receive, send: Send) -> None:
+    request = Request(scope, receive=receive)
+    response = error_response(
+        request,
+        status_code=413,
+        code="request.body_too_large",
+        message="The request body is too large.",
+    )
+    await response(scope, receive, send)
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):

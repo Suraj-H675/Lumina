@@ -19,6 +19,7 @@ export function SpaceNowView({ outcome }: Readonly<{ outcome: NowApodOutcome }>)
 
       {outcome.kind === "ok" ? <DailyVisual response={outcome.data} /> : <UnavailableDailyVisual />}
       <LaunchNavigation />
+      <SatelliteNavigation />
       <NearEarthNavigation />
       <SpaceWeatherNavigation />
     </article>
@@ -47,6 +48,33 @@ function LaunchNavigation() {
         href="/now/launches"
       >
         Open Launch Center
+      </Link>
+    </section>
+  );
+}
+
+function SatelliteNavigation() {
+  return (
+    <section
+      aria-labelledby="satellite-navigation-heading"
+      className="space-y-4 border-t border-[var(--border)] pt-8"
+    >
+      <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
+        Satellite passes
+      </p>
+      <h2 className="text-2xl font-semibold" id="satellite-navigation-heading">
+        Predict selected satellite passes from cached elements
+      </h2>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">
+        Browse selected CelesTrak STATIONS and VISUAL records, inspect element freshness, and run a
+        local SGP4 pass calculation for a location you explicitly provide. Illumination and sky
+        state are shown separately; Lumina does not claim optical visibility.
+      </p>
+      <Link
+        className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
+        href="/now/satellites"
+      >
+        Open Satellite Passes
       </Link>
     </section>
   );

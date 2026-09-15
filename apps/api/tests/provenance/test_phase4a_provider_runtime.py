@@ -301,7 +301,14 @@ def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> 
     registry = production_provider_registry()
 
     assert registry.registered_codes == frozenset(
-        {"nasa-exoplanet-archive", "nasa-apod", "nasa-neows", "noaa-swpc", "launch-library-2"}
+        {
+            "nasa-exoplanet-archive",
+            "nasa-apod",
+            "nasa-neows",
+            "noaa-swpc",
+            "launch-library-2",
+            "celestrak-gp",
+        }
     )
     registration = registry.resolve("nasa-exoplanet-archive")
     assert registration is not None

@@ -4,6 +4,8 @@ export {
   launchDetailTemplateEndpoint,
   launchesEndpoint,
   nearEarthEndpoint,
+  satellitePassEndpoint,
+  satellitesEndpoint,
   spaceWeatherEndpoint,
   liveEndpoint,
   metaEndpoint,
@@ -13,10 +15,14 @@ export {
 } from "./contract";
 export type {
   ApiEndpoint,
+  ApiJsonEndpoint,
   ApodResponse,
   LaunchDetailResponse,
   LaunchListResponse,
   NearEarthResponse,
+  SatelliteListResponse,
+  SatellitePassRequest,
+  SatellitePassResponse,
   SpaceWeatherResponse,
   GeneratedValidator,
   LiveResponse,
@@ -56,6 +62,24 @@ export type {
   GetNowNearEarthErrors,
   GetNowNearEarthResponse,
   GetNowNearEarthResponses,
+  GetNowSatellitesData,
+  GetNowSatellitesError,
+  GetNowSatellitesErrors,
+  GetNowSatellitesResponse,
+  GetNowSatellitesResponses,
+  PostNowSatellitePassesData,
+  PostNowSatellitePassesError,
+  PostNowSatellitePassesErrors,
+  PostNowSatellitePassesResponse,
+  PostNowSatellitePassesResponses,
+  SatelliteAlgorithmResponse,
+  SatelliteFreshnessResponse,
+  SatelliteItemResponse,
+  SatelliteObserverRequest,
+  SatellitePassEventResponse,
+  SatellitePassItemResponse,
+  SatellitePassPredictionResponse,
+  SatelliteSourceResponse,
   GetNowSpaceWeatherData,
   GetNowSpaceWeatherError,
   GetNowSpaceWeatherErrors,
@@ -85,10 +109,17 @@ export type {
 export {
   DEFAULT_REQUEST_TIMEOUT_MS,
   MAX_RESPONSE_BYTES,
+  MAX_REQUEST_BYTES,
   normalizeApiOrigin,
   requestEndpoint,
+  requestJsonEndpoint,
 } from "./transport";
-export type { ApiOriginResult, ApiTransportResult, TransportOptions } from "./transport";
+export type {
+  ApiJsonTransportResult,
+  ApiOriginResult,
+  ApiTransportResult,
+  TransportOptions,
+} from "./transport";
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
 export { seasonsSimulatorEndpoint, telescopeBuilderEndpoint } from "./contract";
 export {

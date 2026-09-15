@@ -14,6 +14,7 @@ from lumina.provenance.domain.request_plan import (
 )
 from lumina.provenance.domain.runtime import (
     APOD_PROVIDER_CODE,
+    CELESTRAK_PROVIDER_CODE,
     LL2_PROVIDER_CODE,
     NEOWS_PROVIDER_CODE,
     PROVIDER_CODE,
@@ -26,6 +27,7 @@ PRODUCTION_PROVIDER_CODES = frozenset(
     {
         PROVIDER_CODE,
         APOD_PROVIDER_CODE,
+        CELESTRAK_PROVIDER_CODE,
         NEOWS_PROVIDER_CODE,
         SWPC_PROVIDER_CODE,
         LL2_PROVIDER_CODE,

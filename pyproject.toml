@@ -45,7 +45,7 @@ warn_unreachable = true
 files = ["apps/api/src", "apps/api/tests"]
 
 [[tool.mypy.overrides]]
-module = ["astropy", "astropy.*"]
+module = ["astropy", "astropy.*", "sgp4", "sgp4.*", "skyfield", "skyfield.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

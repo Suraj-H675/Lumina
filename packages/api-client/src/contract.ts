@@ -21,7 +21,12 @@ import type {
   GetNowLaunchData,
   GetNowLaunchesData,
   GetNowNearEarthData,
+  GetNowSatellitesData,
   GetNowSpaceWeatherData,
+  PostNowSatellitePassesData,
+  SatelliteListResponse,
+  SatellitePassRequest,
+  SatellitePassResponse,
   ListCatalogEntitiesData,
   ListProviderStatusData,
   ProviderStatusListResponse as GeneratedProviderStatusListResponse,
@@ -46,7 +51,10 @@ import {
   zGetNowLaunchResponse,
   zGetNowLaunchesResponse,
   zGetNowNearEarthResponse,
+  zGetNowSatellitesResponse,
   zGetNowSpaceWeatherResponse,
+  zPostNowSatellitePassesResponse,
+  zSatellitePassRequest,
   zLiveResponse,
   zMetaResponse,
   zProviderStatusListResponse,
@@ -62,16 +70,32 @@ export type {
   LaunchDetailResponse,
   LaunchListResponse,
   NearEarthResponse,
+  SatelliteListResponse,
+  SatellitePassRequest,
+  SatellitePassResponse,
   SpaceWeatherResponse,
 };
 
 export type GeneratedValidator<T> = Pick<ZodType<T>, "safeParse">;
 
-export type ApiEndpoint<T, Path extends string = string> = Readonly<{
-  method: "GET";
+export type ApiEndpoint<
+  T,
+  Path extends string = string,
+  Method extends "GET" | "POST" = "GET",
+> = Readonly<{
+  method: Method;
   path: Path;
   validator: GeneratedValidator<T>;
 }>;
+
+export type ApiJsonEndpoint<TResponse, TRequest, Path extends string = string> = ApiEndpoint<
+  TResponse,
+  Path,
+  "POST"
+> &
+  Readonly<{
+    requestValidator: GeneratedValidator<TRequest>;
+  }>;
 
 export const liveEndpoint = {
   method: "GET",
@@ -128,6 +152,23 @@ export const nearEarthEndpoint = {
   path: "/api/v1/now/near-earth" satisfies GetNowNearEarthData["url"],
   validator: zGetNowNearEarthResponse,
 } satisfies ApiEndpoint<NearEarthResponse, GetNowNearEarthData["url"]>;
+
+export const satellitesEndpoint = {
+  method: "GET",
+  path: "/api/v1/now/satellites" satisfies GetNowSatellitesData["url"],
+  validator: zGetNowSatellitesResponse,
+} satisfies ApiEndpoint<SatelliteListResponse, GetNowSatellitesData["url"]>;
+
+export const satellitePassEndpoint = {
+  method: "POST",
+  path: "/api/v1/now/satellites/passes" satisfies PostNowSatellitePassesData["url"],
+  requestValidator: zSatellitePassRequest,
+  validator: zPostNowSatellitePassesResponse,
+} satisfies ApiJsonEndpoint<
+  SatellitePassResponse,
+  SatellitePassRequest,
+  PostNowSatellitePassesData["url"]
+>;
 
 export const spaceWeatherEndpoint = {
   method: "GET",

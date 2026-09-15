@@ -251,7 +251,7 @@ def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
                     "height, sha256, solver_type, consent_remote_processing, "
                     "retention_until) VALUES "
                     "(:id, :key, 'remote.png', 'image/png', 10, 8, 8, :sha256, 'fake', true, "
-                    ":retention_until)"
+                    "CURRENT_TIMESTAMP + interval '24 hours')"
                 ),
                 {
                     "id": UUID("61000000-0000-4000-8000-000000000002"),

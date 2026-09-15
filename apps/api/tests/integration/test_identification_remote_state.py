@@ -139,7 +139,6 @@ def test_remote_state_schema_and_acl_are_exact(
             "ck_identification_remote_transition_to_state",
             "ck_identification_remote_transition_shape",
             "ck_identification_remote_transition_reason",
-            "ck_identification_remote_transition_reason_catalog",
         }
         assert connection.execute(
             text(

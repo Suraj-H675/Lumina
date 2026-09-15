@@ -334,6 +334,11 @@ def test_migration_round_trip_preserves_every_older_table(
     identity = integration_migration_identity(integration_settings)
 
     def operation(connection: Connection) -> None:
+        run_alembic(connection, identity, _PHASE6A_REVISION, downgrade=True)
+        assert (
+            connection.execute(text("SELECT version_num FROM public.alembic_version")).scalar_one()
+            == _PHASE6A_REVISION
+        )
         before = set(
             connection.execute(
                 text(

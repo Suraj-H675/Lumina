@@ -168,6 +168,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
     url = _sync_url(integration_settings)
 
     def operation(connection: Connection) -> None:
+        run_alembic(connection, identity, "head", downgrade=False)
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
         ).scalar_one() == ("e9f0a1b2c3d4")

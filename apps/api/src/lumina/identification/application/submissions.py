@@ -12,6 +12,7 @@ from lumina.identification.application.uploads import StoreValidatedUploadServic
 from lumina.identification.domain.storage import PrivateObjectKey, PrivateObjectStore
 from lumina.identification.domain.submissions import (
     CreateIdentificationSubmission,
+    IdentificationSolverType,
     IdentificationSubmission,
     IdentificationSubmissionStatus,
     SubmissionStateConflict,
@@ -99,6 +100,8 @@ class CreateSubmissionService:
         *,
         original_filename: object,
         declared_media_type: str | None,
+        solver_type: IdentificationSolverType = IdentificationSolverType.FAKE,
+        consent_remote_processing: bool = False,
     ) -> CreatedSubmission:
         filename = sanitize_original_filename(original_filename)
         stored = self._uploads.store(content, declared_media_type=declared_media_type)
@@ -117,6 +120,8 @@ class CreateSubmissionService:
             height=stored.height,
             sha256=stored.sha256,
             retention_until=now + self._provisional_retention,
+            solver_type=solver_type,
+            consent_remote_processing=consent_remote_processing,
         )
         try:
             submission = await self._repository.create(command)
@@ -130,6 +135,61 @@ class CreateSubmissionService:
             self._store.delete(key)
         except BaseException:
             raise SubmissionCleanupFailure() from None
+
+
+class RemoteSolveStateCreator(Protocol):
+    async def create(self, submission_id: UUID, *, timeout_seconds: int) -> object: ...
+
+
+@dataclass(frozen=True, slots=True)
+class StartedRemoteIdentification:
+    submission_id: UUID
+
+
+class StartRemoteIdentificationService:
+    """Create a consented Nova submission plus durable remote lifecycle state."""
+
+    def __init__(
+        self,
+        create: CreateSubmissionService,
+        remote_state: RemoteSolveStateCreator,
+        delete: DeleteSubmissionService,
+        *,
+        timeout_seconds: int,
+    ) -> None:
+        if type(timeout_seconds) is not int or not 60 <= timeout_seconds <= 3_600:
+            raise ValueError("Remote identification timeout is invalid.")
+        self._create = create
+        self._remote_state = remote_state
+        self._delete = delete
+        self._timeout_seconds = timeout_seconds
+
+    async def start(
+        self,
+        content: bytes,
+        *,
+        original_filename: object,
+        declared_media_type: str | None,
+    ) -> StartedRemoteIdentification:
+        created = await self._create.create(
+            content,
+            original_filename=original_filename,
+            declared_media_type=declared_media_type,
+            solver_type=IdentificationSolverType.NOVA,
+            consent_remote_processing=True,
+        )
+        try:
+            await self._remote_state.create(
+                created.submission.id,
+                timeout_seconds=self._timeout_seconds,
+            )
+        except BaseException:
+            try:
+                await self._delete.delete(created.submission.id)
+            except BaseException:
+                raise SubmissionCleanupFailure() from None
+            raise
+        return StartedRemoteIdentification(submission_id=created.submission.id)
 
 
 @dataclass(frozen=True, slots=True)

@@ -119,6 +119,14 @@ class CleanupExpiredSubmissions(Protocol):
         ...
 
 
+class AdvanceRemoteIdentification(Protocol):
+    """Advance at most one durable remote identification lifecycle."""
+
+    async def advance(self) -> int:
+        """Return zero for no due work or one for one processed solve."""
+        ...
+
+
 class FatalTermination(Protocol):
     """Hard-termination capability for a settlement-unknown live task."""
 
@@ -351,6 +359,8 @@ class WorkerRuntime:
         retention_cleanup: CleanupExpiredSubmissions | None = None,
         retention_cleanup_seconds: int = 60,
         retention_cleanup_limit: int = 50,
+        remote_identification: AdvanceRemoteIdentification | None = None,
+        remote_identification_seconds: int = 5,
         timing: RuntimeTiming | None = None,
     ) -> None:
         if (
@@ -364,6 +374,8 @@ class WorkerRuntime:
             or not 1 <= retention_cleanup_seconds <= 3_600
             or type(retention_cleanup_limit) is not int
             or not 1 <= retention_cleanup_limit <= 100
+            or type(remote_identification_seconds) is not int
+            or not 1 <= remote_identification_seconds <= 60
         ):
             raise WorkerRuntimeError()
         self._recovery = recovery
@@ -377,6 +389,8 @@ class WorkerRuntime:
         self._retention_cleanup = retention_cleanup
         self._retention_cleanup_cadence = retention_cleanup_seconds
         self._retention_cleanup_limit = retention_cleanup_limit
+        self._remote_identification = remote_identification
+        self._remote_identification_cadence = remote_identification_seconds
         self._timing = timing or EventLoopRuntimeTiming()
         self._owned_tasks: set[asyncio.Task[object]] = set()
         self._cancel_requested: set[asyncio.Task[object]] = set()
@@ -406,6 +420,13 @@ class WorkerRuntime:
                 cleanup_status = await self._cleanup_retention_once(shutdown_wait=shutdown_wait)
                 if cleanup_status is not None:
                     return cleanup_status
+            remote_task: asyncio.Task[object] | None = None
+            if self._remote_identification is not None:
+                remote_task = asyncio.create_task(
+                    self._run_remote_identification_loop(),
+                    name="lumina.worker.remote-identification",
+                )
+                self._owned_tasks.add(remote_task)
             next_recovery = self._timing.monotonic() + self._recovery_cadence
             next_cleanup = (
                 self._timing.monotonic() + self._retention_cleanup_cadence
@@ -414,6 +435,13 @@ class WorkerRuntime:
             )
             next_claim: float | None = None
             while not self._shutdown_event.is_set():
+                if remote_task is not None and remote_task.done():
+                    remote_status = remote_task.result()
+                    self._owned_tasks.discard(remote_task)
+                    remote_task = None
+                    if remote_status != 0 or not self._shutdown_event.is_set():
+                        return 1
+                    return 0
                 now = self._timing.monotonic()
                 if now >= next_recovery:
                     if not await self._recover_once():
@@ -509,6 +537,26 @@ class WorkerRuntime:
                 _consume_task(task)
                 self._owned_tasks.discard(task)
                 self._cancel_requested.discard(task)
+
+    async def _run_remote_identification_loop(self) -> int:
+        remote = self._remote_identification
+        if remote is None:
+            return 0
+        try:
+            while not self._shutdown_event.is_set():
+                processed = await remote.advance()
+                if type(processed) is not int or processed not in {0, 1}:
+                    return 1
+                await asyncio.sleep(self._remote_identification_cadence)
+            return 0
+        except asyncio.CancelledError:
+            if self._shutdown_event.is_set():
+                return 0
+            raise
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException:
+            return 1
 
     async def _execute_once(
         self,

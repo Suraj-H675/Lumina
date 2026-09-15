@@ -14,6 +14,7 @@ from lumina.identification.application.submissions import (
     CreateSubmissionService,
     DeleteSubmissionService,
     RetentionCleanupService,
+    StartRemoteIdentificationService,
     SubmissionCleanupFailure,
     SubmitIdentificationService,
 )
@@ -24,6 +25,7 @@ from lumina.identification.domain.storage import (
 )
 from lumina.identification.domain.submissions import (
     CreateIdentificationSubmission,
+    IdentificationSolverType,
     IdentificationSubmission,
     IdentificationSubmissionStatus,
     SubmissionStateConflict,
@@ -95,6 +97,8 @@ def _submission(
         height=8,
         sha256=None if deleted else "a" * 64,
         retention_until=_NOW + timedelta(hours=24),
+        solver_type=IdentificationSolverType.FAKE,
+        consent_remote_processing=False,
         deleted_at=deleted_at,
         created_at=_NOW,
     )
@@ -126,6 +130,8 @@ class FakeRepository:
             height=command.height,
             sha256=command.sha256,
             retention_until=command.retention_until,
+            solver_type=command.solver_type,
+            consent_remote_processing=command.consent_remote_processing,
             deleted_at=None,
             created_at=_NOW,
         )
@@ -476,3 +482,73 @@ async def test_submit_cleanup_failure_replaces_private_operation_error() -> None
     assert failure.value.__cause__ is None
     assert "night.png" not in repr(failure.value)
     assert store.objects == {}
+
+
+@dataclass
+class FakeRemoteStateCreator:
+    failure: BaseException | None = None
+    calls: list[tuple[UUID, int]] = field(default_factory=list)
+
+    async def create(self, submission_id: UUID, *, timeout_seconds: int) -> object:
+        self.calls.append((submission_id, timeout_seconds))
+        if self.failure is not None:
+            raise self.failure
+        return object()
+
+
+def _remote_start_service(
+    store: MemoryPrivateStore,
+    repository: FakeRepository,
+    remote_state: FakeRemoteStateCreator,
+) -> StartRemoteIdentificationService:
+    create = CreateSubmissionService(
+        _uploads(store),
+        repository,
+        store,
+        now=lambda: _NOW,
+        uuid_factory=lambda: _SUBMISSION_ID,
+    )
+    delete = DeleteSubmissionService(repository, store, now=lambda: _NOW)
+    return StartRemoteIdentificationService(
+        create,
+        remote_state,
+        delete,
+        timeout_seconds=900,
+    )
+
+
+@pytest.mark.asyncio
+async def test_remote_start_creates_exact_nova_consent_pair_and_remote_state() -> None:
+    store = MemoryPrivateStore()
+    repository = FakeRepository()
+    remote_state = FakeRemoteStateCreator()
+
+    result = await _remote_start_service(store, repository, remote_state).start(
+        _png(),
+        original_filename="night.png",
+        declared_media_type="image/png",
+    )
+
+    assert result.submission_id == _SUBMISSION_ID
+    assert repository.created_command is not None
+    assert repository.created_command.solver_type is IdentificationSolverType.NOVA
+    assert repository.created_command.consent_remote_processing is True
+    assert remote_state.calls == [(_SUBMISSION_ID, 900)]
+    assert len(store.objects) == 1
+
+
+@pytest.mark.asyncio
+async def test_remote_state_creation_failure_deletes_private_upload_and_scrubs_metadata() -> None:
+    store = MemoryPrivateStore()
+    repository = FakeRepository()
+    remote_state = FakeRemoteStateCreator(failure=RuntimeError("remote-state-failed"))
+
+    with pytest.raises(RuntimeError, match="remote-state-failed"):
+        await _remote_start_service(store, repository, remote_state).start(
+            _png(),
+            original_filename="night.png",
+            declared_media_type="image/png",
+        )
+
+    assert store.objects == {}
+    assert repository.current is not None and repository.current.deleted

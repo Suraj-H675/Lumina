@@ -1334,3 +1334,82 @@ async def test_retention_cleanup_runs_on_its_own_cadence() -> None:
         "execute",
         "retention-cleanup",
     ]
+
+
+class BlockingRemoteIdentification:
+    def __init__(self, events: list[str]) -> None:
+        self.events = events
+        self.started = asyncio.Event()
+        self.release = asyncio.Event()
+        self.calls = 0
+
+    async def advance(self) -> int:
+        self.calls += 1
+        self.events.append("remote-identification")
+        self.started.set()
+        await self.release.wait()
+        return 0
+
+
+@pytest.mark.asyncio
+async def test_remote_identification_runs_concurrently_with_job_execution() -> None:
+    events: list[str] = []
+    shutdown = asyncio.Event()
+    remote = BlockingRemoteIdentification(events)
+
+    class ExecuteWhileRemoteBlocked:
+        async def execute(self) -> JobProcessed:
+            await remote.started.wait()
+            events.append("execute")
+            shutdown.set()
+            return JobProcessed()
+
+    runtime = WorkerRuntime(
+        recovery=RecordingRecovery(events),
+        executor=ExecuteWhileRemoteBlocked(),
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=1,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+        remote_identification=remote,
+        remote_identification_seconds=5,
+    )
+
+    assert await runtime.run() == 0
+    assert remote.calls == 1
+    assert events == ["recover", "remote-identification", "execute"]
+
+
+@pytest.mark.asyncio
+async def test_remote_identification_failure_fails_worker() -> None:
+    events: list[str] = []
+    shutdown = asyncio.Event()
+
+    class FailingRemoteIdentification:
+        async def advance(self) -> int:
+            events.append("remote-identification")
+            raise RuntimeError("private")
+
+    class NoJob:
+        async def execute(self) -> NoJobExecuted:
+            events.append("execute")
+            return NoJobExecuted()
+
+    runtime = WorkerRuntime(
+        recovery=RecordingRecovery(events),
+        executor=NoJob(),
+        shutdown_event=shutdown,
+        observer=RuntimeExecutionObserver(),
+        fatal_termination=FatalSpy(),
+        poll_seconds=1,
+        stale_seconds=120,
+        cancellation_grace_seconds=1,
+        remote_identification=FailingRemoteIdentification(),
+        remote_identification_seconds=5,
+    )
+
+    assert await runtime.run() == 1
+    assert events[0] == "recover"
+    assert "remote-identification" in events

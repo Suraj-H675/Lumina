@@ -24,6 +24,7 @@ from lumina.worker.composition import (
 )
 from lumina.worker.output import WORKER_STARTUP_FAILED
 from lumina.worker.termination import TerminatorReturned
+from pydantic import SecretStr
 
 
 def test_shutdown_wins_before_readiness_without_output_commitment() -> None:
@@ -217,7 +218,13 @@ def _settings() -> AppSettings:
             job_cancellation_grace_seconds=1,
             worker_poll_seconds=2,
             storage_local_root=Path("/tmp/lumina-worker-fixture-storage"),
+            upload_max_bytes=25 * 1024 * 1024,
+            upload_max_pixels=50_000_000,
             upload_retention_hours=24,
+            enable_remote_astrometry=False,
+            astrometry_api_url="https://nova.astrometry.net/api",
+            astrometry_api_key=None,
+            astrometry_poll_seconds=5,
         ),
     )
 
@@ -266,6 +273,18 @@ def _patch_pre_readiness_dependencies(
         "PostgreSqlIdentificationSubmissionRepository",
         lambda *args, **kwargs: object(),
     )
+    for name in (
+        "PostgreSqlRemoteSolveRepository",
+        "RemoteNovaAdapter",
+        "RemoteSolvePollingService",
+    ):
+        monkeypatch.setattr(
+            composition,
+            name,
+            lambda *args, _name=name, **kwargs: (_ for _ in ()).throw(
+                AssertionError(f"unexpected remote construction: {_name}")
+            ),
+        )
     fake_identification = SystemNoopHandler()
     monkeypatch.setattr(
         composition,
@@ -456,3 +475,79 @@ async def test_uncooperative_engine_disposal_hard_terminates_exactly_once(
     )
     assert "private-uncooperative-disposal" not in b"".join(output.stdout).decode()
     assert "private-uncooperative-disposal" not in b"".join(output.stderr).decode()
+
+
+@pytest.mark.asyncio
+async def test_remote_astrometry_enabled_injects_only_validated_worker_maintenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    engine = _EngineSpy()
+    output = _OutputSpy()
+    _patch_pre_readiness_dependencies(monkeypatch, engine=engine)
+    remote_repository = object()
+    remote_solver = object()
+    remote_service = object()
+    captured_runtime: dict[str, object] = {}
+    captured_adapter: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        composition,
+        "PostgreSqlRemoteSolveRepository",
+        lambda *args, **kwargs: remote_repository,
+    )
+
+    def adapter(*, api_url: str, api_key: SecretStr) -> object:
+        captured_adapter["api_url"] = api_url
+        captured_adapter["api_key"] = api_key.get_secret_value()
+        return remote_solver
+
+    monkeypatch.setattr(composition, "RemoteNovaAdapter", adapter)
+    monkeypatch.setattr(
+        composition,
+        "RemoteSolvePollingService",
+        lambda repository, submissions, store, solver, policy, *, poll_seconds: (
+            remote_service
+            if (repository is remote_repository and solver is remote_solver and poll_seconds == 5)
+            else (_ for _ in ()).throw(AssertionError("invalid remote composition"))
+        ),
+    )
+    monkeypatch.setattr(
+        composition,
+        "install_signal_handlers",
+        lambda shutdown_event: _SignalsSpy(shutdown_event.set),
+    )
+    monkeypatch.setattr(composition, "build_worker_owner_identity", lambda prefix: object())
+    for name in (
+        "ObservedFailure",
+        "ObservedCompletion",
+        "ShutdownAwareRegistry",
+        "ShutdownAwareClaim",
+        "ExecuteOneJobService",
+    ):
+        monkeypatch.setattr(composition, name, lambda *args, **kwargs: object())
+
+    class RuntimeSpy:
+        def __init__(self, **kwargs: object) -> None:
+            captured_runtime.update(kwargs)
+
+        async def run(self) -> int:
+            return 0
+
+    monkeypatch.setattr(composition, "WorkerRuntime", RuntimeSpy)
+
+    def settings() -> AppSettings:
+        value = cast(Any, _settings())
+        value.enable_remote_astrometry = True
+        value.astrometry_api_key = SecretStr("server-secret-sentinel")
+        return cast(AppSettings, value)
+
+    assert await run_worker_process(output, settings_loader=settings) == 0
+    assert captured_adapter == {
+        "api_url": "https://nova.astrometry.net/api",
+        "api_key": "server-secret-sentinel",
+    }
+    assert captured_runtime["remote_identification"] is remote_service
+    assert captured_runtime["remote_identification_seconds"] == 5
+    assert "server-secret-sentinel" not in repr(captured_runtime)
+    assert output.stderr == []
+    assert engine.dispose_calls == 1

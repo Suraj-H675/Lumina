@@ -22,7 +22,7 @@ from .migration_lifecycle import (
 )
 
 _PG_TRGM_CONTRACT = ("pg_trgm", "1.6", "public", "lumina_admin")
-_CURRENT_HEAD = "d8e9f0a1b2c3"
+_CURRENT_HEAD = "e9f0a1b2c3d4"
 _PRE_IDENTIFICATION_HEAD = "c6d7e8f9a0b1"
 _PRE_SWPC_HEAD = "f3a4b5c6d7e8"
 _PRE_NEO_HEAD = "e1f2a3b4c5d6"

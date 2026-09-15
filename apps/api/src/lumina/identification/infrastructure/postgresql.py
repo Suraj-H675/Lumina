@@ -15,6 +15,7 @@ from lumina.identification.domain.storage import PrivateObjectKey
 from lumina.identification.domain.submissions import (
     CreateIdentificationSubmission,
     FakeSolverResult,
+    IdentificationSolverType,
     IdentificationSubmission,
     IdentificationSubmissionState,
     IdentificationSubmissionStatus,
@@ -30,7 +31,7 @@ _TIMEOUT_SQL = text(
 )
 _SELECT_COLUMNS = (
     "id, job_id, storage_object_key, original_filename, mime_type, byte_size, width, height, "
-    "sha256, retention_until, deleted_at, created_at"
+    "sha256, retention_until, solver_type, consent_remote_processing, deleted_at, created_at"
 )
 _SELECT = f"SELECT {_SELECT_COLUMNS} FROM public.identification_submission"
 _INSERT_SQL = text(
@@ -38,9 +39,9 @@ _INSERT_SQL = text(
     "(id, storage_object_key, original_filename, mime_type, byte_size, width, height, sha256, "
     "solver_type, consent_remote_processing, retention_until) VALUES "
     "(:id, :storage_object_key, :original_filename, :mime_type, :byte_size, :width, :height, "
-    ":sha256, 'fake', false, :retention_until) RETURNING "
+    ":sha256, :solver_type, :consent_remote_processing, :retention_until) RETURNING "
     "id, job_id, storage_object_key, original_filename, mime_type, byte_size, width, height, "
-    "sha256, retention_until, deleted_at, created_at"
+    "sha256, retention_until, solver_type, consent_remote_processing, deleted_at, created_at"
 )
 _READ_SQL = text(f"{_SELECT} WHERE id = :id")
 _STATUS_SQL = text(
@@ -61,7 +62,7 @@ _ATTACH_SQL = text(
     "UPDATE public.identification_submission SET job_id = :job_id "
     "WHERE id = :id AND deleted_at IS NULL AND job_id IS NULL RETURNING "
     "id, job_id, storage_object_key, original_filename, mime_type, byte_size, width, height, "
-    "sha256, retention_until, deleted_at, created_at"
+    "sha256, retention_until, solver_type, consent_remote_processing, deleted_at, created_at"
 )
 _SCRUB_SQL = text(
     "UPDATE public.identification_submission SET storage_object_key = NULL, "
@@ -120,6 +121,8 @@ class PostgreSqlIdentificationSubmissionRepository:
                                 "width": command.width,
                                 "height": command.height,
                                 "sha256": command.sha256,
+                                "solver_type": command.solver_type.value,
+                                "consent_remote_processing": command.consent_remote_processing,
                                 "retention_until": command.retention_until,
                             },
                         )
@@ -327,6 +330,10 @@ def _submission(row: RowMapping) -> IdentificationSubmission:
         raw_filename = row["original_filename"]
         filename = None if raw_filename is None else str(raw_filename)
         media_type = UploadMediaType(str(row["mime_type"]))
+        solver_type = IdentificationSolverType(str(row["solver_type"]))
+        consent_remote_processing = row["consent_remote_processing"]
+        if type(consent_remote_processing) is not bool:
+            raise SubmissionStorageFailure()
         raw_sha256 = row["sha256"]
         sha256 = None if raw_sha256 is None else str(raw_sha256)
         deleted_at = None if row["deleted_at"] is None else _timestamp(row["deleted_at"])
@@ -341,6 +348,8 @@ def _submission(row: RowMapping) -> IdentificationSubmission:
             height=int(row["height"]),
             sha256=sha256,
             retention_until=_timestamp(row["retention_until"]),
+            solver_type=solver_type,
+            consent_remote_processing=consent_remote_processing,
             deleted_at=deleted_at,
             created_at=_timestamp(row["created_at"]),
         )

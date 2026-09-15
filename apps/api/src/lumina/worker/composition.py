@@ -10,11 +10,15 @@ from enum import Enum, auto
 from typing import Protocol
 
 from lumina.identification.application.fake_solver import FakePlateSolverHandler
+from lumina.identification.application.remote_polling import RemoteSolvePollingService
 from lumina.identification.application.submissions import RetentionCleanupService
+from lumina.identification.domain.uploads import UploadValidationPolicy
 from lumina.identification.infrastructure.filesystem import FilesystemPrivateObjectStore
+from lumina.identification.infrastructure.nova import RemoteNovaAdapter
 from lumina.identification.infrastructure.postgresql import (
     PostgreSqlIdentificationSubmissionRepository,
 )
+from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRemoteSolveRepository
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.execution import ExecuteOneJobService
@@ -216,6 +220,29 @@ async def run_worker_process(
             now=lambda: datetime.now(UTC),
             terminal_retention=timedelta(hours=settings.upload_retention_hours),
         )
+        remote_identification = None
+        if settings.enable_remote_astrometry:
+            api_key = settings.astrometry_api_key
+            if api_key is None:
+                raise WorkerCompositionError()
+            remote_identification = RemoteSolvePollingService(
+                PostgreSqlRemoteSolveRepository(
+                    session_factory,
+                    operation_wait_timeout_ms=operation_timeout,
+                ),
+                identification_repository,
+                identification_store,
+                RemoteNovaAdapter(
+                    api_url=settings.astrometry_api_url,
+                    api_key=api_key,
+                ),
+                UploadValidationPolicy(
+                    max_bytes=settings.upload_max_bytes,
+                    max_pixels=settings.upload_max_pixels,
+                    min_dimension=32,
+                ),
+                poll_seconds=settings.astrometry_poll_seconds,
+            )
         registry = production_handler_registry(
             provider_sync=provider_composition.sync_handler,
             provider_sync_validator=provider_composition.sync_handler.validate_payload,
@@ -275,6 +302,8 @@ async def run_worker_process(
                     retention_cleanup=identification_retention_cleanup,
                     retention_cleanup_seconds=60,
                     retention_cleanup_limit=50,
+                    remote_identification=remote_identification,
+                    remote_identification_seconds=settings.astrometry_poll_seconds,
                 )
                 status = await runtime.run()
     except TerminatorReturned:

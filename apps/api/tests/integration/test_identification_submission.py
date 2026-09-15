@@ -20,7 +20,8 @@ from .migration_lifecycle import (
     run_migration_operation,
 )
 
-_REVISION = "d8e9f0a1b2c3"
+_HEAD_REVISION = "e9f0a1b2c3d4"
+_PHASE6A_REVISION = "d8e9f0a1b2c3"
 _PARENT_REVISION = "c6d7e8f9a0b1"
 _TABLE = "identification_submission"
 _SUBMISSION_ID = UUID("61000000-0000-4000-8000-000000000001")
@@ -40,17 +41,26 @@ def _cleanup(settings: IntegrationTestSettings) -> None:
     def operation(connection: Connection) -> None:
         with connection.begin():
             connection.execute(
-                text("DELETE FROM public.identification_submission WHERE id = :id"),
-                {"id": _SUBMISSION_ID},
+                text(
+                    "DELETE FROM public.identification_submission WHERE id IN "
+                    "(:id1, :id2, :id3, :id4)"
+                ),
+                {
+                    "id1": _SUBMISSION_ID,
+                    "id2": UUID("61000000-0000-4000-8000-000000000002"),
+                    "id3": UUID("61000000-0000-4000-8000-000000000003"),
+                    "id4": UUID("61000000-0000-4000-8000-000000000004"),
+                },
             )
 
     run_migration_operation(_sync_url(settings), operation)
 
 
-def test_identification_migration_is_the_single_current_head() -> None:
+def test_identification_migrations_are_linear_to_the_single_current_head() -> None:
     script = ScriptDirectory.from_config(migration_config())
-    assert script.get_heads() == [_REVISION]
-    assert script.get_revision(_REVISION).down_revision == _PARENT_REVISION
+    assert script.get_heads() == [_HEAD_REVISION]
+    assert script.get_revision(_HEAD_REVISION).down_revision == _PHASE6A_REVISION
+    assert script.get_revision(_PHASE6A_REVISION).down_revision == _PARENT_REVISION
 
 
 def test_identification_schema_and_private_scrub_contract_are_exact(
@@ -59,7 +69,7 @@ def test_identification_schema_and_private_scrub_contract_are_exact(
     def inspect(connection: Connection) -> None:
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == (_REVISION)
+        ).scalar_one() == (_HEAD_REVISION)
         columns = [
             tuple(row)
             for row in connection.execute(
@@ -133,7 +143,8 @@ def test_identification_schema_and_private_scrub_contract_are_exact(
             "ck_identification_submission_dimensions",
             "ck_identification_submission_sha256",
             "ck_identification_submission_solver_type",
-            "ck_identification_submission_no_remote_consent",
+            "ck_identification_submission_solver_consent_pair",
+            "uq_identification_submission_id_solver_consent",
             "ck_identification_submission_retention_order",
             "ck_identification_submission_deletion_order",
             "ck_identification_submission_private_scrub",
@@ -203,7 +214,7 @@ def test_runtime_acl_allows_only_required_submission_operations(
     run_migration_operation(_sync_url(integration_settings), inspect)
 
 
-def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
+def test_runtime_can_create_fake_or_consented_nova_and_scrub_but_cannot_delete(
     integration_settings: IntegrationTestSettings,
 ) -> None:
     _cleanup(integration_settings)
@@ -250,13 +261,45 @@ def test_runtime_can_create_and_scrub_but_cannot_delete_or_expand_phase6a(
                     "(id, storage_object_key, original_filename, mime_type, byte_size, width, "
                     "height, sha256, solver_type, consent_remote_processing, "
                     "retention_until) VALUES "
-                    "(:id, :key, 'remote.png', 'image/png', 10, 8, 8, :sha256, 'fake', true, "
+                    "(:id, :key, 'invalid.png', 'image/png', 10, 8, 8, :sha256, 'fake', true, "
                     "CURRENT_TIMESTAMP + interval '24 hours')"
                 ),
                 {
                     "id": UUID("61000000-0000-4000-8000-000000000002"),
                     "key": "c" * 32,
                     "sha256": "d" * 64,
+                },
+            )
+        with pytest.raises(IntegrityError), engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO public.identification_submission "
+                    "(id, storage_object_key, original_filename, mime_type, byte_size, width, "
+                    "height, sha256, solver_type, consent_remote_processing, "
+                    "retention_until) VALUES "
+                    "(:id, :key, 'invalid-nova.png', 'image/png', 10, 8, 8, :sha256, 'nova', "
+                    "false, CURRENT_TIMESTAMP + interval '24 hours')"
+                ),
+                {
+                    "id": UUID("61000000-0000-4000-8000-000000000003"),
+                    "key": "e" * 32,
+                    "sha256": "f" * 64,
+                },
+            )
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO public.identification_submission "
+                    "(id, storage_object_key, original_filename, mime_type, byte_size, width, "
+                    "height, sha256, solver_type, consent_remote_processing, "
+                    "retention_until) VALUES "
+                    "(:id, :key, 'remote.png', 'image/png', 10, 8, 8, :sha256, 'nova', true, "
+                    "CURRENT_TIMESTAMP + interval '24 hours')"
+                ),
+                {
+                    "id": UUID("61000000-0000-4000-8000-000000000004"),
+                    "key": "1" * 32,
+                    "sha256": "2" * 64,
                 },
             )
 
@@ -315,7 +358,7 @@ def test_migration_round_trip_preserves_every_older_table(
         run_alembic(connection, identity, "head", downgrade=False)
         assert (
             connection.execute(text("SELECT version_num FROM public.alembic_version")).scalar_one()
-            == _REVISION
+            == _HEAD_REVISION
         )
 
     run_migration_operation(_sync_url(integration_settings), operation)

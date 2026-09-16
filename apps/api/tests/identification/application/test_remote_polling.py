@@ -5,11 +5,15 @@ import struct
 import zlib
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
+from io import BytesIO
 from uuid import UUID
 
 import pytest
+from astropy.io import fits
 from lumina.identification.application.remote_polling import RemoteSolvePollingService
 from lumina.identification.domain.nova import (
+    NovaAnnotation,
+    NovaCalibration,
     NovaJobId,
     NovaJobState,
     NovaSession,
@@ -27,6 +31,7 @@ from lumina.identification.domain.remote_state import (
     RemoteSolveState,
     RemoteTransitionReason,
 )
+from lumina.identification.domain.solution import NormalizedPlateSolution, SolutionStorageFailure
 from lumina.identification.domain.storage import PrivateObjectKey
 from lumina.identification.domain.submissions import (
     IdentificationSolverType,
@@ -53,6 +58,27 @@ def _png_with_metadata() -> bytes:
         + _chunk(b"IDAT", b"fixture")
         + _chunk(b"IEND", b"")
     )
+
+
+def _wcs_bytes() -> bytes:
+    header = fits.Header()
+    header["WCSAXES"] = 2
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["EQUINOX"] = 2000.0
+    header["CRPIX1"] = 16.5
+    header["CRPIX2"] = 16.5
+    header["CRVAL1"] = 120.0
+    header["CRVAL2"] = 20.0
+    header["CD1_1"] = -1.0 / 3600.0
+    header["CD1_2"] = 0.0
+    header["CD2_1"] = 0.0
+    header["CD2_2"] = 1.0 / 3600.0
+    header["IMAGEW"] = 32
+    header["IMAGEH"] = 32
+    output = BytesIO()
+    fits.PrimaryHDU(header=header).writeto(output)
+    return output.getvalue()
 
 
 def _record(
@@ -176,8 +202,21 @@ class FakeStore:
 class FakeNova:
     login_error: Exception | None = None
     upload_error: Exception | None = None
+    result_error: Exception | None = None
     snapshot: NovaSubmissionSnapshot = NovaSubmissionSnapshot(jobs=(), calibrated_jobs=())
     job_state: NovaJobState = NovaJobState.SOLVING
+    calibration_result: NovaCalibration = NovaCalibration(
+        ra_deg=120.0,
+        dec_deg=20.0,
+        orientation_deg=0.0,
+        parity=-1,
+        pixel_scale_arcsec_per_pixel=1.0,
+        radius_deg=0.1,
+    )
+    annotations_result: tuple[NovaAnnotation, ...] = (
+        NovaAnnotation(category="hd", names=("HD 1",), pixel_x=16.0, pixel_y=16.0),
+    )
+    wcs_result: bytes = field(default_factory=_wcs_bytes)
     events: list[str] = field(default_factory=list)
     uploaded: SanitizedRemoteRaster | None = None
 
@@ -207,11 +246,52 @@ class FakeNova:
         self.events.append("job-status")
         return self.job_state
 
+    async def calibration(self, session: NovaSession, job_id: NovaJobId) -> NovaCalibration:
+        assert type(session) is NovaSession and job_id == NovaJobId(202)
+        self.events.append("calibration")
+        if self.result_error is not None:
+            raise self.result_error
+        return self.calibration_result
+
+    async def annotations(
+        self, session: NovaSession, job_id: NovaJobId
+    ) -> tuple[NovaAnnotation, ...]:
+        assert type(session) is NovaSession and job_id == NovaJobId(202)
+        self.events.append("annotations")
+        if self.result_error is not None:
+            raise self.result_error
+        return self.annotations_result
+
+    async def wcs_file(self, job_id: NovaJobId) -> bytes:
+        assert job_id == NovaJobId(202)
+        self.events.append("wcs")
+        if self.result_error is not None:
+            raise self.result_error
+        return self.wcs_result
+
+
+@dataclass
+class FakeSolutionFinalizer:
+    error: Exception | None = None
+    outcome: RemoteFinalizationOutcome = RemoteFinalizationOutcome.APPLIED
+    stored: NormalizedPlateSolution | None = None
+
+    async def store_and_succeed(
+        self, claim: RemoteSolveClaim, solution: NormalizedPlateSolution
+    ) -> RemoteFinalizationOutcome:
+        assert claim.record.state is RemoteSolveState.FETCHING_RESULTS
+        if self.error is not None:
+            raise self.error
+        self.stored = solution
+        return self.outcome
+
 
 def _service(
     repository: FakeRemoteRepository,
     nova: FakeNova,
     content: bytes,
+    *,
+    finalizer: FakeSolutionFinalizer | None = None,
 ) -> RemoteSolvePollingService:
     return RemoteSolvePollingService(
         repository,
@@ -219,6 +299,7 @@ def _service(
         FakeStore(content),
         nova,
         UploadValidationPolicy(max_bytes=1024 * 1024, max_pixels=1_000_000, min_dimension=32),
+        finalizer,
         poll_seconds=5,
         token_factory=lambda: "c" * 64,
     )
@@ -427,6 +508,144 @@ async def test_local_delete_stops_remote_polling_before_any_provider_request(
 
     assert await service.advance() == 1
     assert nova.events == []
+    transition = repository.events[-1][1]
+    assert transition[0:2] == (  # type: ignore[index]
+        RemoteSolveState.DELETED,
+        RemoteTransitionReason.LOCAL_DELETED,
+    )
+
+
+@pytest.mark.asyncio
+async def test_fetching_results_normalizes_wcs_and_finalizes_atomically() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(
+        _claim(
+            _record(
+                RemoteSolveState.FETCHING_RESULTS,
+                external_submission_id=NovaSubmissionId(101),
+                external_job_id=NovaJobId(202),
+                upload_attempted_at=_NOW - timedelta(seconds=30),
+            )
+        )
+    )
+    nova = FakeNova()
+    finalizer = FakeSolutionFinalizer()
+
+    assert await _service(repository, nova, content, finalizer=finalizer).advance() == 1
+    assert nova.events == ["login", "calibration", "annotations", "wcs"]
+    assert finalizer.stored is not None
+    assert finalizer.stored.wcs.frame.value == "fk5_j2000"
+    assert finalizer.stored.wcs.image_width == 32
+    assert len(finalizer.stored.annotations) == 1
+    assert finalizer.stored.annotations[0].names == ("HD 1",)
+    assert [name for name, _ in repository.events] == ["claim"]
+
+
+@pytest.mark.asyncio
+async def test_fetching_result_outage_is_retryable_without_terminal_transition() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(
+        _claim(
+            _record(
+                RemoteSolveState.FETCHING_RESULTS,
+                external_submission_id=NovaSubmissionId(101),
+                external_job_id=NovaJobId(202),
+                upload_attempted_at=_NOW - timedelta(seconds=30),
+            )
+        )
+    )
+    nova = FakeNova(result_error=RemoteAstrometryUnavailable())
+    finalizer = FakeSolutionFinalizer()
+
+    assert await _service(repository, nova, content, finalizer=finalizer).advance() == 1
+    assert nova.events == ["login", "calibration"]
+    assert finalizer.stored is None
+    assert repository.events[-1] == (
+        "reschedule",
+        (RemoteSolveState.FETCHING_RESULTS, 5, True),
+    )
+
+
+@pytest.mark.asyncio
+async def test_invalid_result_becomes_provider_protocol_failure() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(
+        _claim(
+            _record(
+                RemoteSolveState.FETCHING_RESULTS,
+                external_submission_id=NovaSubmissionId(101),
+                external_job_id=NovaJobId(202),
+                upload_attempted_at=_NOW - timedelta(seconds=30),
+            )
+        )
+    )
+    nova = FakeNova(wcs_result=b"not-a-fits-wcs")
+    finalizer = FakeSolutionFinalizer()
+
+    assert await _service(repository, nova, content, finalizer=finalizer).advance() == 1
+    assert finalizer.stored is None
+    transition = repository.events[-1][1]
+    assert transition[0:2] == (  # type: ignore[index]
+        RemoteSolveState.FAILED,
+        RemoteTransitionReason.PROVIDER_PROTOCOL_ERROR,
+    )
+
+
+@pytest.mark.asyncio
+async def test_result_storage_failure_fails_worker_instead_of_losing_solution() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(
+        _claim(
+            _record(
+                RemoteSolveState.FETCHING_RESULTS,
+                external_submission_id=NovaSubmissionId(101),
+                external_job_id=NovaJobId(202),
+                upload_attempted_at=_NOW - timedelta(seconds=30),
+            )
+        )
+    )
+    finalizer = FakeSolutionFinalizer(error=SolutionStorageFailure())
+
+    with pytest.raises(Exception, match="Remote identification polling failed"):
+        await _service(repository, FakeNova(), content, finalizer=finalizer).advance()
+
+
+@pytest.mark.asyncio
+async def test_local_delete_before_result_fetch_makes_zero_provider_requests() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(
+        _claim(
+            _record(
+                RemoteSolveState.FETCHING_RESULTS,
+                external_submission_id=NovaSubmissionId(101),
+                external_job_id=NovaJobId(202),
+                upload_attempted_at=_NOW - timedelta(seconds=30),
+            )
+        )
+    )
+    deleted = replace(
+        _submission(content),
+        storage_object_key=None,
+        original_filename=None,
+        sha256=None,
+        deleted_at=_NOW - timedelta(seconds=1),
+    )
+    nova = FakeNova()
+    finalizer = FakeSolutionFinalizer()
+    service = RemoteSolvePollingService(
+        repository,
+        FakeSubmissionReader(deleted),
+        FakeStore(content),
+        nova,
+        UploadValidationPolicy(max_bytes=1024 * 1024, max_pixels=1_000_000, min_dimension=32),
+        finalizer,
+        poll_seconds=5,
+        token_factory=lambda: "c" * 64,
+    )
+
+    assert await service.advance() == 1
+    assert nova.events == []
+    assert finalizer.stored is None
     transition = repository.events[-1][1]
     assert transition[0:2] == (  # type: ignore[index]
         RemoteSolveState.DELETED,

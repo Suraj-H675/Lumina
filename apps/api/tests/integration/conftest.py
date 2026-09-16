@@ -22,8 +22,9 @@ from .migration_lifecycle import (
 )
 
 _PG_TRGM_CONTRACT = ("pg_trgm", "1.6", "public", "lumina_admin")
-_CURRENT_HEAD = "e9f0a1b2c3d4"
+_CURRENT_HEAD = "f0a1b2c3d4e5"
 _PRE_IDENTIFICATION_HEAD = "c6d7e8f9a0b1"
+_PRE_RESULT_HEADS = {"d8e9f0a1b2c3", "e9f0a1b2c3d4"}
 _PRE_SWPC_HEAD = "f3a4b5c6d7e8"
 _PRE_NEO_HEAD = "e1f2a3b4c5d6"
 _PRE_OPERATOR_HEADS = {"a7d4e9f2c1b3", "b8e5f1a2c3d4"}
@@ -107,6 +108,7 @@ def migrated_test_database(
         _PRE_NEO_HEAD,
         _PRE_SWPC_HEAD,
         _PRE_IDENTIFICATION_HEAD,
+        *_PRE_RESULT_HEADS,
         _CURRENT_HEAD,
     }:
         state = _pg_trgm_state(integration_settings, postgres_admin_sync_url)

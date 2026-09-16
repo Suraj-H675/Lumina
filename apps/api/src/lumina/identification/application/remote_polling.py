@@ -9,6 +9,8 @@ from typing import Protocol
 from uuid import UUID
 
 from lumina.identification.domain.nova import (
+    NovaAnnotation,
+    NovaCalibration,
     NovaJobId,
     NovaJobState,
     NovaSession,
@@ -28,6 +30,11 @@ from lumina.identification.domain.remote_state import (
     RemoteStateStorageFailure,
     RemoteTransitionReason,
 )
+from lumina.identification.domain.solution import (
+    NormalizedPlateSolution,
+    SolutionStorageFailure,
+    SolutionValidationError,
+)
 from lumina.identification.domain.storage import PrivateObjectStore, PrivateStorageError
 from lumina.identification.domain.submissions import (
     IdentificationSolverType,
@@ -40,6 +47,7 @@ from lumina.identification.domain.uploads import (
     UploadValidationPolicy,
     validate_raster_upload,
 )
+from lumina.identification.infrastructure.wcs import normalize_nova_solution
 
 _LEASE_SECONDS = 300
 
@@ -84,6 +92,20 @@ class NovaRemoteSolver(Protocol):
 
     async def job_status(self, session: NovaSession, job_id: NovaJobId) -> NovaJobState: ...
 
+    async def calibration(self, session: NovaSession, job_id: NovaJobId) -> NovaCalibration: ...
+
+    async def annotations(
+        self, session: NovaSession, job_id: NovaJobId
+    ) -> tuple[NovaAnnotation, ...]: ...
+
+    async def wcs_file(self, job_id: NovaJobId) -> bytes: ...
+
+
+class SolutionFinalizer(Protocol):
+    async def store_and_succeed(
+        self, claim: RemoteSolveClaim, solution: NormalizedPlateSolution
+    ) -> RemoteFinalizationOutcome: ...
+
 
 class RemotePollingFailure(RuntimeError):
     def __init__(self) -> None:
@@ -100,6 +122,7 @@ class RemoteSolvePollingService:
         store: PrivateObjectStore,
         solver: NovaRemoteSolver,
         policy: UploadValidationPolicy,
+        solution_finalizer: SolutionFinalizer | None = None,
         *,
         poll_seconds: int,
         token_factory: Callable[[], str] | None = None,
@@ -111,6 +134,7 @@ class RemoteSolvePollingService:
         self._store = store
         self._solver = solver
         self._policy = policy
+        self._solution_finalizer = solution_finalizer
         self._poll_seconds = poll_seconds
         self._token_factory = token_factory or (lambda: secrets.token_hex(32))
 
@@ -134,13 +158,19 @@ class RemoteSolvePollingService:
             return 1
         if claim.record.state is RemoteSolveState.SUBMITTING:
             await self._advance_submitting(claim)
-        elif claim.record.state in {RemoteSolveState.WAITING_FOR_SOLVER, RemoteSolveState.SOLVING}:
+        elif claim.record.state in {
+            RemoteSolveState.WAITING_FOR_SOLVER,
+            RemoteSolveState.SOLVING,
+            RemoteSolveState.FETCHING_RESULTS,
+        }:
             if await self._stop_if_locally_deleted(claim):
                 return 1
             if claim.record.state is RemoteSolveState.WAITING_FOR_SOLVER:
                 await self._advance_waiting(claim)
-            else:
+            elif claim.record.state is RemoteSolveState.SOLVING:
                 await self._advance_solving(claim)
+            else:
+                await self._advance_fetching(claim)
         else:
             raise RemotePollingFailure()
         return 1
@@ -280,6 +310,72 @@ class RemoteSolvePollingService:
             )
         else:
             raise RemotePollingFailure()
+
+    async def _advance_fetching(self, claim: RemoteSolveClaim) -> None:
+        job_id = claim.record.external_job_id
+        if job_id is None or self._solution_finalizer is None:
+            raise RemotePollingFailure()
+        try:
+            submission = await self._submissions.read(claim.record.submission_id)
+        except (SubmissionNotFound, SubmissionStorageFailure):
+            await self._transition(
+                claim,
+                to_state=RemoteSolveState.FAILED,
+                reason=RemoteTransitionReason.LOCAL_INPUT_UNAVAILABLE,
+            )
+            return
+        if submission.deleted:
+            await self._transition(
+                claim,
+                to_state=RemoteSolveState.DELETED,
+                reason=RemoteTransitionReason.LOCAL_DELETED,
+            )
+            return
+        session = await self._login_or_reschedule(claim)
+        if session is None:
+            return
+        try:
+            calibration = await self._solver.calibration(session, job_id)
+            annotations = await self._solver.annotations(session, job_id)
+            wcs_bytes = await self._solver.wcs_file(job_id)
+        except (RemoteAstrometryTimeout, RemoteAstrometryUnavailable):
+            await self._reschedule(claim, polled=True)
+            return
+        except RemoteAstrometryRejected:
+            await self._transition(
+                claim,
+                to_state=RemoteSolveState.FAILED,
+                reason=RemoteTransitionReason.PROVIDER_REJECTED,
+            )
+            return
+        except RemoteAstrometryProtocolError:
+            await self._transition(
+                claim,
+                to_state=RemoteSolveState.FAILED,
+                reason=RemoteTransitionReason.PROVIDER_PROTOCOL_ERROR,
+            )
+            return
+        try:
+            solution = normalize_nova_solution(
+                calibration=calibration,
+                annotations=annotations,
+                wcs_bytes=wcs_bytes,
+                image_width=submission.width,
+                image_height=submission.height,
+            )
+        except SolutionValidationError:
+            await self._transition(
+                claim,
+                to_state=RemoteSolveState.FAILED,
+                reason=RemoteTransitionReason.PROVIDER_PROTOCOL_ERROR,
+            )
+            return
+        try:
+            outcome = await self._solution_finalizer.store_and_succeed(claim, solution)
+        except SolutionStorageFailure:
+            raise RemotePollingFailure() from None
+        if outcome is RemoteFinalizationOutcome.FENCED:
+            return
 
     async def _load_remote_raster(self, claim: RemoteSolveClaim) -> SanitizedRemoteRaster | None:
         try:

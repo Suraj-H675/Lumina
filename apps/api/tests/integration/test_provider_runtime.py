@@ -171,7 +171,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
         run_alembic(connection, identity, "head", downgrade=False)
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == ("e9f0a1b2c3d4")
+        ).scalar_one() == ("f0a1b2c3d4e5")
         run_alembic(connection, identity, "c9f6a2b3d4e5", downgrade=True)
         remaining = set(
             connection.execute(
@@ -186,7 +186,7 @@ def test_provider_migration_round_trips_only_its_three_operational_tables(
         run_alembic(connection, identity, "head", downgrade=False)
         assert connection.execute(
             text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one() == ("e9f0a1b2c3d4")
+        ).scalar_one() == ("f0a1b2c3d4e5")
         seeds = connection.execute(
             text(
                 "SELECT provider_code, enabled, circuit_state, consecutive_failures, "

@@ -208,6 +208,18 @@ class FakeRepository:
         return self.due[:limit]
 
 
+@dataclass
+class FakeSolutionPurger:
+    failure: BaseException | None = None
+    calls: list[UUID] = field(default_factory=list)
+
+    async def purge(self, submission_id: UUID) -> bool:
+        self.calls.append(submission_id)
+        if self.failure is not None:
+            raise self.failure
+        return True
+
+
 def _uploads(store: MemoryPrivateStore) -> StoreValidatedUploadService:
     return StoreValidatedUploadService(
         store,
@@ -295,6 +307,48 @@ async def test_delete_can_retry_after_file_removed_but_database_scrub_conflicted
 
 
 @pytest.mark.asyncio
+async def test_delete_purges_normalized_solution_before_metadata_scrub() -> None:
+    store = MemoryPrivateStore(objects={"e" * 32: b"private"})
+    repository = FakeRepository(current=_submission())
+    solutions = FakeSolutionPurger()
+    service = DeleteSubmissionService(
+        repository,
+        store,
+        now=lambda: _NOW + timedelta(hours=1),
+        solutions=solutions,
+    )
+
+    deleted = await service.delete(_SUBMISSION_ID)
+
+    assert deleted.deleted is True
+    assert store.objects == {}
+    assert solutions.calls == [_SUBMISSION_ID]
+
+
+@pytest.mark.asyncio
+async def test_solution_purge_failure_leaves_submission_retryable_after_bytes_are_removed() -> None:
+    store = MemoryPrivateStore(objects={"e" * 32: b"private"})
+    repository = FakeRepository(current=_submission())
+    solutions = FakeSolutionPurger(failure=RuntimeError("fixture"))
+    service = DeleteSubmissionService(
+        repository,
+        store,
+        now=lambda: _NOW + timedelta(hours=1),
+        solutions=solutions,
+    )
+
+    with pytest.raises(SubmissionCleanupFailure):
+        await service.delete(_SUBMISSION_ID)
+    assert store.objects == {}
+    assert repository.current is not None and repository.current.deleted is False
+
+    solutions.failure = None
+    deleted = await service.delete(_SUBMISSION_ID)
+    assert deleted.deleted is True
+    assert solutions.calls == [_SUBMISSION_ID, _SUBMISSION_ID]
+
+
+@pytest.mark.asyncio
 async def test_retention_cleanup_is_bounded_and_scrubs_each_removed_object() -> None:
     first = _submission()
     second = IdentificationSubmission(
@@ -337,10 +391,12 @@ async def test_retention_cleanup_is_bounded_and_scrubs_each_removed_object() -> 
             )
 
     repository = CleanupRepository(due=(first, second))
-    service = RetentionCleanupService(repository, store, now=lambda: _NOW)
+    solutions = FakeSolutionPurger()
+    service = RetentionCleanupService(repository, store, now=lambda: _NOW, solutions=solutions)
 
     assert await service.cleanup(limit=2) == 2
     assert store.objects == {}
+    assert solutions.calls == [first.id, second.id]
     with pytest.raises(ValueError):
         await service.cleanup(limit=0)
 

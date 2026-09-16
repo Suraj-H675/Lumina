@@ -323,3 +323,196 @@ def test_adapter_rejects_arbitrary_origin_and_non_secret_key_contract() -> None:
         RemoteNovaAdapter(api_url="https://example.com/api", api_key=SecretStr(_SECRET))
     with pytest.raises(ValueError, match="configuration is invalid"):
         RemoteNovaAdapter(api_url=_API, api_key=_SECRET)  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_result_fetches_use_reviewed_calibration_annotations_and_fits_contract() -> None:
+    requests: list[httpx.Request] = []
+    wcs_bytes = b"SIMPLE  =                    T" + b" " * 128
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        assert request.url.scheme == "https"
+        assert request.url.host == "nova.astrometry.net"
+        if request.url.path == "/api/jobs/201/calibration":
+            assert request.method == "POST"
+            assert _form_json(request) == {"session": _SESSION}
+            return httpx.Response(
+                200,
+                headers={"content-type": "text/plain"},
+                json={
+                    "ra": 169.96633791366915,
+                    "dec": 13.221011585315143,
+                    "orientation": 74.25057920908068,
+                    "parity": 1.0,
+                    "pixscale": 1.0906710701159739,
+                    "radius": 0.8106715896625917,
+                    "width_arcsec": 5027.99,
+                    "height_arcsec": 2964.44,
+                },
+                request=request,
+            )
+        if request.url.path == "/api/jobs/201/annotations":
+            assert request.method == "POST"
+            assert _form_json(request) == {"session": _SESSION}
+            return httpx.Response(
+                200,
+                headers={"content-type": "text/plain"},
+                json={
+                    "annotations": [
+                        {
+                            "type": "ngc",
+                            "names": ["NGC 3627", "M 66"],
+                            "pixelx": 2950.8042732485815,
+                            "pixely": 1861.4646281549635,
+                            "radius": 282.7616882324219,
+                        }
+                    ]
+                },
+                request=request,
+            )
+        if request.url.path == "/wcs_file/201":
+            assert request.method == "GET"
+            assert request.headers["accept"] == "application/fits"
+            assert request.headers["accept-encoding"] == "identity"
+            assert _SESSION.encode() not in request.content
+            assert _SECRET.encode() not in request.content
+            return httpx.Response(
+                200,
+                headers={"content-type": "application/fits"},
+                content=wcs_bytes,
+                request=request,
+            )
+        raise AssertionError(request.url.path)
+
+    adapter = _adapter(handler)
+    session = NovaSession(_SESSION)
+    calibration = await adapter.calibration(session, NovaJobId(201))
+    annotations = await adapter.annotations(session, NovaJobId(201))
+    wcs = await adapter.wcs_file(NovaJobId(201))
+
+    assert calibration.ra_deg == pytest.approx(169.96633791366915)
+    assert calibration.dec_deg == pytest.approx(13.221011585315143)
+    assert calibration.orientation_deg == pytest.approx(74.25057920908068)
+    assert calibration.parity == 1
+    assert calibration.pixel_scale_arcsec_per_pixel == pytest.approx(1.0906710701159739)
+    assert calibration.radius_deg == pytest.approx(0.8106715896625917)
+    assert len(annotations) == 1
+    assert annotations[0].category == "ngc"
+    assert annotations[0].names == ("NGC 3627", "M 66")
+    assert annotations[0].pixel_x == pytest.approx(2950.8042732485815)
+    assert annotations[0].pixel_y == pytest.approx(1861.4646281549635)
+    assert wcs == wcs_bytes
+    assert [request.url.path for request in requests] == [
+        "/api/jobs/201/calibration",
+        "/api/jobs/201/annotations",
+        "/wcs_file/201",
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"ra": 360.0, "dec": 0.0, "orientation": 0.0, "parity": 1, "pixscale": 1.0, "radius": 1.0},
+        {"ra": 1.0, "dec": 91.0, "orientation": 0.0, "parity": 1, "pixscale": 1.0, "radius": 1.0},
+        {"ra": 1.0, "dec": 0.0, "orientation": 360.0, "parity": 1, "pixscale": 1.0, "radius": 1.0},
+        {"ra": 1.0, "dec": 0.0, "orientation": 0.0, "parity": 0, "pixscale": 1.0, "radius": 1.0},
+        {"ra": 1.0, "dec": 0.0, "orientation": 0.0, "parity": 1, "pixscale": 0.0, "radius": 1.0},
+    ],
+)
+async def test_invalid_calibration_fails_closed(payload: dict[str, object]) -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/json"},
+            json=payload,
+            request=request,
+        )
+
+    with pytest.raises(RemoteAstrometryProtocolError):
+        await _adapter(handler).calibration(NovaSession(_SESSION), NovaJobId(1))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "annotation",
+    [
+        {"type": "NGC", "names": ["NGC 1"], "pixelx": 1.0, "pixely": 1.0},
+        {"type": "ngc", "names": [], "pixelx": 1.0, "pixely": 1.0},
+        {"type": "ngc", "names": ["NGC 1", "NGC 1"], "pixelx": 1.0, "pixely": 1.0},
+        {"type": "ngc", "names": ["NGC 1"], "pixelx": -1.0, "pixely": 1.0},
+    ],
+)
+async def test_invalid_annotation_shape_fails_closed(annotation: dict[str, object]) -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/json"},
+            json={"annotations": [annotation]},
+            request=request,
+        )
+
+    with pytest.raises(RemoteAstrometryProtocolError):
+        await _adapter(handler).annotations(NovaSession(_SESSION), NovaJobId(1))
+
+
+@pytest.mark.asyncio
+async def test_annotation_count_is_bounded() -> None:
+    annotation = {"type": "hd", "names": ["HD 1"], "pixelx": 1.0, "pixely": 1.0}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/json"},
+            json={"annotations": [annotation] * 2_049},
+            request=request,
+        )
+
+    with pytest.raises(RemoteAstrometryProtocolError):
+        await _adapter(handler).annotations(NovaSession(_SESSION), NovaJobId(1))
+
+
+@pytest.mark.asyncio
+async def test_wcs_download_requires_fits_and_is_stream_bounded() -> None:
+    async def wrong_type(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/octet-stream"},
+            content=b"not-fits",
+            request=request,
+        )
+
+    with pytest.raises(RemoteAstrometryProtocolError):
+        await _adapter(wrong_type).wcs_file(NovaJobId(1))
+
+    class OversizedWcs(httpx.AsyncByteStream):
+        def __init__(self) -> None:
+            self.chunks = 0
+            self.closed = False
+
+        async def __aiter__(self) -> AsyncIterator[bytes]:
+            self.chunks += 1
+            yield b"x" * 262_144
+            self.chunks += 1
+            yield b"y"
+            self.chunks += 1
+            yield b"must-not-be-read"
+
+        async def aclose(self) -> None:
+            self.closed = True
+
+    stream = OversizedWcs()
+
+    async def oversized(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "application/fits"},
+            stream=stream,
+            request=request,
+        )
+
+    with pytest.raises(RemoteAstrometryProtocolError):
+        await _adapter(oversized).wcs_file(NovaJobId(1))
+    assert stream.closed is True
+    assert stream.chunks == 2

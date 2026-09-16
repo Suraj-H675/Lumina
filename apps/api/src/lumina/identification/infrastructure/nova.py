@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Mapping
 from typing import Protocol, cast
 
@@ -10,6 +11,8 @@ import httpx
 from pydantic import SecretStr
 
 from lumina.identification.domain.nova import (
+    NovaAnnotation,
+    NovaCalibration,
     NovaJobId,
     NovaJobState,
     NovaSession,
@@ -23,11 +26,15 @@ from lumina.identification.domain.nova import (
 from lumina.identification.domain.remote_raster import SanitizedRemoteRaster
 from lumina.identification.domain.uploads import UploadMediaType
 
+_NOVA_ORIGIN = "https://nova.astrometry.net"
 _NOVA_API_URL = "https://nova.astrometry.net/api"
 _USER_AGENT = "Lumina/0.0 Phase-6B remote-astrometry"
 _MAX_RESPONSE_BYTES = 65_536
+_MAX_ANNOTATION_RESPONSE_BYTES = 1_048_576
+_MAX_WCS_BYTES = 262_144
+_MAX_ANNOTATIONS = 2_048
 _MAX_JSON_DEPTH = 12
-_MAX_JSON_COLLECTION_ITEMS = 1_024
+_MAX_JSON_COLLECTION_ITEMS = 4_096
 _MAX_JOB_IDS = 256
 _JSON_MEDIA_TYPES = frozenset({"application/json", "text/json", "text/plain"})
 
@@ -138,12 +145,90 @@ class RemoteNovaAdapter:
             return NovaJobState.SOLVING
         raise RemoteAstrometryProtocolError()
 
+    async def calibration(self, session: NovaSession, job_id: NovaJobId) -> NovaCalibration:
+        if type(session) is not NovaSession or type(job_id) is not NovaJobId:
+            raise RemoteAstrometryProtocolError()
+        payload = await self._request_json(
+            f"jobs/{job_id.value}/calibration",
+            {"session": session.value},
+        )
+        if payload.get("status") == "error":
+            raise RemoteAstrometryRejected()
+        try:
+            parity_raw = _required_number(payload, "parity")
+            if parity_raw not in {-1.0, 1.0}:
+                raise ValueError
+            return NovaCalibration(
+                ra_deg=_required_number(payload, "ra"),
+                dec_deg=_required_number(payload, "dec"),
+                orientation_deg=_required_number(payload, "orientation"),
+                parity=int(parity_raw),
+                pixel_scale_arcsec_per_pixel=_required_number(payload, "pixscale"),
+                radius_deg=_required_number(payload, "radius"),
+            )
+        except ValueError:
+            raise RemoteAstrometryProtocolError() from None
+
+    async def annotations(
+        self, session: NovaSession, job_id: NovaJobId
+    ) -> tuple[NovaAnnotation, ...]:
+        if type(session) is not NovaSession or type(job_id) is not NovaJobId:
+            raise RemoteAstrometryProtocolError()
+        payload = await self._request_json(
+            f"jobs/{job_id.value}/annotations",
+            {"session": session.value},
+            max_response_bytes=_MAX_ANNOTATION_RESPONSE_BYTES,
+        )
+        if payload.get("status") == "error":
+            raise RemoteAstrometryRejected()
+        raw_annotations = payload.get("annotations")
+        if type(raw_annotations) is not list or len(raw_annotations) > _MAX_ANNOTATIONS:
+            raise RemoteAstrometryProtocolError()
+        result: list[NovaAnnotation] = []
+        for raw in cast(list[object], raw_annotations):
+            result.append(_parse_annotation(raw))
+        return tuple(result)
+
+    async def wcs_file(self, job_id: NovaJobId) -> bytes:
+        if type(job_id) is not NovaJobId:
+            raise RemoteAstrometryProtocolError()
+        url = f"{_NOVA_ORIGIN}/wcs_file/{job_id.value}"
+        timeout = httpx.Timeout(connect=5.0, read=30.0, write=30.0, pool=5.0)
+        client = self._client_factory(timeout=timeout)
+        try:
+            async with (
+                client,
+                client.stream(
+                    "GET",
+                    url,
+                    headers=_headers(accept="application/fits"),
+                ) as response,
+            ):
+                body = await _bounded_body(response, maximum_bytes=_MAX_WCS_BYTES)
+        except RemoteAstrometryProtocolError:
+            raise
+        except httpx.DecodingError:
+            raise RemoteAstrometryProtocolError() from None
+        except httpx.TimeoutException:
+            raise RemoteAstrometryTimeout() from None
+        except (httpx.NetworkError, httpx.RemoteProtocolError, httpx.HTTPError, OSError):
+            raise RemoteAstrometryUnavailable() from None
+        if response.status_code == 429 or 500 <= response.status_code <= 599:
+            raise RemoteAstrometryUnavailable()
+        if not 200 <= response.status_code <= 299:
+            raise RemoteAstrometryRejected()
+        media_type = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        if media_type != "application/fits":
+            raise RemoteAstrometryProtocolError()
+        return body
+
     async def _request_json(
         self,
         service: str,
         arguments: Mapping[str, object] | None,
         *,
         multipart: tuple[str, str, bytes] | None = None,
+        max_response_bytes: int = _MAX_RESPONSE_BYTES,
     ) -> dict[str, object]:
         url = _service_url(service)
         timeout = httpx.Timeout(connect=5.0, read=30.0, write=120.0, pool=5.0)
@@ -157,7 +242,7 @@ class RemoteNovaAdapter:
                         data={"request-json": _encode_request(arguments or {})},
                         headers=_headers(),
                     ) as response:
-                        body = await _bounded_body(response)
+                        body = await _bounded_body(response, maximum_bytes=max_response_bytes)
                 else:
                     request_json, filename, content = multipart
                     async with client.stream(
@@ -169,7 +254,7 @@ class RemoteNovaAdapter:
                         },
                         headers=_headers(),
                     ) as response:
-                        body = await _bounded_body(response)
+                        body = await _bounded_body(response, maximum_bytes=max_response_bytes)
         except RemoteAstrometryProtocolError:
             raise
         except httpx.DecodingError:
@@ -195,9 +280,9 @@ class RemoteNovaAdapter:
         return self.__repr__()
 
 
-def _headers() -> dict[str, str]:
+def _headers(*, accept: str = "application/json") -> dict[str, str]:
     return {
-        "Accept": "application/json",
+        "Accept": accept,
         "Accept-Encoding": "identity",
         "User-Agent": _USER_AGENT,
     }
@@ -229,7 +314,7 @@ def _encode_request(value: Mapping[str, object]) -> str:
         raise RemoteAstrometryProtocolError() from None
 
 
-async def _bounded_body(response: httpx.Response) -> bytes:
+async def _bounded_body(response: httpx.Response, *, maximum_bytes: int) -> bytes:
     content_encoding = response.headers.get("content-encoding", "identity").lower()
     if content_encoding != "identity":
         raise RemoteAstrometryProtocolError()
@@ -237,11 +322,11 @@ async def _bounded_body(response: httpx.Response) -> bytes:
     if content_length is not None:
         if not content_length.isascii() or not content_length.isdecimal():
             raise RemoteAstrometryProtocolError()
-        if len(content_length) > 20 or int(content_length) > _MAX_RESPONSE_BYTES:
+        if len(content_length) > 20 or int(content_length) > maximum_bytes:
             raise RemoteAstrometryProtocolError()
     body = bytearray()
     async for chunk in response.aiter_bytes():
-        if len(body) + len(chunk) > _MAX_RESPONSE_BYTES:
+        if len(body) + len(chunk) > maximum_bytes:
             raise RemoteAstrometryProtocolError()
         body.extend(chunk)
     return bytes(body)
@@ -337,6 +422,40 @@ def _parse_calibrated_jobs(value: object) -> tuple[NovaJobId, ...]:
     if len({job.value for job in result}) != len(result):
         raise RemoteAstrometryProtocolError()
     return tuple(result)
+
+
+def _required_number(payload: Mapping[str, object], key: str) -> float:
+    raw = payload.get(key)
+    if type(raw) not in {int, float}:
+        raise ValueError("numeric field is invalid")
+    value = float(cast(int | float, raw))
+    if not math.isfinite(value):
+        raise ValueError("numeric field is invalid")
+    return value
+
+
+def _parse_annotation(value: object) -> NovaAnnotation:
+    if type(value) is not dict:
+        raise RemoteAstrometryProtocolError()
+    payload = cast(dict[str, object], value)
+    category = payload.get("type")
+    names_raw = payload.get("names")
+    if type(category) is not str or type(names_raw) is not list or not 1 <= len(names_raw) <= 16:
+        raise RemoteAstrometryProtocolError()
+    names: list[str] = []
+    for name in cast(list[object], names_raw):
+        if type(name) is not str:
+            raise RemoteAstrometryProtocolError()
+        names.append(name)
+    try:
+        return NovaAnnotation(
+            category=category,
+            names=tuple(names),
+            pixel_x=_required_number(payload, "pixelx"),
+            pixel_y=_required_number(payload, "pixely"),
+        )
+    except ValueError:
+        raise RemoteAstrometryProtocolError() from None
 
 
 def _safe_status_text(value: str) -> bool:

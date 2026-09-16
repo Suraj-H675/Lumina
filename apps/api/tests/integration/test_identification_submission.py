@@ -20,7 +20,8 @@ from .migration_lifecycle import (
     run_migration_operation,
 )
 
-_HEAD_REVISION = "e9f0a1b2c3d4"
+_HEAD_REVISION = "f0a1b2c3d4e5"
+_PHASE6B2_REVISION = "e9f0a1b2c3d4"
 _PHASE6A_REVISION = "d8e9f0a1b2c3"
 _PARENT_REVISION = "c6d7e8f9a0b1"
 _TABLE = "identification_submission"
@@ -59,7 +60,8 @@ def _cleanup(settings: IntegrationTestSettings) -> None:
 def test_identification_migrations_are_linear_to_the_single_current_head() -> None:
     script = ScriptDirectory.from_config(migration_config())
     assert script.get_heads() == [_HEAD_REVISION]
-    assert script.get_revision(_HEAD_REVISION).down_revision == _PHASE6A_REVISION
+    assert script.get_revision(_HEAD_REVISION).down_revision == _PHASE6B2_REVISION
+    assert script.get_revision(_PHASE6B2_REVISION).down_revision == _PHASE6A_REVISION
     assert script.get_revision(_PHASE6A_REVISION).down_revision == _PARENT_REVISION
 
 

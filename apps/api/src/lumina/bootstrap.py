@@ -33,6 +33,7 @@ from lumina.identification.infrastructure.filesystem import FilesystemPrivateObj
 from lumina.identification.infrastructure.postgresql import (
     PostgreSqlIdentificationSubmissionRepository,
 )
+from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
 from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
 from lumina.provenance.api.routes import router as provider_router
@@ -77,6 +78,10 @@ def create_app(settings: AppSettings) -> FastAPI:
         database_runtime.session_factory,
         operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
     )
+    identification_solutions = PostgreSqlSolutionRepository(
+        database_runtime.session_factory,
+        operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
+    )
     identification_uploads = StoreValidatedUploadService(
         identification_store,
         UploadValidationPolicy(
@@ -96,6 +101,7 @@ def create_app(settings: AppSettings) -> FastAPI:
         identification_repository,
         identification_store,
         now=lambda: datetime.now(UTC),
+        solutions=identification_solutions,
     )
     identification_enqueue = EnqueueJobService(
         PostgreSqlEnqueueJobStore(

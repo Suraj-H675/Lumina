@@ -61,6 +61,10 @@ class IdentificationJobEnqueue(Protocol):
     ) -> EnqueueJobOutcome: ...
 
 
+class SolutionPurger(Protocol):
+    async def purge(self, submission_id: UUID) -> bool: ...
+
+
 class SubmissionCleanupFailure(RuntimeError):
     def __init__(self) -> None:
         super().__init__("Identification submission cleanup failed.")
@@ -265,10 +269,12 @@ class DeleteSubmissionService:
         store: PrivateObjectStore,
         *,
         now: Callable[[], datetime],
+        solutions: SolutionPurger | None = None,
     ) -> None:
         self._repository = repository
         self._store = store
         self._now = now
+        self._solutions = solutions
 
     async def delete(self, submission_id: UUID) -> IdentificationSubmission:
         submission = await self._repository.read(submission_id)
@@ -279,6 +285,8 @@ class DeleteSubmissionService:
             raise SubmissionStateConflict()
         try:
             self._store.delete(key)
+            if self._solutions is not None:
+                await self._solutions.purge(submission_id)
         except BaseException:
             raise SubmissionCleanupFailure() from None
         return await self._repository.scrub_deleted(
@@ -296,6 +304,7 @@ class RetentionCleanupService:
         *,
         now: Callable[[], datetime],
         terminal_retention: timedelta = _DEFAULT_RETENTION,
+        solutions: SolutionPurger | None = None,
     ) -> None:
         if terminal_retention <= timedelta(0) or terminal_retention > timedelta(days=7):
             raise ValueError("Identification terminal retention is invalid.")
@@ -303,6 +312,7 @@ class RetentionCleanupService:
         self._store = store
         self._now = now
         self._terminal_retention = terminal_retention
+        self._solutions = solutions
 
     async def cleanup(self, *, limit: int = 50) -> int:
         if type(limit) is not int or not 1 <= limit <= 100:
@@ -320,6 +330,8 @@ class RetentionCleanupService:
                 raise SubmissionStateConflict()
             try:
                 self._store.delete(key)
+                if self._solutions is not None:
+                    await self._solutions.purge(submission.id)
             except BaseException:
                 raise SubmissionCleanupFailure() from None
             await self._repository.scrub_deleted(

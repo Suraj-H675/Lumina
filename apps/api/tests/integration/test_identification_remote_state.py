@@ -13,7 +13,7 @@ from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import run_migration_operation
 
-_HEAD = "e9f0a1b2c3d4"
+_HEAD = "f0a1b2c3d4e5"
 _REMOTE = "identification_remote_solve"
 _TRANSITION = "identification_remote_transition"
 _FAKE_ID = UUID("63000000-0000-4000-8000-000000000001")
@@ -107,6 +107,7 @@ def test_remote_state_schema_and_acl_are_exact(
             "fk_identification_remote_solve_consented_submission",
             "uq_identification_remote_solve_external_submission_id",
             "uq_identification_remote_solve_external_job_id",
+            "uq_identification_remote_solve_submission_job",
             "ck_identification_remote_solve_parent_mode",
             "ck_identification_remote_solve_provider",
             "ck_identification_remote_solve_state",

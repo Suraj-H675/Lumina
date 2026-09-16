@@ -19,6 +19,7 @@ from lumina.identification.infrastructure.postgresql import (
     PostgreSqlIdentificationSubmissionRepository,
 )
 from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRemoteSolveRepository
+from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.execution import ExecuteOneJobService
@@ -210,6 +211,10 @@ async def run_worker_process(
             session_factory,
             operation_wait_timeout_ms=operation_timeout,
         )
+        identification_solutions = PostgreSqlSolutionRepository(
+            session_factory,
+            operation_wait_timeout_ms=operation_timeout,
+        )
         identification_handler = FakePlateSolverHandler(
             identification_repository,
             identification_store,
@@ -219,6 +224,7 @@ async def run_worker_process(
             identification_store,
             now=lambda: datetime.now(UTC),
             terminal_retention=timedelta(hours=settings.upload_retention_hours),
+            solutions=identification_solutions,
         )
         remote_identification = None
         if settings.enable_remote_astrometry:
@@ -241,6 +247,7 @@ async def run_worker_process(
                     max_pixels=settings.upload_max_pixels,
                     min_dimension=32,
                 ),
+                identification_solutions,
                 poll_seconds=settings.astrometry_poll_seconds,
             )
         registry = production_handler_registry(

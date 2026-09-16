@@ -485,6 +485,7 @@ async def test_remote_astrometry_enabled_injects_only_validated_worker_maintenan
     output = _OutputSpy()
     _patch_pre_readiness_dependencies(monkeypatch, engine=engine)
     remote_repository = object()
+    solution_repository = object()
     remote_solver = object()
     remote_service = object()
     captured_runtime: dict[str, object] = {}
@@ -494,6 +495,11 @@ async def test_remote_astrometry_enabled_injects_only_validated_worker_maintenan
         composition,
         "PostgreSqlRemoteSolveRepository",
         lambda *args, **kwargs: remote_repository,
+    )
+    monkeypatch.setattr(
+        composition,
+        "PostgreSqlSolutionRepository",
+        lambda *args, **kwargs: solution_repository,
     )
 
     def adapter(*, api_url: str, api_key: SecretStr) -> object:
@@ -505,9 +511,14 @@ async def test_remote_astrometry_enabled_injects_only_validated_worker_maintenan
     monkeypatch.setattr(
         composition,
         "RemoteSolvePollingService",
-        lambda repository, submissions, store, solver, policy, *, poll_seconds: (
+        lambda repository, submissions, store, solver, policy, finalizer, *, poll_seconds: (
             remote_service
-            if (repository is remote_repository and solver is remote_solver and poll_seconds == 5)
+            if (
+                repository is remote_repository
+                and solver is remote_solver
+                and finalizer is solution_repository
+                and poll_seconds == 5
+            )
             else (_ for _ in ()).throw(AssertionError("invalid remote composition"))
         ),
     )

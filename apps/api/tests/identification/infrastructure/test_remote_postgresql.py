@@ -147,7 +147,7 @@ async def test_create_requires_nova_consent_parent_and_appends_initial_transitio
 
 
 @pytest.mark.asyncio
-async def test_claim_due_uses_skip_locked_and_fixed_pollable_6b2_states() -> None:
+async def test_claim_due_uses_skip_locked_and_fixed_pollable_remote_states() -> None:
     row = _row()
     row["active_lease_expires_at"] = _NOW + timedelta(seconds=30)
     connection = _Connection([row])
@@ -156,8 +156,7 @@ async def test_claim_due_uses_skip_locked_and_fixed_pollable_6b2_states() -> Non
     assert claim is not None and claim.record.state is RemoteSolveState.SUBMITTING
     sql, parameters = connection.statements[1]
     assert "FOR UPDATE SKIP LOCKED" in sql
-    assert "state IN ('submitting', 'waiting_for_solver', 'solving')" in sql
-    assert "fetching_results" not in sql
+    assert "state IN ('submitting', 'waiting_for_solver', 'solving', 'fetching_results')" in sql
     assert parameters == {"lease_token": "a" * 64, "lease_seconds": 30}
 
 

@@ -50,7 +50,7 @@ _INSERT_INITIAL_TRANSITION_SQL = text(
 _CLAIM_SQL = text(
     "WITH candidate AS ("
     "SELECT submission_id FROM public.identification_remote_solve "
-    "WHERE state IN ('submitting', 'waiting_for_solver', 'solving') "
+    "WHERE state IN ('submitting', 'waiting_for_solver', 'solving', 'fetching_results') "
     "AND next_poll_at <= CURRENT_TIMESTAMP AND terminal_at IS NULL "
     "AND (active_lease_token IS NULL OR active_lease_expires_at <= CURRENT_TIMESTAMP) "
     "ORDER BY next_poll_at ASC, submission_id ASC FOR UPDATE SKIP LOCKED LIMIT 1"

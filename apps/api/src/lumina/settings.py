@@ -278,7 +278,7 @@ class AppSettings(BaseSettings):
     )
     astrometry_timeout_seconds: int = Field(
         default=900,
-        ge=30,
+        ge=60,
         le=3_600,
         validation_alias="LUMINA_ASTROMETRY_TIMEOUT_SECONDS",
     )

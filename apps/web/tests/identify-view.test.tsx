@@ -34,6 +34,11 @@ const capabilities = {
   retention_hours: 24,
   solver_type: "fake" as const,
 };
+const remoteCapabilities = {
+  ...capabilities,
+  remote_processing: true,
+  solver_type: "nova" as const,
+};
 
 beforeEach(() => {
   fake.create.mockReset();
@@ -100,7 +105,9 @@ describe("Phase 6A identify consent and deletion flow", () => {
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "Start private infrastructure check" }));
 
-    expect(fake.create).toHaveBeenCalledWith("http://127.0.0.1:8000", file, "night.png");
+    expect(fake.create).toHaveBeenCalledWith("http://127.0.0.1:8000", file, "night.png", {
+      consentRemoteProcessing: false,
+    });
     const statusRegion = screen.getByRole("region", {
       name: "Identification infrastructure status",
     });
@@ -115,6 +122,43 @@ describe("Phase 6A identify consent and deletion flow", () => {
       expect(fake.delete).toHaveBeenCalledWith("http://127.0.0.1:8000", submissionId),
     );
     expect(screen.getByRole("status", { name: "Temporary submission deleted" })).toBeVisible();
+  });
+
+  it("requires explicit third-party consent before starting a Nova solve", async () => {
+    fake.create.mockResolvedValue({
+      data: {
+        job_id: null,
+        remote_processing: true,
+        retention_hours: 24,
+        solver_type: "nova",
+        status: "submitting",
+        submission_id: submissionId,
+      },
+      kind: "ok",
+      status: 202,
+    });
+    const user = userEvent.setup();
+    render(<IdentifyView apiOrigin="http://127.0.0.1:8000" capabilities={remoteCapabilities} />);
+
+    expect(screen.getByText(/third-party Astrometry.net Nova service/i)).toBeVisible();
+    expect(screen.getByText(/remote deletion and retention/i)).toBeVisible();
+    const button = screen.getByRole("button", { name: "Start remote plate solve" });
+    expect(button).toBeDisabled();
+
+    const file = new File(["private-image"], "night.png", { type: "image/png" });
+    await user.upload(screen.getByLabelText("JPEG or PNG image"), file);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(button);
+
+    expect(fake.create).toHaveBeenCalledWith("http://127.0.0.1:8000", file, "night.png", {
+      consentRemoteProcessing: true,
+    });
+    const statusRegion = screen.getByRole("region", {
+      name: "Identification infrastructure status",
+    });
+    expect(within(statusRegion).getByText(/provider identifiers are kept private/i)).toBeVisible();
+    expect(within(statusRegion).queryByText(/Job ID:/i)).not.toBeInTheDocument();
+    expect(document.body.textContent).not.toContain(submissionId);
   });
 
   it("polls the generated status endpoint and labels fake success as non-astrometric", async () => {
@@ -146,6 +190,7 @@ describe("Phase 6A identify consent and deletion flow", () => {
           synthetic: true,
         },
         retention_hours: 24,
+        solution_available: false,
         solver_type: "fake",
         status: "succeeded",
         submission_id: submissionId,

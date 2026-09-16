@@ -1,4 +1,4 @@
-"""Privacy-minimal HTTP routes for Phase 6A fake identification."""
+"""Privacy-minimal HTTP routes for private astronomical image identification."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse, Response
 from lumina.identification.application.public_read import IdentificationPublicReadService
 from lumina.identification.application.submissions import (
     DeleteSubmissionService,
+    StartRemoteIdentificationService,
     SubmissionCleanupFailure,
     SubmitIdentificationService,
 )
@@ -98,11 +99,14 @@ _JOB_ERRORS = (
 async def get_identification_capabilities(
     request: Request,
 ) -> IdentificationCapabilitiesResponse | JSONResponse:
-    """Expose only safe Phase 6A upload and retention policy facts."""
+    """Expose only safe upload, solver-mode, and retention policy facts."""
     if request.query_params:
         return _invalid(request)
     settings = request.app.state.settings
+    remote_processing = settings.enable_remote_astrometry
     return IdentificationCapabilitiesResponse(
+        solver_type="nova" if remote_processing else "fake",
+        remote_processing=remote_processing,
         max_bytes=settings.upload_max_bytes,
         max_pixels=settings.upload_max_pixels,
         retention_hours=settings.upload_retention_hours,
@@ -121,17 +125,25 @@ async def create_identification_submission(
     file: Annotated[UploadFile, File()],
     consent_remote_processing: Annotated[bool, Form()] = False,
 ) -> IdentificationCreateResponse | JSONResponse:
-    """Accept one bounded private raster and enqueue only the local fake solver."""
+    """Accept one bounded private raster for the configured identification solver."""
     if request.query_params:
         return _invalid(request)
-    if consent_remote_processing:
+    settings = request.app.state.settings
+    if settings.enable_remote_astrometry:
+        if not consent_remote_processing:
+            return error_response(
+                request,
+                status_code=422,
+                code="identification.remote_consent_required",
+                message="Remote image processing requires explicit consent.",
+            )
+    elif consent_remote_processing:
         return error_response(
             request,
             status_code=422,
             code="feature.not_available",
             message="Remote image processing is not available.",
         )
-    settings = request.app.state.settings
     try:
         content = await file.read(settings.upload_max_bytes + 1)
     except OSError:
@@ -146,8 +158,26 @@ async def create_identification_submission(
             message="The uploaded image is too large.",
         )
 
-    service: SubmitIdentificationService = request.app.state.identification_submit_service
     try:
+        if settings.enable_remote_astrometry:
+            remote_service: StartRemoteIdentificationService = (
+                request.app.state.identification_remote_start_service
+            )
+            started = await remote_service.start(
+                content,
+                original_filename=file.filename,
+                declared_media_type=file.content_type,
+            )
+            return IdentificationCreateResponse(
+                submission_id=started.submission_id,
+                job_id=None,
+                status="submitting",
+                solver_type="nova",
+                remote_processing=True,
+                retention_hours=settings.upload_retention_hours,
+            )
+
+        service: SubmitIdentificationService = request.app.state.identification_submit_service
         submitted = await service.submit(
             content,
             original_filename=file.filename,
@@ -176,6 +206,7 @@ async def create_identification_submission(
         SubmissionStorageFailure,
         UploadStorageIntegrityError,
         PrivateStorageError,
+        RemoteStateStorageFailure,
         *_JOB_ERRORS,
     ):
         return _unavailable(request)
@@ -183,6 +214,9 @@ async def create_identification_submission(
     return IdentificationCreateResponse(
         submission_id=submitted.submission_id,
         job_id=submitted.job_id,
+        status="queued",
+        solver_type="fake",
+        remote_processing=False,
         retention_hours=settings.upload_retention_hours,
     )
 

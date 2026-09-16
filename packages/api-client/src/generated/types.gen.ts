@@ -507,7 +507,7 @@ export type IdentificationCapabilitiesResponse = {
   /**
    * Remote Processing
    */
-  remote_processing?: false;
+  remote_processing: boolean;
   /**
    * Retention Hours
    */
@@ -515,7 +515,7 @@ export type IdentificationCapabilitiesResponse = {
   /**
    * Solver Type
    */
-  solver_type?: "fake";
+  solver_type: "fake" | "nova";
 };
 
 /**
@@ -525,11 +525,11 @@ export type IdentificationCreateResponse = {
   /**
    * Job Id
    */
-  job_id: string;
+  job_id: string | null;
   /**
    * Remote Processing
    */
-  remote_processing?: false;
+  remote_processing: boolean;
   /**
    * Retention Hours
    */
@@ -537,11 +537,11 @@ export type IdentificationCreateResponse = {
   /**
    * Solver Type
    */
-  solver_type?: "fake";
+  solver_type: "fake" | "nova";
   /**
    * Status
    */
-  status?: "queued";
+  status: "queued" | "submitting";
   /**
    * Submission Id
    */

@@ -17,7 +17,8 @@ type IdentifyViewProps = Readonly<{
 }>;
 
 type ActiveSubmission = Readonly<{
-  jobId: string;
+  jobId: string | null;
+  solverType: "fake" | "nova";
   submissionId: string;
   status: IdentificationStatusResponse | null;
 }>;
@@ -29,7 +30,7 @@ type UiState =
   | Readonly<{ kind: "deleted" }>
   | Readonly<{ kind: "error"; message: string }>;
 
-const TERMINAL = new Set(["succeeded", "failed", "dead_letter", "deleted"]);
+const TERMINAL = new Set(["succeeded", "unsolved", "failed", "dead_letter", "expired", "deleted"]);
 
 export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
   const [consented, setConsented] = useState(false);
@@ -102,7 +103,9 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
 
     setDeleteConfirm(false);
     setState({ kind: "uploading" });
-    const result = await createIdentificationSubmission(apiOrigin, file, file.name);
+    const result = await createIdentificationSubmission(apiOrigin, file, file.name, {
+      consentRemoteProcessing: capabilities.remote_processing,
+    });
     if (result.kind !== "ok") {
       setState({ kind: "error", message: uploadFailureMessage(result) });
       return;
@@ -110,6 +113,7 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
     setState({
       active: {
         jobId: result.data.job_id,
+        solverType: result.data.solver_type,
         status: null,
         submissionId: result.data.submission_id,
       },
@@ -135,15 +139,17 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
     <div className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Identify · Phase 6A infrastructure
+          {capabilities.remote_processing
+            ? "Identify · Phase 6B remote plate solving"
+            : "Identify · Phase 6A infrastructure"}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
           Identify an astronomical image
         </h1>
         <p className="text-lg leading-8 text-[var(--muted)]">
-          This phase validates Lumina&apos;s private upload, job, retention, and deletion workflow.
-          The solver is a deterministic fake fixture: it does not identify the sky and does not
-          return astrometric coordinates.
+          {capabilities.remote_processing
+            ? "Lumina can send one explicitly consented image to Astrometry.net Nova for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations."
+            : "This phase validates Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic fake fixture: it does not identify the sky and does not return astrometric coordinates."}
         </p>
       </header>
 
@@ -192,9 +198,9 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
               type="checkbox"
             />
             <span>
-              I understand that Lumina will temporarily store and process this image on the server
-              for this identification job. No remote Astrometry.net service is contacted in Phase
-              6A, and I can delete the temporary submission below.
+              {capabilities.remote_processing
+                ? "I explicitly consent to Lumina temporarily storing this image and sending its bytes to the third-party Astrometry.net Nova service for private plate solving. Deleting the submission below removes Lumina's local temporary copy and identifying metadata; remote deletion and retention remain subject to Astrometry.net's service limitations."
+                : "I understand that Lumina will temporarily store and process this image on the server for this identification job. No remote Astrometry.net service is contacted in this mode, and I can delete the temporary submission below."}
             </span>
           </label>
 
@@ -204,8 +210,12 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
             type="submit"
           >
             {state.kind === "uploading"
-              ? "Uploading privately…"
-              : "Start private infrastructure check"}
+              ? capabilities.remote_processing
+                ? "Uploading for remote solve…"
+                : "Uploading privately…"
+              : capabilities.remote_processing
+                ? "Start remote plate solve"
+                : "Start private infrastructure check"}
           </button>
         </form>
         <noscript>
@@ -218,6 +228,7 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
 
       <StatusPanel
         deleteConfirm={deleteConfirm}
+        remoteProcessing={capabilities.remote_processing}
         onCancelDelete={() => setDeleteConfirm(false)}
         onConfirmDelete={() => void deleteActive()}
         onRequestDelete={() => setDeleteConfirm(true)}
@@ -236,21 +247,50 @@ function PrivacyNotice({
       className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7"
     >
       <h2 className="text-2xl font-semibold" id="identify-privacy-heading">
-        Private by design in this phase
+        {capabilities.remote_processing
+          ? "Remote processing requires your consent"
+          : "Private by design in this phase"}
       </h2>
       <ul className="list-disc space-y-2 pl-5 leading-7 text-[var(--muted)]">
-        <li>No remote plate-solving service is contacted; remote processing is disabled.</li>
+        {capabilities.remote_processing ? (
+          <>
+            <li>
+              The image is sent to Astrometry.net Nova only after explicit consent. Lumina keeps the
+              provider API key and provider-side identifiers server-private.
+            </li>
+            <li>
+              Lumina requests Nova&apos;s private visibility mode and disallows provider-side
+              modification and commercial use for the submitted image.
+            </li>
+            <li>
+              Deleting here removes Lumina&apos;s local temporary object and scrubs identifying
+              local metadata. Astrometry.net controls any provider-side retention or deletion
+              limitations.
+            </li>
+            <li>
+              A remote solve can finish without finding an astrometric solution; Lumina reports that
+              separately from processing failure.
+            </li>
+          </>
+        ) : (
+          <>
+            <li>No remote plate-solving service is contacted; remote processing is disabled.</li>
+            <li>
+              Deletion removes the private object and scrubs filename/hash metadata from the
+              temporary record.
+            </li>
+            <li>
+              The fake solver verifies workflow integrity only; a success state is not a sky
+              identification.
+            </li>
+          </>
+        )}
         <li>
-          The configured retention period is {capabilities.retention_hours} hours. Terminal jobs are
-          eligible for cleanup after the retention policy; abandoned uploads are also bounded.
-        </li>
-        <li>
-          Deletion removes the private object and scrubs filename/hash metadata from the temporary
-          record.
-        </li>
-        <li>
-          The fake solver verifies workflow integrity only; a success state is not a sky
-          identification.
+          {capabilities.remote_processing
+            ? "The configured local retention period is"
+            : "The configured retention period is"}{" "}
+          {capabilities.retention_hours} hours. Terminal jobs are eligible for cleanup after the
+          retention policy; abandoned uploads are also bounded.
         </li>
       </ul>
     </section>
@@ -262,19 +302,25 @@ function StatusPanel({
   onCancelDelete,
   onConfirmDelete,
   onRequestDelete,
+  remoteProcessing,
   state,
 }: Readonly<{
   deleteConfirm: boolean;
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
   onRequestDelete: () => void;
+  remoteProcessing: boolean;
   state: UiState;
 }>) {
   if (state.kind === "idle") return null;
   if (state.kind === "uploading") {
     return (
-      <StatusMessage title="Uploading privately">
-        Validating and storing the bounded image before the fake job is queued.
+      <StatusMessage
+        title={remoteProcessing ? "Preparing remote plate solve" : "Uploading privately"}
+      >
+        {remoteProcessing
+          ? "Validating the bounded image and creating a consented remote solve before provider processing begins."
+          : "Validating and storing the bounded image before the fake job is queued."}
       </StatusMessage>
     );
   }
@@ -306,12 +352,22 @@ function StatusPanel({
         <h2 className="text-2xl font-semibold" id="identify-status-heading">
           Identification infrastructure status
         </h2>
-        <p className="text-sm text-[var(--muted)]">
-          Job ID: <code>{state.active.jobId}</code>
-        </p>
+        {state.active.jobId === null ? (
+          <p className="text-sm text-[var(--muted)]">
+            Remote provider identifiers are kept private and are not exposed in this interface.
+          </p>
+        ) : (
+          <p className="text-sm text-[var(--muted)]">
+            Job ID: <code>{state.active.jobId}</code>
+          </p>
+        )}
       </div>
       {status === null ? (
-        <p role="status">Queued. Waiting for the first private status update…</p>
+        <p role="status">
+          {state.active.solverType === "nova"
+            ? "Submitting. Waiting for the first private remote-solve status update…"
+            : "Queued. Waiting for the first private status update…"}
+        </p>
       ) : (
         <div className="space-y-3">
           <p role="status">
@@ -323,17 +379,43 @@ function StatusPanel({
             </p>
           )}
           {status.status === "succeeded" ? (
-            <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="font-semibold">Infrastructure check completed.</p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                The deterministic fake solver completed the private workflow. This is not an
-                astrometric solution and contains no RA/Dec, WCS, orientation, scale, or detected
-                objects.
-              </p>
-            </div>
+            status.solver_type === "nova" ? (
+              <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
+                <p className="font-semibold">Astrometric solution available.</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                  Lumina stored a normalized plate calibration, WCS, and bounded annotations. The
+                  visual overlay is a separate presentation step; provider credentials and provider
+                  identifiers remain private.
+                </p>
+              </div>
+            ) : (
+              <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
+                <p className="font-semibold">Infrastructure check completed.</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                  The deterministic fake solver completed the private workflow. This is not an
+                  astrometric solution and contains no RA/Dec, WCS, orientation, scale, or detected
+                  objects.
+                </p>
+              </div>
+            )
+          ) : null}
+          {status.status === "unsolved" ? (
+            <p role="status">
+              Astrometry.net completed processing without finding a plate solution. This is not the
+              same as a processing failure.
+            </p>
+          ) : null}
+          {status.status === "expired" ? (
+            <p role="alert">
+              The remote solve did not finish within Lumina&apos;s configured timeout.
+            </p>
           ) : null}
           {status.status === "failed" || status.status === "dead_letter" ? (
-            <p role="alert">The fake identification job could not complete safely.</p>
+            <p role="alert">
+              {status.solver_type === "nova"
+                ? "The remote plate-solving workflow could not complete safely."
+                : "The fake identification job could not complete safely."}
+            </p>
           ) : null}
         </div>
       )}
@@ -345,7 +427,9 @@ function StatusPanel({
       ) : null}
       <div className="space-y-3 border-t border-[var(--border)] pt-5">
         <p className="text-sm leading-6 text-[var(--muted)]">
-          Deletion is available before or after the fake job finishes.
+          {state.active.solverType === "nova"
+            ? "Local deletion is available before or after the remote solve finishes; it does not promise deletion from Astrometry.net."
+            : "Deletion is available before or after the fake job finishes."}
         </p>
         {deleteConfirm ? (
           <div

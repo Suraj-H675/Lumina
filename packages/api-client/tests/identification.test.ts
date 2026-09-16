@@ -4,6 +4,7 @@ import {
   createIdentificationSubmission,
   deleteIdentificationSubmission,
   getIdentificationSolution,
+  identificationCapabilitiesEndpoint,
   identificationSolutionEndpoint,
   IDENTIFICATION_SOLUTION_MAX_RESPONSE_BYTES,
   identificationStatusEndpoint,
@@ -21,6 +22,37 @@ function jsonResponse(value: unknown, status = 200): Response {
 }
 
 describe("Phase 6A identification transport", () => {
+  it("rejects incoherent advertised solver capabilities", () => {
+    const base = {
+      accepted_media_types: ["image/jpeg", "image/png"],
+      deletion_supported: true,
+      max_bytes: 25 * 1024 * 1024,
+      max_pixels: 50_000_000,
+      min_dimension_px: 32,
+      retention_hours: 24,
+    };
+    expect(
+      identificationCapabilitiesEndpoint.validator.safeParse({
+        ...base,
+        remote_processing: false,
+        solver_type: "fake",
+      }).success,
+    ).toBe(true);
+    expect(
+      identificationCapabilitiesEndpoint.validator.safeParse({
+        ...base,
+        remote_processing: true,
+        solver_type: "nova",
+      }).success,
+    ).toBe(true);
+    expect(
+      identificationCapabilitiesEndpoint.validator.safeParse({
+        ...base,
+        remote_processing: true,
+        solver_type: "fake",
+      }).success,
+    ).toBe(false);
+  });
   it("uploads with browser-owned multipart boundaries and validates the generated response", async () => {
     const fetchImplementation = vi.fn<typeof fetch>((_input, init) => {
       expect(init?.method).toBe("POST");
@@ -53,6 +85,68 @@ describe("Phase 6A identification transport", () => {
 
     expect(result).toMatchObject({ kind: "ok", status: 202 });
     expect(fetchImplementation).toHaveBeenCalledOnce();
+  });
+
+  it("sends explicit Nova consent and accepts only the coherent remote creation shape", async () => {
+    const fetchImplementation = vi.fn<typeof fetch>((_input, init) => {
+      const form = init?.body as FormData;
+      expect(form.get("consent_remote_processing")).toBe("true");
+      return Promise.resolve(
+        jsonResponse(
+          {
+            job_id: null,
+            remote_processing: true,
+            retention_hours: 24,
+            solver_type: "nova",
+            status: "submitting",
+            submission_id: submissionId,
+          },
+          202,
+        ),
+      );
+    });
+
+    const result = await createIdentificationSubmission(
+      "http://127.0.0.1:8000",
+      new Blob(["private-image"], { type: "image/png" }),
+      "night.png",
+      { consentRemoteProcessing: true, fetchImplementation },
+    );
+
+    expect(result).toMatchObject({
+      data: { job_id: null, remote_processing: true, solver_type: "nova", status: "submitting" },
+      kind: "ok",
+      status: 202,
+    });
+  });
+
+  it.each([
+    { job_id: null, remote_processing: false, solver_type: "fake", status: "queued" },
+    { job_id: jobId, remote_processing: true, solver_type: "nova", status: "submitting" },
+    { job_id: null, remote_processing: true, solver_type: "nova", status: "queued" },
+  ])("rejects schema-valid but incoherent create mode %#", async (mode) => {
+    const result = await createIdentificationSubmission(
+      "http://127.0.0.1:8000",
+      new Blob(["x"], { type: "image/png" }),
+      "night.png",
+      {
+        consentRemoteProcessing: mode.remote_processing,
+        fetchImplementation: vi.fn(() =>
+          Promise.resolve(
+            jsonResponse(
+              {
+                ...mode,
+                retention_hours: 24,
+                submission_id: submissionId,
+              },
+              202,
+            ),
+          ),
+        ),
+      },
+    );
+
+    expect(result).toEqual({ kind: "malformed-response" });
   });
 
   it("rejects response shape drift instead of accepting extra private fields", async () => {
@@ -262,5 +356,25 @@ describe("Phase 6A identification transport", () => {
     };
     expect(validateIdentificationStatus(status)).not.toBeNull();
     expect(validateIdentificationStatus({ ...status, filename: "private.png" })).toBeNull();
+
+    const novaStatus = {
+      ...status,
+      job_id: null,
+      progress: null,
+      remote_processing: true,
+      solution_available: true,
+      solver_type: "nova" as const,
+      status: "succeeded" as const,
+    };
+    expect(validateIdentificationStatus(novaStatus)).not.toBeNull();
+    expect(validateIdentificationStatus({ ...status, remote_processing: true })).toBeNull();
+    expect(validateIdentificationStatus({ ...novaStatus, job_id: jobId })).toBeNull();
+    expect(validateIdentificationStatus({ ...novaStatus, solution_available: false })).toBeNull();
+    expect(
+      identificationStatusEndpoint(submissionId).validator.safeParse({
+        ...novaStatus,
+        status: "running",
+      }).success,
+    ).toBe(false);
   });
 });

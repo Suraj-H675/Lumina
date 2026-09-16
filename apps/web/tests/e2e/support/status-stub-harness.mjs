@@ -620,6 +620,7 @@ const controlPaths = new Set([
   "/__control/neows-mode",
   "/__control/launch-mode",
   "/__control/satellite-mode",
+  "/__control/identification-mode",
   "/__control/assert-clean",
   "/__control/clear-violations",
   "/__control/mode",
@@ -649,6 +650,7 @@ let apodMode = "fresh";
 let neowsMode = "fresh";
 let launchMode = "fresh";
 let satelliteMode = "fresh";
+let identificationMode = "fake";
 let identificationPollCount = 0;
 let identificationDeleted = false;
 const identificationSubmissionId = "71000000-0000-4000-8000-000000000001";
@@ -1569,6 +1571,34 @@ const stub = http.createServer(async (request, response) => {
       return;
     }
 
+    if (path === "/__control/identification-mode") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["fake", "nova"].includes(body.mode)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        identificationMode = body.mode;
+        identificationPollCount = 0;
+        identificationDeleted = false;
+        sendJson(response, 200, { mode: identificationMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
+
     try {
       if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
         throw new Error("control request media type is invalid");
@@ -1636,8 +1666,8 @@ const stub = http.createServer(async (request, response) => {
   if (isIdentificationPath) {
     if (path === "/api/v1/identification/capabilities") {
       sendJson(response, 200, {
-        solver_type: "fake",
-        remote_processing: false,
+        solver_type: identificationMode,
+        remote_processing: identificationMode === "nova",
         accepted_media_types: ["image/jpeg", "image/png"],
         max_bytes: 26214400,
         max_pixels: 50000000,
@@ -1654,17 +1684,23 @@ const stub = http.createServer(async (request, response) => {
           throw new Error("identification multipart boundary missing");
         }
         const body = await readBoundedApiBody(request, 1_048_576);
-        if (body.length === 0 || !body.includes(Buffer.from("consent_remote_processing"))) {
+        const formText = body.toString("latin1");
+        const expectedConsent = identificationMode === "nova" ? "true" : "false";
+        if (
+          body.length === 0 ||
+          !formText.includes(`name="consent_remote_processing"\r\n\r\n${expectedConsent}\r\n`)
+        ) {
           throw new Error("identification form is incomplete");
         }
         identificationPollCount = 0;
         identificationDeleted = false;
+        const nova = identificationMode === "nova";
         sendJson(response, 202, {
           submission_id: identificationSubmissionId,
-          job_id: identificationJobId,
-          status: "queued",
-          solver_type: "fake",
-          remote_processing: false,
+          job_id: nova ? null : identificationJobId,
+          status: nova ? "submitting" : "queued",
+          solver_type: nova ? "nova" : "fake",
+          remote_processing: nova,
           retention_hours: 24,
         });
       } catch {
@@ -1686,7 +1722,7 @@ const stub = http.createServer(async (request, response) => {
       if (identificationDeleted) {
         sendJson(response, 200, {
           submission_id: identificationSubmissionId,
-          job_id: identificationJobId,
+          job_id: identificationMode === "nova" ? null : identificationJobId,
           status: "deleted",
           progress: 1,
           result: null,
@@ -1695,34 +1731,36 @@ const stub = http.createServer(async (request, response) => {
           created_at: "2026-09-15T12:00:00Z",
           completed_at: "2026-09-15T12:00:01Z",
           deleted_at: "2026-09-15T12:00:02Z",
-          solver_type: "fake",
-          remote_processing: false,
+          solver_type: identificationMode === "nova" ? "nova" : "fake",
+          remote_processing: identificationMode === "nova",
           retention_hours: 24,
         });
         return;
       }
       identificationPollCount += 1;
       const succeeded = identificationPollCount >= 2;
+      const nova = identificationMode === "nova";
       sendJson(response, 200, {
         submission_id: identificationSubmissionId,
-        job_id: identificationJobId,
-        status: succeeded ? "succeeded" : "running",
+        job_id: nova ? null : identificationJobId,
+        status: succeeded ? "succeeded" : nova ? "solving" : "running",
         progress: succeeded ? 1 : 0.5,
-        result: succeeded
-          ? {
-              outcome: "fixture_solved",
-              solver_type: "fake",
-              solver_version: "phase6a-fixture-v1",
-              synthetic: true,
-            }
-          : null,
+        result:
+          succeeded && !nova
+            ? {
+                outcome: "fixture_solved",
+                solver_type: "fake",
+                solver_version: "phase6a-fixture-v1",
+                synthetic: true,
+              }
+            : null,
         error_code: null,
-        solution_available: false,
+        solution_available: succeeded && nova,
         created_at: "2026-09-15T12:00:00Z",
         completed_at: succeeded ? "2026-09-15T12:00:01Z" : null,
         deleted_at: null,
-        solver_type: "fake",
-        remote_processing: false,
+        solver_type: nova ? "nova" : "fake",
+        remote_processing: nova,
         retention_hours: 24,
       });
       return;

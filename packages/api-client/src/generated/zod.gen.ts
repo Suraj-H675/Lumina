@@ -237,20 +237,20 @@ export const zIdentificationCapabilitiesResponse = z.object({
   max_bytes: z.int().gte(1).lte(104857600),
   max_pixels: z.int().gte(1).lte(100000000),
   min_dimension_px: z.literal(32).optional().default(32),
-  remote_processing: z.literal(false).optional().default(false),
+  remote_processing: z.boolean(),
   retention_hours: z.int().gte(1).lte(168),
-  solver_type: z.literal("fake").optional().default("fake"),
+  solver_type: z.enum(["fake", "nova"]),
 });
 
 /**
  * IdentificationCreateResponse
  */
 export const zIdentificationCreateResponse = z.object({
-  job_id: z.uuid(),
-  remote_processing: z.literal(false).optional().default(false),
+  job_id: z.uuid().nullable(),
+  remote_processing: z.boolean(),
   retention_hours: z.int().gte(1).lte(168),
-  solver_type: z.literal("fake").optional().default("fake"),
-  status: z.literal("queued").optional().default("queued"),
+  solver_type: z.enum(["fake", "nova"]),
+  status: z.enum(["queued", "submitting"]),
   submission_id: z.uuid(),
 });
 

@@ -7,6 +7,7 @@ type ApodStubMode = "fresh" | "stale" | "unavailable";
 type NeowsStubMode = "fresh" | "stale" | "unavailable";
 type LaunchStubMode = "fresh" | "stale" | "unavailable";
 type SatelliteStubMode = "fresh" | "stale" | "unavailable";
+type IdentificationStubMode = "fake" | "nova";
 
 type Coordination = Readonly<{
   apiOrigin: string;
@@ -89,6 +90,23 @@ export async function setSatelliteStubMode(
 ): Promise<void> {
   const control = await coordination(testInfo);
   const response = await fetch(`${control.apiOrigin}/__control/satellite-mode`, {
+    body: JSON.stringify({ mode }),
+    headers: {
+      Authorization: `Bearer ${control.token}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+  expect(response.status).toBe(200);
+  await response.body?.cancel();
+}
+
+export async function setIdentificationStubMode(
+  testInfo: TestInfo,
+  mode: IdentificationStubMode,
+): Promise<void> {
+  const control = await coordination(testInfo);
+  const response = await fetch(`${control.apiOrigin}/__control/identification-mode`, {
     body: JSON.stringify({ mode }),
     headers: {
       Authorization: `Bearer ${control.token}`,

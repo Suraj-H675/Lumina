@@ -551,6 +551,7 @@ def test_phase6b_remote_privacy_flags_cannot_be_relaxed(name: str) -> None:
         ("LUMINA_ASTROMETRY_POLL_SECONDS", 0),
         ("LUMINA_ASTROMETRY_POLL_SECONDS", 61),
         ("LUMINA_ASTROMETRY_TIMEOUT_SECONDS", 29),
+        ("LUMINA_ASTROMETRY_TIMEOUT_SECONDS", 59),
         ("LUMINA_ASTROMETRY_TIMEOUT_SECONDS", 3_601),
     ],
 )

@@ -25,6 +25,7 @@ from lumina.identification.application.public_read import IdentificationPublicRe
 from lumina.identification.application.submissions import (
     CreateSubmissionService,
     DeleteSubmissionService,
+    StartRemoteIdentificationService,
     SubmitIdentificationService,
 )
 from lumina.identification.application.uploads import StoreValidatedUploadService
@@ -122,6 +123,12 @@ def create_app(settings: AppSettings) -> FastAPI:
         identification_repository,
         identification_delete,
     )
+    identification_remote_start = StartRemoteIdentificationService(
+        identification_create,
+        identification_remote_state,
+        identification_delete,
+        timeout_seconds=settings.astrometry_timeout_seconds,
+    )
     identification_public_read = IdentificationPublicReadService(
         identification_repository,
         identification_remote_state,
@@ -167,6 +174,7 @@ def create_app(settings: AppSettings) -> FastAPI:
         SkyfieldSatellitePassEngine(),
     )
     application.state.identification_submit_service = identification_submit
+    application.state.identification_remote_start_service = identification_remote_start
     application.state.identification_public_read_service = identification_public_read
     application.state.identification_delete_service = identification_delete
 

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   title: "Identify an astronomical image",
   description:
-    "Privately validate Lumina's image-identification workflow with the Phase 6A fake solver. No remote plate-solving service is contacted.",
+    "Upload an astronomical image for Lumina's private identification workflow. Remote plate solving is used only when explicitly enabled and consented to.",
 };
 
 export default async function IdentifyPage() {
@@ -32,7 +32,7 @@ function IdentifyUnavailable({ reason }: Readonly<{ reason: string }>) {
     <div className="space-y-8">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Identify · Phase 6A
+          Identify · Private image processing
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
           Identify an astronomical image

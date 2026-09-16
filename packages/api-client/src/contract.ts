@@ -124,19 +124,69 @@ export const metaEndpoint = {
   validator: zMetaResponse,
 } satisfies ApiEndpoint<MetaResponse, MetadataApiV1MetaGetData["url"]>;
 
+const identificationCapabilitiesValidator = zGetIdentificationCapabilitiesResponse.superRefine(
+  (value, context) => {
+    if ((value.solver_type === "nova") !== value.remote_processing) {
+      context.addIssue({ code: "custom", message: "incoherent identification mode" });
+    }
+  },
+);
+
 export const identificationCapabilitiesEndpoint = {
   method: "GET",
   path: "/api/v1/identification/capabilities" satisfies GetIdentificationCapabilitiesData["url"],
-  validator: zGetIdentificationCapabilitiesResponse,
+  validator: identificationCapabilitiesValidator,
 } satisfies ApiEndpoint<
   IdentificationCapabilitiesResponse,
   GetIdentificationCapabilitiesData["url"]
 >;
 
+const fakeIdentificationStates = new Set([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "dead_letter",
+  "deleted",
+]);
+const novaIdentificationStates = new Set([
+  "submitting",
+  "waiting_for_solver",
+  "solving",
+  "fetching_results",
+  "succeeded",
+  "unsolved",
+  "failed",
+  "expired",
+  "deleted",
+]);
+
+export const identificationStatusValidator = zGetIdentificationSubmissionResponse.superRefine(
+  (value, context) => {
+    const fake =
+      value.solver_type === "fake" &&
+      !value.remote_processing &&
+      value.job_id !== null &&
+      fakeIdentificationStates.has(value.status) &&
+      !value.solution_available &&
+      (value.status === "succeeded") === (value.result !== null);
+    const nova =
+      value.solver_type === "nova" &&
+      value.remote_processing &&
+      value.job_id === null &&
+      novaIdentificationStates.has(value.status) &&
+      value.result === null &&
+      value.solution_available === (value.status === "succeeded");
+    if (!(fake || nova)) {
+      context.addIssue({ code: "custom", message: "incoherent identification status" });
+    }
+  },
+);
+
 export const identificationStatusTemplateEndpoint = {
   method: "GET",
   path: "/api/v1/identification/submissions/{submission_id}" satisfies GetIdentificationSubmissionData["url"],
-  validator: zGetIdentificationSubmissionResponse,
+  validator: identificationStatusValidator,
 } satisfies ApiEndpoint<IdentificationStatusResponse, GetIdentificationSubmissionData["url"]>;
 
 export function identificationStatusEndpoint(
@@ -145,7 +195,7 @@ export function identificationStatusEndpoint(
   return {
     method: "GET",
     path: `/api/v1/identification/submissions/${encodeURIComponent(submissionId)}`,
-    validator: zGetIdentificationSubmissionResponse,
+    validator: identificationStatusValidator,
   };
 }
 

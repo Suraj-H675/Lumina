@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from lumina.identification.domain.public_read import IdentificationPublicState
 
@@ -25,8 +25,8 @@ class FakeSolverResultResponse(BaseModel):
 class IdentificationCapabilitiesResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    solver_type: Literal["fake"] = "fake"
-    remote_processing: Literal[False] = False
+    solver_type: Literal["fake", "nova"]
+    remote_processing: bool
     accepted_media_types: tuple[Literal["image/jpeg", "image/png"], ...] = (
         "image/jpeg",
         "image/png",
@@ -37,16 +37,40 @@ class IdentificationCapabilitiesResponse(BaseModel):
     retention_hours: int = Field(ge=1, le=168)
     deletion_supported: Literal[True] = True
 
+    @model_validator(mode="after")
+    def validate_solver_mode(self) -> Self:
+        if (self.solver_type == "nova") is not self.remote_processing:
+            raise ValueError("Identification capability mode is incoherent.")
+        return self
+
 
 class IdentificationCreateResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     submission_id: UUID
-    job_id: UUID
-    status: Literal["queued"] = "queued"
-    solver_type: Literal["fake"] = "fake"
-    remote_processing: Literal[False] = False
+    job_id: UUID | None
+    status: Literal["queued", "submitting"]
+    solver_type: Literal["fake", "nova"]
+    remote_processing: bool
     retention_hours: int = Field(ge=1, le=168)
+
+    @model_validator(mode="after")
+    def validate_solver_mode(self) -> Self:
+        fake = (
+            self.solver_type == "fake"
+            and not self.remote_processing
+            and self.status == "queued"
+            and self.job_id is not None
+        )
+        nova = (
+            self.solver_type == "nova"
+            and self.remote_processing
+            and self.status == "submitting"
+            and self.job_id is None
+        )
+        if not (fake or nova):
+            raise ValueError("Identification creation mode is incoherent.")
+        return self
 
 
 class IdentificationStatusResponse(BaseModel):
@@ -65,6 +89,47 @@ class IdentificationStatusResponse(BaseModel):
     solver_type: Literal["fake", "nova"]
     remote_processing: bool
     retention_hours: int = Field(ge=1, le=168)
+
+    @model_validator(mode="after")
+    def validate_solver_mode(self) -> Self:
+        fake_states = {
+            IdentificationPublicState.QUEUED,
+            IdentificationPublicState.RUNNING,
+            IdentificationPublicState.SUCCEEDED,
+            IdentificationPublicState.FAILED,
+            IdentificationPublicState.DEAD_LETTER,
+            IdentificationPublicState.DELETED,
+        }
+        nova_states = {
+            IdentificationPublicState.SUBMITTING,
+            IdentificationPublicState.WAITING_FOR_SOLVER,
+            IdentificationPublicState.SOLVING,
+            IdentificationPublicState.FETCHING_RESULTS,
+            IdentificationPublicState.SUCCEEDED,
+            IdentificationPublicState.UNSOLVED,
+            IdentificationPublicState.FAILED,
+            IdentificationPublicState.EXPIRED,
+            IdentificationPublicState.DELETED,
+        }
+        fake = (
+            self.solver_type == "fake"
+            and not self.remote_processing
+            and self.job_id is not None
+            and self.status in fake_states
+            and not self.solution_available
+            and ((self.status == IdentificationPublicState.SUCCEEDED) == (self.result is not None))
+        )
+        nova = (
+            self.solver_type == "nova"
+            and self.remote_processing
+            and self.job_id is None
+            and self.status in nova_states
+            and self.result is None
+            and self.solution_available == (self.status == IdentificationPublicState.SUCCEEDED)
+        )
+        if not (fake or nova):
+            raise ValueError("Identification status mode is incoherent.")
+        return self
 
 
 class IdentificationCalibrationResponse(BaseModel):

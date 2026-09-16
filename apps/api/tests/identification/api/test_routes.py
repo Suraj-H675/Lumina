@@ -15,7 +15,11 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
 from lumina.identification.api.routes import router as identification_router
-from lumina.identification.application.submissions import SubmittedIdentification
+from lumina.identification.api.schemas import IdentificationStatusResponse
+from lumina.identification.application.submissions import (
+    StartedRemoteIdentification,
+    SubmittedIdentification,
+)
 from lumina.identification.domain.public_read import (
     IdentificationPublicState,
     IdentificationSolutionNotReady,
@@ -41,6 +45,7 @@ from lumina.identification.domain.uploads import (
     UploadTypeUnsupported,
 )
 from lumina.settings import AppSettings
+from pydantic import ValidationError
 
 _SUBMISSION_ID = UUID("71000000-0000-4000-8000-000000000001")
 _JOB_ID = UUID("72000000-0000-4000-8000-000000000001")
@@ -91,6 +96,24 @@ class SubmitSpy:
         if self.failure is not None:
             raise self.failure
         return SubmittedIdentification(_SUBMISSION_ID, _JOB_ID)
+
+
+@dataclass
+class RemoteStartSpy:
+    failure: BaseException | None = None
+    calls: list[tuple[bytes, object, str | None]] = field(default_factory=list)
+
+    async def start(
+        self,
+        content: bytes,
+        *,
+        original_filename: object,
+        declared_media_type: str | None,
+    ) -> StartedRemoteIdentification:
+        self.calls.append((content, original_filename, declared_media_type))
+        if self.failure is not None:
+            raise self.failure
+        return StartedRemoteIdentification(_SUBMISSION_ID)
 
 
 @dataclass
@@ -214,6 +237,23 @@ def test_capabilities_exposes_only_safe_authoritative_policy(tmp_path: Path) -> 
         assert forbidden not in serialized
 
 
+def test_capabilities_advertises_nova_only_when_explicitly_enabled(tmp_path: Path) -> None:
+    app = _app(
+        tmp_path,
+        LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
+        LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
+    )
+
+    response = _request(app, "GET", "/api/v1/identification/capabilities")
+
+    assert response.status_code == 200
+    assert response.json()["solver_type"] == "nova"
+    assert response.json()["remote_processing"] is True
+    serialized = response.text.lower()
+    for forbidden in ("api_key", "credential", "external", "nova.astrometry.net"):
+        assert forbidden not in serialized
+
+
 def test_capabilities_rejects_query_parameters(tmp_path: Path) -> None:
     response = _request(
         _app(tmp_path),
@@ -269,6 +309,68 @@ def test_remote_processing_consent_is_rejected_before_submission(tmp_path: Path)
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "feature.not_available"
     assert service.calls == []
+
+
+def test_enabled_remote_solver_requires_explicit_consent_before_reading_upload(
+    tmp_path: Path,
+) -> None:
+    app = _app(
+        tmp_path,
+        LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
+        LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
+    )
+    remote = RemoteStartSpy()
+    app.state.identification_remote_start_service = remote
+
+    response = _request(
+        app,
+        "POST",
+        "/api/v1/identification/submissions",
+        files={"file": ("night.png", b"fixture", "image/png")},
+        data={"consent_remote_processing": "false"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "identification.remote_consent_required"
+    assert remote.calls == []
+
+
+def test_enabled_remote_solver_starts_only_after_consent_without_provider_ids(
+    tmp_path: Path,
+) -> None:
+    app = _app(
+        tmp_path,
+        LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
+        LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
+    )
+    remote = RemoteStartSpy()
+    fake = SubmitSpy()
+    app.state.identification_remote_start_service = remote
+    app.state.identification_submit_service = fake
+    content = b"remote-bounded-fixture"
+
+    response = _request(
+        app,
+        "POST",
+        "/api/v1/identification/submissions",
+        files={"file": ("night.png", content, "image/png")},
+        data={"consent_remote_processing": "true"},
+    )
+
+    assert response.status_code == 202
+    assert response.json() == {
+        "submission_id": str(_SUBMISSION_ID),
+        "job_id": None,
+        "status": "submitting",
+        "solver_type": "nova",
+        "remote_processing": True,
+        "retention_hours": 24,
+    }
+    assert remote.calls == [(content, "night.png", "image/png")]
+    assert fake.calls == []
+    serialized = response.text.lower()
+    for forbidden in ("api_key", "external_job", "external_submission", "filename", "storage"):
+        assert forbidden not in serialized
 
 
 def test_file_byte_limit_is_enforced_after_multipart_parsing(tmp_path: Path) -> None:
@@ -372,6 +474,51 @@ def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_p
     assert service.status_calls == [_SUBMISSION_ID]
     for forbidden in ("filename", "sha256", "storage_object", "payload"):
         assert forbidden not in response.text.lower()
+
+
+def test_status_schema_rejects_cross_solver_mode_mixtures() -> None:
+    base = {
+        "submission_id": _SUBMISSION_ID,
+        "job_id": _JOB_ID,
+        "status": "queued",
+        "progress": 0.0,
+        "result": None,
+        "error_code": None,
+        "solution_available": False,
+        "created_at": _NOW,
+        "completed_at": None,
+        "deleted_at": None,
+        "solver_type": "fake",
+        "remote_processing": False,
+        "retention_hours": 24,
+    }
+    IdentificationStatusResponse.model_validate(base)
+    IdentificationStatusResponse.model_validate(
+        {
+            **base,
+            "job_id": None,
+            "status": "succeeded",
+            "progress": None,
+            "solver_type": "nova",
+            "remote_processing": True,
+            "solution_available": True,
+        }
+    )
+    for invalid in (
+        {**base, "remote_processing": True},
+        {**base, "solver_type": "nova", "remote_processing": True},
+        {
+            **base,
+            "job_id": None,
+            "status": "succeeded",
+            "progress": None,
+            "solver_type": "nova",
+            "remote_processing": True,
+            "solution_available": False,
+        },
+    ):
+        with pytest.raises(ValidationError):
+            IdentificationStatusResponse.model_validate(invalid)
 
 
 def test_status_not_found_is_safe_and_does_not_reflect_identifier(tmp_path: Path) -> None:

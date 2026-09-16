@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { setIdentificationStubMode } from "./support/status-stub-control";
+
 const jobId = "72000000-0000-4000-8000-000000000001";
 
 const image = {
@@ -9,7 +11,12 @@ const image = {
   name: "night-field.png",
 };
 
-test.describe("Phase 6A — private identification infrastructure", () => {
+test.describe("Phase 6 — private identification", () => {
+  test.describe.configure({ mode: "serial" });
+
+  test.beforeEach(async ({}, testInfo) => {
+    await setIdentificationStubMode(testInfo, "fake");
+  });
   test("keeps the authoritative privacy and retention policy useful without JavaScript", async ({
     browser,
   }) => {
@@ -71,6 +78,39 @@ test.describe("Phase 6A — private identification infrastructure", () => {
     await expect(page.getByRole("status", { name: "Temporary submission deleted" })).toBeVisible();
 
     expect(remoteRequests).toEqual([]);
+  });
+
+  test("requires explicit Nova consent and keeps provider identifiers private", async ({
+    page,
+  }, testInfo) => {
+    await setIdentificationStubMode(testInfo, "nova");
+    const novaBrowserRequests: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).hostname === "nova.astrometry.net") {
+        novaBrowserRequests.push(request.url());
+      }
+    });
+
+    await page.goto("/identify");
+    await expect(page.getByText(/Remote processing requires your consent/i)).toBeVisible();
+    await expect(page.getByText(/third-party Astrometry.net Nova service/i)).toBeVisible();
+    const start = page.getByRole("button", { name: "Start remote plate solve" });
+    await expect(start).toBeDisabled();
+
+    await page.getByLabel("JPEG or PNG image").setInputFiles(image);
+    await page.getByRole("checkbox").check();
+    await start.click();
+
+    await expect(page.getByText(/provider identifiers are kept private/i)).toBeVisible();
+    await expect(page.getByText(new RegExp(jobId))).toHaveCount(0);
+    await expect(
+      page.getByRole("status").filter({ hasText: "Remote solver completed" }),
+    ).toBeVisible({
+      timeout: 4_000,
+    });
+    await expect(page.getByText("Astrometric solution available.", { exact: true })).toBeVisible();
+    await expect(page.getByText(/provider-side retention or deletion limitations/i)).toBeVisible();
+    expect(novaBrowserRequests).toEqual([]);
   });
 
   test("rejects an unsupported selected media type before upload", async ({ page }) => {

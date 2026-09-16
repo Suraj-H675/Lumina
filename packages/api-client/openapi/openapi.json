@@ -834,8 +834,6 @@
             "type": "integer"
           },
           "remote_processing": {
-            "const": false,
-            "default": false,
             "title": "Remote Processing",
             "type": "boolean"
           },
@@ -846,13 +844,17 @@
             "type": "integer"
           },
           "solver_type": {
-            "const": "fake",
-            "default": "fake",
+            "enum": [
+              "fake",
+              "nova"
+            ],
             "title": "Solver Type",
             "type": "string"
           }
         },
         "required": [
+          "solver_type",
+          "remote_processing",
           "max_bytes",
           "max_pixels",
           "retention_hours"
@@ -864,13 +866,18 @@
         "additionalProperties": false,
         "properties": {
           "job_id": {
-            "format": "uuid",
-            "title": "Job Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
           },
           "remote_processing": {
-            "const": false,
-            "default": false,
             "title": "Remote Processing",
             "type": "boolean"
           },
@@ -881,14 +888,18 @@
             "type": "integer"
           },
           "solver_type": {
-            "const": "fake",
-            "default": "fake",
+            "enum": [
+              "fake",
+              "nova"
+            ],
             "title": "Solver Type",
             "type": "string"
           },
           "status": {
-            "const": "queued",
-            "default": "queued",
+            "enum": [
+              "queued",
+              "submitting"
+            ],
             "title": "Status",
             "type": "string"
           },
@@ -901,6 +912,9 @@
         "required": [
           "submission_id",
           "job_id",
+          "status",
+          "solver_type",
+          "remote_processing",
           "retention_hours"
         ],
         "title": "IdentificationCreateResponse",
@@ -4773,7 +4787,7 @@
     },
     "/api/v1/identification/capabilities": {
       "get": {
-        "description": "Expose only safe Phase 6A upload and retention policy facts.",
+        "description": "Expose only safe upload, solver-mode, and retention policy facts.",
         "operationId": "get_identification_capabilities",
         "responses": {
           "200": {
@@ -4795,7 +4809,7 @@
     },
     "/api/v1/identification/submissions": {
       "post": {
-        "description": "Accept one bounded private raster and enqueue only the local fake solver.",
+        "description": "Accept one bounded private raster for the configured identification solver.",
         "operationId": "create_identification_submission",
         "requestBody": {
           "content": {

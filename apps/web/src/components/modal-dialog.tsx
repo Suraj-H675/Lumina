@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 
 type ModalDialogProps = Readonly<{
   children: React.ReactNode;
@@ -19,11 +20,9 @@ type ModalDialogProps = Readonly<{
  * field/button inside; focus is restored to the previously focused element
  * on close; Tab is trapped while open.
  *
- * Rendered inline rather than through a portal: Lumina's shell introduces no
- * transform/filter ancestors, so position:fixed overlays behave correctly,
- * and this keeps the component free of imperative DOM bookkeeping (and
- * jsdom-compatible for component tests). Only one bounded modal flow exists,
- * so no nested-dialog machinery is needed.
+ * Rendered through document.body so the overlay is isolated from caller
+ * stacking and layout contexts. Only one bounded modal flow exists, so no
+ * nested-dialog machinery is needed.
  */
 export function ModalDialog({ children, description, onClose, open, title }: ModalDialogProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -76,11 +75,11 @@ export function ModalDialog({ children, description, onClose, open, title }: Mod
     [onClose],
   );
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/70 p-4 sm:items-center"
       onKeyDown={handleKeyDown}
       onMouseDown={(event) => {
         // A press that starts on the backdrop (not the panel) dismisses.
@@ -91,7 +90,7 @@ export function ModalDialog({ children, description, onClose, open, title }: Mod
         aria-describedby={description === undefined ? undefined : descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="w-full max-w-md rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] p-5 shadow-2xl"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] p-5 shadow-2xl"
         onFocus={(event) => {
           // Belt-and-braces containment for any edge case the Tab trap misses.
           if (!panelRef.current?.contains(event.target as Node)) focusFirstInside();
@@ -110,7 +109,8 @@ export function ModalDialog({ children, description, onClose, open, title }: Mod
         ) : null}
         <div className="mt-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

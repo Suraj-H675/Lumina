@@ -174,6 +174,20 @@ test.describe("Phase 6 — private identification", () => {
     await page.getByLabel(/Zoom:/i).fill("2");
     await expect(page.getByText("Zoom: 2.0×")).toBeVisible();
 
+    await page.getByLabel("Journal title").fill("Orion solved field");
+    await page.getByRole("button", { name: "Save to local journal" }).click();
+    await expect(page.getByText(/Saved to this browser's local journal/i)).toBeVisible();
+    await page.getByRole("link", { name: "Open Journal" }).click();
+    await expect(page).toHaveURL(/\/journal$/u);
+    await expect(page.getByRole("heading", { name: "Orion solved field" })).toBeVisible();
+    await expect(page.getByText(/only in this browser's local IndexedDB/i)).toBeVisible();
+    await expect(page.getByText(/82\.500000° RA, -6\.200000° Dec/i)).toBeVisible();
+    await expect(page.getByText("Rigel")).toBeVisible();
+    await expect(page.getByText("M42")).toBeVisible();
+    await page.getByRole("button", { name: "Delete local journal entry" }).click();
+    await page.getByRole("button", { name: "Confirm local delete" }).click();
+    await expect(page.getByRole("heading", { name: "No journal entries yet" })).toBeVisible();
+
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
     expect(novaBrowserRequests).toEqual([]);

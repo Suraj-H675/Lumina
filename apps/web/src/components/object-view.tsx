@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { EntityDetailResponse } from "@lumina/api-client";
 
+import { JournalEntryButton } from "./journal-entry-button";
 import { SaveToCollectionsButton } from "./save-to-collections";
 import {
   formatMeasurementValue,
@@ -65,6 +66,7 @@ export function ObjectView({ detail, slug }: ObjectViewProps) {
               slug,
             }}
           />
+          <JournalEntryButton entityId={detail.id} objectName={title} />
         </div>
       </header>
 

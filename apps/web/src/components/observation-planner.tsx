@@ -15,6 +15,7 @@ import {
 import type { EntityDetailResponse } from "@lumina/api-client";
 
 import { CatalogueSearchBox } from "./catalogue-search-box";
+import { JournalEntryButton } from "./journal-entry-button";
 import { ObservationConditions } from "./observation-conditions";
 import { SkyFinder } from "./sky-finder";
 import { entityTypeLabel } from "../lib/catalog-display";
@@ -326,12 +327,14 @@ function AltitudeChart({ plan, timeZone }: Readonly<{ plan: ObservationPlan; tim
 function PlannerResults({
   nightDate,
   plan,
+  targetEntityId,
   targetName,
   targetSlug,
   timeZone,
 }: Readonly<{
   nightDate: string;
   plan: ObservationPlan;
+  targetEntityId: string;
   targetName: string;
   targetSlug: string;
   timeZone: string;
@@ -353,6 +356,15 @@ function PlannerResults({
             Altitude {formatAltitude(highest.altitude)} at the sampled maximum.
           </p>
         ) : null}
+        <JournalEntryButton
+          entityId={targetEntityId}
+          objectName={targetName}
+          plannerContext={{
+            latitudeDeg: plan.location.latitude,
+            longitudeDeg: plan.location.longitude,
+            selectedTimeUtc: plan.selected.instant.toISOString(),
+          }}
+        />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -792,6 +804,7 @@ export function ObservationPlanner({
           ) : plan !== null ? (
             <PlannerResults
               plan={plan}
+              targetEntityId={detail.id}
               targetName={targetTitle}
               targetSlug={slug ?? ""}
               timeZone={timeZone}

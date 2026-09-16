@@ -57,6 +57,58 @@ test("object page opens the selected target in the observation planner", async (
   await expect(page.getByText(/Position source/)).toBeVisible();
 });
 
+test("catalogue object creates a local journal entry without inventing observation metadata", async ({
+  page,
+}) => {
+  await page.goto("/objects/k2-18");
+  await page.getByRole("button", { name: "Add to journal" }).click();
+
+  await expect(page.getByLabel("Observation date and time (optional)")).toHaveValue("");
+  await expect(page.getByLabel("Location label")).toHaveValue("");
+  await expect(page.getByLabel("Latitude")).toHaveValue("");
+  await expect(page.getByLabel("Longitude")).toHaveValue("");
+  await page.getByLabel("Journal title").fill("K2-18 object note");
+  await page.getByLabel("Notes (optional)").fill("Created directly from the catalogue object.");
+  await page.getByRole("button", { name: "Save to local journal" }).click();
+
+  await expect(page.getByText(/Saved to this browser's local journal/i)).toBeVisible();
+  await page.getByRole("link", { name: "Open Journal" }).click();
+  await expect(page.getByRole("heading", { name: "K2-18 object note" })).toBeVisible();
+  await expect(page.getByText("K2-18", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Observation time").locator("xpath=following-sibling::dd"),
+  ).toHaveText("Not recorded");
+  await expect(page.getByText("Location").locator("xpath=following-sibling::dd")).toHaveText(
+    "Not recorded",
+  );
+});
+
+test("planner copies exact time and location into the journal only after explicit confirmation", async ({
+  page,
+}) => {
+  await page.goto(`/observe?object=k2-18&date=${NIGHT}`);
+  await fillManualLocation(page);
+  await page.getByRole("button", { name: "Add to journal" }).click();
+  const journalDialog = page.getByRole("dialog", { name: "Create journal entry" });
+
+  await expect(journalDialog.getByLabel("Observation date and time (optional)")).toHaveValue("");
+  await expect(journalDialog.getByLabel("Latitude")).toHaveValue("");
+  await expect(journalDialog.getByLabel("Longitude")).toHaveValue("");
+  await journalDialog.getByRole("button", { name: "Use selected planner time" }).click();
+  await journalDialog.getByRole("button", { name: "Use planner coordinates" }).click();
+  await expect(journalDialog.getByLabel("Location label")).toHaveValue("Planner coordinates");
+  await expect(journalDialog.getByLabel("Latitude")).toHaveValue(LATITUDE);
+  await expect(journalDialog.getByLabel("Longitude")).toHaveValue(LONGITUDE);
+  await journalDialog.getByLabel("Journal title").fill("K2-18 planned observation");
+  await journalDialog.getByRole("button", { name: "Save to local journal" }).click();
+
+  await page.getByRole("link", { name: "Open Journal" }).click();
+  await expect(page.getByRole("heading", { name: "K2-18 planned observation" })).toBeVisible();
+  await expect(page.getByText(/Planner coordinates · 12\.9720°, 77\.5940°/u)).toBeVisible();
+  const observationTime = page.getByText("Observation time").locator("xpath=following-sibling::dd");
+  await expect(observationTime).not.toHaveText("Not recorded");
+});
+
 test("Messier 31 uses the SIMBAD J2000 coordinate disclosure", async ({ page }) => {
   await page.goto("/objects/messier-31");
   await expect(page.getByRole("heading", { level: 1, name: "Messier 31" })).toBeVisible();

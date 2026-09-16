@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
+import { IdentifyJournalPanel } from "./identify-journal-panel";
 import { SolutionOverlay } from "./solution-overlay";
 
 type IdentifyViewProps = Readonly<{
@@ -24,6 +25,7 @@ type ActiveSubmission = Readonly<{
   jobId: string | null;
   previewUrl: string | null;
   solverType: "fake" | "nova";
+  sourceImage: File | null;
   submissionId: string;
   status: IdentificationStatusResponse | null;
 }>;
@@ -87,7 +89,12 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
           previewUrl = null;
         }
         setState({
-          active: { ...state.active, previewUrl, status: result.data },
+          active: {
+            ...state.active,
+            previewUrl,
+            sourceImage: terminalWithoutSolution ? null : state.active.sourceImage,
+            status: result.data,
+          },
           kind: "active",
           pollingWarning: false,
         });
@@ -188,6 +195,7 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
         jobId: result.data.job_id,
         previewUrl,
         solverType: result.data.solver_type,
+        sourceImage: result.data.solver_type === "nova" ? file : null,
         status: null,
         submissionId: result.data.submission_id,
       },
@@ -361,14 +369,21 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
             The solve completed, but the normalized solution could not be loaded safely.
           </StatusMessage>
         ) : solutionState.kind === "ready" && state.active.previewUrl !== null ? (
-          <SolutionOverlay
-            completedAt={state.active.status.completed_at}
-            imageUrl={state.active.previewUrl}
-            loadingMore={solutionState.loadingMore}
-            loadMoreWarning={solutionState.warning}
-            onLoadMore={() => void loadMoreAnnotations()}
-            solution={solutionState.data}
-          />
+          <>
+            <SolutionOverlay
+              completedAt={state.active.status.completed_at}
+              imageUrl={state.active.previewUrl}
+              loadingMore={solutionState.loadingMore}
+              loadMoreWarning={solutionState.warning}
+              onLoadMore={() => void loadMoreAnnotations()}
+              solution={solutionState.data}
+            />
+            <IdentifyJournalPanel
+              completedAt={state.active.status.completed_at}
+              solution={solutionState.data}
+              sourceImage={state.active.sourceImage}
+            />
+          </>
         ) : null
       ) : null}
     </div>

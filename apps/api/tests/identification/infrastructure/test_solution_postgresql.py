@@ -280,6 +280,8 @@ async def test_read_slice_is_ordered_bounded_and_reconstructs_normalized_science
     assert "FROM public.identification_solution" in solution_sql
     assert solution_parameters == {"submission_id": _SUBMISSION_ID}
     annotation_sql, annotation_parameters = connection.statements[2]
+    assert "CAST(:after_ordinal AS integer) IS NULL" in annotation_sql
+    assert "ordinal > CAST(:after_ordinal AS integer)" in annotation_sql
     assert "ORDER BY ordinal ASC LIMIT :limit" in annotation_sql
     assert annotation_parameters == {
         "submission_id": _SUBMISSION_ID,

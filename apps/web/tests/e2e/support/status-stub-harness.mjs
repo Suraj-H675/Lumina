@@ -1691,6 +1691,7 @@ const stub = http.createServer(async (request, response) => {
           progress: 1,
           result: null,
           error_code: null,
+          solution_available: false,
           created_at: "2026-09-15T12:00:00Z",
           completed_at: "2026-09-15T12:00:01Z",
           deleted_at: "2026-09-15T12:00:02Z",
@@ -1716,6 +1717,7 @@ const stub = http.createServer(async (request, response) => {
             }
           : null,
         error_code: null,
+        solution_available: false,
         created_at: "2026-09-15T12:00:00Z",
         completed_at: succeeded ? "2026-09-15T12:00:01Z" : null,
         deleted_at: null,

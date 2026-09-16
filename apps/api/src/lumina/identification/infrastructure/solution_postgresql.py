@@ -77,7 +77,7 @@ _READ_SOLUTION_SQL = text(
 _READ_ANNOTATIONS_SQL = text(
     "SELECT ordinal, category, names, pixel_x, pixel_y, ra_deg, dec_deg "
     "FROM public.identification_annotation WHERE submission_id = :submission_id "
-    "AND (:after_ordinal IS NULL OR ordinal > CAST(:after_ordinal AS integer)) "
+    "AND (CAST(:after_ordinal AS integer) IS NULL OR ordinal > CAST(:after_ordinal AS integer)) "
     "ORDER BY ordinal ASC LIMIT :limit"
 )
 _PURGE_SQL = text(

@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Sequence
 from uuid import UUID, uuid4
 
-from sqlalchemy import text
+from sqlalchemy import RowMapping, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
+from lumina.identification.domain.public_read import StoredSolutionSlice
 from lumina.identification.domain.remote_state import (
     RemoteFinalizationOutcome,
     RemoteSolveClaim,
@@ -16,7 +18,11 @@ from lumina.identification.domain.remote_state import (
     RemoteStateValidationError,
 )
 from lumina.identification.domain.solution import (
+    AstrometricFrame,
     NormalizedPlateSolution,
+    NormalizedWcs,
+    PlateAnnotation,
+    PlateCalibration,
     SolutionStorageFailure,
     SolutionValidationError,
 )
@@ -61,6 +67,18 @@ _TRANSITION_SQL = text(
     "(event_id, submission_id, from_state, to_state, reason, recorded_at) VALUES "
     "(:event_id, :submission_id, 'fetching_results', 'succeeded', 'results_stored', "
     "CURRENT_TIMESTAMP)"
+)
+_READ_SOLUTION_SQL = text(
+    "SELECT coordinate_frame, center_ra_deg, center_dec_deg, orientation_deg, parity, "
+    "pixel_scale_arcsec_per_pixel, radius_deg, image_width, image_height, wcs_header, "
+    "wcs_source_sha256, solver_name, solver_version FROM public.identification_solution "
+    "WHERE submission_id = :submission_id"
+)
+_READ_ANNOTATIONS_SQL = text(
+    "SELECT ordinal, category, names, pixel_x, pixel_y, ra_deg, dec_deg "
+    "FROM public.identification_annotation WHERE submission_id = :submission_id "
+    "AND (:after_ordinal IS NULL OR ordinal > CAST(:after_ordinal AS integer)) "
+    "ORDER BY ordinal ASC LIMIT :limit"
 )
 _PURGE_SQL = text(
     "DELETE FROM public.identification_solution WHERE submission_id = :submission_id "
@@ -161,6 +179,68 @@ class PostgreSqlSolutionRepository:
         ):
             raise SolutionStorageFailure() from None
 
+    async def read_slice(
+        self,
+        submission_id: UUID,
+        *,
+        after_ordinal: int | None,
+        limit: int,
+    ) -> StoredSolutionSlice:
+        if (
+            not isinstance(submission_id, UUID)
+            or submission_id.version != 4
+            or (
+                after_ordinal is not None
+                and (type(after_ordinal) is not int or not 0 <= after_ordinal <= 2_047)
+            )
+            or type(limit) is not int
+            or not 1 <= limit <= 51
+        ):
+            raise SolutionStorageFailure()
+        try:
+            async with self._session_factory() as session, session.begin():
+                connection = await session.connection()
+                await self._set_timeout(connection)
+                solution_row = (
+                    (
+                        await connection.execute(
+                            _READ_SOLUTION_SQL,
+                            {"submission_id": submission_id},
+                        )
+                    )
+                    .mappings()
+                    .one_or_none()
+                )
+                if solution_row is None:
+                    raise SolutionStorageFailure()
+                annotation_rows = (
+                    (
+                        await connection.execute(
+                            _READ_ANNOTATIONS_SQL,
+                            {
+                                "submission_id": submission_id,
+                                "after_ordinal": after_ordinal,
+                                "limit": limit,
+                            },
+                        )
+                    )
+                    .mappings()
+                    .all()
+                )
+                return _stored_solution(solution_row, annotation_rows)
+        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
+            raise
+        except SolutionStorageFailure:
+            raise
+        except (
+            OSError,
+            SQLAlchemyError,
+            TypeError,
+            ValueError,
+            SolutionValidationError,
+        ):
+            raise SolutionStorageFailure() from None
+
     async def purge(self, submission_id: UUID) -> bool:
         if not isinstance(submission_id, UUID) or submission_id.version != 4:
             raise SolutionStorageFailure()
@@ -181,6 +261,58 @@ class PostgreSqlSolutionRepository:
 
     async def _set_timeout(self, connection: AsyncConnection) -> None:
         await connection.execute(_TIMEOUT_SQL, {"timeout": self._timeout})
+
+
+def _stored_solution(
+    solution_row: RowMapping,
+    annotation_rows: Sequence[RowMapping],
+) -> StoredSolutionSlice:
+    try:
+        calibration = PlateCalibration(
+            center_ra_deg=float(solution_row["center_ra_deg"]),
+            center_dec_deg=float(solution_row["center_dec_deg"]),
+            orientation_deg=float(solution_row["orientation_deg"]),
+            parity=int(solution_row["parity"]),
+            pixel_scale_arcsec_per_pixel=float(solution_row["pixel_scale_arcsec_per_pixel"]),
+            radius_deg=float(solution_row["radius_deg"]),
+        )
+        wcs = NormalizedWcs(
+            frame=AstrometricFrame(str(solution_row["coordinate_frame"])),
+            header_text=str(solution_row["wcs_header"]),
+            source_sha256=str(solution_row["wcs_source_sha256"]),
+            image_width=int(solution_row["image_width"]),
+            image_height=int(solution_row["image_height"]),
+        )
+        raw_version = solution_row["solver_version"]
+        solver_version = None if raw_version is None else str(raw_version)
+        annotations: list[PlateAnnotation] = []
+        ordinals: list[int] = []
+        for row in annotation_rows:
+            raw_names = row["names"]
+            if type(raw_names) not in {list, tuple}:
+                raise SolutionStorageFailure()
+            ordinal = int(row["ordinal"])
+            annotations.append(
+                PlateAnnotation(
+                    category=str(row["category"]),
+                    names=tuple(str(name) for name in raw_names),
+                    pixel_x=float(row["pixel_x"]),
+                    pixel_y=float(row["pixel_y"]),
+                    ra_deg=float(row["ra_deg"]),
+                    dec_deg=float(row["dec_deg"]),
+                )
+            )
+            ordinals.append(ordinal)
+        return StoredSolutionSlice(
+            calibration=calibration,
+            wcs=wcs,
+            annotations=tuple(annotations),
+            annotation_ordinals=tuple(ordinals),
+            solver_name=str(solution_row["solver_name"]),
+            solver_version=solver_version,
+        )
+    except (KeyError, TypeError, ValueError, SolutionValidationError):
+        raise SolutionStorageFailure() from None
 
 
 def _solution_parameters(

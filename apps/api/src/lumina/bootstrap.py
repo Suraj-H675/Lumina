@@ -21,10 +21,10 @@ from lumina.catalog.application.search import CatalogSearchService
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
 from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
 from lumina.identification.api.routes import router as identification_router
+from lumina.identification.application.public_read import IdentificationPublicReadService
 from lumina.identification.application.submissions import (
     CreateSubmissionService,
     DeleteSubmissionService,
-    ReadIdentificationStatusService,
     SubmitIdentificationService,
 )
 from lumina.identification.application.uploads import StoreValidatedUploadService
@@ -33,6 +33,7 @@ from lumina.identification.infrastructure.filesystem import FilesystemPrivateObj
 from lumina.identification.infrastructure.postgresql import (
     PostgreSqlIdentificationSubmissionRepository,
 )
+from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRemoteSolveRepository
 from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
 from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
@@ -82,6 +83,10 @@ def create_app(settings: AppSettings) -> FastAPI:
         database_runtime.session_factory,
         operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
     )
+    identification_remote_state = PostgreSqlRemoteSolveRepository(
+        database_runtime.session_factory,
+        operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
+    )
     identification_uploads = StoreValidatedUploadService(
         identification_store,
         UploadValidationPolicy(
@@ -117,7 +122,11 @@ def create_app(settings: AppSettings) -> FastAPI:
         identification_repository,
         identification_delete,
     )
-    identification_status = ReadIdentificationStatusService(identification_repository)
+    identification_public_read = IdentificationPublicReadService(
+        identification_repository,
+        identification_remote_state,
+        identification_solutions,
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -158,7 +167,7 @@ def create_app(settings: AppSettings) -> FastAPI:
         SkyfieldSatellitePassEngine(),
     )
     application.state.identification_submit_service = identification_submit
-    application.state.identification_status_service = identification_status
+    application.state.identification_public_read_service = identification_public_read
     application.state.identification_delete_service = identification_delete
 
     application.add_exception_handler(

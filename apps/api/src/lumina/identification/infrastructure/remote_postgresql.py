@@ -32,6 +32,10 @@ _RECORD_COLUMNS = (
     "submission_id, state, external_submission_id, external_job_id, next_poll_at, deadline_at, "
     "last_polled_at, upload_attempted_at, terminal_at, safe_reason, created_at, updated_at"
 )
+_READ_SQL = text(
+    "SELECT " + _RECORD_COLUMNS + " FROM public.identification_remote_solve "
+    "WHERE submission_id = :submission_id"
+)
 _CREATE_SQL = text(
     "INSERT INTO public.identification_remote_solve "
     "(submission_id, provider, state, next_poll_at, deadline_at) "
@@ -153,6 +157,27 @@ class PostgreSqlRemoteSolveRepository:
         except (RemoteStateStorageFailure, RemoteStateValidationError):
             raise RemoteStateStorageFailure() from None
         except (OSError, SQLAlchemyError, TypeError, ValueError):
+            raise RemoteStateStorageFailure() from None
+
+    async def read(self, submission_id: UUID) -> RemoteSolveRecord:
+        _uuid4(submission_id)
+        try:
+            async with self._session_factory() as session, session.begin():
+                connection = await session.connection()
+                await self._set_timeouts(connection)
+                row = (
+                    (await connection.execute(_READ_SQL, {"submission_id": submission_id}))
+                    .mappings()
+                    .one_or_none()
+                )
+                if row is None:
+                    raise RemoteStateStorageFailure()
+                return _record(row)
+        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
+            raise
+        except RemoteStateStorageFailure:
+            raise
+        except (OSError, SQLAlchemyError, TypeError, ValueError, RemoteStateValidationError):
             raise RemoteStateStorageFailure() from None
 
     async def claim_due(

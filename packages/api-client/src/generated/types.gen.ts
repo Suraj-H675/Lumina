@@ -421,6 +421,66 @@ export type HistorySelectionReference = {
 };
 
 /**
+ * IdentificationAnnotationResponse
+ */
+export type IdentificationAnnotationResponse = {
+  /**
+   * Category
+   */
+  category: string;
+  /**
+   * Dec Deg
+   */
+  dec_deg: number;
+  /**
+   * Names
+   */
+  names: Array<string>;
+  /**
+   * Pixel X
+   */
+  pixel_x: number;
+  /**
+   * Pixel Y
+   */
+  pixel_y: number;
+  /**
+   * Ra Deg
+   */
+  ra_deg: number;
+};
+
+/**
+ * IdentificationCalibrationResponse
+ */
+export type IdentificationCalibrationResponse = {
+  /**
+   * Center Dec Deg
+   */
+  center_dec_deg: number;
+  /**
+   * Center Ra Deg
+   */
+  center_ra_deg: number;
+  /**
+   * Orientation Deg
+   */
+  orientation_deg: number;
+  /**
+   * Parity
+   */
+  parity: -1 | 1;
+  /**
+   * Pixel Scale Arcsec Per Pixel
+   */
+  pixel_scale_arcsec_per_pixel: number;
+  /**
+   * Radius Deg
+   */
+  radius_deg: number;
+};
+
+/**
  * IdentificationCapabilitiesResponse
  */
 export type IdentificationCapabilitiesResponse = {
@@ -489,6 +549,64 @@ export type IdentificationCreateResponse = {
 };
 
 /**
+ * IdentificationPublicState
+ */
+export type IdentificationPublicState =
+  | "created"
+  | "queued"
+  | "running"
+  | "submitting"
+  | "waiting_for_solver"
+  | "solving"
+  | "fetching_results"
+  | "succeeded"
+  | "unsolved"
+  | "failed"
+  | "dead_letter"
+  | "expired"
+  | "deleted";
+
+/**
+ * IdentificationSolutionResponse
+ */
+export type IdentificationSolutionResponse = {
+  /**
+   * Annotations
+   */
+  annotations: Array<IdentificationAnnotationResponse>;
+  calibration: IdentificationCalibrationResponse;
+  /**
+   * Has More
+   */
+  has_more: boolean;
+  /**
+   * Next Cursor
+   */
+  next_cursor: string | null;
+  /**
+   * Remote Processing
+   */
+  remote_processing?: true;
+  /**
+   * Solver Name
+   */
+  solver_name?: "astrometry.net-nova";
+  /**
+   * Solver Type
+   */
+  solver_type?: "nova";
+  /**
+   * Solver Version
+   */
+  solver_version: string | null;
+  /**
+   * Submission Id
+   */
+  submission_id: string;
+  wcs: IdentificationWcsResponse;
+};
+
+/**
  * IdentificationStatusResponse
  */
 export type IdentificationStatusResponse = {
@@ -515,21 +633,25 @@ export type IdentificationStatusResponse = {
   /**
    * Progress
    */
-  progress: number;
+  progress: number | null;
   /**
    * Remote Processing
    */
-  remote_processing?: false;
+  remote_processing: boolean;
   result: FakeSolverResultResponse | null;
   /**
    * Retention Hours
    */
   retention_hours: number;
   /**
+   * Solution Available
+   */
+  solution_available: boolean;
+  /**
    * Solver Type
    */
-  solver_type?: "fake";
-  status: IdentificationSubmissionState;
+  solver_type: "fake" | "nova";
+  status: IdentificationPublicState;
   /**
    * Submission Id
    */
@@ -537,10 +659,30 @@ export type IdentificationStatusResponse = {
 };
 
 /**
- * IdentificationSubmissionState
+ * IdentificationWcsResponse
  */
-export type IdentificationSubmissionState =
-  "created" | "queued" | "running" | "succeeded" | "failed" | "dead_letter" | "deleted";
+export type IdentificationWcsResponse = {
+  /**
+   * Coordinate Frame
+   */
+  coordinate_frame: "icrs" | "fk5_j2000";
+  /**
+   * Header
+   */
+  header: string;
+  /**
+   * Image Height
+   */
+  image_height: number;
+  /**
+   * Image Width
+   */
+  image_width: number;
+  /**
+   * Source Sha256
+   */
+  source_sha256: string;
+};
 
 /**
  * LaunchAgencyResponse
@@ -2683,6 +2825,55 @@ export type GetIdentificationSubmissionResponses = {
 
 export type GetIdentificationSubmissionResponse =
   GetIdentificationSubmissionResponses[keyof GetIdentificationSubmissionResponses];
+
+export type GetIdentificationSolutionData = {
+  body?: never;
+  path: {
+    /**
+     * Submission Id
+     */
+    submission_id: string;
+  };
+  query?: {
+    /**
+     * Cursor
+     */
+    cursor?: string | null;
+  };
+  url: "/api/v1/identification/submissions/{submission_id}/solution";
+};
+
+export type GetIdentificationSolutionErrors = {
+  /**
+   * The submission does not exist.
+   */
+  404: ErrorResponse;
+  /**
+   * No normalized solution is available.
+   */
+  409: ErrorResponse;
+  /**
+   * The solution request is invalid.
+   */
+  422: ErrorResponse;
+  /**
+   * Identification solution is unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetIdentificationSolutionError =
+  GetIdentificationSolutionErrors[keyof GetIdentificationSolutionErrors];
+
+export type GetIdentificationSolutionResponses = {
+  /**
+   * Successful Response
+   */
+  200: IdentificationSolutionResponse;
+};
+
+export type GetIdentificationSolutionResponse =
+  GetIdentificationSolutionResponses[keyof GetIdentificationSolutionResponses];
 
 export type MetadataApiV1MetaGetData = {
   body?: never;

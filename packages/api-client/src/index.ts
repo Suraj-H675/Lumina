@@ -147,18 +147,23 @@ export type {
 
 export {
   identificationCapabilitiesEndpoint,
+  identificationSolutionEndpoint,
+  identificationSolutionTemplateEndpoint,
   identificationStatusEndpoint,
   identificationStatusTemplateEndpoint,
 } from "./contract";
 export {
   createIdentificationSubmission,
   deleteIdentificationSubmission,
+  getIdentificationSolution,
+  IDENTIFICATION_SOLUTION_MAX_RESPONSE_BYTES,
   IDENTIFICATION_UPLOAD_TIMEOUT_MS,
   validateIdentificationStatus,
 } from "./identification";
 export type {
   IdentificationCapabilitiesResponse,
   IdentificationCreateResponse,
+  IdentificationPublicState,
+  IdentificationSolutionResponse,
   IdentificationStatusResponse,
-  IdentificationSubmissionState,
 } from "./generated/types.gen";

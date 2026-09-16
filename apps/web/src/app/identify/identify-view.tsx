@@ -315,11 +315,13 @@ function StatusPanel({
       ) : (
         <div className="space-y-3">
           <p role="status">
-            <strong>Status:</strong> {statusLabel(status.status)}
+            <strong>Status:</strong> {statusLabel(status.status, status.solver_type)}
           </p>
-          <p>
-            <strong>Progress:</strong> {Math.round(status.progress * 100)}%
-          </p>
+          {status.progress === null || status.progress === undefined ? null : (
+            <p>
+              <strong>Progress:</strong> {Math.round(status.progress * 100)}%
+            </p>
+          )}
           {status.status === "succeeded" ? (
             <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
               <p className="font-semibold">Infrastructure check completed.</p>
@@ -411,14 +413,24 @@ function uploadFailureMessage(
   return "Image identification is temporarily unavailable. No successful upload was confirmed.";
 }
 
-function statusLabel(value: IdentificationStatusResponse["status"]): string {
-  const labels: Record<IdentificationStatusResponse["status"], string> = {
+function statusLabel(
+  value: IdentificationStatusResponse["status"],
+  solverType: IdentificationStatusResponse["solver_type"],
+): string {
+  if (value === "succeeded")
+    return solverType === "fake" ? "Fake solver completed" : "Remote solver completed";
+  const labels: Record<Exclude<IdentificationStatusResponse["status"], "succeeded">, string> = {
     created: "Created",
     queued: "Queued",
     running: "Running fake solver",
-    succeeded: "Fake solver completed",
+    submitting: "Submitting to remote solver",
+    waiting_for_solver: "Waiting for remote solver",
+    solving: "Remote solver running",
+    fetching_results: "Fetching normalized results",
+    unsolved: "No astrometric solution",
     failed: "Failed",
     dead_letter: "Stopped after bounded retries",
+    expired: "Remote solve expired",
     deleted: "Deleted",
   };
   return labels[value];

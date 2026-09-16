@@ -685,6 +685,112 @@
         "title": "HistorySelectionReference",
         "type": "object"
       },
+      "IdentificationAnnotationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "pattern": "^[a-z0-9_.-]{1,32}$",
+            "title": "Category",
+            "type": "string"
+          },
+          "dec_deg": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Dec Deg",
+            "type": "number"
+          },
+          "names": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Names",
+            "type": "array"
+          },
+          "pixel_x": {
+            "minimum": 0.0,
+            "title": "Pixel X",
+            "type": "number"
+          },
+          "pixel_y": {
+            "minimum": 0.0,
+            "title": "Pixel Y",
+            "type": "number"
+          },
+          "ra_deg": {
+            "exclusiveMaximum": 360.0,
+            "minimum": 0.0,
+            "title": "Ra Deg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "category",
+          "names",
+          "pixel_x",
+          "pixel_y",
+          "ra_deg",
+          "dec_deg"
+        ],
+        "title": "IdentificationAnnotationResponse",
+        "type": "object"
+      },
+      "IdentificationCalibrationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "center_dec_deg": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Center Dec Deg",
+            "type": "number"
+          },
+          "center_ra_deg": {
+            "exclusiveMaximum": 360.0,
+            "minimum": 0.0,
+            "title": "Center Ra Deg",
+            "type": "number"
+          },
+          "orientation_deg": {
+            "exclusiveMaximum": 360.0,
+            "minimum": 0.0,
+            "title": "Orientation Deg",
+            "type": "number"
+          },
+          "parity": {
+            "enum": [
+              -1,
+              1
+            ],
+            "title": "Parity",
+            "type": "integer"
+          },
+          "pixel_scale_arcsec_per_pixel": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 36000.0,
+            "title": "Pixel Scale Arcsec Per Pixel",
+            "type": "number"
+          },
+          "radius_deg": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 180.0,
+            "title": "Radius Deg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "center_ra_deg",
+          "center_dec_deg",
+          "orientation_deg",
+          "parity",
+          "pixel_scale_arcsec_per_pixel",
+          "radius_deg"
+        ],
+        "title": "IdentificationCalibrationResponse",
+        "type": "object"
+      },
       "IdentificationCapabilitiesResponse": {
         "additionalProperties": false,
         "properties": {
@@ -800,6 +906,107 @@
         "title": "IdentificationCreateResponse",
         "type": "object"
       },
+      "IdentificationPublicState": {
+        "enum": [
+          "created",
+          "queued",
+          "running",
+          "submitting",
+          "waiting_for_solver",
+          "solving",
+          "fetching_results",
+          "succeeded",
+          "unsolved",
+          "failed",
+          "dead_letter",
+          "expired",
+          "deleted"
+        ],
+        "title": "IdentificationPublicState",
+        "type": "string"
+      },
+      "IdentificationSolutionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "annotations": {
+            "items": {
+              "$ref": "#/components/schemas/IdentificationAnnotationResponse"
+            },
+            "maxItems": 50,
+            "title": "Annotations",
+            "type": "array"
+          },
+          "calibration": {
+            "$ref": "#/components/schemas/IdentificationCalibrationResponse"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "remote_processing": {
+            "const": true,
+            "default": true,
+            "title": "Remote Processing",
+            "type": "boolean"
+          },
+          "solver_name": {
+            "const": "astrometry.net-nova",
+            "default": "astrometry.net-nova",
+            "title": "Solver Name",
+            "type": "string"
+          },
+          "solver_type": {
+            "const": "nova",
+            "default": "nova",
+            "title": "Solver Type",
+            "type": "string"
+          },
+          "solver_version": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solver Version"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          },
+          "wcs": {
+            "$ref": "#/components/schemas/IdentificationWcsResponse"
+          }
+        },
+        "required": [
+          "submission_id",
+          "solver_version",
+          "calibration",
+          "wcs",
+          "annotations",
+          "next_cursor",
+          "has_more"
+        ],
+        "title": "IdentificationSolutionResponse",
+        "type": "object"
+      },
       "IdentificationStatusResponse": {
         "additionalProperties": false,
         "properties": {
@@ -835,6 +1042,7 @@
           "error_code": {
             "anyOf": [
               {
+                "pattern": "^[a-z][a-z0-9_.-]{0,127}$",
                 "type": "string"
               },
               {
@@ -856,14 +1064,19 @@
             "title": "Job Id"
           },
           "progress": {
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Progress",
-            "type": "number"
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
           },
           "remote_processing": {
-            "const": false,
-            "default": false,
             "title": "Remote Processing",
             "type": "boolean"
           },
@@ -883,14 +1096,20 @@
             "title": "Retention Hours",
             "type": "integer"
           },
+          "solution_available": {
+            "title": "Solution Available",
+            "type": "boolean"
+          },
           "solver_type": {
-            "const": "fake",
-            "default": "fake",
+            "enum": [
+              "fake",
+              "nova"
+            ],
             "title": "Solver Type",
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/IdentificationSubmissionState"
+            "$ref": "#/components/schemas/IdentificationPublicState"
           },
           "submission_id": {
             "format": "uuid",
@@ -905,26 +1124,61 @@
           "progress",
           "result",
           "error_code",
+          "solution_available",
           "created_at",
           "completed_at",
           "deleted_at",
+          "solver_type",
+          "remote_processing",
           "retention_hours"
         ],
         "title": "IdentificationStatusResponse",
         "type": "object"
       },
-      "IdentificationSubmissionState": {
-        "enum": [
-          "created",
-          "queued",
-          "running",
-          "succeeded",
-          "failed",
-          "dead_letter",
-          "deleted"
+      "IdentificationWcsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "coordinate_frame": {
+            "enum": [
+              "icrs",
+              "fk5_j2000"
+            ],
+            "title": "Coordinate Frame",
+            "type": "string"
+          },
+          "header": {
+            "maxLength": 65536,
+            "minLength": 1,
+            "title": "Header",
+            "type": "string"
+          },
+          "image_height": {
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Image Height",
+            "type": "integer"
+          },
+          "image_width": {
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Image Width",
+            "type": "integer"
+          },
+          "source_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "coordinate_frame",
+          "header",
+          "source_sha256",
+          "image_width",
+          "image_height"
         ],
-        "title": "IdentificationSubmissionState",
-        "type": "string"
+        "title": "IdentificationWcsResponse",
+        "type": "object"
       },
       "LaunchAgencyResponse": {
         "additionalProperties": false,
@@ -4725,6 +4979,99 @@
           }
         },
         "summary": "Get Identification Submission",
+        "tags": [
+          "identification"
+        ]
+      }
+    },
+    "/api/v1/identification/submissions/{submission_id}/solution": {
+      "get": {
+        "description": "Return one bounded page of a stored normalized remote astrometric solution.",
+        "operationId": "get_identification_solution",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Submission Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9_-]+$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentificationSolutionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The submission does not exist."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "No normalized solution is available."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The solution request is invalid."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Identification solution is unavailable."
+          }
+        },
+        "summary": "Get Identification Solution",
         "tags": [
           "identification"
         ]

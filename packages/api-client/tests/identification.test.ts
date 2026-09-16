@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createIdentificationSubmission,
   deleteIdentificationSubmission,
+  getIdentificationSolution,
+  identificationSolutionEndpoint,
+  IDENTIFICATION_SOLUTION_MAX_RESPONSE_BYTES,
   identificationStatusEndpoint,
   validateIdentificationStatus,
 } from "../src/index";
@@ -112,6 +115,135 @@ describe("Phase 6A identification transport", () => {
     });
   });
 
+  it("fetches one exact bounded normalized solution page", async () => {
+    const cursor = "eyJrIjoic29sdXRpb25fYW5ub3RhdGlvbnMifQ";
+    const fetchImplementation = vi.fn<typeof fetch>((input, init) => {
+      const url =
+        input instanceof URL ? input : new URL(typeof input === "string" ? input : input.url);
+      expect(url.pathname).toBe(`/api/v1/identification/submissions/${submissionId}/solution`);
+      expect(url.searchParams.get("cursor")).toBe(cursor);
+      expect(init).toMatchObject({
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+        method: "GET",
+        redirect: "error",
+      });
+      return Promise.resolve(
+        jsonResponse({
+          annotations: [],
+          calibration: {
+            center_dec_deg: 20,
+            center_ra_deg: 120,
+            orientation_deg: 45,
+            parity: -1,
+            pixel_scale_arcsec_per_pixel: 1.2,
+            radius_deg: 0.5,
+          },
+          has_more: false,
+          next_cursor: null,
+          remote_processing: true,
+          solver_name: "astrometry.net-nova",
+          solver_type: "nova",
+          solver_version: null,
+          submission_id: submissionId,
+          wcs: {
+            coordinate_frame: "fk5_j2000",
+            header: "WCSAXES =                    2",
+            image_height: 800,
+            image_width: 1000,
+            source_sha256: "e".repeat(64),
+          },
+        }),
+      );
+    });
+
+    const result = await getIdentificationSolution("http://127.0.0.1:8000", submissionId, cursor, {
+      fetchImplementation,
+    });
+
+    expect(result).toMatchObject({ kind: "ok", status: 200 });
+    expect(fetchImplementation).toHaveBeenCalledOnce();
+  });
+
+  it("accepts a schema-valid near-worst-case normalized solution under the dedicated cap", async () => {
+    const annotation = {
+      category: "a".repeat(32),
+      dec_deg: -90,
+      names: Array.from({ length: 16 }, () => "漢".repeat(128)),
+      pixel_x: Number.MAX_VALUE,
+      pixel_y: Number.MAX_VALUE,
+      ra_deg: 359.99999999999994,
+    };
+    const payload = {
+      annotations: Array.from({ length: 50 }, () => annotation),
+      calibration: {
+        center_dec_deg: -90,
+        center_ra_deg: 359.99999999999994,
+        orientation_deg: 359.99999999999994,
+        parity: -1,
+        pixel_scale_arcsec_per_pixel: 36_000,
+        radius_deg: 180,
+      },
+      has_more: true,
+      next_cursor: "A".repeat(512),
+      remote_processing: true,
+      solver_name: "astrometry.net-nova",
+      solver_type: "nova",
+      solver_version: "v".repeat(64),
+      submission_id: submissionId,
+      wcs: {
+        coordinate_frame: "fk5_j2000",
+        header: "\u0000".repeat(65_536),
+        image_height: 100_000,
+        image_width: 100_000,
+        source_sha256: "e".repeat(64),
+      },
+    };
+    const encoded = new TextEncoder().encode(JSON.stringify(payload));
+    expect(encoded.byteLength).toBeLessThan(IDENTIFICATION_SOLUTION_MAX_RESPONSE_BYTES);
+
+    const result = await getIdentificationSolution("http://127.0.0.1:8000", submissionId, null, {
+      fetchImplementation: vi.fn(() => Promise.resolve(jsonResponse(payload))),
+    });
+
+    expect(result).toMatchObject({ kind: "ok", status: 200 });
+  });
+
+  it("rejects invalid solution cursors and oversized declared responses", async () => {
+    const fetchImplementation = vi.fn<typeof fetch>(() =>
+      Promise.resolve(
+        new Response("{}", {
+          headers: {
+            "content-length": String(IDENTIFICATION_SOLUTION_MAX_RESPONSE_BYTES + 1),
+            "content-type": "application/json",
+          },
+          status: 200,
+        }),
+      ),
+    );
+
+    expect(
+      await getIdentificationSolution("http://127.0.0.1:8000", submissionId, "bad cursor", {
+        fetchImplementation,
+      }),
+    ).toEqual({ kind: "unavailable", reason: "transport" });
+    expect(fetchImplementation).not.toHaveBeenCalled();
+
+    expect(
+      await getIdentificationSolution("http://127.0.0.1:8000", submissionId, null, {
+        fetchImplementation,
+      }),
+    ).toEqual({ kind: "malformed-response" });
+    expect(fetchImplementation).toHaveBeenCalledOnce();
+  });
+
+  it("builds the normalized solution endpoint without accepting raw path text", () => {
+    expect(identificationSolutionEndpoint(submissionId, "abc_DEF-123")).toMatchObject({
+      method: "GET",
+      path: `/api/v1/identification/submissions/${submissionId}/solution?cursor=abc_DEF-123`,
+    });
+  });
+
   it("accepts only exact generated status payloads", () => {
     const status = {
       completed_at: null,
@@ -123,6 +255,7 @@ describe("Phase 6A identification transport", () => {
       remote_processing: false,
       result: null,
       retention_hours: 24,
+      solution_available: false,
       solver_type: "fake",
       status: "queued" as const,
       submission_id: submissionId,

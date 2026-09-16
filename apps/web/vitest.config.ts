@@ -13,6 +13,9 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    // Keep resource-heavy jsdom/a11y files from starving each other on high-core hosts.
+    // Individual test timeouts remain unchanged, so slow tests still fail on their own merits.
+    maxWorkers: "50%",
     setupFiles: ["./tests/setup.ts"],
   },
 });

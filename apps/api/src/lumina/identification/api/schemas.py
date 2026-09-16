@@ -1,14 +1,16 @@
-"""Public Phase 6A identification response schemas."""
+"""Public identification response schemas."""
 
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from lumina.identification.domain.submissions import IdentificationSubmissionState
+from lumina.identification.domain.public_read import IdentificationPublicState
+
+AnnotationName = Annotated[str, Field(min_length=1, max_length=128)]
 
 
 class FakeSolverResultResponse(BaseModel):
@@ -52,13 +54,61 @@ class IdentificationStatusResponse(BaseModel):
 
     submission_id: UUID
     job_id: UUID | None
-    status: IdentificationSubmissionState
-    progress: float = Field(ge=0.0, le=1.0)
+    status: IdentificationPublicState
+    progress: float | None = Field(ge=0.0, le=1.0)
     result: FakeSolverResultResponse | None
-    error_code: str | None
+    error_code: str | None = Field(pattern=r"^[a-z][a-z0-9_.-]{0,127}$")
+    solution_available: bool
     created_at: datetime
     completed_at: datetime | None
     deleted_at: datetime | None
-    solver_type: Literal["fake"] = "fake"
-    remote_processing: Literal[False] = False
+    solver_type: Literal["fake", "nova"]
+    remote_processing: bool
     retention_hours: int = Field(ge=1, le=168)
+
+
+class IdentificationCalibrationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    center_ra_deg: float = Field(ge=0.0, lt=360.0)
+    center_dec_deg: float = Field(ge=-90.0, le=90.0)
+    orientation_deg: float = Field(ge=0.0, lt=360.0)
+    parity: Literal[-1, 1]
+    pixel_scale_arcsec_per_pixel: float = Field(gt=0.0, le=36_000.0)
+    radius_deg: float = Field(gt=0.0, le=180.0)
+
+
+class IdentificationWcsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    coordinate_frame: Literal["icrs", "fk5_j2000"]
+    header: str = Field(min_length=1, max_length=65_536)
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    image_width: int = Field(ge=1, le=100_000)
+    image_height: int = Field(ge=1, le=100_000)
+
+
+class IdentificationAnnotationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    category: str = Field(pattern=r"^[a-z0-9_.-]{1,32}$")
+    names: tuple[AnnotationName, ...] = Field(min_length=1, max_length=16)
+    pixel_x: float = Field(ge=0.0)
+    pixel_y: float = Field(ge=0.0)
+    ra_deg: float = Field(ge=0.0, lt=360.0)
+    dec_deg: float = Field(ge=-90.0, le=90.0)
+
+
+class IdentificationSolutionResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    submission_id: UUID
+    solver_type: Literal["nova"] = "nova"
+    remote_processing: Literal[True] = True
+    solver_name: Literal["astrometry.net-nova"] = "astrometry.net-nova"
+    solver_version: str | None = Field(max_length=64)
+    calibration: IdentificationCalibrationResponse
+    wcs: IdentificationWcsResponse
+    annotations: tuple[IdentificationAnnotationResponse, ...] = Field(max_length=50)
+    next_cursor: str | None = Field(min_length=1, max_length=512)
+    has_more: bool

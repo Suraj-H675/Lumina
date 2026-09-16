@@ -341,6 +341,7 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/api/v1/identification/capabilities",
         "/api/v1/identification/submissions",
         "/api/v1/identification/submissions/{submission_id}",
+        "/api/v1/identification/submissions/{submission_id}/solution",
         "/api/v1/providers/status",
         "/api/v1/now/apod",
         "/api/v1/now/near-earth",

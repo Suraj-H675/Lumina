@@ -202,3 +202,24 @@ async def test_transition_waiting_for_solver_updates_ids_and_appends_history_ato
     assert history_parameters["from_state"] == "submitting"
     assert history_parameters["to_state"] == "waiting_for_solver"
     assert history_parameters["reason"] == "remote_upload_accepted"
+
+
+@pytest.mark.asyncio
+async def test_read_returns_exact_remote_record_without_claiming_it() -> None:
+    connection = _Connection([_row()])
+
+    record = await _repository(connection).read(_SUBMISSION_ID)
+
+    assert record == _base_record()
+    sql, parameters = connection.statements[1]
+    assert "FROM public.identification_remote_solve" in sql
+    assert "FOR UPDATE" not in sql
+    assert parameters == {"submission_id": _SUBMISSION_ID}
+
+
+@pytest.mark.asyncio
+async def test_read_missing_remote_state_fails_closed() -> None:
+    from lumina.identification.domain.remote_state import RemoteStateStorageFailure
+
+    with pytest.raises(RemoteStateStorageFailure):
+        await _repository(_Connection([None])).read(_SUBMISSION_ID)

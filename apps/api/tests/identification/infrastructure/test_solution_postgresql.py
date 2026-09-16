@@ -19,6 +19,7 @@ from lumina.identification.domain.solution import (
     NormalizedWcs,
     PlateAnnotation,
     PlateCalibration,
+    SolutionStorageFailure,
 )
 from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
@@ -29,18 +30,25 @@ _TOKEN = RemoteLeaseToken("d" * 64)
 
 
 class _Result:
-    def __init__(self, row: dict[str, object] | None = None) -> None:
+    def __init__(self, row: object = None) -> None:
         self._row = row
 
     def mappings(self) -> _Result:
         return self
 
     def one_or_none(self) -> dict[str, object] | None:
-        return self._row
+        if self._row is None or isinstance(self._row, dict):
+            return self._row
+        raise AssertionError("expected scalar row result")
+
+    def all(self) -> list[dict[str, object]]:
+        if isinstance(self._row, list) and all(isinstance(row, dict) for row in self._row):
+            return cast(list[dict[str, object]], self._row)
+        raise AssertionError("expected row-list result")
 
 
 class _Connection:
-    def __init__(self, rows: list[dict[str, object] | None]) -> None:
+    def __init__(self, rows: list[object]) -> None:
         self.rows = list(rows)
         self.statements: list[tuple[str, object]] = []
 
@@ -216,3 +224,75 @@ async def test_purge_is_idempotent_and_targets_only_solution_parent() -> None:
         "RETURNING submission_id"
     )
     assert purge_sql == [expected, expected]
+
+
+def _stored_solution_row() -> dict[str, object]:
+    return {
+        "coordinate_frame": "fk5_j2000",
+        "center_ra_deg": 120.0,
+        "center_dec_deg": 20.0,
+        "orientation_deg": 45.0,
+        "parity": -1,
+        "pixel_scale_arcsec_per_pixel": 1.2,
+        "radius_deg": 0.5,
+        "image_width": 1000,
+        "image_height": 800,
+        "wcs_header": "WCSAXES =                    2\nCTYPE1  = 'RA---TAN'",
+        "wcs_source_sha256": "e" * 64,
+        "solver_name": "astrometry.net-nova",
+        "solver_version": None,
+    }
+
+
+def _stored_annotation_row(ordinal: int) -> dict[str, object]:
+    return {
+        "ordinal": ordinal,
+        "category": "ngc",
+        "names": [f"NGC {ordinal + 1}"],
+        "pixel_x": 10.0 + ordinal,
+        "pixel_y": 20.0 + ordinal,
+        "ra_deg": 119.99,
+        "dec_deg": 20.01,
+    }
+
+
+@pytest.mark.asyncio
+async def test_read_slice_is_ordered_bounded_and_reconstructs_normalized_science() -> None:
+    connection = _Connection(
+        [_stored_solution_row(), [_stored_annotation_row(4), _stored_annotation_row(5)]]
+    )
+
+    result = await _repository(connection).read_slice(
+        _SUBMISSION_ID,
+        after_ordinal=3,
+        limit=51,
+    )
+
+    assert result.calibration.center_ra_deg == 120.0
+    assert result.wcs.frame is AstrometricFrame.FK5_J2000
+    assert result.wcs.source_sha256 == "e" * 64
+    assert result.annotation_ordinals == (4, 5)
+    assert [annotation.names for annotation in result.annotations] == [("NGC 5",), ("NGC 6",)]
+    assert result.solver_name == "astrometry.net-nova"
+    assert result.solver_version is None
+
+    solution_sql, solution_parameters = connection.statements[1]
+    assert "FROM public.identification_solution" in solution_sql
+    assert solution_parameters == {"submission_id": _SUBMISSION_ID}
+    annotation_sql, annotation_parameters = connection.statements[2]
+    assert "ORDER BY ordinal ASC LIMIT :limit" in annotation_sql
+    assert annotation_parameters == {
+        "submission_id": _SUBMISSION_ID,
+        "after_ordinal": 3,
+        "limit": 51,
+    }
+
+
+@pytest.mark.asyncio
+async def test_read_slice_missing_solution_fails_closed() -> None:
+    with pytest.raises(SolutionStorageFailure):
+        await _repository(_Connection([None])).read_slice(
+            _SUBMISSION_ID,
+            after_ordinal=None,
+            limit=51,
+        )

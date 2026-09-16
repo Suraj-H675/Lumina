@@ -5,7 +5,11 @@ from __future__ import annotations
 from uuid import UUID
 
 import pytest
+from lumina.identification.domain.remote_state import RemoteSolveState
+from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRemoteSolveRepository
+from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
 from lumina.settings import IntegrationTestSettings
+from lumina.shared.infrastructure.database.runtime import create_database_runtime
 from sqlalchemy import URL, Connection, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError, ProgrammingError
@@ -80,6 +84,44 @@ def _seed_fetching_result(settings: IntegrationTestSettings) -> None:
                     "(:id, 'nova', 'fetching_results', 101, 201, CURRENT_TIMESTAMP, "
                     "CURRENT_TIMESTAMP + interval '15 minutes', CURRENT_TIMESTAMP, "
                     "CURRENT_TIMESTAMP)"
+                ),
+                {"id": _SUBMISSION_ID},
+            )
+
+    run_migration_operation(_sync_url(settings), operation)
+
+
+def _seed_succeeded_solution(settings: IntegrationTestSettings) -> None:
+    _seed_fetching_result(settings)
+
+    def operation(connection: Connection) -> None:
+        with connection.begin():
+            connection.execute(
+                text(
+                    "INSERT INTO public.identification_solution "
+                    "(submission_id, external_job_id, provider, coordinate_frame, center_ra_deg, "
+                    "center_dec_deg, orientation_deg, parity, pixel_scale_arcsec_per_pixel, "
+                    "radius_deg, image_width, image_height, wcs_header, wcs_source_sha256, "
+                    "solver_name, solver_version) VALUES "
+                    "(:id, 201, 'nova', 'fk5_j2000', 120, 20, 45, -1, 1.2, 0.5, 32, 32, "
+                    "'WCSAXES =                    2', :sha, 'astrometry.net-nova', NULL)"
+                ),
+                {"id": _SUBMISSION_ID, "sha": "b" * 64},
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO public.identification_annotation "
+                    "(submission_id, ordinal, category, names, pixel_x, pixel_y, ra_deg, dec_deg) "
+                    "VALUES (:id, 0, 'ngc', ARRAY['NGC 1']::varchar(128)[], 10, 11, 120, 20)"
+                ),
+                {"id": _SUBMISSION_ID},
+            )
+            connection.execute(
+                text(
+                    "UPDATE public.identification_remote_solve SET state = 'succeeded', "
+                    "next_poll_at = NULL, terminal_at = CURRENT_TIMESTAMP, "
+                    "safe_reason = 'results_stored', updated_at = CURRENT_TIMESTAMP "
+                    "WHERE submission_id = :id"
                 ),
                 {"id": _SUBMISSION_ID},
             )
@@ -288,4 +330,30 @@ def test_solution_fk_and_science_checks_fail_closed(
             )
     finally:
         engine.dispose()
+        _cleanup(integration_settings)
+
+
+@pytest.mark.asyncio
+async def test_runtime_repositories_read_persisted_remote_solution_without_elevated_privileges(
+    integration_settings: IntegrationTestSettings,
+) -> None:
+    _cleanup(integration_settings)
+    _seed_succeeded_solution(integration_settings)
+    runtime = create_database_runtime(integration_settings.test_database_url)
+    try:
+        remote = PostgreSqlRemoteSolveRepository(runtime.session_factory)
+        solutions = PostgreSqlSolutionRepository(runtime.session_factory)
+
+        state = await remote.read(_SUBMISSION_ID)
+        page = await solutions.read_slice(_SUBMISSION_ID, after_ordinal=None, limit=51)
+
+        assert state.state is RemoteSolveState.SUCCEEDED
+        assert state.external_job_id is not None and state.external_job_id.value == 201
+        assert page.calibration.center_ra_deg == 120.0
+        assert page.wcs.frame.value == "fk5_j2000"
+        assert page.wcs.source_sha256 == "b" * 64
+        assert page.annotation_ordinals == (0,)
+        assert page.annotations[0].names == ("NGC 1",)
+    finally:
+        await runtime.engine.dispose()
         _cleanup(integration_settings)

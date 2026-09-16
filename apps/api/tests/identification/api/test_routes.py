@@ -16,10 +16,22 @@ from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
 from lumina.identification.api.routes import router as identification_router
 from lumina.identification.application.submissions import SubmittedIdentification
+from lumina.identification.domain.public_read import (
+    IdentificationPublicState,
+    IdentificationSolutionNotReady,
+    PublicIdentificationStatus,
+    PublicSolutionPage,
+)
+from lumina.identification.domain.solution import (
+    AstrometricFrame,
+    NormalizedWcs,
+    PlateAnnotation,
+    PlateCalibration,
+)
 from lumina.identification.domain.submissions import (
     FakeSolverResult,
+    IdentificationSolverType,
     IdentificationSubmissionState,
-    IdentificationSubmissionStatus,
     SubmissionNotFound,
     SubmissionStorageFailure,
 )
@@ -82,15 +94,27 @@ class SubmitSpy:
 
 
 @dataclass
-class StatusSpy:
-    status: IdentificationSubmissionStatus | BaseException
-    calls: list[UUID] = field(default_factory=list)
+class PublicReadSpy:
+    status_value: PublicIdentificationStatus | BaseException
+    solution_value: PublicSolutionPage | BaseException | None = None
+    status_calls: list[UUID] = field(default_factory=list)
+    solution_calls: list[tuple[UUID, object | None]] = field(default_factory=list)
 
-    async def read(self, submission_id: UUID) -> IdentificationSubmissionStatus:
-        self.calls.append(submission_id)
-        if isinstance(self.status, BaseException):
-            raise self.status
-        return self.status
+    async def status(self, submission_id: UUID) -> PublicIdentificationStatus:
+        self.status_calls.append(submission_id)
+        if isinstance(self.status_value, BaseException):
+            raise self.status_value
+        return self.status_value
+
+    async def solution(
+        self, submission_id: UUID, *, cursor: object | None = None
+    ) -> PublicSolutionPage:
+        self.solution_calls.append((submission_id, cursor))
+        if isinstance(self.solution_value, BaseException):
+            raise self.solution_value
+        if self.solution_value is None:
+            raise AssertionError("solution was not configured")
+        return self.solution_value
 
 
 @dataclass
@@ -107,34 +131,59 @@ class DeleteSpy:
 
 def _status(
     state: IdentificationSubmissionState = IdentificationSubmissionState.SUCCEEDED,
-) -> IdentificationSubmissionStatus:
+) -> PublicIdentificationStatus:
     terminal = state in {
         IdentificationSubmissionState.SUCCEEDED,
         IdentificationSubmissionState.FAILED,
         IdentificationSubmissionState.DEAD_LETTER,
     }
-    return IdentificationSubmissionStatus(
+    return PublicIdentificationStatus(
         submission_id=_SUBMISSION_ID,
         job_id=_JOB_ID,
-        state=state,
+        solver_type=IdentificationSolverType.FAKE,
+        remote_processing=False,
+        state=IdentificationPublicState(state.value),
         progress=1.0 if terminal else 0.0,
-        result=FakeSolverResult() if state is IdentificationSubmissionState.SUCCEEDED else None,
+        fake_result=(
+            FakeSolverResult() if state is IdentificationSubmissionState.SUCCEEDED else None
+        ),
         error_code="job.handler_non_retryable"
         if state
         in {IdentificationSubmissionState.FAILED, IdentificationSubmissionState.DEAD_LETTER}
         else None,
+        solution_available=False,
         created_at=_NOW,
         completed_at=_NOW if terminal else None,
         deleted_at=None,
     )
 
 
-def test_identification_routes_are_exact_and_have_no_solution_endpoint() -> None:
+def _solution() -> PublicSolutionPage:
+    return PublicSolutionPage(
+        submission_id=_SUBMISSION_ID,
+        calibration=PlateCalibration(120.0, 20.0, 45.0, -1, 1.2, 0.5),
+        wcs=NormalizedWcs(
+            AstrometricFrame.FK5_J2000,
+            "WCSAXES =                    2",
+            "e" * 64,
+            1000,
+            800,
+        ),
+        annotations=(PlateAnnotation("ngc", ("NGC 1",), 10.0, 20.0, 119.99, 20.01),),
+        solver_name="astrometry.net-nova",
+        solver_version=None,
+        next_cursor=None,
+        has_more=False,
+    )
+
+
+def test_identification_routes_are_exact_and_add_only_the_solution_read() -> None:
     routes = [route for route in identification_router.routes if isinstance(route, APIRoute)]
     assert [(route.path, route.methods) for route in routes] == [
         ("/api/v1/identification/capabilities", {"GET"}),
         ("/api/v1/identification/submissions", {"POST"}),
         ("/api/v1/identification/submissions/{submission_id}", {"GET"}),
+        ("/api/v1/identification/submissions/{submission_id}/solution", {"GET"}),
         ("/api/v1/identification/submissions/{submission_id}", {"DELETE"}),
     ]
 
@@ -289,8 +338,8 @@ def test_create_maps_only_safe_fixed_failures(
 
 def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_path: Path) -> None:
     app = _app(tmp_path)
-    service = StatusSpy(_status())
-    app.state.identification_status_service = service
+    service = PublicReadSpy(_status())
+    app.state.identification_public_read_service = service
 
     response = _request(
         app,
@@ -299,6 +348,7 @@ def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_p
     )
 
     assert response.status_code == 200
+    assert response.headers["cache-control"] == "private, no-store"
     assert response.json() == {
         "submission_id": str(_SUBMISSION_ID),
         "job_id": str(_JOB_ID),
@@ -311,6 +361,7 @@ def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_p
             "synthetic": True,
         },
         "error_code": None,
+        "solution_available": False,
         "created_at": _NOW.isoformat().replace("+00:00", "Z"),
         "completed_at": _NOW.isoformat().replace("+00:00", "Z"),
         "deleted_at": None,
@@ -318,14 +369,14 @@ def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_p
         "remote_processing": False,
         "retention_hours": 24,
     }
-    assert service.calls == [_SUBMISSION_ID]
+    assert service.status_calls == [_SUBMISSION_ID]
     for forbidden in ("filename", "sha256", "storage_object", "payload"):
         assert forbidden not in response.text.lower()
 
 
 def test_status_not_found_is_safe_and_does_not_reflect_identifier(tmp_path: Path) -> None:
     app = _app(tmp_path)
-    app.state.identification_status_service = StatusSpy(SubmissionNotFound())
+    app.state.identification_public_read_service = PublicReadSpy(SubmissionNotFound())
 
     response = _request(
         app,
@@ -364,7 +415,7 @@ def test_delete_is_idempotent_for_existing_deleted_or_missing_submission(tmp_pat
 
 def test_identification_routes_reject_query_options(tmp_path: Path) -> None:
     app = _app(tmp_path)
-    app.state.identification_status_service = StatusSpy(_status())
+    app.state.identification_public_read_service = PublicReadSpy(_status())
     response = _request(
         app,
         "GET",
@@ -372,3 +423,100 @@ def test_identification_routes_reject_query_options(tmp_path: Path) -> None:
     )
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "request.validation_failed"
+
+
+def test_solution_returns_only_normalized_bounded_science(tmp_path: Path) -> None:
+    app = _app(tmp_path)
+    service = PublicReadSpy(_status(), _solution())
+    app.state.identification_public_read_service = service
+
+    response = _request(
+        app,
+        "GET",
+        f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution",
+    )
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "private, no-store"
+    assert response.json() == {
+        "submission_id": str(_SUBMISSION_ID),
+        "solver_type": "nova",
+        "remote_processing": True,
+        "solver_name": "astrometry.net-nova",
+        "solver_version": None,
+        "calibration": {
+            "center_ra_deg": 120.0,
+            "center_dec_deg": 20.0,
+            "orientation_deg": 45.0,
+            "parity": -1,
+            "pixel_scale_arcsec_per_pixel": 1.2,
+            "radius_deg": 0.5,
+        },
+        "wcs": {
+            "coordinate_frame": "fk5_j2000",
+            "header": "WCSAXES =                    2",
+            "source_sha256": "e" * 64,
+            "image_width": 1000,
+            "image_height": 800,
+        },
+        "annotations": [
+            {
+                "category": "ngc",
+                "names": ["NGC 1"],
+                "pixel_x": 10.0,
+                "pixel_y": 20.0,
+                "ra_deg": 119.99,
+                "dec_deg": 20.01,
+            }
+        ],
+        "next_cursor": None,
+        "has_more": False,
+    }
+    assert service.solution_calls == [(_SUBMISSION_ID, None)]
+    serialized = response.text.lower()
+    for forbidden in (
+        "external_job_id",
+        "external_submission_id",
+        "filename",
+        "storage_object",
+        "api_key",
+    ):
+        assert forbidden not in serialized
+
+
+def test_solution_not_ready_is_a_safe_conflict(tmp_path: Path) -> None:
+    app = _app(tmp_path)
+    app.state.identification_public_read_service = PublicReadSpy(
+        _status(),
+        IdentificationSolutionNotReady(),
+    )
+
+    response = _request(
+        app,
+        "GET",
+        f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution",
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "identification.solution_not_available"
+
+
+def test_solution_rejects_unknown_or_duplicate_query_options(tmp_path: Path) -> None:
+    app = _app(tmp_path)
+    service = PublicReadSpy(_status(), _solution())
+    app.state.identification_public_read_service = service
+
+    unknown = _request(
+        app,
+        "GET",
+        f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution?debug=true",
+    )
+    duplicate = _request(
+        app,
+        "GET",
+        f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution?cursor=abc&cursor=def",
+    )
+
+    assert unknown.status_code == 422
+    assert duplicate.status_code == 422
+    assert service.solution_calls == []

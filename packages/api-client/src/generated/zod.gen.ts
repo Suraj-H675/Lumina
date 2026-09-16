@@ -202,6 +202,30 @@ export const zHistorySelectionReference = z.object({
 });
 
 /**
+ * IdentificationAnnotationResponse
+ */
+export const zIdentificationAnnotationResponse = z.object({
+  category: z.string().regex(/^[a-z0-9_.-]{1,32}$/),
+  dec_deg: z.number().gte(-90).lte(90),
+  names: z.array(z.string().min(1).max(128)).min(1).max(16),
+  pixel_x: z.number().gte(0),
+  pixel_y: z.number().gte(0),
+  ra_deg: z.number().gte(0).lt(360),
+});
+
+/**
+ * IdentificationCalibrationResponse
+ */
+export const zIdentificationCalibrationResponse = z.object({
+  center_dec_deg: z.number().gte(-90).lte(90),
+  center_ra_deg: z.number().gte(0).lt(360),
+  orientation_deg: z.number().gte(0).lt(360),
+  parity: z.union([z.literal(-1), z.literal(1)]),
+  pixel_scale_arcsec_per_pixel: z.number().gt(0).lte(36000),
+  radius_deg: z.number().gt(0).lte(180),
+});
+
+/**
  * IdentificationCapabilitiesResponse
  */
 export const zIdentificationCapabilitiesResponse = z.object({
@@ -231,15 +255,21 @@ export const zIdentificationCreateResponse = z.object({
 });
 
 /**
- * IdentificationSubmissionState
+ * IdentificationPublicState
  */
-export const zIdentificationSubmissionState = z.enum([
+export const zIdentificationPublicState = z.enum([
   "created",
   "queued",
   "running",
+  "submitting",
+  "waiting_for_solver",
+  "solving",
+  "fetching_results",
   "succeeded",
+  "unsolved",
   "failed",
   "dead_letter",
+  "expired",
   "deleted",
 ]);
 
@@ -250,15 +280,46 @@ export const zIdentificationStatusResponse = z.object({
   completed_at: z.iso.datetime().nullable(),
   created_at: z.iso.datetime(),
   deleted_at: z.iso.datetime().nullable(),
-  error_code: z.string().nullable(),
+  error_code: z
+    .string()
+    .regex(/^[a-z][a-z0-9_.-]{0,127}$/)
+    .nullable(),
   job_id: z.uuid().nullable(),
-  progress: z.number().gte(0).lte(1),
-  remote_processing: z.literal(false).optional().default(false),
+  progress: z.number().gte(0).lte(1).nullable(),
+  remote_processing: z.boolean(),
   result: zFakeSolverResultResponse.nullable(),
   retention_hours: z.int().gte(1).lte(168),
-  solver_type: z.literal("fake").optional().default("fake"),
-  status: zIdentificationSubmissionState,
+  solution_available: z.boolean(),
+  solver_type: z.enum(["fake", "nova"]),
+  status: zIdentificationPublicState,
   submission_id: z.uuid(),
+});
+
+/**
+ * IdentificationWcsResponse
+ */
+export const zIdentificationWcsResponse = z.object({
+  coordinate_frame: z.enum(["icrs", "fk5_j2000"]),
+  header: z.string().min(1).max(65536),
+  image_height: z.int().gte(1).lte(100000),
+  image_width: z.int().gte(1).lte(100000),
+  source_sha256: z.string().regex(/^[0-9a-f]{64}$/),
+});
+
+/**
+ * IdentificationSolutionResponse
+ */
+export const zIdentificationSolutionResponse = z.object({
+  annotations: z.array(zIdentificationAnnotationResponse).max(50),
+  calibration: zIdentificationCalibrationResponse,
+  has_more: z.boolean(),
+  next_cursor: z.string().min(1).max(512).nullable(),
+  remote_processing: z.literal(true).optional().default(true),
+  solver_name: z.literal("astrometry.net-nova").optional().default("astrometry.net-nova"),
+  solver_type: z.literal("nova").optional().default("nova"),
+  solver_version: z.string().max(64).nullable(),
+  submission_id: z.uuid(),
+  wcs: zIdentificationWcsResponse,
 });
 
 /**
@@ -1219,6 +1280,11 @@ export const zDeleteIdentificationSubmissionResponse = z.void();
  * Successful Response
  */
 export const zGetIdentificationSubmissionResponse = zIdentificationStatusResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetIdentificationSolutionResponse = zIdentificationSolutionResponse;
 
 /**
  * Successful Response

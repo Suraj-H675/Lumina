@@ -20,7 +20,9 @@ import type {
   GetNowApodData,
   GetIdentificationCapabilitiesData,
   GetIdentificationSubmissionData,
+  GetIdentificationSolutionData,
   IdentificationCapabilitiesResponse,
+  IdentificationSolutionResponse,
   IdentificationStatusResponse,
   GetNowLaunchData,
   GetNowLaunchesData,
@@ -54,6 +56,7 @@ import {
   zGetNowApodResponse,
   zGetIdentificationCapabilitiesResponse,
   zGetIdentificationSubmissionResponse,
+  zGetIdentificationSolutionResponse,
   zGetNowLaunchResponse,
   zGetNowLaunchesResponse,
   zGetNowNearEarthResponse,
@@ -143,6 +146,24 @@ export function identificationStatusEndpoint(
     method: "GET",
     path: `/api/v1/identification/submissions/${encodeURIComponent(submissionId)}`,
     validator: zGetIdentificationSubmissionResponse,
+  };
+}
+
+export const identificationSolutionTemplateEndpoint = {
+  method: "GET",
+  path: "/api/v1/identification/submissions/{submission_id}/solution" satisfies GetIdentificationSolutionData["url"],
+  validator: zGetIdentificationSolutionResponse,
+} satisfies ApiEndpoint<IdentificationSolutionResponse, GetIdentificationSolutionData["url"]>;
+
+export function identificationSolutionEndpoint(
+  submissionId: string,
+  cursor?: string | null,
+): ApiEndpoint<IdentificationSolutionResponse> {
+  const base = `/api/v1/identification/submissions/${encodeURIComponent(submissionId)}/solution`;
+  return {
+    method: "GET",
+    path: cursor == null ? base : `${base}?cursor=${encodeURIComponent(cursor)}`,
+    validator: zGetIdentificationSolutionResponse,
   };
 }
 

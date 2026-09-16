@@ -152,6 +152,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="e9f0a1b2c3d4",
         sha256="c84afca777cbd3c9e15b2ac5b6cf6715b65e0078900099fcc5aa3195b09dba18",
     ),
+    MigrationContract(
+        filename="f1b2c3d4e5f6_add_identification_provider_conditions.py",
+        revision="f1b2c3d4e5f6",
+        down_revision="f0a1b2c3d4e5",
+        sha256="1a0422abdef88cb156585060b210b38b58a27da6734e001abc1f8e708ad99289",
+    ),
 )
 
 
@@ -212,7 +218,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 22 accepted revisions, head f0a1b2c3d4e5.")
+    print("Migration integrity passed: 23 accepted revisions, head f1b2c3d4e5f6.")
     return 0
 
 

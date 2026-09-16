@@ -16,6 +16,7 @@ from lumina.identification.domain.nova import (
     NovaSession,
     NovaSubmissionId,
     NovaSubmissionSnapshot,
+    RemoteAstrometryBusy,
     RemoteAstrometryProtocolError,
     RemoteAstrometryRejected,
     RemoteAstrometryTimeout,
@@ -60,7 +61,12 @@ class RemoteSolveRepository(Protocol):
     async def mark_upload_attempt(self, claim: RemoteSolveClaim) -> RemoteFinalizationOutcome: ...
 
     async def reschedule(
-        self, claim: RemoteSolveClaim, *, poll_seconds: int, polled: bool
+        self,
+        claim: RemoteSolveClaim,
+        *,
+        poll_seconds: int,
+        polled: bool,
+        safe_reason: RemoteTransitionReason | None = None,
     ) -> RemoteFinalizationOutcome: ...
 
     async def transition(
@@ -197,6 +203,13 @@ class RemoteSolvePollingService:
             return
         try:
             submission_id = await self._solver.upload(session, raster)
+        except RemoteAstrometryBusy:
+            await self._transition(
+                claim,
+                to_state=RemoteSolveState.FAILED,
+                reason=RemoteTransitionReason.PROVIDER_BUSY,
+            )
+            return
         except RemoteAstrometryRejected:
             await self._transition(
                 claim,
@@ -232,8 +245,15 @@ class RemoteSolvePollingService:
             return
         try:
             snapshot = await self._solver.submission_status(session, submission_id)
+        except RemoteAstrometryBusy:
+            await self._reschedule(
+                claim, polled=True, safe_reason=RemoteTransitionReason.PROVIDER_BUSY
+            )
+            return
         except (RemoteAstrometryTimeout, RemoteAstrometryUnavailable):
-            await self._reschedule(claim, polled=True)
+            await self._reschedule(
+                claim, polled=True, safe_reason=RemoteTransitionReason.PROVIDER_UNAVAILABLE
+            )
             return
         except RemoteAstrometryRejected:
             await self._transition(
@@ -276,8 +296,15 @@ class RemoteSolvePollingService:
             return
         try:
             state = await self._solver.job_status(session, job_id)
+        except RemoteAstrometryBusy:
+            await self._reschedule(
+                claim, polled=True, safe_reason=RemoteTransitionReason.PROVIDER_BUSY
+            )
+            return
         except (RemoteAstrometryTimeout, RemoteAstrometryUnavailable):
-            await self._reschedule(claim, polled=True)
+            await self._reschedule(
+                claim, polled=True, safe_reason=RemoteTransitionReason.PROVIDER_UNAVAILABLE
+            )
             return
         except RemoteAstrometryRejected:
             await self._transition(
@@ -338,8 +365,15 @@ class RemoteSolvePollingService:
             calibration = await self._solver.calibration(session, job_id)
             annotations = await self._solver.annotations(session, job_id)
             wcs_bytes = await self._solver.wcs_file(job_id)
+        except RemoteAstrometryBusy:
+            await self._reschedule(
+                claim, polled=True, safe_reason=RemoteTransitionReason.PROVIDER_BUSY
+            )
+            return
         except (RemoteAstrometryTimeout, RemoteAstrometryUnavailable):
-            await self._reschedule(claim, polled=True)
+            await self._reschedule(
+                claim, polled=True, safe_reason=RemoteTransitionReason.PROVIDER_UNAVAILABLE
+            )
             return
         except RemoteAstrometryRejected:
             await self._transition(
@@ -463,8 +497,15 @@ class RemoteSolvePollingService:
     async def _login_or_reschedule(self, claim: RemoteSolveClaim) -> NovaSession | None:
         try:
             return await self._solver.login()
+        except RemoteAstrometryBusy:
+            await self._reschedule(
+                claim, polled=False, safe_reason=RemoteTransitionReason.PROVIDER_BUSY
+            )
+            return None
         except (RemoteAstrometryTimeout, RemoteAstrometryUnavailable):
-            await self._reschedule(claim, polled=False)
+            await self._reschedule(
+                claim, polled=False, safe_reason=RemoteTransitionReason.PROVIDER_UNAVAILABLE
+            )
             return None
         except RemoteAstrometryRejected:
             await self._transition(
@@ -481,12 +522,19 @@ class RemoteSolvePollingService:
             )
             return None
 
-    async def _reschedule(self, claim: RemoteSolveClaim, *, polled: bool) -> None:
+    async def _reschedule(
+        self,
+        claim: RemoteSolveClaim,
+        *,
+        polled: bool,
+        safe_reason: RemoteTransitionReason | None = None,
+    ) -> None:
         try:
             await self._repository.reschedule(
                 claim,
                 poll_seconds=self._poll_seconds,
                 polled=polled,
+                safe_reason=safe_reason,
             )
         except RemoteStateStorageFailure:
             raise RemotePollingFailure() from None

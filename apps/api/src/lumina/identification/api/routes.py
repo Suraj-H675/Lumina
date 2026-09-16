@@ -260,6 +260,7 @@ async def get_identification_submission(
         status=status.state,
         progress=status.progress,
         result=result,
+        remote_condition=status.remote_condition,
         error_code=status.error_code,
         solution_available=status.solution_available,
         created_at=status.created_at,

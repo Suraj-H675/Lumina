@@ -13,6 +13,7 @@ from lumina.identification.domain.nova import (
     NovaJobState,
     NovaSession,
     NovaSubmissionId,
+    RemoteAstrometryBusy,
     RemoteAstrometryProtocolError,
     RemoteAstrometryRejected,
     RemoteAstrometryTimeout,
@@ -212,8 +213,23 @@ async def test_http_client_rejection_is_safe_and_body_is_not_reflected(status: i
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("status", [429, 500, 503])
-async def test_capacity_and_provider_outage_map_to_safe_unavailable(status: int) -> None:
+async def test_capacity_maps_to_safe_busy_without_provider_detail() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            429,
+            headers={"content-type": "application/json"},
+            json={"status": "error", "errormessage": "private provider detail"},
+            request=request,
+        )
+
+    with pytest.raises(RemoteAstrometryBusy) as captured:
+        await _adapter(handler).login()
+    assert "private provider detail" not in repr(captured.value)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [500, 503])
+async def test_provider_outage_maps_to_safe_unavailable(status: int) -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(
             status,

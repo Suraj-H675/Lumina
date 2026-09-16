@@ -8,6 +8,7 @@ type NeowsStubMode = "fresh" | "stale" | "unavailable";
 type LaunchStubMode = "fresh" | "stale" | "unavailable";
 type SatelliteStubMode = "fresh" | "stale" | "unavailable";
 type IdentificationStubMode = "fake" | "nova";
+type IdentificationStubCondition = "none" | "busy" | "unavailable";
 
 type Coordination = Readonly<{
   apiOrigin: string;
@@ -108,6 +109,23 @@ export async function setIdentificationStubMode(
   const control = await coordination(testInfo);
   const response = await fetch(`${control.apiOrigin}/__control/identification-mode`, {
     body: JSON.stringify({ mode }),
+    headers: {
+      Authorization: `Bearer ${control.token}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+  expect(response.status).toBe(200);
+  await response.body?.cancel();
+}
+
+export async function setIdentificationStubCondition(
+  testInfo: TestInfo,
+  condition: IdentificationStubCondition,
+): Promise<void> {
+  const control = await coordination(testInfo);
+  const response = await fetch(`${control.apiOrigin}/__control/identification-condition`, {
+    body: JSON.stringify({ condition }),
     headers: {
       Authorization: `Bearer ${control.token}`,
       "Content-Type": "application/json",

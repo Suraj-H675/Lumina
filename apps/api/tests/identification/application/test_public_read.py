@@ -10,6 +10,7 @@ from lumina.identification.application.public_read import IdentificationPublicRe
 from lumina.identification.domain.nova import NovaJobId, NovaSubmissionId
 from lumina.identification.domain.public_read import (
     IdentificationPublicState,
+    IdentificationRemoteCondition,
     IdentificationSolutionNotReady,
     StoredSolutionSlice,
     decode_solution_cursor,
@@ -73,14 +74,18 @@ def _fake_status() -> IdentificationSubmissionStatus:
     )
 
 
-def _remote(state: RemoteSolveState = RemoteSolveState.SUCCEEDED) -> RemoteSolveRecord:
+def _remote(
+    state: RemoteSolveState = RemoteSolveState.SUCCEEDED,
+    *,
+    safe_reason: RemoteTransitionReason | None = None,
+) -> RemoteSolveRecord:
     terminal = state in {
         RemoteSolveState.SUCCEEDED,
         RemoteSolveState.UNSOLVED,
         RemoteSolveState.FAILED,
         RemoteSolveState.EXPIRED,
     }
-    reason = {
+    reason = safe_reason or {
         RemoteSolveState.SUCCEEDED: RemoteTransitionReason.RESULTS_STORED,
         RemoteSolveState.UNSOLVED: RemoteTransitionReason.NO_ASTROMETRIC_SOLUTION,
         RemoteSolveState.FAILED: RemoteTransitionReason.PROVIDER_REJECTED,
@@ -188,6 +193,53 @@ async def test_nova_status_uses_stage_without_inventing_job_or_progress() -> Non
     assert result.state is IdentificationPublicState.SUCCEEDED
     assert result.job_id is None and result.progress is None
     assert result.remote_processing and result.solution_available
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("reason", "condition"),
+    [
+        (RemoteTransitionReason.PROVIDER_BUSY, IdentificationRemoteCondition.PROVIDER_BUSY),
+        (
+            RemoteTransitionReason.PROVIDER_UNAVAILABLE,
+            IdentificationRemoteCondition.PROVIDER_UNAVAILABLE,
+        ),
+    ],
+)
+async def test_nova_pollable_status_exposes_only_redacted_provider_condition(
+    reason: RemoteTransitionReason,
+    condition: IdentificationRemoteCondition,
+) -> None:
+    service = IdentificationPublicReadService(
+        SubmissionReader(_submission(IdentificationSolverType.NOVA)),
+        RemoteReader(_remote(RemoteSolveState.SOLVING, safe_reason=reason)),
+        SolutionReader(_slice(0)),
+    )
+
+    result = await service.status(_SUBMISSION_ID)
+
+    assert result.state is IdentificationPublicState.SOLVING
+    assert result.remote_condition is condition
+    assert result.error_code is None
+    assert result.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_nova_upload_capacity_failure_is_public_safe_and_terminal() -> None:
+    service = IdentificationPublicReadService(
+        SubmissionReader(_submission(IdentificationSolverType.NOVA)),
+        RemoteReader(
+            _remote(RemoteSolveState.FAILED, safe_reason=RemoteTransitionReason.PROVIDER_BUSY)
+        ),
+        SolutionReader(_slice(0)),
+    )
+
+    result = await service.status(_SUBMISSION_ID)
+
+    assert result.state is IdentificationPublicState.FAILED
+    assert result.remote_condition is IdentificationRemoteCondition.PROVIDER_BUSY
+    assert result.error_code == "provider_busy"
+    assert result.completed_at == _NOW
 
 
 @pytest.mark.asyncio

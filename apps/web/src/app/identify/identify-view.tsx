@@ -515,6 +515,29 @@ function StatusPanel({
               <strong>Progress:</strong> {Math.round(status.progress * 100)}%
             </p>
           )}
+          {status.solver_type === "nova" && status.remote_condition === "provider_unavailable" ? (
+            <p role="status">
+              Astrometry.net is temporarily unavailable. Lumina will retry within this solve&apos;s
+              bounded timeout; no new upload or consent is required.
+            </p>
+          ) : null}
+          {status.solver_type === "nova" &&
+          status.remote_condition === "provider_busy" &&
+          status.status !== "failed" ? (
+            <p role="status">
+              Astrometry.net is currently at capacity. Lumina will retry within this solve&apos;s
+              bounded timeout; no new upload or consent is required.
+            </p>
+          ) : null}
+          {status.solver_type === "nova" &&
+          status.remote_condition === "provider_busy" &&
+          status.status === "failed" ? (
+            <p role="alert">
+              Astrometry.net returned a capacity response after Lumina&apos;s single upload attempt.
+              Lumina did not automatically resubmit because the remote outcome cannot be safely
+              assumed; try again later if you want another solve.
+            </p>
+          ) : null}
           {status.status === "succeeded" ? (
             status.solver_type === "nova" ? (
               <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
@@ -547,7 +570,8 @@ function StatusPanel({
               The remote solve did not finish within Lumina&apos;s configured timeout.
             </p>
           ) : null}
-          {status.status === "failed" || status.status === "dead_letter" ? (
+          {(status.status === "failed" || status.status === "dead_letter") &&
+          status.remote_condition !== "provider_busy" ? (
             <p role="alert">
               {status.solver_type === "nova"
                 ? "The remote plate-solving workflow could not complete safely."

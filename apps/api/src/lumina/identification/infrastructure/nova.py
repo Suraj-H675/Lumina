@@ -18,6 +18,7 @@ from lumina.identification.domain.nova import (
     NovaSession,
     NovaSubmissionId,
     NovaSubmissionSnapshot,
+    RemoteAstrometryBusy,
     RemoteAstrometryProtocolError,
     RemoteAstrometryRejected,
     RemoteAstrometryTimeout,
@@ -213,7 +214,9 @@ class RemoteNovaAdapter:
             raise RemoteAstrometryTimeout() from None
         except (httpx.NetworkError, httpx.RemoteProtocolError, httpx.HTTPError, OSError):
             raise RemoteAstrometryUnavailable() from None
-        if response.status_code == 429 or 500 <= response.status_code <= 599:
+        if response.status_code == 429:
+            raise RemoteAstrometryBusy()
+        if 500 <= response.status_code <= 599:
             raise RemoteAstrometryUnavailable()
         if not 200 <= response.status_code <= 299:
             raise RemoteAstrometryRejected()
@@ -264,7 +267,9 @@ class RemoteNovaAdapter:
         except (httpx.NetworkError, httpx.RemoteProtocolError, httpx.HTTPError, OSError):
             raise RemoteAstrometryUnavailable() from None
 
-        if response.status_code == 429 or 500 <= response.status_code <= 599:
+        if response.status_code == 429:
+            raise RemoteAstrometryBusy()
+        if 500 <= response.status_code <= 599:
             raise RemoteAstrometryUnavailable()
         if not 200 <= response.status_code <= 299:
             raise RemoteAstrometryRejected()

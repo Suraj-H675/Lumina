@@ -19,6 +19,7 @@ from lumina.identification.domain.nova import (
     NovaSession,
     NovaSubmissionId,
     NovaSubmissionSnapshot,
+    RemoteAstrometryBusy,
     RemoteAstrometryTimeout,
     RemoteAstrometryUnavailable,
 )
@@ -149,9 +150,14 @@ class FakeRemoteRepository:
         return RemoteFinalizationOutcome.APPLIED
 
     async def reschedule(
-        self, claim: RemoteSolveClaim, *, poll_seconds: int, polled: bool
+        self,
+        claim: RemoteSolveClaim,
+        *,
+        poll_seconds: int,
+        polled: bool,
+        safe_reason: RemoteTransitionReason | None = None,
     ) -> RemoteFinalizationOutcome:
-        self.events.append(("reschedule", (claim.record.state, poll_seconds, polled)))
+        self.events.append(("reschedule", (claim.record.state, poll_seconds, polled, safe_reason)))
         return RemoteFinalizationOutcome.APPLIED
 
     async def transition(
@@ -331,7 +337,29 @@ async def test_login_outage_reschedules_before_upload_attempt_marker() -> None:
 
     assert await _service(repository, nova, content).advance() == 1
     assert nova.events == ["login"]
-    assert [name for name, _ in repository.events] == ["claim", "reschedule"]
+    assert repository.events[-1] == (
+        "reschedule",
+        (
+            RemoteSolveState.SUBMITTING,
+            5,
+            False,
+            RemoteTransitionReason.PROVIDER_UNAVAILABLE,
+        ),
+    )
+
+
+@pytest.mark.asyncio
+async def test_login_capacity_reschedules_as_provider_busy_before_upload_marker() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(_claim(_record(RemoteSolveState.SUBMITTING)))
+    nova = FakeNova(login_error=RemoteAstrometryBusy())
+
+    assert await _service(repository, nova, content).advance() == 1
+    assert nova.events == ["login"]
+    assert repository.events[-1] == (
+        "reschedule",
+        (RemoteSolveState.SUBMITTING, 5, False, RemoteTransitionReason.PROVIDER_BUSY),
+    )
 
 
 @pytest.mark.asyncio
@@ -351,6 +379,21 @@ async def test_successful_submit_strips_metadata_marks_once_then_waits() -> None
         RemoteTransitionReason.REMOTE_UPLOAD_ACCEPTED,
         5,
         NovaSubmissionId(101),
+    )
+
+
+@pytest.mark.asyncio
+async def test_upload_capacity_after_marker_is_definite_provider_busy_failure() -> None:
+    content = _png_with_metadata()
+    repository = FakeRemoteRepository(_claim(_record(RemoteSolveState.SUBMITTING)))
+    nova = FakeNova(upload_error=RemoteAstrometryBusy())
+
+    assert await _service(repository, nova, content).advance() == 1
+    assert nova.events == ["login", "upload"]
+    transition = repository.events[-1][1]
+    assert transition[0:2] == (  # type: ignore[index]
+        RemoteSolveState.FAILED,
+        RemoteTransitionReason.PROVIDER_BUSY,
     )
 
 
@@ -387,7 +430,7 @@ async def test_waiting_submission_without_job_reschedules_as_polled() -> None:
     assert nova.events == ["login", "submission-status"]
     assert repository.events[-1] == (
         "reschedule",
-        (RemoteSolveState.WAITING_FOR_SOLVER, 5, True),
+        (RemoteSolveState.WAITING_FOR_SOLVER, 5, True, None),
     )
 
 
@@ -562,7 +605,7 @@ async def test_fetching_result_outage_is_retryable_without_terminal_transition()
     assert finalizer.stored is None
     assert repository.events[-1] == (
         "reschedule",
-        (RemoteSolveState.FETCHING_RESULTS, 5, True),
+        (RemoteSolveState.FETCHING_RESULTS, 5, True, RemoteTransitionReason.PROVIDER_UNAVAILABLE),
     )
 
 

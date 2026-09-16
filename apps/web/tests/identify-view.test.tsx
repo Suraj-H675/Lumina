@@ -216,6 +216,7 @@ describe("Phase 6A identify consent and deletion flow", () => {
         error_code: "identification.remote_failed",
         job_id: null,
         progress: null,
+        remote_condition: null,
         remote_processing: true,
         result: null,
         retention_hours: 24,
@@ -247,6 +248,108 @@ describe("Phase 6A identify consent and deletion flow", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows a bounded retry state when Nova is temporarily unavailable", async () => {
+    fake.create.mockResolvedValue({
+      data: {
+        job_id: null,
+        remote_processing: true,
+        retention_hours: 24,
+        solver_type: "nova",
+        status: "submitting",
+        submission_id: submissionId,
+      },
+      kind: "ok",
+      status: 202,
+    });
+    fake.request.mockResolvedValue({
+      data: {
+        completed_at: null,
+        created_at: "2026-09-16T12:00:00Z",
+        deleted_at: null,
+        error_code: null,
+        job_id: null,
+        progress: null,
+        remote_condition: "provider_unavailable",
+        remote_processing: true,
+        result: null,
+        retention_hours: 24,
+        solution_available: false,
+        solver_type: "nova",
+        status: "solving",
+        submission_id: submissionId,
+      },
+      kind: "ok",
+      status: 200,
+    });
+    const user = userEvent.setup();
+    const view = render(
+      <IdentifyView apiOrigin="http://127.0.0.1:8000" capabilities={remoteCapabilities} />,
+    );
+
+    await user.upload(
+      screen.getByLabelText("JPEG or PNG image"),
+      new File(["private"], "night.png", { type: "image/png" }),
+    );
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Start remote plate solve" }));
+
+    await waitFor(() => expect(fake.request).toHaveBeenCalledOnce(), { timeout: 2_500 });
+    expect(screen.getByText(/Astrometry.net is temporarily unavailable/i)).toBeVisible();
+    expect(screen.getByText(/no new upload or consent is required/i)).toBeVisible();
+    expect(fake.solution).not.toHaveBeenCalled();
+    view.unmount();
+  });
+
+  it("shows capacity without claiming the remote upload outcome", async () => {
+    fake.create.mockResolvedValue({
+      data: {
+        job_id: null,
+        remote_processing: true,
+        retention_hours: 24,
+        solver_type: "nova",
+        status: "submitting",
+        submission_id: submissionId,
+      },
+      kind: "ok",
+      status: 202,
+    });
+    fake.request.mockResolvedValue({
+      data: {
+        completed_at: "2026-09-16T12:00:01Z",
+        created_at: "2026-09-16T12:00:00Z",
+        deleted_at: null,
+        error_code: "provider_busy",
+        job_id: null,
+        progress: null,
+        remote_condition: "provider_busy",
+        remote_processing: true,
+        result: null,
+        retention_hours: 24,
+        solution_available: false,
+        solver_type: "nova",
+        status: "failed",
+        submission_id: submissionId,
+      },
+      kind: "ok",
+      status: 200,
+    });
+    const user = userEvent.setup();
+    render(<IdentifyView apiOrigin="http://127.0.0.1:8000" capabilities={remoteCapabilities} />);
+
+    await user.upload(
+      screen.getByLabelText("JPEG or PNG image"),
+      new File(["private"], "night.png", { type: "image/png" }),
+    );
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Start remote plate solve" }));
+
+    await waitFor(() => expect(fake.request).toHaveBeenCalledOnce(), { timeout: 2_500 });
+    expect(screen.getByText(/returned a capacity response/i)).toBeVisible();
+    expect(screen.getByText(/remote outcome cannot be safely assumed/i)).toBeVisible();
+    expect(screen.queryByText(/workflow could not complete safely/i)).not.toBeInTheDocument();
+    expect(fake.solution).not.toHaveBeenCalled();
+  });
+
   it("loads the normalized Nova solution, paginates annotations, and revokes the local preview on deletion", async () => {
     fake.create.mockResolvedValue({
       data: {
@@ -268,6 +371,7 @@ describe("Phase 6A identify consent and deletion flow", () => {
         error_code: null,
         job_id: null,
         progress: null,
+        remote_condition: null,
         remote_processing: true,
         result: null,
         retention_hours: 24,
@@ -372,6 +476,7 @@ describe("Phase 6A identify consent and deletion flow", () => {
         error_code: null,
         job_id: null,
         progress: null,
+        remote_condition: null,
         remote_processing: true,
         result: null,
         retention_hours: 24,
@@ -462,6 +567,7 @@ describe("Phase 6A identify consent and deletion flow", () => {
         error_code: null,
         job_id: jobId,
         progress: 1,
+        remote_condition: null,
         remote_processing: false,
         result: {
           outcome: "fixture_solved",

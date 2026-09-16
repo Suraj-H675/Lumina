@@ -13,7 +13,7 @@ from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import run_migration_operation
 
-_HEAD = "f0a1b2c3d4e5"
+_HEAD = "f1b2c3d4e5f6"
 _REMOTE = "identification_remote_solve"
 _TRANSITION = "identification_remote_transition"
 _FAKE_ID = UUID("63000000-0000-4000-8000-000000000001")
@@ -141,6 +141,23 @@ def test_remote_state_schema_and_acl_are_exact(
             "ck_identification_remote_transition_shape",
             "ck_identification_remote_transition_reason",
         }
+        constraint_definitions: dict[str, str] = {
+            str(row[0]): str(row[1])
+            for row in connection.execute(
+                text(
+                    "SELECT conname, pg_get_constraintdef(oid, true) FROM pg_constraint "
+                    "WHERE (conrelid = 'public.identification_remote_solve'::regclass "
+                    "AND conname = 'ck_identification_remote_solve_lifecycle_shape') OR "
+                    "(conrelid = 'public.identification_remote_transition'::regclass "
+                    "AND conname = 'ck_identification_remote_transition_reason')"
+                )
+            ).all()
+        }
+        lifecycle = constraint_definitions["ck_identification_remote_solve_lifecycle_shape"]
+        transition_reason = constraint_definitions["ck_identification_remote_transition_reason"]
+        assert "provider_busy" in lifecycle and "provider_unavailable" in lifecycle
+        assert "provider_busy" in transition_reason
+        assert "provider_unavailable" not in transition_reason
         assert connection.execute(
             text(
                 "SELECT has_table_privilege(:role, 'public.identification_remote_solve', 'SELECT')"
@@ -243,6 +260,60 @@ def test_runtime_cannot_bypass_remote_consent_or_delete_remote_evidence(
                     "INSERT INTO public.identification_remote_transition "
                     "(event_id, submission_id, from_state, to_state, reason, recorded_at) VALUES "
                     "(:event, :id, 'submitting', 'failed', 'made_up_reason', CURRENT_TIMESTAMP)"
+                ),
+                {"event": uuid4(), "id": _NOVA_ID},
+            )
+
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE public.identification_remote_solve SET safe_reason = 'provider_busy' "
+                    "WHERE submission_id = :id"
+                ),
+                {"id": _NOVA_ID},
+            )
+            assert (
+                connection.execute(
+                    text(
+                        "SELECT safe_reason FROM public.identification_remote_solve "
+                        "WHERE submission_id = :id"
+                    ),
+                    {"id": _NOVA_ID},
+                ).scalar_one()
+                == "provider_busy"
+            )
+            connection.execute(
+                text(
+                    "UPDATE public.identification_remote_solve SET safe_reason = NULL "
+                    "WHERE submission_id = :id"
+                ),
+                {"id": _NOVA_ID},
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO public.identification_remote_transition "
+                    "(event_id, submission_id, from_state, to_state, reason, recorded_at) VALUES "
+                    "(:event, :id, 'submitting', 'failed', 'provider_busy', CURRENT_TIMESTAMP)"
+                ),
+                {"event": uuid4(), "id": _NOVA_ID},
+            )
+
+        with pytest.raises(IntegrityError), engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE public.identification_remote_solve SET "
+                    "safe_reason = 'provider_rejected' WHERE submission_id = :id"
+                ),
+                {"id": _NOVA_ID},
+            )
+
+        with pytest.raises(IntegrityError), engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO public.identification_remote_transition "
+                    "(event_id, submission_id, from_state, to_state, reason, recorded_at) VALUES "
+                    "(:event, :id, 'submitting', 'failed', 'provider_unavailable', "
+                    "CURRENT_TIMESTAMP)"
                 ),
                 {"event": uuid4(), "id": _NOVA_ID},
             )

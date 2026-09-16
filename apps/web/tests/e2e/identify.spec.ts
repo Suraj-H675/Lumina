@@ -1,7 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { setIdentificationStubMode } from "./support/status-stub-control";
+import {
+  setIdentificationStubCondition,
+  setIdentificationStubMode,
+} from "./support/status-stub-control";
 
 const jobId = "72000000-0000-4000-8000-000000000001";
 
@@ -81,6 +84,37 @@ test.describe("Phase 6 — private identification", () => {
     await expect(page.getByRole("status", { name: "Temporary submission deleted" })).toBeVisible();
 
     expect(remoteRequests).toEqual([]);
+  });
+
+  test("shows truthful Nova capacity and outage states without browser-direct provider traffic", async ({
+    page,
+  }, testInfo) => {
+    await setIdentificationStubMode(testInfo, "nova");
+    await setIdentificationStubCondition(testInfo, "busy");
+    const novaBrowserRequests: string[] = [];
+    const solutionRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.hostname === "nova.astrometry.net") novaBrowserRequests.push(request.url());
+      if (/\/api\/v1\/identification\/submissions\/[0-9a-f-]{36}\/solution$/u.test(url.pathname)) {
+        solutionRequests.push(request.url());
+      }
+    });
+
+    await page.goto("/identify");
+    await page.getByLabel("JPEG or PNG image").setInputFiles(image);
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Start remote plate solve" }).click();
+
+    await expect(page.getByText(/Astrometry.net is currently at capacity/i)).toBeVisible({
+      timeout: 4_000,
+    });
+    await setIdentificationStubCondition(testInfo, "unavailable");
+    await expect(page.getByText(/Astrometry.net is temporarily unavailable/i)).toBeVisible({
+      timeout: 4_000,
+    });
+    expect(solutionRequests).toEqual([]);
+    expect(novaBrowserRequests).toEqual([]);
   });
 
   test("requires explicit Nova consent and keeps provider identifiers private", async ({

@@ -170,6 +170,7 @@ def _status(
         fake_result=(
             FakeSolverResult() if state is IdentificationSubmissionState.SUCCEEDED else None
         ),
+        remote_condition=None,
         error_code="job.handler_non_retryable"
         if state
         in {IdentificationSubmissionState.FAILED, IdentificationSubmissionState.DEAD_LETTER}
@@ -462,6 +463,7 @@ def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_p
             "solver_version": "phase6a-fixture-v1",
             "synthetic": True,
         },
+        "remote_condition": None,
         "error_code": None,
         "solution_available": False,
         "created_at": _NOW.isoformat().replace("+00:00", "Z"),
@@ -483,6 +485,7 @@ def test_status_schema_rejects_cross_solver_mode_mixtures() -> None:
         "status": "queued",
         "progress": 0.0,
         "result": None,
+        "remote_condition": None,
         "error_code": None,
         "solution_available": False,
         "created_at": _NOW,

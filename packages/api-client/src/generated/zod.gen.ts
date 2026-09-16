@@ -274,6 +274,11 @@ export const zIdentificationPublicState = z.enum([
 ]);
 
 /**
+ * IdentificationRemoteCondition
+ */
+export const zIdentificationRemoteCondition = z.enum(["provider_busy", "provider_unavailable"]);
+
+/**
  * IdentificationStatusResponse
  */
 export const zIdentificationStatusResponse = z.object({
@@ -286,6 +291,7 @@ export const zIdentificationStatusResponse = z.object({
     .nullable(),
   job_id: z.uuid().nullable(),
   progress: z.number().gte(0).lte(1).nullable(),
+  remote_condition: zIdentificationRemoteCondition.nullable(),
   remote_processing: z.boolean(),
   result: zFakeSolverResultResponse.nullable(),
   retention_hours: z.int().gte(1).lte(168),

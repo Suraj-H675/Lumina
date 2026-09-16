@@ -939,6 +939,14 @@
         "title": "IdentificationPublicState",
         "type": "string"
       },
+      "IdentificationRemoteCondition": {
+        "enum": [
+          "provider_busy",
+          "provider_unavailable"
+        ],
+        "title": "IdentificationRemoteCondition",
+        "type": "string"
+      },
       "IdentificationSolutionResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1090,6 +1098,16 @@
             ],
             "title": "Progress"
           },
+          "remote_condition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IdentificationRemoteCondition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "remote_processing": {
             "title": "Remote Processing",
             "type": "boolean"
@@ -1137,6 +1155,7 @@
           "status",
           "progress",
           "result",
+          "remote_condition",
           "error_code",
           "solution_available",
           "created_at",

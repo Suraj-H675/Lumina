@@ -163,6 +163,42 @@ def test_record_shape_keeps_pollable_fetching_and_terminal_states_distinct() -> 
     assert unsolved.pollable is False
 
 
+def test_pollable_provider_conditions_are_bounded_and_terminal_reasons_stay_exact() -> None:
+    busy = _record(
+        RemoteSolveState.SUBMITTING,
+        safe_reason=RemoteTransitionReason.PROVIDER_BUSY,
+    )
+    unavailable = _record(
+        RemoteSolveState.SUBMITTING,
+        safe_reason=RemoteTransitionReason.PROVIDER_UNAVAILABLE,
+    )
+    assert busy.safe_reason is RemoteTransitionReason.PROVIDER_BUSY
+    assert unavailable.safe_reason is RemoteTransitionReason.PROVIDER_UNAVAILABLE
+
+    for invalid_reason in (
+        RemoteTransitionReason.PROVIDER_REJECTED,
+        RemoteTransitionReason.SOLVER_TIMEOUT,
+    ):
+        with pytest.raises(RemoteStateValidationError):
+            _record(RemoteSolveState.SUBMITTING, safe_reason=invalid_reason)
+
+    with pytest.raises(RemoteStateValidationError):
+        _record(
+            RemoteSolveState.EXPIRED,
+            next_poll_at=None,
+            terminal_at=_NOW + timedelta(minutes=2),
+            safe_reason=RemoteTransitionReason.PROVIDER_BUSY,
+        )
+
+    failed = _record(
+        RemoteSolveState.FAILED,
+        next_poll_at=None,
+        terminal_at=_NOW + timedelta(minutes=2),
+        safe_reason=RemoteTransitionReason.PROVIDER_BUSY,
+    )
+    assert failed.safe_reason is RemoteTransitionReason.PROVIDER_BUSY
+
+
 def test_record_rejects_cross_state_remote_id_and_terminal_shape_confusion() -> None:
     invalid = (
         dict(

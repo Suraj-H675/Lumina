@@ -85,6 +85,7 @@ def _row(
     upload_attempted_at: datetime | None = None,
     external_submission_id: int | None = None,
     external_job_id: int | None = None,
+    safe_reason: RemoteTransitionReason | None = None,
 ) -> dict[str, object]:
     return {
         "submission_id": _SUBMISSION_ID,
@@ -96,7 +97,7 @@ def _row(
         "last_polled_at": None,
         "upload_attempted_at": upload_attempted_at,
         "terminal_at": None,
-        "safe_reason": None,
+        "safe_reason": None if safe_reason is None else safe_reason.value,
         "created_at": _NOW,
         "updated_at": _NOW,
         "database_claimed_at": _NOW,
@@ -223,3 +224,46 @@ async def test_read_missing_remote_state_fails_closed() -> None:
 
     with pytest.raises(RemoteStateStorageFailure):
         await _repository(_Connection([None])).read(_SUBMISSION_ID)
+
+
+@pytest.mark.asyncio
+async def test_reschedule_binds_only_public_safe_transient_provider_condition() -> None:
+    connection = _Connection([{"submission_id": _SUBMISSION_ID}])
+    outcome = await _repository(connection).reschedule(
+        _claim(),
+        poll_seconds=5,
+        polled=False,
+        safe_reason=RemoteTransitionReason.PROVIDER_BUSY,
+    )
+
+    assert outcome is RemoteFinalizationOutcome.APPLIED
+    sql, parameters = connection.statements[1]
+    assert "safe_reason = :safe_reason" in sql
+    assert parameters == {
+        "submission_id": _SUBMISSION_ID,
+        "state": "submitting",
+        "lease_token": "a" * 64,
+        "poll_seconds": 5,
+        "polled": False,
+        "safe_reason": "provider_busy",
+    }
+
+    clear_connection = _Connection([{"submission_id": _SUBMISSION_ID}])
+    assert (
+        await _repository(clear_connection).reschedule(
+            _claim(), poll_seconds=5, polled=True, safe_reason=None
+        )
+        is RemoteFinalizationOutcome.APPLIED
+    )
+    assert clear_connection.statements[1][1] is not None
+    assert clear_connection.statements[1][1]["safe_reason"] is None
+
+    from lumina.identification.domain.remote_state import RemoteStateStorageFailure
+
+    with pytest.raises(RemoteStateStorageFailure):
+        await _repository(_Connection([])).reschedule(
+            _claim(),
+            poll_seconds=5,
+            polled=False,
+            safe_reason=RemoteTransitionReason.PROVIDER_REJECTED,
+        )

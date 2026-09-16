@@ -31,6 +31,8 @@ class RemoteTransitionReason(StrEnum):
     REMOTE_JOB_RESOLVED = "remote_job_resolved"
     REMOTE_JOB_SUCCEEDED = "remote_job_succeeded"
     NO_ASTROMETRIC_SOLUTION = "no_astrometric_solution"
+    PROVIDER_BUSY = "provider_busy"
+    PROVIDER_UNAVAILABLE = "provider_unavailable"
     PROVIDER_REJECTED = "provider_rejected"
     PROVIDER_PROTOCOL_ERROR = "provider_protocol_error"
     REMOTE_SUBMISSION_OUTCOME_UNKNOWN = "remote_submission_outcome_unknown"
@@ -104,6 +106,7 @@ _REASON_BY_TARGET: dict[RemoteSolveState, frozenset[RemoteTransitionReason]] = {
     RemoteSolveState.DELETED: frozenset({RemoteTransitionReason.LOCAL_DELETED}),
     RemoteSolveState.FAILED: frozenset(
         {
+            RemoteTransitionReason.PROVIDER_BUSY,
             RemoteTransitionReason.PROVIDER_REJECTED,
             RemoteTransitionReason.PROVIDER_PROTOCOL_ERROR,
             RemoteTransitionReason.REMOTE_SUBMISSION_OUTCOME_UNKNOWN,
@@ -241,14 +244,19 @@ def _validate_record_shape(record: RemoteSolveRecord) -> None:
         if (
             record.next_poll_at is None
             or record.terminal_at is not None
-            or record.safe_reason is not None
+            or record.safe_reason
+            not in {
+                None,
+                RemoteTransitionReason.PROVIDER_BUSY,
+                RemoteTransitionReason.PROVIDER_UNAVAILABLE,
+            }
         ):
             raise RemoteStateValidationError()
     elif record.state in _TERMINAL:
         if (
             record.next_poll_at is not None
             or record.terminal_at is None
-            or record.safe_reason is None
+            or record.safe_reason not in _REASON_BY_TARGET[record.state]
         ):
             raise RemoteStateValidationError()
     else:

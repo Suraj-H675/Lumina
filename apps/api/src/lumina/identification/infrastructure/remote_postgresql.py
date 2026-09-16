@@ -77,6 +77,7 @@ _RESCHEDULE_SQL = text(
     "UPDATE public.identification_remote_solve SET "
     "next_poll_at = CURRENT_TIMESTAMP + make_interval(secs => :poll_seconds), "
     "last_polled_at = CASE WHEN :polled THEN CURRENT_TIMESTAMP ELSE last_polled_at END, "
+    "safe_reason = :safe_reason, "
     "active_lease_token = NULL, active_lease_expires_at = NULL, updated_at = CURRENT_TIMESTAMP "
     "WHERE submission_id = :submission_id AND state = :state "
     "AND active_lease_token = :lease_token AND active_lease_expires_at > CURRENT_TIMESTAMP "
@@ -239,10 +240,15 @@ class PostgreSqlRemoteSolveRepository:
         *,
         poll_seconds: int,
         polled: bool,
+        safe_reason: RemoteTransitionReason | None = None,
     ) -> RemoteFinalizationOutcome:
         _claim(claim)
         _poll_seconds(poll_seconds)
-        if type(polled) is not bool:
+        if type(polled) is not bool or safe_reason not in {
+            None,
+            RemoteTransitionReason.PROVIDER_BUSY,
+            RemoteTransitionReason.PROVIDER_UNAVAILABLE,
+        }:
             raise RemoteStateStorageFailure()
         return await self._guarded_update(
             _RESCHEDULE_SQL,
@@ -252,6 +258,7 @@ class PostgreSqlRemoteSolveRepository:
                 "lease_token": claim.lease_token.value,
                 "poll_seconds": poll_seconds,
                 "polled": polled,
+                "safe_reason": None if safe_reason is None else safe_reason.value,
             },
         )
 

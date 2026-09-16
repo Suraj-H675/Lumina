@@ -21,6 +21,11 @@ _MAX_CURSOR_BYTES = 512
 _ERROR_CODE = re.compile(r"[a-z][a-z0-9_.-]{0,127}", re.ASCII)
 
 
+class IdentificationRemoteCondition(StrEnum):
+    PROVIDER_BUSY = "provider_busy"
+    PROVIDER_UNAVAILABLE = "provider_unavailable"
+
+
 class IdentificationPublicState(StrEnum):
     CREATED = "created"
     QUEUED = "queued"
@@ -61,6 +66,7 @@ class PublicIdentificationStatus:
     state: IdentificationPublicState
     progress: float | None
     fake_result: FakeSolverResult | None
+    remote_condition: IdentificationRemoteCondition | None
     error_code: str | None
     solution_available: bool
     created_at: datetime
@@ -89,6 +95,10 @@ class PublicIdentificationStatus:
             )
             or (self.fake_result is not None and type(self.fake_result) is not FakeSolverResult)
             or (
+                self.remote_condition is not None
+                and type(self.remote_condition) is not IdentificationRemoteCondition
+            )
+            or (
                 self.error_code is not None
                 and (
                     type(self.error_code) is not str
@@ -103,7 +113,12 @@ class PublicIdentificationStatus:
         if self.deleted_at is not None:
             object.__setattr__(self, "deleted_at", _utc(self.deleted_at))
         if self.state is IdentificationPublicState.DELETED:
-            if self.deleted_at is None or self.solution_available or self.fake_result is not None:
+            if (
+                self.deleted_at is None
+                or self.solution_available
+                or self.fake_result is not None
+                or self.remote_condition is not None
+            ):
                 raise IdentificationPublicReadFailure()
             return
         if self.deleted_at is not None:
@@ -114,6 +129,7 @@ class PublicIdentificationStatus:
                 or self.job_id is None
                 or self.progress is None
                 or self.solution_available
+                or self.remote_condition is not None
                 or (self.state is IdentificationPublicState.SUCCEEDED)
                 != (self.fake_result is not None)
             ):
@@ -141,6 +157,29 @@ class PublicIdentificationStatus:
                     IdentificationPublicState.DEAD_LETTER,
                 }
                 or self.solution_available != (self.state is IdentificationPublicState.SUCCEEDED)
+            ):
+                raise IdentificationPublicReadFailure()
+            pollable = self.state in {
+                IdentificationPublicState.SUBMITTING,
+                IdentificationPublicState.WAITING_FOR_SOLVER,
+                IdentificationPublicState.SOLVING,
+                IdentificationPublicState.FETCHING_RESULTS,
+            }
+            if (
+                self.remote_condition is IdentificationRemoteCondition.PROVIDER_UNAVAILABLE
+                and not pollable
+            ):
+                raise IdentificationPublicReadFailure()
+            if self.remote_condition is IdentificationRemoteCondition.PROVIDER_BUSY and not (
+                pollable or self.state is IdentificationPublicState.FAILED
+            ):
+                raise IdentificationPublicReadFailure()
+            if pollable and self.error_code is not None:
+                raise IdentificationPublicReadFailure()
+            if (
+                self.state is IdentificationPublicState.FAILED
+                and self.remote_condition is IdentificationRemoteCondition.PROVIDER_BUSY
+                and self.error_code != "provider_busy"
             ):
                 raise IdentificationPublicReadFailure()
         terminal = self.state in {
@@ -295,6 +334,7 @@ def _no_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
 __all__ = [
     "IdentificationPublicReadFailure",
     "IdentificationPublicState",
+    "IdentificationRemoteCondition",
     "IdentificationReadValidationError",
     "IdentificationSolutionNotReady",
     "PublicIdentificationStatus",

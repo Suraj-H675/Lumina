@@ -8,7 +8,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from lumina.identification.domain.public_read import IdentificationPublicState
+from lumina.identification.domain.public_read import (
+    IdentificationPublicState,
+    IdentificationRemoteCondition,
+)
 
 AnnotationName = Annotated[str, Field(min_length=1, max_length=128)]
 
@@ -81,6 +84,7 @@ class IdentificationStatusResponse(BaseModel):
     status: IdentificationPublicState
     progress: float | None = Field(ge=0.0, le=1.0)
     result: FakeSolverResultResponse | None
+    remote_condition: IdentificationRemoteCondition | None
     error_code: str | None = Field(pattern=r"^[a-z][a-z0-9_.-]{0,127}$")
     solution_available: bool
     created_at: datetime
@@ -117,7 +121,25 @@ class IdentificationStatusResponse(BaseModel):
             and self.job_id is not None
             and self.status in fake_states
             and not self.solution_available
+            and self.remote_condition is None
             and ((self.status == IdentificationPublicState.SUCCEEDED) == (self.result is not None))
+        )
+        nova_pollable = self.status in {
+            IdentificationPublicState.SUBMITTING,
+            IdentificationPublicState.WAITING_FOR_SOLVER,
+            IdentificationPublicState.SOLVING,
+            IdentificationPublicState.FETCHING_RESULTS,
+        }
+        nova_condition_ok = (
+            self.remote_condition is None
+            or (
+                self.remote_condition is IdentificationRemoteCondition.PROVIDER_UNAVAILABLE
+                and nova_pollable
+            )
+            or (
+                self.remote_condition is IdentificationRemoteCondition.PROVIDER_BUSY
+                and (nova_pollable or self.status is IdentificationPublicState.FAILED)
+            )
         )
         nova = (
             self.solver_type == "nova"
@@ -125,6 +147,13 @@ class IdentificationStatusResponse(BaseModel):
             and self.job_id is None
             and self.status in nova_states
             and self.result is None
+            and nova_condition_ok
+            and (not nova_pollable or self.error_code is None)
+            and not (
+                self.status is IdentificationPublicState.FAILED
+                and self.remote_condition is IdentificationRemoteCondition.PROVIDER_BUSY
+                and self.error_code != "provider_busy"
+            )
             and self.solution_available == (self.status == IdentificationPublicState.SUCCEEDED)
         )
         if not (fake or nova):

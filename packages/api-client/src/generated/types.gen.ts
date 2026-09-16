@@ -567,6 +567,11 @@ export type IdentificationPublicState =
   | "deleted";
 
 /**
+ * IdentificationRemoteCondition
+ */
+export type IdentificationRemoteCondition = "provider_busy" | "provider_unavailable";
+
+/**
  * IdentificationSolutionResponse
  */
 export type IdentificationSolutionResponse = {
@@ -634,6 +639,7 @@ export type IdentificationStatusResponse = {
    * Progress
    */
   progress: number | null;
+  remote_condition: IdentificationRemoteCondition | null;
   /**
    * Remote Processing
    */

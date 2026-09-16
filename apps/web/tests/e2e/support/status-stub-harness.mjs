@@ -621,6 +621,7 @@ const controlPaths = new Set([
   "/__control/launch-mode",
   "/__control/satellite-mode",
   "/__control/identification-mode",
+  "/__control/identification-condition",
   "/__control/assert-clean",
   "/__control/clear-violations",
   "/__control/mode",
@@ -651,6 +652,7 @@ let neowsMode = "fresh";
 let launchMode = "fresh";
 let satelliteMode = "fresh";
 let identificationMode = "fake";
+let identificationCondition = "none";
 let identificationPollCount = 0;
 let identificationDeleted = false;
 const identificationSubmissionId = "71000000-0000-4000-8000-000000000001";
@@ -1589,9 +1591,36 @@ const stub = http.createServer(async (request, response) => {
           return;
         }
         identificationMode = body.mode;
+        identificationCondition = "none";
         identificationPollCount = 0;
         identificationDeleted = false;
         sendJson(response, 200, { mode: identificationMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
+
+    if (path === "/__control/identification-condition") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["none", "busy", "unavailable"].includes(body.condition)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        identificationCondition = body.condition;
+        sendJson(response, 200, { condition: identificationCondition });
       } catch {
         recordViolation("malformed-control");
         sendFailure(response, 400);
@@ -1800,6 +1829,7 @@ const stub = http.createServer(async (request, response) => {
           status: "deleted",
           progress: identificationMode === "nova" ? null : 1,
           result: null,
+          remote_condition: null,
           error_code: null,
           solution_available: false,
           created_at: "2026-09-15T12:00:00Z",
@@ -1811,9 +1841,29 @@ const stub = http.createServer(async (request, response) => {
         });
         return;
       }
+      const nova = identificationMode === "nova";
+      if (nova && identificationCondition !== "none") {
+        sendJson(response, 200, {
+          submission_id: identificationSubmissionId,
+          job_id: null,
+          status: "solving",
+          progress: null,
+          result: null,
+          remote_condition:
+            identificationCondition === "busy" ? "provider_busy" : "provider_unavailable",
+          error_code: null,
+          solution_available: false,
+          created_at: "2026-09-15T12:00:00Z",
+          completed_at: null,
+          deleted_at: null,
+          solver_type: "nova",
+          remote_processing: true,
+          retention_hours: 24,
+        });
+        return;
+      }
       identificationPollCount += 1;
       const succeeded = identificationPollCount >= 2;
-      const nova = identificationMode === "nova";
       sendJson(response, 200, {
         submission_id: identificationSubmissionId,
         job_id: nova ? null : identificationJobId,
@@ -1828,6 +1878,7 @@ const stub = http.createServer(async (request, response) => {
                 synthetic: true,
               }
             : null,
+        remote_condition: null,
         error_code: null,
         solution_available: succeeded && nova,
         created_at: "2026-09-15T12:00:00Z",

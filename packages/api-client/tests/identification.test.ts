@@ -346,6 +346,7 @@ describe("Phase 6A identification transport", () => {
       error_code: null,
       job_id: jobId,
       progress: 0,
+      remote_condition: null,
       remote_processing: false,
       result: null,
       retention_hours: 24,
@@ -367,6 +368,41 @@ describe("Phase 6A identification transport", () => {
       status: "succeeded" as const,
     };
     expect(validateIdentificationStatus(novaStatus)).not.toBeNull();
+    expect(
+      validateIdentificationStatus({
+        ...novaStatus,
+        remote_condition: "provider_unavailable",
+        solution_available: false,
+        status: "solving",
+      }),
+    ).not.toBeNull();
+    expect(
+      validateIdentificationStatus({
+        ...novaStatus,
+        error_code: "provider_busy",
+        remote_condition: "provider_busy",
+        solution_available: false,
+        status: "failed",
+      }),
+    ).not.toBeNull();
+    expect(
+      validateIdentificationStatus({ ...status, remote_condition: "provider_busy" }),
+    ).toBeNull();
+    expect(
+      validateIdentificationStatus({
+        ...novaStatus,
+        remote_condition: "provider_unavailable",
+      }),
+    ).toBeNull();
+    expect(
+      validateIdentificationStatus({
+        ...novaStatus,
+        error_code: "provider_busy",
+        remote_condition: null,
+        solution_available: false,
+        status: "failed",
+      }),
+    ).toBeNull();
     expect(validateIdentificationStatus({ ...status, remote_processing: true })).toBeNull();
     expect(validateIdentificationStatus({ ...novaStatus, job_id: jobId })).toBeNull();
     expect(validateIdentificationStatus({ ...novaStatus, solution_available: false })).toBeNull();

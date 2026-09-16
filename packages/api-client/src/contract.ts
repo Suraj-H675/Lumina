@@ -169,13 +169,28 @@ export const identificationStatusValidator = zGetIdentificationSubmissionRespons
       value.job_id !== null &&
       fakeIdentificationStates.has(value.status) &&
       !value.solution_available &&
+      value.remote_condition === null &&
       (value.status === "succeeded") === (value.result !== null);
+    const novaPollable = new Set([
+      "submitting",
+      "waiting_for_solver",
+      "solving",
+      "fetching_results",
+    ]).has(value.status);
+    const novaCondition =
+      value.remote_condition === null ||
+      (value.remote_condition === "provider_unavailable" && novaPollable) ||
+      (value.remote_condition === "provider_busy" && (novaPollable || value.status === "failed"));
     const nova =
       value.solver_type === "nova" &&
       value.remote_processing &&
       value.job_id === null &&
       novaIdentificationStates.has(value.status) &&
       value.result === null &&
+      novaCondition &&
+      (!novaPollable || value.error_code === null) &&
+      (value.error_code === "provider_busy") ===
+        (value.remote_condition === "provider_busy" && value.status === "failed") &&
       value.solution_available === (value.status === "succeeded");
     if (!(fake || nova)) {
       context.addIssue({ code: "custom", message: "incoherent identification status" });

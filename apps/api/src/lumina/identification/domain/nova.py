@@ -26,6 +26,10 @@ class RemoteAstrometryTimeout(RemoteAstrometryError):
     message = "Remote astrometry request timed out."
 
 
+class RemoteAstrometryBusy(RemoteAstrometryError):
+    message = "Remote astrometry is temporarily at capacity."
+
+
 class RemoteAstrometryUnavailable(RemoteAstrometryError):
     message = "Remote astrometry is temporarily unavailable."
 
@@ -182,6 +186,7 @@ __all__ = [
     "NovaSession",
     "NovaSubmissionId",
     "NovaSubmissionSnapshot",
+    "RemoteAstrometryBusy",
     "RemoteAstrometryError",
     "RemoteAstrometryProtocolError",
     "RemoteAstrometryRejected",

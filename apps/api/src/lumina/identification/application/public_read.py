@@ -9,6 +9,7 @@ from uuid import UUID
 from lumina.identification.domain.public_read import (
     IdentificationPublicReadFailure,
     IdentificationPublicState,
+    IdentificationRemoteCondition,
     IdentificationSolutionNotReady,
     PublicIdentificationStatus,
     PublicSolutionPage,
@@ -17,7 +18,11 @@ from lumina.identification.domain.public_read import (
     decode_solution_cursor,
     encode_solution_cursor,
 )
-from lumina.identification.domain.remote_state import RemoteSolveRecord, RemoteSolveState
+from lumina.identification.domain.remote_state import (
+    RemoteSolveRecord,
+    RemoteSolveState,
+    RemoteTransitionReason,
+)
 from lumina.identification.domain.solution import PlateAnnotation
 from lumina.identification.domain.submissions import (
     IdentificationSolverType,
@@ -72,6 +77,7 @@ class IdentificationPublicReadService:
                 state=IdentificationPublicState.DELETED,
                 progress=None,
                 fake_result=None,
+                remote_condition=None,
                 error_code=None,
                 solution_available=False,
                 created_at=submission.created_at,
@@ -143,6 +149,7 @@ def _fake_status(status: IdentificationSubmissionStatus) -> PublicIdentification
         state=IdentificationPublicState(status.state.value),
         progress=status.progress,
         fake_result=status.result,
+        remote_condition=None,
         error_code=status.error_code,
         solution_available=False,
         created_at=status.created_at,
@@ -162,6 +169,15 @@ def _remote_status(
         and remote.safe_reason is not None
         else None
     )
+    remote_condition = (
+        IdentificationRemoteCondition(remote.safe_reason.value)
+        if remote.safe_reason
+        in {
+            RemoteTransitionReason.PROVIDER_BUSY,
+            RemoteTransitionReason.PROVIDER_UNAVAILABLE,
+        }
+        else None
+    )
     return PublicIdentificationStatus(
         submission_id=submission.id,
         job_id=None,
@@ -170,6 +186,7 @@ def _remote_status(
         state=IdentificationPublicState(remote.state.value),
         progress=None,
         fake_result=None,
+        remote_condition=remote_condition,
         error_code=error_code,
         solution_available=remote.state is RemoteSolveState.SUCCEEDED,
         created_at=submission.created_at,

@@ -27,7 +27,10 @@ from lumina.identification.domain.solution import (
     SolutionValidationError,
 )
 
-_TIMEOUT_SQL = text("SET LOCAL statement_timeout = :timeout")
+_TIMEOUT_SQL = text(
+    "SELECT set_config('statement_timeout', :timeout, true), "
+    "set_config('lock_timeout', :timeout, true)"
+)
 _LOCK_SQL = text(
     "SELECT solve.submission_id, solve.external_job_id "
     "FROM public.identification_remote_solve AS solve "

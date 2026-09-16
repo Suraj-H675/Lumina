@@ -54,7 +54,7 @@ class _Connection:
 
     async def execute(self, statement: object, parameters: object = None) -> _Result:
         self.statements.append((str(statement), parameters))
-        if "SET LOCAL statement_timeout" in str(statement):
+        if "set_config('statement_timeout', :timeout, true)" in str(statement):
             return _Result()
         return _Result(self.rows.pop(0) if self.rows else None)
 
@@ -276,6 +276,10 @@ async def test_read_slice_is_ordered_bounded_and_reconstructs_normalized_science
     assert result.solver_name == "astrometry.net-nova"
     assert result.solver_version is None
 
+    timeout_sql, timeout_parameters = connection.statements[0]
+    assert "set_config('statement_timeout', :timeout, true)" in timeout_sql
+    assert "set_config('lock_timeout', :timeout, true)" in timeout_sql
+    assert timeout_parameters == {"timeout": "5000ms"}
     solution_sql, solution_parameters = connection.statements[1]
     assert "FROM public.identification_solution" in solution_sql
     assert solution_parameters == {"submission_id": _SUBMISSION_ID}

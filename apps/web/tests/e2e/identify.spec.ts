@@ -6,7 +6,10 @@ import { setIdentificationStubMode } from "./support/status-stub-control";
 const jobId = "72000000-0000-4000-8000-000000000001";
 
 const image = {
-  buffer: Buffer.from("phase-6a-private-fixture", "utf8"),
+  buffer: Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAKklEQVR4nGPgEZKjKWIYtWDUglELRi0YtWDUglELRi0YtWDUglELhooFABlh8AHn1xdIAAAAAElFTkSuQmCC",
+    "base64",
+  ),
   mimeType: "image/png",
   name: "night-field.png",
 };
@@ -85,9 +88,12 @@ test.describe("Phase 6 — private identification", () => {
   }, testInfo) => {
     await setIdentificationStubMode(testInfo, "nova");
     const novaBrowserRequests: string[] = [];
+    const solutionRequests: string[] = [];
     page.on("request", (request) => {
-      if (new URL(request.url()).hostname === "nova.astrometry.net") {
-        novaBrowserRequests.push(request.url());
+      const url = new URL(request.url());
+      if (url.hostname === "nova.astrometry.net") novaBrowserRequests.push(request.url());
+      if (/\/api\/v1\/identification\/submissions\/[0-9a-f-]{36}\/solution$/u.test(url.pathname)) {
+        solutionRequests.push(request.url());
       }
     });
 
@@ -110,6 +116,32 @@ test.describe("Phase 6 — private identification", () => {
     });
     await expect(page.getByText("Astrometric solution available.", { exact: true })).toBeVisible();
     await expect(page.getByText(/provider-side retention or deletion limitations/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Solved field and WCS-backed annotations" }),
+    ).toBeVisible();
+    await expect(page.getByText("82.500000°")).toBeVisible();
+    await expect(page.getByText("ICRS", { exact: true })).toBeVisible();
+
+    const solvedImage = page.getByRole("img", { name: "Solved astronomical image" });
+    await expect(solvedImage).toHaveAttribute("viewBox", "0 0 32 32");
+    await expect(solvedImage.getByText("Rigel")).toBeVisible();
+    expect(solutionRequests).toHaveLength(1);
+
+    await page.getByRole("button", { name: "Load more annotations" }).click();
+    await expect(page.getByText(/M42/)).toBeVisible();
+    await expect(page.getByText(/All available annotation pages are loaded/i)).toBeVisible();
+    expect(solutionRequests).toHaveLength(2);
+
+    await page.getByRole("checkbox", { name: "Star" }).uncheck();
+    await expect(solvedImage.getByText("Rigel")).toHaveCount(0);
+    await expect(solvedImage.getByText("Orion Nebula")).toBeVisible();
+    await page.getByRole("radio", { name: "Original" }).check();
+    await expect(solvedImage.getByText("Orion Nebula")).toHaveCount(0);
+    await page.getByLabel(/Zoom:/i).fill("2");
+    await expect(page.getByText("Zoom: 2.0×")).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
     expect(novaBrowserRequests).toEqual([]);
   });
 

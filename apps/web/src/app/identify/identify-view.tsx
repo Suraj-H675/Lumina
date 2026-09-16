@@ -3,13 +3,17 @@
 import {
   createIdentificationSubmission,
   deleteIdentificationSubmission,
+  getIdentificationSolution,
   identificationStatusEndpoint,
   requestEndpoint,
   type IdentificationCapabilitiesResponse,
+  type IdentificationSolutionResponse,
   type IdentificationStatusResponse,
 } from "@lumina/api-client";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+
+import { SolutionOverlay } from "./solution-overlay";
 
 type IdentifyViewProps = Readonly<{
   apiOrigin: string;
@@ -18,10 +22,22 @@ type IdentifyViewProps = Readonly<{
 
 type ActiveSubmission = Readonly<{
   jobId: string | null;
+  previewUrl: string | null;
   solverType: "fake" | "nova";
   submissionId: string;
   status: IdentificationStatusResponse | null;
 }>;
+
+type SolutionUiState =
+  | Readonly<{ kind: "idle" }>
+  | Readonly<{ kind: "loading" }>
+  | Readonly<{
+      data: IdentificationSolutionResponse;
+      kind: "ready";
+      loadingMore: boolean;
+      warning: boolean;
+    }>
+  | Readonly<{ kind: "error" }>;
 
 type UiState =
   | Readonly<{ kind: "idle" }>
@@ -35,8 +51,16 @@ const TERMINAL = new Set(["succeeded", "unsolved", "failed", "dead_letter", "exp
 export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
   const [consented, setConsented] = useState(false);
   const [state, setState] = useState<UiState>({ kind: "idle" });
+  const [solutionState, setSolutionState] = useState<SolutionUiState>({ kind: "idle" });
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current !== null) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (state.kind !== "active") return;
@@ -53,8 +77,17 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       );
       if (cancelled) return;
       if (result.kind === "ok") {
+        let previewUrl = state.active.previewUrl;
+        const terminalWithoutSolution =
+          TERMINAL.has(result.data.status) &&
+          !(result.data.status === "succeeded" && result.data.solution_available === true);
+        if (previewUrl !== null && terminalWithoutSolution) {
+          URL.revokeObjectURL(previewUrl);
+          if (previewUrlRef.current === previewUrl) previewUrlRef.current = null;
+          previewUrl = null;
+        }
         setState({
-          active: { ...state.active, status: result.data },
+          active: { ...state.active, previewUrl, status: result.data },
           kind: "active",
           pollingWarning: false,
         });
@@ -73,6 +106,39 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       window.clearTimeout(timer);
     };
   }, [apiOrigin, state]);
+
+  useEffect(() => {
+    if (
+      state.kind !== "active" ||
+      state.active.solverType !== "nova" ||
+      state.active.previewUrl === null ||
+      state.active.status?.status !== "succeeded" ||
+      state.active.status.solution_available !== true ||
+      solutionState.kind !== "idle"
+    ) {
+      return;
+    }
+    const controller = new AbortController();
+    let cancelled = false;
+    void getIdentificationSolution(apiOrigin, state.active.submissionId, null, {
+      signal: controller.signal,
+    }).then((result) => {
+      if (cancelled) return;
+      if (result.kind === "ok" && result.data.submission_id === state.active.submissionId) {
+        setSolutionState({ data: result.data, kind: "ready", loadingMore: false, warning: false });
+      } else if (
+        result.kind !== "unavailable" ||
+        result.reason !== "transport" ||
+        !controller.signal.aborted
+      ) {
+        setSolutionState({ kind: "error" });
+      }
+    });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [apiOrigin, solutionState.kind, state]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,6 +168,11 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
     }
 
     setDeleteConfirm(false);
+    setSolutionState({ kind: "idle" });
+    if (previewUrlRef.current !== null) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
     setState({ kind: "uploading" });
     const result = await createIdentificationSubmission(apiOrigin, file, file.name, {
       consentRemoteProcessing: capabilities.remote_processing,
@@ -110,9 +181,12 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       setState({ kind: "error", message: uploadFailureMessage(result) });
       return;
     }
+    const previewUrl = result.data.solver_type === "nova" ? URL.createObjectURL(file) : null;
+    previewUrlRef.current = previewUrl;
     setState({
       active: {
         jobId: result.data.job_id,
+        previewUrl,
         solverType: result.data.solver_type,
         status: null,
         submissionId: result.data.submission_id,
@@ -131,8 +205,47 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
     }
     setDeleteConfirm(false);
     setConsented(false);
+    setSolutionState({ kind: "idle" });
+    if (previewUrlRef.current !== null) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
     if (fileRef.current !== null) fileRef.current.value = "";
     setState({ kind: "deleted" });
+  }
+
+  async function loadMoreAnnotations() {
+    if (
+      state.kind !== "active" ||
+      solutionState.kind !== "ready" ||
+      !solutionState.data.has_more ||
+      solutionState.data.next_cursor === null ||
+      solutionState.loadingMore
+    ) {
+      return;
+    }
+    const current = solutionState.data;
+    const cursor = current.next_cursor;
+    setSolutionState({ ...solutionState, loadingMore: true, warning: false });
+    const result = await getIdentificationSolution(apiOrigin, state.active.submissionId, cursor);
+    if (
+      result.kind !== "ok" ||
+      !sameSolutionIdentity(current, result.data) ||
+      (result.data.has_more &&
+        (result.data.next_cursor === null || result.data.next_cursor === cursor))
+    ) {
+      setSolutionState({ data: current, kind: "ready", loadingMore: false, warning: true });
+      return;
+    }
+    setSolutionState({
+      data: {
+        ...result.data,
+        annotations: [...current.annotations, ...result.data.annotations],
+      },
+      kind: "ready",
+      loadingMore: false,
+      warning: false,
+    });
   }
 
   return (
@@ -234,6 +347,30 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
         onRequestDelete={() => setDeleteConfirm(true)}
         state={state}
       />
+
+      {state.kind === "active" &&
+      state.active.solverType === "nova" &&
+      state.active.status?.status === "succeeded" &&
+      state.active.status.solution_available ? (
+        solutionState.kind === "idle" ? (
+          <StatusMessage title="Loading normalized solution">
+            Loading Lumina&apos;s stored calibration, WCS, and annotations.
+          </StatusMessage>
+        ) : solutionState.kind === "error" ? (
+          <StatusMessage alert title="Solution temporarily unavailable">
+            The solve completed, but the normalized solution could not be loaded safely.
+          </StatusMessage>
+        ) : solutionState.kind === "ready" && state.active.previewUrl !== null ? (
+          <SolutionOverlay
+            completedAt={state.active.status.completed_at}
+            imageUrl={state.active.previewUrl}
+            loadingMore={solutionState.loadingMore}
+            loadMoreWarning={solutionState.warning}
+            onLoadMore={() => void loadMoreAnnotations()}
+            solution={solutionState.data}
+          />
+        ) : null
+      ) : null}
     </div>
   );
 }
@@ -384,8 +521,8 @@ function StatusPanel({
                 <p className="font-semibold">Astrometric solution available.</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                   Lumina stored a normalized plate calibration, WCS, and bounded annotations. The
-                  visual overlay is a separate presentation step; provider credentials and provider
-                  identifiers remain private.
+                  WCS-backed result and browser-local image overlay load below; provider credentials
+                  and provider identifiers remain private.
                 </p>
               </div>
             ) : (
@@ -518,6 +655,31 @@ function statusLabel(
     deleted: "Deleted",
   };
   return labels[value];
+}
+
+function sameSolutionIdentity(
+  left: IdentificationSolutionResponse,
+  right: IdentificationSolutionResponse,
+): boolean {
+  return (
+    left.submission_id === right.submission_id &&
+    left.solver_type === right.solver_type &&
+    left.remote_processing === right.remote_processing &&
+    left.solver_name === right.solver_name &&
+    left.solver_version === right.solver_version &&
+    left.calibration.center_ra_deg === right.calibration.center_ra_deg &&
+    left.calibration.center_dec_deg === right.calibration.center_dec_deg &&
+    left.calibration.orientation_deg === right.calibration.orientation_deg &&
+    left.calibration.parity === right.calibration.parity &&
+    left.calibration.pixel_scale_arcsec_per_pixel ===
+      right.calibration.pixel_scale_arcsec_per_pixel &&
+    left.calibration.radius_deg === right.calibration.radius_deg &&
+    left.wcs.coordinate_frame === right.wcs.coordinate_frame &&
+    left.wcs.header === right.wcs.header &&
+    left.wcs.source_sha256 === right.wcs.source_sha256 &&
+    left.wcs.image_width === right.wcs.image_width &&
+    left.wcs.image_height === right.wcs.image_height
+  );
 }
 
 function formatBytes(value: number): string {

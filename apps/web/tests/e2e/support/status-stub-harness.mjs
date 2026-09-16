@@ -1633,10 +1633,13 @@ const stub = http.createServer(async (request, response) => {
   const identificationMatch = /^\/api\/v1\/identification\/submissions\/([0-9a-f-]{36})$/u.exec(
     path,
   );
+  const identificationSolutionMatch =
+    /^\/api\/v1\/identification\/submissions\/([0-9a-f-]{36})\/solution$/u.exec(path);
   const isIdentificationPath =
     path === "/api/v1/identification/capabilities" ||
     path === "/api/v1/identification/submissions" ||
-    identificationMatch !== null;
+    identificationMatch !== null ||
+    identificationSolutionMatch !== null;
   if (!apiPaths.has(path) && !isCataloguePath && !isLaunchPath && !isIdentificationPath) {
     recordViolation("unexpected-path");
     unexpectedRequest = true;
@@ -1646,16 +1649,29 @@ const stub = http.createServer(async (request, response) => {
     return;
   }
   const allowedMethod =
-    identificationMatch !== null
-      ? request.method === "GET" || request.method === "DELETE"
-      : path === "/api/v1/identification/submissions"
-        ? request.method === "POST"
-        : request.method === (path === "/api/v1/now/satellites/passes" ? "POST" : "GET");
+    identificationSolutionMatch !== null
+      ? request.method === "GET"
+      : identificationMatch !== null
+        ? request.method === "GET" || request.method === "DELETE"
+        : path === "/api/v1/identification/submissions"
+          ? request.method === "POST"
+          : request.method === (path === "/api/v1/now/satellites/passes" ? "POST" : "GET");
   if (!allowedMethod) {
     recordViolation("unexpected-method");
     unexpectedRequest = true;
   }
-  if (target.search !== "" && !isCataloguePath && !isSeasonsPath && !isTelescopeBuilderPath) {
+  const validIdentificationSolutionQuery =
+    identificationSolutionMatch !== null &&
+    (target.search === "" ||
+      (target.searchParams.get("cursor") === "fixture_cursor_1" &&
+        [...target.searchParams.keys()].length === 1));
+  if (
+    target.search !== "" &&
+    !isCataloguePath &&
+    !isSeasonsPath &&
+    !isTelescopeBuilderPath &&
+    !validIdentificationSolutionQuery
+  ) {
     recordViolation("unexpected-query");
     unexpectedRequest = true;
   }
@@ -1709,6 +1725,64 @@ const stub = http.createServer(async (request, response) => {
       }
       return;
     }
+    if (identificationSolutionMatch !== null) {
+      if (
+        identificationSolutionMatch[1] !== identificationSubmissionId ||
+        identificationMode !== "nova" ||
+        identificationDeleted ||
+        identificationPollCount < 2
+      ) {
+        sendFailure(response, 404);
+        return;
+      }
+      const secondPage = target.searchParams.get("cursor") === "fixture_cursor_1";
+      sendJson(response, 200, {
+        submission_id: identificationSubmissionId,
+        solver_type: "nova",
+        remote_processing: true,
+        solver_name: "astrometry.net-nova",
+        solver_version: "nova-fixture-v1",
+        calibration: {
+          center_ra_deg: 82.5,
+          center_dec_deg: -6.2,
+          orientation_deg: 12.5,
+          parity: 1,
+          pixel_scale_arcsec_per_pixel: 1.45,
+          radius_deg: 0.72,
+        },
+        wcs: {
+          coordinate_frame: "icrs",
+          header: "CTYPE1  = 'RA---TAN'",
+          source_sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          image_width: 32,
+          image_height: 32,
+        },
+        annotations: secondPage
+          ? [
+              {
+                category: "deep_sky",
+                names: ["Orion Nebula", "M42"],
+                pixel_x: 23,
+                pixel_y: 20,
+                ra_deg: 83.8221,
+                dec_deg: -5.3911,
+              },
+            ]
+          : [
+              {
+                category: "star",
+                names: ["Rigel"],
+                pixel_x: 8,
+                pixel_y: 12,
+                ra_deg: 78.6345,
+                dec_deg: -8.2016,
+              },
+            ],
+        next_cursor: secondPage ? null : "fixture_cursor_1",
+        has_more: !secondPage,
+      });
+      return;
+    }
     if (identificationMatch !== null) {
       if (identificationMatch[1] !== identificationSubmissionId) {
         sendFailure(response, 404);
@@ -1724,7 +1798,7 @@ const stub = http.createServer(async (request, response) => {
           submission_id: identificationSubmissionId,
           job_id: identificationMode === "nova" ? null : identificationJobId,
           status: "deleted",
-          progress: 1,
+          progress: identificationMode === "nova" ? null : 1,
           result: null,
           error_code: null,
           solution_available: false,
@@ -1744,7 +1818,7 @@ const stub = http.createServer(async (request, response) => {
         submission_id: identificationSubmissionId,
         job_id: nova ? null : identificationJobId,
         status: succeeded ? "succeeded" : nova ? "solving" : "running",
-        progress: succeeded ? 1 : 0.5,
+        progress: nova ? null : succeeded ? 1 : 0.5,
         result:
           succeeded && !nova
             ? {

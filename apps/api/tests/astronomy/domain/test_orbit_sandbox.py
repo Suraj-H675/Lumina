@@ -162,7 +162,15 @@ def test_reviewed_artifact_is_strict_and_default_preset_is_circular() -> None:
     artifact = load_reviewed_orbit_artifact(repository_root=repository_root)
 
     assert artifact["model_version"] == "orbit-sandbox-v1"
-    assert {source["id"] for source in artifact["sources"]} == {
+    sources = artifact["sources"]
+    assert isinstance(sources, list)
+    source_ids: set[str] = set()
+    for source in sources:
+        assert isinstance(source, dict)
+        source_id = source.get("id")
+        assert isinstance(source_id, str)
+        source_ids.add(source_id)
+    assert source_ids == {
         "nist-codata-2022",
         "nasa-earth-fact-sheet",
         "openstax-gravitation-orbits",

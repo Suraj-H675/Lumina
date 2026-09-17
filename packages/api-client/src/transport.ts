@@ -78,7 +78,7 @@ function discardBody(response: Response): void {
   });
 }
 
-function declaredBodyIsBounded(response: Response): boolean {
+function declaredBodyIsBounded(response: Response, maximumBytes: number): boolean {
   const declared = response.headers.get("content-length");
   if (declared === null) {
     return true;
@@ -87,10 +87,14 @@ function declaredBodyIsBounded(response: Response): boolean {
     return false;
   }
   const length = Number(declared);
-  return Number.isSafeInteger(length) && length <= MAX_RESPONSE_BYTES;
+  return Number.isSafeInteger(length) && length <= maximumBytes;
 }
 
-async function readBoundedText(response: Response, controller: AbortController): Promise<string> {
+async function readBoundedText(
+  response: Response,
+  controller: AbortController,
+  maximumBytes: number,
+): Promise<string> {
   const reader = response.body?.getReader();
   if (reader === undefined) {
     throw new Error("missing response body");
@@ -102,7 +106,7 @@ async function readBoundedText(response: Response, controller: AbortController):
     let chunk = await reader.read();
     while (!chunk.done) {
       byteCount += chunk.value.byteLength;
-      if (byteCount > MAX_RESPONSE_BYTES) {
+      if (byteCount > maximumBytes) {
         throw new Error("response body exceeds limit");
       }
       text += decoder.decode(chunk.value, { stream: true });
@@ -157,7 +161,15 @@ async function performRequest<T>(
 ): Promise<ApiTransportResult<T>> {
   const normalized = normalizeApiOrigin(origin);
   const timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
-  if (!normalized.valid || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 5_000) {
+  const maximumResponseBytes = endpoint.maxResponseBytes ?? MAX_RESPONSE_BYTES;
+  if (
+    !normalized.valid ||
+    !Number.isInteger(timeoutMs) ||
+    timeoutMs < 1 ||
+    timeoutMs > 5_000 ||
+    !Number.isSafeInteger(maximumResponseBytes) ||
+    maximumResponseBytes < 1
+  ) {
     return { kind: "unavailable", reason: "transport" };
   }
   if ((endpoint.method === "GET") !== (body === undefined)) {
@@ -202,7 +214,7 @@ async function performRequest<T>(
     }
     if (
       !isJsonMediaType(response.headers.get("content-type")) ||
-      !declaredBodyIsBounded(response)
+      !declaredBodyIsBounded(response, maximumResponseBytes)
     ) {
       controller.abort();
       discardBody(response);
@@ -210,7 +222,9 @@ async function performRequest<T>(
     }
 
     try {
-      const raw: unknown = JSON.parse(await readBoundedText(response, controller));
+      const raw: unknown = JSON.parse(
+        await readBoundedText(response, controller, maximumResponseBytes),
+      );
       const parsed = validateExactGenerated(endpoint.validator, raw);
       return parsed.valid
         ? { data: parsed.data, kind: "ok", status: response.status }

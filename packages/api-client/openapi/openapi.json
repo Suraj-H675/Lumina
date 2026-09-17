@@ -2271,6 +2271,256 @@
         "title": "NearEarthWindowResponse",
         "type": "object"
       },
+      "OrbitSandboxCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "angular_momentum_kg_m2_per_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Angular Momentum Kg M2 Per S"
+          },
+          "apoapsis_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apoapsis M"
+          },
+          "classification": {
+            "enum": [
+              "bound",
+              "parabolic_near",
+              "escape",
+              "collision"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "collision_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collision Time S"
+          },
+          "eccentricity": {
+            "title": "Eccentricity",
+            "type": "number"
+          },
+          "gravitational_parameter_m3_s2": {
+            "title": "Gravitational Parameter M3 S2",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/OrbitSandboxInputResponse"
+          },
+          "max_specific_angular_momentum_drift_fraction": {
+            "title": "Max Specific Angular Momentum Drift Fraction",
+            "type": "number"
+          },
+          "max_specific_energy_drift_fraction": {
+            "title": "Max Specific Energy Drift Fraction",
+            "type": "number"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "orbital_energy_j": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orbital Energy J"
+          },
+          "periapsis_m": {
+            "title": "Periapsis M",
+            "type": "number"
+          },
+          "period_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period S"
+          },
+          "reduced_mass_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduced Mass Kg"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "semi_major_axis_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semi Major Axis M"
+          },
+          "specific_angular_momentum_m2_per_s": {
+            "title": "Specific Angular Momentum M2 Per S",
+            "type": "number"
+          },
+          "specific_orbital_energy_j_per_kg": {
+            "title": "Specific Orbital Energy J Per Kg",
+            "type": "number"
+          },
+          "trajectory": {
+            "items": {
+              "$ref": "#/components/schemas/OrbitTrajectoryPointResponse"
+            },
+            "maxItems": 4096,
+            "title": "Trajectory",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "gravitational_parameter_m3_s2",
+          "reduced_mass_kg",
+          "specific_orbital_energy_j_per_kg",
+          "orbital_energy_j",
+          "specific_angular_momentum_m2_per_s",
+          "angular_momentum_kg_m2_per_s",
+          "eccentricity",
+          "semi_major_axis_m",
+          "period_s",
+          "periapsis_m",
+          "apoapsis_m",
+          "classification",
+          "collision_time_s",
+          "trajectory",
+          "max_specific_energy_drift_fraction",
+          "max_specific_angular_momentum_drift_fraction"
+        ],
+        "title": "OrbitSandboxCalculationResponse",
+        "type": "object"
+      },
+      "OrbitSandboxInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "central_mass_kg": {
+            "title": "Central Mass Kg",
+            "type": "number"
+          },
+          "central_radius_m": {
+            "title": "Central Radius M",
+            "type": "number"
+          },
+          "duration_s": {
+            "title": "Duration S",
+            "type": "number"
+          },
+          "orbiting_body_mass_kg": {
+            "title": "Orbiting Body Mass Kg",
+            "type": "number"
+          },
+          "position_x_m": {
+            "title": "Position X M",
+            "type": "number"
+          },
+          "position_y_m": {
+            "title": "Position Y M",
+            "type": "number"
+          },
+          "time_step_s": {
+            "title": "Time Step S",
+            "type": "number"
+          },
+          "velocity_x_m_s": {
+            "title": "Velocity X M S",
+            "type": "number"
+          },
+          "velocity_y_m_s": {
+            "title": "Velocity Y M S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "central_mass_kg",
+          "central_radius_m",
+          "orbiting_body_mass_kg",
+          "position_x_m",
+          "position_y_m",
+          "velocity_x_m_s",
+          "velocity_y_m_s",
+          "duration_s",
+          "time_step_s"
+        ],
+        "title": "OrbitSandboxInputResponse",
+        "type": "object"
+      },
+      "OrbitTrajectoryPointResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "distance_m": {
+            "title": "Distance M",
+            "type": "number"
+          },
+          "speed_m_s": {
+            "title": "Speed M S",
+            "type": "number"
+          },
+          "time_s": {
+            "title": "Time S",
+            "type": "number"
+          },
+          "x_m": {
+            "title": "X M",
+            "type": "number"
+          },
+          "y_m": {
+            "title": "Y M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "time_s",
+          "x_m",
+          "y_m",
+          "distance_m",
+          "speed_m_s"
+        ],
+        "title": "OrbitTrajectoryPointResponse",
+        "type": "object"
+      },
       "PageResponse": {
         "additionalProperties": false,
         "properties": {
@@ -5748,6 +5998,138 @@
         "summary": "Suggest Catalog Entities",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/simulations/orbit-sandbox": {
+      "get": {
+        "operationId": "calculate_orbit_sandbox",
+        "parameters": [
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "central_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Central Mass Kg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "central_radius_m",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Central Radius M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "orbiting_body_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Orbiting Body Mass Kg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "position_x_m",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Position X M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "position_y_m",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Position Y M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "velocity_x_m_s",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Velocity X M S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "velocity_y_m_s",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Velocity Y M S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "duration_s",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Duration S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Orbit Sandbox SI-unit model input.",
+            "in": "query",
+            "name": "time_step_s",
+            "required": true,
+            "schema": {
+              "description": "Orbit Sandbox SI-unit model input.",
+              "title": "Time Step S",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrbitSandboxCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Orbit Sandbox inputs are invalid."
+          }
+        },
+        "summary": "Orbit Sandbox",
+        "tags": [
+          "simulations"
         ]
       }
     },

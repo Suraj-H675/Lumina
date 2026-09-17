@@ -8,8 +8,10 @@ import type {
   SpaceWeatherResponse,
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateOrbitSandboxData,
   CalculateSeasonsSimulatorData,
   CalculateTelescopeBuilderData,
+  OrbitSandboxCalculationResponse,
   TelescopeBuilderCalculationResponse,
   SeasonsCalculationResponse,
   EntityBrowsePageResponse,
@@ -48,6 +50,7 @@ import type {
 import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
+  zCalculateOrbitSandboxResponse,
   zCalculateSeasonsSimulatorResponse,
   zCalculateTelescopeBuilderResponse,
   zEntityBrowsePageResponse,
@@ -92,6 +95,7 @@ export type ApiEndpoint<
   Path extends string = string,
   Method extends "GET" | "POST" = "GET",
 > = Readonly<{
+  maxResponseBytes?: number;
   method: Method;
   path: Path;
   validator: GeneratedValidator<T>;
@@ -322,6 +326,18 @@ export const catalogEntityDetailEndpoint = {
   path: "/api/v1/catalog/entities/{entity_id}" satisfies GetCatalogEntityData["url"],
   validator: zEntityDetailResponse,
 } satisfies ApiEndpoint<EntityDetailResponse, GetCatalogEntityData["url"]>;
+
+// The reviewed v1 contract permits 4,096 trajectory samples. A canonical
+// 4,096-sample response is about 525 KiB; 1 MiB leaves bounded headroom for
+// finite-number string length variation and the fixed response envelope.
+export const ORBIT_SANDBOX_MAX_RESPONSE_BYTES = 1_048_576;
+
+export const orbitSandboxEndpoint = {
+  maxResponseBytes: ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
+  method: "GET",
+  path: "/api/v1/simulations/orbit-sandbox" satisfies CalculateOrbitSandboxData["url"],
+  validator: zCalculateOrbitSandboxResponse,
+} satisfies ApiEndpoint<OrbitSandboxCalculationResponse, CalculateOrbitSandboxData["url"]>;
 
 export const seasonsSimulatorEndpoint = {
   method: "GET",

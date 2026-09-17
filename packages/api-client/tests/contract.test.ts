@@ -6,6 +6,8 @@ import {
   catalogEntityDetailEndpoint,
   catalogSuggestEndpoint,
   catalogSearchEndpoint,
+  ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
+  orbitSandboxEndpoint,
   seasonsSimulatorEndpoint,
   telescopeBuilderEndpoint,
   liveEndpoint,
@@ -15,11 +17,12 @@ import {
   satellitesEndpoint,
   validateExactGenerated,
 } from "../src/contract";
-import { requestEndpoint } from "../src/transport";
+import { MAX_RESPONSE_BYTES, requestEndpoint } from "../src/transport";
 import type {
   EntityBrowsePageResponse,
   EntitySummaryResponse,
   EntityType,
+  CalculateOrbitSandboxData,
   CalculateSeasonsSimulatorData,
   CalculateTelescopeBuilderData,
   GetCatalogEntityBySlugData,
@@ -56,6 +59,8 @@ describe("generated contract boundary", () => {
     expect(satellitePassEndpoint.method).toBe("POST");
     expectTypeOf(satellitesEndpoint.path).toEqualTypeOf<GetNowSatellitesData["url"]>();
     expectTypeOf(satellitePassEndpoint.path).toEqualTypeOf<PostNowSatellitePassesData["url"]>();
+    expect(orbitSandboxEndpoint.method).toBe("GET");
+    expectTypeOf(orbitSandboxEndpoint.path).toEqualTypeOf<CalculateOrbitSandboxData["url"]>();
     expect(seasonsSimulatorEndpoint.method).toBe("GET");
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]
@@ -244,6 +249,122 @@ describe("catalogue discovery endpoints", () => {
       }),
     });
     expect(detail.kind).toBe("ok");
+  });
+});
+
+describe("Orbit Sandbox endpoint", () => {
+  const response = {
+    model_version: "orbit-sandbox-v1",
+    schema_version: 1,
+    inputs: {
+      central_mass_kg: 5.9722e24,
+      central_radius_m: 6_371_000,
+      orbiting_body_mass_kg: 0,
+      position_x_m: 7_000_000,
+      position_y_m: 0,
+      velocity_x_m_s: 0,
+      velocity_y_m_s: 7546.073194525935,
+      duration_s: 10,
+      time_step_s: 10,
+    },
+    gravitational_parameter_m3_s2: 398602544600000,
+    reduced_mass_kg: null,
+    specific_orbital_energy_j_per_kg: -28471610.32857143,
+    orbital_energy_j: null,
+    specific_angular_momentum_m2_per_s: 52822512361.68155,
+    angular_momentum_kg_m2_per_s: null,
+    eccentricity: 0,
+    semi_major_axis_m: 7_000_000,
+    period_s: 5828.501263698674,
+    periapsis_m: 7_000_000,
+    apoapsis_m: 7_000_000,
+    classification: "bound" as const,
+    collision_time_s: null,
+    trajectory: [
+      {
+        time_s: 0,
+        x_m: 7_000_000,
+        y_m: 0,
+        distance_m: 7_000_000,
+        speed_m_s: 7546.073194525935,
+      },
+    ],
+    max_specific_energy_drift_fraction: 0,
+    max_specific_angular_momentum_drift_fraction: 0,
+  };
+
+  it("binds the operation to its generated URL and exact result shape", async () => {
+    expectTypeOf(orbitSandboxEndpoint.path).toEqualTypeOf<CalculateOrbitSandboxData["url"]>();
+    const result = await requestEndpoint("http://127.0.0.1:8000", orbitSandboxEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(response), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("accepts a valid trajectory response larger than the generic response budget", async () => {
+    const largeResponse = {
+      ...response,
+      inputs: { ...response.inputs, duration_s: 9_000 },
+      trajectory: Array.from({ length: 901 }, (_, index) => ({
+        time_s: index * 10,
+        x_m: 7_000_000 - index,
+        y_m: index,
+        distance_m: 7_000_000,
+        speed_m_s: 7546.073194525935,
+      })),
+    };
+    const serialized = JSON.stringify(largeResponse);
+    expect(new TextEncoder().encode(serialized).byteLength).toBeGreaterThan(MAX_RESPONSE_BYTES);
+
+    const result = await requestEndpoint("http://127.0.0.1:8000", orbitSandboxEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(serialized, {
+            headers: {
+              "content-length": String(new TextEncoder().encode(serialized).byteLength),
+              "content-type": "application/json",
+            },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ data: largeResponse, kind: "ok", status: 200 });
+  });
+
+  it("rejects an Orbit response above its explicit endpoint response budget", async () => {
+    expect(ORBIT_SANDBOX_MAX_RESPONSE_BYTES).toBeGreaterThan(MAX_RESPONSE_BYTES);
+    const result = await requestEndpoint("http://127.0.0.1:8000", orbitSandboxEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response("{}", {
+            headers: {
+              "content-length": String(ORBIT_SANDBOX_MAX_RESPONSE_BYTES + 1),
+              "content-type": "application/json",
+            },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("rejects additive orbital result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", orbitSandboxEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, unexpected: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
   });
 });
 

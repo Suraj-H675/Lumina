@@ -1,0 +1,292 @@
+{
+  "artifact_version": 1,
+  "model_version": "orbit-sandbox-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-17T00:00:00Z",
+  "definition": {
+    "slug": "orbit-sandbox",
+    "title": "Orbit Sandbox",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "audience_modes": ["explorer", "student", "deep-dive"],
+    "reviewed_by": ["Lumina orbit-sandbox-v1 contract review"],
+    "reviewed_at": "2026-09-17T00:00:00Z",
+    "updated_at": "2026-09-17T00:00:00Z",
+    "model_version": "orbit-sandbox-v1",
+    "learning_objectives": [
+      "Connect initial relative position and velocity to bound, near-parabolic, escape, and collision outcomes in an ideal Newtonian two-body model.",
+      "Relate specific orbital energy and angular momentum to eccentricity, semi-major axis, period, periapsis, and apoapsis.",
+      "Compare circular, elliptical, escape, and collision trajectories while keeping units and numerical assumptions visible.",
+      "Use integration-drift diagnostics to distinguish a numerical visualization from exact analytic orbital elements."
+    ],
+    "prerequisite_concepts": [
+      "SI units",
+      "two-dimensional vectors",
+      "Newtonian gravity",
+      "kinetic and gravitational potential energy",
+      "conic-section orbit terminology"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "central_mass_kg",
+          "meaning": "Mass of the central body.",
+          "unit": "kg",
+          "valid_range": "1e10 <= central_mass_kg <= 1e32",
+          "default": 5.9722e24
+        },
+        {
+          "name": "central_radius_m",
+          "meaning": "Collision radius of the central body.",
+          "unit": "m",
+          "valid_range": "1 <= central_radius_m <= 1e10 and at least 100 Schwarzschild radii",
+          "default": 6371000.0
+        },
+        {
+          "name": "orbiting_body_mass_kg",
+          "meaning": "Optional secondary mass; zero selects the test-particle limit.",
+          "unit": "kg",
+          "valid_range": "0 <= orbiting_body_mass_kg <= min(1e30, central_mass_kg)",
+          "default": 0.0
+        },
+        {
+          "name": "position_x_m",
+          "meaning": "Initial relative x coordinate from the central-body centre.",
+          "unit": "m",
+          "valid_range": "-1e13 <= position_x_m <= 1e13",
+          "default": 7000000.0
+        },
+        {
+          "name": "position_y_m",
+          "meaning": "Initial relative y coordinate from the central-body centre.",
+          "unit": "m",
+          "valid_range": "-1e13 <= position_y_m <= 1e13",
+          "default": 0.0
+        },
+        {
+          "name": "velocity_x_m_s",
+          "meaning": "Initial relative x velocity.",
+          "unit": "m/s",
+          "valid_range": "component magnitude <= 3e6 and total speed <= 0.01c",
+          "default": 0.0
+        },
+        {
+          "name": "velocity_y_m_s",
+          "meaning": "Initial relative y velocity.",
+          "unit": "m/s",
+          "valid_range": "component magnitude <= 3e6 and total speed <= 0.01c",
+          "default": 7546.073194525935
+        },
+        {
+          "name": "duration_s",
+          "meaning": "Forward integration duration.",
+          "unit": "s",
+          "valid_range": "0.01 <= duration_s <= 1e8",
+          "default": 6000.0
+        },
+        {
+          "name": "time_step_s",
+          "meaning": "Requested velocity-Verlet integration step.",
+          "unit": "s",
+          "valid_range": "0.001 <= time_step_s <= 1e6; <= 5% of initial dynamical time; at most 4096 output samples",
+          "default": 10.0
+        }
+      ],
+      "invalid_handling": "Reject non-finite values, booleans in numeric fields, invalid relational states, relativistic/compact-body inputs outside the reviewed Newtonian domain, excessive initial time steps, and requests above the fixed trajectory-point budget. No input is silently clamped."
+    },
+    "default_preset": "Earth-like central body with a 7000 km-radius circular test-particle orbit.",
+    "calculation_module": {
+      "canonical_units": ["kg", "m", "s", "m/s", "m^2/s", "m^3/s^2", "J/kg", "J"],
+      "relationships": [
+        "Relative two-body motion uses mu = G(M + m).",
+        "Analytic osculating elements are calculated from the initial relative state.",
+        "The browser trajectory is returned by the canonical API after fixed-step velocity-Verlet integration; the browser does not integrate the orbit itself.",
+        "A central-radius intersection within the requested forward window overrides the conic label with collision.",
+        "A zero secondary mass selects the test-particle limit; nonzero mass uses reduced-mass total energy and angular momentum in addition to specific invariants."
+      ],
+      "equations": {
+        "gravitational_parameter": "mu = G * (M + m)",
+        "specific_energy": "epsilon = |v|^2 / 2 - mu / |r|",
+        "specific_angular_momentum": "h_z = x*v_y - y*v_x",
+        "eccentricity_vector": "e_vec = (((|v|^2 - mu/|r|) * r_vec) - ((r_vec dot v_vec) * v_vec)) / mu",
+        "semi_major_axis_bound": "a = -mu / (2*epsilon) for epsilon < 0 outside the near-parabolic tolerance",
+        "period_bound": "T = 2*pi*sqrt(a^3/mu)",
+        "periapsis_bound": "r_p = a*(1-e)",
+        "apoapsis_bound": "r_a = a*(1+e)",
+        "periapsis_open": "r_p = h^2 / (mu*(1+e))",
+        "velocity_verlet_position": "r_(n+1) = r_n + v_n*dt + 0.5*a_n*dt^2",
+        "velocity_verlet_velocity": "v_(n+1) = v_n + 0.5*(a_n + a_(n+1))*dt"
+      },
+      "valid_domain": "Planar isolated Newtonian relative two-body motion, finite SI inputs, initial speed no greater than 1% of c, central radius at least 100 Schwarzschild radii, central body not less massive than the optional secondary, and a bounded fixed-step forward integration.",
+      "numerical_policy": "Analytic elements use Python double precision. The trajectory uses deterministic fixed-step velocity Verlet with no adaptive hidden step changes except a final shorter step that lands exactly on the requested duration. The initial step must be no larger than 5% of sqrt(r^3/mu), output is capped at 4096 samples, collision crossing within a step is linearly interpolated, and returned dimensionless drift diagnostics expose numerical conservation error.",
+      "canonical_module": "apps/api/src/lumina/astronomy/domain/orbit_sandbox.py"
+    },
+    "output_schema": [
+      "model and schema versions with normalized validated inputs",
+      "gravitational parameter and optional reduced mass",
+      "specific and optional total orbital energy and angular momentum",
+      "eccentricity, bound semi-major axis and period, periapsis, and bound apoapsis",
+      "bound, parabolic-near, escape, or collision classification with collision time when sampled",
+      "bounded forward trajectory samples with time, relative position, distance, and speed",
+      "maximum dimensionless specific-energy and angular-momentum drift diagnostics"
+    ],
+    "visualization_module": "The web renders the API-returned relative trajectory and numeric outputs only. Display scaling may normalize coordinates for SVG or canvas, but it may not recompute orbital dynamics or claim physical body sizes are to scale.",
+    "assumptions": [
+      "Only two gravitating bodies are represented and motion is reduced to their relative planar coordinate.",
+      "The central body is spherical for collision geometry and is fixed at the visualization origin; nonzero secondary mass is handled through relative two-body dynamics, not a barycentric animation.",
+      "Gravity is Newtonian and instantaneous with constant masses and no mass loss.",
+      "The configured central radius is an absorbing collision boundary for the forward numerical trajectory.",
+      "The initial state is treated as exact input to the idealized model; observational uncertainty is not represented."
+    ],
+    "limitations": [
+      "No n-body perturbations, atmospheric drag, oblateness, tides, radiation pressure, thrust, or general relativity are included.",
+      "The weak-field and speed gates are conservative product-domain limits, not universal boundaries where Newtonian gravity suddenly becomes valid or invalid.",
+      "Parabolic-near is a numerical classification around zero normalized specific energy, not a claim that a real measured orbit is exactly parabolic.",
+      "Collision detection is limited to the requested forward integration window and interpolates a crossing inside one finite integration step.",
+      "Velocity-Verlet trajectory samples approximate the continuous orbit; the returned analytic initial elements are not derived from the sampled path.",
+      "A low drift diagnostic for this numerical model is not an accuracy guarantee for a real orbit."
+    ],
+    "references": ["nist-codata-2022", "nasa-earth-fact-sheet", "openstax-gravitation-orbits"],
+    "validation_fixtures": [
+      "circular-low-earth-orbit",
+      "elliptical-earth-orbit",
+      "parabolic-escape",
+      "hyperbolic-escape",
+      "radial-collision",
+      "secondary-mass-relative-orbit",
+      "immediate-collision",
+      "domain-rejection"
+    ],
+    "share_schema_version": 1
+  },
+  "sources": [
+    {
+      "id": "nist-codata-2022",
+      "title": "Fundamental Physical Constants — Extensive Listing",
+      "organization_or_authors": "National Institute of Standards and Technology (NIST), 2022 CODATA adjustment",
+      "url": "https://physics.nist.gov/cuu/pdf/all.pdf",
+      "accessed_at": "2026-09-17",
+      "dataset_or_release": "2022 CODATA recommended values",
+      "record_reference": "Newtonian constant of gravitation G and exact speed of light c entries.",
+      "retrieved_at": "2026-09-17",
+      "data_date": "2022 CODATA adjustment",
+      "terms_or_licence": "Official NIST constants reference; Lumina records numeric constants and links to the source.",
+      "citation": "NIST, 2022 CODATA recommended values of the fundamental physical constants, accessed 2026-09-17.",
+      "claim_scope": "G = 6.67430e-11 m^3 kg^-1 s^-2 and c = 299792458 m/s used by the reviewed model domain.",
+      "source_type": "official-standards"
+    },
+    {
+      "id": "nasa-earth-fact-sheet",
+      "title": "Earth Fact Sheet",
+      "organization_or_authors": "NASA Goddard / NSSDC",
+      "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html",
+      "accessed_at": "2026-09-17",
+      "dataset_or_release": "NASA Planetary Fact Sheet",
+      "record_reference": "Bulk parameters: mass and volumetric mean radius.",
+      "retrieved_at": "2026-09-17",
+      "data_date": "Current page values at retrieval time.",
+      "terms_or_licence": "Official NASA factual reference; Lumina records reviewed numeric defaults and links to the source.",
+      "citation": "NASA NSSDC, Earth Fact Sheet, accessed 2026-09-17.",
+      "claim_scope": "Default Earth mass 5.9722e24 kg and volumetric mean radius 6371 km.",
+      "source_type": "official-agency"
+    },
+    {
+      "id": "openstax-gravitation-orbits",
+      "title": "Chapter 13 Key Equations — Gravitation",
+      "organization_or_authors": "OpenStax, University Physics Volume 1",
+      "url": "https://openstax.org/books/university-physics-volume-1/pages/13-key-equations",
+      "accessed_at": "2026-09-17",
+      "dataset_or_release": "University Physics Volume 1, Chapter 13",
+      "record_reference": "Newtonian gravitation, escape speed, circular-orbit speed/energy, Kepler period, conic-section and Schwarzschild-radius equations.",
+      "retrieved_at": "2026-09-17",
+      "data_date": "Textbook reference; no observation epoch.",
+      "terms_or_licence": "OpenStax educational source; Lumina links to the source and does not redistribute textbook prose.",
+      "citation": "OpenStax, University Physics Volume 1, Chapter 13 Key Equations, accessed 2026-09-17.",
+      "claim_scope": "Independent educational reference for the Newtonian orbital relationships and weak-field exclusion context used by Orbit Sandbox.",
+      "source_type": "official-education"
+    }
+  ],
+  "constants": {
+    "GRAVITATIONAL_CONSTANT_M3_KG_S2": 6.6743e-11,
+    "SPEED_OF_LIGHT_M_S": 299792458.0,
+    "EARTH_MASS_KG": 5.9722e24,
+    "EARTH_MEAN_RADIUS_M": 6371000.0,
+    "DEFAULT_ORBIT_RADIUS_M": 7000000.0,
+    "DEFAULT_CIRCULAR_SPEED_M_S": 7546.073194525935,
+    "MAX_TRAJECTORY_POINTS": 4096,
+    "MAX_INITIAL_SPEED_FRACTION_OF_C": 0.01,
+    "MIN_CENTRAL_RADIUS_SCHWARZSCHILD_MULTIPLE": 100.0,
+    "MAX_STEP_FRACTION_OF_INITIAL_DYNAMICAL_TIME": 0.05,
+    "PARABOLIC_NORMALIZED_ENERGY_TOLERANCE": 1e-10
+  },
+  "presets": {
+    "earth-low-orbit": {
+      "central_mass_kg": 5.9722e24,
+      "central_radius_m": 6371000.0,
+      "orbiting_body_mass_kg": 0.0,
+      "position_x_m": 7000000.0,
+      "position_y_m": 0.0,
+      "velocity_x_m_s": 0.0,
+      "velocity_y_m_s": 7546.073194525935,
+      "duration_s": 6000.0,
+      "time_step_s": 10.0
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "circular-low-earth-orbit",
+      "purpose": "Independent circular speed, period, energy, and low-drift reference."
+    },
+    {
+      "id": "elliptical-earth-orbit",
+      "purpose": "Independent vis-viva ellipse with known periapsis and apoapsis."
+    },
+    {
+      "id": "parabolic-escape",
+      "purpose": "Exact reviewed escape-speed boundary maps to parabolic-near."
+    },
+    {
+      "id": "hyperbolic-escape",
+      "purpose": "Speed above escape produces positive-energy open motion."
+    },
+    {
+      "id": "radial-collision",
+      "purpose": "Finite-window radial infall reaches the central collision radius."
+    },
+    {
+      "id": "secondary-mass-relative-orbit",
+      "purpose": "Nonzero secondary mass changes mu and exposes reduced-mass total invariants."
+    },
+    {
+      "id": "immediate-collision",
+      "purpose": "Initial state inside the collision radius terminates at t=0."
+    },
+    {
+      "id": "domain-rejection",
+      "purpose": "Invalid, over-budget, relativistic, compact-body, and coarse-step states are rejected rather than clamped."
+    }
+  ],
+  "scientific_validation": {
+    "id": "orbit-sandbox-independent-validation-v1",
+    "checked_at": "2026-09-17T00:00:00Z",
+    "method": "Literal known-case expectations are calculated independently from reviewed Newtonian relationships: circular speed/period/energy, vis-viva apsides, exact escape speed, and collision/domain boundaries. Conservation diagnostics are asserted independently of the production trajectory renderer.",
+    "tools": [
+      {
+        "name": "Python pytest",
+        "version": "Repository-pinned pytest 9.1.1",
+        "role": "Independent known-case, boundary, and conservation assertions."
+      }
+    ],
+    "source_ids": ["nist-codata-2022", "nasa-earth-fact-sheet", "openstax-gravitation-orbits"],
+    "test_references": [
+      "orbit-sandbox-circular-reference",
+      "orbit-sandbox-vis-viva-ellipse",
+      "orbit-sandbox-escape-boundary",
+      "orbit-sandbox-collision-window",
+      "orbit-sandbox-domain-and-budget"
+    ]
+  }
+}

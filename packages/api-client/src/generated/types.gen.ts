@@ -1243,6 +1243,153 @@ export type NearEarthWindowResponse = {
 };
 
 /**
+ * OrbitSandboxCalculationResponse
+ */
+export type OrbitSandboxCalculationResponse = {
+  /**
+   * Angular Momentum Kg M2 Per S
+   */
+  angular_momentum_kg_m2_per_s: number | null;
+  /**
+   * Apoapsis M
+   */
+  apoapsis_m: number | null;
+  /**
+   * Classification
+   */
+  classification: "bound" | "parabolic_near" | "escape" | "collision";
+  /**
+   * Collision Time S
+   */
+  collision_time_s: number | null;
+  /**
+   * Eccentricity
+   */
+  eccentricity: number;
+  /**
+   * Gravitational Parameter M3 S2
+   */
+  gravitational_parameter_m3_s2: number;
+  inputs: OrbitSandboxInputResponse;
+  /**
+   * Max Specific Angular Momentum Drift Fraction
+   */
+  max_specific_angular_momentum_drift_fraction: number;
+  /**
+   * Max Specific Energy Drift Fraction
+   */
+  max_specific_energy_drift_fraction: number;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Orbital Energy J
+   */
+  orbital_energy_j: number | null;
+  /**
+   * Periapsis M
+   */
+  periapsis_m: number;
+  /**
+   * Period S
+   */
+  period_s: number | null;
+  /**
+   * Reduced Mass Kg
+   */
+  reduced_mass_kg: number | null;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Semi Major Axis M
+   */
+  semi_major_axis_m: number | null;
+  /**
+   * Specific Angular Momentum M2 Per S
+   */
+  specific_angular_momentum_m2_per_s: number;
+  /**
+   * Specific Orbital Energy J Per Kg
+   */
+  specific_orbital_energy_j_per_kg: number;
+  /**
+   * Trajectory
+   */
+  trajectory: Array<OrbitTrajectoryPointResponse>;
+};
+
+/**
+ * OrbitSandboxInputResponse
+ */
+export type OrbitSandboxInputResponse = {
+  /**
+   * Central Mass Kg
+   */
+  central_mass_kg: number;
+  /**
+   * Central Radius M
+   */
+  central_radius_m: number;
+  /**
+   * Duration S
+   */
+  duration_s: number;
+  /**
+   * Orbiting Body Mass Kg
+   */
+  orbiting_body_mass_kg: number;
+  /**
+   * Position X M
+   */
+  position_x_m: number;
+  /**
+   * Position Y M
+   */
+  position_y_m: number;
+  /**
+   * Time Step S
+   */
+  time_step_s: number;
+  /**
+   * Velocity X M S
+   */
+  velocity_x_m_s: number;
+  /**
+   * Velocity Y M S
+   */
+  velocity_y_m_s: number;
+};
+
+/**
+ * OrbitTrajectoryPointResponse
+ */
+export type OrbitTrajectoryPointResponse = {
+  /**
+   * Distance M
+   */
+  distance_m: number;
+  /**
+   * Speed M S
+   */
+  speed_m_s: number;
+  /**
+   * Time S
+   */
+  time_s: number;
+  /**
+   * X M
+   */
+  x_m: number;
+  /**
+   * Y M
+   */
+  y_m: number;
+};
+
+/**
  * PageResponse
  */
 export type PageResponse = {
@@ -3274,6 +3421,88 @@ export type SuggestCatalogEntitiesResponses = {
 
 export type SuggestCatalogEntitiesResponse =
   SuggestCatalogEntitiesResponses[keyof SuggestCatalogEntitiesResponses];
+
+export type CalculateOrbitSandboxData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Central Mass Kg
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    central_mass_kg: number;
+    /**
+     * Central Radius M
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    central_radius_m: number;
+    /**
+     * Orbiting Body Mass Kg
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    orbiting_body_mass_kg: number;
+    /**
+     * Position X M
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    position_x_m: number;
+    /**
+     * Position Y M
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    position_y_m: number;
+    /**
+     * Velocity X M S
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    velocity_x_m_s: number;
+    /**
+     * Velocity Y M S
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    velocity_y_m_s: number;
+    /**
+     * Duration S
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    duration_s: number;
+    /**
+     * Time Step S
+     *
+     * Orbit Sandbox SI-unit model input.
+     */
+    time_step_s: number;
+  };
+  url: "/api/v1/simulations/orbit-sandbox";
+};
+
+export type CalculateOrbitSandboxErrors = {
+  /**
+   * The Orbit Sandbox inputs are invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateOrbitSandboxError =
+  CalculateOrbitSandboxErrors[keyof CalculateOrbitSandboxErrors];
+
+export type CalculateOrbitSandboxResponses = {
+  /**
+   * Successful Response
+   */
+  200: OrbitSandboxCalculationResponse;
+};
+
+export type CalculateOrbitSandboxResponse =
+  CalculateOrbitSandboxResponses[keyof CalculateOrbitSandboxResponses];
 
 export type CalculateSeasonsSimulatorData = {
   body?: never;

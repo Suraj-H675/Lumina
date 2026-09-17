@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { access, open, unlink } from "node:fs/promises";
 import http from "node:http";
 import { join } from "node:path";
@@ -11,6 +12,9 @@ if (coordinationFile === undefined || coordinationFile.length === 0) {
 }
 
 const token = randomBytes(32).toString("hex");
+const orbitFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/orbit-sandbox.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -23,6 +27,7 @@ const apiPaths = new Set([
   "/api/v1/now/satellites",
   "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
+  "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
   "/health/live",
@@ -1143,6 +1148,61 @@ function respondCatalogue(request, response, target) {
   sendFailure(response, 500);
 }
 
+function respondOrbitSandbox(response, target) {
+  const keys = [...target.searchParams.keys()];
+  const expectedKeys = [
+    "central_mass_kg",
+    "central_radius_m",
+    "orbiting_body_mass_kg",
+    "position_x_m",
+    "position_y_m",
+    "velocity_x_m_s",
+    "velocity_y_m_s",
+    "duration_s",
+    "time_step_s",
+  ];
+  const hasExactKeys =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key));
+  if (!hasExactKeys) {
+    sendJson(response, 422, {
+      error: {
+        code: "orbit_sandbox.model_invalid",
+        message: "The Orbit Sandbox fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+
+  const query = Object.fromEntries(target.searchParams.entries());
+  const common =
+    query.central_mass_kg === "5.9722e+24" &&
+    query.central_radius_m === "6371000" &&
+    query.orbiting_body_mass_kg === "0" &&
+    query.position_x_m === "7000000" &&
+    query.position_y_m === "0" &&
+    query.velocity_x_m_s === "0" &&
+    query.velocity_y_m_s === "7546.073194525935" &&
+    query.time_step_s === "10";
+  if (common && query.duration_s === "6000") {
+    sendJson(response, 200, orbitFixtures.default);
+    return;
+  }
+  if (common && query.duration_s === "100") {
+    sendJson(response, 200, orbitFixtures.short);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "orbit_sandbox.model_invalid",
+      message: "The Orbit Sandbox E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1657,6 +1717,7 @@ const stub = http.createServer(async (request, response) => {
   const isCataloguePath = apiPathPrefixes.some((prefix) => path.startsWith(prefix));
   const isLaunchPath =
     path === "/api/v1/now/launches" || /^\/api\/v1\/now\/launches\/[0-9a-f-]{36}$/u.test(path);
+  const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
   const identificationMatch = /^\/api\/v1\/identification\/submissions\/([0-9a-f-]{36})$/u.exec(
@@ -1697,6 +1758,7 @@ const stub = http.createServer(async (request, response) => {
   if (
     target.search !== "" &&
     !isCataloguePath &&
+    !isOrbitSandboxPath &&
     !isSeasonsPath &&
     !isTelescopeBuilderPath &&
     !validIdentificationSolutionQuery
@@ -1898,6 +1960,10 @@ const stub = http.createServer(async (request, response) => {
     // always available. Keeping them outside the mode gate removes any
     // cross-suite scheduling race between the two specs.
     respondCatalogue(request, response, target);
+    return;
+  }
+  if (isOrbitSandboxPath) {
+    respondOrbitSandbox(response, target);
     return;
   }
   if (isSeasonsPath) {

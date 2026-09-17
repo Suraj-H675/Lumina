@@ -562,6 +562,57 @@ export const zNearEarthResponse = z.object({
 });
 
 /**
+ * OrbitSandboxInputResponse
+ */
+export const zOrbitSandboxInputResponse = z.object({
+  central_mass_kg: z.number(),
+  central_radius_m: z.number(),
+  duration_s: z.number(),
+  orbiting_body_mass_kg: z.number(),
+  position_x_m: z.number(),
+  position_y_m: z.number(),
+  time_step_s: z.number(),
+  velocity_x_m_s: z.number(),
+  velocity_y_m_s: z.number(),
+});
+
+/**
+ * OrbitTrajectoryPointResponse
+ */
+export const zOrbitTrajectoryPointResponse = z.object({
+  distance_m: z.number(),
+  speed_m_s: z.number(),
+  time_s: z.number(),
+  x_m: z.number(),
+  y_m: z.number(),
+});
+
+/**
+ * OrbitSandboxCalculationResponse
+ */
+export const zOrbitSandboxCalculationResponse = z.object({
+  angular_momentum_kg_m2_per_s: z.number().nullable(),
+  apoapsis_m: z.number().nullable(),
+  classification: z.enum(["bound", "parabolic_near", "escape", "collision"]),
+  collision_time_s: z.number().nullable(),
+  eccentricity: z.number(),
+  gravitational_parameter_m3_s2: z.number(),
+  inputs: zOrbitSandboxInputResponse,
+  max_specific_angular_momentum_drift_fraction: z.number(),
+  max_specific_energy_drift_fraction: z.number(),
+  model_version: z.string(),
+  orbital_energy_j: z.number().nullable(),
+  periapsis_m: z.number(),
+  period_s: z.number().nullable(),
+  reduced_mass_kg: z.number().nullable(),
+  schema_version: z.int(),
+  semi_major_axis_m: z.number().nullable(),
+  specific_angular_momentum_m2_per_s: z.number(),
+  specific_orbital_energy_j_per_kg: z.number(),
+  trajectory: z.array(zOrbitTrajectoryPointResponse).max(4096),
+});
+
+/**
  * PageResponse
  */
 export const zPageResponse = z.object({
@@ -1346,6 +1397,11 @@ export const zSearchCatalogEntitiesResponse = zCatalogSearchResponse;
  * Successful Response
  */
 export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateOrbitSandboxResponse = zOrbitSandboxCalculationResponse;
 
 /**
  * Successful Response

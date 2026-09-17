@@ -2,6 +2,12 @@ import Link from "next/link";
 
 const labs = [
   {
+    href: "/lab/orbit-sandbox",
+    title: "Orbit Sandbox",
+    description:
+      "Explore reviewed Newtonian two-body motion, orbital elements, collisions, and numerical drift.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

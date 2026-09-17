@@ -121,7 +121,12 @@ export type {
   TransportOptions,
 } from "./transport";
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
-export { seasonsSimulatorEndpoint, telescopeBuilderEndpoint } from "./contract";
+export {
+  ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
+  orbitSandboxEndpoint,
+  seasonsSimulatorEndpoint,
+  telescopeBuilderEndpoint,
+} from "./contract";
 export {
   catalogEntitiesEndpoint,
   catalogEntityBySlugEndpoint,
@@ -130,12 +135,16 @@ export {
 export type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateOrbitSandboxResponse,
   CalculateSeasonsSimulatorResponse,
   EntityDetailResponse,
   EntityQuantityResponse,
   EntitySummaryResponse,
   EntityType,
   MeasurementReference,
+  OrbitSandboxCalculationResponse,
+  OrbitSandboxInputResponse,
+  OrbitTrajectoryPointResponse,
   QuantityReference,
   SearchMatchReason,
   SeasonsCalculationResponse,

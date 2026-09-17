@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
+import { CaptureChecksPanel } from "./capture-checks-panel";
 import { IdentifyJournalPanel } from "./identify-journal-panel";
 import { SolutionOverlay } from "./solution-overlay";
 
@@ -377,6 +378,11 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
               loadMoreWarning={solutionState.warning}
               onLoadMore={() => void loadMoreAnnotations()}
               solution={solutionState.data}
+            />
+            <CaptureChecksPanel
+              sourceHeightPx={solutionState.data.wcs.image_height}
+              sourceImage={state.active.sourceImage}
+              sourceWidthPx={solutionState.data.wcs.image_width}
             />
             <IdentifyJournalPanel
               completedAt={state.active.status.completed_at}

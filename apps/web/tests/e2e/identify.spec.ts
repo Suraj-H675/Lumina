@@ -123,9 +123,13 @@ test.describe("Phase 6 — private identification", () => {
     await setIdentificationStubMode(testInfo, "nova");
     const novaBrowserRequests: string[] = [];
     const solutionRequests: string[] = [];
+    const identificationRequests: string[] = [];
     page.on("request", (request) => {
       const url = new URL(request.url());
       if (url.hostname === "nova.astrometry.net") novaBrowserRequests.push(request.url());
+      if (url.pathname.startsWith("/api/v1/identification/")) {
+        identificationRequests.push(request.url());
+      }
       if (/\/api\/v1\/identification\/submissions\/[0-9a-f-]{36}\/solution$/u.test(url.pathname)) {
         solutionRequests.push(request.url());
       }
@@ -173,6 +177,12 @@ test.describe("Phase 6 — private identification", () => {
     await expect(solvedImage.getByText("Orion Nebula")).toHaveCount(0);
     await page.getByLabel(/Zoom:/i).fill("2");
     await expect(page.getByText("Zoom: 2.0×")).toBeVisible();
+
+    const requestsBeforeCaptureChecks = identificationRequests.length;
+    await page.getByRole("button", { name: "Run local capture checks" }).click();
+    await expect(page.getByText("32 × 32 pixels")).toBeVisible();
+    await expect(page.getByRole("list", { name: "Display-RGB luma histogram" })).toBeVisible();
+    expect(identificationRequests).toHaveLength(requestsBeforeCaptureChecks);
 
     await page.getByLabel("Journal title").fill("Orion solved field");
     await page.getByRole("button", { name: "Save to local journal" }).click();

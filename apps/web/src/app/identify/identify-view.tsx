@@ -16,6 +16,7 @@ import type { FormEvent } from "react";
 import { CaptureChecksPanel } from "./capture-checks-panel";
 import { IdentifyJournalPanel } from "./identify-journal-panel";
 import { SolutionOverlay } from "./solution-overlay";
+import { SurveyComparisonPanel } from "./survey-comparison-panel";
 
 type IdentifyViewProps = Readonly<{
   apiOrigin: string;
@@ -383,6 +384,10 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
               sourceHeightPx={solutionState.data.wcs.image_height}
               sourceImage={state.active.sourceImage}
               sourceWidthPx={solutionState.data.wcs.image_width}
+            />
+            <SurveyComparisonPanel
+              imageUrl={state.active.previewUrl}
+              solution={solutionState.data}
             />
             <IdentifyJournalPanel
               completedAt={state.active.status.completed_at}

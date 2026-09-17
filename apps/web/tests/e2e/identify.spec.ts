@@ -7,6 +7,16 @@ import {
 } from "./support/status-stub-control";
 
 const jobId = "72000000-0000-4000-8000-000000000001";
+const WWT_HOSTS = new Set([
+  "web.wwtassets.org",
+  "cdn.worldwidetelescope.org",
+  "www.worldwidetelescope.org",
+]);
+const DSS_ROOT_TILE = "https://cdn.worldwidetelescope.org/wwtweb/dss.aspx?q=0,0,0";
+const ONE_PIXEL_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nXkAAAAASUVORK5CYII=",
+  "base64",
+);
 
 const image = {
   buffer: Buffer.from(
@@ -160,7 +170,7 @@ test.describe("Phase 6 — private identification", () => {
     await expect(page.getByText("82.500000°")).toBeVisible();
     await expect(page.getByText("ICRS", { exact: true })).toBeVisible();
 
-    const solvedImage = page.getByRole("img", { name: "Solved astronomical image" });
+    const solvedImage = page.getByRole("img", { name: "Solved astronomical image", exact: true });
     await expect(solvedImage).toHaveAttribute("viewBox", "0 0 32 32");
     await expect(solvedImage.getByText("Rigel")).toBeVisible();
     expect(solutionRequests).toHaveLength(1);
@@ -201,6 +211,48 @@ test.describe("Phase 6 — private identification", () => {
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
     expect(novaBrowserRequests).toEqual([]);
+  });
+
+  test("opens reviewed survey context only after explicit activation", async ({
+    page,
+  }, testInfo) => {
+    await setIdentificationStubMode(testInfo, "nova");
+    const wwtRequests: Array<{ body: string | null; url: string }> = [];
+    await page.route("https://cdn.worldwidetelescope.org/**", async (route) => {
+      if (route.request().url() === DSS_ROOT_TILE) {
+        await route.fulfill({ body: ONE_PIXEL_PNG, contentType: "image/png", status: 200 });
+      } else {
+        await route.abort("failed");
+      }
+    });
+    await page.route("https://www.worldwidetelescope.org/**", (route) => route.abort("failed"));
+    await page.route("https://web.wwtassets.org/**", (route) => route.abort("failed"));
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (WWT_HOSTS.has(url.hostname)) {
+        wwtRequests.push({ body: request.postData(), url: request.url() });
+      }
+    });
+
+    await page.goto("/identify");
+    await page.getByLabel("JPEG or PNG image").setInputFiles(image);
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Start remote plate solve" }).click();
+    await expect(page.getByRole("heading", { name: "Compare with survey context" })).toBeVisible();
+    await expect(page.getByRole("img", { name: /survey comparison/i })).toHaveAttribute(
+      "src",
+      /^blob:/u,
+    );
+    expect(wwtRequests).toEqual([]);
+
+    await page.getByRole("button", { name: "Open survey comparison" }).click();
+    await expect(page.getByText("Survey comparison ready.")).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByRole("region", { name: "WorldWide Telescope survey comparison" }).locator("canvas"),
+    ).toBeVisible();
+    expect(wwtRequests.length).toBeGreaterThan(0);
+    expect(wwtRequests.every((request) => request.body === null)).toBe(true);
+    expect(wwtRequests.map((request) => request.url).join("\n")).not.toContain(image.name);
   });
 
   test("rejects an unsupported selected media type before upload", async ({ page }) => {

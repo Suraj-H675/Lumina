@@ -10,6 +10,7 @@ import type {
   CatalogSuggestResponse,
   CalculateEclipseSimulatorData,
   CalculateOrbitSandboxData,
+  CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
   CalculateSpectroscopyLabData,
@@ -17,6 +18,7 @@ import type {
   CalculateTelescopeBuilderData,
   CalculateTransitMethodData,
   OrbitSandboxCalculationResponse,
+  PlanetarySystemBuilderCalculationResponse,
   RadialVelocityCalculationResponse,
   SpectroscopyCalculationResponse,
   StellarLaboratoryCalculationResponse,
@@ -62,6 +64,7 @@ import {
   zCatalogSuggestResponse,
   zCalculateEclipseSimulatorResponse,
   zCalculateOrbitSandboxResponse,
+  zCalculatePlanetarySystemBuilderResponse,
   zCalculateRadialVelocityResponse,
   zCalculateSeasonsSimulatorResponse,
   zCalculateSpectroscopyLabResponse,
@@ -353,6 +356,15 @@ export const orbitSandboxEndpoint = {
   path: "/api/v1/simulations/orbit-sandbox" satisfies CalculateOrbitSandboxData["url"],
   validator: zCalculateOrbitSandboxResponse,
 } satisfies ApiEndpoint<OrbitSandboxCalculationResponse, CalculateOrbitSandboxData["url"]>;
+
+export const planetarySystemBuilderEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/planetary-system-builder" satisfies CalculatePlanetarySystemBuilderData["url"],
+  validator: zCalculatePlanetarySystemBuilderResponse,
+} satisfies ApiEndpoint<
+  PlanetarySystemBuilderCalculationResponse,
+  CalculatePlanetarySystemBuilderData["url"]
+>;
 
 export const eclipseSimulatorEndpoint = {
   method: "GET",

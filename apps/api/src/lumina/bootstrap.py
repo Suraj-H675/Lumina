@@ -14,6 +14,9 @@ from starlette.exceptions import HTTPException
 from lumina import __version__
 from lumina.astronomy.api.eclipse_simulator_routes import router as eclipse_simulator_router
 from lumina.astronomy.api.orbit_routes import router as orbit_router
+from lumina.astronomy.api.planetary_system_builder_routes import (
+    router as planetary_system_builder_router,
+)
 from lumina.astronomy.api.radial_velocity_routes import router as radial_velocity_router
 from lumina.astronomy.api.routes import router as astronomy_router
 from lumina.astronomy.api.spectroscopy_lab_routes import router as spectroscopy_lab_router
@@ -210,6 +213,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(astronomy_router)
     application.include_router(eclipse_simulator_router)
     application.include_router(orbit_router)
+    application.include_router(planetary_system_builder_router)
     application.include_router(radial_velocity_router)
     application.include_router(spectroscopy_lab_router)
     application.include_router(stellar_laboratory_router)

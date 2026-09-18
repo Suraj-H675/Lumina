@@ -1547,6 +1547,169 @@ export type PageResponse = {
 };
 
 /**
+ * PlanetarySystemAdjacentPairResponse
+ */
+export type PlanetarySystemAdjacentPairResponse = {
+  /**
+   * Inner Index
+   */
+  inner_index: number;
+  /**
+   * Interpretation
+   */
+  interpretation: string;
+  /**
+   * Mutual Hill Radius Au
+   */
+  mutual_hill_radius_au: number;
+  /**
+   * Outer Index
+   */
+  outer_index: number;
+  /**
+   * Pairwise Reference Threshold
+   */
+  pairwise_reference_threshold: number;
+  /**
+   * Separation Mutual Hill
+   */
+  separation_mutual_hill: number;
+  /**
+   * Spacing Assessment
+   */
+  spacing_assessment: "pairwise_close_warning" | "no_pairwise_hill_warning";
+};
+
+/**
+ * PlanetarySystemBuilderCalculationResponse
+ */
+export type PlanetarySystemBuilderCalculationResponse = {
+  /**
+   * Adjacent Pairs
+   */
+  adjacent_pairs: Array<PlanetarySystemAdjacentPairResponse>;
+  habitable_zone: PlanetarySystemHabitableZoneResponse;
+  inputs: PlanetarySystemBuilderInputResponse;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Planets
+   */
+  planets: Array<PlanetarySystemPlanetResponse>;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Stability Note
+   */
+  stability_note: string;
+  /**
+   * Stellar Consistency Note
+   */
+  stellar_consistency_note: string;
+};
+
+/**
+ * PlanetarySystemBuilderInputResponse
+ */
+export type PlanetarySystemBuilderInputResponse = {
+  /**
+   * Planets
+   */
+  planets: Array<PlanetarySystemPlanetInputResponse>;
+  /**
+   * Stellar Effective Temperature K
+   */
+  stellar_effective_temperature_k: number;
+  /**
+   * Stellar Luminosity Lsun
+   */
+  stellar_luminosity_lsun: number;
+  /**
+   * Stellar Mass Msun
+   */
+  stellar_mass_msun: number;
+};
+
+/**
+ * PlanetarySystemHabitableZoneResponse
+ */
+export type PlanetarySystemHabitableZoneResponse = {
+  /**
+   * Habitability Note
+   */
+  habitability_note: string;
+  /**
+   * Inner Edge Au
+   */
+  inner_edge_au: number;
+  /**
+   * Inner Effective Flux
+   */
+  inner_effective_flux: number;
+  /**
+   * Model Id
+   */
+  model_id: string;
+  /**
+   * Outer Edge Au
+   */
+  outer_edge_au: number;
+  /**
+   * Outer Effective Flux
+   */
+  outer_effective_flux: number;
+};
+
+/**
+ * PlanetarySystemPlanetInputResponse
+ */
+export type PlanetarySystemPlanetInputResponse = {
+  /**
+   * Mass Mearth
+   */
+  mass_mearth: number;
+  /**
+   * Semi Major Axis Au
+   */
+  semi_major_axis_au: number;
+};
+
+/**
+ * PlanetarySystemPlanetResponse
+ */
+export type PlanetarySystemPlanetResponse = {
+  /**
+   * Habitable Zone Relation
+   */
+  habitable_zone_relation:
+    "interior_to_reference_hz" | "inside_reference_hz" | "exterior_to_reference_hz";
+  /**
+   * Index
+   */
+  index: number;
+  /**
+   * Mass Mearth
+   */
+  mass_mearth: number;
+  /**
+   * Orbital Period Days
+   */
+  orbital_period_days: number;
+  /**
+   * Orbital Period S
+   */
+  orbital_period_s: number;
+  /**
+   * Semi Major Axis Au
+   */
+  semi_major_axis_au: number;
+};
+
+/**
  * ProviderFailureCode
  *
  * Value-free stable categories safe for status and structured logs.
@@ -4094,6 +4257,64 @@ export type CalculateOrbitSandboxResponses = {
 
 export type CalculateOrbitSandboxResponse =
   CalculateOrbitSandboxResponses[keyof CalculateOrbitSandboxResponses];
+
+export type CalculatePlanetarySystemBuilderData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Stellar Mass Msun
+     *
+     * Stellar mass in nominal Solar masses; 0.1 through 2.0.
+     */
+    stellar_mass_msun: number;
+    /**
+     * Stellar Luminosity Lsun
+     *
+     * Stellar luminosity in nominal Solar luminosities; 0.001 through 20.
+     */
+    stellar_luminosity_lsun: number;
+    /**
+     * Stellar Effective Temperature K
+     *
+     * Stellar effective temperature in kelvin; 2600 through 7200.
+     */
+    stellar_effective_temperature_k: number;
+    /**
+     * Planet Mass Mearth
+     *
+     * Repeated ordered planet masses in nominal terrestrial masses; one through eight.
+     */
+    planet_mass_mearth: Array<number>;
+    /**
+     * Semi Major Axis Au
+     *
+     * Repeated ordered semimajor axes in AU; values must already be strictly increasing.
+     */
+    semi_major_axis_au: Array<number>;
+  };
+  url: "/api/v1/simulations/planetary-system-builder";
+};
+
+export type CalculatePlanetarySystemBuilderErrors = {
+  /**
+   * The Planetary System Builder input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculatePlanetarySystemBuilderError =
+  CalculatePlanetarySystemBuilderErrors[keyof CalculatePlanetarySystemBuilderErrors];
+
+export type CalculatePlanetarySystemBuilderResponses = {
+  /**
+   * Successful Response
+   */
+  200: PlanetarySystemBuilderCalculationResponse;
+};
+
+export type CalculatePlanetarySystemBuilderResponse =
+  CalculatePlanetarySystemBuilderResponses[keyof CalculatePlanetarySystemBuilderResponses];
 
 export type CalculateRadialVelocityData = {
   body?: never;

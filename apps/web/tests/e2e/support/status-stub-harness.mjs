@@ -30,6 +30,9 @@ const eclipseSimulatorFixtures = JSON.parse(
 const spectroscopyLabFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/spectroscopy-lab.json", import.meta.url), "utf8"),
 );
+const planetarySystemBuilderFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/planetary-system-builder.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -44,6 +47,7 @@ const apiPaths = new Set([
   "/api/v1/providers/status",
   "/api/v1/simulations/eclipse-simulator",
   "/api/v1/simulations/orbit-sandbox",
+  "/api/v1/simulations/planetary-system-builder",
   "/api/v1/simulations/radial-velocity",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/spectroscopy-lab",
@@ -1448,6 +1452,59 @@ function respondSpectroscopyLab(response, target) {
   });
 }
 
+function respondPlanetarySystemBuilder(response, target) {
+  const scalarKeys = [
+    "stellar_mass_msun",
+    "stellar_luminosity_lsun",
+    "stellar_effective_temperature_k",
+  ];
+  const repeatedKeys = ["planet_mass_mearth", "semi_major_axis_au"];
+  const allowedKeys = new Set([...scalarKeys, ...repeatedKeys]);
+  const keys = [...target.searchParams.keys()];
+  const masses = target.searchParams.getAll("planet_mass_mearth");
+  const axes = target.searchParams.getAll("semi_major_axis_au");
+  const validShape =
+    keys.length > 0 &&
+    keys.every((key) => allowedKeys.has(key)) &&
+    scalarKeys.every((key) => target.searchParams.getAll(key).length === 1) &&
+    masses.length >= 1 &&
+    masses.length <= 8 &&
+    axes.length === masses.length;
+  if (!validShape) {
+    sendJson(response, 422, {
+      error: {
+        code: "planetary_system_builder.model_invalid",
+        message: "The Planetary System Builder fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const common =
+    target.searchParams.get("stellar_mass_msun") === "1" &&
+    target.searchParams.get("stellar_luminosity_lsun") === "1" &&
+    target.searchParams.get("stellar_effective_temperature_k") === "5780" &&
+    masses.length === 3 &&
+    masses.every((mass) => mass === "1") &&
+    axes[1] === "1" &&
+    axes[2] === "2";
+  if (common && axes[0] === "0.7") {
+    sendJson(response, 200, planetarySystemBuilderFixtures.default_system);
+    return;
+  }
+  if (common && axes[0] === "0.8") {
+    sendJson(response, 200, planetarySystemBuilderFixtures.accepted_axis_0_8);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "planetary_system_builder.model_invalid",
+      message: "The Planetary System Builder E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1963,6 +2020,7 @@ const stub = http.createServer(async (request, response) => {
   const isLaunchPath =
     path === "/api/v1/now/launches" || /^\/api\/v1\/now\/launches\/[0-9a-f-]{36}$/u.test(path);
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
+  const isPlanetarySystemBuilderPath = path === "/api/v1/simulations/planetary-system-builder";
   const isEclipseSimulatorPath = path === "/api/v1/simulations/eclipse-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
@@ -2010,6 +2068,7 @@ const stub = http.createServer(async (request, response) => {
     !isCataloguePath &&
     !isEclipseSimulatorPath &&
     !isOrbitSandboxPath &&
+    !isPlanetarySystemBuilderPath &&
     !isRadialVelocityPath &&
     !isSeasonsPath &&
     !isSpectroscopyLabPath &&
@@ -2223,6 +2282,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isOrbitSandboxPath) {
     respondOrbitSandbox(response, target);
+    return;
+  }
+  if (isPlanetarySystemBuilderPath) {
+    respondPlanetarySystemBuilder(response, target);
     return;
   }
   if (isRadialVelocityPath) {

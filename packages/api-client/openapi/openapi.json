@@ -2786,6 +2786,246 @@
         "title": "PageResponse",
         "type": "object"
       },
+      "PlanetarySystemAdjacentPairResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "inner_index": {
+            "title": "Inner Index",
+            "type": "integer"
+          },
+          "interpretation": {
+            "title": "Interpretation",
+            "type": "string"
+          },
+          "mutual_hill_radius_au": {
+            "title": "Mutual Hill Radius Au",
+            "type": "number"
+          },
+          "outer_index": {
+            "title": "Outer Index",
+            "type": "integer"
+          },
+          "pairwise_reference_threshold": {
+            "title": "Pairwise Reference Threshold",
+            "type": "number"
+          },
+          "separation_mutual_hill": {
+            "title": "Separation Mutual Hill",
+            "type": "number"
+          },
+          "spacing_assessment": {
+            "enum": [
+              "pairwise_close_warning",
+              "no_pairwise_hill_warning"
+            ],
+            "title": "Spacing Assessment",
+            "type": "string"
+          }
+        },
+        "required": [
+          "inner_index",
+          "outer_index",
+          "mutual_hill_radius_au",
+          "separation_mutual_hill",
+          "pairwise_reference_threshold",
+          "spacing_assessment",
+          "interpretation"
+        ],
+        "title": "PlanetarySystemAdjacentPairResponse",
+        "type": "object"
+      },
+      "PlanetarySystemBuilderCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "adjacent_pairs": {
+            "items": {
+              "$ref": "#/components/schemas/PlanetarySystemAdjacentPairResponse"
+            },
+            "maxItems": 7,
+            "title": "Adjacent Pairs",
+            "type": "array"
+          },
+          "habitable_zone": {
+            "$ref": "#/components/schemas/PlanetarySystemHabitableZoneResponse"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/PlanetarySystemBuilderInputResponse"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "planets": {
+            "items": {
+              "$ref": "#/components/schemas/PlanetarySystemPlanetResponse"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Planets",
+            "type": "array"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "stability_note": {
+            "title": "Stability Note",
+            "type": "string"
+          },
+          "stellar_consistency_note": {
+            "title": "Stellar Consistency Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "habitable_zone",
+          "planets",
+          "adjacent_pairs",
+          "stellar_consistency_note",
+          "stability_note"
+        ],
+        "title": "PlanetarySystemBuilderCalculationResponse",
+        "type": "object"
+      },
+      "PlanetarySystemBuilderInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "planets": {
+            "items": {
+              "$ref": "#/components/schemas/PlanetarySystemPlanetInputResponse"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Planets",
+            "type": "array"
+          },
+          "stellar_effective_temperature_k": {
+            "title": "Stellar Effective Temperature K",
+            "type": "number"
+          },
+          "stellar_luminosity_lsun": {
+            "title": "Stellar Luminosity Lsun",
+            "type": "number"
+          },
+          "stellar_mass_msun": {
+            "title": "Stellar Mass Msun",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stellar_mass_msun",
+          "stellar_luminosity_lsun",
+          "stellar_effective_temperature_k",
+          "planets"
+        ],
+        "title": "PlanetarySystemBuilderInputResponse",
+        "type": "object"
+      },
+      "PlanetarySystemHabitableZoneResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "habitability_note": {
+            "title": "Habitability Note",
+            "type": "string"
+          },
+          "inner_edge_au": {
+            "title": "Inner Edge Au",
+            "type": "number"
+          },
+          "inner_effective_flux": {
+            "title": "Inner Effective Flux",
+            "type": "number"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "outer_edge_au": {
+            "title": "Outer Edge Au",
+            "type": "number"
+          },
+          "outer_effective_flux": {
+            "title": "Outer Effective Flux",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model_id",
+          "inner_edge_au",
+          "outer_edge_au",
+          "inner_effective_flux",
+          "outer_effective_flux",
+          "habitability_note"
+        ],
+        "title": "PlanetarySystemHabitableZoneResponse",
+        "type": "object"
+      },
+      "PlanetarySystemPlanetInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "mass_mearth": {
+            "title": "Mass Mearth",
+            "type": "number"
+          },
+          "semi_major_axis_au": {
+            "title": "Semi Major Axis Au",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mass_mearth",
+          "semi_major_axis_au"
+        ],
+        "title": "PlanetarySystemPlanetInputResponse",
+        "type": "object"
+      },
+      "PlanetarySystemPlanetResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "habitable_zone_relation": {
+            "enum": [
+              "interior_to_reference_hz",
+              "inside_reference_hz",
+              "exterior_to_reference_hz"
+            ],
+            "title": "Habitable Zone Relation",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "mass_mearth": {
+            "title": "Mass Mearth",
+            "type": "number"
+          },
+          "orbital_period_days": {
+            "title": "Orbital Period Days",
+            "type": "number"
+          },
+          "orbital_period_s": {
+            "title": "Orbital Period S",
+            "type": "number"
+          },
+          "semi_major_axis_au": {
+            "title": "Semi Major Axis Au",
+            "type": "number"
+          }
+        },
+        "required": [
+          "index",
+          "mass_mearth",
+          "semi_major_axis_au",
+          "orbital_period_s",
+          "orbital_period_days",
+          "habitable_zone_relation"
+        ],
+        "title": "PlanetarySystemPlanetResponse",
+        "type": "object"
+      },
       "ProviderFailureCode": {
         "description": "Value-free stable categories safe for status and structured logs.",
         "enum": [
@@ -7044,6 +7284,104 @@
           }
         },
         "summary": "Orbit Sandbox",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/planetary-system-builder": {
+      "get": {
+        "operationId": "calculate_planetary_system_builder",
+        "parameters": [
+          {
+            "description": "Stellar mass in nominal Solar masses; 0.1 through 2.0.",
+            "in": "query",
+            "name": "stellar_mass_msun",
+            "required": true,
+            "schema": {
+              "description": "Stellar mass in nominal Solar masses; 0.1 through 2.0.",
+              "title": "Stellar Mass Msun",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Stellar luminosity in nominal Solar luminosities; 0.001 through 20.",
+            "in": "query",
+            "name": "stellar_luminosity_lsun",
+            "required": true,
+            "schema": {
+              "description": "Stellar luminosity in nominal Solar luminosities; 0.001 through 20.",
+              "title": "Stellar Luminosity Lsun",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Stellar effective temperature in kelvin; 2600 through 7200.",
+            "in": "query",
+            "name": "stellar_effective_temperature_k",
+            "required": true,
+            "schema": {
+              "description": "Stellar effective temperature in kelvin; 2600 through 7200.",
+              "title": "Stellar Effective Temperature K",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Repeated ordered planet masses in nominal terrestrial masses; one through eight.",
+            "in": "query",
+            "name": "planet_mass_mearth",
+            "required": true,
+            "schema": {
+              "description": "Repeated ordered planet masses in nominal terrestrial masses; one through eight.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "title": "Planet Mass Mearth",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Repeated ordered semimajor axes in AU; values must already be strictly increasing.",
+            "in": "query",
+            "name": "semi_major_axis_au",
+            "required": true,
+            "schema": {
+              "description": "Repeated ordered semimajor axes in AU; values must already be strictly increasing.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "title": "Semi Major Axis Au",
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanetarySystemBuilderCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Planetary System Builder input is invalid."
+          }
+        },
+        "summary": "Planetary System Builder",
         "tags": [
           "simulations"
         ]

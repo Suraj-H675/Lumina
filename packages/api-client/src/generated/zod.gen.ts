@@ -685,6 +685,79 @@ export const zEntityBrowsePageResponse = z.object({
 });
 
 /**
+ * PlanetarySystemAdjacentPairResponse
+ */
+export const zPlanetarySystemAdjacentPairResponse = z.object({
+  inner_index: z.int(),
+  interpretation: z.string(),
+  mutual_hill_radius_au: z.number(),
+  outer_index: z.int(),
+  pairwise_reference_threshold: z.number(),
+  separation_mutual_hill: z.number(),
+  spacing_assessment: z.enum(["pairwise_close_warning", "no_pairwise_hill_warning"]),
+});
+
+/**
+ * PlanetarySystemHabitableZoneResponse
+ */
+export const zPlanetarySystemHabitableZoneResponse = z.object({
+  habitability_note: z.string(),
+  inner_edge_au: z.number(),
+  inner_effective_flux: z.number(),
+  model_id: z.string(),
+  outer_edge_au: z.number(),
+  outer_effective_flux: z.number(),
+});
+
+/**
+ * PlanetarySystemPlanetInputResponse
+ */
+export const zPlanetarySystemPlanetInputResponse = z.object({
+  mass_mearth: z.number(),
+  semi_major_axis_au: z.number(),
+});
+
+/**
+ * PlanetarySystemBuilderInputResponse
+ */
+export const zPlanetarySystemBuilderInputResponse = z.object({
+  planets: z.array(zPlanetarySystemPlanetInputResponse).min(1).max(8),
+  stellar_effective_temperature_k: z.number(),
+  stellar_luminosity_lsun: z.number(),
+  stellar_mass_msun: z.number(),
+});
+
+/**
+ * PlanetarySystemPlanetResponse
+ */
+export const zPlanetarySystemPlanetResponse = z.object({
+  habitable_zone_relation: z.enum([
+    "interior_to_reference_hz",
+    "inside_reference_hz",
+    "exterior_to_reference_hz",
+  ]),
+  index: z.int(),
+  mass_mearth: z.number(),
+  orbital_period_days: z.number(),
+  orbital_period_s: z.number(),
+  semi_major_axis_au: z.number(),
+});
+
+/**
+ * PlanetarySystemBuilderCalculationResponse
+ */
+export const zPlanetarySystemBuilderCalculationResponse = z.object({
+  adjacent_pairs: z.array(zPlanetarySystemAdjacentPairResponse).max(7),
+  habitable_zone: zPlanetarySystemHabitableZoneResponse,
+  inputs: zPlanetarySystemBuilderInputResponse,
+  model_version: z.string(),
+  planets: z.array(zPlanetarySystemPlanetResponse).min(1).max(8),
+  schema_version: z.int(),
+  stability_note: z.string(),
+  stellar_consistency_note: z.string(),
+});
+
+/**
  * ProviderFailureCode
  *
  * Value-free stable categories safe for status and structured logs.
@@ -1619,6 +1692,11 @@ export const zCalculateEclipseSimulatorResponse = zEclipseSimulatorCalculationRe
  * Successful Response
  */
 export const zCalculateOrbitSandboxResponse = zOrbitSandboxCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculatePlanetarySystemBuilderResponse = zPlanetarySystemBuilderCalculationResponse;
 
 /**
  * Successful Response

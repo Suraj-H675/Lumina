@@ -1,0 +1,306 @@
+{
+  "artifact_version": 1,
+  "model_version": "planetary-system-builder-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-18T00:00:00Z",
+  "definition": {
+    "slug": "planetary-system-builder",
+    "title": "Planetary System Builder",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "share_schema_version": 1,
+    "model_version": "planetary-system-builder-v1",
+    "learning_objectives": [
+      "Relate stellar and planetary mass plus semimajor axis to an ideal Keplerian orbital period.",
+      "Compare multiple circular non-interacting planet orbits around one synthetic star.",
+      "Interpret a published conservative habitable-zone reference without equating that band with habitability.",
+      "Use adjacent mutual-Hill spacing as a limited pairwise circular-orbit diagnostic without claiming long-term multi-planet stability."
+    ],
+    "prerequisite_concepts": [
+      "stellar and planetary mass",
+      "semimajor axis",
+      "orbital period",
+      "stellar luminosity and effective temperature",
+      "habitable-zone model",
+      "mutual Hill radius"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "stellar_mass_msun",
+          "unit": "nominal Solar mass",
+          "valid_range": "0.1 <= stellar_mass_msun <= 2.0"
+        },
+        {
+          "name": "stellar_luminosity_lsun",
+          "unit": "nominal Solar luminosity",
+          "valid_range": "0.001 <= stellar_luminosity_lsun <= 20"
+        },
+        {
+          "name": "stellar_effective_temperature_k",
+          "unit": "K",
+          "valid_range": "2600 <= stellar_effective_temperature_k <= 7200"
+        },
+        {
+          "name": "planets",
+          "meaning": "One through eight explicitly ordered planet records. Each planet supplies nominal terrestrial mass and semimajor axis.",
+          "valid_range": "1 <= planet_count <= 8; 0.01 <= mass_mearth <= 320; 0.01 <= semi_major_axis_au <= 20; semimajor axes strictly increase"
+        }
+      ],
+      "invalid_handling": "Reject booleans, non-finite values, out-of-range values, non-tuples, planet counts outside 1..8, non-planet records, non-increasing semimajor axes, and total planet-to-star mass-parameter ratio above 0.1. No scientific input is silently sorted, clamped, deduplicated, or normalized."
+    },
+    "output_schema": [
+      "Kopparapu 2014 1-Earth-mass conservative runaway-greenhouse inner and maximum-greenhouse outer reference edges",
+      "per-planet exact two-body Keplerian orbital period using nominal mass parameters",
+      "per-planet placement relative to the reference HZ band",
+      "adjacent-pair mutual Hill radius, separation in mutual Hill radii, and pairwise warning context",
+      "explicit stellar-consistency, habitability, and long-term-stability caveats"
+    ],
+    "equations": {
+      "kepler_period": "T^2 = 4*pi^2*a^3/[G*(Mstar+Mplanet)]; implemented using exact adopted nominal mass parameters so G does not need to be separately multiplied into nominal masses",
+      "hz_effective_flux": "S_eff = S_eff_sun + a*Tstar + b*Tstar^2 + c*Tstar^3 + d*Tstar^4, where Tstar = Teff - 5780 K",
+      "hz_distance": "d_AU = sqrt((L/Lsun)/S_eff)",
+      "mutual_hill_radius": "R_H = [(M_in+M_out)/(3*Mstar)]^(1/3) * (a_in+a_out)/2",
+      "mutual_hill_separation": "Delta = (a_out-a_in)/R_H",
+      "two_planet_reference": "For two initially circular planets, Delta > 2*sqrt(3) is the cited analytic Hill-stability criterion; Builder v1 uses the threshold only as pairwise context."
+    },
+    "sampling_policy": "Builder v1 returns one deterministic record per submitted planet and one deterministic mutual-Hill record per adjacent pair. It performs no time integration and generates no n-body trajectory.",
+    "default_preset": "Synthetic 1 nominal-Solar-mass, 1 nominal-Solar-luminosity, 5780 K star with three 1-Earth-mass planets at 0.7, 1.0, and 2.0 AU. This preset is deliberately illustrative and is not the Solar System or an observed exoplanet system.",
+    "assumptions": [
+      "All planet orbits are circular, coplanar, and non-interacting.",
+      "Each planet's period is calculated as an isolated two-body star-plus-planet orbit.",
+      "Stellar mass, luminosity, and effective temperature are independent educational inputs rather than a fitted stellar-evolution state.",
+      "The habitable-zone band is the Kopparapu et al. 2014 1-Earth-mass conservative main-sequence climate-model reference.",
+      "The mutual-Hill diagnostic is evaluated only for adjacent pairs ordered by submitted semimajor axis.",
+      "A pair above the cited two-circular-planet threshold receives no pairwise Hill warning, but this does not establish long-term or whole-system stability."
+    ],
+    "limitations": [
+      "No n-body integration, mutual perturbations, eccentricity, inclination, orbital phase, apsidal precession, secular evolution, migration, tides, scattering, collisions, ejections, or relativistic corrections.",
+      "No resonance identification or resonance-stability analysis.",
+      "No stellar-evolution consistency solver; allowed stellar mass, luminosity, and effective-temperature values are independent pedagogical controls.",
+      "The HZ model is a one-dimensional climate-model reference for main-sequence stars in the source-published 2600-7200 K temperature interval.",
+      "Habitable-zone placement does not establish an atmosphere, liquid surface water, habitability, biosignatures, or life.",
+      "The pairwise mutual-Hill threshold is not a long-term multi-planet stability guarantee and does not replace numerical dynamical integration.",
+      "No observed-system fitting, planet mass-radius relation, composition inference, atmosphere model, or uncertainty propagation."
+    ],
+    "references": [
+      "murray-correia-2010-keplerian-orbits",
+      "kopparapu-2014-habitable-zone",
+      "iau-2015-resolution-b3",
+      "fabrycky-2014-kepler-architecture"
+    ],
+    "validation_fixtures": [
+      "solar-reference-hz",
+      "nominal-earth-period",
+      "hz-temperature-boundaries",
+      "hz-placement-boundaries",
+      "mutual-hill-definition",
+      "pairwise-close-warning",
+      "pairwise-clear-context",
+      "single-planet-no-pairs",
+      "strict-orbit-ordering",
+      "deterministic-repeat",
+      "numeric-domain-rejection",
+      "artifact-mutation"
+    ]
+  },
+  "sources": [
+    {
+      "id": "murray-correia-2010-keplerian-orbits",
+      "title": "Keplerian Orbits and Dynamics of Exoplanets",
+      "organization_or_authors": "Carl D. Murray and Alexandre C. M. Correia",
+      "url": "https://arxiv.org/abs/1009.1738",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1009.1738v2 / Exoplanets chapter",
+      "record_reference": "Equation 19 and surrounding two-body derivation.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2011-02-25 arXiv v2; chapter published in Exoplanets (2010).",
+      "terms_or_licence": "Paper/chapter access through arXiv; article and book reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Murray, C. D. and Correia, A. C. M., Keplerian Orbits and Dynamics of Exoplanets, arXiv:1009.1738.",
+      "claim_scope": "Exact two-body Kepler third-law relation T^2=4*pi^2*a^3/[G(m1+m2)] and the statement that period depends on mass sum and semimajor axis.",
+      "source_type": "review chapter / scholarly preprint"
+    },
+    {
+      "id": "kopparapu-2014-habitable-zone",
+      "title": "Habitable Zones Around Main-Sequence Stars: Dependence on Planetary Mass",
+      "organization_or_authors": "Ravi Kumar Kopparapu, Ramses M. Ramirez, James SchottelKotte, James F. Kasting, Shawn Domagal-Goldman, and Vincent Eymet",
+      "url": "https://arxiv.org/abs/1404.5292",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1404.5292v2 / ApJ Letters 787 L29",
+      "record_reference": "Equation 4 effective-flux polynomial, Equation 5 distance relation, Table IV coefficients.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2014-05-12 arXiv v2.",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Kopparapu, R. K. et al. (2014), Habitable Zones Around Main-Sequence Stars: Dependence on Planetary Mass, ApJL 787 L29.",
+      "claim_scope": "2600-7200 K main-sequence-star validity interval; analytical HZ effective-flux/distance equations; 1-Earth-mass runaway-greenhouse and maximum-greenhouse coefficients.",
+      "source_type": "peer-reviewed climate-model study / scholarly preprint"
+    },
+    {
+      "id": "iau-2015-resolution-b3",
+      "title": "IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties",
+      "organization_or_authors": "International Astronomical Union Inter-Division A-G Working Group on Nominal Units for Stellar & Planetary Astronomy",
+      "url": "https://arxiv.org/abs/1510.07674",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "IAU 2015 Resolution B3 / arXiv:1510.07674v1",
+      "record_reference": "Nominal Solar and terrestrial mass parameters; note citing the exact IAU 2012 astronomical unit.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2015-10-26 arXiv v1.",
+      "terms_or_licence": "Official IAU resolution reproduced through arXiv; nominal values are adopted conversion constants.",
+      "citation": "IAU 2015 Resolution B3, Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties.",
+      "claim_scope": "Nominal Solar mass parameter 1.3271244e20 m^3/s^2, nominal terrestrial mass parameter 3.986004e14 m^3/s^2, and exact astronomical unit 149597870700 m.",
+      "source_type": "official standard"
+    },
+    {
+      "id": "fabrycky-2014-kepler-architecture",
+      "title": "Architecture of Kepler's Multi-transiting Systems: II. New investigations with twice as many candidates",
+      "organization_or_authors": "Daniel C. Fabrycky et al.",
+      "url": "https://arxiv.org/abs/1202.6328",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1202.6328v3 / ApJ 790 146",
+      "record_reference": "Mutual Hill radius and Delta definitions; Section Stability of Multiple-Candidate Systems; DOI 10.1088/0004-637X/790/2/146.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2014-07-07 arXiv v3.",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Fabrycky, D. C. et al. (2014), Architecture of Kepler's Multi-transiting Systems: II, ApJ 790 146.",
+      "claim_scope": "Mutual Hill radius and separation definitions; two-initially-circular-planet Delta>2*sqrt(3) Hill criterion; explicit warning that no analogous analytic criterion exists for systems with more than two planets and that the paper's multi-planet heuristic does not assure stability.",
+      "source_type": "peer-reviewed exoplanet dynamics study / scholarly preprint"
+    }
+  ],
+  "constants": {
+    "NOMINAL_SOLAR_MASS_PARAMETER_M3_S2": 1.3271244e20,
+    "NOMINAL_EARTH_MASS_PARAMETER_M3_S2": 3.986004e14,
+    "ASTRONOMICAL_UNIT_M": 149597870700.0,
+    "SECONDS_PER_DAY": 86400.0,
+    "MIN_STELLAR_MASS_MSUN": 0.1,
+    "MAX_STELLAR_MASS_MSUN": 2.0,
+    "MIN_STELLAR_LUMINOSITY_LSUN": 0.001,
+    "MAX_STELLAR_LUMINOSITY_LSUN": 20.0,
+    "MIN_STELLAR_EFFECTIVE_TEMPERATURE_K": 2600.0,
+    "MAX_STELLAR_EFFECTIVE_TEMPERATURE_K": 7200.0,
+    "MIN_PLANET_COUNT": 1,
+    "MAX_PLANET_COUNT": 8,
+    "MIN_PLANET_MASS_MEARTH": 0.01,
+    "MAX_PLANET_MASS_MEARTH": 320.0,
+    "MIN_SEMI_MAJOR_AXIS_AU": 0.01,
+    "MAX_SEMI_MAJOR_AXIS_AU": 20.0,
+    "MAX_TOTAL_PLANET_TO_STAR_MASS_RATIO": 0.1,
+    "KOPPARAPU_REFERENCE_TEMPERATURE_K": 5780.0,
+    "HZ_INNER_SEFF_SUN": 1.107,
+    "HZ_INNER_A": 0.0001332,
+    "HZ_INNER_B": 1.58e-8,
+    "HZ_INNER_C": -8.308e-12,
+    "HZ_INNER_D": -1.931e-15,
+    "HZ_OUTER_SEFF_SUN": 0.356,
+    "HZ_OUTER_A": 0.00006171,
+    "HZ_OUTER_B": 1.698e-9,
+    "HZ_OUTER_C": -3.198e-12,
+    "HZ_OUTER_D": -5.575e-16,
+    "PAIRWISE_HILL_REFERENCE_THRESHOLD": 3.4641016151377544
+  },
+  "presets": {
+    "illustrative-three-planet": {
+      "stellar_mass_msun": 1.0,
+      "stellar_luminosity_lsun": 1.0,
+      "stellar_effective_temperature_k": 5780.0,
+      "planets": [
+        {
+          "mass_mearth": 1.0,
+          "semi_major_axis_au": 0.7
+        },
+        {
+          "mass_mearth": 1.0,
+          "semi_major_axis_au": 1.0
+        },
+        {
+          "mass_mearth": 1.0,
+          "semi_major_axis_au": 2.0
+        }
+      ]
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "solar-reference-hz",
+      "purpose": "At Teff=5780 K and L=1 Lsun, the 1-Earth-mass conservative source coefficients reproduce approximately 0.950443 AU runaway-greenhouse and 1.676004 AU maximum-greenhouse edges."
+    },
+    {
+      "id": "nominal-earth-period",
+      "purpose": "A 1 nominal-Earth-mass planet at 1 AU around a 1 nominal-Solar-mass star has the deterministic exact-nominal-parameter period used by the model."
+    },
+    {
+      "id": "hz-temperature-boundaries",
+      "purpose": "The 2600 K and 7200 K source-domain endpoints produce finite positive ordered HZ edges."
+    },
+    {
+      "id": "hz-placement-boundaries",
+      "purpose": "Planets interior to, exactly within, and exterior to the returned reference band serialize the explicit three-state placement taxonomy."
+    },
+    {
+      "id": "mutual-hill-definition",
+      "purpose": "Adjacent-pair R_H and Delta reproduce the cited Fabrycky formula using nominal mass-parameter ratios."
+    },
+    {
+      "id": "pairwise-close-warning",
+      "purpose": "An adjacent circular pair at or below Delta=2*sqrt(3) emits pairwise_close_warning without a whole-system instability claim."
+    },
+    {
+      "id": "pairwise-clear-context",
+      "purpose": "An adjacent pair above the reference threshold emits no_pairwise_hill_warning while preserving the explicit no-stability-guarantee explanation."
+    },
+    {
+      "id": "single-planet-no-pairs",
+      "purpose": "A valid one-planet system returns no adjacent-pair diagnostics."
+    },
+    {
+      "id": "strict-orbit-ordering",
+      "purpose": "Equal or descending submitted semimajor axes are rejected rather than silently sorted."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Identical canonical inputs produce exactly identical immutable results."
+    },
+    {
+      "id": "numeric-domain-rejection",
+      "purpose": "Bool, non-finite, out-of-range, count, and total planet-to-star mass-ratio violations fail closed."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Source, constant, coefficient, preset, fixture, and model-version drift is rejected by the strict artifact loader."
+    }
+  ],
+  "scientific_validation": {
+    "id": "planetary-system-builder-v1-validation",
+    "checked_at": "2026-09-18",
+    "method": "Cross-check the exact two-body period relation using IAU nominal mass parameters and AU; reproduce the published Kopparapu 1-Earth-mass conservative source coefficients and temperature boundaries; reproduce Fabrycky mutual-Hill definitions and pairwise threshold while testing that no whole-system stability verdict is emitted.",
+    "tools": [
+      {
+        "name": "pytest",
+        "version": "repository-locked",
+        "role": "Analytic source-reference, boundary, property, deterministic, domain, and artifact-integrity regression tests."
+      }
+    ],
+    "source_ids": [
+      "murray-correia-2010-keplerian-orbits",
+      "kopparapu-2014-habitable-zone",
+      "iau-2015-resolution-b3",
+      "fabrycky-2014-kepler-architecture"
+    ],
+    "test_references": [
+      "test_solar_reference_habitable_zone_matches_reviewed_coefficients",
+      "test_nominal_earth_orbit_period_uses_two_body_mass_sum",
+      "test_habitable_zone_source_temperature_boundaries_are_finite",
+      "test_planets_are_classified_relative_to_reference_habitable_zone",
+      "test_mutual_hill_spacing_matches_reviewed_equation",
+      "test_close_pair_emits_warning_without_stability_verdict",
+      "test_wide_pair_emits_no_warning_but_preserves_caveat",
+      "test_single_planet_has_no_adjacent_pair_diagnostic",
+      "test_semimajor_axes_must_be_strictly_increasing",
+      "test_calculation_is_exactly_deterministic",
+      "test_input_domain_rejects_invalid_states",
+      "test_reviewed_artifact_rejects_mutation"
+    ]
+  }
+}

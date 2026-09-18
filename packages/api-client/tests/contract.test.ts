@@ -9,6 +9,7 @@ import {
   eclipseSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
+  planetarySystemBuilderEndpoint,
   radialVelocityEndpoint,
   seasonsSimulatorEndpoint,
   spectroscopyLabEndpoint,
@@ -29,6 +30,7 @@ import type {
   EntityType,
   CalculateEclipseSimulatorData,
   CalculateOrbitSandboxData,
+  CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
   CalculateSpectroscopyLabData,
@@ -56,6 +58,7 @@ import {
   zSearchCatalogEntitiesResponse,
   zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
+import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
 import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
 
 describe("generated contract boundary", () => {
@@ -76,6 +79,10 @@ describe("generated contract boundary", () => {
     >();
     expect(orbitSandboxEndpoint.method).toBe("GET");
     expectTypeOf(orbitSandboxEndpoint.path).toEqualTypeOf<CalculateOrbitSandboxData["url"]>();
+    expect(planetarySystemBuilderEndpoint.method).toBe("GET");
+    expectTypeOf(planetarySystemBuilderEndpoint.path).toEqualTypeOf<
+      CalculatePlanetarySystemBuilderData["url"]
+    >();
     expect(radialVelocityEndpoint.method).toBe("GET");
     expectTypeOf(radialVelocityEndpoint.path).toEqualTypeOf<CalculateRadialVelocityData["url"]>();
     expect(seasonsSimulatorEndpoint.method).toBe("GET");
@@ -377,6 +384,52 @@ describe("Spectroscopy Lab endpoint", () => {
         ),
     });
     expect(result).toEqual({ kind: "malformed-response" });
+  });
+});
+
+describe("Planetary System Builder endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(planetarySystemBuilderEndpoint.path).toEqualTypeOf<
+      CalculatePlanetarySystemBuilderData["url"]
+    >();
+    const result = await requestEndpoint("http://127.0.0.1:8000", planetarySystemBuilderEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({
+      data: PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Builder result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", planetarySystemBuilderEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({ ...PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE, invented: true }),
+            {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            },
+          ),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("fits the normal bounded transport response ceiling", () => {
+    const bytes = new TextEncoder().encode(
+      JSON.stringify(PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE),
+    ).byteLength;
+    expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
+    expect(Object.hasOwn(planetarySystemBuilderEndpoint, "maxResponseBytes")).toBe(false);
   });
 });
 

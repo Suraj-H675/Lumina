@@ -38,6 +38,12 @@ const labs = [
       "Explore a normalized visible teaching spectrum with source-backed atomic fingerprints, bounded Doppler shift, resolving power, and deterministic display noise.",
   },
   {
+    href: "/lab/planetary-system-builder",
+    title: "Planetary System Builder",
+    description:
+      "Build a circular non-interacting system and compare source-backed orbital periods, a conservative reference habitable-zone band, and limited pairwise mutual-Hill diagnostics.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

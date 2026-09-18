@@ -67,6 +67,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/now/space-weather",
         "/api/v1/simulations/eclipse-simulator",
         "/api/v1/simulations/orbit-sandbox",
+        "/api/v1/simulations/planetary-system-builder",
         "/api/v1/simulations/radial-velocity",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/spectroscopy-lab",
@@ -186,6 +187,32 @@ def test_spectroscopy_lab_calculation_openapi_is_versioned_and_read_only() -> No
     }
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/spectroscopy-lab"]) == {"get"}
+
+
+def test_planetary_system_builder_openapi_is_versioned_repeated_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/planetary-system-builder"]["get"]
+
+    assert operation["operationId"] == "calculate_planetary_system_builder"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/PlanetarySystemBuilderCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "stellar_mass_msun",
+        "stellar_luminosity_lsun",
+        "stellar_effective_temperature_k",
+        "planet_mass_mearth",
+        "semi_major_axis_au",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    for name in ("planet_mass_mearth", "semi_major_axis_au"):
+        schema = parameters[name]["schema"]
+        assert schema["type"] == "array"
+        assert schema["minItems"] == 1
+        assert schema["maxItems"] == 8
+        assert schema["items"]["type"] == "number"
+    assert set(document["paths"]["/api/v1/simulations/planetary-system-builder"]) == {"get"}
 
 
 def test_stellar_laboratory_calculation_openapi_is_versioned_and_read_only() -> None:

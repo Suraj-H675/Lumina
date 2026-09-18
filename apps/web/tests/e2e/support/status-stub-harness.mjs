@@ -21,6 +21,9 @@ const transitFixtures = JSON.parse(
 const radialVelocityFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/radial-velocity.json", import.meta.url), "utf8"),
 );
+const stellarLaboratoryFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/stellar-laboratory.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -36,6 +39,7 @@ const apiPaths = new Set([
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/radial-velocity",
   "/api/v1/simulations/seasons",
+  "/api/v1/simulations/stellar-laboratory",
   "/api/v1/simulations/telescope-builder",
   "/api/v1/simulations/transit-method",
   "/health/live",
@@ -1305,6 +1309,40 @@ function respondRadialVelocity(response, target) {
   });
 }
 
+function respondStellarLaboratory(response, target) {
+  const keys = [...target.searchParams.keys()];
+  if (
+    keys.length !== 1 ||
+    keys[0] !== "initial_mass_msun" ||
+    target.searchParams.getAll("initial_mass_msun").length !== 1
+  ) {
+    sendJson(response, 422, {
+      error: {
+        code: "stellar_laboratory.model_invalid",
+        message: "The Stellar Laboratory fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const mass = target.searchParams.get("initial_mass_msun");
+  if (mass === "1") {
+    sendJson(response, 200, stellarLaboratoryFixtures.default);
+    return;
+  }
+  if (mass === "10") {
+    sendJson(response, 200, stellarLaboratoryFixtures.ten_solar_mass);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "stellar_laboratory.model_invalid",
+      message: "The Stellar Laboratory E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1822,6 +1860,7 @@ const stub = http.createServer(async (request, response) => {
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
+  const isStellarLaboratoryPath = path === "/api/v1/simulations/stellar-laboratory";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
   const isTransitMethodPath = path === "/api/v1/simulations/transit-method";
   const identificationMatch = /^\/api\/v1\/identification\/submissions\/([0-9a-f-]{36})$/u.exec(
@@ -1865,6 +1904,7 @@ const stub = http.createServer(async (request, response) => {
     !isOrbitSandboxPath &&
     !isRadialVelocityPath &&
     !isSeasonsPath &&
+    !isStellarLaboratoryPath &&
     !isTelescopeBuilderPath &&
     !isTransitMethodPath &&
     !validIdentificationSolutionQuery
@@ -2078,6 +2118,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isSeasonsPath) {
     respondSeasons(response, target);
+    return;
+  }
+  if (isStellarLaboratoryPath) {
+    respondStellarLaboratory(response, target);
     return;
   }
   if (isTelescopeBuilderPath) {

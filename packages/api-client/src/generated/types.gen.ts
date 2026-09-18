@@ -2493,6 +2493,75 @@ export type SpaceWeatherSourceResponse = {
 };
 
 /**
+ * StellarLaboratoryCalculationResponse
+ */
+export type StellarLaboratoryCalculationResponse = {
+  /**
+   * Approximate B Minus V Mag
+   */
+  approximate_b_minus_v_mag: number;
+  /**
+   * Colour Anchor Mass Msun
+   */
+  colour_anchor_mass_msun: number;
+  /**
+   * Effective Temperature K
+   */
+  effective_temperature_k: number;
+  /**
+   * Evolutionary Path
+   */
+  evolutionary_path: Array<string>;
+  /**
+   * Expected Remnant
+   */
+  expected_remnant: string;
+  inputs: StellarLaboratoryInputResponse;
+  /**
+   * Luminosity Lsun
+   */
+  luminosity_lsun: number;
+  /**
+   * Main Sequence Lifetime Years
+   */
+  main_sequence_lifetime_years: number;
+  /**
+   * Metallicity Scope
+   */
+  metallicity_scope: string;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Nearest Spectral Type Anchor
+   */
+  nearest_spectral_type_anchor: string;
+  /**
+   * Radius Rsun
+   */
+  radius_rsun: number;
+  /**
+   * Remnant Boundary Note
+   */
+  remnant_boundary_note: string;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+};
+
+/**
+ * StellarLaboratoryInputResponse
+ */
+export type StellarLaboratoryInputResponse = {
+  /**
+   * Initial Mass Msun
+   */
+  initial_mass_msun: number;
+};
+
+/**
  * TelescopeBuilderCalculationResponse
  *
  * Complete public result for one Telescope Builder evaluation.
@@ -3819,6 +3888,40 @@ export type CalculateSeasonsSimulatorResponses = {
 
 export type CalculateSeasonsSimulatorResponse =
   CalculateSeasonsSimulatorResponses[keyof CalculateSeasonsSimulatorResponses];
+
+export type CalculateStellarLaboratoryData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Initial Mass Msun
+     *
+     * Initial mass in nominal Solar-mass units for the reviewed v1 mapping.
+     */
+    initial_mass_msun: number;
+  };
+  url: "/api/v1/simulations/stellar-laboratory";
+};
+
+export type CalculateStellarLaboratoryErrors = {
+  /**
+   * The Stellar Laboratory input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateStellarLaboratoryError =
+  CalculateStellarLaboratoryErrors[keyof CalculateStellarLaboratoryErrors];
+
+export type CalculateStellarLaboratoryResponses = {
+  /**
+   * Successful Response
+   */
+  200: StellarLaboratoryCalculationResponse;
+};
+
+export type CalculateStellarLaboratoryResponse =
+  CalculateStellarLaboratoryResponses[keyof CalculateStellarLaboratoryResponses];
 
 export type CalculateTelescopeBuilderData = {
   body?: never;

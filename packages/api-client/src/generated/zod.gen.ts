@@ -1190,6 +1190,33 @@ export const zSpaceWeatherResponse = z.object({
 });
 
 /**
+ * StellarLaboratoryInputResponse
+ */
+export const zStellarLaboratoryInputResponse = z.object({
+  initial_mass_msun: z.number(),
+});
+
+/**
+ * StellarLaboratoryCalculationResponse
+ */
+export const zStellarLaboratoryCalculationResponse = z.object({
+  approximate_b_minus_v_mag: z.number(),
+  colour_anchor_mass_msun: z.number(),
+  effective_temperature_k: z.number(),
+  evolutionary_path: z.array(z.string()).min(3).max(4),
+  expected_remnant: z.string(),
+  inputs: zStellarLaboratoryInputResponse,
+  luminosity_lsun: z.number(),
+  main_sequence_lifetime_years: z.number(),
+  metallicity_scope: z.string(),
+  model_version: z.string(),
+  nearest_spectral_type_anchor: z.string(),
+  radius_rsun: z.number(),
+  remnant_boundary_note: z.string(),
+  schema_version: z.int(),
+});
+
+/**
  * TelescopeBuilderInputResponse
  *
  * Normalized validated inputs echoed by the deterministic result.
@@ -1489,6 +1516,11 @@ export const zCalculateRadialVelocityResponse = zRadialVelocityCalculationRespon
  * Successful Response
  */
 export const zCalculateSeasonsSimulatorResponse = zSeasonsCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateStellarLaboratoryResponse = zStellarLaboratoryCalculationResponse;
 
 /**
  * Successful Response

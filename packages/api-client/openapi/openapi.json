@@ -4430,6 +4430,103 @@
         "title": "SpaceWeatherSourceResponse",
         "type": "object"
       },
+      "StellarLaboratoryCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "approximate_b_minus_v_mag": {
+            "title": "Approximate B Minus V Mag",
+            "type": "number"
+          },
+          "colour_anchor_mass_msun": {
+            "title": "Colour Anchor Mass Msun",
+            "type": "number"
+          },
+          "effective_temperature_k": {
+            "title": "Effective Temperature K",
+            "type": "number"
+          },
+          "evolutionary_path": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 3,
+            "title": "Evolutionary Path",
+            "type": "array"
+          },
+          "expected_remnant": {
+            "title": "Expected Remnant",
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/StellarLaboratoryInputResponse"
+          },
+          "luminosity_lsun": {
+            "title": "Luminosity Lsun",
+            "type": "number"
+          },
+          "main_sequence_lifetime_years": {
+            "title": "Main Sequence Lifetime Years",
+            "type": "number"
+          },
+          "metallicity_scope": {
+            "title": "Metallicity Scope",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "nearest_spectral_type_anchor": {
+            "title": "Nearest Spectral Type Anchor",
+            "type": "string"
+          },
+          "radius_rsun": {
+            "title": "Radius Rsun",
+            "type": "number"
+          },
+          "remnant_boundary_note": {
+            "title": "Remnant Boundary Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "luminosity_lsun",
+          "radius_rsun",
+          "effective_temperature_k",
+          "nearest_spectral_type_anchor",
+          "colour_anchor_mass_msun",
+          "approximate_b_minus_v_mag",
+          "main_sequence_lifetime_years",
+          "evolutionary_path",
+          "expected_remnant",
+          "remnant_boundary_note",
+          "metallicity_scope"
+        ],
+        "title": "StellarLaboratoryCalculationResponse",
+        "type": "object"
+      },
+      "StellarLaboratoryInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "initial_mass_msun": {
+            "title": "Initial Mass Msun",
+            "type": "number"
+          }
+        },
+        "required": [
+          "initial_mass_msun"
+        ],
+        "title": "StellarLaboratoryInputResponse",
+        "type": "object"
+      },
       "TelescopeBuilderCalculationResponse": {
         "additionalProperties": false,
         "description": "Complete public result for one Telescope Builder evaluation.",
@@ -6605,6 +6702,50 @@
           }
         },
         "summary": "Seasons",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/stellar-laboratory": {
+      "get": {
+        "operationId": "calculate_stellar_laboratory",
+        "parameters": [
+          {
+            "description": "Initial mass in nominal Solar-mass units for the reviewed v1 mapping.",
+            "in": "query",
+            "name": "initial_mass_msun",
+            "required": true,
+            "schema": {
+              "description": "Initial mass in nominal Solar-mass units for the reviewed v1 mapping.",
+              "title": "Initial Mass Msun",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StellarLaboratoryCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Stellar Laboratory input is invalid."
+          }
+        },
+        "summary": "Stellar Laboratory",
         "tags": [
           "simulations"
         ]

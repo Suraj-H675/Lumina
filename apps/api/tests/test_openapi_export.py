@@ -68,6 +68,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/radial-velocity",
         "/api/v1/simulations/seasons",
+        "/api/v1/simulations/stellar-laboratory",
         "/api/v1/simulations/telescope-builder",
         "/api/v1/simulations/transit-method",
         "/health/live",
@@ -147,6 +148,20 @@ def test_radial_velocity_calculation_openapi_is_versioned_and_read_only() -> Non
     }
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/radial-velocity"]) == {"get"}
+
+
+def test_stellar_laboratory_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/stellar-laboratory"]["get"]
+
+    assert operation["operationId"] == "calculate_stellar_laboratory"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/StellarLaboratoryCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {"initial_mass_msun"}
+    assert parameters["initial_mass_msun"]["required"] is True
+    assert set(document["paths"]["/api/v1/simulations/stellar-laboratory"]) == {"get"}
 
 
 def test_telescope_builder_calculation_openapi_is_versioned_and_read_only() -> None:

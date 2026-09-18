@@ -10,6 +10,7 @@ import {
   orbitSandboxEndpoint,
   radialVelocityEndpoint,
   seasonsSimulatorEndpoint,
+  stellarLaboratoryEndpoint,
   telescopeBuilderEndpoint,
   transitMethodEndpoint,
   liveEndpoint,
@@ -27,6 +28,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
+  CalculateStellarLaboratoryData,
   CalculateTelescopeBuilderData,
   CalculateTransitMethodData,
   GetCatalogEntityBySlugData,
@@ -70,6 +72,10 @@ describe("generated contract boundary", () => {
     expect(seasonsSimulatorEndpoint.method).toBe("GET");
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]
+    >();
+    expect(stellarLaboratoryEndpoint.method).toBe("GET");
+    expectTypeOf(stellarLaboratoryEndpoint.path).toEqualTypeOf<
+      CalculateStellarLaboratoryData["url"]
     >();
     expect(transitMethodEndpoint.method).toBe("GET");
     expectTypeOf(transitMethodEndpoint.path).toEqualTypeOf<CalculateTransitMethodData["url"]>();
@@ -558,6 +564,63 @@ describe("Radial Velocity endpoint", () => {
       fetchImplementation: () =>
         Promise.resolve(
           new Response(JSON.stringify({ ...response, unexpected: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+});
+
+describe("Stellar Laboratory endpoint", () => {
+  const response = {
+    model_version: "stellar-laboratory-v1",
+    schema_version: 1,
+    inputs: {
+      initial_mass_msun: 1,
+    },
+    luminosity_lsun: 0.984,
+    radius_rsun: 0.992,
+    effective_temperature_k: 5760,
+    nearest_spectral_type_anchor: "G5",
+    colour_anchor_mass_msun: 1.031,
+    approximate_b_minus_v_mag: 0.68,
+    main_sequence_lifetime_years: 10_000_000_000,
+    evolutionary_path: [
+      "main sequence",
+      "red giant evolution",
+      "planetary nebula",
+      "carbon-oxygen white dwarf",
+    ],
+    expected_remnant: "carbon-oxygen white dwarf",
+    remnant_boundary_note:
+      "Broad OpenStax Astronomy 2e Table 23.1 initial-mass bands; the source explicitly notes that these boundaries may change as stellar models improve.",
+    metallicity_scope:
+      "Approximately Solar-neighbourhood main-sequence calibration; v1 has no metallicity control and is not a stellar-evolution grid.",
+  };
+
+  it("binds the generated URL and accepts the exact approximate-model result shape", async () => {
+    expectTypeOf(stellarLaboratoryEndpoint.path).toEqualTypeOf<
+      CalculateStellarLaboratoryData["url"]
+    >();
+    const result = await requestEndpoint("http://127.0.0.1:8000", stellarLaboratoryEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(response), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("rejects additive Stellar Laboratory result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", stellarLaboratoryEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, invented: true }), {
             headers: { "content-type": "application/json" },
             status: 200,
           }),

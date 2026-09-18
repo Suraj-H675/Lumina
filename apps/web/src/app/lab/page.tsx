@@ -20,6 +20,12 @@ const labs = [
       "Explore deterministic stellar reflex velocity, orbital inclination, and the spectroscopic minimum-mass degeneracy.",
   },
   {
+    href: "/lab/stellar-laboratory",
+    title: "Stellar Laboratory",
+    description:
+      "Explore a source-backed approximate main-sequence mass mapping, lifetime anchors, and broad stellar remnants.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

@@ -1,0 +1,450 @@
+{
+  "artifact_version": 1,
+  "model_version": "stellar-laboratory-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-18T00:00:00Z",
+  "definition": {
+    "slug": "stellar-laboratory",
+    "title": "Stellar Laboratory",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "share_schema_version": 1,
+    "model_version": "stellar-laboratory-v1",
+    "learning_objectives": [
+      "Relate initial mass to typical main-sequence luminosity, radius, effective temperature, and broad colour.",
+      "Explain why more massive main-sequence stars are generally more luminous and shorter-lived.",
+      "Distinguish an approximate educational mass mapping from an age-resolved stellar-evolution track.",
+      "Connect broad initial-mass bands to textbook evolutionary paths and expected compact remnants while preserving boundary uncertainty."
+    ],
+    "prerequisite_concepts": [
+      "solar mass, luminosity, and radius units",
+      "main sequence",
+      "effective temperature",
+      "B-V colour index",
+      "stellar evolution and compact remnants"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "initial_mass_msun",
+          "unit": "nominal solar mass",
+          "meaning": "Initial stellar mass used for the approximate main-sequence educational mapping.",
+          "valid_range": "0.4 <= initial_mass_msun <= 29.669",
+          "default": 1
+        }
+      ],
+      "invalid_handling": "Reject booleans, non-finite values, and values outside the reviewed v1 mass domain. No mass is silently clamped."
+    },
+    "output_schema": [
+      "typical main-sequence luminosity in nominal Solar luminosity units",
+      "typical main-sequence radius in nominal Solar radius units",
+      "typical main-sequence effective temperature",
+      "nearest source-published spectral/B-V colour anchor",
+      "approximate main-sequence lifetime rounded to two significant figures",
+      "broad educational evolutionary path",
+      "expected remnant category with model-boundary caveat"
+    ],
+    "equations": {
+      "mass_luminosity": "Six piece Eker et al. (2018) relation: log10(L/Lsun) = alpha*log10(M/Msun) + beta within the source-published mass domains.",
+      "low_mass_radius": "For M <= 1.5 Msun: R/Rsun = 0.438*M^2 + 0.479*M + 0.075.",
+      "high_mass_temperature": "For M > 1.5 Msun: log10(Teff/K) = -0.170*(log10 M)^2 + 0.888*log10 M + 3.671.",
+      "stefan_boltzmann_bridge": "Missing branch uses Teff/Teff_sun = ((L/Lsun)/(R/Rsun)^2)^(1/4), equivalently R/Rsun = sqrt(L/Lsun)/(Teff/Teff_sun)^2, with nominal Teff_sun = 5772 K.",
+      "lifetime_interpolation": "Product-defined interpolation: linear interpolation in log10(mass) versus log10(lifetime) between adjacent OpenStax Table 22.1 anchors, rounded to two significant figures.",
+      "colour_mapping": "Choose the nearest selected Eker Table 7 source mass anchor and report that anchor's spectral type and B-V value; no continuous colour law is inferred."
+    },
+    "sampling_policy": "This model returns one approximate parameter mapping for the requested initial mass. It does not integrate stellar structure with time or synthesize an evolutionary track.",
+    "default_preset": "Illustrative 1.0 nominal-Solar-mass main-sequence mapping. It is not a reconstruction of the present-day Sun and does not model Solar age or composition.",
+    "assumptions": [
+      "Eker et al. relations describe typical approximately Solar-neighbourhood main-sequence stars and include real astrophysical scatter from age and composition.",
+      "IAU nominal Solar quantities are conversion constants, not claims about instantaneous true Solar properties.",
+      "The lifetime value is an interpolation between educational textbook anchors rather than a stellar-evolution grid prediction.",
+      "The B-V/spectral result is the nearest selected source anchor, not a fitted continuous colour model.",
+      "The remnant mapping is a broad textbook initial-mass classification and its boundaries are explicitly model-dependent."
+    ],
+    "limitations": [
+      "No metallicity slider, helium abundance, rotation, magnetic activity, binarity, mass loss prescription, overshoot, diffusion, or detailed composition dependence.",
+      "No pre-main-sequence evolution, age-resolved main-sequence evolution, giant-branch track coordinates, isochrones, or post-main-sequence timescales.",
+      "The empirical mass-luminosity relation is piecewise and has source-reported scatter; outputs are typical estimates, not measurements of an individual star.",
+      "The lifetime interpolation is intentionally approximate and is rounded to two significant figures to avoid fake precision.",
+      "The colour result is a nearest source anchor and may change discretely as input mass crosses an anchor midpoint.",
+      "Black-hole outcomes are outside v1 because the reviewed empirical main-sequence/colour domain stops below the textbook >40 Msun black-hole band."
+    ],
+    "references": [
+      "eker-2018-main-sequence-relations",
+      "iau-2015-resolution-b3",
+      "openstax-astronomy-2e-main-sequence-lifetimes",
+      "openstax-astronomy-2e-low-mass-death",
+      "openstax-astronomy-2e-stellar-end-states"
+    ],
+    "validation_fixtures": [
+      "solar-mass-typical-main-sequence",
+      "mlr-breakpoint-selection",
+      "low-mass-stefan-boltzmann-bridge",
+      "high-mass-stefan-boltzmann-bridge",
+      "source-colour-anchor",
+      "lifetime-source-anchors",
+      "lifetime-monotonicity",
+      "remnant-band-boundaries",
+      "deterministic-repeat",
+      "domain-rejection",
+      "artifact-mutation"
+    ]
+  },
+  "sources": [
+    {
+      "id": "eker-2018-main-sequence-relations",
+      "title": "Interrelated Main-Sequence Mass-Luminosity, Mass-Radius and Mass-Effective Temperature Relations",
+      "organization_or_authors": "Z. Eker et al.",
+      "url": "https://arxiv.org/abs/1807.02568",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1807.02568v1",
+      "record_reference": "Tables 4, 5, and 7; Sections 3.1-3.3.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2018-07-06 arXiv v1",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Eker, Z. et al. (2018), Interrelated Main-Sequence Mass-Luminosity, Mass-Radius and Mass-Effective Temperature Relations, arXiv:1807.02568.",
+      "claim_scope": "Empirical piecewise main-sequence mass-luminosity relation; low-mass radius relation; high-mass effective-temperature relation; Stefan-Boltzmann interrelation; spectral/B-V calibration anchors.",
+      "source_type": "peer-reviewed stellar-parameter calibration / scholarly preprint"
+    },
+    {
+      "id": "iau-2015-resolution-b3",
+      "title": "IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties",
+      "organization_or_authors": "International Astronomical Union Inter-Division A-G Working Group on Nominal Units for Stellar & Planetary Astronomy",
+      "url": "https://arxiv.org/abs/1510.07674",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1510.07674v1 / IAU 2015 Resolution B3",
+      "record_reference": "Nominal Solar conversion constants table.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2015-10-26 arXiv v1",
+      "terms_or_licence": "Official IAU resolution reproduced through arXiv; nominal values are adopted conversion constants.",
+      "citation": "IAU 2015 Resolution B3, Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties.",
+      "claim_scope": "Nominal Solar effective temperature 5772 K used as the exact conversion factor in the Stefan-Boltzmann ratio.",
+      "source_type": "official-standard"
+    },
+    {
+      "id": "openstax-astronomy-2e-main-sequence-lifetimes",
+      "title": "Astronomy 2e — 22.1 Evolution from the Main Sequence to Red Giants",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/astronomy-2e/pages/22-1-evolution-from-the-main-sequence-to-red-giants",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astronomy 2e",
+      "record_reference": "Table 22.1, Lifetimes of Main-Sequence Stars.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Astronomy 2e current page accessed 2026-09-18",
+      "terms_or_licence": "OpenStax textbook content is openly licensed; Lumina records a small factual calibration table and source link.",
+      "citation": "OpenStax, Astronomy 2e, Section 22.1, Table 22.1.",
+      "claim_scope": "Educational mass/main-sequence-lifetime anchor values and qualitative explanation that more massive stars have shorter main-sequence lifetimes.",
+      "source_type": "open educational astronomy textbook"
+    },
+    {
+      "id": "openstax-astronomy-2e-low-mass-death",
+      "title": "Astronomy 2e — 23.1 The Death of Low-Mass Stars",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/astronomy-2e/pages/23-1-the-death-of-low-mass-stars",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astronomy 2e",
+      "record_reference": "Low-mass red-giant, planetary-nebula, and white-dwarf lifecycle discussion.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Astronomy 2e current page accessed 2026-09-18",
+      "terms_or_licence": "OpenStax textbook content is openly licensed.",
+      "citation": "OpenStax, Astronomy 2e, Section 23.1.",
+      "claim_scope": "Broad educational low/intermediate-mass post-main-sequence path to a white dwarf.",
+      "source_type": "open educational astronomy textbook"
+    },
+    {
+      "id": "openstax-astronomy-2e-stellar-end-states",
+      "title": "Astronomy 2e — 23.2 Evolution of Massive Stars: An Explosive Finish",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/astronomy-2e/pages/23-2-evolution-of-massive-stars-an-explosive-finish",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astronomy 2e",
+      "record_reference": "Table 23.1, The Ultimate Fate of Stars and Substellar Objects with Different Masses.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Astronomy 2e current page accessed 2026-09-18",
+      "terms_or_licence": "OpenStax textbook content is openly licensed.",
+      "citation": "OpenStax, Astronomy 2e, Section 23.2, Table 23.1.",
+      "claim_scope": "Broad initial-mass/end-state bands and the explicit caveat that their boundaries may change as stellar models improve.",
+      "source_type": "open educational astronomy textbook"
+    }
+  ],
+  "constants": {
+    "MIN_INITIAL_MASS_MSUN": 0.4,
+    "MAX_INITIAL_MASS_MSUN": 29.669,
+    "LOW_MASS_RADIUS_MAX_MSUN": 1.5,
+    "NOMINAL_SOLAR_EFFECTIVE_TEMPERATURE_K": 5772,
+    "LIFETIME_SIGNIFICANT_DIGITS": 2
+  },
+  "calibrations": {
+    "mass_luminosity_segments": [
+      {
+        "minimum_exclusive_msun": 0.179,
+        "maximum_inclusive_msun": 0.45,
+        "alpha": 2.028,
+        "beta": -0.976
+      },
+      {
+        "minimum_exclusive_msun": 0.45,
+        "maximum_inclusive_msun": 0.72,
+        "alpha": 4.572,
+        "beta": -0.102
+      },
+      {
+        "minimum_exclusive_msun": 0.72,
+        "maximum_inclusive_msun": 1.05,
+        "alpha": 5.743,
+        "beta": -0.007
+      },
+      {
+        "minimum_exclusive_msun": 1.05,
+        "maximum_inclusive_msun": 2.4,
+        "alpha": 4.329,
+        "beta": 0.01
+      },
+      { "minimum_exclusive_msun": 2.4, "maximum_inclusive_msun": 7, "alpha": 3.967, "beta": 0.093 },
+      { "minimum_exclusive_msun": 7, "maximum_inclusive_msun": 31, "alpha": 2.865, "beta": 1.105 }
+    ],
+    "low_mass_radius": { "quadratic": 0.438, "linear": 0.479, "constant": 0.075 },
+    "high_mass_temperature": { "log_mass_squared": -0.17, "log_mass": 0.888, "constant": 3.671 },
+    "lifetime_anchors": [
+      { "mass_msun": 0.4, "years": 200000000000 },
+      { "mass_msun": 0.8, "years": 14000000000 },
+      { "mass_msun": 1.1, "years": 9000000000 },
+      { "mass_msun": 1.7, "years": 2700000000 },
+      { "mass_msun": 3.3, "years": 500000000 },
+      { "mass_msun": 16, "years": 10000000 },
+      { "mass_msun": 40, "years": 1000000 }
+    ],
+    "colour_anchors": [
+      {
+        "spectral_type": "M4",
+        "mass_msun": 0.323,
+        "effective_temperature_k": 3148,
+        "b_minus_v_mag": 1.56
+      },
+      {
+        "spectral_type": "M3",
+        "mass_msun": 0.462,
+        "effective_temperature_k": 3350,
+        "b_minus_v_mag": 1.53
+      },
+      {
+        "spectral_type": "M2",
+        "mass_msun": 0.492,
+        "effective_temperature_k": 3499,
+        "b_minus_v_mag": 1.49
+      },
+      {
+        "spectral_type": "M1",
+        "mass_msun": 0.524,
+        "effective_temperature_k": 3648,
+        "b_minus_v_mag": 1.47
+      },
+      {
+        "spectral_type": "M0",
+        "mass_msun": 0.558,
+        "effective_temperature_k": 3802,
+        "b_minus_v_mag": 1.4
+      },
+      {
+        "spectral_type": "K5",
+        "mass_msun": 0.736,
+        "effective_temperature_k": 4345,
+        "b_minus_v_mag": 1.15
+      },
+      {
+        "spectral_type": "K3",
+        "mass_msun": 0.813,
+        "effective_temperature_k": 4732,
+        "b_minus_v_mag": 0.96
+      },
+      {
+        "spectral_type": "K0",
+        "mass_msun": 0.922,
+        "effective_temperature_k": 5248,
+        "b_minus_v_mag": 0.81
+      },
+      {
+        "spectral_type": "G5",
+        "mass_msun": 1.031,
+        "effective_temperature_k": 5741,
+        "b_minus_v_mag": 0.68
+      },
+      {
+        "spectral_type": "G0",
+        "mass_msun": 1.161,
+        "effective_temperature_k": 6026,
+        "b_minus_v_mag": 0.59
+      },
+      {
+        "spectral_type": "F5",
+        "mass_msun": 1.354,
+        "effective_temperature_k": 6397,
+        "b_minus_v_mag": 0.45
+      },
+      {
+        "spectral_type": "F0",
+        "mass_msun": 1.643,
+        "effective_temperature_k": 7161,
+        "b_minus_v_mag": 0.31
+      },
+      {
+        "spectral_type": "A5",
+        "mass_msun": 1.952,
+        "effective_temperature_k": 8222,
+        "b_minus_v_mag": 0.15
+      },
+      {
+        "spectral_type": "A0",
+        "mass_msun": 2.478,
+        "effective_temperature_k": 9886,
+        "b_minus_v_mag": -0.01
+      },
+      {
+        "spectral_type": "B9",
+        "mass_msun": 2.743,
+        "effective_temperature_k": 10666,
+        "b_minus_v_mag": -0.07
+      },
+      {
+        "spectral_type": "B8",
+        "mass_msun": 3.234,
+        "effective_temperature_k": 12023,
+        "b_minus_v_mag": -0.11
+      },
+      {
+        "spectral_type": "B5",
+        "mass_msun": 4.516,
+        "effective_temperature_k": 15136,
+        "b_minus_v_mag": -0.17
+      },
+      {
+        "spectral_type": "B3",
+        "mass_msun": 6.123,
+        "effective_temperature_k": 18408,
+        "b_minus_v_mag": -0.21
+      },
+      {
+        "spectral_type": "B2",
+        "mass_msun": 7.699,
+        "effective_temperature_k": 21135,
+        "b_minus_v_mag": -0.24
+      },
+      {
+        "spectral_type": "B1",
+        "mass_msun": 10.459,
+        "effective_temperature_k": 25119,
+        "b_minus_v_mag": -0.28
+      },
+      {
+        "spectral_type": "B0",
+        "mass_msun": 14.277,
+        "effective_temperature_k": 29512,
+        "b_minus_v_mag": -0.31
+      },
+      {
+        "spectral_type": "O9",
+        "mass_msun": 17.123,
+        "effective_temperature_k": 32211,
+        "b_minus_v_mag": -0.32
+      },
+      {
+        "spectral_type": "O7",
+        "mass_msun": 21.66,
+        "effective_temperature_k": 35810,
+        "b_minus_v_mag": -0.33
+      },
+      {
+        "spectral_type": "O5",
+        "mass_msun": 29.669,
+        "effective_temperature_k": 40738,
+        "b_minus_v_mag": -0.33
+      }
+    ]
+  },
+  "presets": {
+    "illustrative-solar-mass": {
+      "initial_mass_msun": 1
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "solar-mass-typical-main-sequence",
+      "purpose": "A 1 Msun input yields finite typical main-sequence values near the Solar scale without claiming a present-day Solar reconstruction."
+    },
+    {
+      "id": "mlr-breakpoint-selection",
+      "purpose": "Each Eker mass-luminosity branch is selected on the exact declared half-open/inclusive source boundary."
+    },
+    {
+      "id": "low-mass-stefan-boltzmann-bridge",
+      "purpose": "At M <= 1.5 Msun, luminosity and empirical radius reproduce the returned effective temperature through the IAU-normalized Stefan-Boltzmann ratio."
+    },
+    {
+      "id": "high-mass-stefan-boltzmann-bridge",
+      "purpose": "At M > 1.5 Msun, luminosity and empirical temperature reproduce the returned radius through the same ratio."
+    },
+    {
+      "id": "source-colour-anchor",
+      "purpose": "Exact selected Eker Table 7 anchor masses return the source spectral type and B-V value exactly."
+    },
+    {
+      "id": "lifetime-source-anchors",
+      "purpose": "Exact OpenStax Table 22.1 masses inside v1 return the source lifetime anchors exactly."
+    },
+    {
+      "id": "lifetime-monotonicity",
+      "purpose": "The product-defined log-log interpolation decreases across increasing mass anchors in the v1 domain."
+    },
+    {
+      "id": "remnant-band-boundaries",
+      "purpose": "Half-open v1 serialization boundaries at 8 and 10 Msun map deterministically to the cited broad end-state categories."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Identical canonical inputs return exactly identical immutable results."
+    },
+    {
+      "id": "domain-rejection",
+      "purpose": "Bool, non-finite, below-domain, and above-domain masses fail closed."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Source, constant, calibration, preset, and model-version drift is rejected by the strict artifact loader."
+    }
+  ],
+  "scientific_validation": {
+    "id": "stellar-laboratory-v1-validation",
+    "checked_at": "2026-09-18",
+    "method": "Cross-check exact source table anchors and piecewise branch boundaries; verify Stefan-Boltzmann interrelation using the IAU nominal Solar effective-temperature conversion; verify deterministic lifetime interpolation and broad textbook remnant bands.",
+    "tools": [
+      {
+        "name": "pytest",
+        "version": "repository-locked",
+        "role": "Source-anchor, limiting-case, branch, deterministic, domain, and artifact-integrity regression tests."
+      }
+    ],
+    "source_ids": [
+      "eker-2018-main-sequence-relations",
+      "iau-2015-resolution-b3",
+      "openstax-astronomy-2e-main-sequence-lifetimes",
+      "openstax-astronomy-2e-low-mass-death",
+      "openstax-astronomy-2e-stellar-end-states"
+    ],
+    "test_references": [
+      "test_solar_mass_returns_typical_finite_main_sequence_values",
+      "test_mass_luminosity_breakpoints_use_declared_segments",
+      "test_low_mass_branch_obeys_stefan_boltzmann_ratio",
+      "test_high_mass_branch_obeys_stefan_boltzmann_ratio",
+      "test_exact_colour_anchor_is_preserved",
+      "test_exact_lifetime_anchors_are_preserved",
+      "test_interpolated_lifetime_decreases_with_mass",
+      "test_remnant_boundaries_are_deterministic",
+      "test_calculation_is_exactly_deterministic",
+      "test_input_domain_rejects_invalid_states",
+      "test_artifact_validation_rejects_mutation"
+    ]
+  }
+}

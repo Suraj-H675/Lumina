@@ -1199,6 +1199,46 @@ export const zTelescopeBuilderCalculationResponse = z.object({
 });
 
 /**
+ * TransitLightCurvePointResponse
+ */
+export const zTransitLightCurvePointResponse = z.object({
+  orbital_phase: z.number(),
+  projected_separation_stellar_radii: z.number(),
+  relative_flux: z.number(),
+  time_from_mid_transit_s: z.number(),
+});
+
+/**
+ * TransitMethodInputResponse
+ */
+export const zTransitMethodInputResponse = z.object({
+  inclination_deg: z.number(),
+  orbital_period_s: z.number(),
+  planet_radius_m: z.number(),
+  semi_major_axis_m: z.number(),
+  stellar_radius_m: z.number(),
+});
+
+/**
+ * TransitMethodCalculationResponse
+ */
+export const zTransitMethodCalculationResponse = z.object({
+  central_depth_approximation_fraction: z.number(),
+  classification: z.enum(["full", "grazing", "no_transit"]),
+  full_duration_s: z.number().nullable(),
+  impact_parameter: z.number(),
+  inputs: zTransitMethodInputResponse,
+  light_curve: z.array(zTransitLightCurvePointResponse).max(301),
+  maximum_depth_fraction: z.number(),
+  maximum_depth_ppm: z.number(),
+  model_version: z.string(),
+  radius_ratio: z.number(),
+  scaled_semi_major_axis: z.number(),
+  schema_version: z.int(),
+  total_duration_s: z.number().nullable(),
+});
+
+/**
  * UnitReference
  */
 export const zUnitReference = z.object({
@@ -1412,6 +1452,11 @@ export const zCalculateSeasonsSimulatorResponse = zSeasonsCalculationResponse;
  * Successful Response
  */
 export const zCalculateTelescopeBuilderResponse = zTelescopeBuilderCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateTransitMethodResponse = zTransitMethodCalculationResponse;
 
 /**
  * Successful Response

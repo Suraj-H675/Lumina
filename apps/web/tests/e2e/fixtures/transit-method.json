@@ -1,0 +1,1830 @@
+{
+  "default": {
+    "central_depth_approximation_fraction": 0.010000000000000002,
+    "classification": "full",
+    "full_duration_s": 7435.594210818784,
+    "impact_parameter": 6.123233995736766e-16,
+    "inputs": {
+      "inclination_deg": 90.0,
+      "orbital_period_s": 259200.0,
+      "planet_radius_m": 100000000.0,
+      "semi_major_axis_m": 10000000000.0,
+      "stellar_radius_m": 1000000000.0
+    },
+    "light_curve": [
+      {
+        "orbital_phase": -0.035085086496429906,
+        "projected_separation_stellar_radii": 2.1866494918024704,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -9094.054419874632
+      },
+      {
+        "orbital_phase": -0.03485118591978704,
+        "projected_separation_stellar_radii": 2.1723063819309014,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -9033.4273904088
+      },
+      {
+        "orbital_phase": -0.03461728534314418,
+        "projected_separation_stellar_radii": 2.157958580217948,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8972.80036094297
+      },
+      {
+        "orbital_phase": -0.03438338476650131,
+        "projected_separation_stellar_radii": 2.1436061176526136,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8912.173331477139
+      },
+      {
+        "orbital_phase": -0.03414948418985845,
+        "projected_separation_stellar_radii": 2.129249025233969,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8851.54630201131
+      },
+      {
+        "orbital_phase": -0.033915583613215575,
+        "projected_separation_stellar_radii": 2.1148873339710828,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8790.919272545478
+      },
+      {
+        "orbital_phase": -0.03368168303657271,
+        "projected_separation_stellar_radii": 2.100521074882958,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8730.292243079646
+      },
+      {
+        "orbital_phase": -0.033447782459929846,
+        "projected_separation_stellar_radii": 2.086150278998464,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8669.665213613816
+      },
+      {
+        "orbital_phase": -0.03321388188328698,
+        "projected_separation_stellar_radii": 2.071774977356267,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8609.038184147985
+      },
+      {
+        "orbital_phase": -0.03297998130664412,
+        "projected_separation_stellar_radii": 2.0573952010047667,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8548.411154682155
+      },
+      {
+        "orbital_phase": -0.03274608073000125,
+        "projected_separation_stellar_radii": 2.043010981002026,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8487.784125216323
+      },
+      {
+        "orbital_phase": -0.032512180153358376,
+        "projected_separation_stellar_radii": 2.028622348415706,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8427.157095750492
+      },
+      {
+        "orbital_phase": -0.032278279576715516,
+        "projected_separation_stellar_radii": 2.0142293343229993,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8366.530066284662
+      },
+      {
+        "orbital_phase": -0.03204437900007265,
+        "projected_separation_stellar_radii": 1.9998319698105598,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8305.90303681883
+      },
+      {
+        "orbital_phase": -0.03181047842342978,
+        "projected_separation_stellar_radii": 1.9854302859744397,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8245.276007352999
+      },
+      {
+        "orbital_phase": -0.03157657784678692,
+        "projected_separation_stellar_radii": 1.9710243139200192,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8184.648977887169
+      },
+      {
+        "orbital_phase": -0.03134267727014405,
+        "projected_separation_stellar_radii": 1.9566140847619402,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8124.021948421338
+      },
+      {
+        "orbital_phase": -0.031108776693501185,
+        "projected_separation_stellar_radii": 1.9421996296240396,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8063.394918955507
+      },
+      {
+        "orbital_phase": -0.030874876116858317,
+        "projected_separation_stellar_radii": 1.927780979639282,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -8002.767889489676
+      },
+      {
+        "orbital_phase": -0.030640975540215453,
+        "projected_separation_stellar_radii": 1.9133581659496919,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7942.140860023846
+      },
+      {
+        "orbital_phase": -0.03040707496357259,
+        "projected_separation_stellar_radii": 1.898931219706287,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7881.513830558015
+      },
+      {
+        "orbital_phase": -0.030173174386929718,
+        "projected_separation_stellar_radii": 1.8845001720690093,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7820.886801092183
+      },
+      {
+        "orbital_phase": -0.029939273810286854,
+        "projected_separation_stellar_radii": 1.8700650542066621,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7760.259771626353
+      },
+      {
+        "orbital_phase": -0.02970537323364399,
+        "projected_separation_stellar_radii": 1.8556258972968376,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7699.632742160522
+      },
+      {
+        "orbital_phase": -0.02947147265700112,
+        "projected_separation_stellar_radii": 1.841182732525851,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7639.00571269469
+      },
+      {
+        "orbital_phase": -0.029237572080358255,
+        "projected_separation_stellar_radii": 1.826735591088676,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7578.37868322886
+      },
+      {
+        "orbital_phase": -0.02900367150371539,
+        "projected_separation_stellar_radii": 1.8122845041888738,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7517.751653763029
+      },
+      {
+        "orbital_phase": -0.028769770927072523,
+        "projected_separation_stellar_radii": 1.7978295030385278,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7457.124624297198
+      },
+      {
+        "orbital_phase": -0.02853587035042966,
+        "projected_separation_stellar_radii": 1.783370618858175,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7396.497594831368
+      },
+      {
+        "orbital_phase": -0.02830196977378679,
+        "projected_separation_stellar_radii": 1.7689078828767402,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7335.870565365536
+      },
+      {
+        "orbital_phase": -0.028068069197143924,
+        "projected_separation_stellar_radii": 1.7544413263314662,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7275.243535899705
+      },
+      {
+        "orbital_phase": -0.02783416862050106,
+        "projected_separation_stellar_radii": 1.7399709804678485,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7214.616506433875
+      },
+      {
+        "orbital_phase": -0.027600268043858196,
+        "projected_separation_stellar_radii": 1.725496876539567,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7153.989476968044
+      },
+      {
+        "orbital_phase": -0.027366367467215328,
+        "projected_separation_stellar_radii": 1.7110190458084173,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7093.362447502213
+      },
+      {
+        "orbital_phase": -0.02713246689057246,
+        "projected_separation_stellar_radii": 1.6965375195442454,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -7032.735418036382
+      },
+      {
+        "orbital_phase": -0.026898566313929596,
+        "projected_separation_stellar_radii": 1.6820523290248792,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6972.108388570551
+      },
+      {
+        "orbital_phase": -0.02666466573728673,
+        "projected_separation_stellar_radii": 1.66756350553606,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6911.4813591047205
+      },
+      {
+        "orbital_phase": -0.02643076516064386,
+        "projected_separation_stellar_radii": 1.6530710803713757,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6850.854329638889
+      },
+      {
+        "orbital_phase": -0.026196864584001,
+        "projected_separation_stellar_radii": 1.6385750848321954,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6790.227300173059
+      },
+      {
+        "orbital_phase": -0.02596296400735813,
+        "projected_separation_stellar_radii": 1.6240755502275959,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6729.6002707072275
+      },
+      {
+        "orbital_phase": -0.025729063430715265,
+        "projected_separation_stellar_radii": 1.6095725078743006,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6668.973241241397
+      },
+      {
+        "orbital_phase": -0.0254951628540724,
+        "projected_separation_stellar_radii": 1.595065989096609,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6608.346211775566
+      },
+      {
+        "orbital_phase": -0.02526126227742953,
+        "projected_separation_stellar_radii": 1.5805560252263275,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6547.719182309735
+      },
+      {
+        "orbital_phase": -0.02502736170078667,
+        "projected_separation_stellar_radii": 1.5660426476027054,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6487.092152843905
+      },
+      {
+        "orbital_phase": -0.024793461124143802,
+        "projected_separation_stellar_radii": 1.5515258875723628,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6426.465123378073
+      },
+      {
+        "orbital_phase": -0.024559560547500935,
+        "projected_separation_stellar_radii": 1.5370057764892278,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6365.838093912243
+      },
+      {
+        "orbital_phase": -0.02432565997085807,
+        "projected_separation_stellar_radii": 1.5224823457144643,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6305.211064446412
+      },
+      {
+        "orbital_phase": -0.024091759394215203,
+        "projected_separation_stellar_radii": 1.5079556266164071,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6244.58403498058
+      },
+      {
+        "orbital_phase": -0.023857858817572335,
+        "projected_separation_stellar_radii": 1.4934256505704935,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6183.95700551475
+      },
+      {
+        "orbital_phase": -0.02362395824092947,
+        "projected_separation_stellar_radii": 1.4788924489591946,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6123.329976048919
+      },
+      {
+        "orbital_phase": -0.023390057664286604,
+        "projected_separation_stellar_radii": 1.4643560531719482,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6062.702946583087
+      },
+      {
+        "orbital_phase": -0.02315615708764374,
+        "projected_separation_stellar_radii": 1.4498164946050922,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -6002.075917117258
+      },
+      {
+        "orbital_phase": -0.022922256511000872,
+        "projected_separation_stellar_radii": 1.4352738046617939,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5941.448887651426
+      },
+      {
+        "orbital_phase": -0.022688355934358008,
+        "projected_separation_stellar_radii": 1.4207280147519852,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5880.821858185595
+      },
+      {
+        "orbital_phase": -0.02245445535771514,
+        "projected_separation_stellar_radii": 1.406179156292293,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5820.194828719765
+      },
+      {
+        "orbital_phase": -0.022220554781072273,
+        "projected_separation_stellar_radii": 1.391627260705971,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5759.567799253933
+      },
+      {
+        "orbital_phase": -0.021986654204429412,
+        "projected_separation_stellar_radii": 1.377072359422835,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5698.940769788103
+      },
+      {
+        "orbital_phase": -0.02175275362778654,
+        "projected_separation_stellar_radii": 1.3625144838791894,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5638.313740322272
+      },
+      {
+        "orbital_phase": -0.021518853051143677,
+        "projected_separation_stellar_radii": 1.3479536655177649,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5577.686710856441
+      },
+      {
+        "orbital_phase": -0.021284952474500813,
+        "projected_separation_stellar_radii": 1.3333899357876473,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5517.05968139061
+      },
+      {
+        "orbital_phase": -0.021051051897857942,
+        "projected_separation_stellar_radii": 1.3188233261442106,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5456.432651924779
+      },
+      {
+        "orbital_phase": -0.020817151321215078,
+        "projected_separation_stellar_radii": 1.3042538680490496,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5395.805622458948
+      },
+      {
+        "orbital_phase": -0.020583250744572214,
+        "projected_separation_stellar_radii": 1.28968159296991,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5335.1785929931175
+      },
+      {
+        "orbital_phase": -0.020349350167929343,
+        "projected_separation_stellar_radii": 1.2751065323806228,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5274.551563527286
+      },
+      {
+        "orbital_phase": -0.020115449591286482,
+        "projected_separation_stellar_radii": 1.2605287177610354,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5213.924534061456
+      },
+      {
+        "orbital_phase": -0.019881549014643615,
+        "projected_separation_stellar_radii": 1.2459481805969423,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5153.297504595625
+      },
+      {
+        "orbital_phase": -0.019647648438000747,
+        "projected_separation_stellar_radii": 1.2313649523800192,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5092.670475129794
+      },
+      {
+        "orbital_phase": -0.019413747861357883,
+        "projected_separation_stellar_radii": 1.2167790646077543,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -5032.043445663963
+      },
+      {
+        "orbital_phase": -0.01917984728471502,
+        "projected_separation_stellar_radii": 1.2021905487833793,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4971.4164161981325
+      },
+      {
+        "orbital_phase": -0.018945946708072148,
+        "projected_separation_stellar_radii": 1.1875994364158018,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4910.789386732301
+      },
+      {
+        "orbital_phase": -0.018712046131429284,
+        "projected_separation_stellar_radii": 1.1730057590195389,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4850.16235726647
+      },
+      {
+        "orbital_phase": -0.01847814555478642,
+        "projected_separation_stellar_radii": 1.1584095481146468,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4789.53532780064
+      },
+      {
+        "orbital_phase": -0.018244244978143552,
+        "projected_separation_stellar_radii": 1.1438108352266534,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4728.908298334809
+      },
+      {
+        "orbital_phase": -0.018010344401500684,
+        "projected_separation_stellar_radii": 1.1292096518864911,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4668.281268868977
+      },
+      {
+        "orbital_phase": -0.01777644382485782,
+        "projected_separation_stellar_radii": 1.1146060296304283,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4607.654239403147
+      },
+      {
+        "orbital_phase": -0.017542543248214953,
+        "projected_separation_stellar_radii": 1.1,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": -4547.027209937316
+      },
+      {
+        "orbital_phase": -0.01730864267157209,
+        "projected_separation_stellar_radii": 1.0853915945419423,
+        "relative_flux": 0.9996863770531528,
+        "time_from_mid_transit_s": -4486.400180471485
+      },
+      {
+        "orbital_phase": -0.017074742094929225,
+        "projected_separation_stellar_radii": 1.070780844808121,
+        "relative_flux": 0.9991302368941416,
+        "time_from_mid_transit_s": -4425.773151005655
+      },
+      {
+        "orbital_phase": -0.016840841518286354,
+        "projected_separation_stellar_radii": 1.0561677823554665,
+        "relative_flux": 0.9984353309068607,
+        "time_from_mid_transit_s": -4365.146121539823
+      },
+      {
+        "orbital_phase": -0.01660694094164349,
+        "projected_separation_stellar_radii": 1.0415524387459039,
+        "relative_flux": 0.9976445388717214,
+        "time_from_mid_transit_s": -4304.519092073992
+      },
+      {
+        "orbital_phase": -0.016373040365000625,
+        "projected_separation_stellar_radii": 1.0269348455462848,
+        "relative_flux": 0.9967866776638252,
+        "time_from_mid_transit_s": -4243.892062608162
+      },
+      {
+        "orbital_phase": -0.016139139788357758,
+        "projected_separation_stellar_radii": 1.0123150343283203,
+        "relative_flux": 0.9958847888436237,
+        "time_from_mid_transit_s": -4183.265033142331
+      },
+      {
+        "orbital_phase": -0.01590523921171489,
+        "projected_separation_stellar_radii": 0.9976930366685111,
+        "relative_flux": 0.9949593762003577,
+        "time_from_mid_transit_s": -4122.6380036764995
+      },
+      {
+        "orbital_phase": -0.015671338635072026,
+        "projected_separation_stellar_radii": 0.9830688841480816,
+        "relative_flux": 0.9940302113547428,
+        "time_from_mid_transit_s": -4062.010974210669
+      },
+      {
+        "orbital_phase": -0.015437438058429159,
+        "projected_separation_stellar_radii": 0.9684426083529092,
+        "relative_flux": 0.9931177362020324,
+        "time_from_mid_transit_s": -4001.383944744838
+      },
+      {
+        "orbital_phase": -0.015203537481786294,
+        "projected_separation_stellar_radii": 0.953814240873458,
+        "relative_flux": 0.9922446033473864,
+        "time_from_mid_transit_s": -3940.7569152790074
+      },
+      {
+        "orbital_phase": -0.014969636905143429,
+        "projected_separation_stellar_radii": 0.9391838133047091,
+        "relative_flux": 0.9914380110632942,
+        "time_from_mid_transit_s": -3880.1298858131768
+      },
+      {
+        "orbital_phase": -0.01473573632850056,
+        "projected_separation_stellar_radii": 0.9245513572460937,
+        "relative_flux": 0.9907344610668473,
+        "time_from_mid_transit_s": -3819.502856347345
+      },
+      {
+        "orbital_phase": -0.014501835751857695,
+        "projected_separation_stellar_radii": 0.9099169043014241,
+        "relative_flux": 0.9901939478142213,
+        "time_from_mid_transit_s": -3758.8758268815145
+      },
+      {
+        "orbital_phase": -0.01426793517521483,
+        "projected_separation_stellar_radii": 0.895280486078825,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3698.248797415684
+      },
+      {
+        "orbital_phase": -0.014034034598571964,
+        "projected_separation_stellar_radii": 0.8806421341906668,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3637.621767949853
+      },
+      {
+        "orbital_phase": -0.013800134021929096,
+        "projected_separation_stellar_radii": 0.8660018802534952,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3576.9947384840216
+      },
+      {
+        "orbital_phase": -0.01356623344528623,
+        "projected_separation_stellar_radii": 0.851359755887965,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3516.367709018191
+      },
+      {
+        "orbital_phase": -0.013332332868643364,
+        "projected_separation_stellar_radii": 0.8367157927187705,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3455.7406795523602
+      },
+      {
+        "orbital_phase": -0.0130984322920005,
+        "projected_separation_stellar_radii": 0.8220700223745769,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3395.1136500865296
+      },
+      {
+        "orbital_phase": -0.012864531715357631,
+        "projected_separation_stellar_radii": 0.8074224764879534,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3334.486620620698
+      },
+      {
+        "orbital_phase": -0.012630631138714765,
+        "projected_separation_stellar_radii": 0.7927731866953038,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3273.8595911548673
+      },
+      {
+        "orbital_phase": -0.012396730562071901,
+        "projected_separation_stellar_radii": 0.7781221846367989,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3213.2325616890366
+      },
+      {
+        "orbital_phase": -0.012162829985429035,
+        "projected_separation_stellar_radii": 0.7634695019563067,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3152.605532223206
+      },
+      {
+        "orbital_phase": -0.01192892940878617,
+        "projected_separation_stellar_radii": 0.7488151703013263,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3091.9785027573753
+      },
+      {
+        "orbital_phase": -0.011695028832143302,
+        "projected_separation_stellar_radii": 0.7341592213229171,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -3031.3514732915437
+      },
+      {
+        "orbital_phase": -0.011461128255500436,
+        "projected_separation_stellar_radii": 0.719501686675633,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2970.724443825713
+      },
+      {
+        "orbital_phase": -0.01122722767885757,
+        "projected_separation_stellar_radii": 0.7048425980174515,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2910.0974143598824
+      },
+      {
+        "orbital_phase": -0.010993327102214706,
+        "projected_separation_stellar_radii": 0.6901819870097071,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2849.4703848940517
+      },
+      {
+        "orbital_phase": -0.010759426525571837,
+        "projected_separation_stellar_radii": 0.6755198853170225,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2788.84335542822
+      },
+      {
+        "orbital_phase": -0.010525525948928971,
+        "projected_separation_stellar_radii": 0.6608563246072396,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2728.2163259623894
+      },
+      {
+        "orbital_phase": -0.010291625372286107,
+        "projected_separation_stellar_radii": 0.6461913365513519,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2667.5892964965587
+      },
+      {
+        "orbital_phase": -0.010057724795643241,
+        "projected_separation_stellar_radii": 0.6315249528234356,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2606.962267030728
+      },
+      {
+        "orbital_phase": -0.009823824219000375,
+        "projected_separation_stellar_radii": 0.6168572051005811,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2546.3352375648974
+      },
+      {
+        "orbital_phase": -0.009589923642357508,
+        "projected_separation_stellar_radii": 0.6021881250628249,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2485.708208099066
+      },
+      {
+        "orbital_phase": -0.009356023065714642,
+        "projected_separation_stellar_radii": 0.5875177443930818,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2425.081178633235
+      },
+      {
+        "orbital_phase": -0.009122122489071776,
+        "projected_separation_stellar_radii": 0.5728460947770748,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2364.4541491674045
+      },
+      {
+        "orbital_phase": -0.008888221912428912,
+        "projected_separation_stellar_radii": 0.5581732079032683,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2303.827119701574
+      },
+      {
+        "orbital_phase": -0.008654321335786043,
+        "projected_separation_stellar_radii": 0.5434991154627982,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2243.200090235742
+      },
+      {
+        "orbital_phase": -0.008420420759143177,
+        "projected_separation_stellar_radii": 0.5288238491494053,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2182.5730607699115
+      },
+      {
+        "orbital_phase": -0.008186520182500313,
+        "projected_separation_stellar_radii": 0.514147440659365,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2121.946031304081
+      },
+      {
+        "orbital_phase": -0.007952619605857447,
+        "projected_separation_stellar_radii": 0.4994699216914199,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2061.31900183825
+      },
+      {
+        "orbital_phase": -0.0077187190292145776,
+        "projected_separation_stellar_radii": 0.48479132394671054,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -2000.6919723724186
+      },
+      {
+        "orbital_phase": -0.007484818452571713,
+        "projected_separation_stellar_radii": 0.4701116791287086,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1940.064942906588
+      },
+      {
+        "orbital_phase": -0.007250917875928848,
+        "projected_separation_stellar_radii": 0.4554310189431463,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1879.4379134407573
+      },
+      {
+        "orbital_phase": -0.007017017299285982,
+        "projected_separation_stellar_radii": 0.4407493750979492,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1818.8108839749266
+      },
+      {
+        "orbital_phase": -0.006783116722643117,
+        "projected_separation_stellar_radii": 0.4260667793031674,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1758.183854509096
+      },
+      {
+        "orbital_phase": -0.006549216146000248,
+        "projected_separation_stellar_radii": 0.4113832632709067,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1697.5568250432643
+      },
+      {
+        "orbital_phase": -0.006315315569357383,
+        "projected_separation_stellar_radii": 0.3966988587152614,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1636.9297955774337
+      },
+      {
+        "orbital_phase": -0.006081414992714518,
+        "projected_separation_stellar_radii": 0.382013597352244,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1576.302766111603
+      },
+      {
+        "orbital_phase": -0.005847514416071653,
+        "projected_separation_stellar_radii": 0.36732751089971794,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1515.6757366457723
+      },
+      {
+        "orbital_phase": -0.005613613839428783,
+        "projected_separation_stellar_radii": 0.35264063107732835,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1455.0487071799407
+      },
+      {
+        "orbital_phase": -0.005379713262785918,
+        "projected_separation_stellar_radii": 0.3379529896064347,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1394.42167771411
+      },
+      {
+        "orbital_phase": -0.0051458126861430534,
+        "projected_separation_stellar_radii": 0.3232646182100407,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1333.7946482482794
+      },
+      {
+        "orbital_phase": -0.004911912109500188,
+        "projected_separation_stellar_radii": 0.30857554861272707,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1273.1676187824487
+      },
+      {
+        "orbital_phase": -0.004678011532857323,
+        "projected_separation_stellar_radii": 0.2938858125405822,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1212.540589316618
+      },
+      {
+        "orbital_phase": -0.004444110956214454,
+        "projected_separation_stellar_radii": 0.2791954417211339,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1151.9135598507864
+      },
+      {
+        "orbital_phase": -0.004210210379571588,
+        "projected_separation_stellar_radii": 0.26450446788328175,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1091.2865303849558
+      },
+      {
+        "orbital_phase": -0.003976309802928723,
+        "projected_separation_stellar_radii": 0.24981292275722683,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -1030.659500919125
+      },
+      {
+        "orbital_phase": -0.003742409226285858,
+        "projected_separation_stellar_radii": 0.23512083807440443,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -970.0324714532944
+      },
+      {
+        "orbital_phase": -0.003508508649642989,
+        "projected_separation_stellar_radii": 0.22042824556741505,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -909.4054419874628
+      },
+      {
+        "orbital_phase": -0.0032746080730001277,
+        "projected_separation_stellar_radii": 0.2057351769699568,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -848.7784125216331
+      },
+      {
+        "orbital_phase": -0.003040707496357259,
+        "projected_separation_stellar_radii": 0.1910416640167546,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -788.1513830558015
+      },
+      {
+        "orbital_phase": -0.00280680691971439,
+        "projected_separation_stellar_radii": 0.17634773844349433,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -727.5243535899699
+      },
+      {
+        "orbital_phase": -0.0025729063430715285,
+        "projected_separation_stellar_radii": 0.16165343198675325,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -666.8973241241401
+      },
+      {
+        "orbital_phase": -0.0023390057664286596,
+        "projected_separation_stellar_radii": 0.14695877638392968,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -606.2702946583086
+      },
+      {
+        "orbital_phase": -0.0021051051897857977,
+        "projected_separation_stellar_radii": 0.13226380337317806,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -545.6432651924788
+      },
+      {
+        "orbital_phase": -0.001871204613142929,
+        "projected_separation_stellar_radii": 0.11756854469333644,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -485.0162357266472
+      },
+      {
+        "orbital_phase": -0.0016373040365000604,
+        "projected_separation_stellar_radii": 0.10287303208386127,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -424.3892062608156
+      },
+      {
+        "orbital_phase": -0.0014034034598571984,
+        "projected_separation_stellar_radii": 0.08817729728475747,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -363.76217679498586
+      },
+      {
+        "orbital_phase": -0.0011695028832143298,
+        "projected_separation_stellar_radii": 0.0734813720365085,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -303.1351473291543
+      },
+      {
+        "orbital_phase": -0.000935602306571461,
+        "projected_separation_stellar_radii": 0.058785288080010434,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -242.5081178633227
+      },
+      {
+        "orbital_phase": -0.0007017017299285992,
+        "projected_separation_stellar_radii": 0.04408907715650224,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -181.88108839749293
+      },
+      {
+        "orbital_phase": -0.0004678011532857305,
+        "projected_separation_stellar_radii": 0.029392771007495717,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -121.25405893166135
+      },
+      {
+        "orbital_phase": -0.00023390057664286876,
+        "projected_separation_stellar_radii": 0.014696401374710098,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": -60.62702946583158
+      },
+      {
+        "orbital_phase": 0.0,
+        "projected_separation_stellar_radii": 6.123233995736766e-16,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 0.0
+      },
+      {
+        "orbital_phase": 0.00023390057664286876,
+        "projected_separation_stellar_radii": 0.014696401374710098,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 60.62702946583158
+      },
+      {
+        "orbital_phase": 0.0004678011532857305,
+        "projected_separation_stellar_radii": 0.029392771007495717,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 121.25405893166135
+      },
+      {
+        "orbital_phase": 0.0007017017299285992,
+        "projected_separation_stellar_radii": 0.04408907715650224,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 181.88108839749293
+      },
+      {
+        "orbital_phase": 0.000935602306571461,
+        "projected_separation_stellar_radii": 0.058785288080010434,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 242.5081178633227
+      },
+      {
+        "orbital_phase": 0.0011695028832143298,
+        "projected_separation_stellar_radii": 0.0734813720365085,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 303.1351473291543
+      },
+      {
+        "orbital_phase": 0.0014034034598571984,
+        "projected_separation_stellar_radii": 0.08817729728475747,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 363.76217679498586
+      },
+      {
+        "orbital_phase": 0.0016373040365000604,
+        "projected_separation_stellar_radii": 0.10287303208386127,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 424.3892062608156
+      },
+      {
+        "orbital_phase": 0.001871204613142929,
+        "projected_separation_stellar_radii": 0.11756854469333644,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 485.0162357266472
+      },
+      {
+        "orbital_phase": 0.0021051051897857977,
+        "projected_separation_stellar_radii": 0.13226380337317806,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 545.6432651924788
+      },
+      {
+        "orbital_phase": 0.0023390057664286596,
+        "projected_separation_stellar_radii": 0.14695877638392968,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 606.2702946583086
+      },
+      {
+        "orbital_phase": 0.0025729063430715285,
+        "projected_separation_stellar_radii": 0.16165343198675325,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 666.8973241241401
+      },
+      {
+        "orbital_phase": 0.00280680691971439,
+        "projected_separation_stellar_radii": 0.17634773844349433,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 727.5243535899699
+      },
+      {
+        "orbital_phase": 0.003040707496357259,
+        "projected_separation_stellar_radii": 0.1910416640167546,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 788.1513830558015
+      },
+      {
+        "orbital_phase": 0.0032746080730001277,
+        "projected_separation_stellar_radii": 0.2057351769699568,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 848.7784125216331
+      },
+      {
+        "orbital_phase": 0.003508508649642989,
+        "projected_separation_stellar_radii": 0.22042824556741505,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 909.4054419874628
+      },
+      {
+        "orbital_phase": 0.003742409226285858,
+        "projected_separation_stellar_radii": 0.23512083807440443,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 970.0324714532944
+      },
+      {
+        "orbital_phase": 0.00397630980292872,
+        "projected_separation_stellar_radii": 0.24981292275722655,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1030.6595009191242
+      },
+      {
+        "orbital_phase": 0.004210210379571588,
+        "projected_separation_stellar_radii": 0.26450446788328175,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1091.2865303849558
+      },
+      {
+        "orbital_phase": 0.004444110956214458,
+        "projected_separation_stellar_radii": 0.27919544172113414,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1151.9135598507874
+      },
+      {
+        "orbital_phase": 0.004678011532857319,
+        "projected_separation_stellar_radii": 0.293885812540582,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1212.5405893166171
+      },
+      {
+        "orbital_phase": 0.004911912109500188,
+        "projected_separation_stellar_radii": 0.30857554861272707,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1273.1676187824487
+      },
+      {
+        "orbital_phase": 0.00514581268614305,
+        "projected_separation_stellar_radii": 0.3232646182100405,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1333.7946482482785
+      },
+      {
+        "orbital_phase": 0.005379713262785918,
+        "projected_separation_stellar_radii": 0.3379529896064347,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1394.42167771411
+      },
+      {
+        "orbital_phase": 0.005613613839428787,
+        "projected_separation_stellar_radii": 0.35264063107732857,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1455.0487071799416
+      },
+      {
+        "orbital_phase": 0.005847514416071649,
+        "projected_separation_stellar_radii": 0.3673275108997177,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1515.6757366457714
+      },
+      {
+        "orbital_phase": 0.006081414992714518,
+        "projected_separation_stellar_radii": 0.382013597352244,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1576.302766111603
+      },
+      {
+        "orbital_phase": 0.006315315569357386,
+        "projected_separation_stellar_radii": 0.39669885871526156,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1636.9297955774346
+      },
+      {
+        "orbital_phase": 0.006549216146000248,
+        "projected_separation_stellar_radii": 0.4113832632709067,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1697.5568250432643
+      },
+      {
+        "orbital_phase": 0.006783116722643117,
+        "projected_separation_stellar_radii": 0.4260667793031674,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1758.183854509096
+      },
+      {
+        "orbital_phase": 0.007017017299285978,
+        "projected_separation_stellar_radii": 0.44074937509794904,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1818.8108839749257
+      },
+      {
+        "orbital_phase": 0.007250917875928848,
+        "projected_separation_stellar_radii": 0.4554310189431463,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1879.4379134407573
+      },
+      {
+        "orbital_phase": 0.007484818452571716,
+        "projected_separation_stellar_radii": 0.4701116791287089,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 1940.0649429065888
+      },
+      {
+        "orbital_phase": 0.0077187190292145776,
+        "projected_separation_stellar_radii": 0.48479132394671054,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2000.6919723724186
+      },
+      {
+        "orbital_phase": 0.007952619605857447,
+        "projected_separation_stellar_radii": 0.4994699216914199,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2061.31900183825
+      },
+      {
+        "orbital_phase": 0.00818652018250031,
+        "projected_separation_stellar_radii": 0.5141474406593647,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2121.94603130408
+      },
+      {
+        "orbital_phase": 0.008420420759143177,
+        "projected_separation_stellar_radii": 0.5288238491494053,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2182.5730607699115
+      },
+      {
+        "orbital_phase": 0.008654321335786046,
+        "projected_separation_stellar_radii": 0.5434991154627984,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2243.200090235743
+      },
+      {
+        "orbital_phase": 0.008888221912428908,
+        "projected_separation_stellar_radii": 0.5581732079032681,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2303.827119701573
+      },
+      {
+        "orbital_phase": 0.009122122489071776,
+        "projected_separation_stellar_radii": 0.5728460947770748,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2364.4541491674045
+      },
+      {
+        "orbital_phase": 0.009356023065714645,
+        "projected_separation_stellar_radii": 0.587517744393082,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2425.081178633236
+      },
+      {
+        "orbital_phase": 0.009589923642357508,
+        "projected_separation_stellar_radii": 0.6021881250628249,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2485.708208099066
+      },
+      {
+        "orbital_phase": 0.009823824219000375,
+        "projected_separation_stellar_radii": 0.6168572051005811,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2546.3352375648974
+      },
+      {
+        "orbital_phase": 0.010057724795643238,
+        "projected_separation_stellar_radii": 0.6315249528234355,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2606.962267030727
+      },
+      {
+        "orbital_phase": 0.010291625372286107,
+        "projected_separation_stellar_radii": 0.6461913365513519,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2667.5892964965587
+      },
+      {
+        "orbital_phase": 0.010525525948928974,
+        "projected_separation_stellar_radii": 0.6608563246072398,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2728.2163259623903
+      },
+      {
+        "orbital_phase": 0.010759426525571837,
+        "projected_separation_stellar_radii": 0.6755198853170225,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2788.84335542822
+      },
+      {
+        "orbital_phase": 0.010993327102214706,
+        "projected_separation_stellar_radii": 0.6901819870097071,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2849.4703848940517
+      },
+      {
+        "orbital_phase": 0.011227227678857567,
+        "projected_separation_stellar_radii": 0.7048425980174512,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2910.0974143598814
+      },
+      {
+        "orbital_phase": 0.011461128255500436,
+        "projected_separation_stellar_radii": 0.719501686675633,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 2970.724443825713
+      },
+      {
+        "orbital_phase": 0.011695028832143305,
+        "projected_separation_stellar_radii": 0.7341592213229173,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3031.3514732915446
+      },
+      {
+        "orbital_phase": 0.011928929408786166,
+        "projected_separation_stellar_radii": 0.7488151703013259,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3091.9785027573744
+      },
+      {
+        "orbital_phase": 0.012162829985429035,
+        "projected_separation_stellar_radii": 0.7634695019563067,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3152.605532223206
+      },
+      {
+        "orbital_phase": 0.012396730562071898,
+        "projected_separation_stellar_radii": 0.7781221846367986,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3213.2325616890357
+      },
+      {
+        "orbital_phase": 0.012630631138714765,
+        "projected_separation_stellar_radii": 0.7927731866953038,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3273.8595911548673
+      },
+      {
+        "orbital_phase": 0.012864531715357634,
+        "projected_separation_stellar_radii": 0.8074224764879535,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3334.486620620699
+      },
+      {
+        "orbital_phase": 0.013098432292000497,
+        "projected_separation_stellar_radii": 0.8220700223745767,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3395.1136500865287
+      },
+      {
+        "orbital_phase": 0.013332332868643364,
+        "projected_separation_stellar_radii": 0.8367157927187705,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3455.7406795523602
+      },
+      {
+        "orbital_phase": 0.013566233445286234,
+        "projected_separation_stellar_radii": 0.8513597558879653,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3516.367709018192
+      },
+      {
+        "orbital_phase": 0.013800134021929096,
+        "projected_separation_stellar_radii": 0.8660018802534952,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3576.9947384840216
+      },
+      {
+        "orbital_phase": 0.014034034598571964,
+        "projected_separation_stellar_radii": 0.8806421341906668,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3637.621767949853
+      },
+      {
+        "orbital_phase": 0.014267935175214826,
+        "projected_separation_stellar_radii": 0.8952804860788249,
+        "relative_flux": 0.99,
+        "time_from_mid_transit_s": 3698.248797415683
+      },
+      {
+        "orbital_phase": 0.014501835751857695,
+        "projected_separation_stellar_radii": 0.9099169043014241,
+        "relative_flux": 0.9901939478142213,
+        "time_from_mid_transit_s": 3758.8758268815145
+      },
+      {
+        "orbital_phase": 0.014735736328500563,
+        "projected_separation_stellar_radii": 0.9245513572460939,
+        "relative_flux": 0.9907344610668476,
+        "time_from_mid_transit_s": 3819.502856347346
+      },
+      {
+        "orbital_phase": 0.014969636905143425,
+        "projected_separation_stellar_radii": 0.939183813304709,
+        "relative_flux": 0.9914380110632951,
+        "time_from_mid_transit_s": 3880.129885813176
+      },
+      {
+        "orbital_phase": 0.015203537481786294,
+        "projected_separation_stellar_radii": 0.953814240873458,
+        "relative_flux": 0.9922446033473864,
+        "time_from_mid_transit_s": 3940.7569152790074
+      },
+      {
+        "orbital_phase": 0.015437438058429155,
+        "projected_separation_stellar_radii": 0.968442608352909,
+        "relative_flux": 0.9931177362020324,
+        "time_from_mid_transit_s": 4001.383944744837
+      },
+      {
+        "orbital_phase": 0.015671338635072026,
+        "projected_separation_stellar_radii": 0.9830688841480816,
+        "relative_flux": 0.9940302113547428,
+        "time_from_mid_transit_s": 4062.010974210669
+      },
+      {
+        "orbital_phase": 0.015905239211714894,
+        "projected_separation_stellar_radii": 0.9976930366685113,
+        "relative_flux": 0.9949593762003577,
+        "time_from_mid_transit_s": 4122.6380036765
+      },
+      {
+        "orbital_phase": 0.016139139788357754,
+        "projected_separation_stellar_radii": 1.0123150343283198,
+        "relative_flux": 0.9958847888436237,
+        "time_from_mid_transit_s": 4183.26503314233
+      },
+      {
+        "orbital_phase": 0.016373040365000625,
+        "projected_separation_stellar_radii": 1.0269348455462848,
+        "relative_flux": 0.9967866776638252,
+        "time_from_mid_transit_s": 4243.892062608162
+      },
+      {
+        "orbital_phase": 0.016606940941643493,
+        "projected_separation_stellar_radii": 1.041552438745904,
+        "relative_flux": 0.9976445388717222,
+        "time_from_mid_transit_s": 4304.519092073993
+      },
+      {
+        "orbital_phase": 0.016840841518286354,
+        "projected_separation_stellar_radii": 1.0561677823554665,
+        "relative_flux": 0.9984353309068607,
+        "time_from_mid_transit_s": 4365.146121539823
+      },
+      {
+        "orbital_phase": 0.017074742094929225,
+        "projected_separation_stellar_radii": 1.070780844808121,
+        "relative_flux": 0.9991302368941416,
+        "time_from_mid_transit_s": 4425.773151005655
+      },
+      {
+        "orbital_phase": 0.017308642671572085,
+        "projected_separation_stellar_radii": 1.0853915945419421,
+        "relative_flux": 0.9996863770531513,
+        "time_from_mid_transit_s": 4486.400180471484
+      },
+      {
+        "orbital_phase": 0.017542543248214953,
+        "projected_separation_stellar_radii": 1.1,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4547.027209937316
+      },
+      {
+        "orbital_phase": 0.017776443824857824,
+        "projected_separation_stellar_radii": 1.1146060296304285,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4607.654239403148
+      },
+      {
+        "orbital_phase": 0.018010344401500684,
+        "projected_separation_stellar_radii": 1.1292096518864911,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4668.281268868977
+      },
+      {
+        "orbital_phase": 0.018244244978143552,
+        "projected_separation_stellar_radii": 1.1438108352266534,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4728.908298334809
+      },
+      {
+        "orbital_phase": 0.018478145554786416,
+        "projected_separation_stellar_radii": 1.1584095481146464,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4789.535327800639
+      },
+      {
+        "orbital_phase": 0.018712046131429284,
+        "projected_separation_stellar_radii": 1.1730057590195389,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4850.16235726647
+      },
+      {
+        "orbital_phase": 0.01894594670807215,
+        "projected_separation_stellar_radii": 1.187599436415802,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4910.789386732302
+      },
+      {
+        "orbital_phase": 0.019179847284715015,
+        "projected_separation_stellar_radii": 1.202190548783379,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 4971.416416198132
+      },
+      {
+        "orbital_phase": 0.019413747861357883,
+        "projected_separation_stellar_radii": 1.2167790646077543,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5032.043445663963
+      },
+      {
+        "orbital_phase": 0.01964764843800075,
+        "projected_separation_stellar_radii": 1.2313649523800194,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5092.670475129795
+      },
+      {
+        "orbital_phase": 0.019881549014643615,
+        "projected_separation_stellar_radii": 1.2459481805969423,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5153.297504595625
+      },
+      {
+        "orbital_phase": 0.020115449591286482,
+        "projected_separation_stellar_radii": 1.2605287177610354,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5213.924534061456
+      },
+      {
+        "orbital_phase": 0.020349350167929343,
+        "projected_separation_stellar_radii": 1.2751065323806228,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5274.551563527286
+      },
+      {
+        "orbital_phase": 0.020583250744572214,
+        "projected_separation_stellar_radii": 1.28968159296991,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5335.1785929931175
+      },
+      {
+        "orbital_phase": 0.02081715132121508,
+        "projected_separation_stellar_radii": 1.3042538680490499,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5395.805622458949
+      },
+      {
+        "orbital_phase": 0.021051051897857942,
+        "projected_separation_stellar_radii": 1.3188233261442106,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5456.432651924779
+      },
+      {
+        "orbital_phase": 0.021284952474500813,
+        "projected_separation_stellar_radii": 1.3333899357876473,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5517.05968139061
+      },
+      {
+        "orbital_phase": 0.021518853051143674,
+        "projected_separation_stellar_radii": 1.3479536655177646,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5577.68671085644
+      },
+      {
+        "orbital_phase": 0.02175275362778654,
+        "projected_separation_stellar_radii": 1.3625144838791894,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5638.313740322272
+      },
+      {
+        "orbital_phase": 0.021986654204429412,
+        "projected_separation_stellar_radii": 1.377072359422835,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5698.940769788103
+      },
+      {
+        "orbital_phase": 0.022220554781072273,
+        "projected_separation_stellar_radii": 1.391627260705971,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5759.567799253933
+      },
+      {
+        "orbital_phase": 0.02245445535771514,
+        "projected_separation_stellar_radii": 1.406179156292293,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5820.194828719765
+      },
+      {
+        "orbital_phase": 0.022688355934358004,
+        "projected_separation_stellar_radii": 1.420728014751985,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5880.8218581855945
+      },
+      {
+        "orbital_phase": 0.022922256511000872,
+        "projected_separation_stellar_radii": 1.4352738046617939,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 5941.448887651426
+      },
+      {
+        "orbital_phase": 0.02315615708764374,
+        "projected_separation_stellar_radii": 1.4498164946050922,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6002.075917117258
+      },
+      {
+        "orbital_phase": 0.023390057664286604,
+        "projected_separation_stellar_radii": 1.4643560531719482,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6062.702946583087
+      },
+      {
+        "orbital_phase": 0.02362395824092947,
+        "projected_separation_stellar_radii": 1.4788924489591946,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6123.329976048919
+      },
+      {
+        "orbital_phase": 0.02385785881757234,
+        "projected_separation_stellar_radii": 1.4934256505704937,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6183.957005514751
+      },
+      {
+        "orbital_phase": 0.024091759394215203,
+        "projected_separation_stellar_radii": 1.5079556266164071,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6244.58403498058
+      },
+      {
+        "orbital_phase": 0.02432565997085807,
+        "projected_separation_stellar_radii": 1.5224823457144643,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6305.211064446412
+      },
+      {
+        "orbital_phase": 0.02455956054750093,
+        "projected_separation_stellar_radii": 1.5370057764892275,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6365.838093912242
+      },
+      {
+        "orbital_phase": 0.024793461124143802,
+        "projected_separation_stellar_radii": 1.5515258875723628,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6426.465123378073
+      },
+      {
+        "orbital_phase": 0.02502736170078667,
+        "projected_separation_stellar_radii": 1.5660426476027054,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6487.092152843905
+      },
+      {
+        "orbital_phase": 0.02526126227742953,
+        "projected_separation_stellar_radii": 1.5805560252263275,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6547.719182309735
+      },
+      {
+        "orbital_phase": 0.0254951628540724,
+        "projected_separation_stellar_radii": 1.595065989096609,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6608.346211775566
+      },
+      {
+        "orbital_phase": 0.025729063430715262,
+        "projected_separation_stellar_radii": 1.6095725078743006,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6668.973241241396
+      },
+      {
+        "orbital_phase": 0.02596296400735813,
+        "projected_separation_stellar_radii": 1.6240755502275959,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6729.6002707072275
+      },
+      {
+        "orbital_phase": 0.026196864584001,
+        "projected_separation_stellar_radii": 1.6385750848321954,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6790.227300173059
+      },
+      {
+        "orbital_phase": 0.02643076516064386,
+        "projected_separation_stellar_radii": 1.6530710803713757,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6850.854329638889
+      },
+      {
+        "orbital_phase": 0.02666466573728673,
+        "projected_separation_stellar_radii": 1.66756350553606,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6911.4813591047205
+      },
+      {
+        "orbital_phase": 0.0268985663139296,
+        "projected_separation_stellar_radii": 1.6820523290248792,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 6972.108388570552
+      },
+      {
+        "orbital_phase": 0.02713246689057246,
+        "projected_separation_stellar_radii": 1.6965375195442454,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7032.735418036382
+      },
+      {
+        "orbital_phase": 0.027366367467215328,
+        "projected_separation_stellar_radii": 1.7110190458084173,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7093.362447502213
+      },
+      {
+        "orbital_phase": 0.027600268043858192,
+        "projected_separation_stellar_radii": 1.7254968765395668,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7153.989476968043
+      },
+      {
+        "orbital_phase": 0.02783416862050106,
+        "projected_separation_stellar_radii": 1.7399709804678485,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7214.616506433875
+      },
+      {
+        "orbital_phase": 0.028068069197143927,
+        "projected_separation_stellar_radii": 1.7544413263314664,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7275.243535899706
+      },
+      {
+        "orbital_phase": 0.028301969773786798,
+        "projected_separation_stellar_radii": 1.7689078828767404,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7335.870565365538
+      },
+      {
+        "orbital_phase": 0.028535870350429652,
+        "projected_separation_stellar_radii": 1.7833706188581746,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7396.497594831366
+      },
+      {
+        "orbital_phase": 0.02876977092707252,
+        "projected_separation_stellar_radii": 1.7978295030385274,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7457.124624297197
+      },
+      {
+        "orbital_phase": 0.02900367150371539,
+        "projected_separation_stellar_radii": 1.8122845041888738,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7517.751653763029
+      },
+      {
+        "orbital_phase": 0.029237572080358258,
+        "projected_separation_stellar_radii": 1.826735591088676,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7578.378683228861
+      },
+      {
+        "orbital_phase": 0.029471472657001126,
+        "projected_separation_stellar_radii": 1.8411827325258514,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7639.005712694692
+      },
+      {
+        "orbital_phase": 0.029705373233643983,
+        "projected_separation_stellar_radii": 1.8556258972968371,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7699.63274216052
+      },
+      {
+        "orbital_phase": 0.02993927381028685,
+        "projected_separation_stellar_radii": 1.8700650542066621,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7760.259771626352
+      },
+      {
+        "orbital_phase": 0.030173174386929718,
+        "projected_separation_stellar_radii": 1.8845001720690093,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7820.886801092183
+      },
+      {
+        "orbital_phase": 0.03040707496357259,
+        "projected_separation_stellar_radii": 1.898931219706287,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7881.513830558015
+      },
+      {
+        "orbital_phase": 0.030640975540215457,
+        "projected_separation_stellar_radii": 1.9133581659496923,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 7942.1408600238465
+      },
+      {
+        "orbital_phase": 0.03087487611685831,
+        "projected_separation_stellar_radii": 1.9277809796392815,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8002.767889489674
+      },
+      {
+        "orbital_phase": 0.03110877669350118,
+        "projected_separation_stellar_radii": 1.9421996296240391,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8063.394918955506
+      },
+      {
+        "orbital_phase": 0.03134267727014405,
+        "projected_separation_stellar_radii": 1.9566140847619402,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8124.021948421338
+      },
+      {
+        "orbital_phase": 0.03157657784678692,
+        "projected_separation_stellar_radii": 1.9710243139200192,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8184.648977887169
+      },
+      {
+        "orbital_phase": 0.03181047842342979,
+        "projected_separation_stellar_radii": 1.9854302859744402,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8245.276007353
+      },
+      {
+        "orbital_phase": 0.032044379000072655,
+        "projected_separation_stellar_radii": 1.9998319698105602,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8305.903036818832
+      },
+      {
+        "orbital_phase": 0.03227827957671551,
+        "projected_separation_stellar_radii": 2.0142293343229984,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8366.53006628466
+      },
+      {
+        "orbital_phase": 0.032512180153358376,
+        "projected_separation_stellar_radii": 2.028622348415706,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8427.157095750492
+      },
+      {
+        "orbital_phase": 0.03274608073000125,
+        "projected_separation_stellar_radii": 2.043010981002026,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8487.784125216323
+      },
+      {
+        "orbital_phase": 0.03297998130664412,
+        "projected_separation_stellar_radii": 2.0573952010047667,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8548.411154682155
+      },
+      {
+        "orbital_phase": 0.033213881883286986,
+        "projected_separation_stellar_radii": 2.0717749773562675,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8609.038184147987
+      },
+      {
+        "orbital_phase": 0.03344778245992984,
+        "projected_separation_stellar_radii": 2.086150278998464,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8669.665213613815
+      },
+      {
+        "orbital_phase": 0.03368168303657271,
+        "projected_separation_stellar_radii": 2.100521074882958,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8730.292243079646
+      },
+      {
+        "orbital_phase": 0.033915583613215575,
+        "projected_separation_stellar_radii": 2.1148873339710828,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8790.919272545478
+      },
+      {
+        "orbital_phase": 0.03414948418985845,
+        "projected_separation_stellar_radii": 2.129249025233969,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8851.54630201131
+      },
+      {
+        "orbital_phase": 0.03438338476650132,
+        "projected_separation_stellar_radii": 2.143606117652614,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8912.17333147714
+      },
+      {
+        "orbital_phase": 0.03461728534314417,
+        "projected_separation_stellar_radii": 2.1579585802179477,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 8972.800360942969
+      },
+      {
+        "orbital_phase": 0.03485118591978704,
+        "projected_separation_stellar_radii": 2.1723063819309014,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 9033.4273904088
+      },
+      {
+        "orbital_phase": 0.035085086496429906,
+        "projected_separation_stellar_radii": 2.1866494918024704,
+        "relative_flux": 1.0,
+        "time_from_mid_transit_s": 9094.054419874632
+      }
+    ],
+    "maximum_depth_fraction": 0.010000000000000002,
+    "maximum_depth_ppm": 10000.000000000002,
+    "model_version": "transit-method-v1",
+    "radius_ratio": 0.1,
+    "scaled_semi_major_axis": 10.0,
+    "schema_version": 1,
+    "total_duration_s": 9094.054419874632
+  }
+}

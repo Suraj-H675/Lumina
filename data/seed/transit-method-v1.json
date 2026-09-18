@@ -1,0 +1,241 @@
+{
+  "artifact_version": 1,
+  "model_version": "transit-method-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-18T00:00:00Z",
+  "definition": {
+    "slug": "transit-method",
+    "title": "Transit Method Lab",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "share_schema_version": 1,
+    "model_version": "transit-method-v1",
+    "learning_objectives": [
+      "Connect orbital alignment to whether a transit occurs, grazes the stellar limb, or misses the stellar disk.",
+      "Relate the planet-to-star radius ratio to the idealized transit depth for a uniformly bright stellar disk.",
+      "Relate period, scaled semi-major axis, inclination, and impact parameter to circular-orbit contact durations.",
+      "Read a deterministic idealized light curve while distinguishing model assumptions from real stellar photometry."
+    ],
+    "prerequisite_concepts": [
+      "ratios and percentages",
+      "circular orbital phase",
+      "inclination",
+      "projected separation",
+      "relative flux"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "stellar_radius_m",
+          "unit": "m",
+          "meaning": "Radius of the uniformly bright stellar disk.",
+          "valid_range": "1e5 <= stellar_radius_m <= 1e12",
+          "default": 1000000000.0
+        },
+        {
+          "name": "planet_radius_m",
+          "unit": "m",
+          "meaning": "Radius of the opaque planet; must remain smaller than the stellar radius.",
+          "valid_range": "1 <= planet_radius_m < stellar_radius_m",
+          "default": 100000000.0
+        },
+        {
+          "name": "semi_major_axis_m",
+          "unit": "m",
+          "meaning": "Circular star-planet center-to-center orbital radius.",
+          "valid_range": "stellar_radius_m + planet_radius_m < semi_major_axis_m <= 1e15",
+          "default": 10000000000.0
+        },
+        {
+          "name": "orbital_period_s",
+          "unit": "s",
+          "meaning": "Circular orbital period used to map phase to time.",
+          "valid_range": "60 <= orbital_period_s <= 1e9",
+          "default": 259200.0
+        },
+        {
+          "name": "inclination_deg",
+          "unit": "deg",
+          "meaning": "Orbital inclination where 90 degrees is edge-on.",
+          "valid_range": "0 <= inclination_deg <= 90",
+          "default": 90.0
+        }
+      ],
+      "invalid_handling": "Reject non-finite values, booleans in numeric fields, planets at least as large as the star, and orbital radii that intersect the stellar or planetary disk. No scientific input is silently clamped."
+    },
+    "output_schema": [
+      "radius ratio Rp/Rstar",
+      "scaled semi-major axis a/Rstar",
+      "impact parameter",
+      "alignment classification: full, grazing, or no_transit",
+      "central depth approximation (Rp/Rstar)^2",
+      "exact uniform-source maximum depth",
+      "first-to-fourth contact duration when a transit occurs",
+      "second-to-third contact duration only for a full transit",
+      "301-point deterministic relative-flux light curve"
+    ],
+    "equations": {
+      "radius_ratio": "p = Rp / Rstar",
+      "impact_parameter_circular": "b = (a / Rstar) * cos(i)",
+      "projected_separation_circular": "z(t) = (a / Rstar) * sqrt(sin(2*pi*t/P)^2 + cos(i)^2*cos(2*pi*t/P)^2)",
+      "uniform_source_flux": "F(p,z) = 1 - lambda_e(p,z), using the exact uniform-source circle-overlap expression of Mandel & Agol (2002)",
+      "total_duration_circular": "T14 = (P/pi) * asin((Rstar/a) * sqrt((1+p)^2-b^2) / sin(i))",
+      "full_duration_circular": "T23 = (P/pi) * asin((Rstar/a) * sqrt((1-p)^2-b^2) / sin(i)) for non-grazing transits",
+      "central_depth_approximation": "delta_central = (Rp/Rstar)^2; exact maximum depth is smaller for grazing geometry"
+    },
+    "sampling_policy": "For a transit, sample 301 evenly spaced times from -T14 to +T14 around mid-transit so first/fourth contact occur at one quarter/three quarters of the returned window. For no transit, sample the same fixed count from -P/4 to +P/4. The browser must not resynthesize flux values.",
+    "default_preset": "Illustrative synthetic central transit with Rp/Rstar = 0.1 and a/Rstar = 10. It is not a real exoplanet system and carries no observational provenance claim.",
+    "assumptions": [
+      "The orbit is circular and the planet moves at constant angular frequency 2*pi/P.",
+      "The stellar disk has uniform surface brightness; limb darkening is intentionally absent.",
+      "The planet is an opaque dark sphere whose projected disk is circular.",
+      "The planet radius is smaller than the stellar radius.",
+      "The input semi-major axis and period define the circular geometry/time mapping; this lab does not infer stellar or planetary mass.",
+      "The synthetic default preset is educational and is not presented as measured data for a named system."
+    ],
+    "limitations": [
+      "No eccentricity, argument of periastron, precession, transit-timing variation, or additional bodies.",
+      "No limb darkening, stellar spots, granulation, flares, dilution, contamination, or instrumental systematics.",
+      "No exposure-time integration, cadence smearing, random noise, or detectability threshold in v1.",
+      "The central depth approximation (Rp/Rstar)^2 is exact for a full transit of this uniform-source model but is not a universal real-star transit-depth formula.",
+      "The light curve is a deterministic educational geometry model, not a fit to observational photometry.",
+      "A no-transit result is a valid geometric outcome, not a computation failure."
+    ],
+    "references": [
+      "winn-2010-transits-occultations",
+      "mandel-agol-2002-analytic-lightcurves"
+    ],
+    "validation_fixtures": [
+      "central-full-transit",
+      "grazing-transit",
+      "no-transit",
+      "central-depth-ratio",
+      "circular-contact-duration",
+      "uniform-overlap-contact",
+      "curve-time-symmetry",
+      "domain-rejection",
+      "artifact-mutation"
+    ]
+  },
+  "sources": [
+    {
+      "id": "winn-2010-transits-occultations",
+      "title": "Transits and Occultations",
+      "organization_or_authors": "Joshua N. Winn",
+      "url": "https://arxiv.org/abs/1001.2010",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1001.2010v5",
+      "record_reference": "Equations 7, 14, and 15; circular-orbit impact parameter and contact durations",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2014-09-24 arXiv v5",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Winn, J. N., Transits and Occultations, arXiv:1001.2010.",
+      "claim_scope": "Circular-orbit impact parameter, contact definitions, and first-to-fourth / second-to-third contact duration equations.",
+      "source_type": "review chapter / scholarly preprint"
+    },
+    {
+      "id": "mandel-agol-2002-analytic-lightcurves",
+      "title": "Analytic Lightcurves for Planetary Transit Searches",
+      "organization_or_authors": "Kaisey Mandel and Eric Agol",
+      "url": "https://arxiv.org/abs/astro-ph/0210099",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:astro-ph/0210099v1",
+      "record_reference": "Section 2 uniform-source equation 1 and zero-eccentricity projected-separation relation",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2002-10-03 arXiv v1",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Mandel, K. and Agol, E., Analytic Lightcurves for Planetary Transit Searches, arXiv:astro-ph/0210099.",
+      "claim_scope": "Exact uniform-source occulted-flux geometry and circular-orbit projected separation as a function of time.",
+      "source_type": "peer-reviewed scholarly article / preprint"
+    }
+  ],
+  "constants": {
+    "LIGHT_CURVE_POINTS": 301,
+    "NUMERICAL_TOLERANCE": 1e-12,
+    "MIN_STELLAR_RADIUS_M": 100000.0,
+    "MAX_STELLAR_RADIUS_M": 1000000000000.0,
+    "MIN_PLANET_RADIUS_M": 1.0,
+    "MAX_SEMIMAJOR_AXIS_M": 1000000000000000.0,
+    "MIN_ORBITAL_PERIOD_S": 60.0,
+    "MAX_ORBITAL_PERIOD_S": 1000000000.0,
+    "MIN_INCLINATION_DEG": 0.0,
+    "MAX_INCLINATION_DEG": 90.0
+  },
+  "presets": {
+    "illustrative-central-transit": {
+      "stellar_radius_m": 1000000000.0,
+      "planet_radius_m": 100000000.0,
+      "semi_major_axis_m": 10000000000.0,
+      "orbital_period_s": 259200.0,
+      "inclination_deg": 90.0
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "central-full-transit",
+      "purpose": "Edge-on circular geometry must produce a full transit with b approximately zero."
+    },
+    {
+      "id": "grazing-transit",
+      "purpose": "A geometry with 1-p <= b < 1+p must retain partial overlap but no second-to-third contact duration."
+    },
+    {
+      "id": "no-transit",
+      "purpose": "A geometry with b >= 1+p must return a flat idealized light curve and no contact durations."
+    },
+    {
+      "id": "central-depth-ratio",
+      "purpose": "A full central uniform-source transit with Rp/Rstar = 0.1 must have maximum depth 0.01."
+    },
+    {
+      "id": "circular-contact-duration",
+      "purpose": "Central T14 and T23 are checked directly against Winn circular-orbit equations 14 and 15."
+    },
+    {
+      "id": "uniform-overlap-contact",
+      "purpose": "Returned first/fourth contact samples have z = 1+p and zero blocked flux to numerical tolerance."
+    },
+    {
+      "id": "curve-time-symmetry",
+      "purpose": "Circular zero-eccentricity geometry yields a time-symmetric projected separation and flux curve."
+    },
+    {
+      "id": "domain-rejection",
+      "purpose": "Non-finite, impossible-size, intersecting-orbit, period, and inclination inputs fail closed."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "The strict loader rejects changed model constants or schema drift."
+    }
+  ],
+  "scientific_validation": {
+    "id": "transit-method-independent-validation-v1",
+    "checked_at": "2026-09-18",
+    "method": "Cross-check the circular impact parameter/contact-duration equations against Winn (2010), the uniform-source occultation and zero-eccentricity z(t) relation against Mandel & Agol (2002), and analytic limiting cases in focused Python tests.",
+    "tools": [
+      {
+        "name": "pytest",
+        "version": "repository-locked",
+        "role": "Analytic limiting-case, geometry, symmetry, domain, and artifact-integrity regression tests."
+      }
+    ],
+    "source_ids": [
+      "winn-2010-transits-occultations",
+      "mandel-agol-2002-analytic-lightcurves"
+    ],
+    "test_references": [
+      "test_central_full_transit_has_expected_depth_and_midpoint",
+      "test_circular_contact_duration_matches_winn_equation_14",
+      "test_grazing_transit_has_partial_depth_and_no_full_duration",
+      "test_no_transit_is_flat_and_has_no_contact_duration",
+      "test_uniform_source_curve_hits_first_and_fourth_contact",
+      "test_light_curve_is_time_symmetric_for_circular_orbit",
+      "test_invalid_domains_are_rejected",
+      "test_reviewed_artifact_is_strict_and_default_preset_is_synthetic",
+      "test_reviewed_artifact_rejects_mutated_constants"
+    ]
+  }
+}

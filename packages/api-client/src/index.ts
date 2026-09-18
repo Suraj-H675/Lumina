@@ -126,6 +126,7 @@ export {
   orbitSandboxEndpoint,
   seasonsSimulatorEndpoint,
   telescopeBuilderEndpoint,
+  transitMethodEndpoint,
 } from "./contract";
 export {
   catalogEntitiesEndpoint,
@@ -137,6 +138,7 @@ export type {
   CatalogSuggestResponse,
   CalculateOrbitSandboxResponse,
   CalculateSeasonsSimulatorResponse,
+  CalculateTransitMethodResponse,
   EntityDetailResponse,
   EntityQuantityResponse,
   EntitySummaryResponse,
@@ -152,6 +154,9 @@ export type {
   SeasonsLatitudeGeometryResponse,
   TelescopeBuilderCalculationResponse,
   TelescopeBuilderInputResponse,
+  TransitLightCurvePointResponse,
+  TransitMethodCalculationResponse,
+  TransitMethodInputResponse,
 } from "./generated/types.gen";
 
 export {

@@ -68,6 +68,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",
+        "/api/v1/simulations/transit-method",
         "/health/live",
         "/health/ready",
         "/api/v1/catalog/entities",

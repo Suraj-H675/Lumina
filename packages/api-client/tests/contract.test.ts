@@ -10,6 +10,7 @@ import {
   orbitSandboxEndpoint,
   seasonsSimulatorEndpoint,
   telescopeBuilderEndpoint,
+  transitMethodEndpoint,
   liveEndpoint,
   metaEndpoint,
   readyEndpoint,
@@ -25,6 +26,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculateSeasonsSimulatorData,
   CalculateTelescopeBuilderData,
+  CalculateTransitMethodData,
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   LiveHealthLiveGetData,
@@ -65,6 +67,8 @@ describe("generated contract boundary", () => {
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]
     >();
+    expect(transitMethodEndpoint.method).toBe("GET");
+    expectTypeOf(transitMethodEndpoint.path).toEqualTypeOf<CalculateTransitMethodData["url"]>();
   });
 
   it("accepts exact generated responses", () => {
@@ -500,6 +504,64 @@ describe("Telescope Builder endpoint", () => {
         ),
     });
 
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+});
+
+describe("Transit Method endpoint", () => {
+  const response = {
+    model_version: "transit-method-v1",
+    schema_version: 1,
+    inputs: {
+      stellar_radius_m: 1_000_000_000,
+      planet_radius_m: 100_000_000,
+      semi_major_axis_m: 10_000_000_000,
+      orbital_period_s: 259_200,
+      inclination_deg: 90,
+    },
+    radius_ratio: 0.1,
+    scaled_semi_major_axis: 10,
+    impact_parameter: 0,
+    classification: "full" as const,
+    central_depth_approximation_fraction: 0.01,
+    maximum_depth_fraction: 0.01,
+    maximum_depth_ppm: 10_000,
+    total_duration_s: 9_101.350775122473,
+    full_duration_s: 7_438.113097713966,
+    light_curve: [
+      {
+        time_from_mid_transit_s: 0,
+        orbital_phase: 0,
+        projected_separation_stellar_radii: 0,
+        relative_flux: 0.99,
+      },
+    ],
+  };
+
+  it("binds the generated URL and accepts the exact scientific result shape", async () => {
+    expectTypeOf(transitMethodEndpoint.path).toEqualTypeOf<CalculateTransitMethodData["url"]>();
+    const result = await requestEndpoint("http://127.0.0.1:8000", transitMethodEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(response), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("rejects additive Transit result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", transitMethodEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, unexpected: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
     expect(result).toEqual({ kind: "malformed-response" });
   });
 });

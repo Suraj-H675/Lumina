@@ -2525,6 +2525,109 @@ export type TelescopeBuilderInputResponse = {
 };
 
 /**
+ * TransitLightCurvePointResponse
+ */
+export type TransitLightCurvePointResponse = {
+  /**
+   * Orbital Phase
+   */
+  orbital_phase: number;
+  /**
+   * Projected Separation Stellar Radii
+   */
+  projected_separation_stellar_radii: number;
+  /**
+   * Relative Flux
+   */
+  relative_flux: number;
+  /**
+   * Time From Mid Transit S
+   */
+  time_from_mid_transit_s: number;
+};
+
+/**
+ * TransitMethodCalculationResponse
+ */
+export type TransitMethodCalculationResponse = {
+  /**
+   * Central Depth Approximation Fraction
+   */
+  central_depth_approximation_fraction: number;
+  /**
+   * Classification
+   */
+  classification: "full" | "grazing" | "no_transit";
+  /**
+   * Full Duration S
+   */
+  full_duration_s: number | null;
+  /**
+   * Impact Parameter
+   */
+  impact_parameter: number;
+  inputs: TransitMethodInputResponse;
+  /**
+   * Light Curve
+   */
+  light_curve: Array<TransitLightCurvePointResponse>;
+  /**
+   * Maximum Depth Fraction
+   */
+  maximum_depth_fraction: number;
+  /**
+   * Maximum Depth Ppm
+   */
+  maximum_depth_ppm: number;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Radius Ratio
+   */
+  radius_ratio: number;
+  /**
+   * Scaled Semi Major Axis
+   */
+  scaled_semi_major_axis: number;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Total Duration S
+   */
+  total_duration_s: number | null;
+};
+
+/**
+ * TransitMethodInputResponse
+ */
+export type TransitMethodInputResponse = {
+  /**
+   * Inclination Deg
+   */
+  inclination_deg: number;
+  /**
+   * Orbital Period S
+   */
+  orbital_period_s: number;
+  /**
+   * Planet Radius M
+   */
+  planet_radius_m: number;
+  /**
+   * Semi Major Axis M
+   */
+  semi_major_axis_m: number;
+  /**
+   * Stellar Radius M
+   */
+  stellar_radius_m: number;
+};
+
+/**
  * UnitReference
  */
 export type UnitReference = {
@@ -3631,6 +3734,64 @@ export type CalculateTelescopeBuilderResponses = {
 
 export type CalculateTelescopeBuilderResponse =
   CalculateTelescopeBuilderResponses[keyof CalculateTelescopeBuilderResponses];
+
+export type CalculateTransitMethodData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Stellar Radius M
+     *
+     * Transit Method SI-unit model input.
+     */
+    stellar_radius_m: number;
+    /**
+     * Planet Radius M
+     *
+     * Transit Method SI-unit model input.
+     */
+    planet_radius_m: number;
+    /**
+     * Semi Major Axis M
+     *
+     * Transit Method SI-unit model input.
+     */
+    semi_major_axis_m: number;
+    /**
+     * Orbital Period S
+     *
+     * Transit Method SI-unit model input.
+     */
+    orbital_period_s: number;
+    /**
+     * Inclination Deg
+     *
+     * Transit Method SI-unit model input.
+     */
+    inclination_deg: number;
+  };
+  url: "/api/v1/simulations/transit-method";
+};
+
+export type CalculateTransitMethodErrors = {
+  /**
+   * The Transit Method inputs are invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateTransitMethodError =
+  CalculateTransitMethodErrors[keyof CalculateTransitMethodErrors];
+
+export type CalculateTransitMethodResponses = {
+  /**
+   * Successful Response
+   */
+  200: TransitMethodCalculationResponse;
+};
+
+export type CalculateTransitMethodResponse =
+  CalculateTransitMethodResponses[keyof CalculateTransitMethodResponses];
 
 export type LiveHealthLiveGetData = {
   body?: never;

@@ -11,9 +11,11 @@ import type {
   CalculateOrbitSandboxData,
   CalculateSeasonsSimulatorData,
   CalculateTelescopeBuilderData,
+  CalculateTransitMethodData,
   OrbitSandboxCalculationResponse,
   TelescopeBuilderCalculationResponse,
   SeasonsCalculationResponse,
+  TransitMethodCalculationResponse,
   EntityBrowsePageResponse,
   EntityDetailResponse,
   EntitySummaryResponse,
@@ -53,6 +55,7 @@ import {
   zCalculateOrbitSandboxResponse,
   zCalculateSeasonsSimulatorResponse,
   zCalculateTelescopeBuilderResponse,
+  zCalculateTransitMethodResponse,
   zEntityBrowsePageResponse,
   zEntityDetailResponse,
   zEntitySummaryResponse,
@@ -350,6 +353,12 @@ export const telescopeBuilderEndpoint = {
   path: "/api/v1/simulations/telescope-builder" satisfies CalculateTelescopeBuilderData["url"],
   validator: zCalculateTelescopeBuilderResponse,
 } satisfies ApiEndpoint<TelescopeBuilderCalculationResponse, CalculateTelescopeBuilderData["url"]>;
+
+export const transitMethodEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/transit-method" satisfies CalculateTransitMethodData["url"],
+  validator: zCalculateTransitMethodResponse,
+} satisfies ApiEndpoint<TransitMethodCalculationResponse, CalculateTransitMethodData["url"]>;
 
 export type ValidationResult<T> = Readonly<{ data: T; valid: true }> | Readonly<{ valid: false }>;
 

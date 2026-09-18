@@ -8,6 +8,12 @@ const labs = [
       "Explore reviewed Newtonian two-body motion, orbital elements, collisions, and numerical drift.",
   },
   {
+    href: "/lab/transit-method",
+    title: "Transit Method Lab",
+    description:
+      "Explore circular exoplanet transit geometry, contact durations, and a deterministic uniform-source light curve.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

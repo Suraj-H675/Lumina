@@ -15,6 +15,9 @@ const token = randomBytes(32).toString("hex");
 const orbitFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/orbit-sandbox.json", import.meta.url), "utf8"),
 );
+const transitFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/transit-method.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -30,6 +33,7 @@ const apiPaths = new Set([
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
+  "/api/v1/simulations/transit-method",
   "/health/live",
   "/health/ready",
 ]);
@@ -1203,6 +1207,51 @@ function respondOrbitSandbox(response, target) {
   });
 }
 
+function respondTransitMethod(response, target) {
+  const keys = [...target.searchParams.keys()];
+  const expectedKeys = [
+    "stellar_radius_m",
+    "planet_radius_m",
+    "semi_major_axis_m",
+    "orbital_period_s",
+    "inclination_deg",
+  ];
+  const hasExactKeys =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key));
+  if (!hasExactKeys) {
+    sendJson(response, 422, {
+      error: {
+        code: "transit_method.model_invalid",
+        message: "The Transit Method fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+
+  const query = Object.fromEntries(target.searchParams.entries());
+  const isDefault =
+    query.stellar_radius_m === "1000000000" &&
+    query.planet_radius_m === "100000000" &&
+    query.semi_major_axis_m === "10000000000" &&
+    query.orbital_period_s === "259200" &&
+    query.inclination_deg === "90";
+  if (isDefault) {
+    sendJson(response, 200, transitFixtures.default);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "transit_method.model_invalid",
+      message:
+        "The Transit Method E2E fixture only exposes the reviewed synthetic reference state.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1720,6 +1769,7 @@ const stub = http.createServer(async (request, response) => {
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
+  const isTransitMethodPath = path === "/api/v1/simulations/transit-method";
   const identificationMatch = /^\/api\/v1\/identification\/submissions\/([0-9a-f-]{36})$/u.exec(
     path,
   );
@@ -1761,6 +1811,7 @@ const stub = http.createServer(async (request, response) => {
     !isOrbitSandboxPath &&
     !isSeasonsPath &&
     !isTelescopeBuilderPath &&
+    !isTransitMethodPath &&
     !validIdentificationSolutionQuery
   ) {
     recordViolation("unexpected-query");
@@ -1972,6 +2023,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isTelescopeBuilderPath) {
     respondTelescopeBuilder(response, target);
+    return;
+  }
+  if (isTransitMethodPath) {
+    respondTransitMethod(response, target);
     return;
   }
   if (path === "/api/v1/now/apod") {

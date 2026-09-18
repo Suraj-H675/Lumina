@@ -4472,6 +4472,165 @@
         "title": "TelescopeBuilderInputResponse",
         "type": "object"
       },
+      "TransitLightCurvePointResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "orbital_phase": {
+            "title": "Orbital Phase",
+            "type": "number"
+          },
+          "projected_separation_stellar_radii": {
+            "title": "Projected Separation Stellar Radii",
+            "type": "number"
+          },
+          "relative_flux": {
+            "title": "Relative Flux",
+            "type": "number"
+          },
+          "time_from_mid_transit_s": {
+            "title": "Time From Mid Transit S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "time_from_mid_transit_s",
+          "orbital_phase",
+          "projected_separation_stellar_radii",
+          "relative_flux"
+        ],
+        "title": "TransitLightCurvePointResponse",
+        "type": "object"
+      },
+      "TransitMethodCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "central_depth_approximation_fraction": {
+            "title": "Central Depth Approximation Fraction",
+            "type": "number"
+          },
+          "classification": {
+            "enum": [
+              "full",
+              "grazing",
+              "no_transit"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "full_duration_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Duration S"
+          },
+          "impact_parameter": {
+            "title": "Impact Parameter",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/TransitMethodInputResponse"
+          },
+          "light_curve": {
+            "items": {
+              "$ref": "#/components/schemas/TransitLightCurvePointResponse"
+            },
+            "maxItems": 301,
+            "title": "Light Curve",
+            "type": "array"
+          },
+          "maximum_depth_fraction": {
+            "title": "Maximum Depth Fraction",
+            "type": "number"
+          },
+          "maximum_depth_ppm": {
+            "title": "Maximum Depth Ppm",
+            "type": "number"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "radius_ratio": {
+            "title": "Radius Ratio",
+            "type": "number"
+          },
+          "scaled_semi_major_axis": {
+            "title": "Scaled Semi Major Axis",
+            "type": "number"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "total_duration_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Duration S"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "radius_ratio",
+          "scaled_semi_major_axis",
+          "impact_parameter",
+          "classification",
+          "central_depth_approximation_fraction",
+          "maximum_depth_fraction",
+          "maximum_depth_ppm",
+          "total_duration_s",
+          "full_duration_s",
+          "light_curve"
+        ],
+        "title": "TransitMethodCalculationResponse",
+        "type": "object"
+      },
+      "TransitMethodInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "inclination_deg": {
+            "title": "Inclination Deg",
+            "type": "number"
+          },
+          "orbital_period_s": {
+            "title": "Orbital Period S",
+            "type": "number"
+          },
+          "planet_radius_m": {
+            "title": "Planet Radius M",
+            "type": "number"
+          },
+          "semi_major_axis_m": {
+            "title": "Semi Major Axis M",
+            "type": "number"
+          },
+          "stellar_radius_m": {
+            "title": "Stellar Radius M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stellar_radius_m",
+          "planet_radius_m",
+          "semi_major_axis_m",
+          "orbital_period_s",
+          "inclination_deg"
+        ],
+        "title": "TransitMethodInputResponse",
+        "type": "object"
+      },
       "UnitReference": {
         "additionalProperties": false,
         "properties": {
@@ -6343,6 +6502,94 @@
           }
         },
         "summary": "Telescope Builder",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/transit-method": {
+      "get": {
+        "operationId": "calculate_transit_method",
+        "parameters": [
+          {
+            "description": "Transit Method SI-unit model input.",
+            "in": "query",
+            "name": "stellar_radius_m",
+            "required": true,
+            "schema": {
+              "description": "Transit Method SI-unit model input.",
+              "title": "Stellar Radius M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Transit Method SI-unit model input.",
+            "in": "query",
+            "name": "planet_radius_m",
+            "required": true,
+            "schema": {
+              "description": "Transit Method SI-unit model input.",
+              "title": "Planet Radius M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Transit Method SI-unit model input.",
+            "in": "query",
+            "name": "semi_major_axis_m",
+            "required": true,
+            "schema": {
+              "description": "Transit Method SI-unit model input.",
+              "title": "Semi Major Axis M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Transit Method SI-unit model input.",
+            "in": "query",
+            "name": "orbital_period_s",
+            "required": true,
+            "schema": {
+              "description": "Transit Method SI-unit model input.",
+              "title": "Orbital Period S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Transit Method SI-unit model input.",
+            "in": "query",
+            "name": "inclination_deg",
+            "required": true,
+            "schema": {
+              "description": "Transit Method SI-unit model input.",
+              "title": "Inclination Deg",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitMethodCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Transit Method inputs are invalid."
+          }
+        },
+        "summary": "Transit Method",
         "tags": [
           "simulations"
         ]

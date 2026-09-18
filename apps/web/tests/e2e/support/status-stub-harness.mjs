@@ -27,6 +27,9 @@ const stellarLaboratoryFixtures = JSON.parse(
 const eclipseSimulatorFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/eclipse-simulator.json", import.meta.url), "utf8"),
 );
+const spectroscopyLabFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/spectroscopy-lab.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -43,6 +46,7 @@ const apiPaths = new Set([
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/radial-velocity",
   "/api/v1/simulations/seasons",
+  "/api/v1/simulations/spectroscopy-lab",
   "/api/v1/simulations/stellar-laboratory",
   "/api/v1/simulations/telescope-builder",
   "/api/v1/simulations/transit-method",
@@ -1386,6 +1390,64 @@ function respondEclipseSimulator(response, target) {
   });
 }
 
+function respondSpectroscopyLab(response, target) {
+  const expected = [
+    "mode",
+    "temperature_k",
+    "selected_elements",
+    "radial_velocity_km_s",
+    "resolving_power",
+    "noise_sigma",
+    "noise_seed",
+  ];
+  const keys = [...target.searchParams.keys()];
+  if (
+    keys.length !== expected.length ||
+    new Set(keys).size !== expected.length ||
+    !expected.every((key) => keys.includes(key) && target.searchParams.getAll(key).length === 1)
+  ) {
+    sendJson(response, 422, {
+      error: {
+        code: "spectroscopy_lab.model_invalid",
+        message: "The Spectroscopy Lab fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const query = Object.fromEntries(target.searchParams.entries());
+  const common =
+    query.radial_velocity_km_s === "0" &&
+    query.resolving_power === "500" &&
+    query.noise_sigma === "0" &&
+    query.noise_seed === "42";
+  if (
+    common &&
+    query.mode === "absorption" &&
+    query.temperature_k === "5772" &&
+    query.selected_elements === "H I,Na I,Ca II"
+  ) {
+    sendJson(response, 200, spectroscopyLabFixtures.default_absorption);
+    return;
+  }
+  if (
+    common &&
+    query.mode === "continuum" &&
+    query.temperature_k === "6000" &&
+    query.selected_elements === ""
+  ) {
+    sendJson(response, 200, spectroscopyLabFixtures.continuum_6000);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "spectroscopy_lab.model_invalid",
+      message: "The Spectroscopy Lab E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1904,6 +1966,7 @@ const stub = http.createServer(async (request, response) => {
   const isEclipseSimulatorPath = path === "/api/v1/simulations/eclipse-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
+  const isSpectroscopyLabPath = path === "/api/v1/simulations/spectroscopy-lab";
   const isStellarLaboratoryPath = path === "/api/v1/simulations/stellar-laboratory";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
   const isTransitMethodPath = path === "/api/v1/simulations/transit-method";
@@ -1949,6 +2012,7 @@ const stub = http.createServer(async (request, response) => {
     !isOrbitSandboxPath &&
     !isRadialVelocityPath &&
     !isSeasonsPath &&
+    !isSpectroscopyLabPath &&
     !isStellarLaboratoryPath &&
     !isTelescopeBuilderPath &&
     !isTransitMethodPath &&
@@ -2167,6 +2231,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isSeasonsPath) {
     respondSeasons(response, target);
+    return;
+  }
+  if (isSpectroscopyLabPath) {
+    respondSpectroscopyLab(response, target);
     return;
   }
   if (isStellarLaboratoryPath) {

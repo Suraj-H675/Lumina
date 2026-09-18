@@ -16,6 +16,7 @@ from lumina.astronomy.api.eclipse_simulator_routes import router as eclipse_simu
 from lumina.astronomy.api.orbit_routes import router as orbit_router
 from lumina.astronomy.api.radial_velocity_routes import router as radial_velocity_router
 from lumina.astronomy.api.routes import router as astronomy_router
+from lumina.astronomy.api.spectroscopy_lab_routes import router as spectroscopy_lab_router
 from lumina.astronomy.api.stellar_laboratory_routes import router as stellar_laboratory_router
 from lumina.astronomy.api.telescope_routes import router as telescope_router
 from lumina.astronomy.api.transit_routes import router as transit_router
@@ -210,6 +211,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(eclipse_simulator_router)
     application.include_router(orbit_router)
     application.include_router(radial_velocity_router)
+    application.include_router(spectroscopy_lab_router)
     application.include_router(stellar_laboratory_router)
     application.include_router(telescope_router)
     application.include_router(transit_router)

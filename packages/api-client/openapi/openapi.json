@@ -4662,6 +4662,231 @@
         "title": "SpaceWeatherSourceResponse",
         "type": "object"
       },
+      "SpectroscopyCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "continuum_note": {
+            "title": "Continuum Note",
+            "type": "string"
+          },
+          "doppler_factor": {
+            "title": "Doppler Factor",
+            "type": "number"
+          },
+          "fingerprints": {
+            "items": {
+              "$ref": "#/components/schemas/SpectroscopyElementFingerprintResponse"
+            },
+            "maxItems": 4,
+            "title": "Fingerprints",
+            "type": "array"
+          },
+          "identification_explanation": {
+            "title": "Identification Explanation",
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/SpectroscopyInputResponse"
+          },
+          "line_strength_note": {
+            "title": "Line Strength Note",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "noise_note": {
+            "title": "Noise Note",
+            "type": "string"
+          },
+          "normalized_flux": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 741,
+            "title": "Normalized Flux",
+            "type": "array"
+          },
+          "representative_lines": {
+            "items": {
+              "$ref": "#/components/schemas/SpectroscopyRepresentativeLineResponse"
+            },
+            "maxItems": 12,
+            "title": "Representative Lines",
+            "type": "array"
+          },
+          "resolution_note": {
+            "title": "Resolution Note",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "wavelength_nm": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 741,
+            "title": "Wavelength Nm",
+            "type": "array"
+          },
+          "wien_peak_nm": {
+            "title": "Wien Peak Nm",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "wien_peak_nm",
+          "doppler_factor",
+          "wavelength_nm",
+          "normalized_flux",
+          "representative_lines",
+          "fingerprints",
+          "identification_explanation",
+          "continuum_note",
+          "line_strength_note",
+          "resolution_note",
+          "noise_note"
+        ],
+        "title": "SpectroscopyCalculationResponse",
+        "type": "object"
+      },
+      "SpectroscopyElementFingerprintResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "element": {
+            "enum": [
+              "H I",
+              "He I",
+              "Na I",
+              "Ca II"
+            ],
+            "title": "Element",
+            "type": "string"
+          },
+          "representative_line_count": {
+            "title": "Representative Line Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "element",
+          "representative_line_count"
+        ],
+        "title": "SpectroscopyElementFingerprintResponse",
+        "type": "object"
+      },
+      "SpectroscopyInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "continuum",
+              "emission",
+              "absorption",
+              "doppler",
+              "element_match"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "noise_seed": {
+            "title": "Noise Seed",
+            "type": "integer"
+          },
+          "noise_sigma": {
+            "title": "Noise Sigma",
+            "type": "number"
+          },
+          "radial_velocity_km_s": {
+            "title": "Radial Velocity Km S",
+            "type": "number"
+          },
+          "resolving_power": {
+            "title": "Resolving Power",
+            "type": "number"
+          },
+          "selected_elements": {
+            "items": {
+              "enum": [
+                "H I",
+                "He I",
+                "Na I",
+                "Ca II"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Selected Elements",
+            "type": "array"
+          },
+          "temperature_k": {
+            "title": "Temperature K",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mode",
+          "temperature_k",
+          "selected_elements",
+          "radial_velocity_km_s",
+          "resolving_power",
+          "noise_sigma",
+          "noise_seed"
+        ],
+        "title": "SpectroscopyInputResponse",
+        "type": "object"
+      },
+      "SpectroscopyRepresentativeLineResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "element": {
+            "enum": [
+              "H I",
+              "He I",
+              "Na I",
+              "Ca II"
+            ],
+            "title": "Element",
+            "type": "string"
+          },
+          "illustrative_fwhm_nm": {
+            "title": "Illustrative Fwhm Nm",
+            "type": "number"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "nist_relative_intensity": {
+            "title": "Nist Relative Intensity",
+            "type": "string"
+          },
+          "rest_wavelength_vacuum_nm": {
+            "title": "Rest Wavelength Vacuum Nm",
+            "type": "number"
+          },
+          "shifted_wavelength_vacuum_nm": {
+            "title": "Shifted Wavelength Vacuum Nm",
+            "type": "number"
+          }
+        },
+        "required": [
+          "element",
+          "label",
+          "rest_wavelength_vacuum_nm",
+          "shifted_wavelength_vacuum_nm",
+          "illustrative_fwhm_nm",
+          "nist_relative_intensity"
+        ],
+        "title": "SpectroscopyRepresentativeLineResponse",
+        "type": "object"
+      },
       "StellarLaboratoryCalculationResponse": {
         "additionalProperties": false,
         "properties": {
@@ -7012,6 +7237,123 @@
           }
         },
         "summary": "Seasons",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/spectroscopy-lab": {
+      "get": {
+        "operationId": "calculate_spectroscopy_lab",
+        "parameters": [
+          {
+            "description": "continuum, emission, absorption, doppler, or element_match.",
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "description": "continuum, emission, absorption, doppler, or element_match.",
+              "enum": [
+                "continuum",
+                "emission",
+                "absorption",
+                "doppler",
+                "element_match"
+              ],
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Ideal blackbody teaching temperature in kelvin.",
+            "in": "query",
+            "name": "temperature_k",
+            "required": true,
+            "schema": {
+              "description": "Ideal blackbody teaching temperature in kelvin.",
+              "title": "Temperature K",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Comma-separated unique species from H I, He I, Na I, and Ca II; empty only for continuum mode.",
+            "in": "query",
+            "name": "selected_elements",
+            "required": true,
+            "schema": {
+              "description": "Comma-separated unique species from H I, He I, Na I, and Ca II; empty only for continuum mode.",
+              "title": "Selected Elements",
+              "type": "string"
+            }
+          },
+          {
+            "description": "First-order radial velocity in km/s; positive is recession.",
+            "in": "query",
+            "name": "radial_velocity_km_s",
+            "required": true,
+            "schema": {
+              "description": "First-order radial velocity in km/s; positive is recession.",
+              "title": "Radial Velocity Km S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Illustrative resolving power R=lambda/delta-lambda.",
+            "in": "query",
+            "name": "resolving_power",
+            "required": true,
+            "schema": {
+              "description": "Illustrative resolving power R=lambda/delta-lambda.",
+              "title": "Resolving Power",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Deterministic normalized display-noise sigma.",
+            "in": "query",
+            "name": "noise_sigma",
+            "required": true,
+            "schema": {
+              "description": "Deterministic normalized display-noise sigma.",
+              "title": "Noise Sigma",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Unsigned 32-bit deterministic display-noise seed.",
+            "in": "query",
+            "name": "noise_seed",
+            "required": true,
+            "schema": {
+              "description": "Unsigned 32-bit deterministic display-noise seed.",
+              "title": "Noise Seed",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpectroscopyCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Spectroscopy Lab input is invalid."
+          }
+        },
+        "summary": "Spectroscopy Lab",
         "tags": [
           "simulations"
         ]

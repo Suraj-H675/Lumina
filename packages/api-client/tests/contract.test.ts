@@ -11,6 +11,7 @@ import {
   orbitSandboxEndpoint,
   radialVelocityEndpoint,
   seasonsSimulatorEndpoint,
+  spectroscopyLabEndpoint,
   stellarLaboratoryEndpoint,
   telescopeBuilderEndpoint,
   transitMethodEndpoint,
@@ -30,6 +31,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
+  CalculateSpectroscopyLabData,
   CalculateStellarLaboratoryData,
   CalculateTelescopeBuilderData,
   CalculateTransitMethodData,
@@ -54,6 +56,7 @@ import {
   zSearchCatalogEntitiesResponse,
   zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
+import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
 
 describe("generated contract boundary", () => {
   it("keeps request methods and paths tied to generated operation types", () => {
@@ -79,6 +82,8 @@ describe("generated contract boundary", () => {
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]
     >();
+    expect(spectroscopyLabEndpoint.method).toBe("GET");
+    expectTypeOf(spectroscopyLabEndpoint.path).toEqualTypeOf<CalculateSpectroscopyLabData["url"]>();
     expect(stellarLaboratoryEndpoint.method).toBe("GET");
     expectTypeOf(stellarLaboratoryEndpoint.path).toEqualTypeOf<
       CalculateStellarLaboratoryData["url"]
@@ -333,6 +338,39 @@ describe("Eclipse Simulator endpoint", () => {
       fetchImplementation: () =>
         Promise.resolve(
           new Response(JSON.stringify({ ...response, invented: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+});
+
+describe("Spectroscopy Lab endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(spectroscopyLabEndpoint.path).toEqualTypeOf<CalculateSpectroscopyLabData["url"]>();
+    const result = await requestEndpoint("http://127.0.0.1:8000", spectroscopyLabEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(SPECTROSCOPY_DEFAULT_RESPONSE), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({
+      data: SPECTROSCOPY_DEFAULT_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Spectroscopy Lab result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", spectroscopyLabEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...SPECTROSCOPY_DEFAULT_RESPONSE, invented: true }), {
             headers: { "content-type": "application/json" },
             status: 200,
           }),

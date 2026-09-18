@@ -1245,6 +1245,59 @@ export const zSpaceWeatherResponse = z.object({
 });
 
 /**
+ * SpectroscopyElementFingerprintResponse
+ */
+export const zSpectroscopyElementFingerprintResponse = z.object({
+  element: z.enum(["H I", "He I", "Na I", "Ca II"]),
+  representative_line_count: z.int(),
+});
+
+/**
+ * SpectroscopyInputResponse
+ */
+export const zSpectroscopyInputResponse = z.object({
+  mode: z.enum(["continuum", "emission", "absorption", "doppler", "element_match"]),
+  noise_seed: z.int(),
+  noise_sigma: z.number(),
+  radial_velocity_km_s: z.number(),
+  resolving_power: z.number(),
+  selected_elements: z.array(z.enum(["H I", "He I", "Na I", "Ca II"])).max(4),
+  temperature_k: z.number(),
+});
+
+/**
+ * SpectroscopyRepresentativeLineResponse
+ */
+export const zSpectroscopyRepresentativeLineResponse = z.object({
+  element: z.enum(["H I", "He I", "Na I", "Ca II"]),
+  illustrative_fwhm_nm: z.number(),
+  label: z.string(),
+  nist_relative_intensity: z.string(),
+  rest_wavelength_vacuum_nm: z.number(),
+  shifted_wavelength_vacuum_nm: z.number(),
+});
+
+/**
+ * SpectroscopyCalculationResponse
+ */
+export const zSpectroscopyCalculationResponse = z.object({
+  continuum_note: z.string(),
+  doppler_factor: z.number(),
+  fingerprints: z.array(zSpectroscopyElementFingerprintResponse).max(4),
+  identification_explanation: z.string(),
+  inputs: zSpectroscopyInputResponse,
+  line_strength_note: z.string(),
+  model_version: z.string(),
+  noise_note: z.string(),
+  normalized_flux: z.array(z.number()).max(741),
+  representative_lines: z.array(zSpectroscopyRepresentativeLineResponse).max(12),
+  resolution_note: z.string(),
+  schema_version: z.int(),
+  wavelength_nm: z.array(z.number()).max(741),
+  wien_peak_nm: z.number(),
+});
+
+/**
  * StellarLaboratoryInputResponse
  */
 export const zStellarLaboratoryInputResponse = z.object({
@@ -1576,6 +1629,11 @@ export const zCalculateRadialVelocityResponse = zRadialVelocityCalculationRespon
  * Successful Response
  */
 export const zCalculateSeasonsSimulatorResponse = zSeasonsCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateSpectroscopyLabResponse = zSpectroscopyCalculationResponse;
 
 /**
  * Successful Response

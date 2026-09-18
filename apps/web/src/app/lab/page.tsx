@@ -32,6 +32,12 @@ const labs = [
       "Explore offline topocentric solar-eclipse geometry, approximate local contacts, and permanent viewing-safety guidance.",
   },
   {
+    href: "/lab/spectroscopy-lab",
+    title: "Spectroscopy Lab",
+    description:
+      "Explore a normalized visible teaching spectrum with source-backed atomic fingerprints, bounded Doppler shift, resolving power, and deterministic display noise.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

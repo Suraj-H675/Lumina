@@ -1,0 +1,440 @@
+{
+  "artifact_version": 1,
+  "model_version": "spectroscopy-lab-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-18T00:00:00Z",
+  "definition": {
+    "slug": "spectroscopy-lab",
+    "title": "Spectroscopy Lab",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "share_schema_version": 1,
+    "model_version": "spectroscopy-lab-v1",
+    "learning_objectives": [
+      "Connect ideal blackbody temperature to continuum shape and Wien peak wavelength.",
+      "Distinguish continuous, emission-line, and absorption-line teaching spectra.",
+      "Relate radial velocity to first-order wavelength shift using a bounded astronomy-scale Doppler model.",
+      "Relate resolving power to the width of illustrative spectral features.",
+      "Compare a small set of source-backed atomic fingerprints without treating the synthetic spectrum as abundance inference."
+    ],
+    "prerequisite_concepts": [
+      "wavelength",
+      "visible light",
+      "blackbody radiation",
+      "emission and absorption lines",
+      "radial velocity",
+      "spectral resolution"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "mode",
+          "meaning": "One of continuum, emission, absorption, doppler, or element_match."
+        },
+        {
+          "name": "temperature_k",
+          "unit": "K",
+          "valid_range": "2500 <= temperature_k <= 15000"
+        },
+        {
+          "name": "selected_elements",
+          "meaning": "Unique subset of H I, He I, Na I, and Ca II. Required for every non-continuum mode."
+        },
+        {
+          "name": "radial_velocity_km_s",
+          "unit": "km/s",
+          "valid_range": "-300 <= radial_velocity_km_s <= 300",
+          "sign_convention": "Positive is recession/redshift; negative is approach/blueshift."
+        },
+        {
+          "name": "resolving_power",
+          "valid_range": "100 <= resolving_power <= 500",
+          "meaning": "Illustrative resolving power R=lambda/delta-lambda."
+        },
+        {
+          "name": "noise_sigma",
+          "unit": "normalized flux",
+          "valid_range": "0 <= noise_sigma <= 0.05"
+        },
+        {
+          "name": "noise_seed",
+          "valid_range": "0 <= noise_seed <= 4294967295",
+          "meaning": "Explicit deterministic seed used by the SHA-256/Box-Muller v1 display-noise algorithm."
+        }
+      ],
+      "invalid_handling": "Reject unknown modes/species, duplicate species, missing line species outside continuum mode, booleans/non-finite values, and all out-of-range values. No scientific input is silently clamped."
+    },
+    "output_schema": [
+      "741 deterministic spectrum samples from 380.0 through 750.0 nm vacuum wavelength",
+      "normalized flux in the display interval 0..1",
+      "physical Wien peak wavelength from the reviewed CODATA displacement constant",
+      "first-order Doppler factor and exact rest/shifted representative line metadata",
+      "illustrative Gaussian FWHM for each representative line from R=lambda/delta-lambda",
+      "selected element fingerprint explanation and explicit modelling caveats"
+    ],
+    "equations": {
+      "planck_wavelength_shape": "B_lambda proportional to 1 / [lambda^5 * (exp(h*c/(lambda*k*T)) - 1)]; v1 normalizes the returned visible-range curve rather than exposing physical radiance units",
+      "wien_peak": "lambda_max = b / T",
+      "first_order_doppler": "delta_lambda/lambda = v_r/c; lambda_observed = lambda_rest * (1 + v_r/c)",
+      "resolving_power": "R = lambda/delta_lambda; v1 illustrative Gaussian FWHM = lambda_observed/R",
+      "gaussian_sigma": "sigma_lambda = FWHM / (2*sqrt(2*ln(2)))",
+      "noise": "SHA-256(seed,index) -> two open-interval uniforms -> Box-Muller standard normal -> sigma-scaled normalized display noise"
+    },
+    "sampling_policy": "Return exactly 741 samples at 0.5 nm spacing from 380.0 through 750.0 nm. Atomic line metadata retains the exact reviewed observed-vacuum centers even when a line center lies between sampled points. Noise is deterministic and applied only after canonical continuum/line synthesis.",
+    "default_preset": "Illustrative Solar-like absorption teaching spectrum: 5772 K, H I + Na I + Ca II, zero radial velocity, R=500, zero noise.",
+    "assumptions": [
+      "The continuum is an ideal blackbody shape normalized over the visible 380-750 nm output interval.",
+      "Selected NIST ASD observed-vacuum line centers are representative teaching fingerprints, not a complete line list.",
+      "All representative lines use equal illustrative profile strength; NIST relative intensities are not used as physical amplitudes.",
+      "Emission mode uses a zero baseline with equal normalized Gaussian features.",
+      "Absorption, Doppler, and element-match modes use a fixed illustrative absorption depth on the normalized blackbody continuum.",
+      "Resolving power is represented by a Gaussian teaching profile with FWHM=lambda/R.",
+      "Optional noise is deterministic normalized display noise, not an instrument/photon noise model."
+    ],
+    "limitations": [
+      "No LTE/non-LTE atmosphere, radiative transfer, abundance, ionization/excitation balance, opacity, or equivalent-width modelling.",
+      "No oscillator-strength-weighted or NIST-relative-intensity-weighted line strengths.",
+      "No pressure, thermal, rotational, turbulent, Zeeman, Stark, or natural broadening model beyond the illustrative instrumental Gaussian.",
+      "No detector throughput, response curve, wavelength calibration, sky/telluric spectrum, extinction/reddening, photon noise, read noise, or flux calibration.",
+      "The first-order Doppler law is restricted to +/-300 km/s and is not a relativistic/high-redshift model.",
+      "Element-match mode explains selected representative fingerprints; it does not infer unknown composition or chemical abundance.",
+      "The returned normalized spectrum is an educational representation and must not be compared quantitatively to observed physical flux without a separate calibrated model."
+    ],
+    "references": [
+      "openstax-astronomy-electromagnetic-spectrum",
+      "openstax-astronomy-spectroscopy",
+      "openstax-astronomy-doppler",
+      "nist-2022-codata",
+      "nist-asd-lines",
+      "eso-uves-resolution",
+      "stsci-nirspec-resolution"
+    ],
+    "validation_fixtures": [
+      "wien-solar-temperature",
+      "continuum-normalization",
+      "emission-line-centers",
+      "absorption-line-depth",
+      "doppler-sign-and-scale",
+      "resolution-fwhm",
+      "line-list-provenance",
+      "deterministic-noise",
+      "noise-seed-distinction",
+      "mode-domain-rejection",
+      "numeric-domain-rejection",
+      "artifact-mutation"
+    ]
+  },
+  "sources": [
+    {
+      "id": "openstax-astronomy-electromagnetic-spectrum",
+      "title": "5.2 The Electromagnetic Spectrum",
+      "organization_or_authors": "OpenStax Astronomy 2e",
+      "url": "https://openstax.org/books/astronomy-2e/pages/5-2-the-electromagnetic-spectrum",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astronomy 2e",
+      "record_reference": "Blackbody/continuous-spectrum and wavelength education context",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current textbook page accessed 2026-09-18",
+      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Lumina records concepts/equations and source links.",
+      "citation": "OpenStax, Astronomy 2e, Section 5.2.",
+      "claim_scope": "Visible electromagnetic-spectrum and blackbody continuum teaching context.",
+      "source_type": "open textbook"
+    },
+    {
+      "id": "openstax-astronomy-spectroscopy",
+      "title": "5.3 Spectroscopy in Astronomy",
+      "organization_or_authors": "OpenStax Astronomy 2e",
+      "url": "https://openstax.org/books/astronomy-2e/pages/5-3-spectroscopy-in-astronomy",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astronomy 2e",
+      "record_reference": "Continuous, emission, and absorption spectra",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current textbook page accessed 2026-09-18",
+      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Lumina records concepts/equations and source links.",
+      "citation": "OpenStax, Astronomy 2e, Section 5.3.",
+      "claim_scope": "Educational distinction between continuous, emission-line, and absorption-line spectra.",
+      "source_type": "open textbook"
+    },
+    {
+      "id": "openstax-astronomy-doppler",
+      "title": "5.6 The Doppler Effect",
+      "organization_or_authors": "OpenStax Astronomy 2e",
+      "url": "https://openstax.org/books/astronomy-2e/pages/5-6-the-doppler-effect",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astronomy 2e",
+      "record_reference": "delta-lambda/lambda = radial velocity/c and astronomy sign convention",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current textbook page accessed 2026-09-18",
+      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Lumina records concepts/equations and source links.",
+      "citation": "OpenStax, Astronomy 2e, Section 5.6.",
+      "claim_scope": "First-order radial-velocity wavelength shift and positive-recession/negative-approach interpretation.",
+      "source_type": "open textbook"
+    },
+    {
+      "id": "nist-2022-codata",
+      "title": "2022 CODATA recommended values",
+      "organization_or_authors": "NIST Fundamental Physical Constants",
+      "url": "https://physics.nist.gov/cuu/Constants/",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "2022 CODATA recommended values",
+      "record_reference": "speed of light, Planck constant, Boltzmann constant, and Wien wavelength displacement law constant",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2022 CODATA recommended values",
+      "terms_or_licence": "NIST factual standards reference; Lumina records exact/recommended constant values and links to the source.",
+      "citation": "NIST, 2022 CODATA recommended values of the fundamental physical constants.",
+      "claim_scope": "c=299792458 m/s exact; h=6.62607015e-34 J Hz^-1 exact; k=1.380649e-23 J/K exact; Wien wavelength displacement constant 2.897771955...e-3 m K.",
+      "source_type": "official standards reference"
+    },
+    {
+      "id": "nist-asd-lines",
+      "title": "NIST Atomic Spectra Database — Lines",
+      "organization_or_authors": "National Institute of Standards and Technology",
+      "url": "https://physics.nist.gov/PhysRefData/ASD/lines_form.html",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "NIST ASD online line database",
+      "record_reference": "380-750 nm; unit=1 nm; format=2 CSV; show_av=3 all-vacuum; observed wavelength and relative intensity requested; allowed and forbidden transitions included",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current ASD results accessed 2026-09-18",
+      "terms_or_licence": "NIST scientific database factual values; Lumina stores only the small reviewed representative subset with source/query provenance.",
+      "citation": "NIST Atomic Spectra Database, Lines output, reviewed visible-range all-vacuum queries for H I, He I, Na I, and Ca II.",
+      "claim_scope": "Observed vacuum wavelengths and source-provided relative-intensity context for the explicit representative v1 fingerprint subset.",
+      "source_type": "official scientific database"
+    },
+    {
+      "id": "eso-uves-resolution",
+      "title": "UVES Overview",
+      "organization_or_authors": "European Southern Observatory",
+      "url": "https://www.eso.org/sci/facilities/paranal/instruments/uves/overview.html",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "UVES instrument overview",
+      "record_reference": "Spectroscopic Modes table: maximum resolution (lambda/delta-lambda)",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Page last update 2021-11-21",
+      "terms_or_licence": "ESO public instrument documentation; Lumina records the resolving-power definition and link.",
+      "citation": "ESO, UVES Overview.",
+      "claim_scope": "Observatory use of resolving power R=lambda/delta-lambda.",
+      "source_type": "official observatory documentation"
+    },
+    {
+      "id": "stsci-nirspec-resolution",
+      "title": "NIRSpec Dispersers and Filters",
+      "organization_or_authors": "Space Telescope Science Institute / JWST User Documentation",
+      "url": "https://jwst-docs.stsci.edu/jwst-near-infrared-spectrograph/nirspec-instrumentation/nirspec-dispersers-and-filters",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "JWST NIRSpec documentation",
+      "record_reference": "Dispersion/resolution tables identify resolving power as lambda/delta-lambda, unitless",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current documentation accessed 2026-09-18",
+      "terms_or_licence": "STScI/JWST public instrument documentation; Lumina records the resolving-power definition and link.",
+      "citation": "STScI, JWST NIRSpec Dispersers and Filters.",
+      "claim_scope": "Independent observatory documentation of resolving power lambda/delta-lambda.",
+      "source_type": "official observatory documentation"
+    }
+  ],
+  "constants": {
+    "SPEED_OF_LIGHT_M_S": 299792458.0,
+    "SPEED_OF_LIGHT_KM_S": 299792.458,
+    "PLANCK_CONSTANT_J_S": 6.62607015e-34,
+    "BOLTZMANN_CONSTANT_J_K": 1.380649e-23,
+    "WIEN_WAVELENGTH_DISPLACEMENT_M_K": 0.002897771955,
+    "WAVELENGTH_START_NM": 380.0,
+    "WAVELENGTH_END_NM": 750.0,
+    "WAVELENGTH_STEP_NM": 0.5,
+    "SPECTRUM_POINT_COUNT": 741,
+    "MIN_TEMPERATURE_K": 2500.0,
+    "MAX_TEMPERATURE_K": 15000.0,
+    "MIN_RADIAL_VELOCITY_KM_S": -300.0,
+    "MAX_RADIAL_VELOCITY_KM_S": 300.0,
+    "MIN_RESOLVING_POWER": 100.0,
+    "MAX_RESOLVING_POWER": 500.0,
+    "MIN_NOISE_SIGMA": 0.0,
+    "MAX_NOISE_SIGMA": 0.05,
+    "MIN_NOISE_SEED": 0,
+    "MAX_NOISE_SEED": 4294967295,
+    "ABSORPTION_DEPTH": 0.6,
+    "GAUSSIAN_FWHM_TO_SIGMA": 2.3548200450309493,
+    "NOISE_ALGORITHM": "sha256-box-muller-v1"
+  },
+  "supported_modes": ["continuum", "emission", "absorption", "doppler", "element_match"],
+  "supported_elements": ["H I", "He I", "Na I", "Ca II"],
+  "representative_lines": [
+    {
+      "element": "H I",
+      "label": "H-delta representative",
+      "observed_vacuum_wavelength_nm": 410.2892,
+      "nist_relative_intensity": "70000"
+    },
+    {
+      "element": "H I",
+      "label": "H-gamma representative",
+      "observed_vacuum_wavelength_nm": 434.1692,
+      "nist_relative_intensity": "90000"
+    },
+    {
+      "element": "H I",
+      "label": "H-beta representative",
+      "observed_vacuum_wavelength_nm": 486.271,
+      "nist_relative_intensity": "180000"
+    },
+    {
+      "element": "H I",
+      "label": "H-alpha representative",
+      "observed_vacuum_wavelength_nm": 656.46,
+      "nist_relative_intensity": "500000"
+    },
+    {
+      "element": "He I",
+      "label": "He I 447.27350 nm representative",
+      "observed_vacuum_wavelength_nm": 447.2735,
+      "nist_relative_intensity": "200*"
+    },
+    {
+      "element": "He I",
+      "label": "He I 501.70772 nm representative",
+      "observed_vacuum_wavelength_nm": 501.70772,
+      "nist_relative_intensity": "100"
+    },
+    {
+      "element": "He I",
+      "label": "He I 587.7249 nm representative",
+      "observed_vacuum_wavelength_nm": 587.7249,
+      "nist_relative_intensity": "500*"
+    },
+    {
+      "element": "He I",
+      "label": "He I 667.9995 nm representative",
+      "observed_vacuum_wavelength_nm": 667.9995,
+      "nist_relative_intensity": "100"
+    },
+    {
+      "element": "Na I",
+      "label": "Na I D2 representative",
+      "observed_vacuum_wavelength_nm": 589.1583264,
+      "nist_relative_intensity": "80000"
+    },
+    {
+      "element": "Na I",
+      "label": "Na I D1 representative",
+      "observed_vacuum_wavelength_nm": 589.7558147,
+      "nist_relative_intensity": "40000"
+    },
+    {
+      "element": "Ca II",
+      "label": "Ca II K representative",
+      "observed_vacuum_wavelength_nm": 393.477,
+      "nist_relative_intensity": "230"
+    },
+    {
+      "element": "Ca II",
+      "label": "Ca II H representative",
+      "observed_vacuum_wavelength_nm": 396.959,
+      "nist_relative_intensity": "220"
+    }
+  ],
+  "line_selection_policy": {
+    "wavelength_medium": "vacuum",
+    "selection": "Explicit small pedagogical subset of NIST ASD observed-vacuum features. Repeated ASD fine-structure rows sharing one identical observed wavelength are one observed feature. No handbook-air conversion and no invented centroid are used.",
+    "intensity_use": "NIST relative intensity strings are retained only as provenance context and are not used to synthesize amplitudes."
+  },
+  "presets": {
+    "solar-like-absorption": {
+      "mode": "absorption",
+      "temperature_k": 5772.0,
+      "selected_elements": ["H I", "Na I", "Ca II"],
+      "radial_velocity_km_s": 0.0,
+      "resolving_power": 500.0,
+      "noise_sigma": 0.0,
+      "noise_seed": 42
+    },
+    "receding-hydrogen-emission": {
+      "mode": "emission",
+      "temperature_k": 10000.0,
+      "selected_elements": ["H I"],
+      "radial_velocity_km_s": 150.0,
+      "resolving_power": 300.0,
+      "noise_sigma": 0.0,
+      "noise_seed": 42
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "wien-solar-temperature",
+      "purpose": "5772 K returns a Wien peak near 502 nm from the reviewed CODATA displacement constant."
+    },
+    {
+      "id": "continuum-normalization",
+      "purpose": "Continuum mode returns 741 positive deterministic samples with a visible-range maximum of exactly one after normalization."
+    },
+    {
+      "id": "emission-line-centers",
+      "purpose": "Emission mode metadata retains exact reviewed NIST rest centers and applies only the reviewed Doppler factor."
+    },
+    {
+      "id": "absorption-line-depth",
+      "purpose": "Absorption mode lowers the normalized continuum near selected line centers without changing the source-backed line metadata."
+    },
+    {
+      "id": "doppler-sign-and-scale",
+      "purpose": "Positive velocity redshifts and negative velocity blueshifts according to delta-lambda/lambda=v/c."
+    },
+    {
+      "id": "resolution-fwhm",
+      "purpose": "Representative-line FWHM is observed wavelength divided by resolving power and narrows monotonically as R rises."
+    },
+    {
+      "id": "line-list-provenance",
+      "purpose": "The supported species and exact selected observed-vacuum line list match the reviewed NIST ASD artifact."
+    },
+    {
+      "id": "deterministic-noise",
+      "purpose": "Identical seed/sigma/input produce bit-for-bit identical normalized spectrum samples."
+    },
+    {
+      "id": "noise-seed-distinction",
+      "purpose": "Different seeds produce a different deterministic display-noise realization when noise_sigma is nonzero."
+    },
+    {
+      "id": "mode-domain-rejection",
+      "purpose": "Unknown modes/elements, duplicate elements, and non-continuum modes without selected elements fail closed."
+    },
+    {
+      "id": "numeric-domain-rejection",
+      "purpose": "Booleans, non-finite values, and temperature/velocity/resolution/noise/seed values outside the reviewed bounds fail closed."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Version/source/constant/line-list/preset/noise-policy drift is rejected by the strict artifact loader."
+    }
+  ],
+  "scientific_validation": {
+    "id": "spectroscopy-lab-v1-validation",
+    "checked_at": "2026-09-18",
+    "method": "Validate normalized Planck/Wien behavior, source-backed NIST observed-vacuum line centers, first-order Doppler sign/scale, resolving-power FWHM, deterministic seeded noise, strict domains, and artifact integrity. Do not validate illustrative line amplitudes as physical predictions.",
+    "source_ids": [
+      "openstax-astronomy-electromagnetic-spectrum",
+      "openstax-astronomy-spectroscopy",
+      "openstax-astronomy-doppler",
+      "nist-2022-codata",
+      "nist-asd-lines",
+      "eso-uves-resolution",
+      "stsci-nirspec-resolution"
+    ],
+    "test_references": [
+      "test_wien_peak_uses_reviewed_constant",
+      "test_continuum_is_normalized_and_deterministic",
+      "test_emission_metadata_preserves_nist_rest_centers",
+      "test_absorption_lowers_continuum_near_selected_lines",
+      "test_doppler_sign_and_scale",
+      "test_resolution_controls_line_fwhm",
+      "test_reviewed_line_list_is_exact",
+      "test_seeded_noise_is_deterministic",
+      "test_different_noise_seed_changes_spectrum",
+      "test_mode_domain_rejects_unsupported_states",
+      "test_numeric_domain_rejects_unsupported_states",
+      "test_reviewed_artifact_rejects_mutation"
+    ]
+  }
+}

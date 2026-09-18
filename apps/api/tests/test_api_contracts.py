@@ -354,6 +354,7 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/radial-velocity",
         "/api/v1/simulations/seasons",
+        "/api/v1/simulations/spectroscopy-lab",
         "/api/v1/simulations/stellar-laboratory",
         "/api/v1/simulations/telescope-builder",
         "/api/v1/simulations/transit-method",

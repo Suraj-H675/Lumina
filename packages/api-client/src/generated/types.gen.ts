@@ -2632,6 +2632,143 @@ export type SpaceWeatherSourceResponse = {
 };
 
 /**
+ * SpectroscopyCalculationResponse
+ */
+export type SpectroscopyCalculationResponse = {
+  /**
+   * Continuum Note
+   */
+  continuum_note: string;
+  /**
+   * Doppler Factor
+   */
+  doppler_factor: number;
+  /**
+   * Fingerprints
+   */
+  fingerprints: Array<SpectroscopyElementFingerprintResponse>;
+  /**
+   * Identification Explanation
+   */
+  identification_explanation: string;
+  inputs: SpectroscopyInputResponse;
+  /**
+   * Line Strength Note
+   */
+  line_strength_note: string;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Noise Note
+   */
+  noise_note: string;
+  /**
+   * Normalized Flux
+   */
+  normalized_flux: Array<number>;
+  /**
+   * Representative Lines
+   */
+  representative_lines: Array<SpectroscopyRepresentativeLineResponse>;
+  /**
+   * Resolution Note
+   */
+  resolution_note: string;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Wavelength Nm
+   */
+  wavelength_nm: Array<number>;
+  /**
+   * Wien Peak Nm
+   */
+  wien_peak_nm: number;
+};
+
+/**
+ * SpectroscopyElementFingerprintResponse
+ */
+export type SpectroscopyElementFingerprintResponse = {
+  /**
+   * Element
+   */
+  element: "H I" | "He I" | "Na I" | "Ca II";
+  /**
+   * Representative Line Count
+   */
+  representative_line_count: number;
+};
+
+/**
+ * SpectroscopyInputResponse
+ */
+export type SpectroscopyInputResponse = {
+  /**
+   * Mode
+   */
+  mode: "continuum" | "emission" | "absorption" | "doppler" | "element_match";
+  /**
+   * Noise Seed
+   */
+  noise_seed: number;
+  /**
+   * Noise Sigma
+   */
+  noise_sigma: number;
+  /**
+   * Radial Velocity Km S
+   */
+  radial_velocity_km_s: number;
+  /**
+   * Resolving Power
+   */
+  resolving_power: number;
+  /**
+   * Selected Elements
+   */
+  selected_elements: Array<"H I" | "He I" | "Na I" | "Ca II">;
+  /**
+   * Temperature K
+   */
+  temperature_k: number;
+};
+
+/**
+ * SpectroscopyRepresentativeLineResponse
+ */
+export type SpectroscopyRepresentativeLineResponse = {
+  /**
+   * Element
+   */
+  element: "H I" | "He I" | "Na I" | "Ca II";
+  /**
+   * Illustrative Fwhm Nm
+   */
+  illustrative_fwhm_nm: number;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Nist Relative Intensity
+   */
+  nist_relative_intensity: string;
+  /**
+   * Rest Wavelength Vacuum Nm
+   */
+  rest_wavelength_vacuum_nm: number;
+  /**
+   * Shifted Wavelength Vacuum Nm
+   */
+  shifted_wavelength_vacuum_nm: number;
+};
+
+/**
  * StellarLaboratoryCalculationResponse
  */
 export type StellarLaboratoryCalculationResponse = {
@@ -4079,6 +4216,76 @@ export type CalculateSeasonsSimulatorResponses = {
 
 export type CalculateSeasonsSimulatorResponse =
   CalculateSeasonsSimulatorResponses[keyof CalculateSeasonsSimulatorResponses];
+
+export type CalculateSpectroscopyLabData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Mode
+     *
+     * continuum, emission, absorption, doppler, or element_match.
+     */
+    mode: "continuum" | "emission" | "absorption" | "doppler" | "element_match";
+    /**
+     * Temperature K
+     *
+     * Ideal blackbody teaching temperature in kelvin.
+     */
+    temperature_k: number;
+    /**
+     * Selected Elements
+     *
+     * Comma-separated unique species from H I, He I, Na I, and Ca II; empty only for continuum mode.
+     */
+    selected_elements: string;
+    /**
+     * Radial Velocity Km S
+     *
+     * First-order radial velocity in km/s; positive is recession.
+     */
+    radial_velocity_km_s: number;
+    /**
+     * Resolving Power
+     *
+     * Illustrative resolving power R=lambda/delta-lambda.
+     */
+    resolving_power: number;
+    /**
+     * Noise Sigma
+     *
+     * Deterministic normalized display-noise sigma.
+     */
+    noise_sigma: number;
+    /**
+     * Noise Seed
+     *
+     * Unsigned 32-bit deterministic display-noise seed.
+     */
+    noise_seed: number;
+  };
+  url: "/api/v1/simulations/spectroscopy-lab";
+};
+
+export type CalculateSpectroscopyLabErrors = {
+  /**
+   * The Spectroscopy Lab input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateSpectroscopyLabError =
+  CalculateSpectroscopyLabErrors[keyof CalculateSpectroscopyLabErrors];
+
+export type CalculateSpectroscopyLabResponses = {
+  /**
+   * Successful Response
+   */
+  200: SpectroscopyCalculationResponse;
+};
+
+export type CalculateSpectroscopyLabResponse =
+  CalculateSpectroscopyLabResponses[keyof CalculateSpectroscopyLabResponses];
 
 export type CalculateStellarLaboratoryData = {
   body?: never;

@@ -12,11 +12,13 @@ import type {
   CalculateOrbitSandboxData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
+  CalculateSpectroscopyLabData,
   CalculateStellarLaboratoryData,
   CalculateTelescopeBuilderData,
   CalculateTransitMethodData,
   OrbitSandboxCalculationResponse,
   RadialVelocityCalculationResponse,
+  SpectroscopyCalculationResponse,
   StellarLaboratoryCalculationResponse,
   TelescopeBuilderCalculationResponse,
   SeasonsCalculationResponse,
@@ -62,6 +64,7 @@ import {
   zCalculateOrbitSandboxResponse,
   zCalculateRadialVelocityResponse,
   zCalculateSeasonsSimulatorResponse,
+  zCalculateSpectroscopyLabResponse,
   zCalculateStellarLaboratoryResponse,
   zCalculateTelescopeBuilderResponse,
   zCalculateTransitMethodResponse,
@@ -368,6 +371,12 @@ export const seasonsSimulatorEndpoint = {
   path: "/api/v1/simulations/seasons" satisfies CalculateSeasonsSimulatorData["url"],
   validator: zCalculateSeasonsSimulatorResponse,
 } satisfies ApiEndpoint<SeasonsCalculationResponse, CalculateSeasonsSimulatorData["url"]>;
+
+export const spectroscopyLabEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/spectroscopy-lab" satisfies CalculateSpectroscopyLabData["url"],
+  validator: zCalculateSpectroscopyLabResponse,
+} satisfies ApiEndpoint<SpectroscopyCalculationResponse, CalculateSpectroscopyLabData["url"]>;
 
 export const stellarLaboratoryEndpoint = {
   method: "GET",

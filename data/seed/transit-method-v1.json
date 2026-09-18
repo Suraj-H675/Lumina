@@ -104,10 +104,7 @@
       "The light curve is a deterministic educational geometry model, not a fit to observational photometry.",
       "A no-transit result is a valid geometric outcome, not a computation failure."
     ],
-    "references": [
-      "winn-2010-transits-occultations",
-      "mandel-agol-2002-analytic-lightcurves"
-    ],
+    "references": ["winn-2010-transits-occultations", "mandel-agol-2002-analytic-lightcurves"],
     "validation_fixtures": [
       "central-full-transit",
       "grazing-transit",
@@ -222,10 +219,7 @@
         "role": "Analytic limiting-case, geometry, symmetry, domain, and artifact-integrity regression tests."
       }
     ],
-    "source_ids": [
-      "winn-2010-transits-occultations",
-      "mandel-agol-2002-analytic-lightcurves"
-    ],
+    "source_ids": ["winn-2010-transits-occultations", "mandel-agol-2002-analytic-lightcurves"],
     "test_references": [
       "test_central_full_transit_has_expected_depth_and_midpoint",
       "test_circular_contact_duration_matches_winn_equation_14",

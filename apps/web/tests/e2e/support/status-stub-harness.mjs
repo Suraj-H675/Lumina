@@ -18,6 +18,9 @@ const orbitFixtures = JSON.parse(
 const transitFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/transit-method.json", import.meta.url), "utf8"),
 );
+const radialVelocityFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/radial-velocity.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -31,6 +34,7 @@ const apiPaths = new Set([
   "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
   "/api/v1/simulations/orbit-sandbox",
+  "/api/v1/simulations/radial-velocity",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/telescope-builder",
   "/api/v1/simulations/transit-method",
@@ -1252,6 +1256,55 @@ function respondTransitMethod(response, target) {
   });
 }
 
+function respondRadialVelocity(response, target) {
+  const keys = [...target.searchParams.keys()];
+  const expectedKeys = [
+    "stellar_mass_kg",
+    "planet_mass_kg",
+    "orbital_period_s",
+    "eccentricity",
+    "inclination_deg",
+    "stellar_argument_of_periastron_deg",
+    "mean_anomaly_at_epoch_deg",
+  ];
+  const hasExactKeys =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key));
+  if (!hasExactKeys) {
+    sendJson(response, 422, {
+      error: {
+        code: "radial_velocity.model_invalid",
+        message: "The Radial Velocity fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+
+  const query = Object.fromEntries(target.searchParams.entries());
+  const isDefault =
+    query.stellar_mass_kg === "2e+30" &&
+    query.planet_mass_kg === "2e+27" &&
+    query.orbital_period_s === "31557600" &&
+    query.eccentricity === "0" &&
+    query.inclination_deg === "90" &&
+    query.stellar_argument_of_periastron_deg === "0" &&
+    query.mean_anomaly_at_epoch_deg === "0";
+  if (isDefault) {
+    sendJson(response, 200, radialVelocityFixtures.default);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "radial_velocity.model_invalid",
+      message:
+        "The Radial Velocity E2E fixture only exposes the reviewed synthetic reference state.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1767,6 +1820,7 @@ const stub = http.createServer(async (request, response) => {
   const isLaunchPath =
     path === "/api/v1/now/launches" || /^\/api\/v1\/now\/launches\/[0-9a-f-]{36}$/u.test(path);
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
+  const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isTelescopeBuilderPath = path === "/api/v1/simulations/telescope-builder";
   const isTransitMethodPath = path === "/api/v1/simulations/transit-method";
@@ -1809,6 +1863,7 @@ const stub = http.createServer(async (request, response) => {
     target.search !== "" &&
     !isCataloguePath &&
     !isOrbitSandboxPath &&
+    !isRadialVelocityPath &&
     !isSeasonsPath &&
     !isTelescopeBuilderPath &&
     !isTransitMethodPath &&
@@ -2015,6 +2070,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isOrbitSandboxPath) {
     respondOrbitSandbox(response, target);
+    return;
+  }
+  if (isRadialVelocityPath) {
+    respondRadialVelocity(response, target);
     return;
   }
   if (isSeasonsPath) {

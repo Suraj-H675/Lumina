@@ -1,0 +1,278 @@
+{
+  "artifact_version": 1,
+  "model_version": "radial-velocity-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-18T00:00:00Z",
+  "definition": {
+    "slug": "radial-velocity",
+    "title": "Radial Velocity Lab",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "share_schema_version": 1,
+    "model_version": "radial-velocity-v1",
+    "learning_objectives": [
+      "Connect stellar reflex motion to the mass, period, eccentricity, and inclination of an orbiting companion.",
+      "Read a Keplerian radial-velocity curve and identify how eccentricity, phase, and the star's argument of periastron change its shape.",
+      "Distinguish the exact spectroscopic mass function and edge-on minimum companion mass from the conventional projected quantity Mp sin i.",
+      "Explain why radial velocity alone cannot determine orbital inclination and therefore cannot generally determine the companion's true mass."
+    ],
+    "prerequisite_concepts": [
+      "SI units",
+      "orbital period and eccentricity",
+      "inclination",
+      "mean, eccentric, and true anomaly",
+      "barycentric reflex motion"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "stellar_mass_kg",
+          "unit": "kg",
+          "meaning": "Mass of the host star.",
+          "valid_range": "1e28 <= stellar_mass_kg <= 1e32",
+          "default": 2e30
+        },
+        {
+          "name": "planet_mass_kg",
+          "unit": "kg",
+          "meaning": "True companion mass used by this educational forward model.",
+          "valid_range": "1e18 <= planet_mass_kg <= 1e29 and planet_mass_kg <= 0.1 * stellar_mass_kg",
+          "default": 2e27
+        },
+        {
+          "name": "orbital_period_s",
+          "unit": "s",
+          "meaning": "Keplerian orbital period.",
+          "valid_range": "3600 <= orbital_period_s <= 1e10",
+          "default": 31557600
+        },
+        {
+          "name": "eccentricity",
+          "unit": "dimensionless",
+          "meaning": "Bound-orbit eccentricity inside the reviewed v1 domain.",
+          "valid_range": "0 <= eccentricity <= 0.95",
+          "default": 0
+        },
+        {
+          "name": "inclination_deg",
+          "unit": "deg",
+          "meaning": "Orbital inclination where 0 degrees is face-on and 90 degrees is edge-on.",
+          "valid_range": "0 <= inclination_deg <= 90",
+          "default": 90
+        },
+        {
+          "name": "stellar_argument_of_periastron_deg",
+          "unit": "deg",
+          "meaning": "Argument of periastron of the star's reflex orbit, using the Doppler convention.",
+          "valid_range": "0 <= stellar_argument_of_periastron_deg < 360",
+          "default": 0
+        },
+        {
+          "name": "mean_anomaly_at_epoch_deg",
+          "unit": "deg",
+          "meaning": "Mean anomaly at t=0; the explicit reproducible orbital phase control.",
+          "valid_range": "0 <= mean_anomaly_at_epoch_deg < 360",
+          "default": 0
+        }
+      ],
+      "invalid_handling": "Reject booleans, non-finite values, out-of-range values, companion-to-star mass ratios above 0.1, and angles outside the half-open [0,360) domain. No scientific input is silently clamped or normalized."
+    },
+    "output_schema": [
+      "exact Keplerian stellar radial-velocity semi-amplitude K",
+      "inclination projection sin(i)",
+      "conventional projected companion mass Mp sin(i)",
+      "spectroscopic mass function",
+      "exact edge-on minimum companion mass implied by the mass function and stellar mass",
+      "301-point deterministic one-period stellar reflex radial-velocity curve"
+    ],
+    "equations": {
+      "mean_motion": "n = 2*pi/P",
+      "mean_anomaly": "M(t) = M0 + 2*pi*t/P modulo 2*pi",
+      "kepler_equation": "M = E - e*sin(E)",
+      "true_anomaly": "tan(nu/2) = sqrt((1+e)/(1-e)) * tan(E/2), implemented with a quadrant-safe atan2 equivalent",
+      "semi_amplitude": "K = (2*pi*G/P)^(1/3) * Mp*sin(i) / (Mstar+Mp)^(2/3) / sqrt(1-e^2)",
+      "stellar_reflex_velocity": "v_r = K * (cos(nu + omega_star) + e*cos(omega_star)); systemic gamma is defined as zero in this reflex-only lab",
+      "mass_function": "f = P*K^3*(1-e^2)^(3/2)/(2*pi*G) = Mp^3*sin(i)^3/(Mstar+Mp)^2",
+      "edge_on_minimum_mass": "Mmin is the unique nonnegative solution of Mmin^3/(Mstar+Mmin)^2 = f for sin(i)=1"
+    },
+    "sampling_policy": "Return exactly 301 samples from t=0 through t=P inclusive. Mean anomaly advances linearly; Kepler's equation is solved deterministically in Python for each sample. The browser must not solve orbital phase or regenerate radial velocities.",
+    "default_preset": "Illustrative synthetic star/companion system with a one-Julian-year circular edge-on orbit. It is not a named observed system and carries no observational provenance claim.",
+    "assumptions": [
+      "One star and one companion follow an isolated Newtonian two-body Keplerian orbit with constant masses.",
+      "The returned velocity is the star's line-of-sight reflex component relative to the system barycenter; systemic velocity gamma is zero by definition.",
+      "The star's argument of periastron is used, matching the reviewed Doppler-orbit convention.",
+      "Inclination is supplied by the educational forward model even though radial-velocity observations alone do not generally determine it.",
+      "The initial mean anomaly is an exact phase input; observational timing uncertainty is not represented.",
+      "The synthetic default is educational and is not presented as a fit to a real exoplanet system."
+    ],
+    "limitations": [
+      "No additional planets, mutual perturbations, precession, tidal evolution, relativistic corrections, or stellar binary effects.",
+      "No stellar activity, granulation, oscillations, tellurics, spectrograph drift, zero-point offsets, cadence effects, measurement uncertainty, or random noise.",
+      "V1 restricts eccentricity to <= 0.95 as a conservative product/numerical domain; this is not a physical boundary for all bound exoplanets.",
+      "For a circular orbit, periastron and its argument are physically undefined; the argument and mean-anomaly inputs act only as a reproducible phase convention.",
+      "The conventional label Mp sin(i) is not algebraically identical to the exact edge-on minimum mass when the companion mass is non-negligible in the mass-function denominator.",
+      "A face-on orbit has zero radial-velocity semi-amplitude in this ideal model, so RV alone provides no positive companion-mass lower bound from that signal."
+    ],
+    "references": [
+      "murray-correia-2010-keplerian-orbits",
+      "wright-gaudi-2013-detection-methods",
+      "nist-codata-2022"
+    ],
+    "validation_fixtures": [
+      "circular-edge-on-quarter-phases",
+      "inclination-sine-scaling",
+      "face-on-zero-signal",
+      "eccentric-periastron-apoastron",
+      "mass-function-edge-on-solution",
+      "high-eccentricity-finite-curve",
+      "deterministic-repeat",
+      "domain-rejection",
+      "artifact-mutation"
+    ]
+  },
+  "sources": [
+    {
+      "id": "murray-correia-2010-keplerian-orbits",
+      "title": "Keplerian Orbits and Dynamics of Exoplanets",
+      "organization_or_authors": "Carl D. Murray and Alexandre C. M. Correia",
+      "url": "https://arxiv.org/abs/1009.1738",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1009.1738v2",
+      "record_reference": "Equations 39-43 and 62-66",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2011-02-25 arXiv v2",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Murray, C. D. and Correia, A. C. M., Keplerian Orbits and Dynamics of Exoplanets, arXiv:1009.1738.",
+      "claim_scope": "Kepler's equation and numerical solution, barycentric reflex geometry, stellar radial-velocity equation, and exact semi-amplitude relation.",
+      "source_type": "review chapter / scholarly preprint"
+    },
+    {
+      "id": "wright-gaudi-2013-detection-methods",
+      "title": "Exoplanet Detection Methods",
+      "organization_or_authors": "Jason T. Wright and B. Scott Gaudi",
+      "url": "https://arxiv.org/abs/1210.2471",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1210.2471v2",
+      "record_reference": "Equations 4-8 and radial-velocity discussion in Section 1.2",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2012-10-10 arXiv v2",
+      "terms_or_licence": "Paper access through arXiv; article copyright and reuse remain governed by the authors/publisher and arXiv terms.",
+      "citation": "Wright, J. T. and Gaudi, B. S., Exoplanet Detection Methods, arXiv:1210.2471.",
+      "claim_scope": "Keplerian phase relations, stellar argument-of-periastron convention, RV curve interpretation, inclination degeneracy, mass function, and conventional minimum-mass terminology.",
+      "source_type": "review chapter / scholarly preprint"
+    },
+    {
+      "id": "nist-codata-2022",
+      "title": "Fundamental Physical Constants — Extensive Listing",
+      "organization_or_authors": "National Institute of Standards and Technology (NIST), 2022 CODATA adjustment",
+      "url": "https://physics.nist.gov/cuu/pdf/all.pdf",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "2022 CODATA recommended values",
+      "record_reference": "Newtonian constant of gravitation G entry.",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2022 CODATA adjustment",
+      "terms_or_licence": "Official NIST constants reference; Lumina records the numeric constant and links to the source.",
+      "citation": "NIST, 2022 CODATA recommended values of the fundamental physical constants, accessed 2026-09-18.",
+      "claim_scope": "G = 6.67430e-11 m^3 kg^-1 s^-2 used by the reviewed model.",
+      "source_type": "official-standards"
+    }
+  ],
+  "constants": {
+    "G_M3_KG_S2": 6.6743e-11,
+    "CURVE_POINTS": 301,
+    "MIN_STELLAR_MASS_KG": 1e28,
+    "MAX_STELLAR_MASS_KG": 1e32,
+    "MIN_PLANET_MASS_KG": 1e18,
+    "MAX_PLANET_MASS_KG": 1e29,
+    "MAX_PLANET_TO_STAR_MASS_RATIO": 0.1,
+    "MIN_ORBITAL_PERIOD_S": 3600,
+    "MAX_ORBITAL_PERIOD_S": 1e10,
+    "MAX_ECCENTRICITY": 0.95,
+    "MIN_INCLINATION_DEG": 0,
+    "MAX_INCLINATION_DEG": 90,
+    "KEPLER_TOLERANCE_RAD": 1e-13,
+    "KEPLER_MAX_NEWTON_ITERATIONS": 32,
+    "KEPLER_BISECTION_ITERATIONS": 64,
+    "MINIMUM_MASS_BISECTION_ITERATIONS": 96
+  },
+  "presets": {
+    "illustrative-circular-edge-on": {
+      "stellar_mass_kg": 2e30,
+      "planet_mass_kg": 2e27,
+      "orbital_period_s": 31557600,
+      "eccentricity": 0,
+      "inclination_deg": 90,
+      "stellar_argument_of_periastron_deg": 0,
+      "mean_anomaly_at_epoch_deg": 0
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "circular-edge-on-quarter-phases",
+      "purpose": "For e=0, omega_star=0, and M0=0 the RV curve is K*cos(2*pi*t/P), giving +K, 0, -K, 0, +K at quarter-period phases."
+    },
+    {
+      "id": "inclination-sine-scaling",
+      "purpose": "With all other inputs fixed, K at 30 degrees is one half of K at 90 degrees."
+    },
+    {
+      "id": "face-on-zero-signal",
+      "purpose": "At i=0 the ideal line-of-sight reflex semi-amplitude, mass function, projected mass, and entire RV curve are zero."
+    },
+    {
+      "id": "eccentric-periastron-apoastron",
+      "purpose": "At M0=0 and omega_star=0, periastron gives K*(1+e) and half a period later gives K*(-1+e)."
+    },
+    {
+      "id": "mass-function-edge-on-solution",
+      "purpose": "The returned exact minimum mass reproduces the returned mass function when inserted into the sin(i)=1 mass-function equation."
+    },
+    {
+      "id": "high-eccentricity-finite-curve",
+      "purpose": "The upper reviewed eccentricity boundary produces a finite deterministic curve without phase-solver failure."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Identical canonical inputs return exactly identical immutable results."
+    },
+    {
+      "id": "domain-rejection",
+      "purpose": "Non-finite, bool, angle, mass-ratio, period, eccentricity, and range violations fail closed."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Source, model-version, constant, preset, and validation-contract drift is rejected by the strict loader."
+    }
+  ],
+  "scientific_validation": {
+    "id": "radial-velocity-v1-validation",
+    "checked_at": "2026-09-18",
+    "method": "Cross-check limiting circular/eccentric phase cases against the reviewed Keplerian equations, inclination scaling against the explicit sin(i) projection, and the exact minimum-mass solution against the spectroscopic mass function.",
+    "tools": [
+      {
+        "name": "pytest",
+        "version": "repository-locked",
+        "role": "Analytic limiting-case, property, domain, deterministic, and artifact-integrity regression tests."
+      }
+    ],
+    "source_ids": [
+      "murray-correia-2010-keplerian-orbits",
+      "wright-gaudi-2013-detection-methods",
+      "nist-codata-2022"
+    ],
+    "test_references": [
+      "test_circular_edge_on_curve_matches_quarter_phase_limits",
+      "test_inclination_scales_semi_amplitude_by_sine",
+      "test_face_on_orbit_has_zero_rv_signal",
+      "test_eccentric_periastron_and_apoastron_limits",
+      "test_exact_minimum_mass_satisfies_mass_function",
+      "test_high_eccentricity_boundary_is_finite",
+      "test_calculation_is_exactly_deterministic",
+      "test_input_domain_rejects_invalid_states",
+      "test_artifact_validation_rejects_mutation"
+    ]
+  }
+}

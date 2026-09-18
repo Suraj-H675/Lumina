@@ -1637,6 +1637,97 @@ export type QuantityReference = {
 };
 
 /**
+ * RadialVelocityCalculationResponse
+ */
+export type RadialVelocityCalculationResponse = {
+  /**
+   * Curve
+   */
+  curve: Array<RadialVelocityCurvePointResponse>;
+  /**
+   * Edge On Minimum Mass Kg
+   */
+  edge_on_minimum_mass_kg: number;
+  /**
+   * Inclination Projection
+   */
+  inclination_projection: number;
+  inputs: RadialVelocityInputResponse;
+  /**
+   * Mass Function Kg
+   */
+  mass_function_kg: number;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Projected Planet Mass Kg
+   */
+  projected_planet_mass_kg: number;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Semi Amplitude M S
+   */
+  semi_amplitude_m_s: number;
+};
+
+/**
+ * RadialVelocityCurvePointResponse
+ */
+export type RadialVelocityCurvePointResponse = {
+  /**
+   * Orbital Phase
+   */
+  orbital_phase: number;
+  /**
+   * Radial Velocity M S
+   */
+  radial_velocity_m_s: number;
+  /**
+   * Time S
+   */
+  time_s: number;
+};
+
+/**
+ * RadialVelocityInputResponse
+ */
+export type RadialVelocityInputResponse = {
+  /**
+   * Eccentricity
+   */
+  eccentricity: number;
+  /**
+   * Inclination Deg
+   */
+  inclination_deg: number;
+  /**
+   * Mean Anomaly At Epoch Deg
+   */
+  mean_anomaly_at_epoch_deg: number;
+  /**
+   * Orbital Period S
+   */
+  orbital_period_s: number;
+  /**
+   * Planet Mass Kg
+   */
+  planet_mass_kg: number;
+  /**
+   * Stellar Argument Of Periastron Deg
+   */
+  stellar_argument_of_periastron_deg: number;
+  /**
+   * Stellar Mass Kg
+   */
+  stellar_mass_kg: number;
+};
+
+/**
  * ReadyResponse
  *
  * Public dependency readiness.
@@ -3606,6 +3697,76 @@ export type CalculateOrbitSandboxResponses = {
 
 export type CalculateOrbitSandboxResponse =
   CalculateOrbitSandboxResponses[keyof CalculateOrbitSandboxResponses];
+
+export type CalculateRadialVelocityData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Stellar Mass Kg
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    stellar_mass_kg: number;
+    /**
+     * Planet Mass Kg
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    planet_mass_kg: number;
+    /**
+     * Orbital Period S
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    orbital_period_s: number;
+    /**
+     * Eccentricity
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    eccentricity: number;
+    /**
+     * Inclination Deg
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    inclination_deg: number;
+    /**
+     * Stellar Argument Of Periastron Deg
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    stellar_argument_of_periastron_deg: number;
+    /**
+     * Mean Anomaly At Epoch Deg
+     *
+     * Radial Velocity SI-unit model input.
+     */
+    mean_anomaly_at_epoch_deg: number;
+  };
+  url: "/api/v1/simulations/radial-velocity";
+};
+
+export type CalculateRadialVelocityErrors = {
+  /**
+   * The Radial Velocity inputs are invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateRadialVelocityError =
+  CalculateRadialVelocityErrors[keyof CalculateRadialVelocityErrors];
+
+export type CalculateRadialVelocityResponses = {
+  /**
+   * Successful Response
+   */
+  200: RadialVelocityCalculationResponse;
+};
+
+export type CalculateRadialVelocityResponse =
+  CalculateRadialVelocityResponses[keyof CalculateRadialVelocityResponses];
 
 export type CalculateSeasonsSimulatorData = {
   body?: never;

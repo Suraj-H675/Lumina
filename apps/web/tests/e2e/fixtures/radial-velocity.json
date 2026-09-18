@@ -1,0 +1,1527 @@
+{
+  "default": {
+    "curve": [
+      {
+        "orbital_phase": 0.0,
+        "radial_velocity_m_s": 29.822759200125255,
+        "time_s": 0.0
+      },
+      {
+        "orbital_phase": 0.0033333333333333335,
+        "radial_velocity_m_s": 29.816218576206964,
+        "time_s": 105192.0
+      },
+      {
+        "orbital_phase": 0.006666666666666667,
+        "radial_velocity_m_s": 29.79659957338591,
+        "time_s": 210384.0
+      },
+      {
+        "orbital_phase": 0.01,
+        "radial_velocity_m_s": 29.763910797205146,
+        "time_s": 315576.0
+      },
+      {
+        "orbital_phase": 0.013333333333333334,
+        "radial_velocity_m_s": 29.718166586042276,
+        "time_s": 420768.0
+      },
+      {
+        "orbital_phase": 0.016666666666666666,
+        "radial_velocity_m_s": 29.65938700482018,
+        "time_s": 525960.0
+      },
+      {
+        "orbital_phase": 0.02,
+        "radial_velocity_m_s": 29.587597836205862,
+        "time_s": 631152.0
+      },
+      {
+        "orbital_phase": 0.023333333333333334,
+        "radial_velocity_m_s": 29.502830569301334,
+        "time_s": 736344.0
+      },
+      {
+        "orbital_phase": 0.02666666666666667,
+        "radial_velocity_m_s": 29.40512238583144,
+        "time_s": 841536.0
+      },
+      {
+        "orbital_phase": 0.03,
+        "radial_velocity_m_s": 29.294516143834745,
+        "time_s": 946728.0
+      },
+      {
+        "orbital_phase": 0.03333333333333333,
+        "radial_velocity_m_s": 29.171060358864548,
+        "time_s": 1051920.0
+      },
+      {
+        "orbital_phase": 0.03666666666666667,
+        "radial_velocity_m_s": 29.034809182708393,
+        "time_s": 1157112.0
+      },
+      {
+        "orbital_phase": 0.04,
+        "radial_velocity_m_s": 28.885822379635286,
+        "time_s": 1262304.0
+      },
+      {
+        "orbital_phase": 0.043333333333333335,
+        "radial_velocity_m_s": 28.724165300181117,
+        "time_s": 1367496.0
+      },
+      {
+        "orbital_phase": 0.04666666666666667,
+        "radial_velocity_m_s": 28.549908852483746,
+        "time_s": 1472688.0
+      },
+      {
+        "orbital_phase": 0.05,
+        "radial_velocity_m_s": 28.363129471180365,
+        "time_s": 1577880.0
+      },
+      {
+        "orbital_phase": 0.05333333333333334,
+        "radial_velocity_m_s": 28.16390908388073,
+        "time_s": 1683072.0
+      },
+      {
+        "orbital_phase": 0.056666666666666664,
+        "radial_velocity_m_s": 27.95233507523101,
+        "time_s": 1788264.0
+      },
+      {
+        "orbital_phase": 0.06,
+        "radial_velocity_m_s": 27.72850024858398,
+        "time_s": 1893456.0
+      },
+      {
+        "orbital_phase": 0.06333333333333334,
+        "radial_velocity_m_s": 27.492502785292416,
+        "time_s": 1998648.0000000002
+      },
+      {
+        "orbital_phase": 0.06666666666666667,
+        "radial_velocity_m_s": 27.244446201643512,
+        "time_s": 2103840.0
+      },
+      {
+        "orbital_phase": 0.07,
+        "radial_velocity_m_s": 26.984439303453197,
+        "time_s": 2209032.0
+      },
+      {
+        "orbital_phase": 0.07333333333333333,
+        "radial_velocity_m_s": 26.712596138340338,
+        "time_s": 2314224.0
+      },
+      {
+        "orbital_phase": 0.07666666666666666,
+        "radial_velocity_m_s": 26.42903594570164,
+        "time_s": 2419416.0
+      },
+      {
+        "orbital_phase": 0.08,
+        "radial_velocity_m_s": 26.13388310440935,
+        "time_s": 2524608.0
+      },
+      {
+        "orbital_phase": 0.08333333333333333,
+        "radial_velocity_m_s": 25.827267078254557,
+        "time_s": 2629800.0
+      },
+      {
+        "orbital_phase": 0.08666666666666667,
+        "radial_velocity_m_s": 25.50932235916008,
+        "time_s": 2734992.0
+      },
+      {
+        "orbital_phase": 0.09,
+        "radial_velocity_m_s": 25.18018840818789,
+        "time_s": 2840184.0
+      },
+      {
+        "orbital_phase": 0.09333333333333334,
+        "radial_velocity_m_s": 24.840009594366858,
+        "time_s": 2945376.0
+      },
+      {
+        "orbital_phase": 0.09666666666666666,
+        "radial_velocity_m_s": 24.48893513136775,
+        "time_s": 3050568.0
+      },
+      {
+        "orbital_phase": 0.1,
+        "radial_velocity_m_s": 24.127119012053146,
+        "time_s": 3155760.0
+      },
+      {
+        "orbital_phase": 0.10333333333333333,
+        "radial_velocity_m_s": 23.754719940931114,
+        "time_s": 3260952.0
+      },
+      {
+        "orbital_phase": 0.10666666666666667,
+        "radial_velocity_m_s": 23.371901264542156,
+        "time_s": 3366144.0
+      },
+      {
+        "orbital_phase": 0.11,
+        "radial_velocity_m_s": 22.978830899810013,
+        "time_s": 3471336.0
+      },
+      {
+        "orbital_phase": 0.11333333333333333,
+        "radial_velocity_m_s": 22.575681260387746,
+        "time_s": 3576528.0
+      },
+      {
+        "orbital_phase": 0.11666666666666667,
+        "radial_velocity_m_s": 22.162629181031434,
+        "time_s": 3681720.0
+      },
+      {
+        "orbital_phase": 0.12,
+        "radial_velocity_m_s": 21.73985584003458,
+        "time_s": 3786912.0
+      },
+      {
+        "orbital_phase": 0.12333333333333334,
+        "radial_velocity_m_s": 21.30754667975733,
+        "time_s": 3892104.0
+      },
+      {
+        "orbital_phase": 0.12666666666666668,
+        "radial_velocity_m_s": 20.865891325285336,
+        "time_s": 3997296.0000000005
+      },
+      {
+        "orbital_phase": 0.13,
+        "radial_velocity_m_s": 20.415083501253914,
+        "time_s": 4102488.0
+      },
+      {
+        "orbital_phase": 0.13333333333333333,
+        "radial_velocity_m_s": 19.95532094687403,
+        "time_s": 4207680.0
+      },
+      {
+        "orbital_phase": 0.13666666666666666,
+        "radial_velocity_m_s": 19.48680532919732,
+        "time_s": 4312872.0
+      },
+      {
+        "orbital_phase": 0.14,
+        "radial_velocity_m_s": 19.00974215465828,
+        "time_s": 4418064.0
+      },
+      {
+        "orbital_phase": 0.14333333333333334,
+        "radial_velocity_m_s": 18.524340678932358,
+        "time_s": 4523256.0
+      },
+      {
+        "orbital_phase": 0.14666666666666667,
+        "radial_velocity_m_s": 18.03081381514948,
+        "time_s": 4628448.0
+      },
+      {
+        "orbital_phase": 0.15,
+        "radial_velocity_m_s": 17.529378040503296,
+        "time_s": 4733640.0
+      },
+      {
+        "orbital_phase": 0.15333333333333332,
+        "radial_velocity_m_s": 17.020253301297195,
+        "time_s": 4838832.0
+      },
+      {
+        "orbital_phase": 0.15666666666666668,
+        "radial_velocity_m_s": 16.503662916468507,
+        "time_s": 4944024.0
+      },
+      {
+        "orbital_phase": 0.16,
+        "radial_velocity_m_s": 15.979833479633498,
+        "time_s": 5049216.0
+      },
+      {
+        "orbital_phase": 0.16333333333333333,
+        "radial_velocity_m_s": 15.448994759695893,
+        "time_s": 5154408.0
+      },
+      {
+        "orbital_phase": 0.16666666666666666,
+        "radial_velocity_m_s": 14.91137960006263,
+        "time_s": 5259600.0
+      },
+      {
+        "orbital_phase": 0.17,
+        "radial_velocity_m_s": 14.36722381651107,
+        "time_s": 5364792.0
+      },
+      {
+        "orbital_phase": 0.17333333333333334,
+        "radial_velocity_m_s": 13.816766093752411,
+        "time_s": 5469984.0
+      },
+      {
+        "orbital_phase": 0.17666666666666667,
+        "radial_velocity_m_s": 13.260247880736639,
+        "time_s": 5575176.0
+      },
+      {
+        "orbital_phase": 0.18,
+        "radial_velocity_m_s": 12.697913284745084,
+        "time_s": 5680368.0
+      },
+      {
+        "orbital_phase": 0.18333333333333332,
+        "radial_velocity_m_s": 12.130008964316888,
+        "time_s": 5785560.0
+      },
+      {
+        "orbital_phase": 0.18666666666666668,
+        "radial_velocity_m_s": 11.556784021056385,
+        "time_s": 5890752.0
+      },
+      {
+        "orbital_phase": 0.19,
+        "radial_velocity_m_s": 10.978489890368978,
+        "time_s": 5995944.0
+      },
+      {
+        "orbital_phase": 0.19333333333333333,
+        "radial_velocity_m_s": 10.395380231173162,
+        "time_s": 6101136.0
+      },
+      {
+        "orbital_phase": 0.19666666666666666,
+        "radial_velocity_m_s": 9.807710814637426,
+        "time_s": 6206328.0
+      },
+      {
+        "orbital_phase": 0.2,
+        "radial_velocity_m_s": 9.215739411990517,
+        "time_s": 6311520.0
+      },
+      {
+        "orbital_phase": 0.20333333333333334,
+        "radial_velocity_m_s": 8.619725681454476,
+        "time_s": 6416712.0
+      },
+      {
+        "orbital_phase": 0.20666666666666667,
+        "radial_velocity_m_s": 8.019931054349948,
+        "time_s": 6521904.0
+      },
+      {
+        "orbital_phase": 0.21,
+        "radial_velocity_m_s": 7.416618620423789,
+        "time_s": 6627096.0
+      },
+      {
+        "orbital_phase": 0.21333333333333335,
+        "radial_velocity_m_s": 6.810053012449164,
+        "time_s": 6732288.0
+      },
+      {
+        "orbital_phase": 0.21666666666666667,
+        "radial_velocity_m_s": 6.200500290148926,
+        "time_s": 6837480.0
+      },
+      {
+        "orbital_phase": 0.22,
+        "radial_velocity_m_s": 5.588227823492987,
+        "time_s": 6942672.0
+      },
+      {
+        "orbital_phase": 0.22333333333333333,
+        "radial_velocity_m_s": 4.973504175421,
+        "time_s": 7047864.0
+      },
+      {
+        "orbital_phase": 0.22666666666666666,
+        "radial_velocity_m_s": 4.356598984041822,
+        "time_s": 7153056.0
+      },
+      {
+        "orbital_phase": 0.23,
+        "radial_velocity_m_s": 3.7377828443613024,
+        "time_s": 7258248.0
+      },
+      {
+        "orbital_phase": 0.23333333333333334,
+        "radial_velocity_m_s": 3.117327189590367,
+        "time_s": 7363440.0
+      },
+      {
+        "orbital_phase": 0.23666666666666666,
+        "radial_velocity_m_s": 2.4955041720854565,
+        "time_s": 7468632.0
+      },
+      {
+        "orbital_phase": 0.24,
+        "radial_velocity_m_s": 1.8725865439734795,
+        "time_s": 7573824.0
+      },
+      {
+        "orbital_phase": 0.24333333333333335,
+        "radial_velocity_m_s": 1.2488475375137447,
+        "time_s": 7679016.0
+      },
+      {
+        "orbital_phase": 0.24666666666666667,
+        "radial_velocity_m_s": 0.6245607452492725,
+        "time_s": 7784208.0
+      },
+      {
+        "orbital_phase": 0.25,
+        "radial_velocity_m_s": 1.8261173298087835e-15,
+        "time_s": 7889400.0
+      },
+      {
+        "orbital_phase": 0.25333333333333335,
+        "radial_velocity_m_s": -0.6245607452492689,
+        "time_s": 7994592.000000001
+      },
+      {
+        "orbital_phase": 0.25666666666666665,
+        "radial_velocity_m_s": -1.248847537513741,
+        "time_s": 8099784.0
+      },
+      {
+        "orbital_phase": 0.26,
+        "radial_velocity_m_s": -1.8725865439734757,
+        "time_s": 8204976.0
+      },
+      {
+        "orbital_phase": 0.2633333333333333,
+        "radial_velocity_m_s": -2.4955041720854467,
+        "time_s": 8310167.999999999
+      },
+      {
+        "orbital_phase": 0.26666666666666666,
+        "radial_velocity_m_s": -3.117327189590363,
+        "time_s": 8415360.0
+      },
+      {
+        "orbital_phase": 0.27,
+        "radial_velocity_m_s": -3.7377828443613055,
+        "time_s": 8520552.0
+      },
+      {
+        "orbital_phase": 0.2733333333333333,
+        "radial_velocity_m_s": -4.356598984041819,
+        "time_s": 8625744.0
+      },
+      {
+        "orbital_phase": 0.27666666666666667,
+        "radial_velocity_m_s": -4.973504175420996,
+        "time_s": 8730936.0
+      },
+      {
+        "orbital_phase": 0.28,
+        "radial_velocity_m_s": -5.588227823492989,
+        "time_s": 8836128.0
+      },
+      {
+        "orbital_phase": 0.2833333333333333,
+        "radial_velocity_m_s": -6.2005002901489235,
+        "time_s": 8941320.0
+      },
+      {
+        "orbital_phase": 0.2866666666666667,
+        "radial_velocity_m_s": -6.810053012449166,
+        "time_s": 9046512.0
+      },
+      {
+        "orbital_phase": 0.29,
+        "radial_velocity_m_s": -7.41661862042378,
+        "time_s": 9151704.0
+      },
+      {
+        "orbital_phase": 0.29333333333333333,
+        "radial_velocity_m_s": -8.019931054349945,
+        "time_s": 9256896.0
+      },
+      {
+        "orbital_phase": 0.2966666666666667,
+        "radial_velocity_m_s": -8.61972568145448,
+        "time_s": 9362088.0
+      },
+      {
+        "orbital_phase": 0.3,
+        "radial_velocity_m_s": -9.215739411990516,
+        "time_s": 9467280.0
+      },
+      {
+        "orbital_phase": 0.30333333333333334,
+        "radial_velocity_m_s": -9.807710814637424,
+        "time_s": 9572472.0
+      },
+      {
+        "orbital_phase": 0.30666666666666664,
+        "radial_velocity_m_s": -10.395380231173155,
+        "time_s": 9677664.0
+      },
+      {
+        "orbital_phase": 0.31,
+        "radial_velocity_m_s": -10.978489890368975,
+        "time_s": 9782856.0
+      },
+      {
+        "orbital_phase": 0.31333333333333335,
+        "radial_velocity_m_s": -11.556784021056387,
+        "time_s": 9888048.0
+      },
+      {
+        "orbital_phase": 0.31666666666666665,
+        "radial_velocity_m_s": -12.130008964316877,
+        "time_s": 9993240.0
+      },
+      {
+        "orbital_phase": 0.32,
+        "radial_velocity_m_s": -12.697913284745086,
+        "time_s": 10098432.0
+      },
+      {
+        "orbital_phase": 0.3233333333333333,
+        "radial_velocity_m_s": -13.260247880736628,
+        "time_s": 10203624.0
+      },
+      {
+        "orbital_phase": 0.32666666666666666,
+        "radial_velocity_m_s": -13.816766093752403,
+        "time_s": 10308816.0
+      },
+      {
+        "orbital_phase": 0.33,
+        "radial_velocity_m_s": -14.367223816511078,
+        "time_s": 10414008.0
+      },
+      {
+        "orbital_phase": 0.3333333333333333,
+        "radial_velocity_m_s": -14.91137960006262,
+        "time_s": 10519200.0
+      },
+      {
+        "orbital_phase": 0.33666666666666667,
+        "radial_velocity_m_s": -15.448994759695886,
+        "time_s": 10624392.0
+      },
+      {
+        "orbital_phase": 0.34,
+        "radial_velocity_m_s": -15.979833479633507,
+        "time_s": 10729584.0
+      },
+      {
+        "orbital_phase": 0.3433333333333333,
+        "radial_velocity_m_s": -16.503662916468507,
+        "time_s": 10834776.0
+      },
+      {
+        "orbital_phase": 0.3466666666666667,
+        "radial_velocity_m_s": -17.02025330129719,
+        "time_s": 10939968.0
+      },
+      {
+        "orbital_phase": 0.35,
+        "radial_velocity_m_s": -17.529378040503293,
+        "time_s": 11045160.0
+      },
+      {
+        "orbital_phase": 0.35333333333333333,
+        "radial_velocity_m_s": -18.030813815149475,
+        "time_s": 11150352.0
+      },
+      {
+        "orbital_phase": 0.3566666666666667,
+        "radial_velocity_m_s": -18.524340678932358,
+        "time_s": 11255544.0
+      },
+      {
+        "orbital_phase": 0.36,
+        "radial_velocity_m_s": -19.009742154658284,
+        "time_s": 11360736.0
+      },
+      {
+        "orbital_phase": 0.36333333333333334,
+        "radial_velocity_m_s": -19.48680532919732,
+        "time_s": 11465928.0
+      },
+      {
+        "orbital_phase": 0.36666666666666664,
+        "radial_velocity_m_s": -19.95532094687402,
+        "time_s": 11571120.0
+      },
+      {
+        "orbital_phase": 0.37,
+        "radial_velocity_m_s": -20.415083501253918,
+        "time_s": 11676312.0
+      },
+      {
+        "orbital_phase": 0.37333333333333335,
+        "radial_velocity_m_s": -20.86589132528534,
+        "time_s": 11781504.0
+      },
+      {
+        "orbital_phase": 0.37666666666666665,
+        "radial_velocity_m_s": -21.307546679757323,
+        "time_s": 11886696.0
+      },
+      {
+        "orbital_phase": 0.38,
+        "radial_velocity_m_s": -21.739855840034572,
+        "time_s": 11991888.0
+      },
+      {
+        "orbital_phase": 0.38333333333333336,
+        "radial_velocity_m_s": -22.162629181031438,
+        "time_s": 12097080.0
+      },
+      {
+        "orbital_phase": 0.38666666666666666,
+        "radial_velocity_m_s": -22.575681260387743,
+        "time_s": 12202272.0
+      },
+      {
+        "orbital_phase": 0.39,
+        "radial_velocity_m_s": -22.97883089981001,
+        "time_s": 12307464.0
+      },
+      {
+        "orbital_phase": 0.3933333333333333,
+        "radial_velocity_m_s": -23.371901264542156,
+        "time_s": 12412656.0
+      },
+      {
+        "orbital_phase": 0.39666666666666667,
+        "radial_velocity_m_s": -23.754719940931114,
+        "time_s": 12517848.0
+      },
+      {
+        "orbital_phase": 0.4,
+        "radial_velocity_m_s": -24.127119012053143,
+        "time_s": 12623040.0
+      },
+      {
+        "orbital_phase": 0.4033333333333333,
+        "radial_velocity_m_s": -24.48893513136775,
+        "time_s": 12728232.0
+      },
+      {
+        "orbital_phase": 0.4066666666666667,
+        "radial_velocity_m_s": -24.840009594366858,
+        "time_s": 12833424.0
+      },
+      {
+        "orbital_phase": 0.41,
+        "radial_velocity_m_s": -25.180188408187885,
+        "time_s": 12938616.0
+      },
+      {
+        "orbital_phase": 0.41333333333333333,
+        "radial_velocity_m_s": -25.50932235916008,
+        "time_s": 13043808.0
+      },
+      {
+        "orbital_phase": 0.4166666666666667,
+        "radial_velocity_m_s": -25.827267078254557,
+        "time_s": 13149000.0
+      },
+      {
+        "orbital_phase": 0.42,
+        "radial_velocity_m_s": -26.133883104409342,
+        "time_s": 13254192.0
+      },
+      {
+        "orbital_phase": 0.42333333333333334,
+        "radial_velocity_m_s": -26.42903594570164,
+        "time_s": 13359384.0
+      },
+      {
+        "orbital_phase": 0.4266666666666667,
+        "radial_velocity_m_s": -26.712596138340338,
+        "time_s": 13464576.0
+      },
+      {
+        "orbital_phase": 0.43,
+        "radial_velocity_m_s": -26.984439303453197,
+        "time_s": 13569768.0
+      },
+      {
+        "orbital_phase": 0.43333333333333335,
+        "radial_velocity_m_s": -27.244446201643516,
+        "time_s": 13674960.0
+      },
+      {
+        "orbital_phase": 0.43666666666666665,
+        "radial_velocity_m_s": -27.492502785292412,
+        "time_s": 13780152.0
+      },
+      {
+        "orbital_phase": 0.44,
+        "radial_velocity_m_s": -27.728500248583977,
+        "time_s": 13885344.0
+      },
+      {
+        "orbital_phase": 0.44333333333333336,
+        "radial_velocity_m_s": -27.95233507523101,
+        "time_s": 13990536.0
+      },
+      {
+        "orbital_phase": 0.44666666666666666,
+        "radial_velocity_m_s": -28.16390908388073,
+        "time_s": 14095728.0
+      },
+      {
+        "orbital_phase": 0.45,
+        "radial_velocity_m_s": -28.363129471180365,
+        "time_s": 14200920.0
+      },
+      {
+        "orbital_phase": 0.4533333333333333,
+        "radial_velocity_m_s": -28.549908852483746,
+        "time_s": 14306112.0
+      },
+      {
+        "orbital_phase": 0.45666666666666667,
+        "radial_velocity_m_s": -28.724165300181113,
+        "time_s": 14411304.0
+      },
+      {
+        "orbital_phase": 0.46,
+        "radial_velocity_m_s": -28.885822379635286,
+        "time_s": 14516496.0
+      },
+      {
+        "orbital_phase": 0.4633333333333333,
+        "radial_velocity_m_s": -29.034809182708393,
+        "time_s": 14621688.0
+      },
+      {
+        "orbital_phase": 0.4666666666666667,
+        "radial_velocity_m_s": -29.171060358864548,
+        "time_s": 14726880.0
+      },
+      {
+        "orbital_phase": 0.47,
+        "radial_velocity_m_s": -29.29451614383474,
+        "time_s": 14832072.0
+      },
+      {
+        "orbital_phase": 0.47333333333333333,
+        "radial_velocity_m_s": -29.40512238583144,
+        "time_s": 14937264.0
+      },
+      {
+        "orbital_phase": 0.4766666666666667,
+        "radial_velocity_m_s": -29.502830569301334,
+        "time_s": 15042456.0
+      },
+      {
+        "orbital_phase": 0.48,
+        "radial_velocity_m_s": -29.587597836205862,
+        "time_s": 15147648.0
+      },
+      {
+        "orbital_phase": 0.48333333333333334,
+        "radial_velocity_m_s": -29.65938700482018,
+        "time_s": 15252840.0
+      },
+      {
+        "orbital_phase": 0.4866666666666667,
+        "radial_velocity_m_s": -29.718166586042276,
+        "time_s": 15358032.0
+      },
+      {
+        "orbital_phase": 0.49,
+        "radial_velocity_m_s": -29.763910797205146,
+        "time_s": 15463224.0
+      },
+      {
+        "orbital_phase": 0.49333333333333335,
+        "radial_velocity_m_s": -29.79659957338591,
+        "time_s": 15568416.0
+      },
+      {
+        "orbital_phase": 0.49666666666666665,
+        "radial_velocity_m_s": -29.816218576206964,
+        "time_s": 15673608.0
+      },
+      {
+        "orbital_phase": 0.5,
+        "radial_velocity_m_s": -29.822759200125255,
+        "time_s": 15778800.0
+      },
+      {
+        "orbital_phase": 0.5033333333333333,
+        "radial_velocity_m_s": -29.816218576206964,
+        "time_s": 15883991.999999998
+      },
+      {
+        "orbital_phase": 0.5066666666666667,
+        "radial_velocity_m_s": -29.79659957338591,
+        "time_s": 15989184.000000002
+      },
+      {
+        "orbital_phase": 0.51,
+        "radial_velocity_m_s": -29.763910797205146,
+        "time_s": 16094376.0
+      },
+      {
+        "orbital_phase": 0.5133333333333333,
+        "radial_velocity_m_s": -29.718166586042276,
+        "time_s": 16199568.0
+      },
+      {
+        "orbital_phase": 0.5166666666666667,
+        "radial_velocity_m_s": -29.65938700482018,
+        "time_s": 16304760.000000002
+      },
+      {
+        "orbital_phase": 0.52,
+        "radial_velocity_m_s": -29.587597836205862,
+        "time_s": 16409952.0
+      },
+      {
+        "orbital_phase": 0.5233333333333333,
+        "radial_velocity_m_s": -29.502830569301334,
+        "time_s": 16515144.0
+      },
+      {
+        "orbital_phase": 0.5266666666666666,
+        "radial_velocity_m_s": -29.405122385831444,
+        "time_s": 16620335.999999998
+      },
+      {
+        "orbital_phase": 0.53,
+        "radial_velocity_m_s": -29.29451614383474,
+        "time_s": 16725528.0
+      },
+      {
+        "orbital_phase": 0.5333333333333333,
+        "radial_velocity_m_s": -29.171060358864548,
+        "time_s": 16830720.0
+      },
+      {
+        "orbital_phase": 0.5366666666666666,
+        "radial_velocity_m_s": -29.034809182708393,
+        "time_s": 16935912.0
+      },
+      {
+        "orbital_phase": 0.54,
+        "radial_velocity_m_s": -28.885822379635282,
+        "time_s": 17041104.0
+      },
+      {
+        "orbital_phase": 0.5433333333333333,
+        "radial_velocity_m_s": -28.724165300181113,
+        "time_s": 17146296.0
+      },
+      {
+        "orbital_phase": 0.5466666666666666,
+        "radial_velocity_m_s": -28.549908852483746,
+        "time_s": 17251488.0
+      },
+      {
+        "orbital_phase": 0.55,
+        "radial_velocity_m_s": -28.36312947118036,
+        "time_s": 17356680.0
+      },
+      {
+        "orbital_phase": 0.5533333333333333,
+        "radial_velocity_m_s": -28.16390908388073,
+        "time_s": 17461872.0
+      },
+      {
+        "orbital_phase": 0.5566666666666666,
+        "radial_velocity_m_s": -27.95233507523101,
+        "time_s": 17567064.0
+      },
+      {
+        "orbital_phase": 0.56,
+        "radial_velocity_m_s": -27.72850024858397,
+        "time_s": 17672256.0
+      },
+      {
+        "orbital_phase": 0.5633333333333334,
+        "radial_velocity_m_s": -27.492502785292412,
+        "time_s": 17777448.0
+      },
+      {
+        "orbital_phase": 0.5666666666666667,
+        "radial_velocity_m_s": -27.244446201643516,
+        "time_s": 17882640.0
+      },
+      {
+        "orbital_phase": 0.57,
+        "radial_velocity_m_s": -26.9844393034532,
+        "time_s": 17987832.0
+      },
+      {
+        "orbital_phase": 0.5733333333333334,
+        "radial_velocity_m_s": -26.71259613834033,
+        "time_s": 18093024.0
+      },
+      {
+        "orbital_phase": 0.5766666666666667,
+        "radial_velocity_m_s": -26.42903594570164,
+        "time_s": 18198216.0
+      },
+      {
+        "orbital_phase": 0.58,
+        "radial_velocity_m_s": -26.13388310440935,
+        "time_s": 18303408.0
+      },
+      {
+        "orbital_phase": 0.5833333333333334,
+        "radial_velocity_m_s": -25.82726707825455,
+        "time_s": 18408600.0
+      },
+      {
+        "orbital_phase": 0.5866666666666667,
+        "radial_velocity_m_s": -25.50932235916008,
+        "time_s": 18513792.0
+      },
+      {
+        "orbital_phase": 0.59,
+        "radial_velocity_m_s": -25.18018840818789,
+        "time_s": 18618984.0
+      },
+      {
+        "orbital_phase": 0.5933333333333334,
+        "radial_velocity_m_s": -24.840009594366855,
+        "time_s": 18724176.0
+      },
+      {
+        "orbital_phase": 0.5966666666666667,
+        "radial_velocity_m_s": -24.48893513136775,
+        "time_s": 18829368.0
+      },
+      {
+        "orbital_phase": 0.6,
+        "radial_velocity_m_s": -24.127119012053143,
+        "time_s": 18934560.0
+      },
+      {
+        "orbital_phase": 0.6033333333333334,
+        "radial_velocity_m_s": -23.754719940931103,
+        "time_s": 19039752.0
+      },
+      {
+        "orbital_phase": 0.6066666666666667,
+        "radial_velocity_m_s": -23.371901264542156,
+        "time_s": 19144944.0
+      },
+      {
+        "orbital_phase": 0.61,
+        "radial_velocity_m_s": -22.97883089981001,
+        "time_s": 19250136.0
+      },
+      {
+        "orbital_phase": 0.6133333333333333,
+        "radial_velocity_m_s": -22.575681260387753,
+        "time_s": 19355328.0
+      },
+      {
+        "orbital_phase": 0.6166666666666667,
+        "radial_velocity_m_s": -22.16262918103143,
+        "time_s": 19460520.0
+      },
+      {
+        "orbital_phase": 0.62,
+        "radial_velocity_m_s": -21.739855840034572,
+        "time_s": 19565712.0
+      },
+      {
+        "orbital_phase": 0.6233333333333333,
+        "radial_velocity_m_s": -21.307546679757333,
+        "time_s": 19670904.0
+      },
+      {
+        "orbital_phase": 0.6266666666666667,
+        "radial_velocity_m_s": -20.865891325285332,
+        "time_s": 19776096.0
+      },
+      {
+        "orbital_phase": 0.63,
+        "radial_velocity_m_s": -20.415083501253918,
+        "time_s": 19881288.0
+      },
+      {
+        "orbital_phase": 0.6333333333333333,
+        "radial_velocity_m_s": -19.95532094687403,
+        "time_s": 19986480.0
+      },
+      {
+        "orbital_phase": 0.6366666666666667,
+        "radial_velocity_m_s": -19.48680532919732,
+        "time_s": 20091672.0
+      },
+      {
+        "orbital_phase": 0.64,
+        "radial_velocity_m_s": -19.009742154658273,
+        "time_s": 20196864.0
+      },
+      {
+        "orbital_phase": 0.6433333333333333,
+        "radial_velocity_m_s": -18.524340678932358,
+        "time_s": 20302056.0
+      },
+      {
+        "orbital_phase": 0.6466666666666666,
+        "radial_velocity_m_s": -18.030813815149486,
+        "time_s": 20407248.0
+      },
+      {
+        "orbital_phase": 0.65,
+        "radial_velocity_m_s": -17.529378040503293,
+        "time_s": 20512440.0
+      },
+      {
+        "orbital_phase": 0.6533333333333333,
+        "radial_velocity_m_s": -17.0202533012972,
+        "time_s": 20617632.0
+      },
+      {
+        "orbital_phase": 0.6566666666666666,
+        "radial_velocity_m_s": -16.503662916468507,
+        "time_s": 20722824.0
+      },
+      {
+        "orbital_phase": 0.66,
+        "radial_velocity_m_s": -15.979833479633484,
+        "time_s": 20828016.0
+      },
+      {
+        "orbital_phase": 0.6633333333333333,
+        "radial_velocity_m_s": -15.448994759695886,
+        "time_s": 20933208.0
+      },
+      {
+        "orbital_phase": 0.6666666666666666,
+        "radial_velocity_m_s": -14.911379600062634,
+        "time_s": 21038400.0
+      },
+      {
+        "orbital_phase": 0.67,
+        "radial_velocity_m_s": -14.367223816511066,
+        "time_s": 21143592.0
+      },
+      {
+        "orbital_phase": 0.6733333333333333,
+        "radial_velocity_m_s": -13.816766093752415,
+        "time_s": 21248784.0
+      },
+      {
+        "orbital_phase": 0.6766666666666666,
+        "radial_velocity_m_s": -13.260247880736628,
+        "time_s": 21353976.0
+      },
+      {
+        "orbital_phase": 0.68,
+        "radial_velocity_m_s": -12.697913284745063,
+        "time_s": 21459168.0
+      },
+      {
+        "orbital_phase": 0.6833333333333333,
+        "radial_velocity_m_s": -12.130008964316872,
+        "time_s": 21564360.0
+      },
+      {
+        "orbital_phase": 0.6866666666666666,
+        "radial_velocity_m_s": -11.556784021056387,
+        "time_s": 21669552.0
+      },
+      {
+        "orbital_phase": 0.69,
+        "radial_velocity_m_s": -10.978489890368985,
+        "time_s": 21774744.0
+      },
+      {
+        "orbital_phase": 0.6933333333333334,
+        "radial_velocity_m_s": -10.39538023117316,
+        "time_s": 21879936.0
+      },
+      {
+        "orbital_phase": 0.6966666666666667,
+        "radial_velocity_m_s": -9.807710814637437,
+        "time_s": 21985128.0
+      },
+      {
+        "orbital_phase": 0.7,
+        "radial_velocity_m_s": -9.215739411990516,
+        "time_s": 22090320.0
+      },
+      {
+        "orbital_phase": 0.7033333333333334,
+        "radial_velocity_m_s": -8.619725681454458,
+        "time_s": 22195512.0
+      },
+      {
+        "orbital_phase": 0.7066666666666667,
+        "radial_velocity_m_s": -8.019931054349945,
+        "time_s": 22300704.0
+      },
+      {
+        "orbital_phase": 0.71,
+        "radial_velocity_m_s": -7.416618620423793,
+        "time_s": 22405896.0
+      },
+      {
+        "orbital_phase": 0.7133333333333334,
+        "radial_velocity_m_s": -6.81005301244916,
+        "time_s": 22511088.0
+      },
+      {
+        "orbital_phase": 0.7166666666666667,
+        "radial_velocity_m_s": -6.200500290148937,
+        "time_s": 22616280.0
+      },
+      {
+        "orbital_phase": 0.72,
+        "radial_velocity_m_s": -5.588227823492976,
+        "time_s": 22721472.0
+      },
+      {
+        "orbital_phase": 0.7233333333333334,
+        "radial_velocity_m_s": -4.973504175420977,
+        "time_s": 22826664.0
+      },
+      {
+        "orbital_phase": 0.7266666666666667,
+        "radial_velocity_m_s": -4.3565989840418125,
+        "time_s": 22931856.0
+      },
+      {
+        "orbital_phase": 0.73,
+        "radial_velocity_m_s": -3.7377828443613055,
+        "time_s": 23037048.0
+      },
+      {
+        "orbital_phase": 0.7333333333333333,
+        "radial_velocity_m_s": -3.117327189590383,
+        "time_s": 23142240.0
+      },
+      {
+        "orbital_phase": 0.7366666666666667,
+        "radial_velocity_m_s": -2.495504172085453,
+        "time_s": 23247432.0
+      },
+      {
+        "orbital_phase": 0.74,
+        "radial_velocity_m_s": -1.8725865439734626,
+        "time_s": 23352624.0
+      },
+      {
+        "orbital_phase": 0.7433333333333333,
+        "radial_velocity_m_s": -1.2488475375137476,
+        "time_s": 23457816.0
+      },
+      {
+        "orbital_phase": 0.7466666666666667,
+        "radial_velocity_m_s": -0.6245607452492555,
+        "time_s": 23563008.0
+      },
+      {
+        "orbital_phase": 0.75,
+        "radial_velocity_m_s": 1.8261173298087835e-15,
+        "time_s": 23668200.0
+      },
+      {
+        "orbital_phase": 0.7533333333333333,
+        "radial_velocity_m_s": 0.6245607452492593,
+        "time_s": 23773392.0
+      },
+      {
+        "orbital_phase": 0.7566666666666667,
+        "radial_velocity_m_s": 1.248847537513751,
+        "time_s": 23878584.0
+      },
+      {
+        "orbital_phase": 0.76,
+        "radial_velocity_m_s": 1.8725865439734661,
+        "time_s": 23983776.0
+      },
+      {
+        "orbital_phase": 0.7633333333333333,
+        "radial_velocity_m_s": 2.4955041720854565,
+        "time_s": 24088968.0
+      },
+      {
+        "orbital_phase": 0.7666666666666667,
+        "radial_velocity_m_s": 3.117327189590387,
+        "time_s": 24194160.0
+      },
+      {
+        "orbital_phase": 0.77,
+        "radial_velocity_m_s": 3.7377828443613086,
+        "time_s": 24299352.0
+      },
+      {
+        "orbital_phase": 0.7733333333333333,
+        "radial_velocity_m_s": 4.356598984041816,
+        "time_s": 24404544.0
+      },
+      {
+        "orbital_phase": 0.7766666666666666,
+        "radial_velocity_m_s": 4.973504175420979,
+        "time_s": 24509736.0
+      },
+      {
+        "orbital_phase": 0.78,
+        "radial_velocity_m_s": 5.58822782349298,
+        "time_s": 24614928.0
+      },
+      {
+        "orbital_phase": 0.7833333333333333,
+        "radial_velocity_m_s": 6.200500290148939,
+        "time_s": 24720120.0
+      },
+      {
+        "orbital_phase": 0.7866666666666666,
+        "radial_velocity_m_s": 6.810053012449164,
+        "time_s": 24825312.0
+      },
+      {
+        "orbital_phase": 0.79,
+        "radial_velocity_m_s": 7.4166186204237965,
+        "time_s": 24930504.0
+      },
+      {
+        "orbital_phase": 0.7933333333333333,
+        "radial_velocity_m_s": 8.019931054349948,
+        "time_s": 25035696.0
+      },
+      {
+        "orbital_phase": 0.7966666666666666,
+        "radial_velocity_m_s": 8.619725681454462,
+        "time_s": 25140888.0
+      },
+      {
+        "orbital_phase": 0.8,
+        "radial_velocity_m_s": 9.215739411990517,
+        "time_s": 25246080.0
+      },
+      {
+        "orbital_phase": 0.8033333333333333,
+        "radial_velocity_m_s": 9.80771081463744,
+        "time_s": 25351272.0
+      },
+      {
+        "orbital_phase": 0.8066666666666666,
+        "radial_velocity_m_s": 10.395380231173162,
+        "time_s": 25456464.0
+      },
+      {
+        "orbital_phase": 0.81,
+        "radial_velocity_m_s": 10.978489890368989,
+        "time_s": 25561656.0
+      },
+      {
+        "orbital_phase": 0.8133333333333334,
+        "radial_velocity_m_s": 11.55678402105639,
+        "time_s": 25666848.0
+      },
+      {
+        "orbital_phase": 0.8166666666666667,
+        "radial_velocity_m_s": 12.130008964316875,
+        "time_s": 25772040.0
+      },
+      {
+        "orbital_phase": 0.82,
+        "radial_velocity_m_s": 12.697913284745066,
+        "time_s": 25877232.0
+      },
+      {
+        "orbital_phase": 0.8233333333333334,
+        "radial_velocity_m_s": 13.260247880736632,
+        "time_s": 25982424.0
+      },
+      {
+        "orbital_phase": 0.8266666666666667,
+        "radial_velocity_m_s": 13.816766093752417,
+        "time_s": 26087616.0
+      },
+      {
+        "orbital_phase": 0.83,
+        "radial_velocity_m_s": 14.36722381651107,
+        "time_s": 26192808.0
+      },
+      {
+        "orbital_phase": 0.8333333333333334,
+        "radial_velocity_m_s": 14.911379600062638,
+        "time_s": 26298000.0
+      },
+      {
+        "orbital_phase": 0.8366666666666667,
+        "radial_velocity_m_s": 15.44899475969589,
+        "time_s": 26403192.0
+      },
+      {
+        "orbital_phase": 0.84,
+        "radial_velocity_m_s": 15.979833479633488,
+        "time_s": 26508384.0
+      },
+      {
+        "orbital_phase": 0.8433333333333334,
+        "radial_velocity_m_s": 16.503662916468507,
+        "time_s": 26613576.0
+      },
+      {
+        "orbital_phase": 0.8466666666666667,
+        "radial_velocity_m_s": 17.020253301297203,
+        "time_s": 26718768.0
+      },
+      {
+        "orbital_phase": 0.85,
+        "radial_velocity_m_s": 17.529378040503296,
+        "time_s": 26823960.0
+      },
+      {
+        "orbital_phase": 0.8533333333333334,
+        "radial_velocity_m_s": 18.03081381514949,
+        "time_s": 26929152.0
+      },
+      {
+        "orbital_phase": 0.8566666666666667,
+        "radial_velocity_m_s": 18.52434067893236,
+        "time_s": 27034344.0
+      },
+      {
+        "orbital_phase": 0.86,
+        "radial_velocity_m_s": 19.009742154658273,
+        "time_s": 27139536.0
+      },
+      {
+        "orbital_phase": 0.8633333333333333,
+        "radial_velocity_m_s": 19.486805329197324,
+        "time_s": 27244728.0
+      },
+      {
+        "orbital_phase": 0.8666666666666667,
+        "radial_velocity_m_s": 19.955320946874043,
+        "time_s": 27349920.0
+      },
+      {
+        "orbital_phase": 0.87,
+        "radial_velocity_m_s": 20.41508350125392,
+        "time_s": 27455112.0
+      },
+      {
+        "orbital_phase": 0.8733333333333333,
+        "radial_velocity_m_s": 20.865891325285336,
+        "time_s": 27560304.0
+      },
+      {
+        "orbital_phase": 0.8766666666666667,
+        "radial_velocity_m_s": 21.307546679757337,
+        "time_s": 27665496.0
+      },
+      {
+        "orbital_phase": 0.88,
+        "radial_velocity_m_s": 21.739855840034576,
+        "time_s": 27770688.0
+      },
+      {
+        "orbital_phase": 0.8833333333333333,
+        "radial_velocity_m_s": 22.162629181031427,
+        "time_s": 27875880.0
+      },
+      {
+        "orbital_phase": 0.8866666666666667,
+        "radial_velocity_m_s": 22.575681260387746,
+        "time_s": 27981072.0
+      },
+      {
+        "orbital_phase": 0.89,
+        "radial_velocity_m_s": 22.97883089981002,
+        "time_s": 28086264.0
+      },
+      {
+        "orbital_phase": 0.8933333333333333,
+        "radial_velocity_m_s": 23.371901264542156,
+        "time_s": 28191456.0
+      },
+      {
+        "orbital_phase": 0.8966666666666666,
+        "radial_velocity_m_s": 23.754719940931107,
+        "time_s": 28296648.0
+      },
+      {
+        "orbital_phase": 0.9,
+        "radial_velocity_m_s": 24.127119012053146,
+        "time_s": 28401840.0
+      },
+      {
+        "orbital_phase": 0.9033333333333333,
+        "radial_velocity_m_s": 24.488935131367743,
+        "time_s": 28507032.0
+      },
+      {
+        "orbital_phase": 0.9066666666666666,
+        "radial_velocity_m_s": 24.84000959436686,
+        "time_s": 28612224.0
+      },
+      {
+        "orbital_phase": 0.91,
+        "radial_velocity_m_s": 25.1801884081879,
+        "time_s": 28717416.0
+      },
+      {
+        "orbital_phase": 0.9133333333333333,
+        "radial_velocity_m_s": 25.509322359160084,
+        "time_s": 28822608.0
+      },
+      {
+        "orbital_phase": 0.9166666666666666,
+        "radial_velocity_m_s": 25.82726707825455,
+        "time_s": 28927800.0
+      },
+      {
+        "orbital_phase": 0.92,
+        "radial_velocity_m_s": 26.133883104409353,
+        "time_s": 29032992.0
+      },
+      {
+        "orbital_phase": 0.9233333333333333,
+        "radial_velocity_m_s": 26.429035945701635,
+        "time_s": 29138184.0
+      },
+      {
+        "orbital_phase": 0.9266666666666666,
+        "radial_velocity_m_s": 26.71259613834034,
+        "time_s": 29243376.0
+      },
+      {
+        "orbital_phase": 0.93,
+        "radial_velocity_m_s": 26.984439303453208,
+        "time_s": 29348568.0
+      },
+      {
+        "orbital_phase": 0.9333333333333333,
+        "radial_velocity_m_s": 27.244446201643516,
+        "time_s": 29453760.0
+      },
+      {
+        "orbital_phase": 0.9366666666666666,
+        "radial_velocity_m_s": 27.492502785292416,
+        "time_s": 29558952.0
+      },
+      {
+        "orbital_phase": 0.94,
+        "radial_velocity_m_s": 27.728500248583973,
+        "time_s": 29664144.0
+      },
+      {
+        "orbital_phase": 0.9433333333333334,
+        "radial_velocity_m_s": 27.95233507523101,
+        "time_s": 29769336.0
+      },
+      {
+        "orbital_phase": 0.9466666666666667,
+        "radial_velocity_m_s": 28.16390908388073,
+        "time_s": 29874528.0
+      },
+      {
+        "orbital_phase": 0.95,
+        "radial_velocity_m_s": 28.363129471180365,
+        "time_s": 29979720.0
+      },
+      {
+        "orbital_phase": 0.9533333333333334,
+        "radial_velocity_m_s": 28.549908852483746,
+        "time_s": 30084912.0
+      },
+      {
+        "orbital_phase": 0.9566666666666667,
+        "radial_velocity_m_s": 28.724165300181117,
+        "time_s": 30190104.0
+      },
+      {
+        "orbital_phase": 0.96,
+        "radial_velocity_m_s": 28.885822379635286,
+        "time_s": 30295296.0
+      },
+      {
+        "orbital_phase": 0.9633333333333334,
+        "radial_velocity_m_s": 29.034809182708393,
+        "time_s": 30400488.0
+      },
+      {
+        "orbital_phase": 0.9666666666666667,
+        "radial_velocity_m_s": 29.171060358864544,
+        "time_s": 30505680.0
+      },
+      {
+        "orbital_phase": 0.97,
+        "radial_velocity_m_s": 29.294516143834745,
+        "time_s": 30610872.0
+      },
+      {
+        "orbital_phase": 0.9733333333333334,
+        "radial_velocity_m_s": 29.405122385831444,
+        "time_s": 30716064.0
+      },
+      {
+        "orbital_phase": 0.9766666666666667,
+        "radial_velocity_m_s": 29.502830569301334,
+        "time_s": 30821256.0
+      },
+      {
+        "orbital_phase": 0.98,
+        "radial_velocity_m_s": 29.587597836205862,
+        "time_s": 30926448.0
+      },
+      {
+        "orbital_phase": 0.9833333333333333,
+        "radial_velocity_m_s": 29.65938700482018,
+        "time_s": 31031640.0
+      },
+      {
+        "orbital_phase": 0.9866666666666667,
+        "radial_velocity_m_s": 29.718166586042276,
+        "time_s": 31136832.0
+      },
+      {
+        "orbital_phase": 0.99,
+        "radial_velocity_m_s": 29.763910797205146,
+        "time_s": 31242024.0
+      },
+      {
+        "orbital_phase": 0.9933333333333333,
+        "radial_velocity_m_s": 29.79659957338591,
+        "time_s": 31347216.0
+      },
+      {
+        "orbital_phase": 0.9966666666666667,
+        "radial_velocity_m_s": 29.816218576206964,
+        "time_s": 31452408.0
+      },
+      {
+        "orbital_phase": 1.0,
+        "radial_velocity_m_s": 29.822759200125255,
+        "time_s": 31557600.0
+      }
+    ],
+    "edge_on_minimum_mass_kg": 2.0000000000000066e27,
+    "inclination_projection": 1.0,
+    "inputs": {
+      "eccentricity": 0.0,
+      "inclination_deg": 90.0,
+      "mean_anomaly_at_epoch_deg": 0.0,
+      "orbital_period_s": 31557600.0,
+      "planet_mass_kg": 2e27,
+      "stellar_argument_of_periastron_deg": 0.0,
+      "stellar_mass_kg": 2e30
+    },
+    "mass_function_kg": 1.9960059920100085e21,
+    "model_version": "radial-velocity-v1",
+    "projected_planet_mass_kg": 2e27,
+    "schema_version": 1,
+    "semi_amplitude_m_s": 29.822759200125255
+  }
+}

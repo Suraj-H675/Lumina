@@ -2962,6 +2962,131 @@
         "title": "QuantityReference",
         "type": "object"
       },
+      "RadialVelocityCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "curve": {
+            "items": {
+              "$ref": "#/components/schemas/RadialVelocityCurvePointResponse"
+            },
+            "maxItems": 301,
+            "title": "Curve",
+            "type": "array"
+          },
+          "edge_on_minimum_mass_kg": {
+            "title": "Edge On Minimum Mass Kg",
+            "type": "number"
+          },
+          "inclination_projection": {
+            "title": "Inclination Projection",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/RadialVelocityInputResponse"
+          },
+          "mass_function_kg": {
+            "title": "Mass Function Kg",
+            "type": "number"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "projected_planet_mass_kg": {
+            "title": "Projected Planet Mass Kg",
+            "type": "number"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "semi_amplitude_m_s": {
+            "title": "Semi Amplitude M S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "inclination_projection",
+          "semi_amplitude_m_s",
+          "projected_planet_mass_kg",
+          "mass_function_kg",
+          "edge_on_minimum_mass_kg",
+          "curve"
+        ],
+        "title": "RadialVelocityCalculationResponse",
+        "type": "object"
+      },
+      "RadialVelocityCurvePointResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "orbital_phase": {
+            "title": "Orbital Phase",
+            "type": "number"
+          },
+          "radial_velocity_m_s": {
+            "title": "Radial Velocity M S",
+            "type": "number"
+          },
+          "time_s": {
+            "title": "Time S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "time_s",
+          "orbital_phase",
+          "radial_velocity_m_s"
+        ],
+        "title": "RadialVelocityCurvePointResponse",
+        "type": "object"
+      },
+      "RadialVelocityInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "eccentricity": {
+            "title": "Eccentricity",
+            "type": "number"
+          },
+          "inclination_deg": {
+            "title": "Inclination Deg",
+            "type": "number"
+          },
+          "mean_anomaly_at_epoch_deg": {
+            "title": "Mean Anomaly At Epoch Deg",
+            "type": "number"
+          },
+          "orbital_period_s": {
+            "title": "Orbital Period S",
+            "type": "number"
+          },
+          "planet_mass_kg": {
+            "title": "Planet Mass Kg",
+            "type": "number"
+          },
+          "stellar_argument_of_periastron_deg": {
+            "title": "Stellar Argument Of Periastron Deg",
+            "type": "number"
+          },
+          "stellar_mass_kg": {
+            "title": "Stellar Mass Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stellar_mass_kg",
+          "planet_mass_kg",
+          "orbital_period_s",
+          "eccentricity",
+          "inclination_deg",
+          "stellar_argument_of_periastron_deg",
+          "mean_anomaly_at_epoch_deg"
+        ],
+        "title": "RadialVelocityInputResponse",
+        "type": "object"
+      },
       "ReadyResponse": {
         "additionalProperties": false,
         "description": "Public dependency readiness.",
@@ -6287,6 +6412,116 @@
           }
         },
         "summary": "Orbit Sandbox",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/radial-velocity": {
+      "get": {
+        "operationId": "calculate_radial_velocity",
+        "parameters": [
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "stellar_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Stellar Mass Kg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "planet_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Planet Mass Kg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "orbital_period_s",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Orbital Period S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "eccentricity",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Eccentricity",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "inclination_deg",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Inclination Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "stellar_argument_of_periastron_deg",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Stellar Argument Of Periastron Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Radial Velocity SI-unit model input.",
+            "in": "query",
+            "name": "mean_anomaly_at_epoch_deg",
+            "required": true,
+            "schema": {
+              "description": "Radial Velocity SI-unit model input.",
+              "title": "Mean Anomaly At Epoch Deg",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadialVelocityCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Radial Velocity inputs are invalid."
+          }
+        },
+        "summary": "Radial Velocity",
         "tags": [
           "simulations"
         ]

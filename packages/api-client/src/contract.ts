@@ -9,10 +9,12 @@ import type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
   CalculateOrbitSandboxData,
+  CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
   CalculateTelescopeBuilderData,
   CalculateTransitMethodData,
   OrbitSandboxCalculationResponse,
+  RadialVelocityCalculationResponse,
   TelescopeBuilderCalculationResponse,
   SeasonsCalculationResponse,
   TransitMethodCalculationResponse,
@@ -53,6 +55,7 @@ import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
   zCalculateOrbitSandboxResponse,
+  zCalculateRadialVelocityResponse,
   zCalculateSeasonsSimulatorResponse,
   zCalculateTelescopeBuilderResponse,
   zCalculateTransitMethodResponse,
@@ -341,6 +344,12 @@ export const orbitSandboxEndpoint = {
   path: "/api/v1/simulations/orbit-sandbox" satisfies CalculateOrbitSandboxData["url"],
   validator: zCalculateOrbitSandboxResponse,
 } satisfies ApiEndpoint<OrbitSandboxCalculationResponse, CalculateOrbitSandboxData["url"]>;
+
+export const radialVelocityEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/radial-velocity" satisfies CalculateRadialVelocityData["url"],
+  validator: zCalculateRadialVelocityResponse,
+} satisfies ApiEndpoint<RadialVelocityCalculationResponse, CalculateRadialVelocityData["url"]>;
 
 export const seasonsSimulatorEndpoint = {
   method: "GET",

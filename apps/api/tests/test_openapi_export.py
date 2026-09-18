@@ -66,6 +66,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/now/launches/{launch_id}",
         "/api/v1/now/space-weather",
         "/api/v1/simulations/orbit-sandbox",
+        "/api/v1/simulations/radial-velocity",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/telescope-builder",
         "/api/v1/simulations/transit-method",
@@ -124,6 +125,28 @@ def test_seasons_calculation_openapi_is_versioned_and_read_only() -> None:
     }
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/seasons"]) == {"get"}
+
+
+def test_radial_velocity_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/radial-velocity"]["get"]
+
+    assert operation["operationId"] == "calculate_radial_velocity"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/RadialVelocityCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "stellar_mass_kg",
+        "planet_mass_kg",
+        "orbital_period_s",
+        "eccentricity",
+        "inclination_deg",
+        "stellar_argument_of_periastron_deg",
+        "mean_anomaly_at_epoch_deg",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    assert set(document["paths"]["/api/v1/simulations/radial-velocity"]) == {"get"}
 
 
 def test_telescope_builder_calculation_openapi_is_versioned_and_read_only() -> None:

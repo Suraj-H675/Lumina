@@ -743,6 +743,43 @@ export const zQuantityReference = z.object({
 });
 
 /**
+ * RadialVelocityCurvePointResponse
+ */
+export const zRadialVelocityCurvePointResponse = z.object({
+  orbital_phase: z.number(),
+  radial_velocity_m_s: z.number(),
+  time_s: z.number(),
+});
+
+/**
+ * RadialVelocityInputResponse
+ */
+export const zRadialVelocityInputResponse = z.object({
+  eccentricity: z.number(),
+  inclination_deg: z.number(),
+  mean_anomaly_at_epoch_deg: z.number(),
+  orbital_period_s: z.number(),
+  planet_mass_kg: z.number(),
+  stellar_argument_of_periastron_deg: z.number(),
+  stellar_mass_kg: z.number(),
+});
+
+/**
+ * RadialVelocityCalculationResponse
+ */
+export const zRadialVelocityCalculationResponse = z.object({
+  curve: z.array(zRadialVelocityCurvePointResponse).max(301),
+  edge_on_minimum_mass_kg: z.number(),
+  inclination_projection: z.number(),
+  inputs: zRadialVelocityInputResponse,
+  mass_function_kg: z.number(),
+  model_version: z.string(),
+  projected_planet_mass_kg: z.number(),
+  schema_version: z.int(),
+  semi_amplitude_m_s: z.number(),
+});
+
+/**
  * ReadyResponse
  *
  * Public dependency readiness.
@@ -1442,6 +1479,11 @@ export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
  * Successful Response
  */
 export const zCalculateOrbitSandboxResponse = zOrbitSandboxCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateRadialVelocityResponse = zRadialVelocityCalculationResponse;
 
 /**
  * Successful Response

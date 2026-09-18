@@ -8,6 +8,7 @@ import {
   catalogSearchEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
+  radialVelocityEndpoint,
   seasonsSimulatorEndpoint,
   telescopeBuilderEndpoint,
   transitMethodEndpoint,
@@ -24,6 +25,7 @@ import type {
   EntitySummaryResponse,
   EntityType,
   CalculateOrbitSandboxData,
+  CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
   CalculateTelescopeBuilderData,
   CalculateTransitMethodData,
@@ -63,6 +65,8 @@ describe("generated contract boundary", () => {
     expectTypeOf(satellitePassEndpoint.path).toEqualTypeOf<PostNowSatellitePassesData["url"]>();
     expect(orbitSandboxEndpoint.method).toBe("GET");
     expectTypeOf(orbitSandboxEndpoint.path).toEqualTypeOf<CalculateOrbitSandboxData["url"]>();
+    expect(radialVelocityEndpoint.method).toBe("GET");
+    expectTypeOf(radialVelocityEndpoint.path).toEqualTypeOf<CalculateRadialVelocityData["url"]>();
     expect(seasonsSimulatorEndpoint.method).toBe("GET");
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]
@@ -504,6 +508,61 @@ describe("Telescope Builder endpoint", () => {
         ),
     });
 
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+});
+
+describe("Radial Velocity endpoint", () => {
+  const response = {
+    model_version: "radial-velocity-v1",
+    schema_version: 1,
+    inputs: {
+      stellar_mass_kg: 2e30,
+      planet_mass_kg: 2e27,
+      orbital_period_s: 31_557_600,
+      eccentricity: 0,
+      inclination_deg: 90,
+      stellar_argument_of_periastron_deg: 0,
+      mean_anomaly_at_epoch_deg: 0,
+    },
+    inclination_projection: 1,
+    semi_amplitude_m_s: 28.348,
+    projected_planet_mass_kg: 2e27,
+    mass_function_kg: 1.996e21,
+    edge_on_minimum_mass_kg: 2e27,
+    curve: [
+      {
+        time_s: 0,
+        orbital_phase: 0,
+        radial_velocity_m_s: 28.348,
+      },
+    ],
+  };
+
+  it("binds the generated URL and accepts the exact scientific result shape", async () => {
+    expectTypeOf(radialVelocityEndpoint.path).toEqualTypeOf<CalculateRadialVelocityData["url"]>();
+    const result = await requestEndpoint("http://127.0.0.1:8000", radialVelocityEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(response), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("rejects additive Radial Velocity result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", radialVelocityEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, unexpected: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
     expect(result).toEqual({ kind: "malformed-response" });
   });
 });

@@ -14,6 +14,12 @@ const labs = [
       "Explore circular exoplanet transit geometry, contact durations, and a deterministic uniform-source light curve.",
   },
   {
+    href: "/lab/radial-velocity",
+    title: "Radial Velocity Lab",
+    description:
+      "Explore deterministic stellar reflex velocity, orbital inclination, and the spectroscopic minimum-mass degeneracy.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

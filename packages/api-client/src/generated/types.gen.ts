@@ -235,6 +235,145 @@ export type DatasetReference = {
 };
 
 /**
+ * EclipseInstantGeometryResponse
+ */
+export type EclipseInstantGeometryResponse = {
+  /**
+   * Center Separation Deg
+   */
+  center_separation_deg: number;
+  /**
+   * Moon Angular Radius Deg
+   */
+  moon_angular_radius_deg: number;
+  /**
+   * Moon Distance Km
+   */
+  moon_distance_km: number;
+  /**
+   * Obscuration Fraction
+   */
+  obscuration_fraction: number;
+  /**
+   * Phase
+   */
+  phase: "none" | "partial" | "total" | "annular";
+  /**
+   * Shadow Region
+   */
+  shadow_region: "outside" | "penumbra" | "umbra" | "antumbra";
+  /**
+   * Sun Above Geometric Horizon
+   */
+  sun_above_geometric_horizon: boolean;
+  /**
+   * Sun Altitude Deg
+   */
+  sun_altitude_deg: number;
+  /**
+   * Sun Angular Radius Deg
+   */
+  sun_angular_radius_deg: number;
+  /**
+   * Sun Distance Km
+   */
+  sun_distance_km: number;
+};
+
+/**
+ * EclipseLocalEventResponse
+ */
+export type EclipseLocalEventResponse = {
+  /**
+   * Central Begin Utc
+   */
+  central_begin_utc: string | null;
+  /**
+   * Central End Utc
+   */
+  central_end_utc: string | null;
+  /**
+   * Classification
+   */
+  classification: "partial" | "total" | "annular";
+  /**
+   * Maximum Obscuration Fraction
+   */
+  maximum_obscuration_fraction: number;
+  /**
+   * Maximum Utc
+   */
+  maximum_utc: string;
+  /**
+   * Partial Begin Utc
+   */
+  partial_begin_utc: string;
+  /**
+   * Partial End Utc
+   */
+  partial_end_utc: string;
+  /**
+   * Sun Above Geometric Horizon At Maximum
+   */
+  sun_above_geometric_horizon_at_maximum: boolean;
+  /**
+   * Sun Altitude Deg At Maximum
+   */
+  sun_altitude_deg_at_maximum: number;
+};
+
+/**
+ * EclipseSimulatorCalculationResponse
+ */
+export type EclipseSimulatorCalculationResponse = {
+  /**
+   * Ephemeris Note
+   */
+  ephemeris_note: string;
+  inputs: EclipseSimulatorInputResponse;
+  instant: EclipseInstantGeometryResponse;
+  local_event: EclipseLocalEventResponse | null;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Safety Reference Id
+   */
+  safety_reference_id: string;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Timing Note
+   */
+  timing_note: string;
+};
+
+/**
+ * EclipseSimulatorInputResponse
+ */
+export type EclipseSimulatorInputResponse = {
+  /**
+   * At Utc
+   */
+  at_utc: string;
+  /**
+   * Elevation M
+   */
+  elevation_m: number;
+  /**
+   * Latitude Deg
+   */
+  latitude_deg: number;
+  /**
+   * Longitude Deg
+   */
+  longitude_deg: number;
+};
+
+/**
  * EntityBrowsePageResponse
  */
 export type EntityBrowsePageResponse = {
@@ -3684,6 +3823,58 @@ export type SuggestCatalogEntitiesResponses = {
 
 export type SuggestCatalogEntitiesResponse =
   SuggestCatalogEntitiesResponses[keyof SuggestCatalogEntitiesResponses];
+
+export type CalculateEclipseSimulatorData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * At Utc
+     *
+     * Explicit UTC observer instant inside the reviewed offline v1 interval.
+     */
+    at_utc: string;
+    /**
+     * Latitude Deg
+     *
+     * WGS84 geodetic observer latitude in degrees.
+     */
+    latitude_deg: number;
+    /**
+     * Longitude Deg
+     *
+     * WGS84 geodetic observer longitude in degrees, east-positive.
+     */
+    longitude_deg: number;
+    /**
+     * Elevation M
+     *
+     * Observer elevation above the WGS84 ellipsoid in metres.
+     */
+    elevation_m: number;
+  };
+  url: "/api/v1/simulations/eclipse-simulator";
+};
+
+export type CalculateEclipseSimulatorErrors = {
+  /**
+   * The Eclipse Simulator input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateEclipseSimulatorError =
+  CalculateEclipseSimulatorErrors[keyof CalculateEclipseSimulatorErrors];
+
+export type CalculateEclipseSimulatorResponses = {
+  /**
+   * Successful Response
+   */
+  200: EclipseSimulatorCalculationResponse;
+};
+
+export type CalculateEclipseSimulatorResponse =
+  CalculateEclipseSimulatorResponses[keyof CalculateEclipseSimulatorResponses];
 
 export type CalculateOrbitSandboxData = {
   body?: never;

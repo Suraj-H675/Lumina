@@ -412,6 +412,238 @@
         "title": "DatasetReference",
         "type": "object"
       },
+      "EclipseInstantGeometryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "center_separation_deg": {
+            "title": "Center Separation Deg",
+            "type": "number"
+          },
+          "moon_angular_radius_deg": {
+            "title": "Moon Angular Radius Deg",
+            "type": "number"
+          },
+          "moon_distance_km": {
+            "title": "Moon Distance Km",
+            "type": "number"
+          },
+          "obscuration_fraction": {
+            "title": "Obscuration Fraction",
+            "type": "number"
+          },
+          "phase": {
+            "enum": [
+              "none",
+              "partial",
+              "total",
+              "annular"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "shadow_region": {
+            "enum": [
+              "outside",
+              "penumbra",
+              "umbra",
+              "antumbra"
+            ],
+            "title": "Shadow Region",
+            "type": "string"
+          },
+          "sun_above_geometric_horizon": {
+            "title": "Sun Above Geometric Horizon",
+            "type": "boolean"
+          },
+          "sun_altitude_deg": {
+            "title": "Sun Altitude Deg",
+            "type": "number"
+          },
+          "sun_angular_radius_deg": {
+            "title": "Sun Angular Radius Deg",
+            "type": "number"
+          },
+          "sun_distance_km": {
+            "title": "Sun Distance Km",
+            "type": "number"
+          }
+        },
+        "required": [
+          "phase",
+          "shadow_region",
+          "sun_angular_radius_deg",
+          "moon_angular_radius_deg",
+          "center_separation_deg",
+          "obscuration_fraction",
+          "sun_distance_km",
+          "moon_distance_km",
+          "sun_altitude_deg",
+          "sun_above_geometric_horizon"
+        ],
+        "title": "EclipseInstantGeometryResponse",
+        "type": "object"
+      },
+      "EclipseLocalEventResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "central_begin_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Central Begin Utc"
+          },
+          "central_end_utc": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Central End Utc"
+          },
+          "classification": {
+            "enum": [
+              "partial",
+              "total",
+              "annular"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "maximum_obscuration_fraction": {
+            "title": "Maximum Obscuration Fraction",
+            "type": "number"
+          },
+          "maximum_utc": {
+            "format": "date-time",
+            "title": "Maximum Utc",
+            "type": "string"
+          },
+          "partial_begin_utc": {
+            "format": "date-time",
+            "title": "Partial Begin Utc",
+            "type": "string"
+          },
+          "partial_end_utc": {
+            "format": "date-time",
+            "title": "Partial End Utc",
+            "type": "string"
+          },
+          "sun_above_geometric_horizon_at_maximum": {
+            "title": "Sun Above Geometric Horizon At Maximum",
+            "type": "boolean"
+          },
+          "sun_altitude_deg_at_maximum": {
+            "title": "Sun Altitude Deg At Maximum",
+            "type": "number"
+          }
+        },
+        "required": [
+          "classification",
+          "partial_begin_utc",
+          "central_begin_utc",
+          "maximum_utc",
+          "central_end_utc",
+          "partial_end_utc",
+          "maximum_obscuration_fraction",
+          "sun_altitude_deg_at_maximum",
+          "sun_above_geometric_horizon_at_maximum"
+        ],
+        "title": "EclipseLocalEventResponse",
+        "type": "object"
+      },
+      "EclipseSimulatorCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "ephemeris_note": {
+            "title": "Ephemeris Note",
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/EclipseSimulatorInputResponse"
+          },
+          "instant": {
+            "$ref": "#/components/schemas/EclipseInstantGeometryResponse"
+          },
+          "local_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EclipseLocalEventResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "safety_reference_id": {
+            "title": "Safety Reference Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "timing_note": {
+            "title": "Timing Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "instant",
+          "local_event",
+          "ephemeris_note",
+          "timing_note",
+          "safety_reference_id"
+        ],
+        "title": "EclipseSimulatorCalculationResponse",
+        "type": "object"
+      },
+      "EclipseSimulatorInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "at_utc": {
+            "format": "date-time",
+            "title": "At Utc",
+            "type": "string"
+          },
+          "elevation_m": {
+            "title": "Elevation M",
+            "type": "number"
+          },
+          "latitude_deg": {
+            "title": "Latitude Deg",
+            "type": "number"
+          },
+          "longitude_deg": {
+            "title": "Longitude Deg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "at_utc",
+          "latitude_deg",
+          "longitude_deg",
+          "elevation_m"
+        ],
+        "title": "EclipseSimulatorInputResponse",
+        "type": "object"
+      },
       "EntityBrowsePageResponse": {
         "additionalProperties": false,
         "properties": {
@@ -6379,6 +6611,84 @@
         "summary": "Suggest Catalog Entities",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/simulations/eclipse-simulator": {
+      "get": {
+        "operationId": "calculate_eclipse_simulator",
+        "parameters": [
+          {
+            "description": "Explicit UTC observer instant inside the reviewed offline v1 interval.",
+            "in": "query",
+            "name": "at_utc",
+            "required": true,
+            "schema": {
+              "description": "Explicit UTC observer instant inside the reviewed offline v1 interval.",
+              "format": "date-time",
+              "title": "At Utc",
+              "type": "string"
+            }
+          },
+          {
+            "description": "WGS84 geodetic observer latitude in degrees.",
+            "in": "query",
+            "name": "latitude_deg",
+            "required": true,
+            "schema": {
+              "description": "WGS84 geodetic observer latitude in degrees.",
+              "title": "Latitude Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "WGS84 geodetic observer longitude in degrees, east-positive.",
+            "in": "query",
+            "name": "longitude_deg",
+            "required": true,
+            "schema": {
+              "description": "WGS84 geodetic observer longitude in degrees, east-positive.",
+              "title": "Longitude Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Observer elevation above the WGS84 ellipsoid in metres.",
+            "in": "query",
+            "name": "elevation_m",
+            "required": true,
+            "schema": {
+              "description": "Observer elevation above the WGS84 ellipsoid in metres.",
+              "title": "Elevation M",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EclipseSimulatorCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Eclipse Simulator input is invalid."
+          }
+        },
+        "summary": "Eclipse Simulator",
+        "tags": [
+          "simulations"
         ]
       }
     },

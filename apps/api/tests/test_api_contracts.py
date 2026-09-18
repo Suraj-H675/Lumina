@@ -350,6 +350,7 @@ def test_openapi_contains_only_approved_routes() -> None:
         "/api/v1/now/satellites",
         "/api/v1/now/satellites/passes",
         "/api/v1/now/space-weather",
+        "/api/v1/simulations/eclipse-simulator",
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/radial-velocity",
         "/api/v1/simulations/seasons",

@@ -1,0 +1,377 @@
+{
+  "artifact_version": 1,
+  "model_version": "eclipse-simulator-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-18T00:00:00Z",
+  "definition": {
+    "slug": "eclipse-simulator",
+    "title": "Eclipse Simulator",
+    "content_type": "interactive-simulation",
+    "language": "en",
+    "status": "ready",
+    "version": 1,
+    "share_schema_version": 1,
+    "model_version": "eclipse-simulator-v1",
+    "learning_objectives": [
+      "Connect topocentric Sun-Moon alignment and apparent angular size to partial, total, and annular solar eclipses.",
+      "Distinguish the local penumbra, umbra, and antumbra interpretations without confusing them with a generated global shadow path.",
+      "Understand why the roughly five-degree lunar-orbit inclination prevents a solar eclipse at most new moons.",
+      "Read approximate local contact timing while recognizing the limits of an offline educational ephemeris."
+    ],
+    "prerequisite_concepts": [
+      "angular size",
+      "angular separation",
+      "latitude and longitude",
+      "UTC time",
+      "new Moon alignment",
+      "circle overlap"
+    ],
+    "input_schema": {
+      "fields": [
+        {
+          "name": "at_utc",
+          "unit": "UTC ISO-8601 instant",
+          "meaning": "Observer time for the instantaneous topocentric apparent geometry.",
+          "valid_range": "1973-01-02T00:00:00Z through 2027-08-27T23:59:59Z",
+          "default": "2024-04-08T18:42:00Z"
+        },
+        {
+          "name": "latitude_deg",
+          "unit": "deg",
+          "meaning": "WGS84 geodetic observer latitude.",
+          "valid_range": "-90 <= latitude_deg <= 90",
+          "default": 32.7767
+        },
+        {
+          "name": "longitude_deg",
+          "unit": "deg",
+          "meaning": "WGS84 geodetic observer longitude, east-positive.",
+          "valid_range": "-180 <= longitude_deg <= 180",
+          "default": -96.797
+        },
+        {
+          "name": "elevation_m",
+          "unit": "m",
+          "meaning": "Observer height above the WGS84 reference ellipsoid.",
+          "valid_range": "-500 <= elevation_m <= 9000",
+          "default": 130.0
+        }
+      ],
+      "invalid_handling": "Reject naive/non-UTC timestamps, timestamps outside the reviewed offline Earth-orientation interval, booleans/non-finite coordinates, and out-of-range locations. No time or location is silently clamped."
+    },
+    "output_schema": [
+      "instantaneous local phase: none, partial, total, or annular",
+      "local shadow-region interpretation: outside, penumbra, umbra, or antumbra",
+      "topocentric apparent Sun/Moon center separation",
+      "topocentric apparent Sun and Moon angular radii and distances",
+      "geometric Solar-disk obscuration area fraction",
+      "geometric Sun altitude and above-horizon flag",
+      "optional approximate local eclipse event with minute-rounded contacts and maximum"
+    ],
+    "equations": {
+      "apparent_angular_radius": "alpha = asin(R / d), using reviewed physical radius R and topocentric apparent distance d",
+      "outer_contact": "partial overlap when center separation s < alpha_sun + alpha_moon",
+      "total_condition": "total when alpha_moon >= alpha_sun and s <= alpha_moon - alpha_sun",
+      "annular_condition": "annular when alpha_sun > alpha_moon and s <= alpha_sun - alpha_moon",
+      "obscuration": "exact planar overlap area of the two apparent circular disks divided by pi*alpha_sun^2",
+      "sun_altitude": "Astropy topocentric AltAz transform with pressure=0, so no atmospheric refraction is applied"
+    },
+    "sampling_policy": "The instantaneous state is evaluated exactly at the requested UTC instant. If the requested instant lies within a local geometric solar eclipse, a bounded plus/minus six-hour event search uses deterministic coarse sampling and bounded refinement. Public contact and maximum timestamps are rounded to whole UTC minutes; browser code must not recompute them.",
+    "default_preset": "NASA 2024 Dallas total-eclipse reference near the published city-table maximum. It is a validation/education preset, not a promise of precision eclipse navigation.",
+    "assumptions": [
+      "Solar eclipses only; the Sun and Moon are represented by apparent circular disks.",
+      "Topocentric apparent positions come from Astropy 8.0.1 with ephemeris='builtin' and runtime IERS downloads disabled.",
+      "The observer location is WGS84 geodetic latitude/longitude/elevation.",
+      "The Solar radius is the exact IAU 2015 Resolution B3 nominal Solar radius of 695700 km.",
+      "The lunar radius is the NASA/NSSDCA volumetric mean radius of 1737.4 km.",
+      "Geometric altitude uses zero atmospheric pressure and therefore excludes refraction.",
+      "Minute-rounded contacts are approximate educational timing, independently checked against NASA city tables for the 2023 Albuquerque annular and 2024 Dallas total eclipses."
+    ],
+    "limitations": [
+      "ERFA moon98 is approximate and non-canonical; its documented 1950-2100 comparison errors against ELP/MPP02 are 2.9 arcsec RMS and 18.3 arcsec worst-case geocentric direction.",
+      "No JPL BSP, lunar-limb profile, Baily's beads, diamond-ring timing, corona prediction, or second-level contact claim.",
+      "No atmospheric refraction, terrain/building horizon obstruction, weather, cloud, haze, extinction, or sky-brightness calculation.",
+      "Obscuration is geometric Solar-disk area overlap, not irradiance, perceived brightness, temperature, or a safety state.",
+      "No global eclipse-path map, hybrid-event global taxonomy, eclipse-season search, or lunar-eclipse mode in v1.",
+      "The offline UTC range is intentionally bounded by the locked Earth-orientation data; dates outside it are rejected.",
+      "Solar-viewing safety is independent of model output and must always follow the cited NASA guidance."
+    ],
+    "references": [
+      "astropy-solar-system-ephemerides",
+      "erfa-moon98",
+      "iau-2015-resolution-b3",
+      "nasa-nssdc-moon-fact-sheet",
+      "nasa-eclipse-geometry",
+      "nasa-eclipse-safety",
+      "nasa-2024-eclipse-where-when",
+      "nasa-2023-eclipse-where-when"
+    ],
+    "validation_fixtures": [
+      "dallas-2024-total",
+      "dallas-2024-partial-shoulder",
+      "dallas-next-day-none",
+      "albuquerque-2023-annular",
+      "dallas-2024-contacts",
+      "albuquerque-2023-contacts",
+      "disk-overlap-limits",
+      "horizon-state",
+      "deterministic-repeat",
+      "domain-rejection",
+      "artifact-mutation"
+    ]
+  },
+  "sources": [
+    {
+      "id": "astropy-solar-system-ephemerides",
+      "title": "Solar System Ephemerides",
+      "organization_or_authors": "Astropy Project",
+      "url": "https://docs.astropy.org/en/stable/coordinates/solarsystem.html",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "Astropy 8.0.1 builtin ephemeris",
+      "record_reference": "get_body / solar_system_ephemeris builtin behavior and apparent topocentric positions",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Astropy 8.0.1 repository-locked release",
+      "terms_or_licence": "Astropy is distributed under its open-source licence; Lumina records API/model provenance and does not redistribute external ephemeris files.",
+      "citation": "Astropy Project, Solar System Ephemerides documentation, Astropy 8.0.1.",
+      "claim_scope": "Builtin offline ephemeris behavior, apparent light-time-corrected body position API, and explicit ephemeris selection.",
+      "source_type": "official software documentation"
+    },
+    {
+      "id": "erfa-moon98",
+      "title": "eraMoon98 — Approximate geocentric position and velocity of the Moon",
+      "organization_or_authors": "ERFA / SOFA-derived implementation",
+      "url": "https://pyerfa.readthedocs.io/en/latest/api/erfa.moon98.html",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "PyERFA 2.0.1.5 / ERFA moon98",
+      "record_reference": "moon98 notes 2-4 and documented ELP/MPP02 comparison accuracy",
+      "retrieved_at": "2026-09-18",
+      "data_date": "ERFA routine revision documented 2023-03-20",
+      "terms_or_licence": "ERFA is open-source SOFA-derived software; the model records algorithm/accuracy provenance only.",
+      "citation": "ERFA eraMoon98 documentation, approximate lunar position algorithm based on Meeus (1998).",
+      "claim_scope": "Builtin lunar-model algorithm identity, non-canonical status, and 1950-2100 RMS/worst-case comparison errors.",
+      "source_type": "official scientific-software routine documentation"
+    },
+    {
+      "id": "iau-2015-resolution-b3",
+      "title": "IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties",
+      "organization_or_authors": "International Astronomical Union Inter-Division A-G Working Group on Nominal Units for Stellar & Planetary Astronomy",
+      "url": "https://arxiv.org/abs/1510.07674",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "arXiv:1510.07674v1 / IAU 2015 Resolution B3",
+      "record_reference": "Nominal Solar conversion constants table",
+      "retrieved_at": "2026-09-18",
+      "data_date": "2015-10-26 arXiv v1",
+      "terms_or_licence": "Official IAU resolution reproduced through arXiv; nominal values are adopted conversion constants.",
+      "citation": "IAU 2015 Resolution B3, Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties.",
+      "claim_scope": "Exact nominal Solar radius 6.957e8 m (695700 km).",
+      "source_type": "official-standard"
+    },
+    {
+      "id": "nasa-nssdc-moon-fact-sheet",
+      "title": "Moon Fact Sheet",
+      "organization_or_authors": "NASA Goddard Space Flight Center / National Space Science Data Center",
+      "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "NASA/NSSDCA Moon Fact Sheet",
+      "record_reference": "Bulk parameters: volumetric mean radius",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current fact sheet accessed 2026-09-18",
+      "terms_or_licence": "United States government factual reference; Lumina records the cited physical constant and source link.",
+      "citation": "NASA/NSSDCA, Moon Fact Sheet.",
+      "claim_scope": "Lunar volumetric mean radius 1737.4 km.",
+      "source_type": "official-agency factual reference"
+    },
+    {
+      "id": "nasa-eclipse-geometry",
+      "title": "Why Do Eclipses Happen?",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/eclipses/geometry/",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "NASA Science eclipse geometry explainer",
+      "record_reference": "Solar eclipse geometry, umbra/penumbra/antumbra, lunar-orbit inclination, and eclipse seasons",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current page accessed 2026-09-18",
+      "terms_or_licence": "NASA public educational material; Lumina records factual geometry claims and links to the source.",
+      "citation": "NASA Science, Why Do Eclipses Happen?",
+      "claim_scope": "Solar-eclipse alignment, local shadow-region terminology, apparent-size explanation, and roughly five-degree lunar-orbit inclination explaining why eclipses are not monthly.",
+      "source_type": "official-agency educational reference"
+    },
+    {
+      "id": "nasa-eclipse-safety",
+      "title": "Eclipse Viewing Safety",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/eclipses/safety/",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "NASA Science eclipse safety guidance",
+      "record_reference": "Eye safety for partial, annular, and total solar eclipses",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Current page accessed 2026-09-18",
+      "terms_or_licence": "NASA public safety guidance; Lumina links and summarizes rather than replacing the source.",
+      "citation": "NASA Science, Eclipse Viewing Safety.",
+      "claim_scope": "Specialized Solar viewing protection requirements and optical-device filter warning.",
+      "source_type": "official-agency safety guidance"
+    },
+    {
+      "id": "nasa-2024-eclipse-where-when",
+      "title": "2024 Total Eclipse: Where & When",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/eclipses/future-eclipses/eclipse-2024/where-when/",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "NASA 2024 total solar eclipse city timing table",
+      "record_reference": "Dallas, Texas partial/totality contact and maximum table row",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Page last updated 2024-11-21",
+      "terms_or_licence": "NASA public factual reference; Lumina uses the published rounded city timing row as an independent validation fixture.",
+      "citation": "NASA Science, 2024 Total Eclipse: Where & When.",
+      "claim_scope": "Independent rounded Dallas contact/timing reference and total-eclipse classification.",
+      "source_type": "official-agency event reference"
+    },
+    {
+      "id": "nasa-2023-eclipse-where-when",
+      "title": "2023 Annular Eclipse: Where & When",
+      "organization_or_authors": "NASA Science",
+      "url": "https://science.nasa.gov/eclipses/future-eclipses/eclipse-2023/where-when/",
+      "accessed_at": "2026-09-18",
+      "dataset_or_release": "NASA 2023 annular solar eclipse city timing table",
+      "record_reference": "Albuquerque, New Mexico partial/annularity contact and maximum table row",
+      "retrieved_at": "2026-09-18",
+      "data_date": "Page last updated 2024-11-04",
+      "terms_or_licence": "NASA public factual reference; Lumina uses the published rounded city timing row as an independent validation fixture.",
+      "citation": "NASA Science, 2023 Annular Eclipse: Where & When.",
+      "claim_scope": "Independent rounded Albuquerque contact/timing reference and annular-eclipse classification.",
+      "source_type": "official-agency event reference"
+    }
+  ],
+  "constants": {
+    "SOLAR_RADIUS_KM": 695700.0,
+    "MOON_RADIUS_KM": 1737.4,
+    "MIN_LATITUDE_DEG": -90.0,
+    "MAX_LATITUDE_DEG": 90.0,
+    "MIN_LONGITUDE_DEG": -180.0,
+    "MAX_LONGITUDE_DEG": 180.0,
+    "MIN_ELEVATION_M": -500.0,
+    "MAX_ELEVATION_M": 9000.0,
+    "MIN_UTC": "1973-01-02T00:00:00Z",
+    "MAX_UTC": "2027-08-27T23:59:59Z",
+    "EVENT_SEARCH_HOURS": 6,
+    "COARSE_EVENT_STEP_SECONDS": 300,
+    "CONTACT_REFINEMENT_STEP_SECONDS": 10,
+    "PUBLIC_TIME_RESOLUTION_SECONDS": 60,
+    "ASTROPY_VERSION": "8.0.1",
+    "PYERFA_VERSION": "2.0.1.5",
+    "ASTROPY_IERS_DATA_VERSION": "0.2026.8.31.0.57.9",
+    "EPHEMERIS": "builtin"
+  },
+  "presets": {
+    "nasa-2024-dallas-total-reference": {
+      "at_utc": "2024-04-08T18:42:00Z",
+      "latitude_deg": 32.7767,
+      "longitude_deg": -96.797,
+      "elevation_m": 130.0
+    },
+    "nasa-2023-albuquerque-annular-reference": {
+      "at_utc": "2023-10-14T16:35:00Z",
+      "latitude_deg": 35.0844,
+      "longitude_deg": -106.6504,
+      "elevation_m": 1619.0
+    }
+  },
+  "validation_fixtures": [
+    {
+      "id": "dallas-2024-total",
+      "purpose": "Dallas near NASA's published 2024 maximum must classify as total/umbra with full geometric Solar-disk obscuration."
+    },
+    {
+      "id": "dallas-2024-partial-shoulder",
+      "purpose": "Dallas at 18:00 UTC on 2024-04-08 must classify as partial/penumbra with obscuration strictly between zero and one."
+    },
+    {
+      "id": "dallas-next-day-none",
+      "purpose": "The same Dallas observer one day later at the same UTC time must classify as no eclipse/outside."
+    },
+    {
+      "id": "albuquerque-2023-annular",
+      "purpose": "Albuquerque near the NASA 2023 maximum must classify as annular/antumbra with nonzero obscuration below one."
+    },
+    {
+      "id": "dallas-2024-contacts",
+      "purpose": "Minute-rounded model contacts must stay within two minutes of NASA's rounded Dallas partial/totality city-table row."
+    },
+    {
+      "id": "albuquerque-2023-contacts",
+      "purpose": "Minute-rounded model contacts must stay within two minutes of NASA's rounded Albuquerque partial/annularity city-table row."
+    },
+    {
+      "id": "disk-overlap-limits",
+      "purpose": "Separated disks obscure zero Solar area; a larger concentric lunar disk obscures the complete Solar disk; annular containment remains below one."
+    },
+    {
+      "id": "horizon-state",
+      "purpose": "Returned geometric Sun altitude and horizon flag remain separate from eclipse classification and do not introduce atmospheric refraction."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Identical canonical inputs return identical immutable results with no runtime network dependency."
+    },
+    {
+      "id": "domain-rejection",
+      "purpose": "Naive/non-UTC/out-of-IERS-range timestamps, booleans/non-finite coordinates, and out-of-range locations fail closed."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Source, constant, preset, version, and timing-policy drift is rejected by the strict artifact loader."
+    }
+  ],
+  "scientific_validation": {
+    "id": "eclipse-simulator-v1-validation",
+    "checked_at": "2026-09-18",
+    "method": "Validate the offline Astropy/ERFA topocentric apparent-disk model against robust total/annular/partial/none limiting cases and independent NASA 2024 Dallas / 2023 Albuquerque rounded city contact tables. Preserve ERFA moon98 accuracy limits and expose only minute-resolution event timing.",
+    "tools": [
+      {
+        "name": "astropy",
+        "version": "8.0.1",
+        "role": "Explicit builtin offline Solar-System ephemeris, apparent topocentric body positions, WGS84 observer transform, and zero-pressure geometric AltAz."
+      },
+      {
+        "name": "pyerfa",
+        "version": "2.0.1.5",
+        "role": "ERFA epv00/plan94/moon98 routines used by the Astropy builtin ephemeris."
+      },
+      {
+        "name": "astropy-iers-data",
+        "version": "0.2026.8.31.0.57.9",
+        "role": "Repository-locked offline Earth-orientation table bounding the accepted UTC interval."
+      },
+      {
+        "name": "pytest",
+        "version": "repository-locked",
+        "role": "Reference-event, limiting-case, domain, deterministic, and artifact-integrity regression tests."
+      }
+    ],
+    "source_ids": [
+      "astropy-solar-system-ephemerides",
+      "erfa-moon98",
+      "iau-2015-resolution-b3",
+      "nasa-nssdc-moon-fact-sheet",
+      "nasa-eclipse-geometry",
+      "nasa-eclipse-safety",
+      "nasa-2024-eclipse-where-when",
+      "nasa-2023-eclipse-where-when"
+    ],
+    "test_references": [
+      "test_dallas_2024_reference_is_total",
+      "test_dallas_2024_shoulder_is_partial",
+      "test_dallas_next_day_has_no_eclipse",
+      "test_albuquerque_2023_reference_is_annular",
+      "test_dallas_contacts_match_nasa_rounded_city_table",
+      "test_albuquerque_contacts_match_nasa_rounded_city_table",
+      "test_disk_overlap_limiting_cases",
+      "test_horizon_state_is_separate_from_phase",
+      "test_calculation_is_deterministic",
+      "test_input_domain_rejects_unsupported_states",
+      "test_reviewed_artifact_is_strict",
+      "test_reviewed_artifact_rejects_mutation"
+    ]
+  }
+}

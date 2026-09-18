@@ -8,6 +8,7 @@ import type {
   SpaceWeatherResponse,
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateEclipseSimulatorData,
   CalculateOrbitSandboxData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
@@ -23,6 +24,7 @@ import type {
   EntityBrowsePageResponse,
   EntityDetailResponse,
   EntitySummaryResponse,
+  EclipseSimulatorCalculationResponse,
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   GetNowApodData,
@@ -56,6 +58,7 @@ import type {
 import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
+  zCalculateEclipseSimulatorResponse,
   zCalculateOrbitSandboxResponse,
   zCalculateRadialVelocityResponse,
   zCalculateSeasonsSimulatorResponse,
@@ -347,6 +350,12 @@ export const orbitSandboxEndpoint = {
   path: "/api/v1/simulations/orbit-sandbox" satisfies CalculateOrbitSandboxData["url"],
   validator: zCalculateOrbitSandboxResponse,
 } satisfies ApiEndpoint<OrbitSandboxCalculationResponse, CalculateOrbitSandboxData["url"]>;
+
+export const eclipseSimulatorEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/eclipse-simulator" satisfies CalculateEclipseSimulatorData["url"],
+  validator: zCalculateEclipseSimulatorResponse,
+} satisfies ApiEndpoint<EclipseSimulatorCalculationResponse, CalculateEclipseSimulatorData["url"]>;
 
 export const radialVelocityEndpoint = {
   method: "GET",

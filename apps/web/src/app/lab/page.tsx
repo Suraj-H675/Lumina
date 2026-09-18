@@ -26,6 +26,12 @@ const labs = [
       "Explore a source-backed approximate main-sequence mass mapping, lifetime anchors, and broad stellar remnants.",
   },
   {
+    href: "/lab/eclipse-simulator",
+    title: "Eclipse Simulator",
+    description:
+      "Explore offline topocentric solar-eclipse geometry, approximate local contacts, and permanent viewing-safety guidance.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

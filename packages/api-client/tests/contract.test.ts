@@ -6,6 +6,7 @@ import {
   catalogEntityDetailEndpoint,
   catalogSuggestEndpoint,
   catalogSearchEndpoint,
+  eclipseSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
   radialVelocityEndpoint,
@@ -25,6 +26,7 @@ import type {
   EntityBrowsePageResponse,
   EntitySummaryResponse,
   EntityType,
+  CalculateEclipseSimulatorData,
   CalculateOrbitSandboxData,
   CalculateRadialVelocityData,
   CalculateSeasonsSimulatorData,
@@ -65,6 +67,10 @@ describe("generated contract boundary", () => {
     expect(satellitePassEndpoint.method).toBe("POST");
     expectTypeOf(satellitesEndpoint.path).toEqualTypeOf<GetNowSatellitesData["url"]>();
     expectTypeOf(satellitePassEndpoint.path).toEqualTypeOf<PostNowSatellitePassesData["url"]>();
+    expect(eclipseSimulatorEndpoint.method).toBe("GET");
+    expectTypeOf(eclipseSimulatorEndpoint.path).toEqualTypeOf<
+      CalculateEclipseSimulatorData["url"]
+    >();
     expect(orbitSandboxEndpoint.method).toBe("GET");
     expectTypeOf(orbitSandboxEndpoint.path).toEqualTypeOf<CalculateOrbitSandboxData["url"]>();
     expect(radialVelocityEndpoint.method).toBe("GET");
@@ -263,6 +269,76 @@ describe("catalogue discovery endpoints", () => {
       }),
     });
     expect(detail.kind).toBe("ok");
+  });
+});
+
+describe("Eclipse Simulator endpoint", () => {
+  const response = {
+    model_version: "eclipse-simulator-v1",
+    schema_version: 1,
+    inputs: {
+      at_utc: "2024-04-08T18:42:00Z",
+      latitude_deg: 32.7767,
+      longitude_deg: -96.797,
+      elevation_m: 130,
+    },
+    instant: {
+      phase: "total" as const,
+      shadow_region: "umbra" as const,
+      sun_angular_radius_deg: 0.266061098358121,
+      moon_angular_radius_deg: 0.28115446961677854,
+      center_separation_deg: 0.008257460757938725,
+      obscuration_fraction: 1,
+      sun_distance_km: 149818283.5031317,
+      moon_distance_km: 354061.90398480877,
+      sun_altitude_deg: 64.63500288803954,
+      sun_above_geometric_horizon: true,
+    },
+    local_event: {
+      classification: "total" as const,
+      partial_begin_utc: "2024-04-08T17:23:00Z",
+      central_begin_utc: "2024-04-08T18:41:00Z",
+      maximum_utc: "2024-04-08T18:43:00Z",
+      central_end_utc: "2024-04-08T18:45:00Z",
+      partial_end_utc: "2024-04-08T20:03:00Z",
+      maximum_obscuration_fraction: 1,
+      sun_altitude_deg_at_maximum: 64.61411692634734,
+      sun_above_geometric_horizon_at_maximum: true,
+    },
+    ephemeris_note:
+      "Astropy 8.0.1 builtin offline ephemeris; ERFA moon98 is approximate/non-canonical and v1 is bounded to the locked offline Earth-orientation interval.",
+    timing_note:
+      "Local event contacts and maximum are approximate educational estimates rounded to whole UTC minutes; no second-level precision is claimed.",
+    safety_reference_id: "nasa-eclipse-safety",
+  };
+
+  it("binds the generated URL and accepts the exact canonical result shape", async () => {
+    expectTypeOf(eclipseSimulatorEndpoint.path).toEqualTypeOf<
+      CalculateEclipseSimulatorData["url"]
+    >();
+    const result = await requestEndpoint("http://127.0.0.1:8000", eclipseSimulatorEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(response), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ data: response, kind: "ok", status: 200 });
+  });
+
+  it("rejects additive Eclipse Simulator result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", eclipseSimulatorEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...response, invented: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
   });
 });
 

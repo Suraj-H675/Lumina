@@ -24,6 +24,9 @@ const radialVelocityFixtures = JSON.parse(
 const stellarLaboratoryFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/stellar-laboratory.json", import.meta.url), "utf8"),
 );
+const eclipseSimulatorFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/eclipse-simulator.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -36,6 +39,7 @@ const apiPaths = new Set([
   "/api/v1/now/satellites",
   "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
+  "/api/v1/simulations/eclipse-simulator",
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/radial-velocity",
   "/api/v1/simulations/seasons",
@@ -1343,6 +1347,45 @@ function respondStellarLaboratory(response, target) {
   });
 }
 
+function respondEclipseSimulator(response, target) {
+  const expected = ["at_utc", "latitude_deg", "longitude_deg", "elevation_m"];
+  const keys = [...target.searchParams.keys()];
+  if (
+    keys.length !== expected.length ||
+    new Set(keys).size !== expected.length ||
+    !expected.every((key) => keys.includes(key) && target.searchParams.getAll(key).length === 1)
+  ) {
+    sendJson(response, 422, {
+      error: {
+        code: "eclipse_simulator.model_invalid",
+        message: "The Eclipse Simulator fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const query = Object.fromEntries(target.searchParams.entries());
+  const isDallas =
+    query.latitude_deg === "32.7767" &&
+    query.longitude_deg === "-96.797" &&
+    query.elevation_m === "130";
+  if (isDallas && query.at_utc === "2024-04-08T18:42:00Z") {
+    sendJson(response, 200, eclipseSimulatorFixtures.dallas_total);
+    return;
+  }
+  if (isDallas && query.at_utc === "2024-04-09T18:42:00Z") {
+    sendJson(response, 200, eclipseSimulatorFixtures.dallas_none);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "eclipse_simulator.model_invalid",
+      message: "The Eclipse Simulator E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -1858,6 +1901,7 @@ const stub = http.createServer(async (request, response) => {
   const isLaunchPath =
     path === "/api/v1/now/launches" || /^\/api\/v1\/now\/launches\/[0-9a-f-]{36}$/u.test(path);
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
+  const isEclipseSimulatorPath = path === "/api/v1/simulations/eclipse-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isStellarLaboratoryPath = path === "/api/v1/simulations/stellar-laboratory";
@@ -1901,6 +1945,7 @@ const stub = http.createServer(async (request, response) => {
   if (
     target.search !== "" &&
     !isCataloguePath &&
+    !isEclipseSimulatorPath &&
     !isOrbitSandboxPath &&
     !isRadialVelocityPath &&
     !isSeasonsPath &&
@@ -2106,6 +2151,10 @@ const stub = http.createServer(async (request, response) => {
     // always available. Keeping them outside the mode gate removes any
     // cross-suite scheduling race between the two specs.
     respondCatalogue(request, response, target);
+    return;
+  }
+  if (isEclipseSimulatorPath) {
+    respondEclipseSimulator(response, target);
     return;
   }
   if (isOrbitSandboxPath) {

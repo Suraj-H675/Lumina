@@ -100,6 +100,61 @@ export const zDatasetReference = z.object({
 });
 
 /**
+ * EclipseInstantGeometryResponse
+ */
+export const zEclipseInstantGeometryResponse = z.object({
+  center_separation_deg: z.number(),
+  moon_angular_radius_deg: z.number(),
+  moon_distance_km: z.number(),
+  obscuration_fraction: z.number(),
+  phase: z.enum(["none", "partial", "total", "annular"]),
+  shadow_region: z.enum(["outside", "penumbra", "umbra", "antumbra"]),
+  sun_above_geometric_horizon: z.boolean(),
+  sun_altitude_deg: z.number(),
+  sun_angular_radius_deg: z.number(),
+  sun_distance_km: z.number(),
+});
+
+/**
+ * EclipseLocalEventResponse
+ */
+export const zEclipseLocalEventResponse = z.object({
+  central_begin_utc: z.iso.datetime().nullable(),
+  central_end_utc: z.iso.datetime().nullable(),
+  classification: z.enum(["partial", "total", "annular"]),
+  maximum_obscuration_fraction: z.number(),
+  maximum_utc: z.iso.datetime(),
+  partial_begin_utc: z.iso.datetime(),
+  partial_end_utc: z.iso.datetime(),
+  sun_above_geometric_horizon_at_maximum: z.boolean(),
+  sun_altitude_deg_at_maximum: z.number(),
+});
+
+/**
+ * EclipseSimulatorInputResponse
+ */
+export const zEclipseSimulatorInputResponse = z.object({
+  at_utc: z.iso.datetime(),
+  elevation_m: z.number(),
+  latitude_deg: z.number(),
+  longitude_deg: z.number(),
+});
+
+/**
+ * EclipseSimulatorCalculationResponse
+ */
+export const zEclipseSimulatorCalculationResponse = z.object({
+  ephemeris_note: z.string(),
+  inputs: zEclipseSimulatorInputResponse,
+  instant: zEclipseInstantGeometryResponse,
+  local_event: zEclipseLocalEventResponse.nullable(),
+  model_version: z.string(),
+  safety_reference_id: z.string(),
+  schema_version: z.int(),
+  timing_note: z.string(),
+});
+
+/**
  * EntityType
  *
  * Closed persisted catalogue entity vocabulary.
@@ -1501,6 +1556,11 @@ export const zSearchCatalogEntitiesResponse = zCatalogSearchResponse;
  * Successful Response
  */
 export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateEclipseSimulatorResponse = zEclipseSimulatorCalculationResponse;
 
 /**
  * Successful Response

@@ -122,6 +122,7 @@ export type {
 } from "./transport";
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
 export {
+  eclipseSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
   radialVelocityEndpoint,
@@ -138,6 +139,7 @@ export {
 export type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateEclipseSimulatorResponse,
   CalculateOrbitSandboxResponse,
   CalculateRadialVelocityResponse,
   CalculateSeasonsSimulatorResponse,
@@ -147,6 +149,10 @@ export type {
   EntityQuantityResponse,
   EntitySummaryResponse,
   EntityType,
+  EclipseInstantGeometryResponse,
+  EclipseLocalEventResponse,
+  EclipseSimulatorCalculationResponse,
+  EclipseSimulatorInputResponse,
   MeasurementReference,
   OrbitSandboxCalculationResponse,
   OrbitSandboxInputResponse,

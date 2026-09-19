@@ -6,6 +6,21 @@ export const enMessages = {
       "Lumina connects visual exploration, authored learning, deterministic simulations, real-sky observation, and provenance-first current space data. Each capability is added only when its source, assumptions, freshness, and limitations can be shown honestly.",
     aboutTitle: "About Lumina",
     checkSourceStatus: "Check source status",
+    continueLearning: {
+      activeDescription:
+        "Build a first observing habit with a complete, source-backed learning path.",
+      checkingProgress: "Checking local progress…",
+      completeDescription:
+        "Your first path is complete. Revisit a lesson or make another sky note.",
+      continueLesson: "Continue with {lessonTitle}",
+      eyebrow: "Mission Control",
+      nextLessonFallback: "the next lesson",
+      noProgress: "{lessonCount} lessons · saved only on this device",
+      progress: "{masteredCount} of {lessonCount} lessons mastered locally",
+      reviewPath: "Review {pathTitle}",
+      startPath: "Start {pathTitle}",
+      title: "Continue Learning",
+    },
     currentMissionEvent: {
       countdownEligibleExplanation:
         "The detailed Launch Center may show an exact countdown because this record is Go and precise to the minute or second.",

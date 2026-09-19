@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { loadLearningContent } from "../src/lib/learning/content";
 import { ContinueLearningCard } from "../src/components/continue-learning-card";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { LearningProgressControls } from "../src/components/learning-progress-controls";
 import { createLearningProgressExport } from "../src/lib/learning/progress-export";
 import {
@@ -24,14 +25,26 @@ beforeEach(() => {
 
 describe("learning progress controls", () => {
   it("shows an honest Continue Learning action and advances after mastery", async () => {
-    const { rerender } = render(<ContinueLearningCard content={content} path={content.path} />);
+    const { rerender } = render(
+      <ContinueLearningCard
+        content={content}
+        messages={enMessages.missionControl.continueLearning}
+        path={content.path}
+      />,
+    );
     expect(
       await screen.findByRole("link", { name: /start your first night sky/i }),
     ).toHaveAttribute("href", "/learn/your-first-night-sky/start-with-the-sky");
 
     startLearningLesson("your-first-night-sky", "start-with-the-sky");
     recordLearningQuizAttempt("your-first-night-sky", "start-with-the-sky", evaluation);
-    rerender(<ContinueLearningCard content={content} path={content.path} />);
+    rerender(
+      <ContinueLearningCard
+        content={content}
+        messages={enMessages.missionControl.continueLearning}
+        path={content.path}
+      />,
+    );
 
     await waitFor(() =>
       expect(

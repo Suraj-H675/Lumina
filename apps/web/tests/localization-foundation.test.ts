@@ -8,7 +8,11 @@ import {
   isPublishedLocale,
   localeDefinition,
 } from "../src/lib/i18n/locales";
-import { formatLocaleDateTime, formatLocaleNumber } from "../src/lib/i18n/format";
+import {
+  formatLocaleDateTime,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../src/lib/i18n/format";
 import { enMessages } from "../src/lib/i18n/messages/en";
 
 describe("Phase 8C localization foundation", () => {
@@ -54,6 +58,20 @@ describe("Phase 8C localization foundation", () => {
     ).toBe("19 de septiembre de 2026");
     expect(formatLocaleNumber(1234.5, "en", { maximumFractionDigits: 1 })).toBe("1,234.5");
     expect(formatLocaleNumber(1234.5, "es", { maximumFractionDigits: 1 })).toBe("1234,5");
+  });
+
+  it("formats semantic message templates without concatenating authored values into message keys", () => {
+    expect(
+      formatMessageTemplate("Continue with {lessonTitle}", {
+        lessonTitle: "Find Patterns and Directions",
+      }),
+    ).toBe("Continue with Find Patterns and Directions");
+    expect(() => formatMessageTemplate("Continue", { lessonTitle: "Lesson" })).toThrow(
+      /does not contain \{lessonTitle\}/i,
+    );
+    expect(() => formatMessageTemplate("Continue with {lessonTitle}", {})).toThrow(
+      /missing a value for \{lessonTitle\}/i,
+    );
   });
 
   it("keeps the English shell dictionary semantic and placeholder-complete", () => {
@@ -110,5 +128,15 @@ describe("Phase 8C localization foundation", () => {
       "Confirmation state",
     );
     expect(enMessages.missionControl.reviewedDiscovery.seeAll).toMatch(/reviewed discoveries/i);
+  });
+
+  it("keeps Continue Learning wrapper copy separate from authored path and lesson titles", () => {
+    expect(enMessages.missionControl.continueLearning.eyebrow).toBe("Mission Control");
+    expect(enMessages.missionControl.continueLearning.title).toBe("Continue Learning");
+    expect(enMessages.missionControl.continueLearning.startPath).toContain("{pathTitle}");
+    expect(enMessages.missionControl.continueLearning.reviewPath).toContain("{pathTitle}");
+    expect(enMessages.missionControl.continueLearning.continueLesson).toContain("{lessonTitle}");
+    expect(enMessages.missionControl.continueLearning.progress).toContain("{masteredCount}");
+    expect(enMessages.missionControl.continueLearning.progress).toContain("{lessonCount}");
   });
 });

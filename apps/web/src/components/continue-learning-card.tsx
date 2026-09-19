@@ -2,21 +2,24 @@
 
 import Link from "next/link";
 
+import { formatMessageTemplate } from "../lib/i18n/format";
+import type { MissionControlMessages } from "../lib/i18n/messages/types";
 import type { LearningContent, LearningPath } from "../lib/learning/content";
 import { getContinueLessonSlug, isLearningPathComplete } from "../lib/learning/prerequisites";
 import { useLearningPathProgress, useLearningProgressStatus } from "../lib/learning/progress-store";
 
 type ContinueLearningCardProps = Readonly<{
   content: LearningContent;
+  messages: MissionControlMessages["continueLearning"];
   path: LearningPath;
 }>;
 
-export function ContinueLearningCard({ content, path }: ContinueLearningCardProps) {
+export function ContinueLearningCard({ content, messages, path }: ContinueLearningCardProps) {
   const status = useLearningProgressStatus();
   const progress = useLearningPathProgress(path.slug);
   const lessonSlug = getContinueLessonSlug(path, progress);
   const lesson = content.lessons.find((entry) => entry.slug === lessonSlug);
-  const lessonTitle = lesson?.title ?? "the next lesson";
+  const lessonTitle = lesson?.title ?? messages.nextLessonFallback;
   const pathComplete = isLearningPathComplete(path, progress);
   const masteredCount = path.lesson_slugs.filter((slug) =>
     progress?.lessons.some(
@@ -25,10 +28,10 @@ export function ContinueLearningCard({ content, path }: ContinueLearningCardProp
   ).length;
   const linkLabel =
     progress === null
-      ? "Start Your First Night Sky"
+      ? formatMessageTemplate(messages.startPath, { pathTitle: path.title })
       : pathComplete
-        ? "Review Your First Night Sky"
-        : `Continue with ${lessonTitle}`;
+        ? formatMessageTemplate(messages.reviewPath, { pathTitle: path.title })
+        : formatMessageTemplate(messages.continueLesson, { lessonTitle });
 
   return (
     <section
@@ -36,15 +39,13 @@ export function ContinueLearningCard({ content, path }: ContinueLearningCardProp
       className="max-w-2xl rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
     >
       <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-        Mission Control
+        {messages.eyebrow}
       </p>
       <h2 className="mt-2 text-2xl font-semibold" id="continue-learning-heading">
-        Continue Learning
+        {messages.title}
       </h2>
       <p className="mt-2 leading-7 text-[var(--muted)]">
-        {pathComplete
-          ? "Your first path is complete. Revisit a lesson or make another sky note."
-          : "Build a first observing habit with a complete, source-backed learning path."}
+        {pathComplete ? messages.completeDescription : messages.activeDescription}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-4">
         <Link
@@ -55,10 +56,15 @@ export function ContinueLearningCard({ content, path }: ContinueLearningCardProp
         </Link>
         <span className="text-sm text-[var(--muted)]">
           {status === "loading"
-            ? "Checking local progress…"
+            ? messages.checkingProgress
             : progress === null
-              ? `${path.lesson_slugs.length} lessons · saved only on this device`
-              : `${masteredCount} of ${path.lesson_slugs.length} lessons mastered locally`}
+              ? formatMessageTemplate(messages.noProgress, {
+                  lessonCount: path.lesson_slugs.length,
+                })
+              : formatMessageTemplate(messages.progress, {
+                  lessonCount: path.lesson_slugs.length,
+                  masteredCount,
+                })}
         </span>
       </div>
     </section>

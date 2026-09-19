@@ -68,6 +68,19 @@ export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
   checkSourceStatus: string;
+  continueLearning: Readonly<{
+    activeDescription: string;
+    checkingProgress: string;
+    completeDescription: string;
+    continueLesson: string;
+    eyebrow: string;
+    nextLessonFallback: string;
+    noProgress: string;
+    progress: string;
+    reviewPath: string;
+    startPath: string;
+    title: string;
+  }>;
   currentMissionEvent: Readonly<{
     countdownEligibleExplanation: string;
     countdownIneligibleExplanation: string;

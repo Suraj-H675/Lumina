@@ -84,7 +84,11 @@ export function MissionControlHome({
         outcome={launchOutcome}
       />
       <ReviewedDiscoveryCard discovery={latestDiscovery} messages={messages.reviewedDiscovery} />
-      <ContinueLearningCard content={content} path={content.path} />
+      <ContinueLearningCard
+        content={content}
+        messages={messages.continueLearning}
+        path={content.path}
+      />
 
       <section
         aria-labelledby="about-heading"

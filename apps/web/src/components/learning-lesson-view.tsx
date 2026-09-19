@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { formatLocaleList, formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { LearningSourcesMessages } from "../lib/i18n/messages/types";
+import type { LearningLessonMessages, LearningSourcesMessages } from "../lib/i18n/messages/types";
 import type {
   AudienceMode,
   LearningContent,
@@ -19,6 +20,7 @@ import {
   startLearningLesson,
   useLearningPathProgress,
   useLearningProgressStatus,
+  type LearningProgressStoreFailureReason,
 } from "../lib/learning/progress-store";
 import type { QuizEvaluation } from "../lib/learning/quiz";
 
@@ -30,6 +32,7 @@ type LearningLessonViewProps = Readonly<{
   content: LearningContent;
   lesson: LearningLesson;
   locale: PublishedLocale;
+  messages: LearningLessonMessages;
   path: LearningPath;
   quiz: LearningQuizContract;
   sourceMessages: LearningSourcesMessages;
@@ -39,6 +42,7 @@ export function LearningLessonView({
   content,
   lesson,
   locale,
+  messages,
   path,
   quiz,
   sourceMessages,
@@ -53,15 +57,35 @@ export function LearningLessonView({
   const previousSlug = currentIndex > 0 ? path.lesson_slugs[currentIndex - 1] : undefined;
   const nextSlug = currentIndex >= 0 ? path.lesson_slugs[currentIndex + 1] : undefined;
 
+  const progressFailureMessage = useCallback(
+    (reason: LearningProgressStoreFailureReason): string => {
+      switch (reason) {
+        case "storage-unavailable":
+          return messages.failures.storageUnavailable;
+        case "storage-corrupted":
+          return messages.failures.storageCorrupted;
+        case "storage-quota-exceeded":
+          return messages.failures.storageQuotaExceeded;
+        case "storage-write-failed":
+          return messages.failures.storageWriteFailed;
+        case "invalid-content":
+          return messages.failures.invalidContent;
+        case "import-invalid":
+          return messages.failures.importInvalid;
+      }
+    },
+    [messages.failures],
+  );
+
   useEffect(() => {
     if (status !== "ready" || !prerequisiteState.unlocked || startedRef.current) return;
     startedRef.current = true;
     const result = startLearningLesson(path.slug, lesson.slug);
     if (result.ok) return;
-    const message = result.message;
+    const message = progressFailureMessage(result.reason);
     const timeoutId = window.setTimeout(() => setSaveMessage(message), 0);
     return () => window.clearTimeout(timeoutId);
-  }, [lesson.slug, path.slug, prerequisiteState.unlocked, status]);
+  }, [lesson.slug, path.slug, prerequisiteState.unlocked, progressFailureMessage, status]);
 
   const handleModeChange = useCallback((nextMode: AudienceMode) => setMode(nextMode), []);
 
@@ -70,19 +94,19 @@ export function LearningLessonView({
     setSaveMessage(
       result.ok
         ? evaluation.passed
-          ? "Mastery saved locally."
-          : "Attempt saved locally. Try again whenever you are ready."
-        : result.message,
+          ? messages.masterySaved
+          : messages.saveAttempt
+        : progressFailureMessage(result.reason),
     );
   }
 
   return (
     <article className="space-y-10">
-      <nav aria-label="Breadcrumb">
+      <nav aria-label={messages.breadcrumbLabel}>
         <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
           <li>
             <Link className="text-[var(--link)] underline" href="/learn">
-              Learn
+              {messages.learnLink}
             </Link>
           </li>
           <li aria-hidden="true">/</li>
@@ -97,8 +121,11 @@ export function LearningLessonView({
       </nav>
       <header className="max-w-3xl space-y-5">
         <p className="text-sm text-[var(--muted)]">
-          Lesson {currentIndex + 1} of {path.lesson_slugs.length} · about {lesson.estimated_minutes}{" "}
-          minutes
+          {formatMessageTemplate(messages.lessonMeta, {
+            lessonCount: formatLocaleNumber(path.lesson_slugs.length, locale),
+            lessonNumber: formatLocaleNumber(currentIndex + 1, locale),
+            minutes: formatLocaleNumber(lesson.estimated_minutes, locale),
+          })}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{lesson.title}</h1>
         <p className="text-lg leading-8 text-[var(--muted)]">{lesson.summary}</p>
@@ -109,15 +136,17 @@ export function LearningLessonView({
           className="max-w-2xl space-y-4 rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-6"
           role="status"
         >
-          <h2 id="lesson-locked-heading">Complete the prerequisite lesson first</h2>
+          <h2 id="lesson-locked-heading">{messages.lockedTitle}</h2>
           <p className="leading-7 text-[var(--muted)]">
-            This lesson opens after you master: {prerequisiteState.missing.join(", ")}.
+            {formatMessageTemplate(messages.lockedDescription, {
+              prerequisites: formatLocaleList(prerequisiteState.missing, locale),
+            })}
           </p>
           <Link
             className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline"
             href={`/learn/${path.slug}/${previousSlug ?? path.lesson_slugs[0]}`}
           >
-            Go to the next available lesson
+            {messages.goToAvailableLesson}
           </Link>
         </section>
       ) : (
@@ -128,7 +157,7 @@ export function LearningLessonView({
             className="max-w-3xl space-y-4 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
           >
             <h2 className="sr-only" id="lesson-hook-heading">
-              Lesson introduction
+              {messages.lessonIntroduction}
             </h2>
             <p className="text-xl leading-8 text-[var(--foreground)]">{lesson.hook}</p>
             <div className="space-y-2">
@@ -139,13 +168,13 @@ export function LearningLessonView({
                 {lesson.mode_variants[mode].explanation}
               </p>
               <p className="text-sm leading-6 text-[var(--muted)]">
-                <strong className="text-[var(--foreground)]">Think about:</strong>{" "}
+                <strong className="text-[var(--foreground)]">{messages.thinkAboutLabel}</strong>{" "}
                 {lesson.mode_variants[mode].deeper_question}
               </p>
             </div>
           </section>
           <section aria-labelledby="lesson-objectives-heading" className="max-w-3xl space-y-4">
-            <h2 id="lesson-objectives-heading">Objectives</h2>
+            <h2 id="lesson-objectives-heading">{messages.objectivesTitle}</h2>
             <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
               {lesson.learning_objectives.map((objective) => (
                 <li key={objective}>{objective}</li>
@@ -174,7 +203,7 @@ export function LearningLessonView({
             ))}
           </div>
           <section aria-labelledby="real-examples-heading" className="max-w-3xl space-y-4">
-            <h2 id="real-examples-heading">Real sky examples</h2>
+            <h2 id="real-examples-heading">{messages.realExamplesTitle}</h2>
             <ul className="m-0 grid gap-3 list-none p-0">
               {lesson.real_object_examples.map((example) => (
                 <li
@@ -191,22 +220,28 @@ export function LearningLessonView({
             aria-labelledby="misconception-heading"
             className="max-w-3xl space-y-4 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
           >
-            <h2 id="misconception-heading">Misconception check</h2>
+            <h2 id="misconception-heading">{messages.misconceptionTitle}</h2>
             <p className="font-semibold">{lesson.misconception_check.prompt}</p>
             <p className="leading-7 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">Common mistake:</strong>{" "}
+              <strong className="text-[var(--foreground)]">{messages.commonMistakeLabel}</strong>{" "}
               {lesson.misconception_check.misconception}
             </p>
             <p className="leading-7 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">Lumina&apos;s correction:</strong>{" "}
+              <strong className="text-[var(--foreground)]">{messages.correctionLabel}</strong>{" "}
               {lesson.misconception_check.correction}
             </p>
           </aside>
           <section aria-labelledby="lesson-activity-heading" className="max-w-3xl space-y-4">
-            <h2 id="lesson-activity-heading">Activity: {lesson.activity.title}</h2>
+            <h2 id="lesson-activity-heading">
+              {formatMessageTemplate(messages.activityTitle, {
+                activityTitle: lesson.activity.title,
+              })}
+            </h2>
             <p className="text-sm text-[var(--muted)]">
-              About {lesson.activity.duration_minutes} minutes · Materials:{" "}
-              {lesson.activity.materials.join(", ")}
+              {formatMessageTemplate(messages.activityMeta, {
+                materials: formatLocaleList(lesson.activity.materials, locale),
+                minutes: formatLocaleNumber(lesson.activity.duration_minutes, locale),
+              })}
             </p>
             <ol className="m-0 grid list-decimal gap-2 pl-6 leading-7 text-[var(--muted)]">
               {lesson.activity.steps.map((step) => (
@@ -214,14 +249,22 @@ export function LearningLessonView({
               ))}
             </ol>
             <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 text-sm leading-6 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">Safety:</strong> {lesson.activity.safety}
+              <strong className="text-[var(--foreground)]">{messages.safetyLabel}</strong>{" "}
+              {lesson.activity.safety}
             </p>
             <p className="leading-7 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">Expected observation:</strong>{" "}
+              <strong className="text-[var(--foreground)]">
+                {messages.expectedObservationLabel}
+              </strong>{" "}
               {lesson.activity.expected_observation}
             </p>
           </section>
-          <LearningQuiz onEvaluated={handleEvaluated} quiz={quiz} />
+          <LearningQuiz
+            locale={locale}
+            messages={messages.quiz}
+            onEvaluated={handleEvaluated}
+            quiz={quiz}
+          />
           <p
             aria-live="polite"
             className="min-h-6 max-w-3xl text-sm font-semibold text-[var(--success)]"
@@ -230,7 +273,7 @@ export function LearningLessonView({
             {saveMessage}
           </p>
           <nav
-            aria-label="Lesson navigation"
+            aria-label={messages.navigationLabel}
             className="flex flex-wrap justify-between gap-3 border-t border-[var(--border)] pt-6"
           >
             {previousSlug !== undefined ? (
@@ -238,7 +281,7 @@ export function LearningLessonView({
                 className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 font-medium text-[var(--foreground)] no-underline"
                 href={`/learn/${path.slug}/${previousSlug}`}
               >
-                Previous lesson
+                {messages.previousLesson}
               </Link>
             ) : (
               <span />
@@ -248,14 +291,14 @@ export function LearningLessonView({
                 className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline"
                 href={`/learn/${path.slug}/${nextSlug}`}
               >
-                Next lesson
+                {messages.nextLesson}
               </Link>
             ) : (
               <Link
                 className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline"
                 href={`/learn/${path.slug}`}
               >
-                Review path progress
+                {messages.reviewPathProgress}
               </Link>
             )}
           </nav>

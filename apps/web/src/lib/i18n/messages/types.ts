@@ -175,8 +175,57 @@ export type LearningSourcesMessages = Readonly<{
   title: string;
 }>;
 
+export type LearningLessonMessages = Readonly<{
+  activityMeta: string;
+  activityTitle: string;
+  breadcrumbLabel: string;
+  commonMistakeLabel: string;
+  correctionLabel: string;
+  expectedObservationLabel: string;
+  failures: Readonly<{
+    importInvalid: string;
+    invalidContent: string;
+    storageCorrupted: string;
+    storageQuotaExceeded: string;
+    storageUnavailable: string;
+    storageWriteFailed: string;
+  }>;
+  goToAvailableLesson: string;
+  learnLink: string;
+  lessonIntroduction: string;
+  lessonMeta: string;
+  lockedDescription: string;
+  lockedTitle: string;
+  masterySaved: string;
+  misconceptionTitle: string;
+  nextLesson: string;
+  objectivesTitle: string;
+  previousLesson: string;
+  quiz: Readonly<{
+    checkAnswers: string;
+    correctLabel: string;
+    hintAction: string;
+    intro: string;
+    keepPractising: string;
+    notYetLabel: string;
+    question: string;
+    resultMastered: string;
+    title: string;
+    tryAgain: string;
+  }>;
+  realExamplesTitle: string;
+  reviewPathProgress: string;
+  safetyLabel: string;
+  saveAttempt: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  navigationLabel: string;
+  thinkAboutLabel: string;
+}>;
+
 export type LearnMessages = Readonly<{
   landing: LearnLandingMessages;
+  lesson: LearningLessonMessages;
   path: LearningPathMessages;
   progressControls: LearningProgressControlsMessages;
   sources: LearningSourcesMessages;

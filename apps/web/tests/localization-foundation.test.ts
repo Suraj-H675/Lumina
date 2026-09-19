@@ -216,4 +216,26 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.sourceMeta).toContain("{claimScope}");
     expect(messages.sourceMeta).toContain("{accessedAt}");
   });
+
+  it("keeps lesson and quiz wrappers separate from authored learning and assessment content", () => {
+    const messages = enMessages.learn.lesson;
+    expect(messages.metadataTitle).toBe("Learning lesson");
+    expect(messages.breadcrumbLabel).toBe("Breadcrumb");
+    expect(messages.lessonMeta).toContain("{lessonNumber}");
+    expect(messages.lessonMeta).toContain("{lessonCount}");
+    expect(messages.lessonMeta).toContain("{minutes}");
+    expect(messages.lockedTitle).toBe("Complete the prerequisite lesson first");
+    expect(messages.lockedDescription).toContain("{prerequisites}");
+    expect(messages.thinkAboutLabel).toBe("Think about:");
+    expect(messages.activityTitle).toContain("{activityTitle}");
+    expect(messages.activityMeta).toContain("{minutes}");
+    expect(messages.activityMeta).toContain("{materials}");
+    expect(messages.failures.storageQuotaExceeded).toMatch(/storage is full/i);
+    expect(messages.quiz.title).toBe("Knowledge check");
+    expect(messages.quiz.intro).toContain("{quizTitle}");
+    expect(messages.quiz.question).toContain("{questionNumber}");
+    expect(messages.quiz.question).toContain("{questionPrompt}");
+    expect(messages.quiz.resultMastered).toContain("{correctCount}");
+    expect(messages.quiz.resultMastered).toContain("{totalCount}");
+  });
 });

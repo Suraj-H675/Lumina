@@ -3,17 +3,22 @@ import { notFound } from "next/navigation";
 
 import { LearningLessonView } from "../../../../components/learning-lesson-view";
 import type { PublishedLocale } from "../../../../lib/i18n/locales";
-import type { LearningSourcesMessages } from "../../../../lib/i18n/messages/types";
+import type {
+  LearningLessonMessages,
+  LearningSourcesMessages,
+} from "../../../../lib/i18n/messages/types";
 import { loadLearningContent } from "../../../../lib/learning/content";
 
 type LearningLessonPageProps = Readonly<{
   params: Promise<{ lessonSlug: string; pathSlug: string }>;
 }>;
 
-export const metadata: Metadata = {
-  title: "Learning lesson",
-  description: "An authored Lumina learning lesson with a deterministic knowledge check.",
-};
+export function learningLessonMetadata(messages: LearningLessonMessages): Metadata {
+  return {
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 export function generateStaticParams(): Array<{ lessonSlug: string; pathSlug: string }> {
   const content = loadLearningContent();
@@ -25,10 +30,15 @@ export function generateStaticParams(): Array<{ lessonSlug: string; pathSlug: st
 
 export async function LearningLessonRoute({
   locale,
+  messages,
   params,
   sourceMessages,
 }: LearningLessonPageProps &
-  Readonly<{ locale: PublishedLocale; sourceMessages: LearningSourcesMessages }>) {
+  Readonly<{
+    locale: PublishedLocale;
+    messages: LearningLessonMessages;
+    sourceMessages: LearningSourcesMessages;
+  }>) {
   const { lessonSlug, pathSlug } = await params;
   const content = loadLearningContent();
   if (content.path.slug !== pathSlug) notFound();
@@ -40,6 +50,7 @@ export async function LearningLessonRoute({
       content={content}
       lesson={lesson}
       locale={locale}
+      messages={messages}
       path={content.path}
       quiz={quiz}
       sourceMessages={sourceMessages}

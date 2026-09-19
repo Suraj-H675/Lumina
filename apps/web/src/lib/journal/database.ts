@@ -11,9 +11,14 @@ import {
   type JournalEntry,
   type JournalEntryInput,
 } from "./model";
+import {
+  MAX_SAVED_OBSERVATION_PLANS,
+  validateSavedObservationPlan,
+  type SavedObservationPlan,
+} from "../observation/saved-plan";
 
 export const LUMINA_PERSONAL_DB_NAME = "lumina-personal";
-export const JOURNAL_DATABASE_VERSION = 1;
+export const LUMINA_PERSONAL_DATABASE_VERSION = 2;
 export const JOURNAL_ATTACHMENT_SCHEMA_VERSION = 1 as const;
 export const MAX_JOURNAL_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 
@@ -46,6 +51,7 @@ export type JournalImageAttachment = Readonly<{
 type LuminaPersonalDatabase = Dexie & {
   journalEntries: EntityTable<JournalEntry, "id">;
   journalAttachments: EntityTable<JournalImageAttachment, "id">;
+  savedPlans: EntityTable<SavedObservationPlan, "id">;
 };
 
 let database: LuminaPersonalDatabase | null = null;
@@ -70,11 +76,32 @@ export class JournalStorageError extends Error {
   }
 }
 
+export type SavedPlanStorageFailureReason =
+  | "storage-unavailable"
+  | "storage-corrupted"
+  | "quota-exceeded"
+  | "plan-limit"
+  | "invalid-plan"
+  | "storage-write-failed";
+
+export class SavedPlanStorageError extends Error {
+  readonly reason: SavedPlanStorageFailureReason;
+
+  constructor(reason: SavedPlanStorageFailureReason) {
+    super("Local saved-plan storage is unavailable or rejected the operation.");
+    this.name = "SavedPlanStorageError";
+    this.reason = reason;
+  }
+}
+
 function createDatabase(): LuminaPersonalDatabase {
   const db = new Dexie(LUMINA_PERSONAL_DB_NAME) as LuminaPersonalDatabase;
-  db.version(JOURNAL_DATABASE_VERSION).stores({
+  db.version(1).stores({
     journalEntries: "&id, updated_at, created_at",
     journalAttachments: "&id, journal_entry_id, created_at",
+  });
+  db.version(LUMINA_PERSONAL_DATABASE_VERSION).stores({
+    savedPlans: "&id, updated_at, created_at",
   });
   return db;
 }
@@ -101,6 +128,97 @@ function classifyStorageError(error: unknown): JournalStorageError {
     return new JournalStorageError("storage-unavailable");
   }
   return new JournalStorageError("storage-write-failed");
+}
+
+function classifySavedPlanStorageError(error: unknown): SavedPlanStorageError {
+  if (error instanceof SavedPlanStorageError) return error;
+  if (error instanceof Dexie.DatabaseClosedError || error instanceof Dexie.MissingAPIError) {
+    return new SavedPlanStorageError("storage-unavailable");
+  }
+  if (
+    (typeof DOMException !== "undefined" &&
+      error instanceof DOMException &&
+      error.name === "QuotaExceededError") ||
+    (typeof error === "object" &&
+      error !== null &&
+      "name" in error &&
+      (error as { name?: unknown }).name === "QuotaExceededError")
+  ) {
+    return new SavedPlanStorageError("quota-exceeded");
+  }
+  return new SavedPlanStorageError("storage-write-failed");
+}
+
+async function validatedSavedPlans(db: LuminaPersonalDatabase): Promise<SavedObservationPlan[]> {
+  const rows = await db.savedPlans.orderBy("updated_at").reverse().toArray();
+  const validated: SavedObservationPlan[] = [];
+  for (const row of rows) {
+    const safe = validateSavedObservationPlan(row);
+    if (safe === null) throw new SavedPlanStorageError("storage-corrupted");
+    validated.push(safe);
+  }
+  return validated;
+}
+
+export async function listSavedObservationPlans(): Promise<SavedObservationPlan[]> {
+  try {
+    return await validatedSavedPlans(journalDatabase());
+  } catch (error) {
+    throw classifySavedPlanStorageError(error);
+  }
+}
+
+export async function getSavedObservationPlan(id: string): Promise<SavedObservationPlan | null> {
+  if (!isUuidV4(id)) throw new SavedPlanStorageError("invalid-plan");
+  try {
+    const row = await journalDatabase().savedPlans.get(id);
+    if (row === undefined) return null;
+    const safe = validateSavedObservationPlan(row);
+    if (safe === null) throw new SavedPlanStorageError("storage-corrupted");
+    return safe;
+  } catch (error) {
+    throw classifySavedPlanStorageError(error);
+  }
+}
+
+export async function putSavedObservationPlan(plan: SavedObservationPlan): Promise<void> {
+  const safe = validateSavedObservationPlan(plan);
+  if (safe === null) throw new SavedPlanStorageError("invalid-plan");
+  const db = journalDatabase();
+  try {
+    await db.transaction("rw", db.savedPlans, async () => {
+      const existing = await db.savedPlans.get(safe.id);
+      if (existing === undefined && (await db.savedPlans.count()) >= MAX_SAVED_OBSERVATION_PLANS) {
+        throw new SavedPlanStorageError("plan-limit");
+      }
+      await db.savedPlans.put(safe);
+    });
+  } catch (error) {
+    throw classifySavedPlanStorageError(error);
+  }
+}
+
+export async function deleteSavedObservationPlan(id: string): Promise<boolean> {
+  if (!isUuidV4(id)) throw new SavedPlanStorageError("invalid-plan");
+  const db = journalDatabase();
+  try {
+    return await db.transaction("rw", db.savedPlans, async () => {
+      const existing = await db.savedPlans.get(id);
+      if (existing === undefined) return false;
+      await db.savedPlans.delete(id);
+      return true;
+    });
+  } catch (error) {
+    throw classifySavedPlanStorageError(error);
+  }
+}
+
+export async function clearSavedObservationPlans(): Promise<void> {
+  try {
+    await journalDatabase().savedPlans.clear();
+  } catch (error) {
+    throw classifySavedPlanStorageError(error);
+  }
 }
 
 async function validatedEntries(db: LuminaPersonalDatabase): Promise<JournalEntry[]> {

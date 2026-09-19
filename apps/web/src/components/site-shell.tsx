@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PwaStatus } from "./pwa-status";
 import { SiteNav } from "./site-nav";
 
 type SiteShellProps = Readonly<{
@@ -13,6 +14,7 @@ export function SiteShell({ children }: SiteShellProps) {
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
+      <PwaStatus />
       <header className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_72%,transparent)]">
         <div className="mx-auto flex w-full max-w-[var(--content-width)] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
           <Link

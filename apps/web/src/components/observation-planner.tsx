@@ -17,6 +17,7 @@ import type { EntityDetailResponse } from "@lumina/api-client";
 import { CatalogueSearchBox } from "./catalogue-search-box";
 import { JournalEntryButton } from "./journal-entry-button";
 import { ObservationConditions } from "./observation-conditions";
+import { SaveObservationPlanButton } from "./save-observation-plan-button";
 import { SkyFinder } from "./sky-finder";
 import { entityTypeLabel } from "../lib/catalog-display";
 import {
@@ -36,7 +37,7 @@ import {
   type TargetEvent,
 } from "../lib/observation/domain";
 
-type ObservationPlannerProps = Readonly<{
+export type ObservationPlannerProps = Readonly<{
   apiOrigin?: string;
   detail: EntityDetailResponse | null;
   initialDate?: string;
@@ -328,6 +329,7 @@ function PlannerResults({
   nightDate,
   plan,
   targetEntityId,
+  targetEntityType,
   targetName,
   targetSlug,
   timeZone,
@@ -335,6 +337,7 @@ function PlannerResults({
   nightDate: string;
   plan: ObservationPlan;
   targetEntityId: string;
+  targetEntityType: EntityDetailResponse["entity_type"];
   targetName: string;
   targetSlug: string;
   timeZone: string;
@@ -364,6 +367,17 @@ function PlannerResults({
             longitudeDeg: plan.location.longitude,
             selectedTimeUtc: plan.selected.instant.toISOString(),
           }}
+        />
+        <SaveObservationPlanButton
+          nightDate={nightDate}
+          plan={plan}
+          target={{
+            canonicalName: targetName,
+            entityId: targetEntityId,
+            entityType: targetEntityType,
+            slug: targetSlug,
+          }}
+          timeZone={timeZone}
         />
       </div>
 
@@ -805,6 +819,7 @@ export function ObservationPlanner({
             <PlannerResults
               plan={plan}
               targetEntityId={detail.id}
+              targetEntityType={detail.entity_type}
               targetName={targetTitle}
               targetSlug={slug ?? ""}
               timeZone={timeZone}

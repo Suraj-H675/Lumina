@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ObservationPlanner } from "../../components/observation-planner";
+import { ObserveExperience } from "../../components/observe-experience";
 import { isValidNightDate } from "../../lib/observation/domain";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadObjectBySlugPerRequest } from "../../lib/server/catalog";
@@ -21,20 +21,23 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 
 export default async function ObservePage({ searchParams }: ObservePageProps) {
   const params = await searchParams;
+  const hasSavedParam = Object.prototype.hasOwnProperty.call(params, "saved");
+  const initialSavedId = hasSavedParam ? (firstValue(params.saved)?.trim() ?? "") : undefined;
   const rawSlug = firstValue(params.object)?.trim().toLowerCase() ?? "";
   const slug = rawSlug.length > 0 ? rawSlug : null;
   const rawDate = firstValue(params.date);
   const initialDate = rawDate !== undefined && isValidNightDate(rawDate) ? rawDate : undefined;
-  const outcome = slug === null ? null : await loadObjectBySlugPerRequest(slug);
+  const outcome = hasSavedParam || slug === null ? null : await loadObjectBySlugPerRequest(slug);
   const configured = resolveWebApiOrigin();
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   return (
-    <ObservationPlanner
+    <ObserveExperience
       {...(apiOrigin === undefined ? {} : { apiOrigin })}
       detail={outcome?.kind === "ok" ? outcome.detail : null}
       {...(initialDate === undefined ? {} : { initialDate })}
-      slug={slug}
+      {...(initialSavedId === undefined ? {} : { initialSavedId })}
+      slug={hasSavedParam ? null : slug}
       targetUnavailable={outcome !== null && outcome.kind !== "ok"}
     />
   );

@@ -1,0 +1,108 @@
+/* Generated from the canonical Python Rocket/Mission Designer v1 model for tests only. */
+export const ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE = {
+  model_version: "rocket-mission-designer-v1",
+  schema_version: 1,
+  inputs: {
+    gravity_body: "earth",
+    delta_v_reference_id: "earth_200_mile_orbit_example",
+    payload_mass_kg: 5000.0,
+    stages: [
+      {
+        dry_mass_kg: 30000.0,
+        propellant_mass_kg: 400000.0,
+        specific_impulse_s: 300.0,
+        thrust_n: 7000000.0,
+      },
+      {
+        dry_mass_kg: 8000.0,
+        propellant_mass_kg: 40000.0,
+        specific_impulse_s: 350.0,
+        thrust_n: 1000000.0,
+      },
+    ],
+  },
+  selected_surface_gravity_m_s2: 9.8,
+  stages: [
+    {
+      index: 1,
+      dry_mass_kg: 30000.0,
+      propellant_mass_kg: 400000.0,
+      wet_mass_kg: 430000.0,
+      specific_impulse_s: 300.0,
+      thrust_n: 7000000.0,
+      ignition_mass_kg: 483000.0,
+      burnout_before_jettison_mass_kg: 83000.0,
+      mass_ratio: 5.819277108433735,
+      effective_exhaust_velocity_m_s: 2941.995,
+      ideal_delta_v_m_s: 5181.371121028049,
+      surface_gravity_thrust_to_weight: 1.4788524105294292,
+      stage_dry_fraction: 0.06976744186046512,
+      stage_propellant_fraction: 0.9302325581395349,
+    },
+    {
+      index: 2,
+      dry_mass_kg: 8000.0,
+      propellant_mass_kg: 40000.0,
+      wet_mass_kg: 48000.0,
+      specific_impulse_s: 350.0,
+      thrust_n: 1000000.0,
+      ignition_mass_kg: 53000.0,
+      burnout_before_jettison_mass_kg: 13000.0,
+      mass_ratio: 4.076923076923077,
+      effective_exhaust_velocity_m_s: 3432.3275,
+      ideal_delta_v_m_s: 4823.595902190007,
+      surface_gravity_thrust_to_weight: 1.9252984212552944,
+      stage_dry_fraction: 0.16666666666666666,
+      stage_propellant_fraction: 0.8333333333333334,
+    },
+  ],
+  total_ideal_delta_v_m_s: 10004.967023218056,
+  mass_fractions: {
+    launch_mass_kg: 483000.0,
+    total_stage_dry_mass_kg: 38000.0,
+    total_propellant_mass_kg: 440000.0,
+    payload_mass_kg: 5000.0,
+    stage_dry_fraction_of_launch_mass: 0.07867494824016563,
+    propellant_fraction_of_launch_mass: 0.9109730848861284,
+    payload_fraction_of_launch_mass: 0.010351966873706004,
+  },
+  payload_tradeoff: [
+    {
+      payload_multiplier: 0.0,
+      payload_mass_kg: 0.0,
+      total_ideal_delta_v_m_s: 11483.453641976412,
+    },
+    {
+      payload_multiplier: 0.5,
+      payload_mass_kg: 2500.0,
+      total_ideal_delta_v_m_s: 10646.887114959416,
+    },
+    {
+      payload_multiplier: 1.0,
+      payload_mass_kg: 5000.0,
+      total_ideal_delta_v_m_s: 10004.967023218056,
+    },
+    {
+      payload_multiplier: 1.5,
+      payload_mass_kg: 7500.0,
+      total_ideal_delta_v_m_s: 9487.334908610062,
+    },
+    {
+      payload_multiplier: 2.0,
+      payload_mass_kg: 10000.0,
+      total_ideal_delta_v_m_s: 9055.642188363036,
+    },
+  ],
+  reference_comparison: {
+    reference_id: "earth_200_mile_orbit_example",
+    reference_kind: "nasa_glenn_idealized_delta_v_example",
+    label: "NASA Glenn approximate 200-mile circular-orbit velocity-change example",
+    reference_value_m_s: 7620.0,
+    ideal_delta_v_difference_m_s: 2384.967023218056,
+    ideal_delta_v_to_reference_ratio: 1.3129877983225795,
+    interpretation:
+      "This is an educational velocity-reference comparison only. It is not a mission delta-v requirement, feasibility result, launch capability claim, or operational planning output.",
+  },
+  model_note:
+    "Ideal staged delta-v excludes atmosphere, gravity/drag/steering losses, finite-burn trajectory effects, changing gravity, guidance, structural/aerodynamic/thermal engineering, reserves, and operational launch planning. Surface-gravity TWR is a pedagogical reference, not an upper-stage flight-condition estimate.",
+};

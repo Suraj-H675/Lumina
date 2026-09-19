@@ -18,6 +18,9 @@ from lumina.astronomy.api.planetary_system_builder_routes import (
     router as planetary_system_builder_router,
 )
 from lumina.astronomy.api.radial_velocity_routes import router as radial_velocity_router
+from lumina.astronomy.api.rocket_mission_designer_routes import (
+    router as rocket_mission_designer_router,
+)
 from lumina.astronomy.api.routes import router as astronomy_router
 from lumina.astronomy.api.spectroscopy_lab_routes import router as spectroscopy_lab_router
 from lumina.astronomy.api.stellar_laboratory_routes import router as stellar_laboratory_router
@@ -215,6 +218,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(orbit_router)
     application.include_router(planetary_system_builder_router)
     application.include_router(radial_velocity_router)
+    application.include_router(rocket_mission_designer_router)
     application.include_router(spectroscopy_lab_router)
     application.include_router(stellar_laboratory_router)
     application.include_router(telescope_router)

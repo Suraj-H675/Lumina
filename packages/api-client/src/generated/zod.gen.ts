@@ -100,6 +100,26 @@ export const zDatasetReference = z.object({
 });
 
 /**
+ * DeltaVReferenceComparisonResponse
+ */
+export const zDeltaVReferenceComparisonResponse = z.object({
+  ideal_delta_v_difference_m_s: z.number(),
+  ideal_delta_v_to_reference_ratio: z.number(),
+  interpretation: z.string(),
+  label: z.string(),
+  reference_id: z.enum([
+    "earth_200_mile_orbit_example",
+    "earth_equatorial_escape_speed",
+    "mars_equatorial_escape_speed",
+  ]),
+  reference_kind: z.enum([
+    "nasa_glenn_idealized_delta_v_example",
+    "jpl_equatorial_escape_speed_reference",
+  ]),
+  reference_value_m_s: z.number(),
+});
+
+/**
  * EclipseInstantGeometryResponse
  */
 export const zEclipseInstantGeometryResponse = z.object({
@@ -685,6 +705,15 @@ export const zEntityBrowsePageResponse = z.object({
 });
 
 /**
+ * PayloadTradeoffPointResponse
+ */
+export const zPayloadTradeoffPointResponse = z.object({
+  payload_mass_kg: z.number(),
+  payload_multiplier: z.number(),
+  total_ideal_delta_v_m_s: z.number(),
+});
+
+/**
  * PlanetarySystemAdjacentPairResponse
  */
 export const zPlanetarySystemAdjacentPairResponse = z.object({
@@ -914,6 +943,50 @@ export const zRadialVelocityCalculationResponse = z.object({
  */
 export const zReadyResponse = z.object({
   status: z.string(),
+});
+
+/**
+ * RocketStageInputResponse
+ */
+export const zRocketStageInputResponse = z.object({
+  dry_mass_kg: z.number(),
+  propellant_mass_kg: z.number(),
+  specific_impulse_s: z.number(),
+  thrust_n: z.number(),
+});
+
+/**
+ * RocketMissionDesignerInputResponse
+ */
+export const zRocketMissionDesignerInputResponse = z.object({
+  delta_v_reference_id: z.enum([
+    "earth_200_mile_orbit_example",
+    "earth_equatorial_escape_speed",
+    "mars_equatorial_escape_speed",
+  ]),
+  gravity_body: z.enum(["earth", "moon", "mars"]),
+  payload_mass_kg: z.number(),
+  stages: z.array(zRocketStageInputResponse).min(1).max(4),
+});
+
+/**
+ * RocketStageResponse
+ */
+export const zRocketStageResponse = z.object({
+  burnout_before_jettison_mass_kg: z.number(),
+  dry_mass_kg: z.number(),
+  effective_exhaust_velocity_m_s: z.number(),
+  ideal_delta_v_m_s: z.number(),
+  ignition_mass_kg: z.number(),
+  index: z.int(),
+  mass_ratio: z.number(),
+  propellant_mass_kg: z.number(),
+  specific_impulse_s: z.number(),
+  stage_dry_fraction: z.number(),
+  stage_propellant_fraction: z.number(),
+  surface_gravity_thrust_to_weight: z.number(),
+  thrust_n: z.number(),
+  wet_mass_kg: z.number(),
 });
 
 /**
@@ -1574,6 +1647,41 @@ export const zSelectionHistoryPageResponse = z.object({
 });
 
 /**
+ * VehicleMassFractionsResponse
+ */
+export const zVehicleMassFractionsResponse = z.object({
+  launch_mass_kg: z.number(),
+  payload_fraction_of_launch_mass: z.number(),
+  payload_mass_kg: z.number(),
+  propellant_fraction_of_launch_mass: z.number(),
+  stage_dry_fraction_of_launch_mass: z.number(),
+  total_propellant_mass_kg: z.number(),
+  total_stage_dry_mass_kg: z.number(),
+});
+
+/**
+ * RocketMissionDesignerCalculationResponse
+ */
+export const zRocketMissionDesignerCalculationResponse = z.object({
+  inputs: zRocketMissionDesignerInputResponse,
+  mass_fractions: zVehicleMassFractionsResponse,
+  model_note: z.string(),
+  model_version: z.string(),
+  payload_tradeoff: z.tuple([
+    zPayloadTradeoffPointResponse,
+    zPayloadTradeoffPointResponse,
+    zPayloadTradeoffPointResponse,
+    zPayloadTradeoffPointResponse,
+    zPayloadTradeoffPointResponse,
+  ]),
+  reference_comparison: zDeltaVReferenceComparisonResponse,
+  schema_version: z.int(),
+  selected_surface_gravity_m_s2: z.number(),
+  stages: z.array(zRocketStageResponse).min(1).max(4),
+  total_ideal_delta_v_m_s: z.number(),
+});
+
+/**
  * Successful Response
  */
 export const zListCatalogEntitiesResponse = zEntityBrowsePageResponse;
@@ -1702,6 +1810,11 @@ export const zCalculatePlanetarySystemBuilderResponse = zPlanetarySystemBuilderC
  * Successful Response
  */
 export const zCalculateRadialVelocityResponse = zRadialVelocityCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateRocketMissionDesignerResponse = zRocketMissionDesignerCalculationResponse;
 
 /**
  * Successful Response

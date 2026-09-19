@@ -44,6 +44,12 @@ const labs = [
       "Build a circular non-interacting system and compare source-backed orbital periods, a conservative reference habitable-zone band, and limited pairwise mutual-Hill diagnostics.",
   },
   {
+    href: "/lab/rocket-mission-designer",
+    title: "Rocket / Mission Designer",
+    description:
+      "Explore an ideal staged-rocket teaching model with source-backed delta-v, surface-gravity TWR references, payload sensitivity, and explicitly non-operational velocity comparisons.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

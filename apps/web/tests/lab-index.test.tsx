@@ -10,14 +10,17 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Lab section navigation", () => {
-  it("lists only the four implemented labs", () => {
+  it("lists implemented labs including the current Phase 7 surfaces", () => {
     const markup = renderToStaticMarkup(<LabPage />);
 
     expect(markup).toContain('href="/lab/scale-explorer"');
     expect(markup).toContain('href="/lab/seasons-simulator"');
     expect(markup).toContain('href="/lab/telescope-builder"');
     expect(markup).toContain('href="/lab/hr-diagram-explorer"');
+    expect(markup).toContain('href="/lab/planetary-system-builder"');
+    expect(markup).toContain('href="/lab/rocket-mission-designer"');
     expect(markup).toContain("H-R Diagram Explorer");
+    expect(markup).toContain("Rocket / Mission Designer");
     expect(markup).not.toContain("Coming soon");
   });
 

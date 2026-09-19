@@ -235,6 +235,43 @@ export type DatasetReference = {
 };
 
 /**
+ * DeltaVReferenceComparisonResponse
+ */
+export type DeltaVReferenceComparisonResponse = {
+  /**
+   * Ideal Delta V Difference M S
+   */
+  ideal_delta_v_difference_m_s: number;
+  /**
+   * Ideal Delta V To Reference Ratio
+   */
+  ideal_delta_v_to_reference_ratio: number;
+  /**
+   * Interpretation
+   */
+  interpretation: string;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Reference Id
+   */
+  reference_id:
+    | "earth_200_mile_orbit_example"
+    | "earth_equatorial_escape_speed"
+    | "mars_equatorial_escape_speed";
+  /**
+   * Reference Kind
+   */
+  reference_kind: "nasa_glenn_idealized_delta_v_example" | "jpl_equatorial_escape_speed_reference";
+  /**
+   * Reference Value M S
+   */
+  reference_value_m_s: number;
+};
+
+/**
  * EclipseInstantGeometryResponse
  */
 export type EclipseInstantGeometryResponse = {
@@ -1547,6 +1584,24 @@ export type PageResponse = {
 };
 
 /**
+ * PayloadTradeoffPointResponse
+ */
+export type PayloadTradeoffPointResponse = {
+  /**
+   * Payload Mass Kg
+   */
+  payload_mass_kg: number;
+  /**
+   * Payload Multiplier
+   */
+  payload_multiplier: number;
+  /**
+   * Total Ideal Delta V M S
+   */
+  total_ideal_delta_v_m_s: number;
+};
+
+/**
  * PlanetarySystemAdjacentPairResponse
  */
 export type PlanetarySystemAdjacentPairResponse = {
@@ -2039,6 +2094,158 @@ export type ReadyResponse = {
    * Status
    */
   status: string;
+};
+
+/**
+ * RocketMissionDesignerCalculationResponse
+ */
+export type RocketMissionDesignerCalculationResponse = {
+  inputs: RocketMissionDesignerInputResponse;
+  mass_fractions: VehicleMassFractionsResponse;
+  /**
+   * Model Note
+   */
+  model_note: string;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Payload Tradeoff
+   */
+  payload_tradeoff: [
+    PayloadTradeoffPointResponse,
+    PayloadTradeoffPointResponse,
+    PayloadTradeoffPointResponse,
+    PayloadTradeoffPointResponse,
+    PayloadTradeoffPointResponse,
+  ];
+  reference_comparison: DeltaVReferenceComparisonResponse;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Selected Surface Gravity M S2
+   */
+  selected_surface_gravity_m_s2: number;
+  /**
+   * Stages
+   */
+  stages: Array<RocketStageResponse>;
+  /**
+   * Total Ideal Delta V M S
+   */
+  total_ideal_delta_v_m_s: number;
+};
+
+/**
+ * RocketMissionDesignerInputResponse
+ */
+export type RocketMissionDesignerInputResponse = {
+  /**
+   * Delta V Reference Id
+   */
+  delta_v_reference_id:
+    | "earth_200_mile_orbit_example"
+    | "earth_equatorial_escape_speed"
+    | "mars_equatorial_escape_speed";
+  /**
+   * Gravity Body
+   */
+  gravity_body: "earth" | "moon" | "mars";
+  /**
+   * Payload Mass Kg
+   */
+  payload_mass_kg: number;
+  /**
+   * Stages
+   */
+  stages: Array<RocketStageInputResponse>;
+};
+
+/**
+ * RocketStageInputResponse
+ */
+export type RocketStageInputResponse = {
+  /**
+   * Dry Mass Kg
+   */
+  dry_mass_kg: number;
+  /**
+   * Propellant Mass Kg
+   */
+  propellant_mass_kg: number;
+  /**
+   * Specific Impulse S
+   */
+  specific_impulse_s: number;
+  /**
+   * Thrust N
+   */
+  thrust_n: number;
+};
+
+/**
+ * RocketStageResponse
+ */
+export type RocketStageResponse = {
+  /**
+   * Burnout Before Jettison Mass Kg
+   */
+  burnout_before_jettison_mass_kg: number;
+  /**
+   * Dry Mass Kg
+   */
+  dry_mass_kg: number;
+  /**
+   * Effective Exhaust Velocity M S
+   */
+  effective_exhaust_velocity_m_s: number;
+  /**
+   * Ideal Delta V M S
+   */
+  ideal_delta_v_m_s: number;
+  /**
+   * Ignition Mass Kg
+   */
+  ignition_mass_kg: number;
+  /**
+   * Index
+   */
+  index: number;
+  /**
+   * Mass Ratio
+   */
+  mass_ratio: number;
+  /**
+   * Propellant Mass Kg
+   */
+  propellant_mass_kg: number;
+  /**
+   * Specific Impulse S
+   */
+  specific_impulse_s: number;
+  /**
+   * Stage Dry Fraction
+   */
+  stage_dry_fraction: number;
+  /**
+   * Stage Propellant Fraction
+   */
+  stage_propellant_fraction: number;
+  /**
+   * Surface Gravity Thrust To Weight
+   */
+  surface_gravity_thrust_to_weight: number;
+  /**
+   * Thrust N
+   */
+  thrust_n: number;
+  /**
+   * Wet Mass Kg
+   */
+  wet_mass_kg: number;
 };
 
 /**
@@ -3244,6 +3451,40 @@ export type UnitReference = {
   symbol: string;
 };
 
+/**
+ * VehicleMassFractionsResponse
+ */
+export type VehicleMassFractionsResponse = {
+  /**
+   * Launch Mass Kg
+   */
+  launch_mass_kg: number;
+  /**
+   * Payload Fraction Of Launch Mass
+   */
+  payload_fraction_of_launch_mass: number;
+  /**
+   * Payload Mass Kg
+   */
+  payload_mass_kg: number;
+  /**
+   * Propellant Fraction Of Launch Mass
+   */
+  propellant_fraction_of_launch_mass: number;
+  /**
+   * Stage Dry Fraction Of Launch Mass
+   */
+  stage_dry_fraction_of_launch_mass: number;
+  /**
+   * Total Propellant Mass Kg
+   */
+  total_propellant_mass_kg: number;
+  /**
+   * Total Stage Dry Mass Kg
+   */
+  total_stage_dry_mass_kg: number;
+};
+
 export type ListCatalogEntitiesData = {
   body?: never;
   path?: never;
@@ -4385,6 +4626,79 @@ export type CalculateRadialVelocityResponses = {
 
 export type CalculateRadialVelocityResponse =
   CalculateRadialVelocityResponses[keyof CalculateRadialVelocityResponses];
+
+export type CalculateRocketMissionDesignerData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Gravity Body
+     *
+     * Surface-gravity teaching reference: earth, moon, or mars.
+     */
+    gravity_body: "earth" | "moon" | "mars";
+    /**
+     * Delta V Reference Id
+     *
+     * Fixed educational velocity reference; comparison is not a mission-feasibility result.
+     */
+    delta_v_reference_id:
+      | "earth_200_mile_orbit_example"
+      | "earth_equatorial_escape_speed"
+      | "mars_equatorial_escape_speed";
+    /**
+     * Payload Mass Kg
+     *
+     * Payload mass in kilograms; 1 through 300000.
+     */
+    payload_mass_kg: number;
+    /**
+     * Stage Dry Mass Kg
+     *
+     * Repeated stage dry masses in kilograms, in ignition order.
+     */
+    stage_dry_mass_kg: Array<number>;
+    /**
+     * Stage Propellant Mass Kg
+     *
+     * Repeated stage propellant masses in kilograms, in ignition order.
+     */
+    stage_propellant_mass_kg: Array<number>;
+    /**
+     * Stage Specific Impulse S
+     *
+     * Repeated stage specific impulses in seconds, in ignition order.
+     */
+    stage_specific_impulse_s: Array<number>;
+    /**
+     * Stage Thrust N
+     *
+     * Repeated stage thrust values in newtons, in ignition order.
+     */
+    stage_thrust_n: Array<number>;
+  };
+  url: "/api/v1/simulations/rocket-mission-designer";
+};
+
+export type CalculateRocketMissionDesignerErrors = {
+  /**
+   * The Rocket/Mission Designer input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateRocketMissionDesignerError =
+  CalculateRocketMissionDesignerErrors[keyof CalculateRocketMissionDesignerErrors];
+
+export type CalculateRocketMissionDesignerResponses = {
+  /**
+   * Successful Response
+   */
+  200: RocketMissionDesignerCalculationResponse;
+};
+
+export type CalculateRocketMissionDesignerResponse =
+  CalculateRocketMissionDesignerResponses[keyof CalculateRocketMissionDesignerResponses];
 
 export type CalculateSeasonsSimulatorData = {
   body?: never;

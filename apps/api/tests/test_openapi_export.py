@@ -69,6 +69,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/planetary-system-builder",
         "/api/v1/simulations/radial-velocity",
+        "/api/v1/simulations/rocket-mission-designer",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/spectroscopy-lab",
         "/api/v1/simulations/stellar-laboratory",
@@ -213,6 +214,39 @@ def test_planetary_system_builder_openapi_is_versioned_repeated_and_read_only() 
         assert schema["maxItems"] == 8
         assert schema["items"]["type"] == "number"
     assert set(document["paths"]["/api/v1/simulations/planetary-system-builder"]) == {"get"}
+
+
+def test_rocket_mission_designer_openapi_is_versioned_repeated_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/rocket-mission-designer"]["get"]
+
+    assert operation["operationId"] == "calculate_rocket_mission_designer"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/RocketMissionDesignerCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "gravity_body",
+        "delta_v_reference_id",
+        "payload_mass_kg",
+        "stage_dry_mass_kg",
+        "stage_propellant_mass_kg",
+        "stage_specific_impulse_s",
+        "stage_thrust_n",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    for name in (
+        "stage_dry_mass_kg",
+        "stage_propellant_mass_kg",
+        "stage_specific_impulse_s",
+        "stage_thrust_n",
+    ):
+        schema = parameters[name]["schema"]
+        assert schema["type"] == "array"
+        assert schema["minItems"] == 1
+        assert schema["maxItems"] == 4
+        assert schema["items"]["type"] == "number"
+    assert set(document["paths"]["/api/v1/simulations/rocket-mission-designer"]) == {"get"}
 
 
 def test_stellar_laboratory_calculation_openapi_is_versioned_and_read_only() -> None:

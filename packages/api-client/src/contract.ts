@@ -12,6 +12,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
+  CalculateRocketMissionDesignerData,
   CalculateSeasonsSimulatorData,
   CalculateSpectroscopyLabData,
   CalculateStellarLaboratoryData,
@@ -20,6 +21,7 @@ import type {
   OrbitSandboxCalculationResponse,
   PlanetarySystemBuilderCalculationResponse,
   RadialVelocityCalculationResponse,
+  RocketMissionDesignerCalculationResponse,
   SpectroscopyCalculationResponse,
   StellarLaboratoryCalculationResponse,
   TelescopeBuilderCalculationResponse,
@@ -66,6 +68,7 @@ import {
   zCalculateOrbitSandboxResponse,
   zCalculatePlanetarySystemBuilderResponse,
   zCalculateRadialVelocityResponse,
+  zCalculateRocketMissionDesignerResponse,
   zCalculateSeasonsSimulatorResponse,
   zCalculateSpectroscopyLabResponse,
   zCalculateStellarLaboratoryResponse,
@@ -377,6 +380,15 @@ export const radialVelocityEndpoint = {
   path: "/api/v1/simulations/radial-velocity" satisfies CalculateRadialVelocityData["url"],
   validator: zCalculateRadialVelocityResponse,
 } satisfies ApiEndpoint<RadialVelocityCalculationResponse, CalculateRadialVelocityData["url"]>;
+
+export const rocketMissionDesignerEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/rocket-mission-designer" satisfies CalculateRocketMissionDesignerData["url"],
+  validator: zCalculateRocketMissionDesignerResponse,
+} satisfies ApiEndpoint<
+  RocketMissionDesignerCalculationResponse,
+  CalculateRocketMissionDesignerData["url"]
+>;
 
 export const seasonsSimulatorEndpoint = {
   method: "GET",

@@ -412,6 +412,59 @@
         "title": "DatasetReference",
         "type": "object"
       },
+      "DeltaVReferenceComparisonResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "ideal_delta_v_difference_m_s": {
+            "title": "Ideal Delta V Difference M S",
+            "type": "number"
+          },
+          "ideal_delta_v_to_reference_ratio": {
+            "title": "Ideal Delta V To Reference Ratio",
+            "type": "number"
+          },
+          "interpretation": {
+            "title": "Interpretation",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "reference_id": {
+            "enum": [
+              "earth_200_mile_orbit_example",
+              "earth_equatorial_escape_speed",
+              "mars_equatorial_escape_speed"
+            ],
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "enum": [
+              "nasa_glenn_idealized_delta_v_example",
+              "jpl_equatorial_escape_speed_reference"
+            ],
+            "title": "Reference Kind",
+            "type": "string"
+          },
+          "reference_value_m_s": {
+            "title": "Reference Value M S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "reference_id",
+          "reference_kind",
+          "label",
+          "reference_value_m_s",
+          "ideal_delta_v_difference_m_s",
+          "ideal_delta_v_to_reference_ratio",
+          "interpretation"
+        ],
+        "title": "DeltaVReferenceComparisonResponse",
+        "type": "object"
+      },
       "EclipseInstantGeometryResponse": {
         "additionalProperties": false,
         "properties": {
@@ -2786,6 +2839,30 @@
         "title": "PageResponse",
         "type": "object"
       },
+      "PayloadTradeoffPointResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "payload_mass_kg": {
+            "title": "Payload Mass Kg",
+            "type": "number"
+          },
+          "payload_multiplier": {
+            "title": "Payload Multiplier",
+            "type": "number"
+          },
+          "total_ideal_delta_v_m_s": {
+            "title": "Total Ideal Delta V M S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "payload_multiplier",
+          "payload_mass_kg",
+          "total_ideal_delta_v_m_s"
+        ],
+        "title": "PayloadTradeoffPointResponse",
+        "type": "object"
+      },
       "PlanetarySystemAdjacentPairResponse": {
         "additionalProperties": false,
         "properties": {
@@ -3572,6 +3649,224 @@
           "status"
         ],
         "title": "ReadyResponse",
+        "type": "object"
+      },
+      "RocketMissionDesignerCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/RocketMissionDesignerInputResponse"
+          },
+          "mass_fractions": {
+            "$ref": "#/components/schemas/VehicleMassFractionsResponse"
+          },
+          "model_note": {
+            "title": "Model Note",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "payload_tradeoff": {
+            "items": {
+              "$ref": "#/components/schemas/PayloadTradeoffPointResponse"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Payload Tradeoff",
+            "type": "array"
+          },
+          "reference_comparison": {
+            "$ref": "#/components/schemas/DeltaVReferenceComparisonResponse"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "selected_surface_gravity_m_s2": {
+            "title": "Selected Surface Gravity M S2",
+            "type": "number"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/RocketStageResponse"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Stages",
+            "type": "array"
+          },
+          "total_ideal_delta_v_m_s": {
+            "title": "Total Ideal Delta V M S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "selected_surface_gravity_m_s2",
+          "stages",
+          "total_ideal_delta_v_m_s",
+          "mass_fractions",
+          "payload_tradeoff",
+          "reference_comparison",
+          "model_note"
+        ],
+        "title": "RocketMissionDesignerCalculationResponse",
+        "type": "object"
+      },
+      "RocketMissionDesignerInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "delta_v_reference_id": {
+            "enum": [
+              "earth_200_mile_orbit_example",
+              "earth_equatorial_escape_speed",
+              "mars_equatorial_escape_speed"
+            ],
+            "title": "Delta V Reference Id",
+            "type": "string"
+          },
+          "gravity_body": {
+            "enum": [
+              "earth",
+              "moon",
+              "mars"
+            ],
+            "title": "Gravity Body",
+            "type": "string"
+          },
+          "payload_mass_kg": {
+            "title": "Payload Mass Kg",
+            "type": "number"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/RocketStageInputResponse"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "gravity_body",
+          "delta_v_reference_id",
+          "payload_mass_kg",
+          "stages"
+        ],
+        "title": "RocketMissionDesignerInputResponse",
+        "type": "object"
+      },
+      "RocketStageInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "dry_mass_kg": {
+            "title": "Dry Mass Kg",
+            "type": "number"
+          },
+          "propellant_mass_kg": {
+            "title": "Propellant Mass Kg",
+            "type": "number"
+          },
+          "specific_impulse_s": {
+            "title": "Specific Impulse S",
+            "type": "number"
+          },
+          "thrust_n": {
+            "title": "Thrust N",
+            "type": "number"
+          }
+        },
+        "required": [
+          "dry_mass_kg",
+          "propellant_mass_kg",
+          "specific_impulse_s",
+          "thrust_n"
+        ],
+        "title": "RocketStageInputResponse",
+        "type": "object"
+      },
+      "RocketStageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "burnout_before_jettison_mass_kg": {
+            "title": "Burnout Before Jettison Mass Kg",
+            "type": "number"
+          },
+          "dry_mass_kg": {
+            "title": "Dry Mass Kg",
+            "type": "number"
+          },
+          "effective_exhaust_velocity_m_s": {
+            "title": "Effective Exhaust Velocity M S",
+            "type": "number"
+          },
+          "ideal_delta_v_m_s": {
+            "title": "Ideal Delta V M S",
+            "type": "number"
+          },
+          "ignition_mass_kg": {
+            "title": "Ignition Mass Kg",
+            "type": "number"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "mass_ratio": {
+            "title": "Mass Ratio",
+            "type": "number"
+          },
+          "propellant_mass_kg": {
+            "title": "Propellant Mass Kg",
+            "type": "number"
+          },
+          "specific_impulse_s": {
+            "title": "Specific Impulse S",
+            "type": "number"
+          },
+          "stage_dry_fraction": {
+            "title": "Stage Dry Fraction",
+            "type": "number"
+          },
+          "stage_propellant_fraction": {
+            "title": "Stage Propellant Fraction",
+            "type": "number"
+          },
+          "surface_gravity_thrust_to_weight": {
+            "title": "Surface Gravity Thrust To Weight",
+            "type": "number"
+          },
+          "thrust_n": {
+            "title": "Thrust N",
+            "type": "number"
+          },
+          "wet_mass_kg": {
+            "title": "Wet Mass Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "index",
+          "dry_mass_kg",
+          "propellant_mass_kg",
+          "wet_mass_kg",
+          "specific_impulse_s",
+          "thrust_n",
+          "ignition_mass_kg",
+          "burnout_before_jettison_mass_kg",
+          "mass_ratio",
+          "effective_exhaust_velocity_m_s",
+          "ideal_delta_v_m_s",
+          "surface_gravity_thrust_to_weight",
+          "stage_dry_fraction",
+          "stage_propellant_fraction"
+        ],
+        "title": "RocketStageResponse",
         "type": "object"
       },
       "SatelliteAlgorithmResponse": {
@@ -5573,6 +5868,50 @@
         ],
         "title": "UnitReference",
         "type": "object"
+      },
+      "VehicleMassFractionsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "launch_mass_kg": {
+            "title": "Launch Mass Kg",
+            "type": "number"
+          },
+          "payload_fraction_of_launch_mass": {
+            "title": "Payload Fraction Of Launch Mass",
+            "type": "number"
+          },
+          "payload_mass_kg": {
+            "title": "Payload Mass Kg",
+            "type": "number"
+          },
+          "propellant_fraction_of_launch_mass": {
+            "title": "Propellant Fraction Of Launch Mass",
+            "type": "number"
+          },
+          "stage_dry_fraction_of_launch_mass": {
+            "title": "Stage Dry Fraction Of Launch Mass",
+            "type": "number"
+          },
+          "total_propellant_mass_kg": {
+            "title": "Total Propellant Mass Kg",
+            "type": "number"
+          },
+          "total_stage_dry_mass_kg": {
+            "title": "Total Stage Dry Mass Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "launch_mass_kg",
+          "total_stage_dry_mass_kg",
+          "total_propellant_mass_kg",
+          "payload_mass_kg",
+          "stage_dry_fraction_of_launch_mass",
+          "propellant_fraction_of_launch_mass",
+          "payload_fraction_of_launch_mass"
+        ],
+        "title": "VehicleMassFractionsResponse",
+        "type": "object"
       }
     }
   },
@@ -7492,6 +7831,146 @@
           }
         },
         "summary": "Radial Velocity",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/rocket-mission-designer": {
+      "get": {
+        "operationId": "calculate_rocket_mission_designer",
+        "parameters": [
+          {
+            "description": "Surface-gravity teaching reference: earth, moon, or mars.",
+            "in": "query",
+            "name": "gravity_body",
+            "required": true,
+            "schema": {
+              "description": "Surface-gravity teaching reference: earth, moon, or mars.",
+              "enum": [
+                "earth",
+                "moon",
+                "mars"
+              ],
+              "title": "Gravity Body",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Fixed educational velocity reference; comparison is not a mission-feasibility result.",
+            "in": "query",
+            "name": "delta_v_reference_id",
+            "required": true,
+            "schema": {
+              "description": "Fixed educational velocity reference; comparison is not a mission-feasibility result.",
+              "enum": [
+                "earth_200_mile_orbit_example",
+                "earth_equatorial_escape_speed",
+                "mars_equatorial_escape_speed"
+              ],
+              "title": "Delta V Reference Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Payload mass in kilograms; 1 through 300000.",
+            "in": "query",
+            "name": "payload_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Payload mass in kilograms; 1 through 300000.",
+              "title": "Payload Mass Kg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Repeated stage dry masses in kilograms, in ignition order.",
+            "in": "query",
+            "name": "stage_dry_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Repeated stage dry masses in kilograms, in ignition order.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 1,
+              "title": "Stage Dry Mass Kg",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Repeated stage propellant masses in kilograms, in ignition order.",
+            "in": "query",
+            "name": "stage_propellant_mass_kg",
+            "required": true,
+            "schema": {
+              "description": "Repeated stage propellant masses in kilograms, in ignition order.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 1,
+              "title": "Stage Propellant Mass Kg",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Repeated stage specific impulses in seconds, in ignition order.",
+            "in": "query",
+            "name": "stage_specific_impulse_s",
+            "required": true,
+            "schema": {
+              "description": "Repeated stage specific impulses in seconds, in ignition order.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 1,
+              "title": "Stage Specific Impulse S",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Repeated stage thrust values in newtons, in ignition order.",
+            "in": "query",
+            "name": "stage_thrust_n",
+            "required": true,
+            "schema": {
+              "description": "Repeated stage thrust values in newtons, in ignition order.",
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 1,
+              "title": "Stage Thrust N",
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RocketMissionDesignerCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Rocket/Mission Designer input is invalid."
+          }
+        },
+        "summary": "Rocket Mission Designer",
         "tags": [
           "simulations"
         ]

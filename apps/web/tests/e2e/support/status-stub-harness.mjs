@@ -33,6 +33,9 @@ const spectroscopyLabFixtures = JSON.parse(
 const planetarySystemBuilderFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/planetary-system-builder.json", import.meta.url), "utf8"),
 );
+const rocketMissionDesignerFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/rocket-mission-designer.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -49,6 +52,7 @@ const apiPaths = new Set([
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/planetary-system-builder",
   "/api/v1/simulations/radial-velocity",
+  "/api/v1/simulations/rocket-mission-designer",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/spectroscopy-lab",
   "/api/v1/simulations/stellar-laboratory",
@@ -1505,6 +1509,69 @@ function respondPlanetarySystemBuilder(response, target) {
   });
 }
 
+function respondRocketMissionDesigner(response, target) {
+  const scalarKeys = ["gravity_body", "delta_v_reference_id", "payload_mass_kg"];
+  const repeatedKeys = [
+    "stage_dry_mass_kg",
+    "stage_propellant_mass_kg",
+    "stage_specific_impulse_s",
+    "stage_thrust_n",
+  ];
+  const allowedKeys = new Set([...scalarKeys, ...repeatedKeys]);
+  const keys = [...target.searchParams.keys()];
+  const dryMasses = target.searchParams.getAll("stage_dry_mass_kg");
+  const propellantMasses = target.searchParams.getAll("stage_propellant_mass_kg");
+  const specificImpulses = target.searchParams.getAll("stage_specific_impulse_s");
+  const thrusts = target.searchParams.getAll("stage_thrust_n");
+  const validShape =
+    keys.length > 0 &&
+    keys.every((key) => allowedKeys.has(key)) &&
+    scalarKeys.every((key) => target.searchParams.getAll(key).length === 1) &&
+    dryMasses.length >= 1 &&
+    dryMasses.length <= 4 &&
+    propellantMasses.length === dryMasses.length &&
+    specificImpulses.length === dryMasses.length &&
+    thrusts.length === dryMasses.length;
+  if (!validShape) {
+    sendJson(response, 422, {
+      error: {
+        code: "rocket_mission_designer.model_invalid",
+        message: "The Rocket / Mission Designer fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const common =
+    target.searchParams.get("gravity_body") === "earth" &&
+    target.searchParams.get("delta_v_reference_id") === "earth_200_mile_orbit_example" &&
+    dryMasses.length === 2 &&
+    dryMasses[0] === "30000" &&
+    dryMasses[1] === "8000" &&
+    propellantMasses[0] === "400000" &&
+    propellantMasses[1] === "40000" &&
+    specificImpulses[0] === "300" &&
+    specificImpulses[1] === "350" &&
+    thrusts[0] === "7000000" &&
+    thrusts[1] === "1000000";
+  const payload = target.searchParams.get("payload_mass_kg");
+  if (common && payload === "5000") {
+    sendJson(response, 200, rocketMissionDesignerFixtures.default_vehicle);
+    return;
+  }
+  if (common && payload === "6000") {
+    sendJson(response, 200, rocketMissionDesignerFixtures.accepted_payload_6000);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "rocket_mission_designer.model_invalid",
+      message: "The Rocket / Mission Designer E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -2023,6 +2090,7 @@ const stub = http.createServer(async (request, response) => {
   const isPlanetarySystemBuilderPath = path === "/api/v1/simulations/planetary-system-builder";
   const isEclipseSimulatorPath = path === "/api/v1/simulations/eclipse-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
+  const isRocketMissionDesignerPath = path === "/api/v1/simulations/rocket-mission-designer";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isSpectroscopyLabPath = path === "/api/v1/simulations/spectroscopy-lab";
   const isStellarLaboratoryPath = path === "/api/v1/simulations/stellar-laboratory";
@@ -2070,6 +2138,7 @@ const stub = http.createServer(async (request, response) => {
     !isOrbitSandboxPath &&
     !isPlanetarySystemBuilderPath &&
     !isRadialVelocityPath &&
+    !isRocketMissionDesignerPath &&
     !isSeasonsPath &&
     !isSpectroscopyLabPath &&
     !isStellarLaboratoryPath &&
@@ -2290,6 +2359,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isRadialVelocityPath) {
     respondRadialVelocity(response, target);
+    return;
+  }
+  if (isRocketMissionDesignerPath) {
+    respondRocketMissionDesigner(response, target);
     return;
   }
   if (isSeasonsPath) {

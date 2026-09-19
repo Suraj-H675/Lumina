@@ -11,6 +11,7 @@ import {
   orbitSandboxEndpoint,
   planetarySystemBuilderEndpoint,
   radialVelocityEndpoint,
+  rocketMissionDesignerEndpoint,
   seasonsSimulatorEndpoint,
   spectroscopyLabEndpoint,
   stellarLaboratoryEndpoint,
@@ -32,6 +33,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
+  CalculateRocketMissionDesignerData,
   CalculateSeasonsSimulatorData,
   CalculateSpectroscopyLabData,
   CalculateStellarLaboratoryData,
@@ -59,6 +61,7 @@ import {
   zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
+import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
 import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
 
 describe("generated contract boundary", () => {
@@ -85,6 +88,10 @@ describe("generated contract boundary", () => {
     >();
     expect(radialVelocityEndpoint.method).toBe("GET");
     expectTypeOf(radialVelocityEndpoint.path).toEqualTypeOf<CalculateRadialVelocityData["url"]>();
+    expect(rocketMissionDesignerEndpoint.method).toBe("GET");
+    expectTypeOf(rocketMissionDesignerEndpoint.path).toEqualTypeOf<
+      CalculateRocketMissionDesignerData["url"]
+    >();
     expect(seasonsSimulatorEndpoint.method).toBe("GET");
     expectTypeOf(seasonsSimulatorEndpoint.path).toEqualTypeOf<
       CalculateSeasonsSimulatorData["url"]
@@ -430,6 +437,52 @@ describe("Planetary System Builder endpoint", () => {
     ).byteLength;
     expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
     expect(Object.hasOwn(planetarySystemBuilderEndpoint, "maxResponseBytes")).toBe(false);
+  });
+});
+
+describe("Rocket / Mission Designer endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(rocketMissionDesignerEndpoint.path).toEqualTypeOf<
+      CalculateRocketMissionDesignerData["url"]
+    >();
+    const result = await requestEndpoint("http://127.0.0.1:8000", rocketMissionDesignerEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({
+      data: ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Rocket / Mission Designer result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", rocketMissionDesignerEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({ ...ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE, invented: true }),
+            {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            },
+          ),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("fits the normal bounded transport response ceiling", () => {
+    const bytes = new TextEncoder().encode(
+      JSON.stringify(ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE),
+    ).byteLength;
+    expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
+    expect(Object.hasOwn(rocketMissionDesignerEndpoint, "maxResponseBytes")).toBe(false);
   });
 });
 

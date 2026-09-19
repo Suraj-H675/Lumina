@@ -12,6 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException
 
 from lumina import __version__
+from lumina.astronomy.api.black_hole_relativity_routes import (
+    router as black_hole_relativity_router,
+)
 from lumina.astronomy.api.eclipse_simulator_routes import router as eclipse_simulator_router
 from lumina.astronomy.api.impact_simulator_routes import router as impact_simulator_router
 from lumina.astronomy.api.orbit_routes import router as orbit_router
@@ -215,6 +218,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.add_middleware(RequestContextMiddleware)
     application.include_router(router)
     application.include_router(astronomy_router)
+    application.include_router(black_hole_relativity_router)
     application.include_router(eclipse_simulator_router)
     application.include_router(impact_simulator_router)
     application.include_router(orbit_router)

@@ -31,6 +31,14 @@ export const zApodSourceResponse = z.object({
 });
 
 /**
+ * BlackHoleRelativityInputResponse
+ */
+export const zBlackHoleRelativityInputResponse = z.object({
+  mass_nominal_solar: z.number(),
+  static_observer_radius_rs: z.number(),
+});
+
+/**
  * Body_create_identification_submission
  */
 export const zBodyCreateIdentificationSubmission = z.object({
@@ -1188,6 +1196,40 @@ export const zSatellitePassResponse = z.object({
 });
 
 /**
+ * SchwarzschildLandmarkResponse
+ */
+export const zSchwarzschildLandmarkResponse = z.object({
+  id: z.string(),
+  interpretation: z.string(),
+  label: z.string(),
+  radius_m: z.number(),
+  radius_rs: z.number(),
+});
+
+/**
+ * BlackHoleRelativityCalculationResponse
+ */
+export const zBlackHoleRelativityCalculationResponse = z.object({
+  far_away_interval_per_local_interval: z.number(),
+  frequency_ratio_at_infinity: z.number(),
+  gravitational_parameter_m3_s2: z.number(),
+  gravitational_redshift_z: z.number(),
+  inputs: zBlackHoleRelativityInputResponse,
+  landmarks: z.tuple([
+    zSchwarzschildLandmarkResponse,
+    zSchwarzschildLandmarkResponse,
+    zSchwarzschildLandmarkResponse,
+  ]),
+  model_note: z.string(),
+  model_version: z.string(),
+  observer_note: z.string(),
+  proper_time_rate_vs_infinity: z.number(),
+  schema_version: z.int(),
+  schwarzschild_radius_m: z.number(),
+  static_observer_areal_radius_m: z.number(),
+});
+
+/**
  * SearchMatchReason
  */
 export const zSearchMatchReason = z.enum([
@@ -1846,6 +1888,11 @@ export const zSearchCatalogEntitiesResponse = zCatalogSearchResponse;
  * Successful Response
  */
 export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateBlackHoleRelativityResponse = zBlackHoleRelativityCalculationResponse;
 
 /**
  * Successful Response

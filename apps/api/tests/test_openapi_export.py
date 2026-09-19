@@ -65,6 +65,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/now/launches",
         "/api/v1/now/launches/{launch_id}",
         "/api/v1/now/space-weather",
+        "/api/v1/simulations/black-hole-relativity",
         "/api/v1/simulations/eclipse-simulator",
         "/api/v1/simulations/impact-simulator",
         "/api/v1/simulations/orbit-sandbox",
@@ -167,6 +168,24 @@ def test_eclipse_simulator_calculation_openapi_is_versioned_and_read_only() -> N
     assert set(parameters) == {"at_utc", "latitude_deg", "longitude_deg", "elevation_m"}
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/eclipse-simulator"]) == {"get"}
+
+
+def test_black_hole_relativity_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/black-hole-relativity"]["get"]
+
+    assert operation["operationId"] == "calculate_black_hole_relativity"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/BlackHoleRelativityCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {"mass_nominal_solar", "static_observer_radius_rs"}
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    assert parameters["mass_nominal_solar"]["schema"]["minimum"] == 1.0
+    assert parameters["mass_nominal_solar"]["schema"]["maximum"] == 1.0e10
+    assert parameters["static_observer_radius_rs"]["schema"]["minimum"] == 1.01
+    assert parameters["static_observer_radius_rs"]["schema"]["maximum"] == 100.0
+    assert set(document["paths"]["/api/v1/simulations/black-hole-relativity"]) == {"get"}
 
 
 def test_impact_simulator_calculation_openapi_is_versioned_and_read_only() -> None:

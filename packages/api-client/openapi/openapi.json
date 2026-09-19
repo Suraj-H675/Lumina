@@ -214,6 +214,103 @@
         "title": "ApodSourceResponse",
         "type": "object"
       },
+      "BlackHoleRelativityCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "far_away_interval_per_local_interval": {
+            "title": "Far Away Interval Per Local Interval",
+            "type": "number"
+          },
+          "frequency_ratio_at_infinity": {
+            "title": "Frequency Ratio At Infinity",
+            "type": "number"
+          },
+          "gravitational_parameter_m3_s2": {
+            "title": "Gravitational Parameter M3 S2",
+            "type": "number"
+          },
+          "gravitational_redshift_z": {
+            "title": "Gravitational Redshift Z",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/BlackHoleRelativityInputResponse"
+          },
+          "landmarks": {
+            "items": {
+              "$ref": "#/components/schemas/SchwarzschildLandmarkResponse"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Landmarks",
+            "type": "array"
+          },
+          "model_note": {
+            "title": "Model Note",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "observer_note": {
+            "title": "Observer Note",
+            "type": "string"
+          },
+          "proper_time_rate_vs_infinity": {
+            "title": "Proper Time Rate Vs Infinity",
+            "type": "number"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "schwarzschild_radius_m": {
+            "title": "Schwarzschild Radius M",
+            "type": "number"
+          },
+          "static_observer_areal_radius_m": {
+            "title": "Static Observer Areal Radius M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "gravitational_parameter_m3_s2",
+          "schwarzschild_radius_m",
+          "landmarks",
+          "static_observer_areal_radius_m",
+          "proper_time_rate_vs_infinity",
+          "frequency_ratio_at_infinity",
+          "far_away_interval_per_local_interval",
+          "gravitational_redshift_z",
+          "observer_note",
+          "model_note"
+        ],
+        "title": "BlackHoleRelativityCalculationResponse",
+        "type": "object"
+      },
+      "BlackHoleRelativityInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "mass_nominal_solar": {
+            "title": "Mass Nominal Solar",
+            "type": "number"
+          },
+          "static_observer_radius_rs": {
+            "title": "Static Observer Radius Rs",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mass_nominal_solar",
+          "static_observer_radius_rs"
+        ],
+        "title": "BlackHoleRelativityInputResponse",
+        "type": "object"
+      },
       "Body_create_identification_submission": {
         "properties": {
           "consent_remote_processing": {
@@ -4521,6 +4618,40 @@
         "title": "SatelliteSourceResponse",
         "type": "object"
       },
+      "SchwarzschildLandmarkResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "interpretation": {
+            "title": "Interpretation",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "radius_m": {
+            "title": "Radius M",
+            "type": "number"
+          },
+          "radius_rs": {
+            "title": "Radius Rs",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "radius_rs",
+          "radius_m",
+          "interpretation"
+        ],
+        "title": "SchwarzschildLandmarkResponse",
+        "type": "object"
+      },
       "SearchMatchReason": {
         "enum": [
           "exact_slug",
@@ -7578,6 +7709,65 @@
         "summary": "Suggest Catalog Entities",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/simulations/black-hole-relativity": {
+      "get": {
+        "operationId": "calculate_black_hole_relativity",
+        "parameters": [
+          {
+            "description": "Synthetic black-hole mass scale in IAU nominal solar masses; 1 through 1e10.",
+            "in": "query",
+            "name": "mass_nominal_solar",
+            "required": true,
+            "schema": {
+              "description": "Synthetic black-hole mass scale in IAU nominal solar masses; 1 through 1e10.",
+              "maximum": 10000000000.0,
+              "minimum": 1.0,
+              "title": "Mass Nominal Solar",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Hypothetical static-observer Schwarzschild areal radius in event-horizon radius multiples; 1.01 through 100.",
+            "in": "query",
+            "name": "static_observer_radius_rs",
+            "required": true,
+            "schema": {
+              "description": "Hypothetical static-observer Schwarzschild areal radius in event-horizon radius multiples; 1.01 through 100.",
+              "maximum": 100.0,
+              "minimum": 1.01,
+              "title": "Static Observer Radius Rs",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlackHoleRelativityCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Black-Hole / Relativity Lab input is invalid."
+          }
+        },
+        "summary": "Black Hole Relativity",
+        "tags": [
+          "simulations"
         ]
       }
     },

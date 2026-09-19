@@ -1,0 +1,82 @@
+{
+  "default_static_radius_2": {
+    "model_version": "black-hole-relativity-v1",
+    "schema_version": 1,
+    "inputs": {
+      "mass_nominal_solar": 10.0,
+      "static_observer_radius_rs": 2.0
+    },
+    "gravitational_parameter_m3_s2": 1.3271244e21,
+    "schwarzschild_radius_m": 29532.5007610025,
+    "landmarks": [
+      {
+        "id": "event_horizon",
+        "label": "Event horizon",
+        "radius_rs": 1.0,
+        "radius_m": 29532.5007610025,
+        "interpretation": "Event-horizon areal radius for the ideal Schwarzschild black hole."
+      },
+      {
+        "id": "photon_sphere",
+        "label": "Photon sphere",
+        "radius_rs": 1.5,
+        "radius_m": 44298.751141503744,
+        "interpretation": "Unstable circular null-geodesic radius in Schwarzschild geometry."
+      },
+      {
+        "id": "isco",
+        "label": "ISCO",
+        "radius_rs": 3.0,
+        "radius_m": 88597.50228300749,
+        "interpretation": "Innermost stable circular timelike-geodesic radius in Schwarzschild geometry."
+      }
+    ],
+    "static_observer_areal_radius_m": 59065.001522005,
+    "proper_time_rate_vs_infinity": 0.7071067811865476,
+    "frequency_ratio_at_infinity": 0.7071067811865476,
+    "far_away_interval_per_local_interval": 1.414213562373095,
+    "gravitational_redshift_z": 0.4142135623730949,
+    "observer_note": "The selected clock is a hypothetical static Schwarzschild observer held at fixed areal radius. It must be accelerated to hover; it is not freely falling and is not a circular geodesic.",
+    "model_note": "Educational exterior Schwarzschild model only. The radius is an areal radius, not proper distance from a center. V1 omits spin, charge, ray tracing, black-hole shadow prediction, accretion, free fall, orbital integration, hovering acceleration, tidal forces, mergers, gravitational waves, Hawking radiation, singularity physics, and observed-source fitting."
+  },
+  "accepted_static_radius_4": {
+    "model_version": "black-hole-relativity-v1",
+    "schema_version": 1,
+    "inputs": {
+      "mass_nominal_solar": 10.0,
+      "static_observer_radius_rs": 4.0
+    },
+    "gravitational_parameter_m3_s2": 1.3271244e21,
+    "schwarzschild_radius_m": 29532.5007610025,
+    "landmarks": [
+      {
+        "id": "event_horizon",
+        "label": "Event horizon",
+        "radius_rs": 1.0,
+        "radius_m": 29532.5007610025,
+        "interpretation": "Event-horizon areal radius for the ideal Schwarzschild black hole."
+      },
+      {
+        "id": "photon_sphere",
+        "label": "Photon sphere",
+        "radius_rs": 1.5,
+        "radius_m": 44298.751141503744,
+        "interpretation": "Unstable circular null-geodesic radius in Schwarzschild geometry."
+      },
+      {
+        "id": "isco",
+        "label": "ISCO",
+        "radius_rs": 3.0,
+        "radius_m": 88597.50228300749,
+        "interpretation": "Innermost stable circular timelike-geodesic radius in Schwarzschild geometry."
+      }
+    ],
+    "static_observer_areal_radius_m": 118130.00304401,
+    "proper_time_rate_vs_infinity": 0.8660254037844386,
+    "frequency_ratio_at_infinity": 0.8660254037844386,
+    "far_away_interval_per_local_interval": 1.1547005383792517,
+    "gravitational_redshift_z": 0.15470053837925168,
+    "observer_note": "The selected clock is a hypothetical static Schwarzschild observer held at fixed areal radius. It must be accelerated to hover; it is not freely falling and is not a circular geodesic.",
+    "model_note": "Educational exterior Schwarzschild model only. The radius is an areal radius, not proper distance from a center. V1 omits spin, charge, ray tracing, black-hole shadow prediction, accretion, free fall, orbital integration, hovering acceleration, tidal forces, mergers, gravitational waves, Hawking radiation, singularity physics, and observed-source fitting."
+  }
+}

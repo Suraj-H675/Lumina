@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
+  blackHoleRelativityEndpoint,
   catalogEntitiesEndpoint,
   catalogEntityBySlugEndpoint,
   catalogEntityDetailEndpoint,
@@ -30,6 +31,7 @@ import type {
   EntityBrowsePageResponse,
   EntitySummaryResponse,
   EntityType,
+  CalculateBlackHoleRelativityData,
   CalculateEclipseSimulatorData,
   CalculateImpactSimulatorData,
   CalculateOrbitSandboxData,
@@ -62,6 +64,7 @@ import {
   zSearchCatalogEntitiesResponse,
   zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
+import { BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE } from "./fixtures/black-hole-relativity-response";
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
 import { IMPACT_SIMULATOR_DEFAULT_RESPONSE } from "./fixtures/impact-simulator-response";
 import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
@@ -79,6 +82,10 @@ describe("generated contract boundary", () => {
     expect(satellitePassEndpoint.method).toBe("POST");
     expectTypeOf(satellitesEndpoint.path).toEqualTypeOf<GetNowSatellitesData["url"]>();
     expectTypeOf(satellitePassEndpoint.path).toEqualTypeOf<PostNowSatellitePassesData["url"]>();
+    expect(blackHoleRelativityEndpoint.method).toBe("GET");
+    expectTypeOf(blackHoleRelativityEndpoint.path).toEqualTypeOf<
+      CalculateBlackHoleRelativityData["url"]
+    >();
     expect(eclipseSimulatorEndpoint.method).toBe("GET");
     expectTypeOf(eclipseSimulatorEndpoint.path).toEqualTypeOf<
       CalculateEclipseSimulatorData["url"]
@@ -529,6 +536,52 @@ describe("Impact Simulator endpoint", () => {
     ).byteLength;
     expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
     expect(Object.hasOwn(impactSimulatorEndpoint, "maxResponseBytes")).toBe(false);
+  });
+});
+
+describe("Black-Hole / Relativity Lab endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(blackHoleRelativityEndpoint.path).toEqualTypeOf<
+      CalculateBlackHoleRelativityData["url"]
+    >();
+    const result = await requestEndpoint("http://127.0.0.1:8000", blackHoleRelativityEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({
+      data: BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Black-Hole / Relativity result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", blackHoleRelativityEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({ ...BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE, invented: true }),
+            {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            },
+          ),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("fits the normal bounded transport response ceiling", () => {
+    const bytes = new TextEncoder().encode(
+      JSON.stringify(BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE),
+    ).byteLength;
+    expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
+    expect(Object.hasOwn(blackHoleRelativityEndpoint, "maxResponseBytes")).toBe(false);
   });
 });
 

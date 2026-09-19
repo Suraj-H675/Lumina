@@ -1,0 +1,293 @@
+{
+  "artifact_version": 1,
+  "model_version": "black-hole-relativity-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-19T00:00:00Z",
+  "definition": {
+    "slug": "black-hole-relativity",
+    "title": "Black-Hole / Relativity Lab",
+    "status": "ready",
+    "version": 1,
+    "model_version": "black-hole-relativity-v1",
+    "share_schema_version": 1,
+    "summary": "Deterministic Schwarzschild landmark and static-clock teaching model for an ideal non-rotating, uncharged black hole.",
+    "assumptions": [
+      "The exterior spacetime is exactly Schwarzschild: isolated, spherical, non-rotating, and uncharged.",
+      "Mass input is an IAU nominal-solar GM ratio, not a measured SI mass in kilograms.",
+      "The selected observer is static at fixed Schwarzschild areal radius and therefore must be accelerated to hover.",
+      "The far-away comparison uses the asymptotic Schwarzschild time/frequency reference.",
+      "The radial coordinate is areal radius, not proper radial distance from a center."
+    ],
+    "limitations": [
+      "No Kerr spin, charge, frame dragging, ergosphere, or observed-source fitting.",
+      "No ray tracing, lensing/shadow prediction, accretion disk, Doppler beaming, or photographic black-hole appearance.",
+      "No free-fall or orbital integration, hovering acceleration, tidal-force, or Shapiro-delay calculation.",
+      "No merger/gravitational-wave, Hawking-radiation, formation/evolution, singularity, or quantum-gravity model.",
+      "The landmark schematic is a geometric teaching representation, not a direct observation or proper-distance map."
+    ],
+    "equations": [
+      {
+        "id": "gravitational-parameter",
+        "expression": "mu=q*(GM)^N_sun",
+        "meaning": "Convert IAU nominal-solar mass scale q to gravitational parameter."
+      },
+      {
+        "id": "schwarzschild-radius",
+        "expression": "R_s=2*mu/c^2",
+        "meaning": "Schwarzschild event-horizon areal radius."
+      },
+      {
+        "id": "photon-sphere",
+        "expression": "r_ph=3*mu/c^2=1.5*R_s",
+        "meaning": "Unstable circular null-geodesic landmark."
+      },
+      {
+        "id": "isco",
+        "expression": "r_isco=6*mu/c^2=3*R_s",
+        "meaning": "Innermost stable circular timelike-geodesic landmark."
+      },
+      {
+        "id": "static-clock",
+        "expression": "d_tau/d_t_infinity=sqrt(1-R_s/r)",
+        "meaning": "Static shell-clock rate relative to asymptotic Schwarzschild time."
+      },
+      {
+        "id": "redshift",
+        "expression": "nu_infinity/nu_local=sqrt(1-R_s/r); z=nu_local/nu_infinity-1",
+        "meaning": "Infinity-referenced frequency ratio and gravitational redshift for a static source."
+      }
+    ],
+    "references": [
+      "iau-2015-resolution-b3",
+      "nist-speed-of-light",
+      "openstax-einstein-gravity",
+      "oregon-state-schwarzschild-geometry",
+      "oregon-state-null-orbits",
+      "mit-ocw-black-holes-i",
+      "umd-astr406-black-holes"
+    ]
+  },
+  "sources": [
+    {
+      "id": "iau-2015-resolution-b3",
+      "title": "IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties",
+      "organization_or_authors": "International Astronomical Union",
+      "url": "https://www.iau.org/common/Uploaded%20files/IAUGA2015-Resolution-B3-recommended-nominal-conversion.pdf",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "IAU XXIX General Assembly Resolution B3 (2015)",
+      "record_reference": "Nominal solar mass parameter (GM)^N_sun = 1.3271244e20 m^3 s^-2; nominal values are exact conversion constants.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2015",
+      "terms_or_licence": "Official IAU resolution; source copyright/terms apply.",
+      "citation": "IAU 2015 Resolution B3, Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties.",
+      "claim_scope": "Exact nominal solar mass-parameter conversion and nominal-solar mass-ratio convention.",
+      "source_type": "official-standard"
+    },
+    {
+      "id": "nist-speed-of-light",
+      "title": "CODATA Value: speed of light in vacuum",
+      "organization_or_authors": "NIST / 2022 CODATA",
+      "url": "https://physics.nist.gov/cuu/Constants/Value/c.html",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "2022 CODATA recommended values",
+      "record_reference": "c = 299792458 m s^-1, exact.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2022",
+      "terms_or_licence": "NIST public reference; source terms apply.",
+      "citation": "NIST, CODATA Value: speed of light in vacuum.",
+      "claim_scope": "Exact SI speed of light used in Schwarzschild radius conversion.",
+      "source_type": "official-constants-reference"
+    },
+    {
+      "id": "openstax-einstein-gravity",
+      "title": "13.7 Einstein's Theory of Gravity — University Physics Volume 1",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-1/pages/13-7-einsteins-theory-of-gravity",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "University Physics Volume 1, section 13.7",
+      "record_reference": "Schwarzschild radius R_s=2GM/c^2 and Example 13.15 rounded solar value 2.95e3 m.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed edition",
+      "terms_or_licence": "OpenStax textbook licensing terms apply.",
+      "citation": "OpenStax, University Physics Volume 1, §13.7 Einstein's Theory of Gravity.",
+      "claim_scope": "Schwarzschild radius/event-horizon relation and independent rounded solar-radius validation.",
+      "source_type": "open-textbook"
+    },
+    {
+      "id": "oregon-state-schwarzschild-geometry",
+      "title": "Geometry of General Relativity — Schwarzschild Geometry",
+      "organization_or_authors": "Oregon State University / Tevian Dray",
+      "url": "https://sites.science.oregonstate.edu/physics/coursewikis/GGR/_export/xhtml/book/ggr/schwgeom.html",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "Geometry of General Relativity course text",
+      "record_reference": "Schwarzschild areal-radius interpretation and shell-clock relation dτ=sqrt(1-2m/r) dt.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "course text",
+      "terms_or_licence": "Course-site copyright/terms apply.",
+      "citation": "Oregon State University, Geometry of General Relativity, Schwarzschild Geometry.",
+      "claim_scope": "Areal-radius semantics, exterior domain, static shell-clock time rate, gravitational redshift interpretation.",
+      "source_type": "university-course-text"
+    },
+    {
+      "id": "oregon-state-null-orbits",
+      "title": "Geometry of General Relativity — Null Orbits",
+      "organization_or_authors": "Oregon State University / Tevian Dray",
+      "url": "https://sites.science.oregonstate.edu/coursewikis/GGR/book/ggr/onull.html",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "Geometry of General Relativity course text",
+      "record_reference": "Only lightlike circular orbit occurs at r=3m in Schwarzschild geometry.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "course text",
+      "terms_or_licence": "Course-site copyright/terms apply.",
+      "citation": "Oregon State University, Geometry of General Relativity, Null Orbits.",
+      "claim_scope": "Schwarzschild photon-sphere/null-circular-geodesic landmark.",
+      "source_type": "university-course-text"
+    },
+    {
+      "id": "mit-ocw-black-holes-i",
+      "title": "8.962 General Relativity — Black Holes I",
+      "organization_or_authors": "MIT OpenCourseWare / Scott Hughes",
+      "url": "https://ocw.mit.edu/courses/8-962-general-relativity-spring-2020/9cb27977551aade8f7121d257bfe82da_ZqF-7bjnzCU.pdf",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "MIT 8.962 Spring 2020 lecture transcript",
+      "record_reference": "Static Schwarzschild observer is accelerated/hovering; asymptotic redshift factor for emitted radiation is sqrt(1-2GM/r).",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2020",
+      "terms_or_licence": "MIT OpenCourseWare Creative Commons licensing terms apply.",
+      "citation": "MIT OpenCourseWare 8.962 General Relativity, Black Holes I, Scott Hughes.",
+      "claim_scope": "Static-observer frame semantics, acceleration requirement, infinity-referenced photon redshift and interval behavior.",
+      "source_type": "university-course-material"
+    },
+    {
+      "id": "umd-astr406-black-holes",
+      "title": "ASTR 406 — Black Holes",
+      "organization_or_authors": "University of Maryland / M. Coleman Miller",
+      "url": "https://pages.astro.umd.edu/~mcmiller/teaching/astr406/lecture21.pdf",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "ASTR 406 lecture notes",
+      "record_reference": "Schwarzschild static-clock factor, unstable photon orbit r=3M, and ISCO r=6M for non-rotating uncharged geometry.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "course lecture notes",
+      "terms_or_licence": "University course-note copyright/terms apply.",
+      "citation": "University of Maryland ASTR 406, Black Holes lecture notes, M. Coleman Miller.",
+      "claim_scope": "Static-clock factor and Schwarzschild photon-orbit/ISCO landmark semantics.",
+      "source_type": "university-course-material"
+    }
+  ],
+  "constants": {
+    "NOMINAL_SOLAR_MASS_PARAMETER_M3_S2": 1.3271244e20,
+    "SPEED_OF_LIGHT_M_S": 299792458.0,
+    "MIN_MASS_NOMINAL_SOLAR": 1.0,
+    "MAX_MASS_NOMINAL_SOLAR": 10000000000.0,
+    "MIN_STATIC_OBSERVER_RADIUS_RS": 1.01,
+    "MAX_STATIC_OBSERVER_RADIUS_RS": 100.0,
+    "EVENT_HORIZON_RADIUS_RS": 1.0,
+    "PHOTON_SPHERE_RADIUS_RS": 1.5,
+    "ISCO_RADIUS_RS": 3.0
+  },
+  "landmark_definitions": [
+    {
+      "id": "event_horizon",
+      "label": "Event horizon",
+      "radius_rs": 1.0,
+      "interpretation": "Event-horizon areal radius for the ideal Schwarzschild black hole."
+    },
+    {
+      "id": "photon_sphere",
+      "label": "Photon sphere",
+      "radius_rs": 1.5,
+      "interpretation": "Unstable circular null-geodesic radius in Schwarzschild geometry."
+    },
+    {
+      "id": "isco",
+      "label": "ISCO",
+      "radius_rs": 3.0,
+      "interpretation": "Innermost stable circular timelike-geodesic radius in Schwarzschild geometry."
+    }
+  ],
+  "preset": {
+    "mass_nominal_solar": 10.0,
+    "static_observer_radius_rs": 2.0
+  },
+  "validation_fixtures": [
+    {
+      "id": "openstax-rounded-solar-radius",
+      "purpose": "Require the exact IAU/NIST q=1 radius to agree with OpenStax rounded 2.95e3 m."
+    },
+    {
+      "id": "default-static-clock",
+      "purpose": "Check the q=10, r=2R_s default against exact sqrt(1/2) clock/redshift arithmetic."
+    },
+    {
+      "id": "schwarzschild-landmark-ratios",
+      "purpose": "Require horizon/photon-sphere/ISCO radii at exactly 1, 1.5, and 3 R_s."
+    },
+    {
+      "id": "mass-scale-linearity",
+      "purpose": "Check physical landmark radii and mu scale linearly with nominal-solar GM input."
+    },
+    {
+      "id": "dimensionless-radius-invariance",
+      "purpose": "Check clock/redshift factors are mass-independent at fixed R_s multiple."
+    },
+    {
+      "id": "near-horizon-bound",
+      "purpose": "Check the 1.01R_s lower product bound remains finite and exterior."
+    },
+    {
+      "id": "far-radius-bound",
+      "purpose": "Check the 100R_s upper product bound remains finite and tends toward the asymptotic reference."
+    },
+    {
+      "id": "maximum-mass-bound",
+      "purpose": "Check all meter-scale outputs remain finite at q=1e10."
+    },
+    {
+      "id": "input-domain-rejection",
+      "purpose": "Reject booleans, non-finite values, and states outside either public bound."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Require repeated model evaluations to be value-identical."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Reject changed sources, constants, landmarks, preset, validation identity, and duplicate JSON keys."
+    }
+  ],
+  "scientific_validation": {
+    "id": "black-hole-relativity-v1-validation",
+    "source_ids": [
+      "iau-2015-resolution-b3",
+      "nist-speed-of-light",
+      "openstax-einstein-gravity",
+      "oregon-state-schwarzschild-geometry",
+      "oregon-state-null-orbits",
+      "mit-ocw-black-holes-i",
+      "umd-astr406-black-holes"
+    ],
+    "independent_validation_case": {
+      "inputs": {
+        "mass_nominal_solar": 1.0,
+        "static_observer_radius_rs": 2.0
+      },
+      "reported_schwarzschild_radius_m": 2950.0,
+      "source_id": "openstax-einstein-gravity"
+    },
+    "method": "Cross-check the q=1 Schwarzschild radius against the independently rounded OpenStax solar example, then test exact IAU/NIST constants, landmark ratios, static-clock/redshift relations, all public bounds, mass scaling, dimensionless radius invariance, determinism, and strict artifact mutation rejection.",
+    "test_references": [
+      "openstax-rounded-solar-radius",
+      "default-static-clock",
+      "schwarzschild-landmark-ratios",
+      "mass-scale-linearity",
+      "dimensionless-radius-invariance",
+      "near-horizon-bound",
+      "far-radius-bound",
+      "maximum-mass-bound",
+      "input-domain-rejection",
+      "deterministic-repeat",
+      "artifact-mutation"
+    ]
+  }
+}

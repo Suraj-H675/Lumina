@@ -20,9 +20,11 @@ describe("Lab section navigation", () => {
     expect(markup).toContain('href="/lab/planetary-system-builder"');
     expect(markup).toContain('href="/lab/rocket-mission-designer"');
     expect(markup).toContain('href="/lab/impact-simulator"');
+    expect(markup).toContain('href="/lab/black-hole-relativity"');
     expect(markup).toContain("H-R Diagram Explorer");
     expect(markup).toContain("Rocket / Mission Designer");
     expect(markup).toContain("Impact Simulator");
+    expect(markup).toContain("Black-Hole / Relativity Lab");
     expect(markup).not.toContain("Coming soon");
   });
 

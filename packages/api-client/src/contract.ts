@@ -8,6 +8,7 @@ import type {
   SpaceWeatherResponse,
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateBlackHoleRelativityData,
   CalculateEclipseSimulatorData,
   CalculateImpactSimulatorData,
   CalculateOrbitSandboxData,
@@ -31,6 +32,7 @@ import type {
   EntityBrowsePageResponse,
   EntityDetailResponse,
   EntitySummaryResponse,
+  BlackHoleRelativityCalculationResponse,
   EclipseSimulatorCalculationResponse,
   ImpactSimulatorCalculationResponse,
   GetCatalogEntityBySlugData,
@@ -66,6 +68,7 @@ import type {
 import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
+  zCalculateBlackHoleRelativityResponse,
   zCalculateEclipseSimulatorResponse,
   zCalculateImpactSimulatorResponse,
   zCalculateOrbitSandboxResponse,
@@ -377,6 +380,15 @@ export const eclipseSimulatorEndpoint = {
   path: "/api/v1/simulations/eclipse-simulator" satisfies CalculateEclipseSimulatorData["url"],
   validator: zCalculateEclipseSimulatorResponse,
 } satisfies ApiEndpoint<EclipseSimulatorCalculationResponse, CalculateEclipseSimulatorData["url"]>;
+
+export const blackHoleRelativityEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/black-hole-relativity" satisfies CalculateBlackHoleRelativityData["url"],
+  validator: zCalculateBlackHoleRelativityResponse,
+} satisfies ApiEndpoint<
+  BlackHoleRelativityCalculationResponse,
+  CalculateBlackHoleRelativityData["url"]
+>;
 
 export const impactSimulatorEndpoint = {
   method: "GET",

@@ -56,6 +56,12 @@ const labs = [
       "Explore a large solid-rock Earth-impact teaching model with cited crater scaling, explicit coefficient sensitivity, and location-free lower-bound ejecta deposit ranges.",
   },
   {
+    href: "/lab/black-hole-relativity",
+    title: "Black-Hole / Relativity Lab",
+    description:
+      "Explore Schwarzschild event-horizon, photon-sphere, ISCO, static-clock, and redshift relationships with an explicitly non-ray-traced teaching model.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

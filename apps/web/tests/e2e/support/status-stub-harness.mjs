@@ -39,6 +39,9 @@ const rocketMissionDesignerFixtures = JSON.parse(
 const impactSimulatorFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/impact-simulator.json", import.meta.url), "utf8"),
 );
+const blackHoleRelativityFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/black-hole-relativity.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -51,6 +54,7 @@ const apiPaths = new Set([
   "/api/v1/now/satellites",
   "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
+  "/api/v1/simulations/black-hole-relativity",
   "/api/v1/simulations/eclipse-simulator",
   "/api/v1/simulations/impact-simulator",
   "/api/v1/simulations/orbit-sandbox",
@@ -1622,6 +1626,42 @@ function respondImpactSimulator(response, target) {
   });
 }
 
+function respondBlackHoleRelativity(response, target) {
+  const expectedKeys = ["mass_nominal_solar", "static_observer_radius_rs"];
+  const keys = [...target.searchParams.keys()];
+  const validShape =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key) && target.searchParams.getAll(key).length === 1);
+  if (!validShape) {
+    sendJson(response, 422, {
+      error: {
+        code: "black_hole_relativity.model_invalid",
+        message: "The Black-Hole / Relativity fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const mass = target.searchParams.get("mass_nominal_solar");
+  const radius = target.searchParams.get("static_observer_radius_rs");
+  if (mass === "10" && radius === "2") {
+    sendJson(response, 200, blackHoleRelativityFixtures.default_static_radius_2);
+    return;
+  }
+  if (mass === "10" && radius === "4") {
+    sendJson(response, 200, blackHoleRelativityFixtures.accepted_static_radius_4);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "black_hole_relativity.model_invalid",
+      message: "The Black-Hole / Relativity E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -2139,6 +2179,7 @@ const stub = http.createServer(async (request, response) => {
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
   const isPlanetarySystemBuilderPath = path === "/api/v1/simulations/planetary-system-builder";
   const isEclipseSimulatorPath = path === "/api/v1/simulations/eclipse-simulator";
+  const isBlackHoleRelativityPath = path === "/api/v1/simulations/black-hole-relativity";
   const isImpactSimulatorPath = path === "/api/v1/simulations/impact-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isRocketMissionDesignerPath = path === "/api/v1/simulations/rocket-mission-designer";
@@ -2185,6 +2226,7 @@ const stub = http.createServer(async (request, response) => {
   if (
     target.search !== "" &&
     !isCataloguePath &&
+    !isBlackHoleRelativityPath &&
     !isEclipseSimulatorPath &&
     !isImpactSimulatorPath &&
     !isOrbitSandboxPath &&
@@ -2399,6 +2441,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isEclipseSimulatorPath) {
     respondEclipseSimulator(response, target);
+    return;
+  }
+  if (isBlackHoleRelativityPath) {
+    respondBlackHoleRelativity(response, target);
     return;
   }
   if (isImpactSimulatorPath) {

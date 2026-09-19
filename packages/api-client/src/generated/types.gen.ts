@@ -113,6 +113,79 @@ export type ApodSourceResponse = {
 };
 
 /**
+ * BlackHoleRelativityCalculationResponse
+ */
+export type BlackHoleRelativityCalculationResponse = {
+  /**
+   * Far Away Interval Per Local Interval
+   */
+  far_away_interval_per_local_interval: number;
+  /**
+   * Frequency Ratio At Infinity
+   */
+  frequency_ratio_at_infinity: number;
+  /**
+   * Gravitational Parameter M3 S2
+   */
+  gravitational_parameter_m3_s2: number;
+  /**
+   * Gravitational Redshift Z
+   */
+  gravitational_redshift_z: number;
+  inputs: BlackHoleRelativityInputResponse;
+  /**
+   * Landmarks
+   */
+  landmarks: [
+    SchwarzschildLandmarkResponse,
+    SchwarzschildLandmarkResponse,
+    SchwarzschildLandmarkResponse,
+  ];
+  /**
+   * Model Note
+   */
+  model_note: string;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Observer Note
+   */
+  observer_note: string;
+  /**
+   * Proper Time Rate Vs Infinity
+   */
+  proper_time_rate_vs_infinity: number;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Schwarzschild Radius M
+   */
+  schwarzschild_radius_m: number;
+  /**
+   * Static Observer Areal Radius M
+   */
+  static_observer_areal_radius_m: number;
+};
+
+/**
+ * BlackHoleRelativityInputResponse
+ */
+export type BlackHoleRelativityInputResponse = {
+  /**
+   * Mass Nominal Solar
+   */
+  mass_nominal_solar: number;
+  /**
+   * Static Observer Radius Rs
+   */
+  static_observer_radius_rs: number;
+};
+
+/**
  * Body_create_identification_submission
  */
 export type BodyCreateIdentificationSubmission = {
@@ -2645,6 +2718,32 @@ export type SatelliteSourceResponse = {
 };
 
 /**
+ * SchwarzschildLandmarkResponse
+ */
+export type SchwarzschildLandmarkResponse = {
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Interpretation
+   */
+  interpretation: string;
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Radius M
+   */
+  radius_m: number;
+  /**
+   * Radius Rs
+   */
+  radius_rs: number;
+};
+
+/**
  * SearchMatchReason
  */
 export type SearchMatchReason =
@@ -4483,6 +4582,46 @@ export type SuggestCatalogEntitiesResponses = {
 
 export type SuggestCatalogEntitiesResponse =
   SuggestCatalogEntitiesResponses[keyof SuggestCatalogEntitiesResponses];
+
+export type CalculateBlackHoleRelativityData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Mass Nominal Solar
+     *
+     * Synthetic black-hole mass scale in IAU nominal solar masses; 1 through 1e10.
+     */
+    mass_nominal_solar: number;
+    /**
+     * Static Observer Radius Rs
+     *
+     * Hypothetical static-observer Schwarzschild areal radius in event-horizon radius multiples; 1.01 through 100.
+     */
+    static_observer_radius_rs: number;
+  };
+  url: "/api/v1/simulations/black-hole-relativity";
+};
+
+export type CalculateBlackHoleRelativityErrors = {
+  /**
+   * The Black-Hole / Relativity Lab input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateBlackHoleRelativityError =
+  CalculateBlackHoleRelativityErrors[keyof CalculateBlackHoleRelativityErrors];
+
+export type CalculateBlackHoleRelativityResponses = {
+  /**
+   * Successful Response
+   */
+  200: BlackHoleRelativityCalculationResponse;
+};
+
+export type CalculateBlackHoleRelativityResponse =
+  CalculateBlackHoleRelativityResponses[keyof CalculateBlackHoleRelativityResponses];
 
 export type CalculateEclipseSimulatorData = {
   body?: never;

@@ -122,6 +122,7 @@ export type {
 } from "./transport";
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
 export {
+  blackHoleRelativityEndpoint,
   eclipseSimulatorEndpoint,
   impactSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
@@ -143,6 +144,7 @@ export {
 export type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
+  CalculateBlackHoleRelativityResponse,
   CalculateEclipseSimulatorResponse,
   CalculateImpactSimulatorResponse,
   CalculateOrbitSandboxResponse,
@@ -157,6 +159,9 @@ export type {
   EntityQuantityResponse,
   EntitySummaryResponse,
   EntityType,
+  BlackHoleRelativityCalculationResponse,
+  BlackHoleRelativityInputResponse,
+  SchwarzschildLandmarkResponse,
   EclipseInstantGeometryResponse,
   EclipseLocalEventResponse,
   EclipseSimulatorCalculationResponse,

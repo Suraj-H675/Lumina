@@ -58,6 +58,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/identification/submissions/{submission_id}",
         "/api/v1/identification/submissions/{submission_id}/solution",
         "/api/v1/providers/status",
+        "/api/v1/participate",
         "/api/v1/now/apod",
         "/api/v1/now/near-earth",
         "/api/v1/now/satellites",
@@ -114,6 +115,38 @@ def test_catalog_navigation_openapi_is_singular_and_four_field() -> None:
     entity_type_parameter = entity_type_parameters[0]
     assert entity_type_parameter["required"] is False
     assert entity_type_parameter["schema"]["anyOf"][0]["$ref"] == "#/components/schemas/EntityType"
+
+
+def test_participate_openapi_is_one_read_only_no_query_contract() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/participate"]["get"]
+
+    assert operation["operationId"] == "get_participate"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/ParticipateResponse"
+    )
+    assert operation.get("parameters", []) == []
+    assert set(document["paths"]["/api/v1/participate"]) == {"get"}
+    project_schema = document["components"]["schemas"]["ParticipateProjectResponse"]
+    assert project_schema["additionalProperties"] is False
+    assert set(project_schema["properties"]) == {
+        "id",
+        "title",
+        "science_area",
+        "summary",
+        "task_type",
+        "time_filter",
+        "time_label",
+        "device_filters",
+        "device_label",
+        "skill_focus",
+        "knowledge_note",
+        "external_url",
+        "source_ids",
+        "status",
+        "status_stale",
+        "source_updated_at",
+    }
 
 
 def test_seasons_calculation_openapi_is_versioned_and_read_only() -> None:

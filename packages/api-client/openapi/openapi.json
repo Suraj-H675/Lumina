@@ -3099,6 +3099,616 @@
         "title": "PageResponse",
         "type": "object"
       },
+      "ParticipateActivityResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "adult_supervision_note": {
+            "title": "Adult Supervision Note",
+            "type": "string"
+          },
+          "age_guidance": {
+            "title": "Age Guidance",
+            "type": "string"
+          },
+          "cleanup": {
+            "title": "Cleanup",
+            "type": "string"
+          },
+          "duration_label": {
+            "title": "Duration Label",
+            "type": "string"
+          },
+          "expected_observation": {
+            "title": "Expected Observation",
+            "type": "string"
+          },
+          "external_resource": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ParticipateExternalResourceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "learning_objective": {
+            "title": "Learning Objective",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "materials": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Materials",
+            "type": "array"
+          },
+          "safety": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Safety",
+            "type": "array"
+          },
+          "skill_guidance": {
+            "title": "Skill Guidance",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "age_guidance",
+          "skill_guidance",
+          "duration_label",
+          "materials",
+          "steps",
+          "safety",
+          "learning_objective",
+          "expected_observation",
+          "cleanup",
+          "adult_supervision_note",
+          "limitations",
+          "source_ids",
+          "external_resource"
+        ],
+        "title": "ParticipateActivityResponse",
+        "type": "object"
+      },
+      "ParticipateChallengeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_label": {
+            "title": "Duration Label",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "integer"
+          },
+          "safety": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Safety",
+            "type": "array"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "valid_limit_note": {
+            "title": "Valid Limit Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "month",
+          "title",
+          "summary",
+          "duration_label",
+          "steps",
+          "safety",
+          "valid_limit_note",
+          "source_ids"
+        ],
+        "title": "ParticipateChallengeResponse",
+        "type": "object"
+      },
+      "ParticipateDefinitionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "external_handoff_notice": {
+            "title": "External Handoff Notice",
+            "type": "string"
+          },
+          "privacy_note": {
+            "title": "Privacy Note",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "type": "string"
+            },
+            "title": "References",
+            "type": "array"
+          },
+          "slug": {
+            "const": "participate",
+            "title": "Slug",
+            "type": "string"
+          },
+          "stale_status_label": {
+            "title": "Stale Status Label",
+            "type": "string"
+          },
+          "status": {
+            "const": "ready",
+            "title": "Status",
+            "type": "string"
+          },
+          "status_unavailable_label": {
+            "title": "Status Unavailable Label",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "const": "Participate",
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "const": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "status",
+          "version",
+          "summary",
+          "external_handoff_notice",
+          "privacy_note",
+          "status_unavailable_label",
+          "stale_status_label",
+          "references"
+        ],
+        "title": "ParticipateDefinitionResponse",
+        "type": "object"
+      },
+      "ParticipateExternalResourceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "ParticipateExternalResourceResponse",
+        "type": "object"
+      },
+      "ParticipateFiltersResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "device": {
+            "items": {
+              "enum": [
+                "web_device",
+                "mobile_or_computer",
+                "tablet_explicit"
+              ],
+              "type": "string"
+            },
+            "title": "Device",
+            "type": "array"
+          },
+          "skill_focus": {
+            "items": {
+              "enum": [
+                "visual_classification",
+                "light_curve_reading",
+                "candidate_image_validation",
+                "spectroscopy_data",
+                "plot_reading"
+              ],
+              "type": "string"
+            },
+            "title": "Skill Focus",
+            "type": "array"
+          },
+          "time": {
+            "items": {
+              "enum": [
+                "a_few_min",
+                "about_10_min",
+                "five_to_fifteen_min",
+                "about_15_min"
+              ],
+              "type": "string"
+            },
+            "title": "Time",
+            "type": "array"
+          }
+        },
+        "required": [
+          "time",
+          "device",
+          "skill_focus"
+        ],
+        "title": "ParticipateFiltersResponse",
+        "type": "object"
+      },
+      "ParticipateFreshnessResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "availability": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "cache_state": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "fresh_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fresh Until"
+          },
+          "last_refresh_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Refresh Failure Code"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "stale_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Until"
+          }
+        },
+        "required": [
+          "availability",
+          "cache_state",
+          "retrieved_at",
+          "fresh_until",
+          "stale_until",
+          "last_refresh_failure_code"
+        ],
+        "title": "ParticipateFreshnessResponse",
+        "type": "object"
+      },
+      "ParticipateProjectResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "device_filters": {
+            "items": {
+              "enum": [
+                "web_device",
+                "mobile_or_computer",
+                "tablet_explicit"
+              ],
+              "type": "string"
+            },
+            "title": "Device Filters",
+            "type": "array"
+          },
+          "device_label": {
+            "title": "Device Label",
+            "type": "string"
+          },
+          "external_url": {
+            "title": "External Url",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge_note": {
+            "title": "Knowledge Note",
+            "type": "string"
+          },
+          "science_area": {
+            "enum": [
+              "astrophysics",
+              "solar_system"
+            ],
+            "title": "Science Area",
+            "type": "string"
+          },
+          "skill_focus": {
+            "enum": [
+              "visual_classification",
+              "light_curve_reading",
+              "candidate_image_validation",
+              "spectroscopy_data",
+              "plot_reading"
+            ],
+            "title": "Skill Focus",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "source_updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Updated At"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "status_stale": {
+            "title": "Status Stale",
+            "type": "boolean"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "task_type": {
+            "enum": [
+              "examining_images",
+              "examining_data"
+            ],
+            "title": "Task Type",
+            "type": "string"
+          },
+          "time_filter": {
+            "enum": [
+              "a_few_min",
+              "about_10_min",
+              "five_to_fifteen_min",
+              "about_15_min"
+            ],
+            "title": "Time Filter",
+            "type": "string"
+          },
+          "time_label": {
+            "title": "Time Label",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "science_area",
+          "summary",
+          "task_type",
+          "time_filter",
+          "time_label",
+          "device_filters",
+          "device_label",
+          "skill_focus",
+          "knowledge_note",
+          "external_url",
+          "source_ids",
+          "status",
+          "status_stale",
+          "source_updated_at"
+        ],
+        "title": "ParticipateProjectResponse",
+        "type": "object"
+      },
+      "ParticipateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipateActivityResponse"
+            },
+            "title": "Activities",
+            "type": "array"
+          },
+          "challenges": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipateChallengeResponse"
+            },
+            "title": "Challenges",
+            "type": "array"
+          },
+          "definition": {
+            "$ref": "#/components/schemas/ParticipateDefinitionResponse"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/ParticipateFiltersResponse"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/ParticipateFreshnessResponse"
+          },
+          "model_version": {
+            "const": "participate-v1",
+            "title": "Model Version",
+            "type": "string"
+          },
+          "projects": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipateProjectResponse"
+            },
+            "title": "Projects",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipateSourceResponse"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "definition",
+          "filters",
+          "projects",
+          "challenges",
+          "activities",
+          "sources",
+          "freshness"
+        ],
+        "title": "ParticipateResponse",
+        "type": "object"
+      },
+      "ParticipateSourceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_scope": {
+            "title": "Claim Scope",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "organization": {
+            "title": "Organization",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "organization",
+          "url",
+          "claim_scope"
+        ],
+        "title": "ParticipateSourceResponse",
+        "type": "object"
+      },
       "PayloadTradeoffPointResponse": {
         "additionalProperties": false,
         "properties": {
@@ -7565,6 +8175,48 @@
         "summary": "Now Space Weather",
         "tags": [
           "space-now"
+        ]
+      }
+    },
+    "/api/v1/participate": {
+      "get": {
+        "description": "Return reviewed Participate content plus durable cached project status.",
+        "operationId": "get_participate",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Participate request must not contain query parameters."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Participate content is temporarily unavailable."
+          }
+        },
+        "summary": "Participate",
+        "tags": [
+          "participate"
         ]
       }
     },

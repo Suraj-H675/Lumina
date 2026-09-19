@@ -1,0 +1,756 @@
+{
+  "model_version": "participate-v1",
+  "schema_version": 1,
+  "definition": {
+    "slug": "participate",
+    "title": "Participate",
+    "status": "ready",
+    "version": 1,
+    "summary": "Curated astronomy citizen-science opportunities, evergreen observing challenges, and reviewed hands-on activities with explicit safety and external-handoff boundaries.",
+    "external_handoff_notice": "You are leaving Lumina for Zooniverse. Zooniverse account, privacy, moderation, and community rules apply on the external site.",
+    "privacy_note": "Lumina does not send location, age, identity, challenge completion, activity completion, or Zooniverse account data to the Participate API.",
+    "status_unavailable_label": "Current project status unavailable",
+    "stale_status_label": "Status may be stale",
+    "references": [
+      "nasa-citizen-science-directory",
+      "nasa-galaxy-zoo",
+      "nasa-planet-hunters-tess",
+      "nasa-daily-minor-planet",
+      "nasa-redshift-wrangler",
+      "nasa-active-asteroids",
+      "nasa-cloudspotting-mars",
+      "zooniverse-panoptes-docs",
+      "zooniverse-youth-privacy",
+      "nasa-eclipse-safety",
+      "nasa-spectroscope-activity",
+      "nasa-jpl-scale-solar-system",
+      "nasa-lro-lunar-activities",
+      "nasa-moon-phases",
+      "nasa-shadow-sundial",
+      "nasa-meteor-showers",
+      "nasa-skywatching",
+      "nasa-space-place-starfinder",
+      "in-the-sky-planisphere"
+    ]
+  },
+  "filters": {
+    "time": ["a_few_min", "about_10_min", "five_to_fifteen_min", "about_15_min"],
+    "device": ["web_device", "mobile_or_computer", "tablet_explicit"],
+    "skill_focus": [
+      "visual_classification",
+      "light_curve_reading",
+      "candidate_image_validation",
+      "spectroscopy_data",
+      "plot_reading"
+    ]
+  },
+  "projects": [
+    {
+      "id": "galaxy-zoo",
+      "title": "Galaxy Zoo",
+      "science_area": "astrophysics",
+      "summary": "Classify galaxy images by visible shape and structure to support studies of galaxy evolution.",
+      "task_type": "examining_images",
+      "time_filter": "about_10_min",
+      "time_label": "About 10 minutes to learn the basics",
+      "device_filters": ["web_device", "mobile_or_computer"],
+      "device_label": "Internet-connected device",
+      "skill_focus": "visual_classification",
+      "knowledge_note": "No prior knowledge required; the project provides a tutorial and field guide.",
+      "external_url": "https://www.zooniverse.org/projects/zookeeper/galaxy-zoo",
+      "source_ids": ["nasa-galaxy-zoo"],
+      "status": "active",
+      "status_stale": false,
+      "source_updated_at": "2026-09-19T07:00:00Z"
+    },
+    {
+      "id": "planet-hunters-tess",
+      "title": "Planet Hunters TESS",
+      "science_area": "astrophysics",
+      "summary": "Inspect TESS light curves for transit-like dips that may indicate orbiting exoplanets.",
+      "task_type": "examining_data",
+      "time_filter": "about_10_min",
+      "time_label": "About 10 minutes of online training",
+      "device_filters": ["web_device"],
+      "device_label": "Internet-connected device",
+      "skill_focus": "light_curve_reading",
+      "knowledge_note": "No prior knowledge required; the in-project tutorial and field guide provide instruction.",
+      "external_url": "https://www.zooniverse.org/projects/nora-dot-eisner/planet-hunters-tess",
+      "source_ids": ["nasa-planet-hunters-tess"],
+      "status": "active",
+      "status_stale": false,
+      "source_updated_at": "2026-09-19T07:00:00Z"
+    },
+    {
+      "id": "daily-minor-planet",
+      "title": "The Daily Minor Planet",
+      "science_area": "solar_system",
+      "summary": "Review candidate asteroid image sequences and distinguish real moving objects from false detections.",
+      "task_type": "examining_images",
+      "time_filter": "five_to_fifteen_min",
+      "time_label": "5–15 minutes to complete the tutorial and field-guide familiarization",
+      "device_filters": ["web_device", "mobile_or_computer", "tablet_explicit"],
+      "device_label": "Internet-connected computer, tablet, or smartphone",
+      "skill_focus": "candidate_image_validation",
+      "knowledge_note": "No prior knowledge required; an in-project tutorial provides the instruction.",
+      "external_url": "https://www.zooniverse.org/projects/fulsdavid/the-daily-minor-planet",
+      "source_ids": ["nasa-daily-minor-planet"],
+      "status": "active",
+      "status_stale": false,
+      "source_updated_at": "2026-09-19T07:00:00Z"
+    },
+    {
+      "id": "redshift-wrangler",
+      "title": "Redshift Wrangler",
+      "science_area": "astrophysics",
+      "summary": "Inspect galaxy spectra for features and check automated spectral fits used to study galaxy redshift.",
+      "task_type": "examining_data",
+      "time_filter": "five_to_fifteen_min",
+      "time_label": "5–15 minutes to complete the tutorial",
+      "device_filters": ["web_device"],
+      "device_label": "Web-connected device",
+      "skill_focus": "spectroscopy_data",
+      "knowledge_note": "No prior knowledge required; the in-project tutorial provides the instruction.",
+      "external_url": "https://www.zooniverse.org/projects/jeyhansk/redshift-wrangler",
+      "source_ids": ["nasa-redshift-wrangler"],
+      "status": "active",
+      "status_stale": false,
+      "source_updated_at": "2026-09-19T07:00:00Z"
+    },
+    {
+      "id": "active-asteroids",
+      "title": "Active Asteroids",
+      "science_area": "solar_system",
+      "summary": "Search telescope images for asteroid-like objects showing comet-like activity such as tails or comae.",
+      "task_type": "examining_images",
+      "time_filter": "a_few_min",
+      "time_label": "A few minutes of in-project training",
+      "device_filters": ["web_device", "mobile_or_computer"],
+      "device_label": "Internet-connected mobile device or computer",
+      "skill_focus": "visual_classification",
+      "knowledge_note": "No prior knowledge required; in-project training is provided.",
+      "external_url": "https://www.zooniverse.org/projects/orionnau/active-asteroids",
+      "source_ids": ["nasa-active-asteroids"],
+      "status": "active",
+      "status_stale": false,
+      "source_updated_at": "2026-09-19T07:00:00Z"
+    },
+    {
+      "id": "cloudspotting-on-mars",
+      "title": "Cloudspotting on Mars",
+      "science_area": "solar_system",
+      "summary": "Inspect graphed Mars Climate Sounder data and mark patterns associated with Martian clouds.",
+      "task_type": "examining_data",
+      "time_filter": "about_15_min",
+      "time_label": "About 15 minutes of online training",
+      "device_filters": ["web_device", "mobile_or_computer"],
+      "device_label": "Internet-connected mobile device or computer",
+      "skill_focus": "plot_reading",
+      "knowledge_note": "No prior knowledge required; in-project training is provided.",
+      "external_url": "https://www.zooniverse.org/projects/marek-slipski/cloudspotting-on-mars",
+      "source_ids": ["nasa-cloudspotting-mars"],
+      "status": "active",
+      "status_stale": false,
+      "source_updated_at": "2026-09-19T07:00:00Z"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "january-moon-journal",
+      "month": 1,
+      "title": "Moon journal",
+      "summary": "Make four short Moon observations and record date, local time, visible shape, and observing conditions.",
+      "duration_label": "Four short observations across the month",
+      "steps": [
+        "On four safe observing opportunities, look for the Moon with unaided eyes.",
+        "Record date, local time, a simple shape sketch, and cloud/light conditions.",
+        "Compare the four entries without requiring a phase-name guess."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "Clouds or an unavailable Moon are valid entries; record the limitation rather than inventing an observation.",
+      "source_ids": ["nasa-lro-lunar-activities", "nasa-moon-phases"]
+    },
+    {
+      "id": "february-same-sky-revisit",
+      "month": 2,
+      "title": "Same-sky revisit",
+      "summary": "Sketch one bright sky pattern on two separated nights and compare what appears unchanged or shifted.",
+      "duration_label": "Two 10–15 minute observations",
+      "steps": [
+        "Choose one bright, easy-to-relocate patch of sky from a permitted place.",
+        "Make a simple dot-and-line sketch.",
+        "Repeat on another night from the same stationary place when practical and compare the sketches."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "Identification is optional; a comparison of visible patterns is sufficient.",
+      "source_ids": ["nasa-skywatching"]
+    },
+    {
+      "id": "march-changing-shadow-log",
+      "month": 3,
+      "title": "Changing shadow log",
+      "summary": "Mark the tip of one stationary object's shadow three times and compare how it changes.",
+      "duration_label": "Three daytime checks separated by at least 30 minutes",
+      "steps": [
+        "Choose a stable upright object in a safe open place.",
+        "Without looking at the Sun, mark or sketch the shadow tip.",
+        "Repeat twice later and compare direction and length."
+      ],
+      "safety": [
+        "Never stare at or deliberately look toward the Sun; observe only the shadow on the ground.",
+        "Keep the observation area clear of traffic and trip hazards."
+      ],
+      "valid_limit_note": "If clouds erase the shadow, record that condition rather than estimating a position.",
+      "source_ids": ["nasa-shadow-sundial"]
+    },
+    {
+      "id": "april-meteor-count",
+      "month": 4,
+      "title": "20-minute meteor count",
+      "summary": "Count all meteor-like streaks seen during one timed naked-eye observing interval without assigning shower membership.",
+      "duration_label": "20 minutes plus optional dark adaptation",
+      "steps": [
+        "From a safe permitted night site, note start time and broad sky conditions.",
+        "Watch a wide area of sky with unaided eyes for 20 minutes.",
+        "Record the count and any interruptions or cloud/light limits; do not classify shower membership."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "A count of zero is valid data and must not be treated as failure.",
+      "source_ids": ["nasa-meteor-showers", "nasa-skywatching"]
+    },
+    {
+      "id": "may-horizon-map",
+      "month": 5,
+      "title": "Horizon map",
+      "summary": "Draw the skyline and major obstructions from one safe permitted observing spot without storing coordinates.",
+      "duration_label": "15–20 minutes",
+      "steps": [
+        "Choose a stationary safe place you are already allowed to use.",
+        "Sketch the horizon line and obvious obstructions such as buildings or trees.",
+        "Label broad directions only if you already know them; do not record precise coordinates."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "The goal is a usable local sketch, not a survey-grade map.",
+      "source_ids": ["nasa-skywatching"]
+    },
+    {
+      "id": "june-twilight-transition-log",
+      "month": 6,
+      "title": "Twilight transition log",
+      "summary": "After the Sun is no longer visible, record how the sky and first visible lights or stars change over a short interval.",
+      "duration_label": "15–20 minutes after sunset",
+      "steps": [
+        "Begin only after the Sun is no longer visible from your location.",
+        "Every five minutes, record a short note about sky brightness and what becomes visible.",
+        "Stop before conditions or location become unsafe."
+      ],
+      "safety": [
+        "Do not use this challenge for direct solar viewing or to stare near the Sun.",
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "Cloud or artificial light can be recorded as part of the observation.",
+      "source_ids": ["nasa-skywatching", "nasa-eclipse-safety"]
+    },
+    {
+      "id": "july-moon-landmark-comparison",
+      "month": 7,
+      "title": "Moon versus landmark comparison",
+      "summary": "On two safe opportunities, sketch the Moon's apparent position relative to a distant fixed landmark.",
+      "duration_label": "Two short observations",
+      "steps": [
+        "From one stationary safe place, choose a distant fixed landmark.",
+        "Sketch the Moon and landmark together when both are visible.",
+        "Repeat on another opportunity and compare apparent position; do not infer distance from the sketch."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "If the Moon or landmark is not visible, record that limitation and try another safe opportunity.",
+      "source_ids": ["nasa-lro-lunar-activities", "nasa-skywatching"]
+    },
+    {
+      "id": "august-wide-sky-scan",
+      "month": 8,
+      "title": "Wide-sky naked-eye scan",
+      "summary": "Scan a broad part of the night sky with unaided eyes and record three visual patterns or brightness differences.",
+      "duration_label": "15 minutes",
+      "steps": [
+        "Let your eyes settle in a safe dark-enough place without walking around while looking up.",
+        "Scan broadly rather than fixing on one target.",
+        "Record three patterns, brightness differences, or uncertainties; names are optional."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "Object identification is optional; descriptive observation is the goal.",
+      "source_ids": ["nasa-skywatching"]
+    },
+    {
+      "id": "september-apparent-sky-motion",
+      "month": 9,
+      "title": "Apparent sky-motion sketch",
+      "summary": "From one stationary safe place, sketch a bright pattern, wait, then sketch it again relative to the horizon.",
+      "duration_label": "Two sketches 20–40 minutes apart",
+      "steps": [
+        "Choose a bright pattern and a fixed horizon reference.",
+        "Make a first simple sketch.",
+        "Remain in the same safe place and make a second sketch later, then compare apparent movement."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "If clouds interrupt the second sketch, preserve the first and record the interruption.",
+      "source_ids": ["nasa-skywatching"]
+    },
+    {
+      "id": "october-dark-adaptation-comparison",
+      "month": 10,
+      "title": "Dark-adaptation comparison",
+      "summary": "Compare what you notice immediately after arriving with what you notice after a short period away from bright light.",
+      "duration_label": "15–20 minutes",
+      "steps": [
+        "From a stationary safe place, record what is visible at first glance.",
+        "Avoid bright screens for 10–15 minutes while remaining stationary.",
+        "Record what additional faint detail, if any, becomes noticeable."
+      ],
+      "safety": [
+        "Do not walk around in darkness while dark-adapting; remain in a known safe stationary place.",
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "No improvement is a valid result, especially under cloud or strong local lighting.",
+      "source_ids": ["nasa-skywatching", "nasa-meteor-showers"]
+    },
+    {
+      "id": "november-moon-light-dark-sketch",
+      "month": 11,
+      "title": "Moon light-and-dark sketch",
+      "summary": "Make a naked-eye sketch of broad bright and dark regions on the Moon without requiring feature identification.",
+      "duration_label": "10–15 minutes",
+      "steps": [
+        "When the Moon is comfortably visible, observe it with unaided eyes.",
+        "Sketch only broad bright/dark regions and the illuminated outline.",
+        "Add cloud, glare, or visibility notes; feature names are optional."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "A rough sketch is enough; the activity does not test drawing quality or feature naming.",
+      "source_ids": ["nasa-lro-lunar-activities", "nasa-moon-phases"]
+    },
+    {
+      "id": "december-repeat-and-compare",
+      "month": 12,
+      "title": "Repeat and compare",
+      "summary": "Repeat any prior safe challenge and document what changed, what stayed similar, and what remains uncertain.",
+      "duration_label": "Use the duration of the chosen prior challenge",
+      "steps": [
+        "Choose one earlier challenge that is safe and practical now.",
+        "Repeat its observation without changing the original record.",
+        "Write three notes: changed, similar, uncertain."
+      ],
+      "safety": [
+        "Use only a permitted, stationary observing place; do not observe from roads, driveways with moving traffic, drop-offs, or water edges.",
+        "If an unfamiliar night site is needed, scout it in daylight first and stop if conditions feel unsafe."
+      ],
+      "valid_limit_note": "Different weather or visibility is part of the comparison rather than a reason to discard the attempt.",
+      "source_ids": ["nasa-skywatching"]
+    }
+  ],
+  "activities": [
+    {
+      "id": "paper-planisphere",
+      "title": "Paper planisphere",
+      "age_guidance": "Suggested for learners who can safely use scissors and follow printed assembly instructions; adult help is appropriate for younger learners.",
+      "skill_guidance": "Beginner sky orientation and paper assembly.",
+      "duration_label": "30–60 minutes",
+      "materials": [
+        "Printer access",
+        "Two sheets of paper or thin card",
+        "Scissors",
+        "Split-pin fastener",
+        "Optional transparent sheet"
+      ],
+      "steps": [
+        "Open the reviewed latitude-specific planisphere generator.",
+        "Choose a kit for the latitude nearest your observing location; do not enter a precise address into Lumina.",
+        "Print all pieces at the same scale and follow the external assembly instructions.",
+        "Use the assembled planisphere as an approximate sky-orientation aid."
+      ],
+      "safety": [
+        "Use scissors and hole-making tools carefully; younger learners should have adult help.",
+        "Do not use a conventional planisphere as a navigation or emergency-safety tool."
+      ],
+      "learning_objective": "Relate time, date, latitude, and the changing set of constellations above the horizon.",
+      "expected_observation": "The viewing window changes as the wheel is rotated, showing different sky regions for different times and dates.",
+      "cleanup": "Store the paper/card wheel flat and put away scissors and fasteners.",
+      "adult_supervision_note": "Adult assistance is recommended for cutting or punching holes when appropriate.",
+      "limitations": [
+        "There is no universal planisphere: the chart depends on latitude.",
+        "Conventional planispheres are a poor fit very near the equator; use an appropriate interactive sky map there.",
+        "Lumina links to the external generator and does not redistribute its printable kit."
+      ],
+      "source_ids": ["nasa-space-place-starfinder", "in-the-sky-planisphere"],
+      "external_resource": {
+        "label": "Open latitude-specific planisphere generator",
+        "url": "https://in-the-sky.org/planisphere/index.php"
+      }
+    },
+    {
+      "id": "pinhole-projector",
+      "title": "Pinhole projector",
+      "age_guidance": "Suitable with adult supervision whenever cutting or solar-safety judgment is involved.",
+      "skill_guidance": "Beginner indirect-light projection.",
+      "duration_label": "20–30 minutes",
+      "materials": [
+        "Two pieces of stiff card or a box",
+        "White paper",
+        "Tape",
+        "Aluminum foil",
+        "Pin or pushpin",
+        "Scissors if making a box version"
+      ],
+      "steps": [
+        "Make a small pinhole in foil or card according to the reviewed indirect-projection method.",
+        "Stand with the Sun behind you so you are facing away from it.",
+        "Project the image onto white paper or the inside surface of the box.",
+        "Adjust the distance between pinhole and screen while continuing to face away from the Sun."
+      ],
+      "safety": [
+        "Never look at the Sun through the pinhole.",
+        "Never look directly at the Sun as part of this activity.",
+        "Do not combine the pinhole with binoculars, telescopes, camera lenses, or other concentrating optics.",
+        "Adult supervision is required for children and for cutting/punching steps."
+      ],
+      "learning_objective": "Observe how a small aperture can project an image without direct viewing of the light source.",
+      "expected_observation": "A small projected image of the Sun appears on the screen when geometry and lighting are suitable.",
+      "cleanup": "Put away pins/scissors safely and recycle or store card/foil materials.",
+      "adult_supervision_note": "Adult supervision is strongly recommended because this is a solar activity and may involve sharp tools.",
+      "limitations": ["This is indirect projection only, not a solar-viewing filter."],
+      "source_ids": ["nasa-eclipse-safety"],
+      "external_resource": null
+    },
+    {
+      "id": "moon-phase-model",
+      "title": "Moon-phase model",
+      "age_guidance": "Suitable for school-age learners and adults; younger learners may benefit from adult help with setup.",
+      "skill_guidance": "Beginner spatial reasoning with light and a simple sphere.",
+      "duration_label": "20–30 minutes",
+      "materials": [
+        "Small white ball or foam sphere",
+        "Pencil or stick to hold the sphere",
+        "Single lamp in a dim room"
+      ],
+      "steps": [
+        "Use the lamp as the Sun and hold the white ball at arm's length as the Moon.",
+        "Keep your head as the observing Earth position and slowly move the ball around you.",
+        "Observe how the illuminated fraction facing you changes while half of the ball remains lit by the lamp.",
+        "Compare the pattern with NASA's reviewed Moon-phase explanation."
+      ],
+      "safety": [
+        "Use a cool, stable household lamp and keep materials away from hot bulbs or flames.",
+        "Move slowly and keep the floor clear while rotating."
+      ],
+      "learning_objective": "Model how changing Sun-Earth-Moon geometry produces the observed sequence of lunar phases.",
+      "expected_observation": "The visible illuminated portion changes as the model Moon moves around the observer even though the lamp always lights half the sphere.",
+      "cleanup": "Switch off the lamp and store the sphere and holder.",
+      "adult_supervision_note": "Adult help is appropriate when selecting or positioning a lamp for younger learners.",
+      "limitations": [
+        "The tabletop model is not to physical scale and does not reproduce orbital inclination or eclipse frequency."
+      ],
+      "source_ids": ["nasa-lro-lunar-activities", "nasa-moon-phases"],
+      "external_resource": null
+    },
+    {
+      "id": "simple-spectroscope",
+      "title": "Simple spectroscope",
+      "age_guidance": "Best for learners able to use scissors safely; adult help is appropriate for younger learners.",
+      "skill_guidance": "Beginner light and spectrum observation.",
+      "duration_label": "30–45 minutes",
+      "materials": [
+        "Cardstock or small cardboard tube/box",
+        "Diffraction grating material from a safe classroom kit",
+        "Tape",
+        "Scissors",
+        "Household/artificial light sources"
+      ],
+      "steps": [
+        "Build the simple viewing body using the reviewed NASA activity as guidance.",
+        "Use only ordinary household/artificial light sources that are safe to look toward normally.",
+        "Compare the patterns produced by two or more different safe artificial light sources.",
+        "Record colors/bands as observations rather than trying to identify chemical composition in v1."
+      ],
+      "safety": [
+        "Never point the spectroscope at the Sun.",
+        "Never look at the Sun directly or through this spectroscope, binoculars, telescopes, cameras, or other optics.",
+        "Do not use lasers, flames, ultraviolet lamps, or damaged electrical fixtures as light sources.",
+        "Use scissors carefully and request adult help when appropriate."
+      ],
+      "learning_objective": "Observe that different light sources can produce different distributions of visible wavelengths.",
+      "expected_observation": "Different safe artificial light sources may show continuous-looking color bands or more discrete bright bands.",
+      "cleanup": "Switch off test lights when finished and store the spectroscope and tools.",
+      "adult_supervision_note": "Adult help is recommended for construction and selection of safe light sources when appropriate.",
+      "limitations": [
+        "This activity is qualitative and does not calibrate wavelength or identify materials conclusively."
+      ],
+      "source_ids": ["nasa-spectroscope-activity", "nasa-eclipse-safety"],
+      "external_resource": null
+    },
+    {
+      "id": "scale-solar-system",
+      "title": "Scale Solar System",
+      "age_guidance": "Suitable for learners comfortable measuring lengths; younger learners may need adult help.",
+      "skill_guidance": "Beginner measurement and scale reasoning.",
+      "duration_label": "30–60 minutes",
+      "materials": [
+        "String or long paper strip",
+        "Ruler or measuring tape",
+        "Markers or small beads",
+        "Tape or clips"
+      ],
+      "steps": [
+        "Choose either a distance-focused or size-focused scale rather than mixing incompatible scales.",
+        "Use the reviewed NASA/JPL values or worksheet to place markers consistently.",
+        "Compare spacing in the inner and outer Solar System.",
+        "Record which distances surprised you and which model limitations remain."
+      ],
+      "safety": [
+        "If using a long floor or outdoor model, keep the line away from roads, stairs, doorways, and trip hazards.",
+        "Do not place stakes or markers where they could injure someone or damage property."
+      ],
+      "learning_objective": "Understand the extreme scale differences in Solar System distances and/or sizes.",
+      "expected_observation": "A consistent scale makes the outer-planet spacing much larger than many intuitive drawings suggest.",
+      "cleanup": "Remove all tape, string, beads, chalk, or temporary markers and leave the area as found.",
+      "adult_supervision_note": "Adult help is appropriate for long outdoor layouts or small materials around young children.",
+      "limitations": [
+        "One compact model generally cannot show both planetary sizes and orbital distances accurately at the same physical scale."
+      ],
+      "source_ids": ["nasa-jpl-scale-solar-system"],
+      "external_resource": null
+    },
+    {
+      "id": "shadow-tracking",
+      "title": "Shadow tracking",
+      "age_guidance": "Suitable for school-age learners and adults with a safe outdoor observation area.",
+      "skill_guidance": "Beginner observation, measurement, and comparison.",
+      "duration_label": "Three or more checks across 1–3 hours",
+      "materials": [
+        "Stable upright object or pencil in modeling clay",
+        "Chalk, removable markers, or paper",
+        "Optional ruler"
+      ],
+      "steps": [
+        "Place or choose a stable upright marker in a safe sunny area.",
+        "Without looking at the Sun, mark the end of its shadow.",
+        "Repeat after at least 30 minutes two or more times.",
+        "Compare changes in shadow direction and length."
+      ],
+      "safety": [
+        "Never stare at or deliberately look toward the Sun; observe only the shadow.",
+        "Keep the marker and observation area out of roads, walkways, and other trip hazards.",
+        "Use removable markings and obtain permission before marking shared surfaces."
+      ],
+      "learning_objective": "Connect the changing shadow of a fixed object with the Sun's apparent motion caused by Earth's rotation.",
+      "expected_observation": "The shadow tip changes position and often length over time when direct sunlight is available.",
+      "cleanup": "Remove temporary markers and return the observation area to its original condition.",
+      "adult_supervision_note": "Adult supervision is appropriate for younger learners outdoors or where site hazards are possible.",
+      "limitations": [
+        "Clouds and surrounding obstructions can prevent useful shadow measurements; this is a valid limitation."
+      ],
+      "source_ids": ["nasa-shadow-sundial"],
+      "external_resource": null
+    },
+    {
+      "id": "meteor-counts",
+      "title": "Meteor counts",
+      "age_guidance": "Suitable for learners who can safely remain at a permitted night observing site; minors should participate with a responsible adult.",
+      "skill_guidance": "Beginner timed observation and record keeping.",
+      "duration_label": "20 minutes plus optional 10–20 minutes of dark adaptation",
+      "materials": [
+        "Timer or clock",
+        "Paper and pencil",
+        "Optional reclining chair or blanket appropriate for the site"
+      ],
+      "steps": [
+        "Choose a permitted safe observing site and note broad sky/cloud/light conditions.",
+        "Remain stationary, look at a broad area of sky with unaided eyes, and count meteor-like streaks for 20 minutes.",
+        "Record the total count and interruptions.",
+        "Do not assign shower membership unless you are using a separate validated observing method."
+      ],
+      "safety": [
+        "Scout unfamiliar observing terrain in daylight and avoid roads, drop-offs, water edges, isolated unsafe areas, and other hazards.",
+        "Do not walk around while looking up or while dark-adapted.",
+        "Dress for conditions and stop if weather, wildlife, security, or visibility makes the site unsafe."
+      ],
+      "learning_objective": "Practice a fixed-duration observational count and document conditions that affect what was seen.",
+      "expected_observation": "The count may be zero or more; visibility depends on sky conditions, local light, Moonlight, and natural meteor activity.",
+      "cleanup": "Pack out all materials and leave the site as found.",
+      "adult_supervision_note": "Minors should participate with a responsible adult; all users should follow local site rules and personal-safety guidance.",
+      "limitations": [
+        "A simple count is not a calibrated meteor-shower rate and does not establish shower membership."
+      ],
+      "source_ids": ["nasa-meteor-showers", "nasa-skywatching"],
+      "external_resource": null
+    }
+  ],
+  "sources": [
+    {
+      "id": "nasa-citizen-science-directory",
+      "title": "Citizen Science Projects",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/",
+      "claim_scope": "NASA-curated citizen-science directory context and device-oriented project discovery."
+    },
+    {
+      "id": "nasa-galaxy-zoo",
+      "title": "Galaxy Zoo",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/galaxy-zoo/",
+      "claim_scope": "Galaxy Zoo task, training time, device, and no-prior-knowledge guidance."
+    },
+    {
+      "id": "nasa-planet-hunters-tess",
+      "title": "Planet Hunters TESS",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/planet-hunters-tess/",
+      "claim_scope": "Planet Hunters TESS task, training time, device, and no-prior-knowledge guidance."
+    },
+    {
+      "id": "nasa-daily-minor-planet",
+      "title": "Daily Minor Planet",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/daily-minor-planet/",
+      "claim_scope": "Daily Minor Planet task, training time, device, and no-prior-knowledge guidance."
+    },
+    {
+      "id": "nasa-redshift-wrangler",
+      "title": "Redshift Wrangler",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/redshift-wrangler/",
+      "claim_scope": "Redshift Wrangler task, training time, device, and no-prior-knowledge guidance."
+    },
+    {
+      "id": "nasa-active-asteroids",
+      "title": "Active Asteroids",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/active-asteroids/",
+      "claim_scope": "Active Asteroids task, training time, device, and no-prior-knowledge guidance."
+    },
+    {
+      "id": "nasa-cloudspotting-mars",
+      "title": "Cloudspotting on Mars",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/citizen-science/cloudspotting/",
+      "claim_scope": "Cloudspotting on Mars task, training time, device, and no-prior-knowledge guidance."
+    },
+    {
+      "id": "zooniverse-panoptes-docs",
+      "title": "Panoptes API",
+      "organization": "Zooniverse",
+      "url": "https://zooniverse.github.io/panoptes/",
+      "claim_scope": "Public project API identity and live-state semantics for the external status adapter."
+    },
+    {
+      "id": "zooniverse-youth-privacy",
+      "title": "Youth Privacy",
+      "organization": "Zooniverse",
+      "url": "https://www.zooniverse.org/youth_privacy",
+      "claim_scope": "External youth/privacy/community boundary for user handoff messaging."
+    },
+    {
+      "id": "nasa-eclipse-safety",
+      "title": "Eclipse Viewing Safety",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/eclipses/safety/",
+      "claim_scope": "Indirect pinhole projection and direct-solar-viewing safety constraints."
+    },
+    {
+      "id": "nasa-spectroscope-activity",
+      "title": "Astronomer's Toolbox: Spectroscope Activity",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/learn/heat/resource/astronomers-toolbox-spectroscope-activity/",
+      "claim_scope": "Simple spectroscope learning activity and educational framing."
+    },
+    {
+      "id": "nasa-jpl-scale-solar-system",
+      "title": "Make a Scale Solar System",
+      "organization": "NASA Jet Propulsion Laboratory",
+      "url": "https://www.jpl.nasa.gov/edu/resources/project/make-a-scale-solar-system/",
+      "claim_scope": "Scale Solar System materials, scale-learning goal, and project framing."
+    },
+    {
+      "id": "nasa-lro-lunar-activities",
+      "title": "Lunar Activities",
+      "organization": "NASA Science / Lunar Reconnaissance Orbiter",
+      "url": "https://science.nasa.gov/mission/lro/lunar-activities/",
+      "claim_scope": "Moon-phase modeling and Moon-journal educational activities."
+    },
+    {
+      "id": "nasa-moon-phases",
+      "title": "Phases of the Moon",
+      "organization": "NASA Science",
+      "url": "https://moon.nasa.gov/resources/54/phases-of-the-moon/",
+      "claim_scope": "Moon-phase geometry and observational interpretation."
+    },
+    {
+      "id": "nasa-shadow-sundial",
+      "title": "Create a Sundial Activity",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/learn/heat/resource/create-a-sundial-activity/",
+      "claim_scope": "Shadow-change observation and sundial activity framing."
+    },
+    {
+      "id": "nasa-meteor-showers",
+      "title": "Meteor Showers",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/solar-system/meteors-meteorites/meteor-showers/",
+      "claim_scope": "Meteor-observing context and the fact that meteors can be seen on ordinary clear nights."
+    },
+    {
+      "id": "nasa-skywatching",
+      "title": "Skywatching Tips From NASA",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/skywatching/",
+      "claim_scope": "General naked-eye skywatching context for evergreen observing prompts."
+    },
+    {
+      "id": "nasa-space-place-starfinder",
+      "title": "Make a Star Finder",
+      "organization": "NASA Space Place",
+      "url": "https://spaceplace.nasa.gov/starfinder/en/",
+      "claim_scope": "Printable star-finder concept and explicit 34-degree-north latitude limitation."
+    },
+    {
+      "id": "in-the-sky-planisphere",
+      "title": "Make your own planisphere",
+      "organization": "In-The-Sky.org / Dominic Ford",
+      "url": "https://in-the-sky.org/planisphere/index.php",
+      "claim_scope": "Latitude-specific printable planisphere generator, assembly guidance, and redistribution terms."
+    }
+  ],
+  "freshness": {
+    "availability": "fresh",
+    "cache_state": "fresh",
+    "retrieved_at": "2026-09-19T08:00:00Z",
+    "fresh_until": "2026-09-19T16:00:00Z",
+    "stale_until": "2026-09-22T08:00:00Z",
+    "last_refresh_failure_code": null
+  }
+}

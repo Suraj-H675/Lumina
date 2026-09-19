@@ -51,6 +51,8 @@ import type {
   GetNowNearEarthData,
   GetNowSatellitesData,
   GetNowSpaceWeatherData,
+  GetParticipateData,
+  ParticipateResponse,
   PostNowSatellitePassesData,
   SatelliteListResponse,
   SatellitePassRequest,
@@ -95,6 +97,7 @@ import {
   zGetNowNearEarthResponse,
   zGetNowSatellitesResponse,
   zGetNowSpaceWeatherResponse,
+  zGetParticipateResponse,
   zPostNowSatellitePassesResponse,
   zSatellitePassRequest,
   zLiveResponse,
@@ -116,6 +119,7 @@ export type {
   SatellitePassRequest,
   SatellitePassResponse,
   SpaceWeatherResponse,
+  ParticipateResponse,
 };
 
 export type GeneratedValidator<T> = Pick<ZodType<T>, "safeParse">;
@@ -271,6 +275,12 @@ export const providerStatusEndpoint = {
   path: "/api/v1/providers/status" satisfies ListProviderStatusData["url"],
   validator: zProviderStatusListResponse,
 } satisfies ApiEndpoint<ProviderStatusListResponse, ListProviderStatusData["url"]>;
+
+export const participateEndpoint = {
+  method: "GET",
+  path: "/api/v1/participate" satisfies GetParticipateData["url"],
+  validator: zGetParticipateResponse,
+} satisfies ApiEndpoint<ParticipateResponse, GetParticipateData["url"]>;
 
 export const apodEndpoint = {
   method: "GET",

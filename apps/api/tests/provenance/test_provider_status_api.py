@@ -168,7 +168,7 @@ def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None
 
     assert response.status_code == 200
     body = response.json()
-    assert len(body["providers"]) == 6
+    assert len(body["providers"]) == 7
     assert {entry["provider_code"] for entry in body["providers"]} == {
         "celestrak-gp",
         "launch-library-2",
@@ -176,6 +176,7 @@ def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None
         "nasa-apod",
         "nasa-neows",
         "noaa-swpc",
+        "zooniverse-panoptes",
     }
     provider = next(
         entry for entry in body["providers"] if entry["provider_code"] == "nasa-exoplanet-archive"

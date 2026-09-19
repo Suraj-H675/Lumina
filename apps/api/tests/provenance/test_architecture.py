@@ -143,6 +143,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
         "domain/__init__.py",
         "domain/apod.py",
         "domain/celestrak.py",
+        "domain/citizen_science.py",
         "domain/launch_library.py",
         "domain/manifests.py",
         "domain/neows.py",
@@ -160,6 +161,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
         "infrastructure/noaa_swpc.py",
         "infrastructure/postgresql/__init__.py",
         "infrastructure/postgresql/runtime.py",
+        "infrastructure/zooniverse_panoptes.py",
     }
     production_source = "\n".join(
         path.read_text(encoding="utf-8") for path in _PROVENANCE_ROOT.rglob("*.py")
@@ -169,6 +171,7 @@ def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
     assert "NasaExoplanetArchiveAdapter" in production_source
     assert "NasaApodAdapter" in production_source
     assert "CelestrakAdapter" in production_source
+    assert "ZooniversePanoptesAdapter" in production_source
     assert "APIRouter" in production_source
     for forbidden in ("fixture_mode", "schedule_job", "importlib", "entry_points"):
         assert forbidden not in production_source

@@ -12,6 +12,7 @@ const navigationItems = [
   { href: "/compare", label: "Compare" },
   { href: "/observe", label: "Observe" },
   { href: "/tonight", label: "Tonight" },
+  { href: "/participate", label: "Participate" },
   { href: "/journal", label: "Journal" },
   { href: "/collections", label: "Collections" },
   { href: "/status", label: "Status" },

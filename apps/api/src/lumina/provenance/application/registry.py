@@ -17,6 +17,7 @@ from lumina.provenance.domain.runtime import (
     CELESTRAK_PROVIDER_CODE,
     LL2_PROVIDER_CODE,
     NEOWS_PROVIDER_CODE,
+    PANOPTES_PROVIDER_CODE,
     PROVIDER_CODE,
     SWPC_PROVIDER_CODE,
     ProviderPayloadCodec,
@@ -31,6 +32,7 @@ PRODUCTION_PROVIDER_CODES = frozenset(
         NEOWS_PROVIDER_CODE,
         SWPC_PROVIDER_CODE,
         LL2_PROVIDER_CODE,
+        PANOPTES_PROVIDER_CODE,
     }
 )
 

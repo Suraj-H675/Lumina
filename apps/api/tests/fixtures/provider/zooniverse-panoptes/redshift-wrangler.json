@@ -1,0 +1,32 @@
+{
+  "links": {
+    "projects": "/api/projects/13175"
+  },
+  "meta": {
+    "projects": {
+      "page": 1,
+      "page_size": 1,
+      "page_count": 1,
+      "count": 1
+    }
+  },
+  "projects": [
+    {
+      "id": "13175",
+      "slug": "jeyhansk/redshift-wrangler",
+      "private": false,
+      "live": true,
+      "updated_at": "2026-09-16T01:02:03.004Z",
+      "display_name": "provider prose must not enter Lumina cache",
+      "description": "ignored provider-controlled description",
+      "classifications_count": 123456,
+      "users_count": 999,
+      "urls": [
+        {
+          "url": "https://example.invalid/provider-controlled"
+        }
+      ],
+      "tags": ["ignored", "provider", "tags"]
+    }
+  ]
+}

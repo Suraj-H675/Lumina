@@ -11,6 +11,7 @@ import {
   impactSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
+  participateEndpoint,
   planetarySystemBuilderEndpoint,
   radialVelocityEndpoint,
   relativityVisualizationsEndpoint,
@@ -49,6 +50,7 @@ import type {
   GetCatalogEntityData,
   LiveHealthLiveGetData,
   GetNowSatellitesData,
+  GetParticipateData,
   ListCatalogEntitiesData,
   MetadataApiV1MetaGetData,
   PostNowSatellitePassesData,
@@ -69,6 +71,7 @@ import {
 import { BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE } from "./fixtures/black-hole-relativity-response";
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
 import { IMPACT_SIMULATOR_DEFAULT_RESPONSE } from "./fixtures/impact-simulator-response";
+import { PARTICIPATE_FRESH_RESPONSE } from "./fixtures/participate-response";
 import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
 import { RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE } from "./fixtures/relativity-visualizations-response";
 import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
@@ -85,6 +88,8 @@ describe("generated contract boundary", () => {
     expect(satellitePassEndpoint.method).toBe("POST");
     expectTypeOf(satellitesEndpoint.path).toEqualTypeOf<GetNowSatellitesData["url"]>();
     expectTypeOf(satellitePassEndpoint.path).toEqualTypeOf<PostNowSatellitePassesData["url"]>();
+    expect(participateEndpoint.method).toBe("GET");
+    expectTypeOf(participateEndpoint.path).toEqualTypeOf<GetParticipateData["url"]>();
     expect(blackHoleRelativityEndpoint.method).toBe("GET");
     expectTypeOf(blackHoleRelativityEndpoint.path).toEqualTypeOf<
       CalculateBlackHoleRelativityData["url"]
@@ -589,6 +594,45 @@ describe("Black-Hole / Relativity Lab endpoint", () => {
     ).byteLength;
     expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
     expect(Object.hasOwn(blackHoleRelativityEndpoint, "maxResponseBytes")).toBe(false);
+  });
+});
+
+describe("Participate endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(participateEndpoint.path).toEqualTypeOf<GetParticipateData["url"]>();
+    const result = await requestEndpoint("http://127.0.0.1:8000", participateEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(PARTICIPATE_FRESH_RESPONSE), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({
+      data: PARTICIPATE_FRESH_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Participate response fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", participateEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...PARTICIPATE_FRESH_RESPONSE, invented: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("fits the normal bounded transport response ceiling", () => {
+    const bytes = new TextEncoder().encode(JSON.stringify(PARTICIPATE_FRESH_RESPONSE)).byteLength;
+    expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
+    expect(Object.hasOwn(participateEndpoint, "maxResponseBytes")).toBe(false);
   });
 });
 

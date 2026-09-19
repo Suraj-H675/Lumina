@@ -45,6 +45,9 @@ const blackHoleRelativityFixtures = JSON.parse(
 const relativityVisualizationsFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/relativity-visualizations.json", import.meta.url), "utf8"),
 );
+const participateFixture = JSON.parse(
+  readFileSync(new URL("../fixtures/participate.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -57,6 +60,7 @@ const apiPaths = new Set([
   "/api/v1/now/satellites",
   "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
+  "/api/v1/participate",
   "/api/v1/simulations/black-hole-relativity",
   "/api/v1/simulations/eclipse-simulator",
   "/api/v1/simulations/impact-simulator",
@@ -341,6 +345,41 @@ function nowNearEarthFixtureForMode() {
     };
   }
   return NOW_NEAR_EARTH_FIXTURE;
+}
+
+function participateFixtureForMode() {
+  if (participateMode === "stale") {
+    return {
+      ...participateFixture,
+      projects: participateFixture.projects.map((project) => ({
+        ...project,
+        status_stale: true,
+      })),
+      freshness: {
+        ...participateFixture.freshness,
+        availability: "stale",
+        cache_state: "stale",
+        last_refresh_failure_code: "provider.transport_unavailable",
+      },
+    };
+  }
+  if (participateMode === "unavailable") {
+    return {
+      ...participateFixture,
+      projects: participateFixture.projects.map((project) => ({
+        ...project,
+        status: "unavailable",
+        status_stale: false,
+        source_updated_at: null,
+      })),
+      freshness: {
+        ...participateFixture.freshness,
+        availability: "unavailable",
+        cache_state: "expired",
+      },
+    };
+  }
+  return participateFixture;
 }
 
 const NOW_LAUNCHES_FIXTURE = {
@@ -663,6 +702,7 @@ const NOW_SPACE_WEATHER_FIXTURE = {
 const controlPaths = new Set([
   "/__control/apod-mode",
   "/__control/neows-mode",
+  "/__control/participate-mode",
   "/__control/launch-mode",
   "/__control/satellite-mode",
   "/__control/identification-mode",
@@ -694,6 +734,7 @@ let violationTotal = 0;
 let mode = "disconnect";
 let apodMode = "fresh";
 let neowsMode = "fresh";
+let participateMode = "fresh";
 let launchMode = "fresh";
 let satelliteMode = "fresh";
 let identificationMode = "fake";
@@ -2087,6 +2128,31 @@ const stub = http.createServer(async (request, response) => {
       }
       return;
     }
+    if (path === "/__control/participate-mode") {
+      try {
+        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
+          throw new Error("control request media type is invalid");
+        }
+        const body = await readControlBody(request);
+        if (
+          body === null ||
+          typeof body !== "object" ||
+          Array.isArray(body) ||
+          Object.keys(body).length !== 1 ||
+          !["fresh", "stale", "unavailable"].includes(body.mode)
+        ) {
+          recordViolation("malformed-control");
+          sendFailure(response, 400);
+          return;
+        }
+        participateMode = body.mode;
+        sendJson(response, 200, { mode: participateMode });
+      } catch {
+        recordViolation("malformed-control");
+        sendFailure(response, 400);
+      }
+      return;
+    }
 
     if (path === "/__control/launch-mode") {
       try {
@@ -2552,6 +2618,10 @@ const stub = http.createServer(async (request, response) => {
     // The NEO fixture has its own mode so APOD and NEO can be tested as
     // independently resilient Space Now products.
     sendJson(response, 200, nowNearEarthFixtureForMode());
+    return;
+  }
+  if (path === "/api/v1/participate") {
+    sendJson(response, 200, participateFixtureForMode());
     return;
   }
   if (path === "/api/v1/now/launches") {

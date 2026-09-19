@@ -1,0 +1,32 @@
+{
+  "links": {
+    "projects": "/api/projects/5733"
+  },
+  "meta": {
+    "projects": {
+      "page": 1,
+      "page_size": 1,
+      "page_count": 1,
+      "count": 1
+    }
+  },
+  "projects": [
+    {
+      "id": "5733",
+      "slug": "zookeeper/galaxy-zoo",
+      "private": false,
+      "live": true,
+      "updated_at": "2026-09-19T07:52:56.026Z",
+      "display_name": "provider prose must not enter Lumina cache",
+      "description": "ignored provider-controlled description",
+      "classifications_count": 123456,
+      "users_count": 999,
+      "urls": [
+        {
+          "url": "https://example.invalid/provider-controlled"
+        }
+      ],
+      "tags": ["ignored", "provider", "tags"]
+    }
+  ]
+}

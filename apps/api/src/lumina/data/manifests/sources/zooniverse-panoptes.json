@@ -1,0 +1,32 @@
+{
+  "adapter_id": "zooniverse-panoptes-project-status",
+  "adapter_version": "1",
+  "attribution_text": "Zooniverse / Panoptes. Lumina uses only bounded public project identity and live-status fields for six reviewed astronomy projects; participation occurs on the external Zooniverse site.",
+  "authentication_method": "The six reviewed public project endpoints require no Lumina credential or user account. Lumina sends no user identity, location, age, or classification data.",
+  "cache_ttl": "Fresh for 8 hours after a successful atomic six-project snapshot; stale-if-error for the following 72 hours; expired thereafter.",
+  "capabilities": ["batch_fetch"],
+  "contact_or_user_agent_requirement": "Lumina sends a fixed identifying User-Agent and the Panoptes version-1 vendor Accept header. Requests use HTTPS, six fixed GET paths, no query values, no redirects, and no inherited proxy environment.",
+  "endpoint_or_base_url": "https://www.zooniverse.org/api/projects/",
+  "failure_and_fallback_behaviour": "Fetch the six exact reviewed project IDs in order under one provider lease and request-cycle deadline. Validate every identity before atomically publishing one snapshot. On any failure retain the prior complete snapshot and expose stale data only during the approved stale-if-error interval; expired or missing data is status-unavailable, never fabricated active state.",
+  "fetch_time_policy": "Each accepted snapshot records one Lumina retrieval time in the generic provider cache. Panoptes updated_at is retained per project as provider source time and is not relabeled as retrieval time.",
+  "fixture_and_checksum_strategy": "Offline tests use sanitized deterministic fixtures for all six direct project envelopes plus identity drift, private/live state, malformed JSON, duplicate keys, oversized responses, retry, and partial-failure cases. Each exact body is SHA-256 hashed and the ordered bodies receive the LUMINA-PANOPTES-SNAPSHOT-V1 framed aggregate SHA-256.",
+  "known_limitations": [
+    "The provider covers only six exact reviewed astronomy projects and is not a Zooniverse search or discovery API.",
+    "Lumina consumes only id, slug, private, live, and updated_at. Provider descriptions, introductions, user/classification counts, Talk content, tags, arbitrary URLs, and community data are deliberately ignored.",
+    "A project is presented as currently active only when a non-expired cached exact record is public and live=true. Missing, expired, disabled, or invalid provider state is shown as current status unavailable.",
+    "The provider does not authenticate users, submit classifications, create accounts, fetch Talk, or track a user across the external handoff."
+  ],
+  "last_verified_at": "2026-09-19T00:00:00Z",
+  "manifest_schema_version": 1,
+  "manifest_type": "source",
+  "normalized_fields": ["projects", "source_evidence"],
+  "observation_or_publication_time_policy": "Panoptes updated_at is retained as an explicit source-updated UTC timestamp for each exact project. It is not a classification timestamp, participation timestamp, or Lumina retrieval time.",
+  "official_documentation_url": "https://zooniverse.github.io/panoptes/",
+  "purpose": "Bounded current public/live status for Lumina's six curated astronomy citizen-science project identities.",
+  "rate_or_fair_use_constraints": "One logical provider lease and one circuit cover the finite six-request plan. Successful synchronization is due every six hours, with the existing framework retry policy, 32768-byte per-component bounds, and a 196608-byte complete raw evidence bound.",
+  "refresh_schedule": "An external operator scheduler may enqueue provider.sync for zooniverse-panoptes on a six-hour cadence. The Participate page and public API never trigger Panoptes requests.",
+  "source_id": "zooniverse-panoptes",
+  "source_name": "Zooniverse Panoptes Public Project API",
+  "source_schema_version": "panoptes-project-status-v1",
+  "terms_or_licence_url": "https://www.zooniverse.org/privacy"
+}

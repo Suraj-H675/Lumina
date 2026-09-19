@@ -36,5 +36,9 @@ describe("Lab section navigation", () => {
     const labLink = screen.getByRole("link", { name: "Lab" });
     expect(labLink).toHaveAttribute("href", "/lab");
     expect(labLink).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Participate" })).toHaveAttribute(
+      "href",
+      "/participate",
+    );
   });
 });

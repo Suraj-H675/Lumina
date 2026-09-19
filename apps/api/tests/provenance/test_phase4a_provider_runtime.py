@@ -308,6 +308,7 @@ def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> 
             "noaa-swpc",
             "launch-library-2",
             "celestrak-gp",
+            "zooniverse-panoptes",
         }
     )
     registration = registry.resolve("nasa-exoplanet-archive")
@@ -324,6 +325,11 @@ def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> 
     assert swpc_registration is not None
     assert swpc_registration.config.refresh_interval == timedelta(minutes=5)
     assert swpc_registration.config.fresh_ttl == timedelta(minutes=10)
+    panoptes_registration = registry.resolve("zooniverse-panoptes")
+    assert panoptes_registration is not None
+    assert panoptes_registration.config.refresh_interval == timedelta(hours=6)
+    assert panoptes_registration.config.fresh_ttl == timedelta(hours=8)
+    assert panoptes_registration.config.stale_if_error_grace == timedelta(hours=72)
 
 
 def test_nasa_source_manifest_pins_official_provenance_without_a_licence_claim() -> None:

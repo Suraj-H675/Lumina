@@ -1,0 +1,32 @@
+{
+  "links": {
+    "projects": "/api/projects/7929"
+  },
+  "meta": {
+    "projects": {
+      "page": 1,
+      "page_size": 1,
+      "page_count": 1,
+      "count": 1
+    }
+  },
+  "projects": [
+    {
+      "id": "7929",
+      "slug": "nora-dot-eisner/planet-hunters-tess",
+      "private": false,
+      "live": true,
+      "updated_at": "2026-09-18T11:02:03.100Z",
+      "display_name": "provider prose must not enter Lumina cache",
+      "description": "ignored provider-controlled description",
+      "classifications_count": 123456,
+      "users_count": 999,
+      "urls": [
+        {
+          "url": "https://example.invalid/provider-controlled"
+        }
+      ],
+      "tags": ["ignored", "provider", "tags"]
+    }
+  ]
+}

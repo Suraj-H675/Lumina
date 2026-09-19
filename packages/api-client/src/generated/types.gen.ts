@@ -1776,6 +1776,356 @@ export type PageResponse = {
 };
 
 /**
+ * ParticipateActivityResponse
+ */
+export type ParticipateActivityResponse = {
+  /**
+   * Adult Supervision Note
+   */
+  adult_supervision_note: string;
+  /**
+   * Age Guidance
+   */
+  age_guidance: string;
+  /**
+   * Cleanup
+   */
+  cleanup: string;
+  /**
+   * Duration Label
+   */
+  duration_label: string;
+  /**
+   * Expected Observation
+   */
+  expected_observation: string;
+  external_resource: ParticipateExternalResourceResponse | null;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Learning Objective
+   */
+  learning_objective: string;
+  /**
+   * Limitations
+   */
+  limitations: Array<string>;
+  /**
+   * Materials
+   */
+  materials: Array<string>;
+  /**
+   * Safety
+   */
+  safety: Array<string>;
+  /**
+   * Skill Guidance
+   */
+  skill_guidance: string;
+  /**
+   * Source Ids
+   */
+  source_ids: Array<string>;
+  /**
+   * Steps
+   */
+  steps: Array<string>;
+  /**
+   * Title
+   */
+  title: string;
+};
+
+/**
+ * ParticipateChallengeResponse
+ */
+export type ParticipateChallengeResponse = {
+  /**
+   * Duration Label
+   */
+  duration_label: string;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Month
+   */
+  month: number;
+  /**
+   * Safety
+   */
+  safety: Array<string>;
+  /**
+   * Source Ids
+   */
+  source_ids: Array<string>;
+  /**
+   * Steps
+   */
+  steps: Array<string>;
+  /**
+   * Summary
+   */
+  summary: string;
+  /**
+   * Title
+   */
+  title: string;
+  /**
+   * Valid Limit Note
+   */
+  valid_limit_note: string;
+};
+
+/**
+ * ParticipateDefinitionResponse
+ */
+export type ParticipateDefinitionResponse = {
+  /**
+   * External Handoff Notice
+   */
+  external_handoff_notice: string;
+  /**
+   * Privacy Note
+   */
+  privacy_note: string;
+  /**
+   * References
+   */
+  references: Array<string>;
+  /**
+   * Slug
+   */
+  slug: "participate";
+  /**
+   * Stale Status Label
+   */
+  stale_status_label: string;
+  /**
+   * Status
+   */
+  status: "ready";
+  /**
+   * Status Unavailable Label
+   */
+  status_unavailable_label: string;
+  /**
+   * Summary
+   */
+  summary: string;
+  /**
+   * Title
+   */
+  title: "Participate";
+  /**
+   * Version
+   */
+  version: 1;
+};
+
+/**
+ * ParticipateExternalResourceResponse
+ */
+export type ParticipateExternalResourceResponse = {
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Url
+   */
+  url: string;
+};
+
+/**
+ * ParticipateFiltersResponse
+ */
+export type ParticipateFiltersResponse = {
+  /**
+   * Device
+   */
+  device: Array<"web_device" | "mobile_or_computer" | "tablet_explicit">;
+  /**
+   * Skill Focus
+   */
+  skill_focus: Array<
+    | "visual_classification"
+    | "light_curve_reading"
+    | "candidate_image_validation"
+    | "spectroscopy_data"
+    | "plot_reading"
+  >;
+  /**
+   * Time
+   */
+  time: Array<"a_few_min" | "about_10_min" | "five_to_fifteen_min" | "about_15_min">;
+};
+
+/**
+ * ParticipateFreshnessResponse
+ */
+export type ParticipateFreshnessResponse = {
+  /**
+   * Availability
+   */
+  availability: "fresh" | "stale" | "unavailable";
+  cache_state: CacheState;
+  /**
+   * Fresh Until
+   */
+  fresh_until: string | null;
+  /**
+   * Last Refresh Failure Code
+   */
+  last_refresh_failure_code: string | null;
+  /**
+   * Retrieved At
+   */
+  retrieved_at: string | null;
+  /**
+   * Stale Until
+   */
+  stale_until: string | null;
+};
+
+/**
+ * ParticipateProjectResponse
+ */
+export type ParticipateProjectResponse = {
+  /**
+   * Device Filters
+   */
+  device_filters: Array<"web_device" | "mobile_or_computer" | "tablet_explicit">;
+  /**
+   * Device Label
+   */
+  device_label: string;
+  /**
+   * External Url
+   */
+  external_url: string;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Knowledge Note
+   */
+  knowledge_note: string;
+  /**
+   * Science Area
+   */
+  science_area: "astrophysics" | "solar_system";
+  /**
+   * Skill Focus
+   */
+  skill_focus:
+    | "visual_classification"
+    | "light_curve_reading"
+    | "candidate_image_validation"
+    | "spectroscopy_data"
+    | "plot_reading";
+  /**
+   * Source Ids
+   */
+  source_ids: Array<string>;
+  /**
+   * Source Updated At
+   */
+  source_updated_at: string | null;
+  /**
+   * Status
+   */
+  status: "active" | "inactive" | "unavailable";
+  /**
+   * Status Stale
+   */
+  status_stale: boolean;
+  /**
+   * Summary
+   */
+  summary: string;
+  /**
+   * Task Type
+   */
+  task_type: "examining_images" | "examining_data";
+  /**
+   * Time Filter
+   */
+  time_filter: "a_few_min" | "about_10_min" | "five_to_fifteen_min" | "about_15_min";
+  /**
+   * Time Label
+   */
+  time_label: string;
+  /**
+   * Title
+   */
+  title: string;
+};
+
+/**
+ * ParticipateResponse
+ */
+export type ParticipateResponse = {
+  /**
+   * Activities
+   */
+  activities: Array<ParticipateActivityResponse>;
+  /**
+   * Challenges
+   */
+  challenges: Array<ParticipateChallengeResponse>;
+  definition: ParticipateDefinitionResponse;
+  filters: ParticipateFiltersResponse;
+  freshness: ParticipateFreshnessResponse;
+  /**
+   * Model Version
+   */
+  model_version: "participate-v1";
+  /**
+   * Projects
+   */
+  projects: Array<ParticipateProjectResponse>;
+  /**
+   * Schema Version
+   */
+  schema_version: 1;
+  /**
+   * Sources
+   */
+  sources: Array<ParticipateSourceResponse>;
+};
+
+/**
+ * ParticipateSourceResponse
+ */
+export type ParticipateSourceResponse = {
+  /**
+   * Claim Scope
+   */
+  claim_scope: string;
+  /**
+   * Id
+   */
+  id: string;
+  /**
+   * Organization
+   */
+  organization: string;
+  /**
+   * Title
+   */
+  title: string;
+  /**
+   * Url
+   */
+  url: string;
+};
+
+/**
  * PayloadTradeoffPointResponse
  */
 export type PayloadTradeoffPointResponse = {
@@ -4517,6 +4867,35 @@ export type GetNowSpaceWeatherResponses = {
 
 export type GetNowSpaceWeatherResponse =
   GetNowSpaceWeatherResponses[keyof GetNowSpaceWeatherResponses];
+
+export type GetParticipateData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/participate";
+};
+
+export type GetParticipateErrors = {
+  /**
+   * The Participate request must not contain query parameters.
+   */
+  422: ErrorResponse;
+  /**
+   * Participate content is temporarily unavailable.
+   */
+  503: ErrorResponse;
+};
+
+export type GetParticipateError = GetParticipateErrors[keyof GetParticipateErrors];
+
+export type GetParticipateResponses = {
+  /**
+   * Successful Response
+   */
+  200: ParticipateResponse;
+};
+
+export type GetParticipateResponse = GetParticipateResponses[keyof GetParticipateResponses];
 
 export type ListProviderStatusData = {
   body?: never;

@@ -75,6 +75,20 @@ from lumina.provenance.domain.runtime import (
     NEOWS_STALE_IF_ERROR_GRACE,
     NEOWS_SUCCESS_REFRESH_INTERVAL,
     NEOWS_USER_AGENT,
+    PANOPTES_ADAPTER_ID,
+    PANOPTES_ADAPTER_VERSION,
+    PANOPTES_BASE_PATH,
+    PANOPTES_CACHE_KEY,
+    PANOPTES_CONTENT_TYPE,
+    PANOPTES_FORMAT,
+    PANOPTES_FRESH_TTL,
+    PANOPTES_HOST,
+    PANOPTES_MAX_TOTAL_RESPONSE_BYTES,
+    PANOPTES_PROVIDER_CODE,
+    PANOPTES_SOURCE_SCHEMA_VERSION,
+    PANOPTES_STALE_IF_ERROR_GRACE,
+    PANOPTES_SUCCESS_REFRESH_INTERVAL,
+    PANOPTES_USER_AGENT,
     PROVIDER_CODE,
     SOURCE_SCHEMA_VERSION,
     SWPC_ADAPTER_ID,
@@ -127,6 +141,12 @@ from lumina.provenance.infrastructure.noaa_swpc import (
     noaa_swpc_request_plan,
 )
 from lumina.provenance.infrastructure.postgresql.runtime import PostgreSqlProviderRuntimeStore
+from lumina.provenance.infrastructure.zooniverse_panoptes import (
+    ZooniversePanoptesAdapter,
+    compose_panoptes_snapshot,
+    load_zooniverse_panoptes_source_manifest,
+    zooniverse_panoptes_request_plan,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -276,6 +296,32 @@ def celestrak_runtime_config(*, repository_root: Path | None = None) -> Provider
     )
 
 
+def zooniverse_panoptes_runtime_config(
+    *, repository_root: Path | None = None
+) -> ProviderRuntimeConfig:
+    """Build the fixed six-project Zooniverse Panoptes status policy."""
+    source_manifest = load_zooniverse_panoptes_source_manifest(repository_root)
+    return ProviderRuntimeConfig(
+        provider_code=PANOPTES_PROVIDER_CODE,
+        adapter_id=PANOPTES_ADAPTER_ID,
+        adapter_version=PANOPTES_ADAPTER_VERSION,
+        cache_key=PANOPTES_CACHE_KEY,
+        source_schema_version=PANOPTES_SOURCE_SCHEMA_VERSION,
+        source_manifest=source_manifest,
+        endpoint_host=PANOPTES_HOST,
+        endpoint_path=PANOPTES_BASE_PATH,
+        query="",
+        output_format=PANOPTES_FORMAT,
+        timeout=HttpTimeoutPolicy(),
+        refresh_interval=PANOPTES_SUCCESS_REFRESH_INTERVAL,
+        fresh_ttl=PANOPTES_FRESH_TTL,
+        stale_if_error_grace=PANOPTES_STALE_IF_ERROR_GRACE,
+        max_response_bytes=PANOPTES_MAX_TOTAL_RESPONSE_BYTES,
+        expected_content_type=PANOPTES_CONTENT_TYPE,
+        user_agent=PANOPTES_USER_AGENT,
+    )
+
+
 def production_provider_registry(
     *, repository_root: Path | None = None, nasa_api_key: SecretStr | None = None
 ) -> StaticProviderRegistry:
@@ -286,6 +332,7 @@ def production_provider_registry(
     swpc_config = noaa_swpc_runtime_config(repository_root=repository_root)
     ll2_config = launch_library_runtime_config(repository_root=repository_root)
     celestrak_config = celestrak_runtime_config(repository_root=repository_root)
+    panoptes_config = zooniverse_panoptes_runtime_config(repository_root=repository_root)
     exoplanet_adapter = NasaExoplanetArchiveAdapter(
         BoundedHttpTransport(timeout=exoplanet_config.timeout),
         source_manifest=exoplanet_config.source_manifest,
@@ -311,6 +358,10 @@ def production_provider_registry(
     celestrak_adapter = CelestrakAdapter(
         BoundedHttpTransport(timeout=celestrak_config.timeout),
         source_manifest=celestrak_config.source_manifest,
+    )
+    panoptes_adapter = ZooniversePanoptesAdapter(
+        BoundedHttpTransport(timeout=panoptes_config.timeout),
+        source_manifest=panoptes_config.source_manifest,
     )
     return StaticProviderRegistry(
         {
@@ -358,6 +409,13 @@ def production_provider_registry(
                 check_replacement=True,
                 snapshot_normalizer=compose_celestrak_snapshot,
             ),
+            PANOPTES_PROVIDER_CODE: ProviderRegistration(
+                config=panoptes_config,
+                adapter=panoptes_adapter,
+                request_factory=zooniverse_panoptes_request_plan,
+                payload_codec=panoptes_adapter.codec,
+                snapshot_normalizer=compose_panoptes_snapshot,
+            ),
         }
     )
 
@@ -398,4 +456,5 @@ __all__ = [
     "nasa_neows_runtime_config",
     "noaa_swpc_runtime_config",
     "production_provider_registry",
+    "zooniverse_panoptes_runtime_config",
 ]

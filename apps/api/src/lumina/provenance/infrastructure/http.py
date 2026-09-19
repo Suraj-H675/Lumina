@@ -45,6 +45,12 @@ from lumina.provenance.domain.runtime import (
     NEOWS_MAX_RESPONSE_BYTES,
     NEOWS_PATH,
     NEOWS_USER_AGENT,
+    PANOPTES_ACCEPT,
+    PANOPTES_APPROVED_PATHS,
+    PANOPTES_COMPONENT_MAX_RESPONSE_BYTES,
+    PANOPTES_CONTENT_TYPE,
+    PANOPTES_HOST,
+    PANOPTES_USER_AGENT,
     SWPC_APPROVED_PATHS,
     SWPC_CONTENT_TYPE,
     SWPC_HOST,
@@ -73,6 +79,7 @@ class FixedHttpRequest:
     expected_content_type: str = _NASA_CSV_MEDIA_TYPE
     max_response_bytes: int = MAX_RESPONSE_BYTES
     user_agent: str = FIXED_USER_AGENT
+    accept_header: str | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -87,6 +94,14 @@ class FixedHttpRequest:
             or self.url != self.url.strip()
             or any(ord(character) < 32 or ord(character) == 127 for character in self.url)
             or "\\" in self.url
+            or self.accept_header is not None
+            and (
+                type(self.accept_header) is not str
+                or not self.accept_header
+                or any(
+                    ord(character) < 32 or ord(character) == 127 for character in self.accept_header
+                )
+            )
         ):
             raise ValueError("Provider HTTP request is outside the approved trust boundary")
         parsed = urlsplit(self.url)
@@ -100,7 +115,15 @@ class FixedHttpRequest:
         if (
             parsed.scheme != "https"
             or hostname
-            not in {FIXED_HOST, APOD_HOST, NEOWS_HOST, SWPC_HOST, LL2_HOST, CELESTRAK_HOST}
+            not in {
+                FIXED_HOST,
+                APOD_HOST,
+                NEOWS_HOST,
+                SWPC_HOST,
+                LL2_HOST,
+                CELESTRAK_HOST,
+                PANOPTES_HOST,
+            }
             or port is not None
             or parsed.fragment
             or parsed.query
@@ -119,6 +142,7 @@ class FixedHttpRequest:
                     ("query", "select count(pl_name) from ps where default_flag=1"),
                     ("format", "csv"),
                 )
+                or self.accept_header is not None
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif hostname == SWPC_HOST:
@@ -127,6 +151,7 @@ class FixedHttpRequest:
                 or self.expected_content_type != SWPC_CONTENT_TYPE
                 or self.user_agent != SWPC_USER_AGENT
                 or self.params
+                or self.accept_header is not None
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif hostname == CELESTRAK_HOST:
@@ -139,6 +164,17 @@ class FixedHttpRequest:
                 or self.expected_content_type != CELESTRAK_CONTENT_TYPE
                 or self.user_agent != CELESTRAK_USER_AGENT
                 or approved.get(self.params) != self.max_response_bytes
+                or self.accept_header is not None
+            ):
+                raise ValueError("Provider HTTP request is outside the approved trust boundary")
+        elif hostname == PANOPTES_HOST:
+            if (
+                parsed.path not in PANOPTES_APPROVED_PATHS
+                or self.expected_content_type != PANOPTES_CONTENT_TYPE
+                or self.user_agent != PANOPTES_USER_AGENT
+                or self.max_response_bytes != PANOPTES_COMPONENT_MAX_RESPONSE_BYTES
+                or self.params
+                or self.accept_header != PANOPTES_ACCEPT
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif hostname == LL2_HOST:
@@ -154,6 +190,7 @@ class FixedHttpRequest:
                     ("mode", "detailed"),
                     ("ordering", "net"),
                 )
+                or self.accept_header is not None
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif parsed.path == APOD_PATH:
@@ -164,6 +201,7 @@ class FixedHttpRequest:
                 or len(self.params) != 1
                 or self.params[0][0] != "api_key"
                 or not _valid_api_key(self.params[0][1])
+                or self.accept_header is not None
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         elif parsed.path == NEOWS_PATH:
@@ -176,6 +214,7 @@ class FixedHttpRequest:
                 or not _valid_date(self.params[0][1])
                 or not _valid_date(self.params[1][1])
                 or not _valid_api_key(self.params[2][1])
+                or self.accept_header is not None
             ):
                 raise ValueError("Provider HTTP request is outside the approved trust boundary")
         else:
@@ -253,7 +292,7 @@ class BoundedHttpTransport:
                     request.url,
                     params=request.params,
                     headers={
-                        "Accept": request.expected_content_type,
+                        "Accept": request.accept_header or request.expected_content_type,
                         "Accept-Encoding": "identity",
                         "User-Agent": request.user_agent,
                     },

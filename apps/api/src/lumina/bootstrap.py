@@ -57,6 +57,8 @@ from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRem
 from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
 from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
+from lumina.participate.api.routes import router as participate_router
+from lumina.participate.application.read import ParticipateReadService
 from lumina.provenance.api.routes import router as provider_router
 from lumina.provenance.composition import compose_provider_runtime
 from lumina.satellites.infrastructure.skyfield import SkyfieldSatellitePassEngine
@@ -177,6 +179,9 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.state.catalog_search_service = catalog_search_service
     application.state.provider_registry = provider_composition.registry
     application.state.provider_sync_service = provider_composition.sync_service
+    application.state.participate_read_service = ParticipateReadService(
+        provider_composition.snapshot_reader
+    )
     application.state.apod_read_service = ApodReadService(provider_composition.snapshot_reader)
     application.state.near_earth_read_service = NearEarthReadService(
         provider_composition.snapshot_reader
@@ -236,6 +241,7 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(catalog_router)
     application.include_router(search_router)
     application.include_router(provider_router)
+    application.include_router(participate_router)
     application.include_router(space_now_router)
     application.include_router(identification_router)
     return application

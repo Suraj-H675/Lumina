@@ -112,6 +112,27 @@ CELESTRAK_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=2)
 CELESTRAK_FRESH_TTL: Final = timedelta(hours=3)
 CELESTRAK_STALE_IF_ERROR_GRACE: Final = timedelta(hours=21)
 
+PANOPTES_PROVIDER_CODE: Final = "zooniverse-panoptes"
+PANOPTES_ADAPTER_ID: Final = "zooniverse-panoptes-project-status"
+PANOPTES_ADAPTER_VERSION: Final = "1"
+PANOPTES_CACHE_KEY: Final = "citizen-science-project-status"
+PANOPTES_SOURCE_SCHEMA_VERSION: Final = "panoptes-project-status-v1"
+PANOPTES_HOST: Final = "www.zooniverse.org"
+PANOPTES_BASE_PATH: Final = "/api/projects/"
+PANOPTES_FORMAT: Final = "json"
+PANOPTES_CONTENT_TYPE: Final = "application/vnd.api+json"
+PANOPTES_ACCEPT: Final = "application/vnd.api+json; version=1"
+PANOPTES_USER_AGENT: Final = "Lumina/0.0 Phase-8A provider-sync"
+PANOPTES_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
+PANOPTES_FRESH_TTL: Final = timedelta(hours=8)
+PANOPTES_STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
+PANOPTES_COMPONENT_MAX_RESPONSE_BYTES: Final = 32_768
+PANOPTES_MAX_TOTAL_RESPONSE_BYTES: Final = 196_608
+PANOPTES_PROJECT_IDS: Final = (5733, 7929, 19413, 13175, 6801, 13718)
+PANOPTES_APPROVED_PATHS: Final = tuple(
+    f"{PANOPTES_BASE_PATH}{project_id}" for project_id in PANOPTES_PROJECT_IDS
+)
+
 SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
 FRESH_TTL: Final = timedelta(hours=8)
 STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)
@@ -275,6 +296,7 @@ class ProviderRuntimeConfig:
                 NEOWS_CONTENT_TYPE,
                 SWPC_CONTENT_TYPE,
                 LL2_CONTENT_TYPE,
+                PANOPTES_CONTENT_TYPE,
             }
             or not self.user_agent
             or any(ord(character) < 32 or ord(character) == 127 for character in self.user_agent)

@@ -769,6 +769,149 @@ export const zEntityBrowsePageResponse = z.object({
 });
 
 /**
+ * ParticipateChallengeResponse
+ */
+export const zParticipateChallengeResponse = z.object({
+  duration_label: z.string(),
+  id: z.string(),
+  month: z.int(),
+  safety: z.array(z.string()),
+  source_ids: z.array(z.string()),
+  steps: z.array(z.string()),
+  summary: z.string(),
+  title: z.string(),
+  valid_limit_note: z.string(),
+});
+
+/**
+ * ParticipateDefinitionResponse
+ */
+export const zParticipateDefinitionResponse = z.object({
+  external_handoff_notice: z.string(),
+  privacy_note: z.string(),
+  references: z.array(z.string()),
+  slug: z.literal("participate"),
+  stale_status_label: z.string(),
+  status: z.literal("ready"),
+  status_unavailable_label: z.string(),
+  summary: z.string(),
+  title: z.literal("Participate"),
+  version: z.literal(1),
+});
+
+/**
+ * ParticipateExternalResourceResponse
+ */
+export const zParticipateExternalResourceResponse = z.object({
+  label: z.string(),
+  url: z.string(),
+});
+
+/**
+ * ParticipateActivityResponse
+ */
+export const zParticipateActivityResponse = z.object({
+  adult_supervision_note: z.string(),
+  age_guidance: z.string(),
+  cleanup: z.string(),
+  duration_label: z.string(),
+  expected_observation: z.string(),
+  external_resource: zParticipateExternalResourceResponse.nullable(),
+  id: z.string(),
+  learning_objective: z.string(),
+  limitations: z.array(z.string()),
+  materials: z.array(z.string()),
+  safety: z.array(z.string()),
+  skill_guidance: z.string(),
+  source_ids: z.array(z.string()),
+  steps: z.array(z.string()),
+  title: z.string(),
+});
+
+/**
+ * ParticipateFiltersResponse
+ */
+export const zParticipateFiltersResponse = z.object({
+  device: z.array(z.enum(["web_device", "mobile_or_computer", "tablet_explicit"])),
+  skill_focus: z.array(
+    z.enum([
+      "visual_classification",
+      "light_curve_reading",
+      "candidate_image_validation",
+      "spectroscopy_data",
+      "plot_reading",
+    ]),
+  ),
+  time: z.array(z.enum(["a_few_min", "about_10_min", "five_to_fifteen_min", "about_15_min"])),
+});
+
+/**
+ * ParticipateFreshnessResponse
+ */
+export const zParticipateFreshnessResponse = z.object({
+  availability: z.enum(["fresh", "stale", "unavailable"]),
+  cache_state: zCacheState,
+  fresh_until: z.iso.datetime().nullable(),
+  last_refresh_failure_code: z.string().nullable(),
+  retrieved_at: z.iso.datetime().nullable(),
+  stale_until: z.iso.datetime().nullable(),
+});
+
+/**
+ * ParticipateProjectResponse
+ */
+export const zParticipateProjectResponse = z.object({
+  device_filters: z.array(z.enum(["web_device", "mobile_or_computer", "tablet_explicit"])),
+  device_label: z.string(),
+  external_url: z.string(),
+  id: z.string(),
+  knowledge_note: z.string(),
+  science_area: z.enum(["astrophysics", "solar_system"]),
+  skill_focus: z.enum([
+    "visual_classification",
+    "light_curve_reading",
+    "candidate_image_validation",
+    "spectroscopy_data",
+    "plot_reading",
+  ]),
+  source_ids: z.array(z.string()),
+  source_updated_at: z.string().nullable(),
+  status: z.enum(["active", "inactive", "unavailable"]),
+  status_stale: z.boolean(),
+  summary: z.string(),
+  task_type: z.enum(["examining_images", "examining_data"]),
+  time_filter: z.enum(["a_few_min", "about_10_min", "five_to_fifteen_min", "about_15_min"]),
+  time_label: z.string(),
+  title: z.string(),
+});
+
+/**
+ * ParticipateSourceResponse
+ */
+export const zParticipateSourceResponse = z.object({
+  claim_scope: z.string(),
+  id: z.string(),
+  organization: z.string(),
+  title: z.string(),
+  url: z.string(),
+});
+
+/**
+ * ParticipateResponse
+ */
+export const zParticipateResponse = z.object({
+  activities: z.array(zParticipateActivityResponse),
+  challenges: z.array(zParticipateChallengeResponse),
+  definition: zParticipateDefinitionResponse,
+  filters: zParticipateFiltersResponse,
+  freshness: zParticipateFreshnessResponse,
+  model_version: z.literal("participate-v1"),
+  projects: z.array(zParticipateProjectResponse),
+  schema_version: z.literal(1),
+  sources: z.array(zParticipateSourceResponse),
+});
+
+/**
  * PayloadTradeoffPointResponse
  */
 export const zPayloadTradeoffPointResponse = z.object({
@@ -1902,6 +2045,11 @@ export const zPostNowSatellitePassesResponse = zSatellitePassResponse;
  * Successful Response
  */
 export const zGetNowSpaceWeatherResponse = zSpaceWeatherResponse;
+
+/**
+ * Successful Response
+ */
+export const zGetParticipateResponse = zParticipateResponse;
 
 /**
  * Successful Response

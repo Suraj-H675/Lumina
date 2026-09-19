@@ -64,4 +64,23 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.shell.pwa.offlineCopyNotice).toMatch(/may no longer be current/i);
     expect(enMessages.shell.pwa.applyUpdate).toBe("Apply update");
   });
+
+  it("keeps generic route-boundary copy in the typed English dictionary", () => {
+    expect(enMessages.routeBoundaries.notFound.title).toBe("Page not found");
+    expect(enMessages.routeBoundaries.notFound.returnHome).toMatch(/return to the lumina/i);
+    expect(enMessages.routeBoundaries.routeError.title).toMatch(/could not load/i);
+    expect(enMessages.routeBoundaries.routeError.retry).toBe("Try again");
+    expect(enMessages.routeBoundaries.globalError.title).toBe("Something went wrong");
+    expect(enMessages.routeBoundaries.globalError.retry).toBe("Try again");
+  });
+
+  it("keeps the Mission Control page shell in the typed English dictionary", () => {
+    expect(enMessages.missionControl.metadataTitle).toBe("Mission Control");
+    expect(enMessages.missionControl.eyebrow).toBe("Mission Control");
+    expect(enMessages.missionControl.title).toBe("Mission Control");
+    expect(enMessages.missionControl.openLaunchCenter).toBe("Open Launch Center");
+    expect(enMessages.missionControl.findSatellitePasses).toBe("Find satellite passes");
+    expect(enMessages.missionControl.checkSourceStatus).toBe("Check source status");
+    expect(enMessages.missionControl.aboutTitle).toBe("About Lumina");
+  });
 });

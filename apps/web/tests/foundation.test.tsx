@@ -13,6 +13,7 @@ import { MissionControlHome } from "../src/app/mission-control-home";
 import { loadReviewedDiscoveries } from "../src/lib/discoveries/content";
 import RouteError from "../src/app/route-error";
 import { SiteShell } from "../src/components/site-shell";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 
 const appDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "../src/app");
@@ -25,6 +26,7 @@ function renderHome() {
       <MissionControlHome
         discoveries={loadReviewedDiscoveries().entries}
         launchOutcome={{ kind: "unavailable" }}
+        messages={enMessages.missionControl}
       />
     </SiteShell>,
   );
@@ -94,7 +96,7 @@ describe("Lumina route boundaries", () => {
     const { rerender } = render(<LearningLoading />);
     expect(screen.getByRole("status")).toHaveTextContent(/learning path is loading/i);
 
-    rerender(<NotFound />);
+    rerender(<NotFound messages={enMessages.routeBoundaries.notFound} />);
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
     expect(
       screen.getByRole("link", { name: /return to the lumina foundation home page/i }),
@@ -104,7 +106,13 @@ describe("Lumina route boundaries", () => {
   it("renders route and global errors without leaking raw error details", () => {
     const reset = vi.fn();
     const rawError = new Error("private diagnostic detail");
-    const { rerender } = render(<RouteError error={rawError} reset={reset} />);
+    const { rerender } = render(
+      <RouteError
+        error={rawError}
+        messages={enMessages.routeBoundaries.routeError}
+        reset={reset}
+      />,
+    );
 
     expect(screen.getByRole("alert")).toHaveTextContent(/could not load/i);
     expect(screen.queryByText(/private diagnostic detail/i)).not.toBeInTheDocument();

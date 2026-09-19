@@ -39,6 +39,47 @@ export type SiteShellMessages = Readonly<{
   skipToMainContent: string;
 }>;
 
+export type NotFoundMessages = Readonly<{
+  code: string;
+  description: string;
+  returnHome: string;
+  title: string;
+}>;
+
+export type RouteErrorMessages = Readonly<{
+  description: string;
+  retry: string;
+  title: string;
+}>;
+
+export type GlobalErrorMessages = Readonly<{
+  description: string;
+  retry: string;
+  title: string;
+}>;
+
+export type RouteBoundaryMessages = Readonly<{
+  globalError: GlobalErrorMessages;
+  notFound: NotFoundMessages;
+  routeError: RouteErrorMessages;
+}>;
+
+export type MissionControlMessages = Readonly<{
+  aboutBody: string;
+  aboutTitle: string;
+  checkSourceStatus: string;
+  exploreCatalogue: string;
+  eyebrow: string;
+  findSatellitePasses: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  openLaunchCenter: string;
+  title: string;
+}>;
+
 export type LuminaMessages = Readonly<{
+  missionControl: MissionControlMessages;
+  routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;
 }>;

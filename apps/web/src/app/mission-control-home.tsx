@@ -3,15 +3,18 @@ import Link from "next/link";
 
 import { ContinueLearningCard } from "../components/continue-learning-card";
 import type { ReviewedDiscovery } from "../lib/discoveries/content";
+import type { MissionControlMessages } from "../lib/i18n/messages/types";
 import { loadLearningContent } from "../lib/learning/content";
 import type { NowLaunchesOutcome } from "../lib/server/space-now";
 
 export function MissionControlHome({
   discoveries,
   launchOutcome,
+  messages,
 }: Readonly<{
   discoveries: ReadonlyArray<ReviewedDiscovery>;
   launchOutcome: NowLaunchesOutcome;
+  messages: MissionControlMessages;
 }>) {
   const content = loadLearningContent();
   const currentLaunch =
@@ -34,44 +37,39 @@ export function MissionControlHome({
     <article className="space-y-12">
       <section aria-labelledby="mission-control-title" className="max-w-3xl space-y-6">
         <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-          Mission Control
+          {messages.eyebrow}
         </p>
         <h1
           className="text-4xl font-semibold tracking-tight text-[var(--foreground)] sm:text-5xl"
           id="mission-control-title"
         >
-          Mission Control
+          {messages.title}
         </h1>
-        <p className="max-w-2xl text-lg leading-8 text-[var(--muted)]">
-          A small live-and-reviewed home for what is happening in space now: one source-labelled
-          launch event, a bounded upcoming mission board, reviewed discoveries, and your authored
-          learning progress. Lumina is still under construction, so unavailable data stays visibly
-          unavailable rather than being replaced with guesses.
-        </p>
+        <p className="max-w-2xl text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
             href="/now/launches"
           >
-            Open Launch Center
+            {messages.openLaunchCenter}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
             href="/now/satellites"
           >
-            Find satellite passes
+            {messages.findSatellitePasses}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
             href="/explore"
           >
-            Explore the catalogue
+            {messages.exploreCatalogue}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline"
             href="/status"
           >
-            Check source status
+            {messages.checkSourceStatus}
           </Link>
         </div>
       </section>
@@ -89,13 +87,9 @@ export function MissionControlHome({
           className="text-2xl font-semibold tracking-tight text-[var(--foreground)]"
           id="about-heading"
         >
-          About Lumina
+          {messages.aboutTitle}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          Lumina connects visual exploration, authored learning, deterministic simulations, real-sky
-          observation, and provenance-first current space data. Each capability is added only when
-          its source, assumptions, freshness, and limitations can be shown honestly.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.aboutBody}</p>
       </section>
     </article>
   );

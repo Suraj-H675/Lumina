@@ -9,6 +9,7 @@ import {
   localeDefinition,
 } from "../src/lib/i18n/locales";
 import {
+  formatCountMessage,
   formatLocaleDateTime,
   formatLocaleNumber,
   formatMessageTemplate,
@@ -72,6 +73,16 @@ describe("Phase 8C localization foundation", () => {
     expect(() => formatMessageTemplate("Continue with {lessonTitle}", {})).toThrow(
       /missing a value for \{lessonTitle\}/i,
     );
+  });
+
+  it("selects complete singular/plural messages with locale-aware counts", () => {
+    const templates = {
+      one: "Stored locally: {count} learning path.",
+      other: "Stored locally: {count} learning paths.",
+    } as const;
+
+    expect(formatCountMessage(templates, 1, "en")).toBe("Stored locally: 1 learning path.");
+    expect(formatCountMessage(templates, 2, "en")).toBe("Stored locally: 2 learning paths.");
   });
 
   it("keeps the English shell dictionary semantic and placeholder-complete", () => {
@@ -158,5 +169,19 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.learn.landing.pathLabel).toBe("Complete learning path");
     expect(enMessages.learn.landing.pathMeta).toContain("{lessonCount}");
     expect(enMessages.learn.landing.viewPath).toBe("View the path");
+  });
+
+  it("keeps local learning-progress controls in a typed, plural-safe message group", () => {
+    const messages = enMessages.learn.progressControls;
+    expect(messages.title).toBe("Your local learning data");
+    expect(messages.exportAction).toBe("Export learning progress");
+    expect(messages.importAction).toBe("Import learning progress");
+    expect(messages.resetAction).toBe("Reset local progress");
+    expect(messages.previewTitle).toBe("Review this import");
+    expect(messages.importSuccess.onePathOneAttempt).toContain("{pathCount}");
+    expect(messages.importSuccess.onePathOneAttempt).toContain("{attemptCount}");
+    expect(messages.storedSummary.one).toContain("{count}");
+    expect(messages.storedSummary.other).toContain("{count}");
+    expect(messages.failures.storageQuotaExceeded).toMatch(/storage is full/i);
   });
 });

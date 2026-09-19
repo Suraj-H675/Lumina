@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { formatCountMessage, formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { LearningProgressControlsMessages } from "../lib/i18n/messages/types";
 import {
   applyLearningProgressImport,
   exportLearningProgress,
@@ -10,6 +13,7 @@ import {
   useLearningProgressData,
   useLearningProgressStatus,
   type LearningProgressImportPreview,
+  type LearningProgressStoreFailureReason,
 } from "../lib/learning/progress-store";
 
 const primaryButtonClassName =
@@ -17,7 +21,56 @@ const primaryButtonClassName =
 const secondaryButtonClassName =
   "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-60";
 
-export function LearningProgressControls() {
+type LearningProgressControlsProps = Readonly<{
+  locale: PublishedLocale;
+  messages: LearningProgressControlsMessages;
+}>;
+
+function failureMessage(
+  reason: LearningProgressStoreFailureReason,
+  messages: LearningProgressControlsMessages,
+  operation: "import" | "reset",
+): string {
+  if (reason === "storage-unavailable" && operation === "reset") {
+    return messages.failures.resetStorageUnavailable;
+  }
+  switch (reason) {
+    case "storage-unavailable":
+      return messages.failures.storageUnavailable;
+    case "storage-corrupted":
+      return messages.failures.storageCorrupted;
+    case "storage-quota-exceeded":
+      return messages.failures.storageQuotaExceeded;
+    case "storage-write-failed":
+      return messages.failures.storageWriteFailed;
+    case "invalid-content":
+      return messages.failures.invalidContent;
+    case "import-invalid":
+      return messages.failures.importInvalid;
+  }
+}
+
+function importSuccessMessage(
+  messages: LearningProgressControlsMessages,
+  locale: PublishedLocale,
+  pathCount: number,
+  attemptCount: number,
+): string {
+  const template =
+    pathCount === 1
+      ? attemptCount === 1
+        ? messages.importSuccess.onePathOneAttempt
+        : messages.importSuccess.onePathOtherAttempts
+      : attemptCount === 1
+        ? messages.importSuccess.otherPathsOneAttempt
+        : messages.importSuccess.otherPathsOtherAttempts;
+  return formatMessageTemplate(template, {
+    attemptCount: formatLocaleNumber(attemptCount, locale),
+    pathCount: formatLocaleNumber(pathCount, locale),
+  });
+}
+
+export function LearningProgressControls({ locale, messages }: LearningProgressControlsProps) {
   const status = useLearningProgressStatus();
   const progress = useLearningProgressData();
   const [preview, setPreview] = useState<LearningProgressImportPreview | null>(null);
@@ -38,9 +91,9 @@ export function LearningProgressControls() {
       anchor.download = "lumina-learning-progress.json";
       anchor.click();
       window.URL.revokeObjectURL(url);
-      setMessage("Learning progress exported to a file on this device.");
+      setMessage(messages.exportSuccess);
     } catch {
-      setMessage("Learning progress could not be exported. Nothing was uploaded.");
+      setMessage(messages.exportFailure);
     } finally {
       setBusy(false);
     }
@@ -57,11 +110,11 @@ export function LearningProgressControls() {
       const nextPreview = await previewLearningProgressImport(raw);
       setRawImport(raw);
       setPreview(nextPreview);
-      setMessage("Review this import before applying it. Your current progress has not changed.");
+      setMessage(messages.importReviewReady);
     } catch {
       setRawImport(null);
       setPreview(null);
-      setMessage("This learning-progress file could not be validated, so nothing was imported.");
+      setMessage(messages.importInvalid);
     } finally {
       setBusy(false);
     }
@@ -73,12 +126,12 @@ export function LearningProgressControls() {
     const result = await applyLearningProgressImport(rawImport);
     if (result.ok) {
       setMessage(
-        `Imported ${result.added_paths ?? 0} learning path${result.added_paths === 1 ? "" : "s"} and ${result.added_attempts ?? 0} new attempt${result.added_attempts === 1 ? "" : "s"}.`,
+        importSuccessMessage(messages, locale, result.added_paths ?? 0, result.added_attempts ?? 0),
       );
       setRawImport(null);
       setPreview(null);
     } else {
-      setMessage(result.message);
+      setMessage(failureMessage(result.reason, messages, "import"));
     }
     setBusy(false);
   }
@@ -86,12 +139,14 @@ export function LearningProgressControls() {
   function handleReset(): void {
     if (!resetArmed) {
       setResetArmed(true);
-      setMessage("Resetting removes all learning progress on this device. Confirm to continue.");
+      setMessage(messages.resetWarning);
       return;
     }
     const result = resetLearningProgress();
     setResetArmed(false);
-    setMessage(result.ok ? "Local learning progress was cleared." : result.message);
+    setMessage(
+      result.ok ? messages.resetSuccess : failureMessage(result.reason, messages, "reset"),
+    );
     setPreview(null);
     setRawImport(null);
   }
@@ -102,21 +157,17 @@ export function LearningProgressControls() {
       className="space-y-4 border-t border-[var(--border)] pt-8"
     >
       <div className="space-y-2">
-        <h2 id="learning-data-heading">Your local learning data</h2>
-        <p className="max-w-2xl leading-7 text-[var(--muted)]">
-          Progress stays in this browser on this device. Export a backup when you want one;
-          importing never uploads your file and requires a review step before merging.
-        </p>
+        <h2 id="learning-data-heading">{messages.title}</h2>
+        <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.description}</p>
       </div>
       {status === "unavailable" ? (
         <p className="text-sm text-[var(--warning)]" role="status">
-          Local storage is unavailable. You can read the path, but progress cannot be saved here.
+          {messages.statusUnavailable}
         </p>
       ) : null}
       {status === "corrupted" ? (
         <p className="text-sm text-[var(--warning)]" role="status">
-          Saved learning progress could not be read. It has not been deleted. Reset is an explicit
-          choice below.
+          {messages.statusCorrupted}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-3">
@@ -126,10 +177,10 @@ export function LearningProgressControls() {
           onClick={() => void handleExport()}
           type="button"
         >
-          Export learning progress
+          {messages.exportAction}
         </button>
         <label className={secondaryButtonClassName}>
-          Import learning progress
+          {messages.importAction}
           <input
             accept="application/json,.json"
             className="sr-only"
@@ -144,7 +195,7 @@ export function LearningProgressControls() {
           onClick={handleReset}
           type="button"
         >
-          {resetArmed ? "Confirm reset — erase local progress" : "Reset local progress"}
+          {resetArmed ? messages.confirmResetAction : messages.resetAction}
         </button>
       </div>
       {preview !== null ? (
@@ -152,12 +203,12 @@ export function LearningProgressControls() {
           className="max-w-2xl space-y-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4"
           role="status"
         >
-          <h3 className="font-semibold">Review this import</h3>
+          <h3 className="font-semibold">{messages.previewTitle}</h3>
           <p className="leading-7 text-[var(--muted)]">
-            This file adds {preview.added_paths} path{preview.added_paths === 1 ? "" : "s"},{" "}
-            {preview.added_attempts} attempt{preview.added_attempts === 1 ? "" : "s"}, and may
-            improve {preview.updated_lessons} lesson score{preview.updated_lessons === 1 ? "" : "s"}
-            . Current progress is kept; newer local records are not overwritten.
+            {formatCountMessage(messages.previewPaths, preview.added_paths, locale)}{" "}
+            {formatCountMessage(messages.previewAttempts, preview.added_attempts, locale)}{" "}
+            {formatCountMessage(messages.previewLessons, preview.updated_lessons, locale)}{" "}
+            {messages.previewRetention}
           </p>
           <div className="flex flex-wrap gap-3">
             <button
@@ -166,7 +217,7 @@ export function LearningProgressControls() {
               onClick={() => void confirmImport()}
               type="button"
             >
-              Import progress
+              {messages.confirmImportAction}
             </button>
             <button
               className={secondaryButtonClassName}
@@ -174,11 +225,11 @@ export function LearningProgressControls() {
               onClick={() => {
                 setPreview(null);
                 setRawImport(null);
-                setMessage("Import cancelled. Your current progress has not changed.");
+                setMessage(messages.importCancelled);
               }}
               type="button"
             >
-              Cancel import
+              {messages.cancelImportAction}
             </button>
           </div>
         </div>
@@ -187,8 +238,7 @@ export function LearningProgressControls() {
         {message}
       </p>
       <p className="text-xs text-[var(--muted)]">
-        Stored locally: {progress.paths.length} learning path
-        {progress.paths.length === 1 ? "" : "s"}. No account or cloud sync is used.
+        {formatCountMessage(messages.storedSummary, progress.paths.length, locale)}
       </p>
     </section>
   );

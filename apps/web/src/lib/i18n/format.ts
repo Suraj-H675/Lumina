@@ -1,4 +1,5 @@
 import { localeDefinition, type Locale } from "./locales";
+import type { CountMessageTemplates } from "./messages/types";
 
 const MESSAGE_PLACEHOLDER_PATTERN = /\{([A-Za-z][A-Za-z0-9]*)\}/gu;
 
@@ -21,6 +22,18 @@ export function formatMessageTemplate(
     }
   }
   return rendered;
+}
+
+export function formatCountMessage(
+  templates: CountMessageTemplates,
+  count: number,
+  locale: Locale,
+): string {
+  const category = new Intl.PluralRules(localeDefinition(locale).intlTag).select(count);
+  const template = category === "one" ? templates.one : templates.other;
+  return formatMessageTemplate(template, {
+    count: formatLocaleNumber(count, locale),
+  });
 }
 
 export function formatLocaleDateTime(

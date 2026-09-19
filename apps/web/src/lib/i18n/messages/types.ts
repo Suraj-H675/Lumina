@@ -97,8 +97,55 @@ export type LearnLandingMessages = Readonly<{
   viewPath: string;
 }>;
 
+export type CountMessageTemplates = Readonly<{
+  one: string;
+  other: string;
+}>;
+
+export type LearningProgressControlsMessages = Readonly<{
+  cancelImportAction: string;
+  confirmImportAction: string;
+  confirmResetAction: string;
+  description: string;
+  exportAction: string;
+  exportFailure: string;
+  exportSuccess: string;
+  failures: Readonly<{
+    importInvalid: string;
+    invalidContent: string;
+    resetStorageUnavailable: string;
+    storageCorrupted: string;
+    storageQuotaExceeded: string;
+    storageUnavailable: string;
+    storageWriteFailed: string;
+  }>;
+  importAction: string;
+  importCancelled: string;
+  importInvalid: string;
+  importReviewReady: string;
+  importSuccess: Readonly<{
+    onePathOneAttempt: string;
+    onePathOtherAttempts: string;
+    otherPathsOneAttempt: string;
+    otherPathsOtherAttempts: string;
+  }>;
+  previewAttempts: CountMessageTemplates;
+  previewLessons: CountMessageTemplates;
+  previewPaths: CountMessageTemplates;
+  previewRetention: string;
+  previewTitle: string;
+  resetAction: string;
+  resetSuccess: string;
+  resetWarning: string;
+  statusCorrupted: string;
+  statusUnavailable: string;
+  storedSummary: CountMessageTemplates;
+  title: string;
+}>;
+
 export type LearnMessages = Readonly<{
   landing: LearnLandingMessages;
+  progressControls: LearningProgressControlsMessages;
 }>;
 
 export type MissionControlMessages = Readonly<{

@@ -62,7 +62,7 @@ describe("learning progress controls", () => {
       "2026-09-01T12:00:00.000Z",
     );
     resetLearningProgress();
-    render(<LearningProgressControls />);
+    render(<LearningProgressControls locale="en" messages={enMessages.learn.progressControls} />);
 
     const input = screen.getByLabelText("Import learning progress") as HTMLInputElement;
     await user.upload(

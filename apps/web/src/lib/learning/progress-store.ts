@@ -23,7 +23,12 @@ import {
 export type LearningProgressStatus = "loading" | "ready" | "unavailable" | "corrupted";
 
 export type LearningProgressStoreFailureReason =
-  "storage-unavailable" | "storage-corrupted" | "storage-write-failed" | "invalid-content";
+  | "storage-unavailable"
+  | "storage-corrupted"
+  | "storage-quota-exceeded"
+  | "storage-write-failed"
+  | "invalid-content"
+  | "import-invalid";
 
 export type LearningProgressStoreResult =
   | Readonly<{
@@ -179,7 +184,7 @@ function persist(next: LearningProgressData): LearningProgressStoreResult {
         ? "This browser's storage is full, so the learning-progress save was refused."
         : "The browser refused the learning-progress save. Nothing was changed.",
       ok: false,
-      reason: "storage-write-failed",
+      reason: isQuotaError(error) ? "storage-quota-exceeded" : "storage-write-failed",
     };
   }
   state = next;
@@ -385,7 +390,7 @@ export async function applyLearningProgressImport(
     return {
       message: "This learning-progress file could not be validated, so nothing was imported.",
       ok: false,
-      reason: "storage-write-failed",
+      reason: "import-invalid",
     };
   }
 }

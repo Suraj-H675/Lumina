@@ -78,4 +78,20 @@ describe("learning progress store", () => {
       reason: "storage-unavailable",
     });
   });
+
+  it("uses stable failure reasons for invalid imports and quota exhaustion", async () => {
+    expect(await store.applyLearningProgressImport("{not json")).toMatchObject({
+      ok: false,
+      reason: "import-invalid",
+    });
+
+    const quota = new DOMException("full", "QuotaExceededError");
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation((key) => {
+      if (key === LEARNING_PROGRESS_STORAGE_KEY) throw quota;
+    });
+    expect(store.startLearningLesson("your-first-night-sky", "start-with-the-sky")).toMatchObject({
+      ok: false,
+      reason: "storage-quota-exceeded",
+    });
+  });
 });

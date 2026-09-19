@@ -37,6 +37,68 @@ export const enMessages = {
       title: "Understand the sky by looking up",
       viewPath: "View the path",
     },
+    progressControls: {
+      cancelImportAction: "Cancel import",
+      confirmImportAction: "Import progress",
+      confirmResetAction: "Confirm reset — erase local progress",
+      description:
+        "Progress stays in this browser on this device. Export a backup when you want one; importing never uploads your file and requires a review step before merging.",
+      exportAction: "Export learning progress",
+      exportFailure: "Learning progress could not be exported. Nothing was uploaded.",
+      exportSuccess: "Learning progress exported to a file on this device.",
+      failures: {
+        importInvalid:
+          "This learning-progress file could not be validated, so nothing was imported.",
+        invalidContent: "That learning step is not part of a published Lumina path.",
+        resetStorageUnavailable:
+          "Local storage is not available, so learning progress cannot be reset.",
+        storageCorrupted:
+          "Saved learning progress could not be read. Reset it from the Learn page to continue.",
+        storageQuotaExceeded:
+          "This browser's storage is full, so the learning-progress save was refused.",
+        storageUnavailable:
+          "Local storage is not available, so learning progress cannot be changed right now.",
+        storageWriteFailed: "The browser refused the learning-progress save. Nothing was changed.",
+      },
+      importAction: "Import learning progress",
+      importCancelled: "Import cancelled. Your current progress has not changed.",
+      importInvalid: "This learning-progress file could not be validated, so nothing was imported.",
+      importReviewReady:
+        "Review this import before applying it. Your current progress has not changed.",
+      importSuccess: {
+        onePathOneAttempt: "Imported {pathCount} learning path and {attemptCount} new attempt.",
+        onePathOtherAttempts: "Imported {pathCount} learning path and {attemptCount} new attempts.",
+        otherPathsOneAttempt: "Imported {pathCount} learning paths and {attemptCount} new attempt.",
+        otherPathsOtherAttempts:
+          "Imported {pathCount} learning paths and {attemptCount} new attempts.",
+      },
+      previewAttempts: {
+        one: "This file adds {count} new attempt.",
+        other: "This file adds {count} new attempts.",
+      },
+      previewLessons: {
+        one: "It may improve {count} lesson score.",
+        other: "It may improve {count} lesson scores.",
+      },
+      previewPaths: {
+        one: "This file adds {count} path.",
+        other: "This file adds {count} paths.",
+      },
+      previewRetention: "Current progress is kept; newer local records are not overwritten.",
+      previewTitle: "Review this import",
+      resetAction: "Reset local progress",
+      resetSuccess: "Local learning progress was cleared.",
+      resetWarning: "Resetting removes all learning progress on this device. Confirm to continue.",
+      statusCorrupted:
+        "Saved learning progress could not be read. It has not been deleted. Reset is an explicit choice below.",
+      statusUnavailable:
+        "Local storage is unavailable. You can read the path, but progress cannot be saved here.",
+      storedSummary: {
+        one: "Stored locally: {count} learning path. No account or cloud sync is used.",
+        other: "Stored locally: {count} learning paths. No account or cloud sync is used.",
+      },
+      title: "Your local learning data",
+    },
   },
   missionControl: {
     aboutBody:

@@ -3,8 +3,12 @@
 import type { ParticipateResponse } from "@lumina/api-client";
 import { useEffect, useMemo, useState } from "react";
 
+import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ParticipateMessages } from "../lib/i18n/messages/types";
 import {
   PARTICIPATE_ALL_FILTER,
+  cacheStateLabel,
   deviceFilterLabel,
   freshnessHeading,
   projectStatusLabel,
@@ -20,8 +24,12 @@ import {
 type FilterValue = typeof PARTICIPATE_ALL_FILTER | string;
 
 export function ParticipateView({
+  locale,
+  messages,
   response,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: ParticipateMessages;
   response: ParticipateResponse;
 }>) {
   const [timeFilter, setTimeFilter] = useState<FilterValue>(PARTICIPATE_ALL_FILTER);
@@ -64,7 +72,7 @@ export function ParticipateView({
     <article className="max-w-6xl space-y-12">
       <header className="max-w-4xl space-y-5">
         <p className="text-sm font-semibold tracking-[0.14em] text-[var(--accent)] uppercase">
-          Participate
+          {messages.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
           {response.definition.title}
@@ -73,17 +81,14 @@ export function ParticipateView({
         <p className="leading-7 text-[var(--muted)]">{response.definition.privacy_note}</p>
       </header>
 
-      <Freshness response={response} />
+      <Freshness messages={messages} response={response} />
 
       <section aria-labelledby="participate-projects-heading" className="space-y-6">
         <div className="max-w-4xl space-y-3">
           <h2 className="text-3xl font-semibold" id="participate-projects-heading">
-            Citizen-science projects
+            {messages.projects.heading}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Six reviewed astronomy projects. The filters describe task shape and source-reported
-            training/device context; skill focus is not a difficulty ranking.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.projects.description}</p>
         </div>
 
         <div
@@ -91,52 +96,58 @@ export function ParticipateView({
           className="grid gap-4 border border-[var(--border)] bg-[var(--surface)] p-5 md:grid-cols-4"
         >
           <h3 className="sr-only" id="participate-filter-heading">
-            Filter citizen-science projects
+            {messages.projects.filters.heading}
           </h3>
           <FilterSelect
-            label="Training time"
+            allLabel={messages.projects.filters.all}
+            label={messages.projects.filters.timeLabel}
             onChange={setTimeFilter}
             options={response.filters.time.map((value) => ({
-              label: timeFilterLabel(value),
+              label: timeFilterLabel(value, messages),
               value,
             }))}
             value={timeFilter}
           />
           <FilterSelect
-            label="Device"
+            allLabel={messages.projects.filters.all}
+            label={messages.projects.filters.deviceLabel}
             onChange={setDeviceFilter}
             options={response.filters.device.map((value) => ({
-              label: deviceFilterLabel(value),
+              label: deviceFilterLabel(value, messages),
               value,
             }))}
             value={deviceFilter}
           />
           <FilterSelect
-            label="Skill focus"
+            allLabel={messages.projects.filters.all}
+            label={messages.projects.filters.skillFocusLabel}
             onChange={setSkillFilter}
             options={response.filters.skill_focus.map((value) => ({
-              label: skillFocusLabel(value),
+              label: skillFocusLabel(value, messages),
               value,
             }))}
             value={skillFilter}
           />
           <div className="flex flex-col justify-end gap-2">
             <span aria-live="polite" className="text-sm text-[var(--muted)]">
-              {visibleProjects.length} of {response.projects.length} projects shown
+              {formatMessageTemplate(messages.projects.filters.shown, {
+                shownCount: formatLocaleNumber(visibleProjects.length, locale),
+                totalCount: formatLocaleNumber(response.projects.length, locale),
+              })}
             </span>
             <button
               className="min-h-11 rounded-sm border border-[var(--border)] px-4 py-2 font-medium"
               onClick={resetFilters}
               type="button"
             >
-              Reset filters
+              {messages.projects.filters.reset}
             </button>
           </div>
         </div>
 
         {visibleProjects.length === 0 ? (
           <p className="border border-[var(--border)] p-5" role="status">
-            No reviewed project matches all three filters. Reset or broaden a filter.
+            {messages.projects.filters.empty}
           </p>
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
@@ -144,6 +155,7 @@ export function ParticipateView({
               <ProjectCard
                 handoffNotice={response.definition.external_handoff_notice}
                 key={project.id}
+                messages={messages}
                 project={project}
                 sourceById={sourceById}
               />
@@ -155,17 +167,18 @@ export function ParticipateView({
       <section aria-labelledby="participate-challenges-heading" className="space-y-6">
         <div className="max-w-4xl space-y-3">
           <h2 className="text-3xl font-semibold" id="participate-challenges-heading">
-            Twelve evergreen monthly challenges
+            {messages.challenges.heading}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            These prompts do not predict that a target or event is visible from your hemisphere,
-            latitude, weather, or current sky. Lumina does not request or store location for these
-            challenges.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.challenges.description}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {response.challenges.map((challenge) => (
-            <ChallengeCard challenge={challenge} key={challenge.id} />
+            <ChallengeCard
+              challenge={challenge}
+              key={challenge.id}
+              locale={locale}
+              messages={messages}
+            />
           ))}
         </div>
       </section>
@@ -173,24 +186,25 @@ export function ParticipateView({
       <section aria-labelledby="participate-activities-heading" className="space-y-6">
         <div className="max-w-4xl space-y-3">
           <h2 className="text-3xl font-semibold" id="participate-activities-heading">
-            Hands-on activities
+            {messages.activities.heading}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Reviewed materials, steps, safety notes, expected observations, cleanup, supervision,
-            and limitations are shown together so an activity is never separated from its safety
-            boundary.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.activities.description}</p>
         </div>
         <div className="space-y-5">
           {response.activities.map((activity) => (
-            <ActivityCard activity={activity} key={activity.id} sourceById={sourceById} />
+            <ActivityCard
+              activity={activity}
+              key={activity.id}
+              messages={messages}
+              sourceById={sourceById}
+            />
           ))}
         </div>
       </section>
 
       <section aria-labelledby="participate-sources-heading" className="space-y-5">
         <h2 className="text-3xl font-semibold" id="participate-sources-heading">
-          Reviewed sources
+          {messages.sourcesTitle}
         </h2>
         <ul className="grid gap-4 lg:grid-cols-2">
           {response.sources.map((source) => (
@@ -214,11 +228,13 @@ export function ParticipateView({
 }
 
 function FilterSelect({
+  allLabel,
   label,
   value,
   options,
   onChange,
 }: Readonly<{
+  allLabel: string;
   label: string;
   value: FilterValue;
   options: ReadonlyArray<Readonly<{ label: string; value: string }>>;
@@ -232,7 +248,7 @@ function FilterSelect({
         onChange={(event) => onChange(event.currentTarget.value)}
         value={value}
       >
-        <option value={PARTICIPATE_ALL_FILTER}>All</option>
+        <option value={PARTICIPATE_ALL_FILTER}>{allLabel}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -243,66 +259,85 @@ function FilterSelect({
   );
 }
 
-function Freshness({ response }: Readonly<{ response: ParticipateResponse }>) {
+function Freshness({
+  messages,
+  response,
+}: Readonly<{ messages: ParticipateMessages; response: ParticipateResponse }>) {
   return (
     <section
       aria-labelledby="participate-freshness-heading"
       className="space-y-4 border-l-4 border-[var(--accent)] bg-[var(--surface)] p-5"
     >
       <h2 className="text-xl font-semibold" id="participate-freshness-heading">
-        {freshnessHeading(response)}
+        {freshnessHeading(response, messages)}
       </h2>
-      <p className="leading-7 text-[var(--muted)]">
-        Project status comes only from Lumina&apos;s last validated Panoptes cache. This page does
-        not contact Zooniverse from your browser. Reviewed descriptions, challenges, activities, and
-        source links remain Lumina-owned static content.
-      </p>
+      <p className="leading-7 text-[var(--muted)]">{messages.freshness.description}</p>
       <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <dt className="font-medium">Cache state</dt>
-          <dd className="text-[var(--muted)]">{response.freshness.cache_state}</dd>
+          <dt className="font-medium">{messages.freshness.cacheStateLabel}</dt>
+          <dd className="text-[var(--muted)]">
+            {cacheStateLabel(response.freshness.cache_state, messages)}
+          </dd>
         </div>
-        <Timestamp label="Retrieved at" value={response.freshness.retrieved_at} />
-        <Timestamp label="Fresh until" value={response.freshness.fresh_until} />
-        <Timestamp label="Stale grace ends" value={response.freshness.stale_until} />
+        <Timestamp
+          label={messages.freshness.retrievedAtLabel}
+          messages={messages}
+          value={response.freshness.retrieved_at}
+        />
+        <Timestamp
+          label={messages.freshness.freshUntilLabel}
+          messages={messages}
+          value={response.freshness.fresh_until}
+        />
+        <Timestamp
+          label={messages.freshness.staleGraceEndsLabel}
+          messages={messages}
+          value={response.freshness.stale_until}
+        />
       </dl>
     </section>
   );
 }
 
 function ProjectCard({
+  handoffNotice,
+  messages,
   project,
   sourceById,
-  handoffNotice,
 }: Readonly<{
+  handoffNotice: string;
+  messages: ParticipateMessages;
   project: ParticipateProject;
   sourceById: ReadonlyMap<string, ParticipateSource>;
-  handoffNotice: string;
 }>) {
   const handoffId = `participate-handoff-${project.id}`;
   return (
     <article className="flex h-full flex-col gap-4 border border-[var(--border)] p-5">
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-[var(--accent)]">{projectStatusLabel(project)}</p>
+        <p className="text-sm font-semibold text-[var(--accent)]">
+          {projectStatusLabel(project, messages)}
+        </p>
         <h3 className="text-2xl font-semibold">{project.title}</h3>
         <p className="leading-7 text-[var(--muted)]">{project.summary}</p>
       </div>
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
         <div>
-          <dt className="font-medium">Training/time</dt>
+          <dt className="font-medium">{messages.projects.labels.trainingTime}</dt>
           <dd className="text-[var(--muted)]">{project.time_label}</dd>
         </div>
         <div>
-          <dt className="font-medium">Device</dt>
+          <dt className="font-medium">{messages.projects.labels.device}</dt>
           <dd className="text-[var(--muted)]">{project.device_label}</dd>
         </div>
         <div>
-          <dt className="font-medium">Skill focus</dt>
-          <dd className="text-[var(--muted)]">{skillFocusLabel(project.skill_focus)}</dd>
+          <dt className="font-medium">{messages.projects.labels.skillFocus}</dt>
+          <dd className="text-[var(--muted)]">{skillFocusLabel(project.skill_focus, messages)}</dd>
         </div>
         <div>
-          <dt className="font-medium">Source updated</dt>
-          <dd className="text-[var(--muted)]">{timestampLabel(project.source_updated_at)}</dd>
+          <dt className="font-medium">{messages.projects.labels.sourceUpdated}</dt>
+          <dd className="text-[var(--muted)]">
+            {timestampLabel(project.source_updated_at, messages)}
+          </dd>
         </div>
       </dl>
       <p className="text-sm leading-6 text-[var(--muted)]">{project.knowledge_note}</p>
@@ -317,27 +352,42 @@ function ProjectCard({
           rel="noopener noreferrer"
           target="_blank"
         >
-          Open {project.title} on Zooniverse
+          {formatMessageTemplate(messages.projects.openOnZooniverse, {
+            projectTitle: project.title,
+          })}
         </a>
-        <ReviewedSourceLinks ids={project.source_ids} sourceById={sourceById} />
+        <ReviewedSourceLinks ids={project.source_ids} messages={messages} sourceById={sourceById} />
       </div>
     </article>
   );
 }
 
-function ChallengeCard({ challenge }: Readonly<{ challenge: ParticipateChallenge }>) {
+function ChallengeCard({
+  challenge,
+  locale,
+  messages,
+}: Readonly<{
+  challenge: ParticipateChallenge;
+  locale: PublishedLocale;
+  messages: ParticipateMessages;
+}>) {
   return (
     <details className="border border-[var(--border)] p-5">
       <summary className="min-h-11 cursor-pointer text-lg font-semibold">
-        Month {challenge.month}: {challenge.title}
+        {formatMessageTemplate(messages.challenges.monthTitle, {
+          challengeTitle: challenge.title,
+          month: formatLocaleNumber(challenge.month, locale),
+        })}
       </summary>
       <div className="mt-4 space-y-4">
         <p className="leading-7 text-[var(--muted)]">{challenge.summary}</p>
         <p className="text-sm">
-          <span className="font-medium">Suggested duration:</span> {challenge.duration_label}
+          {formatMessageTemplate(messages.challenges.suggestedDuration, {
+            duration: challenge.duration_label,
+          })}
         </p>
-        <ListBlock items={challenge.steps} ordered title="Steps" />
-        <ListBlock items={challenge.safety} title="Safety" />
+        <ListBlock items={challenge.steps} ordered title={messages.challenges.stepsTitle} />
+        <ListBlock items={challenge.safety} title={messages.challenges.safetyTitle} />
         <p className="text-sm leading-6 text-[var(--muted)]">{challenge.valid_limit_note}</p>
       </div>
     </details>
@@ -346,9 +396,11 @@ function ChallengeCard({ challenge }: Readonly<{ challenge: ParticipateChallenge
 
 function ActivityCard({
   activity,
+  messages,
   sourceById,
 }: Readonly<{
   activity: ParticipateActivity;
+  messages: ParticipateMessages;
   sourceById: ReadonlyMap<string, ParticipateSource>;
 }>) {
   return (
@@ -357,39 +409,42 @@ function ActivityCard({
       <div className="mt-5 space-y-5">
         <div className="grid gap-3 text-sm sm:grid-cols-3">
           <p>
-            <span className="font-medium">Age guidance:</span> {activity.age_guidance}
+            <span className="font-medium">{messages.activities.ageGuidanceLabel}</span>{" "}
+            {activity.age_guidance}
           </p>
           <p>
-            <span className="font-medium">Skill guidance:</span> {activity.skill_guidance}
+            <span className="font-medium">{messages.activities.skillGuidanceLabel}</span>{" "}
+            {activity.skill_guidance}
           </p>
           <p>
-            <span className="font-medium">Duration:</span> {activity.duration_label}
+            <span className="font-medium">{messages.activities.durationLabel}</span>{" "}
+            {activity.duration_label}
           </p>
         </div>
-        <ListBlock items={activity.materials} title="Materials" />
-        <ListBlock items={activity.steps} ordered title="Steps" />
+        <ListBlock items={activity.materials} title={messages.activities.materialsTitle} />
+        <ListBlock items={activity.steps} ordered title={messages.activities.stepsTitle} />
         <div className="border-l-4 border-[var(--accent)] bg-[var(--surface)] p-4">
-          <ListBlock items={activity.safety} title="Safety" />
+          <ListBlock items={activity.safety} title={messages.activities.safetyTitle} />
         </div>
         <dl className="grid gap-4 md:grid-cols-2">
           <div>
-            <dt className="font-medium">Learning objective</dt>
+            <dt className="font-medium">{messages.activities.learningObjectiveLabel}</dt>
             <dd className="leading-7 text-[var(--muted)]">{activity.learning_objective}</dd>
           </div>
           <div>
-            <dt className="font-medium">Expected observation</dt>
+            <dt className="font-medium">{messages.activities.expectedObservationLabel}</dt>
             <dd className="leading-7 text-[var(--muted)]">{activity.expected_observation}</dd>
           </div>
           <div>
-            <dt className="font-medium">Cleanup</dt>
+            <dt className="font-medium">{messages.activities.cleanupLabel}</dt>
             <dd className="leading-7 text-[var(--muted)]">{activity.cleanup}</dd>
           </div>
           <div>
-            <dt className="font-medium">Supervision</dt>
+            <dt className="font-medium">{messages.activities.supervisionLabel}</dt>
             <dd className="leading-7 text-[var(--muted)]">{activity.adult_supervision_note}</dd>
           </div>
         </dl>
-        <ListBlock items={activity.limitations} title="Limitations" />
+        <ListBlock items={activity.limitations} title={messages.activities.limitationsTitle} />
         {activity.external_resource === null ? null : (
           <a
             className="inline-flex min-h-11 items-center font-medium text-[var(--link)] underline underline-offset-4"
@@ -400,7 +455,11 @@ function ActivityCard({
             {activity.external_resource.label}
           </a>
         )}
-        <ReviewedSourceLinks ids={activity.source_ids} sourceById={sourceById} />
+        <ReviewedSourceLinks
+          ids={activity.source_ids}
+          messages={messages}
+          sourceById={sourceById}
+        />
       </div>
     </details>
   );
@@ -408,9 +467,11 @@ function ActivityCard({
 
 function ReviewedSourceLinks({
   ids,
+  messages,
   sourceById,
 }: Readonly<{
   ids: readonly string[];
+  messages: ParticipateMessages;
   sourceById: ReadonlyMap<string, ParticipateSource>;
 }>) {
   return (
@@ -420,7 +481,9 @@ function ReviewedSourceLinks({
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <span className="text-[var(--muted)]">Unavailable reviewed source: {sourceId}</span>
+              <span className="text-[var(--muted)]">
+                {formatMessageTemplate(messages.projects.unavailableReviewedSource, { sourceId })}
+              </span>
             ) : (
               <a
                 className="inline-flex min-h-11 items-center text-[var(--link)] underline underline-offset-4"
@@ -428,7 +491,9 @@ function ReviewedSourceLinks({
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                Source: {source.title}
+                {formatMessageTemplate(messages.projects.sourceLink, {
+                  sourceTitle: source.title,
+                })}
               </a>
             )}
           </li>
@@ -468,11 +533,15 @@ function ListBlock({
   );
 }
 
-function Timestamp({ label, value }: Readonly<{ label: string; value: string | null }>) {
+function Timestamp({
+  label,
+  messages,
+  value,
+}: Readonly<{ label: string; messages: ParticipateMessages; value: string | null }>) {
   return (
     <div>
       <dt className="font-medium">{label}</dt>
-      <dd className="text-[var(--muted)]">{timestampLabel(value)}</dd>
+      <dd className="text-[var(--muted)]">{timestampLabel(value, messages)}</dd>
     </div>
   );
 }

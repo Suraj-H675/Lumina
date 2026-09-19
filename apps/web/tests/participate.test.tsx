@@ -8,8 +8,24 @@ import type { ParticipateResponse } from "@lumina/api-client";
 vi.mock("server-only", () => ({}));
 
 import { ParticipateView } from "../src/components/participate-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { ParticipateMessages } from "../src/lib/i18n/messages/types";
 import { loadParticipate } from "../src/lib/server/participate";
 import { PARTICIPATE_FRESH_RESPONSE } from "./participate-fixture";
+
+function renderParticipate(
+  response: ParticipateResponse,
+  messages: ParticipateMessages = enMessages.participate,
+) {
+  return render(
+    <ParticipateView locale={DEFAULT_LOCALE} messages={messages} response={response} />,
+  );
+}
+
+function participateView(response: ParticipateResponse, messages = enMessages.participate) {
+  return <ParticipateView locale={DEFAULT_LOCALE} messages={messages} response={response} />;
+}
 
 function staleResponse(): ParticipateResponse {
   return {
@@ -46,7 +62,7 @@ function unavailableResponse(): ParticipateResponse {
 
 describe("Participate", () => {
   it("renders reviewed projects, explicit status, and external-handoff boundaries", () => {
-    render(<ParticipateView response={PARTICIPATE_FRESH_RESPONSE} />);
+    renderParticipate(PARTICIPATE_FRESH_RESPONSE);
 
     expect(screen.getByRole("heading", { level: 1, name: "Participate" })).toBeVisible();
     expect(screen.getByText("Fresh project-status snapshot")).toBeVisible();
@@ -70,7 +86,7 @@ describe("Participate", () => {
 
   it("combines bounded local filters and resets without network-derived search", async () => {
     const user = userEvent.setup();
-    render(<ParticipateView response={PARTICIPATE_FRESH_RESPONSE} />);
+    renderParticipate(PARTICIPATE_FRESH_RESPONSE);
 
     await user.selectOptions(screen.getByLabelText("Training time"), "about_10_min");
     expect(screen.getByText("2 of 6 projects shown")).toBeVisible();
@@ -92,7 +108,7 @@ describe("Participate", () => {
 
   it("shows a truthful empty-filter result instead of broadening automatically", async () => {
     const user = userEvent.setup();
-    render(<ParticipateView response={PARTICIPATE_FRESH_RESPONSE} />);
+    renderParticipate(PARTICIPATE_FRESH_RESPONSE);
 
     await user.selectOptions(screen.getByLabelText("Training time"), "about_15_min");
     await user.selectOptions(screen.getByLabelText("Device"), "tablet_explicit");
@@ -105,7 +121,7 @@ describe("Participate", () => {
 
   it("keeps solar, planisphere, and night-observing safety attached to the activities", async () => {
     const user = userEvent.setup();
-    render(<ParticipateView response={PARTICIPATE_FRESH_RESPONSE} />);
+    renderParticipate(PARTICIPATE_FRESH_RESPONSE);
 
     await user.click(screen.getByText("Pinhole projector"));
     expect(screen.getByText("Never look at the Sun through the pinhole.")).toBeVisible();
@@ -136,13 +152,13 @@ describe("Participate", () => {
   });
 
   it("distinguishes stale and unavailable project status without hiding reviewed content", () => {
-    const { rerender } = render(<ParticipateView response={staleResponse()} />);
+    const { rerender } = renderParticipate(staleResponse());
 
     expect(screen.getByText("Project status may be stale")).toBeVisible();
     expect(screen.getAllByText(/Currently public and live — status may be stale/)).toHaveLength(6);
     expect(screen.getByRole("heading", { name: "Galaxy Zoo" })).toBeVisible();
 
-    rerender(<ParticipateView response={unavailableResponse()} />);
+    rerender(participateView(unavailableResponse()));
     const unavailableLabels = screen.getAllByText("Current project status unavailable");
     expect(unavailableLabels).toHaveLength(7);
     expect(unavailableLabels[0]).toBeVisible();
@@ -156,8 +172,32 @@ describe("Participate", () => {
     ["stale", staleResponse()],
     ["unavailable", unavailableResponse()],
   ] as const)("passes axe for the %s state", async (_name, response) => {
-    const { container } = render(<ParticipateView response={response} />);
+    const { container } = renderParticipate(response);
     expect((await axe(container)).violations).toHaveLength(0);
+  });
+
+  it("localizes interface copy without rewriting reviewed project content", () => {
+    const messages = {
+      ...enMessages.participate,
+      projects: {
+        ...enMessages.participate.projects,
+        heading: "Localized projects heading",
+        filters: {
+          ...enMessages.participate.projects.filters,
+          timeLabel: "Localized time filter",
+        },
+      },
+    } satisfies ParticipateMessages;
+
+    renderParticipate(PARTICIPATE_FRESH_RESPONSE, messages);
+
+    expect(screen.getByRole("heading", { name: "Localized projects heading" })).toBeVisible();
+    expect(screen.getByLabelText("Localized time filter")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Galaxy Zoo" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open Galaxy Zoo on Zooniverse" })).toHaveAttribute(
+      "href",
+      "https://www.zooniverse.org/projects/zookeeper/galaxy-zoo",
+    );
   });
 });
 

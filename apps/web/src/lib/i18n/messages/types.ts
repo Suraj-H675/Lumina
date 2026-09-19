@@ -290,6 +290,122 @@ export type MissionControlMessages = Readonly<{
   title: string;
 }>;
 
+export type ParticipateMessages = Readonly<{
+  activities: Readonly<{
+    ageGuidanceLabel: string;
+    cleanupLabel: string;
+    description: string;
+    durationLabel: string;
+    expectedObservationLabel: string;
+    heading: string;
+    learningObjectiveLabel: string;
+    limitationsTitle: string;
+    materialsTitle: string;
+    noScriptCleanup: string;
+    noScriptExpectedObservation: string;
+    noScriptLearningObjective: string;
+    safetyTitle: string;
+    skillGuidanceLabel: string;
+    stepsTitle: string;
+    suggestedDuration: string;
+    supervisionLabel: string;
+  }>;
+  challenges: Readonly<{
+    description: string;
+    heading: string;
+    monthTitle: string;
+    noScriptDescription: string;
+    safetyTitle: string;
+    stepsTitle: string;
+    suggestedDuration: string;
+  }>;
+  eyebrow: string;
+  freshness: Readonly<{
+    cacheStateLabel: string;
+    cacheStates: Readonly<{
+      expired: string;
+      fresh: string;
+      missing: string;
+      stale: string;
+    }>;
+    description: string;
+    freshUntilLabel: string;
+    headings: Readonly<{
+      fresh: string;
+      stale: string;
+      unavailable: string;
+    }>;
+    noScriptDescription: string;
+    noScriptCacheState: string;
+    noScriptFreshUntil: string;
+    noScriptRetrievedAt: string;
+    noScriptStaleGraceEnds: string;
+    retrievedAtLabel: string;
+    staleGraceEndsLabel: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  projects: Readonly<{
+    description: string;
+    filters: Readonly<{
+      all: string;
+      deviceLabel: string;
+      deviceOptions: Readonly<{
+        mobileOrComputer: string;
+        tabletExplicit: string;
+        webDevice: string;
+      }>;
+      empty: string;
+      heading: string;
+      reset: string;
+      shown: string;
+      skillFocusLabel: string;
+      skillOptions: Readonly<{
+        candidateImageValidation: string;
+        lightCurveReading: string;
+        plotReading: string;
+        spectroscopyData: string;
+        visualClassification: string;
+      }>;
+      timeLabel: string;
+      timeOptions: Readonly<{
+        aFewMinutes: string;
+        about10Minutes: string;
+        about15Minutes: string;
+        fiveToFifteenMinutes: string;
+      }>;
+    }>;
+    heading: string;
+    labels: Readonly<{
+      currentStatus: string;
+      device: string;
+      providerSourceUpdated: string;
+      skillFocus: string;
+      sourceUpdated: string;
+      trainingTime: string;
+    }>;
+    noScriptDescription: string;
+    openOnZooniverse: string;
+    sourceAttribution: string;
+    sourceLink: string;
+    status: Readonly<{
+      active: string;
+      activeStale: string;
+      inactive: string;
+      inactiveStale: string;
+      unavailable: string;
+    }>;
+    trainingTimeValue: string;
+    unavailableReviewedSource: string;
+  }>;
+  sourcesTitle: string;
+  unavailable: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  unavailableValue: string;
+}>;
+
 export type PresentationModeMessages = Readonly<{
   description: string;
   label: string;
@@ -304,6 +420,7 @@ export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;
+  participate: ParticipateMessages;
   presentationMode: PresentationModeMessages;
   routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;

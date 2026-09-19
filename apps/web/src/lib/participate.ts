@@ -1,5 +1,7 @@
 import type { ParticipateResponse } from "@lumina/api-client";
 
+import type { ParticipateMessages } from "./i18n/messages/types";
+
 export type ParticipateProject = ParticipateResponse["projects"][number];
 export type ParticipateChallenge = ParticipateResponse["challenges"][number];
 export type ParticipateActivity = ParticipateResponse["activities"][number];
@@ -7,76 +9,92 @@ export type ParticipateSource = ParticipateResponse["sources"][number];
 
 export const PARTICIPATE_ALL_FILTER = "all" as const;
 
-export function timeFilterLabel(value: string): string {
+export function cacheStateLabel(
+  value: ParticipateResponse["freshness"]["cache_state"],
+  messages: ParticipateMessages,
+): string {
+  return messages.freshness.cacheStates[value];
+}
+
+export function timeFilterLabel(value: string, messages: ParticipateMessages): string {
   switch (value) {
     case "a_few_min":
-      return "A few minutes";
+      return messages.projects.filters.timeOptions.aFewMinutes;
     case "about_10_min":
-      return "About 10 minutes";
+      return messages.projects.filters.timeOptions.about10Minutes;
     case "five_to_fifteen_min":
-      return "5–15 minutes";
+      return messages.projects.filters.timeOptions.fiveToFifteenMinutes;
     case "about_15_min":
-      return "About 15 minutes";
+      return messages.projects.filters.timeOptions.about15Minutes;
     default:
       return value;
   }
 }
 
-export function deviceFilterLabel(value: string): string {
+export function deviceFilterLabel(value: string, messages: ParticipateMessages): string {
   switch (value) {
     case "web_device":
-      return "Web-connected device";
+      return messages.projects.filters.deviceOptions.webDevice;
     case "mobile_or_computer":
-      return "Mobile device or computer";
+      return messages.projects.filters.deviceOptions.mobileOrComputer;
     case "tablet_explicit":
-      return "Tablet explicitly supported";
+      return messages.projects.filters.deviceOptions.tabletExplicit;
     default:
       return value;
   }
 }
 
-export function skillFocusLabel(value: string): string {
+export function skillFocusLabel(value: string, messages: ParticipateMessages): string {
   switch (value) {
     case "visual_classification":
-      return "Visual classification";
+      return messages.projects.filters.skillOptions.visualClassification;
     case "light_curve_reading":
-      return "Light-curve reading";
+      return messages.projects.filters.skillOptions.lightCurveReading;
     case "candidate_image_validation":
-      return "Candidate-image validation";
+      return messages.projects.filters.skillOptions.candidateImageValidation;
     case "spectroscopy_data":
-      return "Spectroscopy data";
+      return messages.projects.filters.skillOptions.spectroscopyData;
     case "plot_reading":
-      return "Plot reading";
+      return messages.projects.filters.skillOptions.plotReading;
     default:
       return value;
   }
 }
 
-export function projectStatusLabel(project: ParticipateProject): string {
-  const suffix = project.status_stale ? " — status may be stale" : "";
+export function projectStatusLabel(
+  project: ParticipateProject,
+  messages: ParticipateMessages,
+): string {
   switch (project.status) {
     case "active":
-      return `Currently public and live${suffix}`;
+      return project.status_stale
+        ? messages.projects.status.activeStale
+        : messages.projects.status.active;
     case "inactive":
-      return `Currently not public/live${suffix}`;
+      return project.status_stale
+        ? messages.projects.status.inactiveStale
+        : messages.projects.status.inactive;
     case "unavailable":
-      return "Current project status unavailable";
+      return messages.projects.status.unavailable;
   }
 }
 
-export function freshnessHeading(response: ParticipateResponse): string {
+export function freshnessHeading(
+  response: ParticipateResponse,
+  messages: ParticipateMessages,
+): string {
   switch (response.freshness.availability) {
     case "fresh":
-      return "Fresh project-status snapshot";
+      return messages.freshness.headings.fresh;
     case "stale":
-      return "Project status may be stale";
+      return messages.freshness.headings.stale;
     case "unavailable":
-      return "Current project status unavailable";
+      return messages.freshness.headings.unavailable;
   }
 }
 
-export function timestampLabel(value: string | null): string {
-  if (value === null) return "Unavailable";
+export function timestampLabel(value: string | null, messages: ParticipateMessages): string {
+  if (value === null) return messages.unavailableValue;
   const instant = new Date(value);
   return Number.isNaN(instant.getTime()) ? value : instant.toISOString().replace(".000Z", "Z");
 }

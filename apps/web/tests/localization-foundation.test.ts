@@ -247,4 +247,22 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.options.student).toBe("Student");
     expect(messages.options.deepDive).toBe("Deep Dive");
   });
+
+  it("keeps Participate interface copy separate from reviewed participation content", () => {
+    const messages = enMessages.participate;
+    expect(messages.metadataTitle).toBe("Participate");
+    expect(messages.projects.heading).toBe("Citizen-science projects");
+    expect(messages.projects.filters.shown).toContain("{shownCount}");
+    expect(messages.projects.filters.shown).toContain("{totalCount}");
+    expect(messages.projects.openOnZooniverse).toContain("{projectTitle}");
+    expect(messages.projects.sourceAttribution).toContain("{sourceTitle}");
+    expect(messages.projects.sourceAttribution).toContain("{organization}");
+    expect(messages.projects.unavailableReviewedSource).toContain("{sourceId}");
+    expect(messages.challenges.monthTitle).toContain("{month}");
+    expect(messages.challenges.monthTitle).toContain("{challengeTitle}");
+    expect(messages.activities.heading).toBe("Hands-on activities");
+    expect(messages.activities.noScriptLearningObjective).toContain("{objective}");
+    expect(messages.freshness.noScriptCacheState).toContain("{cacheState}");
+    expect(messages.freshness.headings.unavailable).toBe("Current project status unavailable");
+  });
 });

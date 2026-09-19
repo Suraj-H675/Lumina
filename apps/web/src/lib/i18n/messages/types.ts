@@ -475,6 +475,88 @@ export type PresentationModeMessages = Readonly<{
   }>;
 }>;
 
+export type StatusMessages = Readonly<{
+  contract: Readonly<{
+    apiVersionLabel: string;
+    applicationVersionLabel: string;
+    heading: string;
+  }>;
+  eyebrow: string;
+  provider: Readonly<{
+    acknowledgmentAndUsage: string;
+    cache: Readonly<{
+      expired: string;
+      fresh: string;
+      historicalOnlyWhileDisabled: string;
+      missing: string;
+      stale: string;
+    }>;
+    circuit: Readonly<{
+      closed: string;
+      halfOpen: string;
+      open: string;
+    }>;
+    counters: Readonly<{
+      cyclesStarted: string;
+      heading: string;
+      httpRequests: string;
+      httpRetries: string;
+      quarantines: string;
+      schemaFailures: string;
+      staleFallbacks: string;
+      successfulCycles: string;
+      upstreamFailures: string;
+    }>;
+    heading: string;
+    labels: Readonly<{
+      acceptedSnapshotFetched: string;
+      cacheState: string;
+      circuit: string;
+      freshUntil: string;
+      lastRefreshFailure: string;
+      lastSuccessfulRefresh: string;
+      nextCircuitProbe: string;
+      nextPlannedAttempt: string;
+      providerCode: string;
+      providerState: string;
+      staleUntil: string;
+      syncLease: string;
+    }>;
+    lease: Readonly<{
+      active: string;
+      notActive: string;
+    }>;
+    noneRecorded: string;
+    notRecorded: string;
+    officialDocumentation: string;
+    state: Readonly<{
+      disabled: string;
+      enabled: string;
+    }>;
+    unavailable: string;
+  }>;
+  returnHome: string;
+  states: Readonly<{
+    availableUnconfirmed: Readonly<{
+      detail: string;
+      heading: string;
+    }>;
+    notReady: Readonly<{
+      detail: string;
+      heading: string;
+    }>;
+    ready: Readonly<{
+      detail: string;
+      heading: string;
+    }>;
+    unavailable: Readonly<{
+      detail: string;
+      heading: string;
+    }>;
+  }>;
+  title: string;
+}>;
+
 export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
   learn: LearnMessages;
@@ -484,4 +566,5 @@ export type LuminaMessages = Readonly<{
   presentationMode: PresentationModeMessages;
   routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;
+  status: StatusMessages;
 }>;

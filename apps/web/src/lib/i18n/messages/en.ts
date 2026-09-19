@@ -479,6 +479,90 @@ export const enMessages = {
       student: "Student",
     },
   },
+  status: {
+    contract: {
+      apiVersionLabel: "API version",
+      applicationVersionLabel: "Application version",
+      heading: "Reported contract",
+    },
+    eyebrow: "Foundation status",
+    provider: {
+      acknowledgmentAndUsage: "Acknowledgment and usage",
+      cache: {
+        expired: "Expired",
+        fresh: "Fresh",
+        historicalOnlyWhileDisabled: "{cacheLabel}; historical only while disabled",
+        missing: "No accepted cache",
+        stale: "Stale",
+      },
+      circuit: {
+        closed: "Closed",
+        halfOpen: "Half-open",
+        open: "Open",
+      },
+      counters: {
+        cyclesStarted: "Cycles started",
+        heading: "Durable counters",
+        httpRequests: "HTTP requests",
+        httpRetries: "HTTP retries",
+        quarantines: "Quarantines",
+        schemaFailures: "Schema failures",
+        staleFallbacks: "Stale fallbacks",
+        successfulCycles: "Successful cycles",
+        upstreamFailures: "Upstream failures",
+      },
+      heading: "Provider status",
+      labels: {
+        acceptedSnapshotFetched: "Accepted snapshot fetched",
+        cacheState: "Cache state",
+        circuit: "Circuit",
+        freshUntil: "Fresh until",
+        lastRefreshFailure: "Last refresh failure",
+        lastSuccessfulRefresh: "Last successful refresh",
+        nextCircuitProbe: "Next circuit probe",
+        nextPlannedAttempt: "Next planned attempt",
+        providerCode: "Provider code",
+        providerState: "Provider state",
+        staleUntil: "Stale until",
+        syncLease: "Sync lease",
+      },
+      lease: {
+        active: "Active",
+        notActive: "Not active",
+      },
+      noneRecorded: "None recorded",
+      notRecorded: "Not recorded",
+      officialDocumentation: "Official documentation",
+      state: {
+        disabled: "Disabled",
+        enabled: "Enabled",
+      },
+      unavailable: "Provider status unavailable.",
+    },
+    returnHome: "Return to the Lumina foundation home page",
+    states: {
+      availableUnconfirmed: {
+        detail:
+          "The API answered at least one request, but this page could not confirm both process and dependency readiness.",
+        heading: "API available, readiness unconfirmed",
+      },
+      notReady: {
+        detail:
+          "The API returned a not-ready response. The foundation remains usable, but its required dependency is not ready.",
+        heading: "API available, dependency not ready",
+      },
+      ready: {
+        detail: "The API process and its required database dependency both report ready.",
+        heading: "API available and ready",
+      },
+      unavailable: {
+        detail:
+          "This page could not reach the API within its bounded requests. The Lumina foundation page remains available.",
+        heading: "API unavailable",
+      },
+    },
+    title: "Lumina API status",
+  },
   routeBoundaries: {
     globalError: {
       description: "Lumina could not load. Try again, or return to the foundation home page later.",

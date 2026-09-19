@@ -282,4 +282,15 @@ describe("Phase 8C localization foundation", () => {
     expect(storage.personal.journalEntries.other).toContain("{count}");
     expect(storage.personal.deleteSuccess.other).toContain("{count}");
   });
+
+  it("keeps status interpretation and provider labels in one typed message group", () => {
+    const messages = enMessages.status;
+    expect(messages.title).toBe("Lumina API status");
+    expect(messages.states.ready.heading).toBe("API available and ready");
+    expect(messages.provider.cache.historicalOnlyWhileDisabled).toContain("{cacheLabel}");
+    expect(messages.provider.circuit.halfOpen).toBe("Half-open");
+    expect(messages.provider.labels.lastRefreshFailure).toBe("Last refresh failure");
+    expect(messages.provider.counters.httpRequests).toBe("HTTP requests");
+    expect(messages.provider.notRecorded).toBe("Not recorded");
+  });
 });

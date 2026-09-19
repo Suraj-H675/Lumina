@@ -11,6 +11,8 @@ import type { ProviderStatusResponse } from "@lumina/api-client";
 vi.mock("server-only", () => ({}));
 
 import { StatusView } from "../src/app/status/status-view";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { StatusMessages } from "../src/lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../src/lib/server/api-origin";
 import {
   loadFoundationStatus,
@@ -160,10 +162,10 @@ function controlledFetch(readyStatus = 200): typeof fetch {
   });
 }
 
-function renderStatus(status: FoundationStatus) {
+function renderStatus(status: FoundationStatus, messages: StatusMessages = enMessages.status) {
   return render(
     <SiteShell {...EN_SHELL_PROPS}>
-      <StatusView status={status} />
+      <StatusView messages={messages} status={status} />
     </SiteShell>,
   );
 }
@@ -522,5 +524,48 @@ describe("honest status view", () => {
     renderStatus({ kind: "ready", meta: null, provider: unavailableProvider });
 
     expect(screen.getByText("Provider status unavailable.")).toBeVisible();
+  });
+
+  it("localizes status interpretation without rewriting operational provider facts", () => {
+    const messages = {
+      ...enMessages.status,
+      provider: {
+        ...enMessages.status.provider,
+        heading: "Localized provider heading",
+        labels: {
+          ...enMessages.status.provider.labels,
+          providerState: "Localized provider-state label",
+        },
+        state: {
+          ...enMessages.status.provider.state,
+          enabled: "Localized enabled state",
+        },
+      },
+      title: "Localized API status title",
+    } satisfies StatusMessages;
+
+    renderStatus(
+      {
+        kind: "ready",
+        meta: { api_version: "v1", application_version: "0.0.0" },
+        provider: { kind: "available", data: { providers: [staleProviderEntry] } },
+      },
+      messages,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized API status title" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Localized provider heading" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized enabled state", { exact: true })).toBeVisible();
+    expect(screen.getByText("NASA Exoplanet Archive", { exact: true })).toBeVisible();
+    expect(screen.getByText("provider.timeout", { exact: true })).toBeVisible();
+    expect(screen.getAllByText("2026-09-10T00:00:00Z", { exact: true })).not.toHaveLength(0);
+    expect(screen.getByText("4", { exact: true })).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: messages.provider.officialDocumentation }),
+    ).toHaveAttribute("href", "https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html");
   });
 });

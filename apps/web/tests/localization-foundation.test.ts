@@ -101,4 +101,14 @@ describe("Phase 8C localization foundation", () => {
       /validated launch snapshot/i,
     );
   });
+
+  it("keeps reviewed-discovery wrapper copy separate from the reviewed article artifact", () => {
+    expect(enMessages.missionControl.reviewedDiscovery.eyebrow).toBe("Reviewed discovery");
+    expect(enMessages.missionControl.reviewedDiscovery.publishedLabel).toBe("Published");
+    expect(enMessages.missionControl.reviewedDiscovery.whyItMattersTitle).toBe("Why it matters");
+    expect(enMessages.missionControl.reviewedDiscovery.confirmationStateLabel).toBe(
+      "Confirmation state",
+    );
+    expect(enMessages.missionControl.reviewedDiscovery.seeAll).toMatch(/reviewed discoveries/i);
+  });
 });

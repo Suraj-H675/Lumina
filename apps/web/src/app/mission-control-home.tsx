@@ -83,7 +83,7 @@ export function MissionControlHome({
         messages={messages.missionBoard}
         outcome={launchOutcome}
       />
-      <ReviewedDiscoveryCard discovery={latestDiscovery} />
+      <ReviewedDiscoveryCard discovery={latestDiscovery} messages={messages.reviewedDiscovery} />
       <ContinueLearningCard content={content} path={content.path} />
 
       <section
@@ -247,7 +247,13 @@ function MissionBoard({
     </section>
   );
 }
-function ReviewedDiscoveryCard({ discovery }: Readonly<{ discovery: ReviewedDiscovery | null }>) {
+function ReviewedDiscoveryCard({
+  discovery,
+  messages,
+}: Readonly<{
+  discovery: ReviewedDiscovery | null;
+  messages: MissionControlMessages["reviewedDiscovery"];
+}>) {
   if (discovery === null) return null;
   return (
     <section
@@ -256,26 +262,29 @@ function ReviewedDiscoveryCard({ discovery }: Readonly<{ discovery: ReviewedDisc
     >
       <div className="space-y-2">
         <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-          Reviewed discovery · {discovery.content_type}
+          {messages.eyebrow} · {discovery.content_type}
         </p>
         <h2 className="text-2xl font-semibold" id="reviewed-discovery-heading">
           {discovery.title}
         </h2>
-        <p className="text-sm text-[var(--muted)]">Published {discovery.publication_date}</p>
+        <p className="text-sm text-[var(--muted)]">
+          {messages.publishedLabel} {discovery.publication_date}
+        </p>
       </div>
       <p className="leading-7 text-[var(--muted)]">{discovery.summary}</p>
       <div className="space-y-2 border-t border-[var(--border)] pt-4">
-        <h3 className="font-semibold">Why it matters</h3>
+        <h3 className="font-semibold">{messages.whyItMattersTitle}</h3>
         <p className="leading-7 text-[var(--muted)]">{discovery.why_it_matters}</p>
       </div>
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Confirmation state: {discovery.independent_confirmation_state.replaceAll("-", " ")}.
+        {messages.confirmationStateLabel}:{" "}
+        {discovery.independent_confirmation_state.replaceAll("-", " ")}.
       </p>
       <Link
         className="inline-flex min-h-11 items-center text-[var(--link)] underline underline-offset-4"
         href="/discoveries"
       >
-        See all reviewed discoveries and sources
+        {messages.seeAll}
       </Link>
     </section>
   );

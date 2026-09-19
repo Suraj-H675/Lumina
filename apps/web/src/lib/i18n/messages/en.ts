@@ -45,6 +45,13 @@ export const enMessages = {
       vehicleMissing: "Vehicle not provided",
     },
     openLaunchCenter: "Open Launch Center",
+    reviewedDiscovery: {
+      confirmationStateLabel: "Confirmation state",
+      eyebrow: "Reviewed discovery",
+      publishedLabel: "Published",
+      seeAll: "See all reviewed discoveries and sources",
+      whyItMattersTitle: "Why it matters",
+    },
     title: "Mission Control",
   },
   routeBoundaries: {

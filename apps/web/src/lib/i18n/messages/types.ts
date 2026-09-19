@@ -100,6 +100,13 @@ export type MissionControlMessages = Readonly<{
     vehicleMissing: string;
   }>;
   openLaunchCenter: string;
+  reviewedDiscovery: Readonly<{
+    confirmationStateLabel: string;
+    eyebrow: string;
+    publishedLabel: string;
+    seeAll: string;
+    whyItMattersTitle: string;
+  }>;
   title: string;
 }>;
 

@@ -139,4 +139,15 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.missionControl.continueLearning.progress).toContain("{masteredCount}");
     expect(enMessages.missionControl.continueLearning.progress).toContain("{lessonCount}");
   });
+
+  it("keeps the reviewed discoveries route wrapper in the typed English dictionary", () => {
+    expect(enMessages.discoveries.metadataTitle).toBe("Reviewed discoveries");
+    expect(enMessages.discoveries.eyebrow).toBe("Mission Control · Reviewed discoveries");
+    expect(enMessages.discoveries.title).toBe("Reviewed discoveries");
+    expect(enMessages.discoveries.currentSetTitle).toBe("Current reviewed set");
+    expect(enMessages.discoveries.whyItMattersTitle).toBe("Why it matters");
+    expect(enMessages.discoveries.reviewedSourcesTitle).toBe("Reviewed sources");
+    expect(enMessages.discoveries.confirmation.peerReviewedPublication).toMatch(/peer-reviewed/i);
+    expect(enMessages.discoveries.backToMissionControl).toBe("Back to Mission Control");
+  });
 });

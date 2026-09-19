@@ -1,6 +1,29 @@
 import type { LuminaMessages } from "./types";
 
 export const enMessages = {
+  discoveries: {
+    backToMissionControl: "Back to Mission Control",
+    bundleReviewed: "Bundle reviewed {reviewedAt}.",
+    confirmation: {
+      independentlyConfirmed: "Independently confirmed",
+      officialPrimaryOnly: "Official primary source only; no independent confirmation claimed here",
+      peerReviewedPublication: "Underlying result published in peer-reviewed literature",
+    },
+    confirmationStateLabel: "Independent-confirmation state",
+    currentSetTitle: "Current reviewed set",
+    eventDateLabel: "Event date",
+    eyebrow: "Mission Control · Reviewed discoveries",
+    intro:
+      "These are authored, version-controlled summaries checked against the sources linked on each card. Lumina does not generate or continuously scrape science-news prose.",
+    metadataDescription:
+      "A small version-controlled set of recent space-science and mission updates reviewed against primary or peer-reviewed sources.",
+    metadataTitle: "Reviewed discoveries",
+    noSeparateEventDate: "No separate event date",
+    publishedLabel: "published",
+    reviewedSourcesTitle: "Reviewed sources",
+    title: "Reviewed discoveries",
+    whyItMattersTitle: "Why it matters",
+  },
   missionControl: {
     aboutBody:
       "Lumina connects visual exploration, authored learning, deterministic simulations, real-sky observation, and provenance-first current space data. Each capability is added only when its source, assumptions, freshness, and limitations can be shown honestly.",

@@ -64,6 +64,28 @@ export type RouteBoundaryMessages = Readonly<{
   routeError: RouteErrorMessages;
 }>;
 
+export type DiscoveriesMessages = Readonly<{
+  backToMissionControl: string;
+  bundleReviewed: string;
+  confirmation: Readonly<{
+    independentlyConfirmed: string;
+    officialPrimaryOnly: string;
+    peerReviewedPublication: string;
+  }>;
+  confirmationStateLabel: string;
+  currentSetTitle: string;
+  eventDateLabel: string;
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  noSeparateEventDate: string;
+  publishedLabel: string;
+  reviewedSourcesTitle: string;
+  title: string;
+  whyItMattersTitle: string;
+}>;
+
 export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
@@ -124,6 +146,7 @@ export type MissionControlMessages = Readonly<{
 }>;
 
 export type LuminaMessages = Readonly<{
+  discoveries: DiscoveriesMessages;
   missionControl: MissionControlMessages;
   routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;

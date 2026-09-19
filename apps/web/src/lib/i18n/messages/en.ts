@@ -24,6 +24,20 @@ export const enMessages = {
     title: "Reviewed discoveries",
     whyItMattersTitle: "Why it matters",
   },
+  learn: {
+    landing: {
+      eyebrow: "Learn",
+      intro:
+        "Lumina's learning content is authored, reviewed, and source-backed. Start with one complete path designed to help you make a real first observation.",
+      metadataDescription:
+        "Follow Lumina's authored, source-backed learning path for a first night sky.",
+      metadataTitle: "Learn",
+      pathLabel: "Complete learning path",
+      pathMeta: "{lessonCount} lessons · authored mode variants · deterministic quizzes",
+      title: "Understand the sky by looking up",
+      viewPath: "View the path",
+    },
+  },
   missionControl: {
     aboutBody:
       "Lumina connects visual exploration, authored learning, deterministic simulations, real-sky observation, and provenance-first current space data. Each capability is added only when its source, assumptions, freshness, and limitations can be shown honestly.",

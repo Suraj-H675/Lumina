@@ -150,4 +150,13 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.discoveries.confirmation.peerReviewedPublication).toMatch(/peer-reviewed/i);
     expect(enMessages.discoveries.backToMissionControl).toBe("Back to Mission Control");
   });
+
+  it("keeps the Learn landing wrapper separate from authored path content", () => {
+    expect(enMessages.learn.landing.metadataTitle).toBe("Learn");
+    expect(enMessages.learn.landing.eyebrow).toBe("Learn");
+    expect(enMessages.learn.landing.title).toBe("Understand the sky by looking up");
+    expect(enMessages.learn.landing.pathLabel).toBe("Complete learning path");
+    expect(enMessages.learn.landing.pathMeta).toContain("{lessonCount}");
+    expect(enMessages.learn.landing.viewPath).toBe("View the path");
+  });
 });

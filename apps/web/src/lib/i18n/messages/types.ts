@@ -86,6 +86,21 @@ export type DiscoveriesMessages = Readonly<{
   whyItMattersTitle: string;
 }>;
 
+export type LearnLandingMessages = Readonly<{
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  pathLabel: string;
+  pathMeta: string;
+  title: string;
+  viewPath: string;
+}>;
+
+export type LearnMessages = Readonly<{
+  landing: LearnLandingMessages;
+}>;
+
 export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
@@ -147,6 +162,7 @@ export type MissionControlMessages = Readonly<{
 
 export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
+  learn: LearnMessages;
   missionControl: MissionControlMessages;
   routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;

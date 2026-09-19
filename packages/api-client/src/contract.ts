@@ -9,6 +9,7 @@ import type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
   CalculateEclipseSimulatorData,
+  CalculateImpactSimulatorData,
   CalculateOrbitSandboxData,
   CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
@@ -31,6 +32,7 @@ import type {
   EntityDetailResponse,
   EntitySummaryResponse,
   EclipseSimulatorCalculationResponse,
+  ImpactSimulatorCalculationResponse,
   GetCatalogEntityBySlugData,
   GetCatalogEntityData,
   GetNowApodData,
@@ -65,6 +67,7 @@ import {
   zCatalogSearchResponse,
   zCatalogSuggestResponse,
   zCalculateEclipseSimulatorResponse,
+  zCalculateImpactSimulatorResponse,
   zCalculateOrbitSandboxResponse,
   zCalculatePlanetarySystemBuilderResponse,
   zCalculateRadialVelocityResponse,
@@ -374,6 +377,12 @@ export const eclipseSimulatorEndpoint = {
   path: "/api/v1/simulations/eclipse-simulator" satisfies CalculateEclipseSimulatorData["url"],
   validator: zCalculateEclipseSimulatorResponse,
 } satisfies ApiEndpoint<EclipseSimulatorCalculationResponse, CalculateEclipseSimulatorData["url"]>;
+
+export const impactSimulatorEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/impact-simulator" satisfies CalculateImpactSimulatorData["url"],
+  validator: zCalculateImpactSimulatorResponse,
+} satisfies ApiEndpoint<ImpactSimulatorCalculationResponse, CalculateImpactSimulatorData["url"]>;
 
 export const radialVelocityEndpoint = {
   method: "GET",

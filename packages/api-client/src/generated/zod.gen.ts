@@ -81,6 +81,16 @@ export const zApodResponse = z.object({
 export const zCircuitState = z.enum(["closed", "open", "half_open"]);
 
 /**
+ * CraterDimensionsResponse
+ */
+export const zCraterDimensionsResponse = z.object({
+  classification: z.string(),
+  final_diameter_m: z.number(),
+  scaling_coefficient: z.number(),
+  transient_diameter_m: z.number(),
+});
+
+/**
  * CurrentSelectionReference
  */
 export const zCurrentSelectionReference = z.object({
@@ -172,6 +182,14 @@ export const zEclipseSimulatorCalculationResponse = z.object({
   safety_reference_id: z.string(),
   schema_version: z.int(),
   timing_note: z.string(),
+});
+
+/**
+ * EjectaThicknessRadiusResponse
+ */
+export const zEjectaThicknessRadiusResponse = z.object({
+  radius_m: z.number(),
+  thickness_m: z.number(),
 });
 
 /**
@@ -401,6 +419,44 @@ export const zIdentificationSolutionResponse = z.object({
   solver_version: z.string().max(64).nullable(),
   submission_id: z.uuid(),
   wcs: zIdentificationWcsResponse,
+});
+
+/**
+ * ImpactSimulatorInputResponse
+ */
+export const zImpactSimulatorInputResponse = z.object({
+  diameter_m: z.number(),
+  impact_angle_deg: z.number(),
+  impactor_density_kg_m3: z.number(),
+  speed_km_s: z.number(),
+  target_material: z.enum(["sedimentary_rock", "crystalline_rock"]),
+});
+
+/**
+ * ImpactSimulatorCalculationResponse
+ */
+export const zImpactSimulatorCalculationResponse = z.object({
+  best_estimate_crater: zCraterDimensionsResponse,
+  coefficient_sensitivity: z.tuple([
+    zCraterDimensionsResponse,
+    zCraterDimensionsResponse,
+    zCraterDimensionsResponse,
+  ]),
+  ejecta_thickness_radii: z.tuple([
+    zEjectaThicknessRadiusResponse,
+    zEjectaThicknessRadiusResponse,
+    zEjectaThicknessRadiusResponse,
+    zEjectaThicknessRadiusResponse,
+  ]),
+  impactor_mass_kg: z.number(),
+  inputs: zImpactSimulatorInputResponse,
+  kinetic_energy_j: z.number(),
+  model_note: z.string(),
+  model_version: z.string(),
+  schema_version: z.int(),
+  target_density_kg_m3: z.number(),
+  tnt_equivalent_megatons: z.number(),
+  uncertainty_note: z.string(),
 });
 
 /**
@@ -1795,6 +1851,11 @@ export const zSuggestCatalogEntitiesResponse = zCatalogSuggestResponse;
  * Successful Response
  */
 export const zCalculateEclipseSimulatorResponse = zEclipseSimulatorCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateImpactSimulatorResponse = zImpactSimulatorCalculationResponse;
 
 /**
  * Successful Response

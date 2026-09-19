@@ -7,6 +7,7 @@ import {
   catalogSuggestEndpoint,
   catalogSearchEndpoint,
   eclipseSimulatorEndpoint,
+  impactSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
   planetarySystemBuilderEndpoint,
@@ -30,6 +31,7 @@ import type {
   EntitySummaryResponse,
   EntityType,
   CalculateEclipseSimulatorData,
+  CalculateImpactSimulatorData,
   CalculateOrbitSandboxData,
   CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
@@ -61,6 +63,7 @@ import {
   zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
+import { IMPACT_SIMULATOR_DEFAULT_RESPONSE } from "./fixtures/impact-simulator-response";
 import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
 import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
 
@@ -80,6 +83,8 @@ describe("generated contract boundary", () => {
     expectTypeOf(eclipseSimulatorEndpoint.path).toEqualTypeOf<
       CalculateEclipseSimulatorData["url"]
     >();
+    expect(impactSimulatorEndpoint.method).toBe("GET");
+    expectTypeOf(impactSimulatorEndpoint.path).toEqualTypeOf<CalculateImpactSimulatorData["url"]>();
     expect(orbitSandboxEndpoint.method).toBe("GET");
     expectTypeOf(orbitSandboxEndpoint.path).toEqualTypeOf<CalculateOrbitSandboxData["url"]>();
     expect(planetarySystemBuilderEndpoint.method).toBe("GET");
@@ -483,6 +488,47 @@ describe("Rocket / Mission Designer endpoint", () => {
     ).byteLength;
     expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
     expect(Object.hasOwn(rocketMissionDesignerEndpoint, "maxResponseBytes")).toBe(false);
+  });
+});
+
+describe("Impact Simulator endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(impactSimulatorEndpoint.path).toEqualTypeOf<CalculateImpactSimulatorData["url"]>();
+    const result = await requestEndpoint("http://127.0.0.1:8000", impactSimulatorEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify(IMPACT_SIMULATOR_DEFAULT_RESPONSE), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({
+      data: IMPACT_SIMULATOR_DEFAULT_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Impact Simulator result fields", async () => {
+    const result = await requestEndpoint("http://127.0.0.1:8000", impactSimulatorEndpoint, {
+      fetchImplementation: () =>
+        Promise.resolve(
+          new Response(JSON.stringify({ ...IMPACT_SIMULATOR_DEFAULT_RESPONSE, invented: true }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+    });
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("fits the normal bounded transport response ceiling", () => {
+    const bytes = new TextEncoder().encode(
+      JSON.stringify(IMPACT_SIMULATOR_DEFAULT_RESPONSE),
+    ).byteLength;
+    expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
+    expect(Object.hasOwn(impactSimulatorEndpoint, "maxResponseBytes")).toBe(false);
   });
 });
 

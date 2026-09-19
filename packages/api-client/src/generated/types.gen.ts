@@ -185,6 +185,28 @@ export type CompactSourceReference = {
 };
 
 /**
+ * CraterDimensionsResponse
+ */
+export type CraterDimensionsResponse = {
+  /**
+   * Classification
+   */
+  classification: string;
+  /**
+   * Final Diameter M
+   */
+  final_diameter_m: number;
+  /**
+   * Scaling Coefficient
+   */
+  scaling_coefficient: number;
+  /**
+   * Transient Diameter M
+   */
+  transient_diameter_m: number;
+};
+
+/**
  * CurrentCanonicalSelectionResponse
  */
 export type CurrentCanonicalSelectionResponse = {
@@ -408,6 +430,20 @@ export type EclipseSimulatorInputResponse = {
    * Longitude Deg
    */
   longitude_deg: number;
+};
+
+/**
+ * EjectaThicknessRadiusResponse
+ */
+export type EjectaThicknessRadiusResponse = {
+  /**
+   * Radius M
+   */
+  radius_m: number;
+  /**
+   * Thickness M
+   */
+  thickness_m: number;
 };
 
 /**
@@ -864,6 +900,89 @@ export type IdentificationWcsResponse = {
    * Source Sha256
    */
   source_sha256: string;
+};
+
+/**
+ * ImpactSimulatorCalculationResponse
+ */
+export type ImpactSimulatorCalculationResponse = {
+  best_estimate_crater: CraterDimensionsResponse;
+  /**
+   * Coefficient Sensitivity
+   */
+  coefficient_sensitivity: [
+    CraterDimensionsResponse,
+    CraterDimensionsResponse,
+    CraterDimensionsResponse,
+  ];
+  /**
+   * Ejecta Thickness Radii
+   */
+  ejecta_thickness_radii: [
+    EjectaThicknessRadiusResponse,
+    EjectaThicknessRadiusResponse,
+    EjectaThicknessRadiusResponse,
+    EjectaThicknessRadiusResponse,
+  ];
+  /**
+   * Impactor Mass Kg
+   */
+  impactor_mass_kg: number;
+  inputs: ImpactSimulatorInputResponse;
+  /**
+   * Kinetic Energy J
+   */
+  kinetic_energy_j: number;
+  /**
+   * Model Note
+   */
+  model_note: string;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Target Density Kg M3
+   */
+  target_density_kg_m3: number;
+  /**
+   * Tnt Equivalent Megatons
+   */
+  tnt_equivalent_megatons: number;
+  /**
+   * Uncertainty Note
+   */
+  uncertainty_note: string;
+};
+
+/**
+ * ImpactSimulatorInputResponse
+ */
+export type ImpactSimulatorInputResponse = {
+  /**
+   * Diameter M
+   */
+  diameter_m: number;
+  /**
+   * Impact Angle Deg
+   */
+  impact_angle_deg: number;
+  /**
+   * Impactor Density Kg M3
+   */
+  impactor_density_kg_m3: number;
+  /**
+   * Speed Km S
+   */
+  speed_km_s: number;
+  /**
+   * Target Material
+   */
+  target_material: "sedimentary_rock" | "crystalline_rock";
 };
 
 /**
@@ -4416,6 +4535,64 @@ export type CalculateEclipseSimulatorResponses = {
 
 export type CalculateEclipseSimulatorResponse =
   CalculateEclipseSimulatorResponses[keyof CalculateEclipseSimulatorResponses];
+
+export type CalculateImpactSimulatorData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Diameter M
+     *
+     * Synthetic spherical impactor diameter in metres; 1500 through 20000.
+     */
+    diameter_m: number;
+    /**
+     * Impactor Density Kg M3
+     *
+     * Synthetic impactor bulk density in kg/m^3; 500 through 8000.
+     */
+    impactor_density_kg_m3: number;
+    /**
+     * Speed Km S
+     *
+     * Pre-atmospheric impact speed in km/s; 11 through 72.
+     */
+    speed_km_s: number;
+    /**
+     * Impact Angle Deg
+     *
+     * Impact angle in degrees above the local horizontal; 15 through 90.
+     */
+    impact_angle_deg: number;
+    /**
+     * Target Material
+     *
+     * Closed solid-rock target preset: sedimentary_rock or crystalline_rock.
+     */
+    target_material: "sedimentary_rock" | "crystalline_rock";
+  };
+  url: "/api/v1/simulations/impact-simulator";
+};
+
+export type CalculateImpactSimulatorErrors = {
+  /**
+   * The Impact Simulator input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateImpactSimulatorError =
+  CalculateImpactSimulatorErrors[keyof CalculateImpactSimulatorErrors];
+
+export type CalculateImpactSimulatorResponses = {
+  /**
+   * Successful Response
+   */
+  200: ImpactSimulatorCalculationResponse;
+};
+
+export type CalculateImpactSimulatorResponse =
+  CalculateImpactSimulatorResponses[keyof CalculateImpactSimulatorResponses];
 
 export type CalculateOrbitSandboxData = {
   body?: never;

@@ -50,6 +50,12 @@ const labs = [
       "Explore an ideal staged-rocket teaching model with source-backed delta-v, surface-gravity TWR references, payload sensitivity, and explicitly non-operational velocity comparisons.",
   },
   {
+    href: "/lab/impact-simulator",
+    title: "Impact Simulator",
+    description:
+      "Explore a large solid-rock Earth-impact teaching model with cited crater scaling, explicit coefficient sensitivity, and location-free lower-bound ejecta deposit ranges.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

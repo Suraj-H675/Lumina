@@ -66,6 +66,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/now/launches/{launch_id}",
         "/api/v1/now/space-weather",
         "/api/v1/simulations/eclipse-simulator",
+        "/api/v1/simulations/impact-simulator",
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/planetary-system-builder",
         "/api/v1/simulations/radial-velocity",
@@ -166,6 +167,34 @@ def test_eclipse_simulator_calculation_openapi_is_versioned_and_read_only() -> N
     assert set(parameters) == {"at_utc", "latitude_deg", "longitude_deg", "elevation_m"}
     assert all(parameter["required"] is True for parameter in parameters.values())
     assert set(document["paths"]["/api/v1/simulations/eclipse-simulator"]) == {"get"}
+
+
+def test_impact_simulator_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/impact-simulator"]["get"]
+
+    assert operation["operationId"] == "calculate_impact_simulator"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/ImpactSimulatorCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "diameter_m",
+        "impactor_density_kg_m3",
+        "speed_km_s",
+        "impact_angle_deg",
+        "target_material",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    assert parameters["diameter_m"]["schema"]["minimum"] == 1_500.0
+    assert parameters["diameter_m"]["schema"]["maximum"] == 20_000.0
+    assert parameters["impactor_density_kg_m3"]["schema"]["minimum"] == 500.0
+    assert parameters["impactor_density_kg_m3"]["schema"]["maximum"] == 8_000.0
+    assert parameters["speed_km_s"]["schema"]["minimum"] == 11.0
+    assert parameters["speed_km_s"]["schema"]["maximum"] == 72.0
+    assert parameters["impact_angle_deg"]["schema"]["minimum"] == 15.0
+    assert parameters["impact_angle_deg"]["schema"]["maximum"] == 90.0
+    assert set(document["paths"]["/api/v1/simulations/impact-simulator"]) == {"get"}
 
 
 def test_spectroscopy_lab_calculation_openapi_is_versioned_and_read_only() -> None:

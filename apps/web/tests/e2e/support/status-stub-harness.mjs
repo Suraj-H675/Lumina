@@ -36,6 +36,9 @@ const planetarySystemBuilderFixtures = JSON.parse(
 const rocketMissionDesignerFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/rocket-mission-designer.json", import.meta.url), "utf8"),
 );
+const impactSimulatorFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/impact-simulator.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -49,6 +52,7 @@ const apiPaths = new Set([
   "/api/v1/now/satellites/passes",
   "/api/v1/providers/status",
   "/api/v1/simulations/eclipse-simulator",
+  "/api/v1/simulations/impact-simulator",
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/planetary-system-builder",
   "/api/v1/simulations/radial-velocity",
@@ -1572,6 +1576,52 @@ function respondRocketMissionDesigner(response, target) {
   });
 }
 
+function respondImpactSimulator(response, target) {
+  const expectedKeys = [
+    "diameter_m",
+    "impactor_density_kg_m3",
+    "speed_km_s",
+    "impact_angle_deg",
+    "target_material",
+  ];
+  const keys = [...target.searchParams.keys()];
+  const validShape =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key) && target.searchParams.getAll(key).length === 1);
+  if (!validShape) {
+    sendJson(response, 422, {
+      error: {
+        code: "impact_simulator.model_invalid",
+        message: "The Impact Simulator fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const common =
+    target.searchParams.get("impactor_density_kg_m3") === "3000" &&
+    target.searchParams.get("speed_km_s") === "17" &&
+    target.searchParams.get("impact_angle_deg") === "45" &&
+    target.searchParams.get("target_material") === "sedimentary_rock";
+  const diameter = target.searchParams.get("diameter_m");
+  if (common && diameter === "1500") {
+    sendJson(response, 200, impactSimulatorFixtures.default_impact);
+    return;
+  }
+  if (common && diameter === "2000") {
+    sendJson(response, 200, impactSimulatorFixtures.accepted_diameter_2000);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "impact_simulator.model_invalid",
+      message: "The Impact Simulator E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -2089,6 +2139,7 @@ const stub = http.createServer(async (request, response) => {
   const isOrbitSandboxPath = path === "/api/v1/simulations/orbit-sandbox";
   const isPlanetarySystemBuilderPath = path === "/api/v1/simulations/planetary-system-builder";
   const isEclipseSimulatorPath = path === "/api/v1/simulations/eclipse-simulator";
+  const isImpactSimulatorPath = path === "/api/v1/simulations/impact-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
   const isRocketMissionDesignerPath = path === "/api/v1/simulations/rocket-mission-designer";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
@@ -2135,6 +2186,7 @@ const stub = http.createServer(async (request, response) => {
     target.search !== "" &&
     !isCataloguePath &&
     !isEclipseSimulatorPath &&
+    !isImpactSimulatorPath &&
     !isOrbitSandboxPath &&
     !isPlanetarySystemBuilderPath &&
     !isRadialVelocityPath &&
@@ -2347,6 +2399,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isEclipseSimulatorPath) {
     respondEclipseSimulator(response, target);
+    return;
+  }
+  if (isImpactSimulatorPath) {
+    respondImpactSimulator(response, target);
     return;
   }
   if (isOrbitSandboxPath) {

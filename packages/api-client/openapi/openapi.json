@@ -340,6 +340,35 @@
         "title": "CompactSourceReference",
         "type": "object"
       },
+      "CraterDimensionsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "classification": {
+            "title": "Classification",
+            "type": "string"
+          },
+          "final_diameter_m": {
+            "title": "Final Diameter M",
+            "type": "number"
+          },
+          "scaling_coefficient": {
+            "title": "Scaling Coefficient",
+            "type": "number"
+          },
+          "transient_diameter_m": {
+            "title": "Transient Diameter M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "scaling_coefficient",
+          "transient_diameter_m",
+          "final_diameter_m",
+          "classification"
+        ],
+        "title": "CraterDimensionsResponse",
+        "type": "object"
+      },
       "CurrentCanonicalSelectionResponse": {
         "additionalProperties": false,
         "properties": {
@@ -695,6 +724,25 @@
           "elevation_m"
         ],
         "title": "EclipseSimulatorInputResponse",
+        "type": "object"
+      },
+      "EjectaThicknessRadiusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "radius_m": {
+            "title": "Radius M",
+            "type": "number"
+          },
+          "thickness_m": {
+            "title": "Thickness M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "thickness_m",
+          "radius_m"
+        ],
+        "title": "EjectaThicknessRadiusResponse",
         "type": "object"
       },
       "EntityBrowsePageResponse": {
@@ -1496,6 +1544,121 @@
           "image_height"
         ],
         "title": "IdentificationWcsResponse",
+        "type": "object"
+      },
+      "ImpactSimulatorCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "best_estimate_crater": {
+            "$ref": "#/components/schemas/CraterDimensionsResponse"
+          },
+          "coefficient_sensitivity": {
+            "items": {
+              "$ref": "#/components/schemas/CraterDimensionsResponse"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Coefficient Sensitivity",
+            "type": "array"
+          },
+          "ejecta_thickness_radii": {
+            "items": {
+              "$ref": "#/components/schemas/EjectaThicknessRadiusResponse"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Ejecta Thickness Radii",
+            "type": "array"
+          },
+          "impactor_mass_kg": {
+            "title": "Impactor Mass Kg",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/ImpactSimulatorInputResponse"
+          },
+          "kinetic_energy_j": {
+            "title": "Kinetic Energy J",
+            "type": "number"
+          },
+          "model_note": {
+            "title": "Model Note",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "target_density_kg_m3": {
+            "title": "Target Density Kg M3",
+            "type": "number"
+          },
+          "tnt_equivalent_megatons": {
+            "title": "Tnt Equivalent Megatons",
+            "type": "number"
+          },
+          "uncertainty_note": {
+            "title": "Uncertainty Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "target_density_kg_m3",
+          "impactor_mass_kg",
+          "kinetic_energy_j",
+          "tnt_equivalent_megatons",
+          "best_estimate_crater",
+          "coefficient_sensitivity",
+          "ejecta_thickness_radii",
+          "uncertainty_note",
+          "model_note"
+        ],
+        "title": "ImpactSimulatorCalculationResponse",
+        "type": "object"
+      },
+      "ImpactSimulatorInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "diameter_m": {
+            "title": "Diameter M",
+            "type": "number"
+          },
+          "impact_angle_deg": {
+            "title": "Impact Angle Deg",
+            "type": "number"
+          },
+          "impactor_density_kg_m3": {
+            "title": "Impactor Density Kg M3",
+            "type": "number"
+          },
+          "speed_km_s": {
+            "title": "Speed Km S",
+            "type": "number"
+          },
+          "target_material": {
+            "enum": [
+              "sedimentary_rock",
+              "crystalline_rock"
+            ],
+            "title": "Target Material",
+            "type": "string"
+          }
+        },
+        "required": [
+          "diameter_m",
+          "impactor_density_kg_m3",
+          "speed_km_s",
+          "impact_angle_deg",
+          "target_material"
+        ],
+        "title": "ImpactSimulatorInputResponse",
         "type": "object"
       },
       "LaunchAgencyResponse": {
@@ -7491,6 +7654,106 @@
           }
         },
         "summary": "Eclipse Simulator",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/impact-simulator": {
+      "get": {
+        "operationId": "calculate_impact_simulator",
+        "parameters": [
+          {
+            "description": "Synthetic spherical impactor diameter in metres; 1500 through 20000.",
+            "in": "query",
+            "name": "diameter_m",
+            "required": true,
+            "schema": {
+              "description": "Synthetic spherical impactor diameter in metres; 1500 through 20000.",
+              "maximum": 20000.0,
+              "minimum": 1500.0,
+              "title": "Diameter M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Synthetic impactor bulk density in kg/m^3; 500 through 8000.",
+            "in": "query",
+            "name": "impactor_density_kg_m3",
+            "required": true,
+            "schema": {
+              "description": "Synthetic impactor bulk density in kg/m^3; 500 through 8000.",
+              "maximum": 8000.0,
+              "minimum": 500.0,
+              "title": "Impactor Density Kg M3",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Pre-atmospheric impact speed in km/s; 11 through 72.",
+            "in": "query",
+            "name": "speed_km_s",
+            "required": true,
+            "schema": {
+              "description": "Pre-atmospheric impact speed in km/s; 11 through 72.",
+              "maximum": 72.0,
+              "minimum": 11.0,
+              "title": "Speed Km S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Impact angle in degrees above the local horizontal; 15 through 90.",
+            "in": "query",
+            "name": "impact_angle_deg",
+            "required": true,
+            "schema": {
+              "description": "Impact angle in degrees above the local horizontal; 15 through 90.",
+              "maximum": 90.0,
+              "minimum": 15.0,
+              "title": "Impact Angle Deg",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Closed solid-rock target preset: sedimentary_rock or crystalline_rock.",
+            "in": "query",
+            "name": "target_material",
+            "required": true,
+            "schema": {
+              "description": "Closed solid-rock target preset: sedimentary_rock or crystalline_rock.",
+              "enum": [
+                "sedimentary_rock",
+                "crystalline_rock"
+              ],
+              "title": "Target Material",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactSimulatorCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Impact Simulator input is invalid."
+          }
+        },
+        "summary": "Impact Simulator",
         "tags": [
           "simulations"
         ]

@@ -123,6 +123,7 @@ export type {
 export { catalogSearchEndpoint, catalogSuggestEndpoint } from "./contract";
 export {
   eclipseSimulatorEndpoint,
+  impactSimulatorEndpoint,
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   orbitSandboxEndpoint,
   planetarySystemBuilderEndpoint,
@@ -143,6 +144,7 @@ export type {
   CatalogSearchResponse,
   CatalogSuggestResponse,
   CalculateEclipseSimulatorResponse,
+  CalculateImpactSimulatorResponse,
   CalculateOrbitSandboxResponse,
   CalculatePlanetarySystemBuilderResponse,
   CalculateRadialVelocityResponse,
@@ -159,6 +161,10 @@ export type {
   EclipseLocalEventResponse,
   EclipseSimulatorCalculationResponse,
   EclipseSimulatorInputResponse,
+  CraterDimensionsResponse,
+  EjectaThicknessRadiusResponse,
+  ImpactSimulatorCalculationResponse,
+  ImpactSimulatorInputResponse,
   MeasurementReference,
   OrbitSandboxCalculationResponse,
   OrbitSandboxInputResponse,

@@ -1,0 +1,207 @@
+{
+  "artifact_version": 1,
+  "model_version": "impact-simulator-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-19T00:00:00Z",
+  "definition": {
+    "slug": "impact-simulator",
+    "title": "Impact Simulator",
+    "status": "ready",
+    "version": 1,
+    "model_version": "impact-simulator-v1",
+    "share_schema_version": 1,
+    "summary": "Deterministic educational model for large terrestrial solid-rock impacts.",
+    "assumptions": [
+      "The impactor is spherical and uses one bulk density.",
+      "The public domain starts at 1.5 km diameter, above the source paper atmospheric-entry branch; submitted speed and diameter are used directly at the surface.",
+      "Earth gravity is fixed at 9.81 m/s^2.",
+      "Targets are homogeneous sedimentary or crystalline rock represented only by the source-paper densities.",
+      "All accepted v1 crater and coefficient-sensitivity states remain in the complex-crater branch."
+    ],
+    "limitations": [
+      "No atmospheric drag, fragmentation, ablation, deceleration, atmospheric energy deposition, or airburst model.",
+      "No water impacts, tsunami, thermal radiation, seismic shaking, air blast, climate effects, recurrence interval, melt/vapor, or fragment-size model.",
+      "No maps, coordinates, named impact locations, casualty/property effects, targeting, or optimization.",
+      "The 0.8-1.5 crater scaling-coefficient range is a sensitivity only, not a complete uncertainty interval.",
+      "Ejecta thickness radii are lower-bound deposit estimates because the source relation ignores bulking and entrainment."
+    ],
+    "equations": [
+      {
+        "id": "spherical-mass",
+        "expression": "m=(pi/6)*rho_i*L^3",
+        "units": "kg"
+      },
+      {
+        "id": "kinetic-energy",
+        "expression": "E=0.5*m*v^2",
+        "units": "J"
+      },
+      {
+        "id": "transient-crater",
+        "expression": "Dtc=C*(rho_i/rho_t)^(1/3)*L^0.78*v^0.44*g^-0.22*sin(theta)^(1/3)",
+        "source_equation": "Collins et al. (2005) Eq. 21"
+      },
+      {
+        "id": "complex-final-crater",
+        "expression": "Dfr=1.17*Dtc^1.13/Dc^0.13",
+        "source_equation": "Collins et al. (2005) Eq. 27"
+      },
+      {
+        "id": "ejecta-thickness",
+        "expression": "te=Dtc^4/(112*r^3)",
+        "source_equation": "Collins et al. (2005) Eq. 47"
+      }
+    ],
+    "references": ["collins-melosh-marcus-2005", "impact-earth-current-calculator"]
+  },
+  "sources": [
+    {
+      "id": "collins-melosh-marcus-2005",
+      "title": "Earth Impact Effects Program: A Web-based computer program for calculating the regional environmental consequences of a meteoroid impact on Earth",
+      "organization_or_authors": "Gareth S. Collins; H. Jay Melosh; Robert A. Marcus",
+      "url": "https://spiral.imperial.ac.uk/entities/publication/1ba449a0-eff6-475c-abaf-9c50b38401a0",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "Meteoritics & Planetary Science 40(6), 817-840 (2005)",
+      "record_reference": "DOI 10.1111/j.1945-5100.2005.tb00157.x; equations 1, 21, 27, 47 and crater/atmospheric-entry discussion",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2005-06",
+      "terms_or_licence": "Published journal article; source record copyright statement applies.",
+      "citation": "Collins GS, Melosh HJ, Marcus RA (2005), Meteoritics & Planetary Science 40(6):817-840.",
+      "claim_scope": "Large terrestrial impact energy, solid-rock crater scaling, coefficient uncertainty context, target densities, atmospheric-entry boundary, and ejecta-thickness relation.",
+      "source_type": "peer-reviewed-journal-article"
+    },
+    {
+      "id": "impact-earth-current-calculator",
+      "title": "Impact: Earth! Impact Effects Calculator",
+      "organization_or_authors": "Imperial College London; Gareth Collins; Robert Marcus; H. Jay Melosh",
+      "url": "https://impact.ese.ic.ac.uk/ImpactEarth/ImpactEffects/",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "Current public calculator interface",
+      "record_reference": "Rounded in-domain validation case for 1.5 km, 1500 kg/m^3, 17 km/s, 45 degrees, crystalline rock.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2026-09-19",
+      "terms_or_licence": "Public educational calculator; results state large uncertainty and no warranty.",
+      "citation": "Impact: Earth! Impact Effects Calculator, Imperial College London.",
+      "claim_scope": "Independent rounded-output validation only; canonical equations come from the reviewed paper.",
+      "source_type": "author-maintained-calculator"
+    }
+  ],
+  "constants": {
+    "MIN_DIAMETER_M": 1500.0,
+    "MAX_DIAMETER_M": 20000.0,
+    "MIN_IMPACTOR_DENSITY_KG_M3": 500.0,
+    "MAX_IMPACTOR_DENSITY_KG_M3": 8000.0,
+    "MIN_SPEED_KM_S": 11.0,
+    "MAX_SPEED_KM_S": 72.0,
+    "MIN_IMPACT_ANGLE_DEG": 15.0,
+    "MAX_IMPACT_ANGLE_DEG": 90.0,
+    "EARTH_SURFACE_GRAVITY_M_S2": 9.81,
+    "SEDIMENTARY_ROCK_DENSITY_KG_M3": 2500.0,
+    "CRYSTALLINE_ROCK_DENSITY_KG_M3": 2750.0,
+    "TNT_MEGATON_J": 4180000000000000.0,
+    "TRANSIENT_CRATER_COEFFICIENT_LOW": 0.8,
+    "TRANSIENT_CRATER_COEFFICIENT_BEST": 1.161,
+    "TRANSIENT_CRATER_COEFFICIENT_HIGH": 1.5,
+    "COMPLEX_TRANSIENT_SWITCH_KM": 2.56,
+    "SIMPLE_COMPLEX_TRANSITION_KM": 3.2,
+    "COMPLEX_FINAL_COEFFICIENT": 1.17,
+    "COMPLEX_FINAL_TRANSIENT_EXPONENT": 1.13,
+    "COMPLEX_FINAL_TRANSITION_EXPONENT": 0.13,
+    "MAX_EJECTA_MODEL_RADIUS_M": 10000000.0
+  },
+  "target_materials": [
+    {
+      "id": "sedimentary_rock",
+      "density_kg_m3": 2500.0
+    },
+    {
+      "id": "crystalline_rock",
+      "density_kg_m3": 2750.0
+    }
+  ],
+  "preset": {
+    "diameter_m": 1500.0,
+    "impactor_density_kg_m3": 3000.0,
+    "speed_km_s": 17.0,
+    "impact_angle_deg": 45.0,
+    "target_material": "sedimentary_rock"
+  },
+  "validation_fixtures": [
+    {
+      "id": "source-rounded-validation-case",
+      "purpose": "Reproduce the author calculator rounded in-domain energy and crater dimensions."
+    },
+    {
+      "id": "kinetic-energy",
+      "purpose": "Check spherical mass and ordinary kinetic energy from independent arithmetic."
+    },
+    {
+      "id": "best-crater-scaling",
+      "purpose": "Check Collins et al. Eq. 21 and Eq. 27 best-estimate crater diameters."
+    },
+    {
+      "id": "coefficient-sensitivity",
+      "purpose": "Check low/best/high crater ordering and exact published scaling coefficients."
+    },
+    {
+      "id": "target-density-preset",
+      "purpose": "Check closed sedimentary/crystalline target densities and their crater effect."
+    },
+    {
+      "id": "ejecta-lower-bound-radii",
+      "purpose": "Check Eq. 47 fixed-thickness radii, final-rim exclusion, and 10000 km range bound."
+    },
+    {
+      "id": "lower-domain-bound",
+      "purpose": "Check the complete minimum accepted input corner remains in the complex-crater branch."
+    },
+    {
+      "id": "upper-domain-bound",
+      "purpose": "Check the complete maximum accepted input corner remains finite and within ejecta range."
+    },
+    {
+      "id": "input-domain-rejection",
+      "purpose": "Reject non-finite, boolean, out-of-range, unknown-target, and wrong-type states."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Require byte-stable value equality for repeated calculations."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Reject changed sources, constants, targets, presets, validation identity, and duplicate keys."
+    }
+  ],
+  "scientific_validation": {
+    "id": "impact-simulator-v1-validation",
+    "source_ids": ["collins-melosh-marcus-2005", "impact-earth-current-calculator"],
+    "independent_validation_case": {
+      "inputs": {
+        "diameter_m": 1500.0,
+        "impactor_density_kg_m3": 1500.0,
+        "speed_km_s": 17.0,
+        "impact_angle_deg": 45.0,
+        "target_material": "crystalline_rock"
+      },
+      "reported_energy_j": 3.83e20,
+      "reported_transient_crater_km": 11.1,
+      "reported_final_crater_km": 15.3,
+      "source_id": "impact-earth-current-calculator"
+    },
+    "method": "Cross-check energy and crater dimensions against the authors current calculator, then exercise the published equations, all domain corners, fixed ejecta thresholds, deterministic repeat, and strict artifact mutation rejection in Python tests.",
+    "test_references": [
+      "source-rounded-validation-case",
+      "kinetic-energy",
+      "best-crater-scaling",
+      "coefficient-sensitivity",
+      "target-density-preset",
+      "ejecta-lower-bound-radii",
+      "lower-domain-bound",
+      "upper-domain-bound",
+      "input-domain-rejection",
+      "deterministic-repeat",
+      "artifact-mutation"
+    ]
+  }
+}

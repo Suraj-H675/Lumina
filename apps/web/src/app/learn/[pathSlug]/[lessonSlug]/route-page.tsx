@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { LearningLessonView } from "../../../../components/learning-lesson-view";
+import type { PublishedLocale } from "../../../../lib/i18n/locales";
+import type { LearningSourcesMessages } from "../../../../lib/i18n/messages/types";
 import { loadLearningContent } from "../../../../lib/learning/content";
 
 type LearningLessonPageProps = Readonly<{
@@ -21,12 +23,26 @@ export function generateStaticParams(): Array<{ lessonSlug: string; pathSlug: st
   }));
 }
 
-export default async function LearningLessonPage({ params }: LearningLessonPageProps) {
+export async function LearningLessonRoute({
+  locale,
+  params,
+  sourceMessages,
+}: LearningLessonPageProps &
+  Readonly<{ locale: PublishedLocale; sourceMessages: LearningSourcesMessages }>) {
   const { lessonSlug, pathSlug } = await params;
   const content = loadLearningContent();
   if (content.path.slug !== pathSlug) notFound();
   const lesson = content.lessons.find((entry) => entry.slug === lessonSlug);
   const quiz = content.quizzes.find((entry) => entry.lesson_slug === lessonSlug);
   if (lesson === undefined || quiz === undefined) notFound();
-  return <LearningLessonView content={content} lesson={lesson} path={content.path} quiz={quiz} />;
+  return (
+    <LearningLessonView
+      content={content}
+      lesson={lesson}
+      locale={locale}
+      path={content.path}
+      quiz={quiz}
+      sourceMessages={sourceMessages}
+    />
+  );
 }

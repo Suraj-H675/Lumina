@@ -11,6 +11,7 @@ import {
 import {
   formatCountMessage,
   formatLocaleDateTime,
+  formatLocaleList,
   formatLocaleNumber,
   formatMessageTemplate,
 } from "../src/lib/i18n/format";
@@ -83,6 +84,10 @@ describe("Phase 8C localization foundation", () => {
 
     expect(formatCountMessage(templates, 1, "en")).toBe("Stored locally: 1 learning path.");
     expect(formatCountMessage(templates, 2, "en")).toBe("Stored locally: 2 learning paths.");
+  });
+
+  it("formats reviewer lists with the explicit content locale", () => {
+    expect(formatLocaleList(["Reviewer A", "Reviewer B"], "en")).toBe("Reviewer A and Reviewer B");
   });
 
   it("keeps the English shell dictionary semantic and placeholder-complete", () => {
@@ -198,5 +203,17 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.lessonList.title).toBe("Lessons");
     expect(messages.lessonList.lessonNumber).toContain("{lessonNumber}");
     expect(messages.lessonList.pathComplete).toContain("{threshold}");
+  });
+
+  it("keeps shared learning provenance wrappers separate from reviewed source data", () => {
+    const messages = enMessages.learn.sources;
+    expect(messages.title).toBe("Sources and review");
+    expect(messages.sourcesLabel).toBe("Learning content sources");
+    expect(messages.reviewSummary).toContain("{version}");
+    expect(messages.reviewSummary).toContain("{reviewedAt}");
+    expect(messages.reviewSummary).toContain("{reviewedBy}");
+    expect(messages.sourceMeta).toContain("{organization}");
+    expect(messages.sourceMeta).toContain("{claimScope}");
+    expect(messages.sourceMeta).toContain("{accessedAt}");
   });
 });

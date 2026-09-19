@@ -44,6 +44,14 @@ export function formatLocaleDateTime(
   return new Intl.DateTimeFormat(localeDefinition(locale).intlTag, options).format(value);
 }
 
+export function formatLocaleList(
+  values: ReadonlyArray<string>,
+  locale: Locale,
+  options?: Intl.ListFormatOptions,
+): string {
+  return new Intl.ListFormat(localeDefinition(locale).intlTag, options).format(values);
+}
+
 export function formatLocaleNumber(
   value: number | bigint,
   locale: Locale,

@@ -129,6 +129,13 @@ export const enMessages = {
       },
       title: "Your local learning data",
     },
+    sources: {
+      reviewSummary:
+        "Authored content · version {version} · reviewed {reviewedAt} by {reviewedBy}.",
+      sourceMeta: "{organization} · {claimScope} Accessed {accessedAt}.",
+      sourcesLabel: "Learning content sources",
+      title: "Sources and review",
+    },
   },
   missionControl: {
     aboutBody:

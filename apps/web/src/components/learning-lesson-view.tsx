@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { LearningSourcesMessages } from "../lib/i18n/messages/types";
 import type {
   AudienceMode,
   LearningContent,
@@ -27,11 +29,20 @@ import { LearningSources } from "./learning-sources";
 type LearningLessonViewProps = Readonly<{
   content: LearningContent;
   lesson: LearningLesson;
+  locale: PublishedLocale;
   path: LearningPath;
   quiz: LearningQuizContract;
+  sourceMessages: LearningSourcesMessages;
 }>;
 
-export function LearningLessonView({ content, lesson, path, quiz }: LearningLessonViewProps) {
+export function LearningLessonView({
+  content,
+  lesson,
+  locale,
+  path,
+  quiz,
+  sourceMessages,
+}: LearningLessonViewProps) {
   const status = useLearningProgressStatus();
   const progress = useLearningPathProgress(path.slug);
   const [mode, setMode] = useState<AudienceMode>("explorer");
@@ -249,6 +260,8 @@ export function LearningLessonView({ content, lesson, path, quiz }: LearningLess
             )}
           </nav>
           <LearningSources
+            locale={locale}
+            messages={sourceMessages}
             reviewedAt={lesson.reviewed_at}
             reviewedBy={lesson.reviewed_by}
             sources={getSourcesForIds(content, lesson.source_ids)}

@@ -35,6 +35,7 @@ describe("learning content views", () => {
         locale="en"
         messages={enMessages.learn.path}
         path={path}
+        sourceMessages={enMessages.learn.sources}
       />,
     );
     expect((await axe(pathRender.container)).violations).toEqual([]);
@@ -43,7 +44,14 @@ describe("learning content views", () => {
     pathRender.unmount();
 
     const lessonRender = render(
-      <LearningLessonView content={content} lesson={firstLesson} path={path} quiz={firstQuiz} />,
+      <LearningLessonView
+        content={content}
+        lesson={firstLesson}
+        locale="en"
+        path={path}
+        quiz={firstQuiz}
+        sourceMessages={enMessages.learn.sources}
+      />,
     );
     await waitFor(() =>
       expect(screen.getByRole("heading", { level: 1, name: firstLesson.title })).toBeVisible(),
@@ -56,7 +64,14 @@ describe("learning content views", () => {
   it("switches between authored mode variants and saves a mastered quiz locally", async () => {
     const user = userEvent.setup();
     render(
-      <LearningLessonView content={content} lesson={firstLesson} path={path} quiz={firstQuiz} />,
+      <LearningLessonView
+        content={content}
+        lesson={firstLesson}
+        locale="en"
+        path={path}
+        quiz={firstQuiz}
+        sourceMessages={enMessages.learn.sources}
+      />,
     );
 
     await user.selectOptions(screen.getByLabelText("Presentation mode"), "student");
@@ -80,7 +95,14 @@ describe("learning content views", () => {
     if (secondLesson === undefined || secondQuiz === undefined)
       throw new Error("lesson fixture missing");
     render(
-      <LearningLessonView content={content} lesson={secondLesson} path={path} quiz={secondQuiz} />,
+      <LearningLessonView
+        content={content}
+        lesson={secondLesson}
+        locale="en"
+        path={path}
+        quiz={secondQuiz}
+        sourceMessages={enMessages.learn.sources}
+      />,
     );
 
     expect(await screen.findByText(/complete the prerequisite lesson first/i)).toBeVisible();

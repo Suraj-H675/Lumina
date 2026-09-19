@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { formatCountMessage, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { LearningPathMessages } from "../lib/i18n/messages/types";
+import type { LearningPathMessages, LearningSourcesMessages } from "../lib/i18n/messages/types";
 import type { LearningContent, LearningPath } from "../lib/learning/content";
 import { getSourcesForIds } from "../lib/learning/content";
 
@@ -14,9 +14,16 @@ type LearningPathViewProps = Readonly<{
   locale: PublishedLocale;
   messages: LearningPathMessages;
   path: LearningPath;
+  sourceMessages: LearningSourcesMessages;
 }>;
 
-export function LearningPathView({ content, locale, messages, path }: LearningPathViewProps) {
+export function LearningPathView({
+  content,
+  locale,
+  messages,
+  path,
+  sourceMessages,
+}: LearningPathViewProps) {
   return (
     <article className="space-y-12">
       <nav aria-label={messages.breadcrumbLabel}>
@@ -75,6 +82,8 @@ export function LearningPathView({ content, locale, messages, path }: LearningPa
         </p>
       </section>
       <LearningSources
+        locale={locale}
+        messages={sourceMessages}
         reviewedAt={path.reviewed_at}
         reviewedBy={path.reviewed_by}
         sources={getSourcesForIds(content, path.source_ids)}

@@ -15,5 +15,12 @@ export const metadata = learningPathMetadata(
 );
 
 export default function EnglishLearningPathPage(props: Parameters<typeof LearningPathRoute>[0]) {
-  return <LearningPathRoute {...props} locale={DEFAULT_LOCALE} messages={enMessages.learn.path} />;
+  return (
+    <LearningPathRoute
+      {...props}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.learn.path}
+      sourceMessages={enMessages.learn.sources}
+    />
+  );
 }

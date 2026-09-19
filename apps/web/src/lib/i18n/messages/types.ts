@@ -168,10 +168,18 @@ export type LearningPathMessages = Readonly<{
   safetyLabel: string;
 }>;
 
+export type LearningSourcesMessages = Readonly<{
+  reviewSummary: string;
+  sourceMeta: string;
+  sourcesLabel: string;
+  title: string;
+}>;
+
 export type LearnMessages = Readonly<{
   landing: LearnLandingMessages;
   path: LearningPathMessages;
   progressControls: LearningProgressControlsMessages;
+  sources: LearningSourcesMessages;
 }>;
 
 export type MissionControlMessages = Readonly<{

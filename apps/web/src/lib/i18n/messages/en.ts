@@ -6,6 +6,27 @@ export const enMessages = {
       "Lumina connects visual exploration, authored learning, deterministic simulations, real-sky observation, and provenance-first current space data. Each capability is added only when its source, assumptions, freshness, and limitations can be shown honestly.",
     aboutTitle: "About Lumina",
     checkSourceStatus: "Check source status",
+    currentMissionEvent: {
+      countdownEligibleExplanation:
+        "The detailed Launch Center may show an exact countdown because this record is Go and precise to the minute or second.",
+      countdownIneligibleExplanation:
+        "Mission Control does not turn this source status and precision into an exact countdown.",
+      inspectLaunch: "Inspect this launch and its provenance",
+      launchProviderLabel: "Launch provider",
+      missionLabel: "Mission",
+      missingValue: "Not provided by source",
+      openLaunchCenter: "Open Launch Center",
+      providerDisabled:
+        "The launch provider is disabled, so Mission Control is making no current-launch claim.",
+      scheduleReferenceLabel: "Schedule reference",
+      scheduledNetLabel: "Scheduled NET",
+      siteLabel: "Site",
+      sourcePrecisionLabel: "Source precision",
+      title: "Current mission event",
+      unavailable:
+        "No validated Launch Library 2 snapshot is available to Mission Control right now.",
+      vehicleLabel: "Vehicle",
+    },
     exploreCatalogue: "Explore the catalogue",
     eyebrow: "Mission Control",
     findSatellitePasses: "Find satellite passes",
@@ -14,6 +35,15 @@ export const enMessages = {
     metadataDescription:
       "Lumina Mission Control combines a cache-backed current launch event, bounded mission board, reviewed discoveries, and authored learning without hiding source freshness or uncertainty.",
     metadataTitle: "Mission Control",
+    missionBoard: {
+      description:
+        "Mission-bearing, nonterminal records from the same bounded Launch Library 2 snapshot. This is not a catalogue of every active spacecraft mission.",
+      emptyCurrent: "No mission-bearing records are available in the current public launch slice.",
+      siteMissing: "Site not provided",
+      title: "Upcoming mission board",
+      unavailable: "The mission board is unavailable until Lumina has a validated launch snapshot.",
+      vehicleMissing: "Vehicle not provided",
+    },
     openLaunchCenter: "Open Launch Center",
     title: "Mission Control",
   },

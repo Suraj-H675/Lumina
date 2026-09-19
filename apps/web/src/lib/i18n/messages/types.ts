@@ -68,12 +68,37 @@ export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
   checkSourceStatus: string;
+  currentMissionEvent: Readonly<{
+    countdownEligibleExplanation: string;
+    countdownIneligibleExplanation: string;
+    inspectLaunch: string;
+    launchProviderLabel: string;
+    missionLabel: string;
+    missingValue: string;
+    openLaunchCenter: string;
+    providerDisabled: string;
+    scheduleReferenceLabel: string;
+    scheduledNetLabel: string;
+    siteLabel: string;
+    sourcePrecisionLabel: string;
+    title: string;
+    unavailable: string;
+    vehicleLabel: string;
+  }>;
   exploreCatalogue: string;
   eyebrow: string;
   findSatellitePasses: string;
   intro: string;
   metadataDescription: string;
   metadataTitle: string;
+  missionBoard: Readonly<{
+    description: string;
+    emptyCurrent: string;
+    siteMissing: string;
+    title: string;
+    unavailable: string;
+    vehicleMissing: string;
+  }>;
   openLaunchCenter: string;
   title: string;
 }>;

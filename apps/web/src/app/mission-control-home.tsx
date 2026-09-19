@@ -73,8 +73,16 @@ export function MissionControlHome({
           </Link>
         </div>
       </section>
-      <CurrentMissionEvent launch={currentLaunch} outcome={launchOutcome} />
-      <MissionBoard launches={activeLaunches} outcome={launchOutcome} />
+      <CurrentMissionEvent
+        launch={currentLaunch}
+        messages={messages.currentMissionEvent}
+        outcome={launchOutcome}
+      />
+      <MissionBoard
+        launches={activeLaunches}
+        messages={messages.missionBoard}
+        outcome={launchOutcome}
+      />
       <ReviewedDiscoveryCard discovery={latestDiscovery} />
       <ContinueLearningCard content={content} path={content.path} />
 
@@ -97,8 +105,13 @@ export function MissionControlHome({
 
 function CurrentMissionEvent({
   launch,
+  messages,
   outcome,
-}: Readonly<{ launch: LaunchItemResponse | null; outcome: NowLaunchesOutcome }>) {
+}: Readonly<{
+  launch: LaunchItemResponse | null;
+  messages: MissionControlMessages["currentMissionEvent"];
+  outcome: NowLaunchesOutcome;
+}>) {
   if (launch === null) {
     return (
       <section
@@ -107,18 +120,18 @@ function CurrentMissionEvent({
         role="status"
       >
         <h2 className="text-2xl font-semibold" id="current-event-heading">
-          Current mission event
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
           {outcome.kind === "ok" && outcome.data.unavailable_reason === "provider_disabled"
-            ? "The launch provider is disabled, so Mission Control is making no current-launch claim."
-            : "No validated Launch Library 2 snapshot is available to Mission Control right now."}
+            ? messages.providerDisabled
+            : messages.unavailable}
         </p>
         <Link
           className="inline-flex min-h-11 items-center text-[var(--link)] underline"
           href="/now/launches"
         >
-          Open Launch Center
+          {messages.openLaunchCenter}
         </Link>
       </section>
     );
@@ -131,7 +144,7 @@ function CurrentMissionEvent({
     >
       <div className="space-y-2">
         <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-          Current mission event · {availability}
+          {messages.title} · {availability}
         </p>
         <h2 className="text-2xl font-semibold" id="current-event-heading">
           {launch.name}
@@ -142,7 +155,9 @@ function CurrentMissionEvent({
       </div>
       <div className="space-y-2 border-l-4 border-[var(--border-strong)] pl-4">
         <p>
-          {launch.timing.precision_id <= 2 ? "Scheduled NET: " : "Schedule reference: "}
+          {launch.timing.precision_id <= 2
+            ? `${messages.scheduledNetLabel}: `
+            : `${messages.scheduleReferenceLabel}: `}
           {launch.timing.precision_id <= 2 ? (
             <time dateTime={launch.timing.net_utc}>{launch.timing.net_utc}</time>
           ) : (
@@ -150,47 +165,61 @@ function CurrentMissionEvent({
           )}
         </p>
         <p className="text-sm leading-6 text-[var(--muted)]">
-          Source precision: {launch.timing.precision_name}.{" "}
+          {messages.sourcePrecisionLabel}: {launch.timing.precision_name}.{" "}
           {launch.timing.countdown_eligible
-            ? "The detailed Launch Center may show an exact countdown because this record is Go and precise to the minute or second."
-            : "Mission Control does not turn this source status and precision into an exact countdown."}
+            ? messages.countdownEligibleExplanation
+            : messages.countdownIneligibleExplanation}
         </p>
       </div>
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        <HomeFact label="Mission" value={launch.mission?.name ?? "Not provided by source"} />
-        <HomeFact label="Vehicle" value={launch.vehicle?.full_name ?? "Not provided by source"} />
-        <HomeFact label="Launch provider" value={launch.agency?.name ?? "Not provided by source"} />
-        <HomeFact label="Site" value={launch.site?.pad_name ?? "Not provided by source"} />
+        <HomeFact
+          label={messages.missionLabel}
+          value={launch.mission?.name ?? messages.missingValue}
+        />
+        <HomeFact
+          label={messages.vehicleLabel}
+          value={launch.vehicle?.full_name ?? messages.missingValue}
+        />
+        <HomeFact
+          label={messages.launchProviderLabel}
+          value={launch.agency?.name ?? messages.missingValue}
+        />
+        <HomeFact
+          label={messages.siteLabel}
+          value={launch.site?.pad_name ?? messages.missingValue}
+        />
       </dl>
       <Link
         className="inline-flex min-h-11 items-center text-[var(--link)] underline underline-offset-4"
         href={`/now/launches/${launch.launch_id}`}
       >
-        Inspect this launch and its provenance
+        {messages.inspectLaunch}
       </Link>
     </section>
   );
 }
 function MissionBoard({
   launches,
+  messages,
   outcome,
-}: Readonly<{ launches: ReadonlyArray<LaunchItemResponse>; outcome: NowLaunchesOutcome }>) {
+}: Readonly<{
+  launches: ReadonlyArray<LaunchItemResponse>;
+  messages: MissionControlMessages["missionBoard"];
+  outcome: NowLaunchesOutcome;
+}>) {
   return (
     <section aria-labelledby="mission-board-heading" className="space-y-5">
       <div className="max-w-3xl space-y-2">
         <h2 className="text-2xl font-semibold" id="mission-board-heading">
-          Upcoming mission board
+          {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          Mission-bearing, nonterminal records from the same bounded Launch Library 2 snapshot. This
-          is not a catalogue of every active spacecraft mission.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
       </div>
       {launches.length === 0 ? (
         <p className="border border-[var(--border)] p-5 text-[var(--muted)]" role="status">
           {outcome.kind === "ok" && outcome.data.availability !== "unavailable"
-            ? "No mission-bearing records are available in the current public launch slice."
-            : "The mission board is unavailable until Lumina has a validated launch snapshot."}
+            ? messages.emptyCurrent
+            : messages.unavailable}
         </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -208,8 +237,8 @@ function MissionBoard({
                 </Link>
               </h3>
               <p className="text-sm leading-6 text-[var(--muted)]">
-                {launch.vehicle?.full_name ?? "Vehicle not provided"} ·{" "}
-                {launch.site?.location_name ?? launch.site?.pad_name ?? "Site not provided"}
+                {launch.vehicle?.full_name ?? messages.vehicleMissing} ·{" "}
+                {launch.site?.location_name ?? launch.site?.pad_name ?? messages.siteMissing}
               </p>
             </article>
           ))}

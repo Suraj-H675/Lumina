@@ -83,4 +83,22 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.missionControl.checkSourceStatus).toBe("Check source status");
     expect(enMessages.missionControl.aboutTitle).toBe("About Lumina");
   });
+
+  it("keeps Mission Control live-state interface copy in the typed English dictionary", () => {
+    expect(enMessages.missionControl.currentMissionEvent.title).toBe("Current mission event");
+    expect(enMessages.missionControl.currentMissionEvent.providerDisabled).toMatch(
+      /making no current-launch claim/i,
+    );
+    expect(enMessages.missionControl.currentMissionEvent.sourcePrecisionLabel).toBe(
+      "Source precision",
+    );
+    expect(enMessages.missionControl.currentMissionEvent.missionLabel).toBe("Mission");
+    expect(enMessages.missionControl.currentMissionEvent.missingValue).toBe(
+      "Not provided by source",
+    );
+    expect(enMessages.missionControl.missionBoard.title).toBe("Upcoming mission board");
+    expect(enMessages.missionControl.missionBoard.unavailable).toMatch(
+      /validated launch snapshot/i,
+    );
+  });
 });

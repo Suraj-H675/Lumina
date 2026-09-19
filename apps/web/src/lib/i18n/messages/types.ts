@@ -143,8 +143,34 @@ export type LearningProgressControlsMessages = Readonly<{
   title: string;
 }>;
 
+export type LearningPathMessages = Readonly<{
+  breadcrumbLabel: string;
+  capstoneIntro: string;
+  capstoneTitle: string;
+  eyebrow: string;
+  learnLink: string;
+  lessonList: Readonly<{
+    checkingProgress: string;
+    completeFirst: string;
+    inProgress: string;
+    lessonNumber: string;
+    locked: string;
+    mastered: string;
+    notStarted: string;
+    pathComplete: string;
+    progress: string;
+    statusCorrupted: string;
+    title: string;
+  }>;
+  lessonMeta: CountMessageTemplates;
+  metadataDescription: string;
+  objectivesTitle: string;
+  safetyLabel: string;
+}>;
+
 export type LearnMessages = Readonly<{
   landing: LearnLandingMessages;
+  path: LearningPathMessages;
   progressControls: LearningProgressControlsMessages;
 }>;
 

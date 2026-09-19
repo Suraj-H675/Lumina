@@ -37,6 +37,36 @@ export const enMessages = {
       title: "Understand the sky by looking up",
       viewPath: "View the path",
     },
+    path: {
+      breadcrumbLabel: "Breadcrumb",
+      capstoneIntro:
+        "Finish by making a short, private note about a real observation. You do not need to identify everything; the note should preserve what you saw and what stayed unknown.",
+      capstoneTitle: "Capstone: {capstoneTitle}",
+      eyebrow: "Learning path",
+      learnLink: "Learn",
+      lessonList: {
+        checkingProgress: "Checking local progress…",
+        completeFirst: "Complete first: {prerequisites}.",
+        inProgress: "In progress",
+        lessonNumber: "Lesson {lessonNumber}",
+        locked: "Locked",
+        mastered: "Mastered",
+        notStarted: "Not started",
+        pathComplete: "Path complete — every lesson is mastered at the {threshold} threshold.",
+        progress: "{masteredCount} of {lessonCount} mastered",
+        statusCorrupted:
+          "Saved progress could not be read. You can still read the lessons, but progress is paused until it is reset.",
+        title: "Lessons",
+      },
+      lessonMeta: {
+        one: "{count} lesson · quizzes included · no account required",
+        other: "{count} lessons · quizzes included · no account required",
+      },
+      metadataDescription:
+        "A complete authored learning path for making a first night-sky observation.",
+      objectivesTitle: "What you will practise",
+      safetyLabel: "Safety:",
+    },
     progressControls: {
       cancelImportAction: "Cancel import",
       confirmImportAction: "Import progress",

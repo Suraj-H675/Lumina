@@ -184,4 +184,19 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.storedSummary.other).toContain("{count}");
     expect(messages.failures.storageQuotaExceeded).toMatch(/storage is full/i);
   });
+
+  it("keeps the Learning Path wrapper separate from authored path and lesson content", () => {
+    const messages = enMessages.learn.path;
+    expect(messages.metadataDescription).toMatch(/complete authored learning path/i);
+    expect(messages.breadcrumbLabel).toBe("Breadcrumb");
+    expect(messages.learnLink).toBe("Learn");
+    expect(messages.eyebrow).toBe("Learning path");
+    expect(messages.lessonMeta.other).toContain("{count}");
+    expect(messages.objectivesTitle).toBe("What you will practise");
+    expect(messages.capstoneTitle).toContain("{capstoneTitle}");
+    expect(messages.safetyLabel).toBe("Safety:");
+    expect(messages.lessonList.title).toBe("Lessons");
+    expect(messages.lessonList.lessonNumber).toContain("{lessonNumber}");
+    expect(messages.lessonList.pathComplete).toContain("{threshold}");
+  });
 });

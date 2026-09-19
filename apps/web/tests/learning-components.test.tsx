@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { loadLearningContent } from "../src/lib/learning/content";
 import { LearningLessonView } from "../src/components/learning-lesson-view";
 import { LearningPathView } from "../src/components/learning-path-view";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import {
   resetLearningProgress,
   getLearningProgressSnapshot,
@@ -28,7 +29,14 @@ beforeEach(() => {
 
 describe("learning content views", () => {
   it("renders the path and lesson with source/review content accessibly", async () => {
-    const pathRender = render(<LearningPathView content={content} path={path} />);
+    const pathRender = render(
+      <LearningPathView
+        content={content}
+        locale="en"
+        messages={enMessages.learn.path}
+        path={path}
+      />,
+    );
     expect((await axe(pathRender.container)).violations).toEqual([]);
     expect(screen.getByRole("heading", { level: 1, name: "Your First Night Sky" })).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: "Sources and review" })).toBeVisible();

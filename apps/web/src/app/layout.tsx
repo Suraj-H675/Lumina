@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { SiteShell } from "../components/site-shell";
+import { loadPublishedDictionary } from "../lib/i18n/dictionaries";
+import { DEFAULT_LOCALE, localeDefinition } from "../lib/i18n/locales";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,11 +25,17 @@ type RootLayoutProps = Readonly<{
   children: ReactNode;
 }>;
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const locale = DEFAULT_LOCALE;
+  const definition = localeDefinition(locale);
+  const messages = await loadPublishedDictionary(locale);
+
   return (
-    <html lang="en">
+    <html dir={definition.direction} lang={definition.languageTag}>
       <body>
-        <SiteShell>{children}</SiteShell>
+        <SiteShell locale={locale} messages={messages.shell}>
+          {children}
+        </SiteShell>
       </body>
     </html>
   );

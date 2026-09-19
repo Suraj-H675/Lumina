@@ -3,6 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PwaStatus } from "../src/components/pwa-status";
+import { enMessages } from "../src/lib/i18n/messages/en";
+
+const PWA_PROPS = { locale: "en", messages: enMessages.shell.pwa } as const;
 
 function setOnline(value: boolean): void {
   Object.defineProperty(window.navigator, "onLine", {
@@ -42,7 +45,7 @@ afterEach(() => {
 
 describe("Lumina PWA connectivity and update status", () => {
   it("announces lost connectivity without relabelling displayed provider data as current", () => {
-    render(<PwaStatus />);
+    render(<PwaStatus {...PWA_PROPS} />);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
 
     act(() => {
@@ -68,7 +71,7 @@ describe("Lumina PWA connectivity and update status", () => {
     );
     setCacheStorage({ open: vi.fn().mockResolvedValue({ match }) });
 
-    const { container } = render(<PwaStatus />);
+    const { container } = render(<PwaStatus {...PWA_PROPS} />);
 
     expect(await screen.findByText(/this page is an offline copy saved by lumina/i)).toBeVisible();
     expect(container.querySelector("time")).toHaveAttribute("datetime", cachedAt);
@@ -101,7 +104,7 @@ describe("Lumina PWA connectivity and update status", () => {
       removeEventListener: vi.fn(),
     });
 
-    render(<PwaStatus />);
+    render(<PwaStatus {...PWA_PROPS} />);
 
     expect(await screen.findByRole("status")).toHaveTextContent(/you are offline/i);
     expect(screen.getByRole("status")).toHaveTextContent(/may no longer be current/i);
@@ -132,7 +135,7 @@ describe("Lumina PWA connectivity and update status", () => {
     setServiceWorker(serviceWorker);
     const user = userEvent.setup();
 
-    render(<PwaStatus />);
+    render(<PwaStatus {...PWA_PROPS} />);
 
     await waitFor(() => {
       expect(serviceWorker.register).toHaveBeenCalledWith("/sw.js", {
@@ -152,7 +155,7 @@ describe("Lumina PWA connectivity and update status", () => {
     const register = vi.fn();
     setServiceWorker({ addEventListener: vi.fn(), controller: null, register });
 
-    render(<PwaStatus />);
+    render(<PwaStatus {...PWA_PROPS} />);
     await Promise.resolve();
 
     expect(register).not.toHaveBeenCalled();

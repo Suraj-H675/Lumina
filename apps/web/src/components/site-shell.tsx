@@ -3,18 +3,22 @@ import type { ReactNode } from "react";
 
 import { PwaStatus } from "./pwa-status";
 import { SiteNav } from "./site-nav";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SiteShellMessages } from "../lib/i18n/messages/types";
 
 type SiteShellProps = Readonly<{
   children: ReactNode;
+  locale: PublishedLocale;
+  messages: SiteShellMessages;
 }>;
 
-export function SiteShell({ children }: SiteShellProps) {
+export function SiteShell({ children, locale, messages }: SiteShellProps) {
   return (
     <div className="flex min-h-dvh flex-col">
       <a className="skip-link" href="#main-content">
-        Skip to main content
+        {messages.skipToMainContent}
       </a>
-      <PwaStatus />
+      <PwaStatus locale={locale} messages={messages.pwa} />
       <header className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_72%,transparent)]">
         <div className="mx-auto flex w-full max-w-[var(--content-width)] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
           <Link
@@ -26,7 +30,7 @@ export function SiteShell({ children }: SiteShellProps) {
             </span>
             Lumina
           </Link>
-          <SiteNav />
+          <SiteNav messages={messages.navigation} />
         </div>
       </header>
       <main
@@ -38,12 +42,12 @@ export function SiteShell({ children }: SiteShellProps) {
       </main>
       <footer className="border-t border-[var(--border)] bg-[var(--background-raised)]">
         <div className="mx-auto flex w-full max-w-[var(--content-width)] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-[var(--muted)] sm:px-6">
-          <p>Lumina — a free, scientifically grounded way to explore space.</p>
+          <p>{messages.footerTagline}</p>
           <Link
             className="inline-flex min-h-11 items-center text-[var(--link)] underline"
             href="/explore"
           >
-            Explore the catalogue
+            {messages.exploreCatalogue}
           </Link>
         </div>
       </footer>

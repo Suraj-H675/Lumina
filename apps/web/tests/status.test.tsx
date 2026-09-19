@@ -18,6 +18,7 @@ import {
   type ProviderStatus,
 } from "../src/lib/server/foundation-status";
 import { SiteShell } from "../src/components/site-shell";
+import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 
 const origin = "http://127.0.0.1:8765";
 const unavailableProvider: ProviderStatus = { kind: "unavailable" };
@@ -161,7 +162,7 @@ function controlledFetch(readyStatus = 200): typeof fetch {
 
 function renderStatus(status: FoundationStatus) {
   return render(
-    <SiteShell>
+    <SiteShell {...EN_SHELL_PROPS}>
       <StatusView status={status} />
     </SiteShell>,
   );

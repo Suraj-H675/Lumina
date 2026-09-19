@@ -13,6 +13,7 @@ import { MissionControlHome } from "../src/app/mission-control-home";
 import { loadReviewedDiscoveries } from "../src/lib/discoveries/content";
 import RouteError from "../src/app/error";
 import { SiteShell } from "../src/components/site-shell";
+import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 
 const appDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "../src/app");
 const rootLoadingPath = resolve(appDirectory, "loading.tsx");
@@ -20,7 +21,7 @@ const learnLoadingPath = resolve(appDirectory, "learn/loading.tsx");
 
 function renderHome() {
   return render(
-    <SiteShell>
+    <SiteShell {...EN_SHELL_PROPS}>
       <MissionControlHome
         discoveries={loadReviewedDiscoveries().entries}
         launchOutcome={{ kind: "unavailable" }}

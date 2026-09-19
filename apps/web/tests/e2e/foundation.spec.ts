@@ -4,8 +4,16 @@ import { expect, test } from "@playwright/test";
 test("Mission Control home loads with an honest construction-state message", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page).toHaveURL(/\/$/u);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await expect(page).toHaveTitle(/Mission Control/);
   await expect(page.getByRole("heading", { level: 1, name: "Mission Control" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Observation planner" })).toHaveAttribute(
+    "href",
+    "/observe",
+  );
 });
 
 test("the skip link moves keyboard focus to the main content", async ({ page }) => {

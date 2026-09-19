@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import LabPage from "../src/app/lab/page";
 import { SiteNav } from "../src/components/site-nav";
+import { enMessages } from "../src/lib/i18n/messages/en";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/lab/telescope-builder",
@@ -31,7 +32,7 @@ describe("Lab section navigation", () => {
   });
 
   it("points the primary Lab item at the section index and marks deep links active", () => {
-    render(<SiteNav />);
+    render(<SiteNav messages={enMessages.shell.navigation} />);
 
     const labLink = screen.getByRole("link", { name: "Lab" });
     expect(labLink).toHaveAttribute("href", "/lab");

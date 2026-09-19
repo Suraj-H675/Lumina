@@ -8,6 +8,7 @@ vi.mock("server-only", () => ({}));
 
 import { NearEarthView } from "../src/app/now/near-earth/near-earth-view";
 import { SiteShell } from "../src/components/site-shell";
+import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 import { loadNowNearEarth } from "../src/lib/server/space-now";
 
 const source = {
@@ -73,7 +74,7 @@ const response: NearEarthResponse = {
 
 function renderPage(value: NearEarthResponse) {
   return render(
-    <SiteShell>
+    <SiteShell {...EN_SHELL_PROPS}>
       <NearEarthView outcome={{ data: value, kind: "ok" }} />
     </SiteShell>,
   );

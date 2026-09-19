@@ -8,6 +8,7 @@ vi.mock("server-only", () => ({}));
 
 import { SpaceWeatherView } from "../src/app/now/space-weather/space-weather-view";
 import { SiteShell } from "../src/components/site-shell";
+import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 import { loadNowSpaceWeather } from "../src/lib/server/space-now";
 
 const source = {
@@ -83,7 +84,7 @@ const response: SpaceWeatherResponse = {
 
 function renderPage(value: SpaceWeatherResponse) {
   return render(
-    <SiteShell>
+    <SiteShell {...EN_SHELL_PROPS}>
       <SpaceWeatherView outcome={{ data: value, kind: "ok" }} />
     </SiteShell>,
   );

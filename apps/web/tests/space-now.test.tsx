@@ -8,6 +8,7 @@ vi.mock("server-only", () => ({}));
 
 import { SpaceNowView } from "../src/app/now/space-now-view";
 import { SiteShell } from "../src/components/site-shell";
+import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 import { loadNowApod } from "../src/lib/server/space-now";
 
 const source = {
@@ -55,7 +56,7 @@ const videoResponse: ApodResponse = {
 
 function renderPage(response: ApodResponse) {
   return render(
-    <SiteShell>
+    <SiteShell {...EN_SHELL_PROPS}>
       <SpaceNowView outcome={{ data: response, kind: "ok" }} />
     </SiteShell>,
   );

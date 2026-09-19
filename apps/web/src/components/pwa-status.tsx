@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { formatLocaleDateTime } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { PwaStatusMessages } from "../lib/i18n/messages/types";
 import {
   isCacheablePwaDocumentPath,
   LUMINA_PWA_METADATA_CACHE,
@@ -73,14 +76,28 @@ async function readWorkerNetworkAvailability(): Promise<boolean | null> {
   }
 }
 
-function formatCachedAt(value: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatCachedAt(value: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(new Date(value), locale, {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  });
 }
 
-export function PwaStatus() {
+function splitPlaceholder(message: string, placeholder: string): readonly [string, string] {
+  const token = `{${placeholder}}`;
+  const index = message.indexOf(token);
+  if (index < 0 || message.indexOf(token, index + token.length) >= 0) {
+    throw new TypeError(`Localization message must contain exactly one ${token} placeholder.`);
+  }
+  return [message.slice(0, index), message.slice(index + token.length)];
+}
+
+type PwaStatusProps = Readonly<{
+  locale: PublishedLocale;
+  messages: PwaStatusMessages;
+}>;
+
+export function PwaStatus({ locale, messages }: PwaStatusProps) {
   const online = useSyncExternalStore(subscribeConnectivity, onlineSnapshot, serverOnlineSnapshot);
   const [offlineCopy, setOfflineCopy] = useState<Readonly<{
     cachedAt: string | null;
@@ -200,24 +217,23 @@ export function PwaStatus() {
     !effectiveOnline && typeof window !== "undefined" && offlineCopy?.url === window.location.href
       ? offlineCopy.cachedAt
       : null;
+  const cachedNoticeParts =
+    cachedAt === null ? null : splitPlaceholder(messages.offlineCopyNotice, "cachedAt");
 
   return (
     <div className="border-b border-[var(--border)] bg-[var(--background-raised)]">
       <div className="mx-auto grid w-full max-w-[var(--content-width)] gap-2 px-4 py-3 text-sm sm:px-6">
         {!effectiveOnline ? (
           <div className="leading-6 text-[var(--foreground)]" role="status">
-            <p className="font-semibold">You are offline.</p>
-            {cachedAt !== null ? (
+            <p className="font-semibold">{messages.offlineTitle}</p>
+            {cachedAt !== null && cachedNoticeParts !== null ? (
               <p className="text-[var(--muted)]">
-                This page is an offline copy saved by Lumina at{" "}
-                <time dateTime={cachedAt}>{formatCachedAt(cachedAt)}</time>. Displayed live or
-                provider data may no longer be current; check its source and retrieval time.
+                {cachedNoticeParts[0]}
+                <time dateTime={cachedAt}>{formatCachedAt(cachedAt, locale)}</time>
+                {cachedNoticeParts[1]}
               </p>
             ) : (
-              <p className="text-[var(--muted)]">
-                Displayed live or provider data may no longer be current; check its source and
-                retrieval time. Unvisited pages and network-only features may be unavailable.
-              </p>
+              <p className="text-[var(--muted)]">{messages.offlineNotice}</p>
             )}
           </div>
         ) : null}
@@ -228,10 +244,8 @@ export function PwaStatus() {
             role="status"
           >
             <p>
-              <span className="font-semibold">A Lumina update is ready.</span>{" "}
-              <span className="text-[var(--muted)]">
-                Apply it when you are ready to reload this page.
-              </span>
+              <span className="font-semibold">{messages.updateTitle}</span>{" "}
+              <span className="text-[var(--muted)]">{messages.updateHelp}</span>
             </p>
             <button
               className="min-h-11 border border-[var(--border-strong)] bg-[var(--surface)] px-4 font-semibold disabled:cursor-wait disabled:opacity-70"
@@ -239,7 +253,7 @@ export function PwaStatus() {
               onClick={applyUpdate}
               type="button"
             >
-              {applyingUpdate ? "Applying update…" : "Apply update"}
+              {applyingUpdate ? messages.applyingUpdate : messages.applyUpdate}
             </button>
           </div>
         ) : null}

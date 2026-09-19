@@ -62,6 +62,12 @@ const labs = [
       "Explore Schwarzschild event-horizon, photon-sphere, ISCO, static-clock, and redshift relationships with an explicitly non-ray-traced teaching model.",
   },
   {
+    href: "/lab/relativity-visualizations",
+    title: "Relativity Visualizations",
+    description:
+      "Explore inertial-frame time dilation, length contraction, relativity of simultaneity, and reviewed light-cone teaching geometry.",
+  },
+  {
     href: "/lab/scale-explorer",
     title: "Scale Explorer",
     description: "Move through a cited logarithmic scale of astronomical characteristic sizes.",

@@ -71,6 +71,7 @@ def test_repeated_exports_are_byte_identical_stable_json() -> None:
         "/api/v1/simulations/orbit-sandbox",
         "/api/v1/simulations/planetary-system-builder",
         "/api/v1/simulations/radial-velocity",
+        "/api/v1/simulations/relativity-visualizations",
         "/api/v1/simulations/rocket-mission-designer",
         "/api/v1/simulations/seasons",
         "/api/v1/simulations/spectroscopy-lab",
@@ -186,6 +187,33 @@ def test_black_hole_relativity_calculation_openapi_is_versioned_and_read_only() 
     assert parameters["static_observer_radius_rs"]["schema"]["minimum"] == 1.01
     assert parameters["static_observer_radius_rs"]["schema"]["maximum"] == 100.0
     assert set(document["paths"]["/api/v1/simulations/black-hole-relativity"]) == {"get"}
+
+
+def test_relativity_visualizations_calculation_openapi_is_versioned_and_read_only() -> None:
+    document: dict[str, Any] = json.loads(export_openapi())
+    operation = document["paths"]["/api/v1/simulations/relativity-visualizations"]["get"]
+
+    assert operation["operationId"] == "calculate_relativity_visualizations"
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/RelativityVisualizationsCalculationResponse"
+    )
+    parameters = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert set(parameters) == {
+        "relative_speed_fraction_c",
+        "proper_time_s",
+        "proper_length_m",
+        "simultaneous_event_separation_m",
+    }
+    assert all(parameter["required"] is True for parameter in parameters.values())
+    assert parameters["relative_speed_fraction_c"]["schema"]["minimum"] == 0.0
+    assert parameters["relative_speed_fraction_c"]["schema"]["maximum"] == 0.99
+    assert parameters["proper_time_s"]["schema"]["minimum"] == 1.0e-9
+    assert parameters["proper_time_s"]["schema"]["maximum"] == 1.0e9
+    assert parameters["proper_length_m"]["schema"]["minimum"] == 1.0e-6
+    assert parameters["proper_length_m"]["schema"]["maximum"] == 1.0e15
+    assert parameters["simultaneous_event_separation_m"]["schema"]["minimum"] == 0.0
+    assert parameters["simultaneous_event_separation_m"]["schema"]["maximum"] == 1.0e15
+    assert set(document["paths"]["/api/v1/simulations/relativity-visualizations"]) == {"get"}
 
 
 def test_impact_simulator_calculation_openapi_is_versioned_and_read_only() -> None:

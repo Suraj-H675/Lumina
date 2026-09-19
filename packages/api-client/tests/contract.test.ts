@@ -13,6 +13,7 @@ import {
   orbitSandboxEndpoint,
   planetarySystemBuilderEndpoint,
   radialVelocityEndpoint,
+  relativityVisualizationsEndpoint,
   rocketMissionDesignerEndpoint,
   seasonsSimulatorEndpoint,
   spectroscopyLabEndpoint,
@@ -37,6 +38,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
+  CalculateRelativityVisualizationsData,
   CalculateRocketMissionDesignerData,
   CalculateSeasonsSimulatorData,
   CalculateSpectroscopyLabData,
@@ -68,6 +70,7 @@ import { BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE } from "./fixtures/black-hole-re
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
 import { IMPACT_SIMULATOR_DEFAULT_RESPONSE } from "./fixtures/impact-simulator-response";
 import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
+import { RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE } from "./fixtures/relativity-visualizations-response";
 import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
 
 describe("generated contract boundary", () => {
@@ -100,6 +103,10 @@ describe("generated contract boundary", () => {
     >();
     expect(radialVelocityEndpoint.method).toBe("GET");
     expectTypeOf(radialVelocityEndpoint.path).toEqualTypeOf<CalculateRadialVelocityData["url"]>();
+    expect(relativityVisualizationsEndpoint.method).toBe("GET");
+    expectTypeOf(relativityVisualizationsEndpoint.path).toEqualTypeOf<
+      CalculateRelativityVisualizationsData["url"]
+    >();
     expect(rocketMissionDesignerEndpoint.method).toBe("GET");
     expectTypeOf(rocketMissionDesignerEndpoint.path).toEqualTypeOf<
       CalculateRocketMissionDesignerData["url"]
@@ -582,6 +589,63 @@ describe("Black-Hole / Relativity Lab endpoint", () => {
     ).byteLength;
     expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
     expect(Object.hasOwn(blackHoleRelativityEndpoint, "maxResponseBytes")).toBe(false);
+  });
+});
+
+describe("Relativity Visualizations endpoint", () => {
+  it("binds the generated URL and accepts the exact Python-produced response shape", async () => {
+    expectTypeOf(relativityVisualizationsEndpoint.path).toEqualTypeOf<
+      CalculateRelativityVisualizationsData["url"]
+    >();
+    const result = await requestEndpoint(
+      "http://127.0.0.1:8000",
+      relativityVisualizationsEndpoint,
+      {
+        fetchImplementation: () =>
+          Promise.resolve(
+            new Response(JSON.stringify(RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE), {
+              headers: { "content-type": "application/json" },
+              status: 200,
+            }),
+          ),
+      },
+    );
+    expect(result).toEqual({
+      data: RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE,
+      kind: "ok",
+      status: 200,
+    });
+  });
+
+  it("rejects additive Relativity Visualizations result fields", async () => {
+    const result = await requestEndpoint(
+      "http://127.0.0.1:8000",
+      relativityVisualizationsEndpoint,
+      {
+        fetchImplementation: () =>
+          Promise.resolve(
+            new Response(
+              JSON.stringify({
+                ...RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE,
+                invented: true,
+              }),
+              {
+                headers: { "content-type": "application/json" },
+                status: 200,
+              },
+            ),
+          ),
+      },
+    );
+    expect(result).toEqual({ kind: "malformed-response" });
+  });
+
+  it("fits the normal bounded transport response ceiling", () => {
+    const bytes = new TextEncoder().encode(
+      JSON.stringify(RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE),
+    ).byteLength;
+    expect(bytes).toBeLessThan(MAX_RESPONSE_BYTES);
+    expect(Object.hasOwn(relativityVisualizationsEndpoint, "maxResponseBytes")).toBe(false);
   });
 });
 

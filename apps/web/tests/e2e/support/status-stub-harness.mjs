@@ -42,6 +42,9 @@ const impactSimulatorFixtures = JSON.parse(
 const blackHoleRelativityFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/black-hole-relativity.json", import.meta.url), "utf8"),
 );
+const relativityVisualizationsFixtures = JSON.parse(
+  readFileSync(new URL("../fixtures/relativity-visualizations.json", import.meta.url), "utf8"),
+);
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",
@@ -60,6 +63,7 @@ const apiPaths = new Set([
   "/api/v1/simulations/orbit-sandbox",
   "/api/v1/simulations/planetary-system-builder",
   "/api/v1/simulations/radial-velocity",
+  "/api/v1/simulations/relativity-visualizations",
   "/api/v1/simulations/rocket-mission-designer",
   "/api/v1/simulations/seasons",
   "/api/v1/simulations/spectroscopy-lab",
@@ -1662,6 +1666,50 @@ function respondBlackHoleRelativity(response, target) {
   });
 }
 
+function respondRelativityVisualizations(response, target) {
+  const expectedKeys = [
+    "relative_speed_fraction_c",
+    "proper_time_s",
+    "proper_length_m",
+    "simultaneous_event_separation_m",
+  ];
+  const keys = [...target.searchParams.keys()];
+  const validShape =
+    keys.length === expectedKeys.length &&
+    [...new Set(keys)].length === expectedKeys.length &&
+    expectedKeys.every((key) => keys.includes(key) && target.searchParams.getAll(key).length === 1);
+  if (!validShape) {
+    sendJson(response, 422, {
+      error: {
+        code: "relativity_visualizations.model_invalid",
+        message: "The Relativity Visualizations fixture received an unsupported query shape.",
+        request_id: "e2e-fixture",
+      },
+    });
+    return;
+  }
+  const common =
+    target.searchParams.get("proper_time_s") === "10" &&
+    target.searchParams.get("proper_length_m") === "100" &&
+    target.searchParams.get("simultaneous_event_separation_m") === "299792458";
+  const beta = target.searchParams.get("relative_speed_fraction_c");
+  if (common && beta === "0.6") {
+    sendJson(response, 200, relativityVisualizationsFixtures.default_beta_06);
+    return;
+  }
+  if (common && beta === "0.8") {
+    sendJson(response, 200, relativityVisualizationsFixtures.accepted_beta_08);
+    return;
+  }
+  sendJson(response, 422, {
+    error: {
+      code: "relativity_visualizations.model_invalid",
+      message: "The Relativity Visualizations E2E fixture only exposes reviewed reference states.",
+      request_id: "e2e-fixture",
+    },
+  });
+}
+
 function respondSeasons(response, target) {
   const keys = [...target.searchParams.keys()];
   const expectedKeys = [
@@ -2182,6 +2230,7 @@ const stub = http.createServer(async (request, response) => {
   const isBlackHoleRelativityPath = path === "/api/v1/simulations/black-hole-relativity";
   const isImpactSimulatorPath = path === "/api/v1/simulations/impact-simulator";
   const isRadialVelocityPath = path === "/api/v1/simulations/radial-velocity";
+  const isRelativityVisualizationsPath = path === "/api/v1/simulations/relativity-visualizations";
   const isRocketMissionDesignerPath = path === "/api/v1/simulations/rocket-mission-designer";
   const isSeasonsPath = path === "/api/v1/simulations/seasons";
   const isSpectroscopyLabPath = path === "/api/v1/simulations/spectroscopy-lab";
@@ -2232,6 +2281,7 @@ const stub = http.createServer(async (request, response) => {
     !isOrbitSandboxPath &&
     !isPlanetarySystemBuilderPath &&
     !isRadialVelocityPath &&
+    !isRelativityVisualizationsPath &&
     !isRocketMissionDesignerPath &&
     !isSeasonsPath &&
     !isSpectroscopyLabPath &&
@@ -2461,6 +2511,10 @@ const stub = http.createServer(async (request, response) => {
   }
   if (isRadialVelocityPath) {
     respondRadialVelocity(response, target);
+    return;
+  }
+  if (isRelativityVisualizationsPath) {
+    respondRelativityVisualizations(response, target);
     return;
   }
   if (isRocketMissionDesignerPath) {

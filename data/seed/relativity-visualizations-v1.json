@@ -1,0 +1,328 @@
+{
+  "artifact_version": 1,
+  "model_version": "relativity-visualizations-v1",
+  "schema_version": 1,
+  "share_schema_version": 1,
+  "generated_at": "2026-09-19T00:00:00Z",
+  "definition": {
+    "slug": "relativity-visualizations",
+    "title": "Relativity Visualizations",
+    "status": "ready",
+    "version": 1,
+    "model_version": "relativity-visualizations-v1",
+    "share_schema_version": 1,
+    "summary": "Deterministic one-dimensional inertial-frame special-relativity teaching model.",
+    "assumptions": [
+      "Frames S and S' are inertial, their x axes are aligned, and S' moves at constant +x velocity relative to S.",
+      "Proper time is measured by a clock for which the defining events occur at the same position.",
+      "Proper length is measured in the object's rest frame; contracted length uses simultaneous endpoint positions in the frame where the object moves.",
+      "The simultaneity pair is simultaneous in S with event B at non-negative x separation from event A.",
+      "The light-cone diagram uses reviewed normalized c=1 teaching coordinates rather than browser-computed physics."
+    ],
+    "limitations": [
+      "No acceleration, non-inertial frames, twin-paradox turnaround dynamics, or rotating frames.",
+      "No relativistic velocity addition, Doppler shift, momentum, energy, four-vectors, or arbitrary three-dimensional boosts.",
+      "No general-relativity or gravitational-redshift calculation; the certified Schwarzschild lab owns that model.",
+      "Length contraction is a frame-dependent coordinate measurement, not a photographic rendering prediction.",
+      "The 0-0.99c speed range is a reviewed teaching/numerical product bound, not a physical applicability cutoff."
+    ],
+    "equations": [
+      {
+        "id": "lorentz-factor",
+        "expression": "gamma=1/sqrt(1-beta^2)",
+        "meaning": "Lorentz factor for relative speed v=beta*c."
+      },
+      {
+        "id": "time-dilation",
+        "expression": "Delta_t=gamma*Delta_tau",
+        "meaning": "Elapsed coordinate time in the frame where the proper clock moves."
+      },
+      {
+        "id": "length-contraction",
+        "expression": "L=L0/gamma",
+        "meaning": "Moving-frame length from simultaneous endpoint positions."
+      },
+      {
+        "id": "relativity-of-simultaneity",
+        "expression": "Delta_t_prime=-gamma*beta*Delta_x/c",
+        "meaning": "Signed S' time separation for events simultaneous in S with B at +Delta_x."
+      }
+    ],
+    "references": [
+      "nist-speed-of-light",
+      "openstax-special-relativity",
+      "openstax-time-dilation",
+      "openstax-length-contraction",
+      "openstax-lorentz-transformation",
+      "mit-ocw-relativity",
+      "einstein-online-light-cone",
+      "einstein-online-relativity-space-time"
+    ]
+  },
+  "sources": [
+    {
+      "id": "nist-speed-of-light",
+      "title": "CODATA Value: speed of light in vacuum",
+      "organization_or_authors": "NIST / 2022 CODATA",
+      "url": "https://physics.nist.gov/cuu/Constants/Value/c.html",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "2022 CODATA recommended values",
+      "record_reference": "c = 299792458 m s^-1, exact.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2022",
+      "terms_or_licence": "NIST public reference; source terms apply.",
+      "citation": "NIST, CODATA Value: speed of light in vacuum.",
+      "claim_scope": "Exact SI speed of light used in v=beta*c and the simultaneity offset.",
+      "source_type": "official-constants-reference"
+    },
+    {
+      "id": "openstax-special-relativity",
+      "title": "Chapter 5 Introduction — University Physics Volume 3",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-3/pages/5-introduction",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "University Physics Volume 3, Chapter 5",
+      "record_reference": "Special relativity describes measurements in inertial frames moving at constant relative velocity.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed edition",
+      "terms_or_licence": "OpenStax textbook licensing terms apply.",
+      "citation": "OpenStax, University Physics Volume 3, Chapter 5 introduction.",
+      "claim_scope": "Special-relativity inertial-frame scope and chapter organization.",
+      "source_type": "open-textbook"
+    },
+    {
+      "id": "openstax-time-dilation",
+      "title": "5.3 Time Dilation — University Physics Volume 3",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-3/pages/5-3-time-dilation",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "University Physics Volume 3, section 5.3",
+      "record_reference": "Proper time is measured where the two defining events occur at the same location; Delta_t=gamma*Delta_tau.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed edition",
+      "terms_or_licence": "OpenStax textbook licensing terms apply.",
+      "citation": "OpenStax, University Physics Volume 3, §5.3 Time Dilation.",
+      "claim_scope": "Proper-time semantics and time-dilation equation.",
+      "source_type": "open-textbook"
+    },
+    {
+      "id": "openstax-length-contraction",
+      "title": "5.4 Length Contraction — University Physics Volume 3",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-3/pages/5-4-length-contraction",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "University Physics Volume 3, section 5.4",
+      "record_reference": "Proper length is measured in the object's rest frame and moving-frame length is L=L0/gamma.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed edition",
+      "terms_or_licence": "OpenStax textbook licensing terms apply.",
+      "citation": "OpenStax, University Physics Volume 3, §5.4 Length Contraction.",
+      "claim_scope": "Proper-length semantics, simultaneity requirement, and length-contraction equation.",
+      "source_type": "open-textbook"
+    },
+    {
+      "id": "openstax-lorentz-transformation",
+      "title": "5.5 The Lorentz Transformation — University Physics Volume 3",
+      "organization_or_authors": "OpenStax",
+      "url": "https://openstax.org/books/university-physics-volume-3/pages/5-5-the-lorentz-transformation",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "University Physics Volume 3, section 5.5",
+      "record_reference": "t'=gamma*(t-vx/c^2); separated events simultaneous in one inertial frame need not be simultaneous in another.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed edition",
+      "terms_or_licence": "OpenStax textbook licensing terms apply.",
+      "citation": "OpenStax, University Physics Volume 3, §5.5 The Lorentz Transformation.",
+      "claim_scope": "Lorentz time transformation and relativity-of-simultaneity sign convention.",
+      "source_type": "open-textbook"
+    },
+    {
+      "id": "mit-ocw-relativity",
+      "title": "8.033 Relativity — Syllabus",
+      "organization_or_authors": "MIT OpenCourseWare",
+      "url": "https://www.ocw.mit.edu/courses/8-033-relativity-fall-2006/pages/syllabus/",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "MIT 8.033 Relativity, Fall 2006",
+      "record_reference": "Course topics include simultaneity, time dilation, length contraction, Lorentz transformation, and Minkowski diagrams.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "2006",
+      "terms_or_licence": "MIT OpenCourseWare Creative Commons licensing terms apply.",
+      "citation": "MIT OpenCourseWare 8.033 Relativity syllabus.",
+      "claim_scope": "Independent course-level coverage of the selected v1 lesson set.",
+      "source_type": "university-course-material"
+    },
+    {
+      "id": "einstein-online-light-cone",
+      "title": "light-cone — Einstein Online",
+      "organization_or_authors": "Einstein Online / Max Planck Institute for Gravitational Physics",
+      "url": "https://www.einstein-online.info/en/explandict/light-cone/",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "Einstein Online dictionary",
+      "record_reference": "Light signals form the boundary separating events that can be causally connected from events requiring faster-than-light influence.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed page",
+      "terms_or_licence": "Einstein Online source terms apply.",
+      "citation": "Einstein Online, light-cone dictionary entry.",
+      "claim_scope": "Light-cone causal-boundary teaching semantics.",
+      "source_type": "research-institute-education"
+    },
+    {
+      "id": "einstein-online-relativity-space-time",
+      "title": "Special relativity: The relativity of space and time — Einstein Online",
+      "organization_or_authors": "Einstein Online / Max Planck Institute for Gravitational Physics",
+      "url": "https://www.einstein-online.info/en/relativity_space_time/",
+      "accessed_at": "2026-09-19",
+      "dataset_or_release": "Elementary Einstein special-relativity tour",
+      "record_reference": "Simultaneity, durations, and distances depend on inertial frame; separated events simultaneous in one frame need not be simultaneous in another.",
+      "retrieved_at": "2026-09-19",
+      "data_date": "current reviewed page",
+      "terms_or_licence": "Einstein Online source terms apply.",
+      "citation": "Einstein Online, Special relativity: The relativity of space and time.",
+      "claim_scope": "Independent frame-dependence and simultaneity explanation.",
+      "source_type": "research-institute-education"
+    }
+  ],
+  "constants": {
+    "SPEED_OF_LIGHT_M_S": 299792458.0,
+    "MIN_RELATIVE_SPEED_FRACTION_C": 0.0,
+    "MAX_RELATIVE_SPEED_FRACTION_C": 0.99,
+    "MIN_PROPER_TIME_S": 1e-9,
+    "MAX_PROPER_TIME_S": 1000000000.0,
+    "MIN_PROPER_LENGTH_M": 1e-6,
+    "MAX_PROPER_LENGTH_M": 1000000000000000.0,
+    "MIN_SIMULTANEOUS_EVENT_SEPARATION_M": 0.0,
+    "MAX_SIMULTANEOUS_EVENT_SEPARATION_M": 1000000000000000.0
+  },
+  "light_cone": {
+    "coordinate_system": "normalized ct-versus-x teaching coordinates with c=1",
+    "segments": [
+      {
+        "id": "future-left",
+        "x0": 0.0,
+        "ct0": 0.0,
+        "x1": -1.0,
+        "ct1": 1.0
+      },
+      {
+        "id": "future-right",
+        "x0": 0.0,
+        "ct0": 0.0,
+        "x1": 1.0,
+        "ct1": 1.0
+      },
+      {
+        "id": "past-left",
+        "x0": 0.0,
+        "ct0": 0.0,
+        "x1": -1.0,
+        "ct1": -1.0
+      },
+      {
+        "id": "past-right",
+        "x0": 0.0,
+        "ct0": 0.0,
+        "x1": 1.0,
+        "ct1": -1.0
+      }
+    ],
+    "note": "The reviewed normalized lines are conceptual causal boundaries. The browser may render these fixed coordinates but must not derive them from user input."
+  },
+  "preset": {
+    "relative_speed_fraction_c": 0.6,
+    "proper_time_s": 10.0,
+    "proper_length_m": 100.0,
+    "simultaneous_event_separation_m": 299792458.0
+  },
+  "validation_fixtures": [
+    {
+      "id": "exact-beta-point-six",
+      "purpose": "Check beta=0.6 gives gamma=1.25, 10 s to 12.5 s, 100 m to 80 m, and one-light-second simultaneity offset -0.75 s."
+    },
+    {
+      "id": "zero-speed-identity",
+      "purpose": "Check beta=0 preserves proper time/length and produces zero simultaneity offset."
+    },
+    {
+      "id": "maximum-speed-bound",
+      "purpose": "Check beta=0.99 remains finite throughout the reviewed domain."
+    },
+    {
+      "id": "gamma-monotonicity",
+      "purpose": "Check gamma increases monotonically over representative increasing beta samples."
+    },
+    {
+      "id": "time-dilation-ordering",
+      "purpose": "Check dilated coordinate time is never below proper time in the reviewed beta domain."
+    },
+    {
+      "id": "length-contraction-ordering",
+      "purpose": "Check moving-frame length is never above proper length in the reviewed beta domain."
+    },
+    {
+      "id": "simultaneity-sign",
+      "purpose": "Check positive beta and positive +x separation produce a negative B-minus-A time offset in S'."
+    },
+    {
+      "id": "input-linearity",
+      "purpose": "Check proper-time, proper-length, and event-separation outputs scale linearly when beta is fixed."
+    },
+    {
+      "id": "input-domain-rejection",
+      "purpose": "Reject booleans, non-finite values, and values outside public bounds."
+    },
+    {
+      "id": "deterministic-repeat",
+      "purpose": "Require repeated model evaluations to be value-identical."
+    },
+    {
+      "id": "artifact-mutation",
+      "purpose": "Reject changed sources, constants, light-cone geometry, preset, validation identity, and duplicate JSON keys."
+    }
+  ],
+  "scientific_validation": {
+    "id": "relativity-visualizations-v1-validation",
+    "source_ids": [
+      "nist-speed-of-light",
+      "openstax-special-relativity",
+      "openstax-time-dilation",
+      "openstax-length-contraction",
+      "openstax-lorentz-transformation",
+      "mit-ocw-relativity",
+      "einstein-online-light-cone",
+      "einstein-online-relativity-space-time"
+    ],
+    "reference_validation_case": {
+      "inputs": {
+        "relative_speed_fraction_c": 0.6,
+        "proper_time_s": 10.0,
+        "proper_length_m": 100.0,
+        "simultaneous_event_separation_m": 299792458.0
+      },
+      "expected": {
+        "lorentz_factor": 1.25,
+        "dilated_time_s": 12.5,
+        "contracted_length_m": 80.0,
+        "simultaneity_offset_s": -0.75
+      },
+      "source_ids": [
+        "nist-speed-of-light",
+        "openstax-time-dilation",
+        "openstax-length-contraction",
+        "openstax-lorentz-transformation"
+      ]
+    },
+    "method": "Use the reviewed OpenStax Lorentz/time/length equations with exact NIST c, then test the exact beta=0.6 ratio case, identity and upper bounds, monotonic/order properties, fixed-beta scaling, sign convention, determinism, and strict artifact mutation rejection.",
+    "test_references": [
+      "exact-beta-point-six",
+      "zero-speed-identity",
+      "maximum-speed-bound",
+      "gamma-monotonicity",
+      "time-dilation-ordering",
+      "length-contraction-ordering",
+      "simultaneity-sign",
+      "input-linearity",
+      "input-domain-rejection",
+      "deterministic-repeat",
+      "artifact-mutation"
+    ]
+  }
+}

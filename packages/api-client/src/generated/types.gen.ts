@@ -2289,6 +2289,83 @@ export type ReadyResponse = {
 };
 
 /**
+ * RelativityVisualizationsCalculationResponse
+ */
+export type RelativityVisualizationsCalculationResponse = {
+  /**
+   * Contracted Length M
+   */
+  contracted_length_m: number;
+  /**
+   * Dilated Time S
+   */
+  dilated_time_s: number;
+  inputs: RelativityVisualizationsInputResponse;
+  /**
+   * Length Contraction Note
+   */
+  length_contraction_note: string;
+  /**
+   * Light Cone Note
+   */
+  light_cone_note: string;
+  /**
+   * Lorentz Factor
+   */
+  lorentz_factor: number;
+  /**
+   * Model Note
+   */
+  model_note: string;
+  /**
+   * Model Version
+   */
+  model_version: string;
+  /**
+   * Relative Speed M S
+   */
+  relative_speed_m_s: number;
+  /**
+   * Schema Version
+   */
+  schema_version: number;
+  /**
+   * Simultaneity Interpretation
+   */
+  simultaneity_interpretation: string;
+  /**
+   * Simultaneity Offset S
+   */
+  simultaneity_offset_s: number;
+  /**
+   * Time Dilation Note
+   */
+  time_dilation_note: string;
+};
+
+/**
+ * RelativityVisualizationsInputResponse
+ */
+export type RelativityVisualizationsInputResponse = {
+  /**
+   * Proper Length M
+   */
+  proper_length_m: number;
+  /**
+   * Proper Time S
+   */
+  proper_time_s: number;
+  /**
+   * Relative Speed Fraction C
+   */
+  relative_speed_fraction_c: number;
+  /**
+   * Simultaneous Event Separation M
+   */
+  simultaneous_event_separation_m: number;
+};
+
+/**
  * RocketMissionDesignerCalculationResponse
  */
 export type RocketMissionDesignerCalculationResponse = {
@@ -4942,6 +5019,58 @@ export type CalculateRadialVelocityResponses = {
 
 export type CalculateRadialVelocityResponse =
   CalculateRadialVelocityResponses[keyof CalculateRadialVelocityResponses];
+
+export type CalculateRelativityVisualizationsData = {
+  body?: never;
+  path?: never;
+  query: {
+    /**
+     * Relative Speed Fraction C
+     *
+     * Relative speed beta=v/c for S' moving in +x relative to S; 0 through 0.99.
+     */
+    relative_speed_fraction_c: number;
+    /**
+     * Proper Time S
+     *
+     * Proper-time interval in seconds; 1e-9 through 1e9.
+     */
+    proper_time_s: number;
+    /**
+     * Proper Length M
+     *
+     * Proper length in meters; 1e-6 through 1e15.
+     */
+    proper_length_m: number;
+    /**
+     * Simultaneous Event Separation M
+     *
+     * Non-negative +x separation in meters between events A and B that are simultaneous in S; 0 through 1e15.
+     */
+    simultaneous_event_separation_m: number;
+  };
+  url: "/api/v1/simulations/relativity-visualizations";
+};
+
+export type CalculateRelativityVisualizationsErrors = {
+  /**
+   * The Relativity Visualizations input is invalid.
+   */
+  422: ErrorResponse;
+};
+
+export type CalculateRelativityVisualizationsError =
+  CalculateRelativityVisualizationsErrors[keyof CalculateRelativityVisualizationsErrors];
+
+export type CalculateRelativityVisualizationsResponses = {
+  /**
+   * Successful Response
+   */
+  200: RelativityVisualizationsCalculationResponse;
+};
+
+export type CalculateRelativityVisualizationsResponse =
+  CalculateRelativityVisualizationsResponses[keyof CalculateRelativityVisualizationsResponses];
 
 export type CalculateRocketMissionDesignerData = {
   body?: never;

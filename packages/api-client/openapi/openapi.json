@@ -3911,6 +3911,108 @@
         "title": "ReadyResponse",
         "type": "object"
       },
+      "RelativityVisualizationsCalculationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "contracted_length_m": {
+            "title": "Contracted Length M",
+            "type": "number"
+          },
+          "dilated_time_s": {
+            "title": "Dilated Time S",
+            "type": "number"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/RelativityVisualizationsInputResponse"
+          },
+          "length_contraction_note": {
+            "title": "Length Contraction Note",
+            "type": "string"
+          },
+          "light_cone_note": {
+            "title": "Light Cone Note",
+            "type": "string"
+          },
+          "lorentz_factor": {
+            "title": "Lorentz Factor",
+            "type": "number"
+          },
+          "model_note": {
+            "title": "Model Note",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "relative_speed_m_s": {
+            "title": "Relative Speed M S",
+            "type": "number"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "simultaneity_interpretation": {
+            "title": "Simultaneity Interpretation",
+            "type": "string"
+          },
+          "simultaneity_offset_s": {
+            "title": "Simultaneity Offset S",
+            "type": "number"
+          },
+          "time_dilation_note": {
+            "title": "Time Dilation Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_version",
+          "schema_version",
+          "inputs",
+          "relative_speed_m_s",
+          "lorentz_factor",
+          "dilated_time_s",
+          "contracted_length_m",
+          "simultaneity_offset_s",
+          "simultaneity_interpretation",
+          "time_dilation_note",
+          "length_contraction_note",
+          "light_cone_note",
+          "model_note"
+        ],
+        "title": "RelativityVisualizationsCalculationResponse",
+        "type": "object"
+      },
+      "RelativityVisualizationsInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "proper_length_m": {
+            "title": "Proper Length M",
+            "type": "number"
+          },
+          "proper_time_s": {
+            "title": "Proper Time S",
+            "type": "number"
+          },
+          "relative_speed_fraction_c": {
+            "title": "Relative Speed Fraction C",
+            "type": "number"
+          },
+          "simultaneous_event_separation_m": {
+            "title": "Simultaneous Event Separation M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "relative_speed_fraction_c",
+          "proper_time_s",
+          "proper_length_m",
+          "simultaneous_event_separation_m"
+        ],
+        "title": "RelativityVisualizationsInputResponse",
+        "type": "object"
+      },
       "RocketMissionDesignerCalculationResponse": {
         "additionalProperties": false,
         "properties": {
@@ -8284,6 +8386,91 @@
           }
         },
         "summary": "Radial Velocity",
+        "tags": [
+          "simulations"
+        ]
+      }
+    },
+    "/api/v1/simulations/relativity-visualizations": {
+      "get": {
+        "operationId": "calculate_relativity_visualizations",
+        "parameters": [
+          {
+            "description": "Relative speed beta=v/c for S' moving in +x relative to S; 0 through 0.99.",
+            "in": "query",
+            "name": "relative_speed_fraction_c",
+            "required": true,
+            "schema": {
+              "description": "Relative speed beta=v/c for S' moving in +x relative to S; 0 through 0.99.",
+              "maximum": 0.99,
+              "minimum": 0.0,
+              "title": "Relative Speed Fraction C",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Proper-time interval in seconds; 1e-9 through 1e9.",
+            "in": "query",
+            "name": "proper_time_s",
+            "required": true,
+            "schema": {
+              "description": "Proper-time interval in seconds; 1e-9 through 1e9.",
+              "maximum": 1000000000.0,
+              "minimum": 1e-09,
+              "title": "Proper Time S",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Proper length in meters; 1e-6 through 1e15.",
+            "in": "query",
+            "name": "proper_length_m",
+            "required": true,
+            "schema": {
+              "description": "Proper length in meters; 1e-6 through 1e15.",
+              "maximum": 1000000000000000.0,
+              "minimum": 1e-06,
+              "title": "Proper Length M",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Non-negative +x separation in meters between events A and B that are simultaneous in S; 0 through 1e15.",
+            "in": "query",
+            "name": "simultaneous_event_separation_m",
+            "required": true,
+            "schema": {
+              "description": "Non-negative +x separation in meters between events A and B that are simultaneous in S; 0 through 1e15.",
+              "maximum": 1000000000000000.0,
+              "minimum": 0.0,
+              "title": "Simultaneous Event Separation M",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelativityVisualizationsCalculationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The Relativity Visualizations input is invalid."
+          }
+        },
+        "summary": "Relativity Visualizations",
         "tags": [
           "simulations"
         ]

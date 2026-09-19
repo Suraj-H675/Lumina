@@ -14,6 +14,7 @@ import type {
   CalculateOrbitSandboxData,
   CalculatePlanetarySystemBuilderData,
   CalculateRadialVelocityData,
+  CalculateRelativityVisualizationsData,
   CalculateRocketMissionDesignerData,
   CalculateSeasonsSimulatorData,
   CalculateSpectroscopyLabData,
@@ -23,6 +24,7 @@ import type {
   OrbitSandboxCalculationResponse,
   PlanetarySystemBuilderCalculationResponse,
   RadialVelocityCalculationResponse,
+  RelativityVisualizationsCalculationResponse,
   RocketMissionDesignerCalculationResponse,
   SpectroscopyCalculationResponse,
   StellarLaboratoryCalculationResponse,
@@ -74,6 +76,7 @@ import {
   zCalculateOrbitSandboxResponse,
   zCalculatePlanetarySystemBuilderResponse,
   zCalculateRadialVelocityResponse,
+  zCalculateRelativityVisualizationsResponse,
   zCalculateRocketMissionDesignerResponse,
   zCalculateSeasonsSimulatorResponse,
   zCalculateSpectroscopyLabResponse,
@@ -401,6 +404,15 @@ export const radialVelocityEndpoint = {
   path: "/api/v1/simulations/radial-velocity" satisfies CalculateRadialVelocityData["url"],
   validator: zCalculateRadialVelocityResponse,
 } satisfies ApiEndpoint<RadialVelocityCalculationResponse, CalculateRadialVelocityData["url"]>;
+
+export const relativityVisualizationsEndpoint = {
+  method: "GET",
+  path: "/api/v1/simulations/relativity-visualizations" satisfies CalculateRelativityVisualizationsData["url"],
+  validator: zCalculateRelativityVisualizationsResponse,
+} satisfies ApiEndpoint<
+  RelativityVisualizationsCalculationResponse,
+  CalculateRelativityVisualizationsData["url"]
+>;
 
 export const rocketMissionDesignerEndpoint = {
   method: "GET",

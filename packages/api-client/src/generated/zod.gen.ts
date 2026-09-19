@@ -1010,6 +1010,35 @@ export const zReadyResponse = z.object({
 });
 
 /**
+ * RelativityVisualizationsInputResponse
+ */
+export const zRelativityVisualizationsInputResponse = z.object({
+  proper_length_m: z.number(),
+  proper_time_s: z.number(),
+  relative_speed_fraction_c: z.number(),
+  simultaneous_event_separation_m: z.number(),
+});
+
+/**
+ * RelativityVisualizationsCalculationResponse
+ */
+export const zRelativityVisualizationsCalculationResponse = z.object({
+  contracted_length_m: z.number(),
+  dilated_time_s: z.number(),
+  inputs: zRelativityVisualizationsInputResponse,
+  length_contraction_note: z.string(),
+  light_cone_note: z.string(),
+  lorentz_factor: z.number(),
+  model_note: z.string(),
+  model_version: z.string(),
+  relative_speed_m_s: z.number(),
+  schema_version: z.int(),
+  simultaneity_interpretation: z.string(),
+  simultaneity_offset_s: z.number(),
+  time_dilation_note: z.string(),
+});
+
+/**
  * RocketStageInputResponse
  */
 export const zRocketStageInputResponse = z.object({
@@ -1918,6 +1947,12 @@ export const zCalculatePlanetarySystemBuilderResponse = zPlanetarySystemBuilderC
  * Successful Response
  */
 export const zCalculateRadialVelocityResponse = zRadialVelocityCalculationResponse;
+
+/**
+ * Successful Response
+ */
+export const zCalculateRelativityVisualizationsResponse =
+  zRelativityVisualizationsCalculationResponse;
 
 /**
  * Successful Response

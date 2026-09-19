@@ -265,4 +265,21 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.freshness.noScriptCacheState).toContain("{cacheState}");
     expect(messages.freshness.headings.unavailable).toBe("Current project status unavailable");
   });
+
+  it("keeps offline fallback and storage-management copy in typed message groups", () => {
+    const landing = enMessages.offline.landing;
+    expect(landing.title).toBe("Lumina is offline");
+    expect(landing.inlineDocumentTitle).toBe("Offline — Lumina");
+    expect(landing.inlineUnavailableDescription).toMatch(/reviewed offline copies/i);
+    expect(landing.manageStorage).toBe("Manage offline storage");
+
+    const storage = enMessages.offline.storage;
+    expect(storage.approximate.available).toContain("{usage}");
+    expect(storage.approximate.available).toContain("{quota}");
+    expect(storage.offlineCopies.clearSuccess.one).toContain("{count}");
+    expect(storage.offlineCopies.clearSuccess.other).toContain("{count}");
+    expect(storage.personal.savedPlans.one).toContain("{count}");
+    expect(storage.personal.journalEntries.other).toContain("{count}");
+    expect(storage.personal.deleteSuccess.other).toContain("{count}");
+  });
 });

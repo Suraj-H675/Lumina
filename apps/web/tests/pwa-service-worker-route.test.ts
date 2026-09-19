@@ -6,6 +6,7 @@ import {
   LUMINA_PWA_METADATA_CACHE,
   LUMINA_PWA_STATIC_CACHE,
 } from "../src/lib/pwa-policy";
+import { enMessages } from "../src/lib/i18n/messages/en";
 
 describe("Lumina service worker route", () => {
   it("serves executable JavaScript with update-safe security and cache headers", async () => {
@@ -25,6 +26,10 @@ describe("Lumina service worker route", () => {
     expect(source).toContain(JSON.stringify(LUMINA_PWA_STATIC_CACHE));
     expect(source).toContain(JSON.stringify(LUMINA_PWA_METADATA_CACHE));
     expect(source).toContain('const INSTALL_SHELL_PATHS = ["/offline","/observe"]');
+    expect(source).toContain(enMessages.offline.landing.title);
+    expect(source).toContain(
+      enMessages.offline.landing.inlineUnavailableDescription.replaceAll("'", "&#39;"),
+    );
   });
 
   it("contains only the accepted install/activate/message/fetch lifecycle surface", async () => {

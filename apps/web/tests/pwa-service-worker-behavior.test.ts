@@ -3,9 +3,18 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { buildLuminaServiceWorkerSource } from "../src/lib/pwa-service-worker";
+import { DEFAULT_LOCALE, localeDefinition } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { LUMINA_PWA_DOCUMENT_CACHE, LUMINA_PWA_METADATA_CACHE } from "../src/lib/pwa-policy";
 
 const ORIGIN = "https://lumina.example";
+
+function serviceWorkerSource(): string {
+  return buildLuminaServiceWorkerSource({
+    languageTag: localeDefinition(DEFAULT_LOCALE).languageTag,
+    offlineMessages: enMessages.offline.landing,
+  });
+}
 
 type WorkerListener = (event: unknown) => void;
 
@@ -29,7 +38,7 @@ function serviceWorkerRuntime(cachesValue: unknown, fetchValue: unknown) {
     "Request",
     "Response",
     "URL",
-    buildLuminaServiceWorkerSource(),
+    serviceWorkerSource(),
   );
   execute(selfValue, cachesValue, fetchValue, Request, Response, URL);
   return { listeners, selfValue };

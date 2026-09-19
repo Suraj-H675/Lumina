@@ -406,6 +406,65 @@ export type ParticipateMessages = Readonly<{
   unavailableValue: string;
 }>;
 
+export type OfflineMessages = Readonly<{
+  landing: Readonly<{
+    availableDescription: string;
+    availableTitle: string;
+    backupDescription: string;
+    backupTitle: string;
+    eyebrow: string;
+    intro: string;
+    inlineDocumentTitle: string;
+    inlineUnavailableDescription: string;
+    manageStorage: string;
+    metadataDescription: string;
+    metadataTitle: string;
+    networkDescription: string;
+    networkTitle: string;
+    title: string;
+  }>;
+  storage: Readonly<{
+    approximate: Readonly<{
+      available: string;
+      checking: string;
+      heading: string;
+      unavailable: string;
+      unsupported: string;
+    }>;
+    cancelAction: string;
+    eyebrow: string;
+    intro: string;
+    metadataDescription: string;
+    metadataTitle: string;
+    offlineCopies: Readonly<{
+      clearAction: string;
+      clearFailure: string;
+      clearSuccess: CountMessageTemplates;
+      confirmAction: string;
+      confirmDescription: string;
+      description: string;
+      heading: string;
+      separationNotice: string;
+    }>;
+    personal: Readonly<{
+      checking: string;
+      confirmAction: string;
+      confirmDescription: string;
+      deleteAction: string;
+      deleteFailure: string;
+      deleteSuccess: CountMessageTemplates;
+      description: string;
+      heading: string;
+      journalEntries: CountMessageTemplates;
+      manageJournal: string;
+      savedPlans: CountMessageTemplates;
+      separateStoresNotice: string;
+      unavailable: string;
+    }>;
+    title: string;
+  }>;
+}>;
+
 export type PresentationModeMessages = Readonly<{
   description: string;
   label: string;
@@ -420,6 +479,7 @@ export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;
+  offline: OfflineMessages;
   participate: ParticipateMessages;
   presentationMode: PresentationModeMessages;
   routeBoundaries: RouteBoundaryMessages;

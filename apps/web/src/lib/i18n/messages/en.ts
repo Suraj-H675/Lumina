@@ -256,6 +256,96 @@ export const enMessages = {
     },
     title: "Mission Control",
   },
+  offline: {
+    landing: {
+      availableDescription:
+        "Previously visited learning material, curated Explore pages, object pages, and the basic observation-planner shell can be available from Lumina's local content cache. Saved personal data is stored separately from those offline copies.",
+      availableTitle: "What can still work",
+      backupDescription:
+        "Your browser or operating system can evict cached pages. Personal browser storage can also be cleared independently, so offline availability is best effort rather than a permanent guarantee.",
+      backupTitle: "Offline copies are not a backup",
+      eyebrow: "Offline mode",
+      intro:
+        "Pages you visited while online may still be available as reviewed offline copies. An unvisited page may need a connection before Lumina can make it available offline.",
+      inlineDocumentTitle: "Offline — Lumina",
+      inlineUnavailableDescription:
+        "This page is not available from Lumina's reviewed offline copies yet. Reconnect and visit it once before relying on offline access.",
+      manageStorage: "Manage offline storage",
+      metadataDescription: "Lumina's bounded offline fallback and availability guidance.",
+      metadataTitle: "Offline",
+      networkDescription:
+        "Live space data, source status, weather, uploads, and jobs need a network connection. Lumina never relabels an old provider result as current just because the app is offline.",
+      networkTitle: "What still needs a network",
+      title: "Lumina is offline",
+    },
+    storage: {
+      approximate: {
+        available:
+          "Approximately {usage} MiB used of a {quota} MiB origin quota. This is an origin-wide estimate from the browser, not an exact measurement of Lumina's offline cache or personal data.",
+        checking: "Checking the browser's storage estimate…",
+        heading: "Approximate browser storage",
+        unavailable:
+          "The browser could not provide its approximate origin-wide usage and quota right now.",
+        unsupported:
+          "This browser does not expose an origin-wide storage estimate. Lumina does not request persistent-storage permission automatically.",
+      },
+      cancelAction: "Cancel",
+      eyebrow: "Offline mode",
+      intro:
+        "Review Lumina's best-effort offline cache separately from personal data stored in this browser. These controls do not create an account or cloud backup.",
+      metadataDescription:
+        "Review and manage Lumina offline copies and local saved observation plans.",
+      metadataTitle: "Offline storage",
+      offlineCopies: {
+        clearAction: "Clear offline copies",
+        clearFailure:
+          "Lumina could not clear its offline copies. Saved plans and journal data were not changed.",
+        clearSuccess: {
+          one: "Cleared {count} Lumina cache store. Personal browser data was not deleted.",
+          other: "Cleared {count} Lumina cache stores. Personal browser data was not deleted.",
+        },
+        confirmAction: "Confirm clear offline copies",
+        confirmDescription:
+          "Lumina will delete only cache names it owns. Pages may need to be visited online again before they work offline.",
+        description:
+          "CacheStorage holds Lumina's visited offline pages, static app assets, and offline metadata. Cache storage is not a backup: the browser or operating system may evict it.",
+        heading: "Offline copies",
+        separationNotice:
+          "Clearing these copies does not delete saved observation plans, journal entries, collections, or learning progress.",
+      },
+      personal: {
+        checking: "Checking local IndexedDB…",
+        confirmAction: "Confirm delete saved plans",
+        confirmDescription:
+          "Delete every saved observation plan from this browser? Journal entries and offline copies remain separate and will not be cleared.",
+        deleteAction: "Delete all saved plans",
+        deleteFailure:
+          "Lumina could not delete the saved plans. Offline copies and journal data were not changed.",
+        deleteSuccess: {
+          one: "Deleted {count} saved observation plan. Journal entries and offline copies were not deleted.",
+          other:
+            "Deleted {count} saved observation plans. Journal entries and offline copies were not deleted.",
+        },
+        description:
+          "Saved observation plans and journal entries live in IndexedDB, separately from offline page copies. Saved plans can contain the exact observer coordinates you explicitly chose to store.",
+        heading: "Personal browser data",
+        journalEntries: {
+          one: "{count} journal entry",
+          other: "{count} journal entries",
+        },
+        manageJournal: "Manage journal entries",
+        savedPlans: {
+          one: "{count} saved observation plan",
+          other: "{count} saved observation plans",
+        },
+        separateStoresNotice:
+          "Collections and learning progress use separate local browser stores and are not counted in the IndexedDB summary above. Neither action on this page deletes them.",
+        unavailable:
+          "Lumina cannot safely read the local personal-data counts right now. No data was changed.",
+      },
+      title: "Storage and offline copies",
+    },
+  },
   participate: {
     activities: {
       ageGuidanceLabel: "Age guidance:",

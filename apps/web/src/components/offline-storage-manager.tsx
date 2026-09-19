@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { formatCountMessage, formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { OfflineMessages } from "../lib/i18n/messages/types";
 import {
   clearSavedObservationPlans,
   listJournalEntries,
@@ -19,15 +22,14 @@ type PersonalSummary =
   | Readonly<{ kind: "unavailable" }>
   | Readonly<{ journalEntries: number; kind: "available"; savedPlans: number }>;
 
-function formatMib(bytes: number): string {
-  return (bytes / (1024 * 1024)).toLocaleString("en-US", { maximumFractionDigits: 1 });
+function formatMib(bytes: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(bytes / (1024 * 1024), locale, { maximumFractionDigits: 1 });
 }
 
-function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
-  return `${count} ${count === 1 ? singular : pluralForm}`;
-}
-
-export function OfflineStorageManager() {
+export function OfflineStorageManager({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: OfflineMessages["storage"] }>) {
   const [estimate, setEstimate] = useState<ApproximateBrowserStorage | null>(null);
   const [personal, setPersonal] = useState<PersonalSummary>({ kind: "loading" });
   const [confirmClearCaches, setConfirmClearCaches] = useState(false);
@@ -85,14 +87,12 @@ export function OfflineStorageManager() {
       const result = await clearLuminaOfflineCopies();
       setConfirmClearCaches(false);
       setActionStatus(
-        `Cleared ${result.deleted} Lumina cache stores. Personal browser data was not deleted.`,
+        formatCountMessage(messages.offlineCopies.clearSuccess, result.deleted, locale),
       );
     } catch {
-      setActionError(
-        "Lumina could not clear its offline copies. Saved plans and journal data were not changed.",
-      );
+      setActionError(messages.offlineCopies.clearFailure);
     }
-  }, []);
+  }, [locale, messages]);
 
   const deletePlans = useCallback(async () => {
     setActionError("");
@@ -102,15 +102,11 @@ export function OfflineStorageManager() {
       await clearSavedObservationPlans();
       await refreshPersonalSummary();
       setConfirmDeletePlans(false);
-      setActionStatus(
-        `Deleted ${plural(count, "saved observation plan")}. Journal entries and offline copies were not deleted.`,
-      );
+      setActionStatus(formatCountMessage(messages.personal.deleteSuccess, count, locale));
     } catch {
-      setActionError(
-        "Lumina could not delete the saved plans. Offline copies and journal data were not changed.",
-      );
+      setActionError(messages.personal.deleteFailure);
     }
-  }, [personal, refreshPersonalSummary]);
+  }, [locale, messages, personal, refreshPersonalSummary]);
 
   const savedPlanCount = personal.kind === "available" ? personal.savedPlans : 0;
 
@@ -118,25 +114,21 @@ export function OfflineStorageManager() {
     <div className="space-y-8">
       <section aria-labelledby="browser-storage-heading" className="space-y-3">
         <h2 className="text-2xl font-semibold" id="browser-storage-heading">
-          Approximate browser storage
+          {messages.approximate.heading}
         </h2>
         {estimate === null ? (
-          <p className="text-[var(--muted)]">Checking the browser&apos;s storage estimate…</p>
+          <p className="text-[var(--muted)]">{messages.approximate.checking}</p>
         ) : estimate.kind === "available" ? (
           <p className="leading-7 text-[var(--muted)]">
-            Approximately {formatMib(estimate.usageBytes)} MiB used of a{" "}
-            {formatMib(estimate.quotaBytes)} MiB origin quota. This is an origin-wide estimate from
-            the browser, not an exact measurement of Lumina&apos;s offline cache or personal data.
+            {formatMessageTemplate(messages.approximate.available, {
+              quota: formatMib(estimate.quotaBytes, locale),
+              usage: formatMib(estimate.usageBytes, locale),
+            })}
           </p>
         ) : estimate.kind === "unsupported" ? (
-          <p className="leading-7 text-[var(--muted)]">
-            This browser does not expose an origin-wide storage estimate. Lumina does not request
-            persistent-storage permission automatically.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.approximate.unsupported}</p>
         ) : (
-          <p className="leading-7 text-[var(--muted)]">
-            The browser could not provide its approximate origin-wide usage and quota right now.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.approximate.unavailable}</p>
         )}
       </section>
 
@@ -145,28 +137,23 @@ export function OfflineStorageManager() {
         className="space-y-4 rounded-md border border-[var(--border)] bg-[var(--surface)] p-5"
       >
         <h2 className="text-2xl font-semibold" id="offline-copies-heading">
-          Offline copies
+          {messages.offlineCopies.heading}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          CacheStorage holds Lumina&apos;s visited offline pages, static app assets, and offline
-          metadata. Cache storage is not a backup: the browser or operating system may evict it.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.offlineCopies.description}</p>
         <p className="text-sm leading-6 text-[var(--muted)]">
-          Clearing these copies does not delete saved observation plans, journal entries,
-          collections, or learning progress.
+          {messages.offlineCopies.separationNotice}
         </p>
         <button
           className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold"
           onClick={() => setConfirmClearCaches(true)}
           type="button"
         >
-          Clear offline copies
+          {messages.offlineCopies.clearAction}
         </button>
         {confirmClearCaches ? (
           <div className="space-y-3 rounded-md border border-[var(--border-strong)] bg-[var(--background-raised)] p-4">
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Lumina will delete only cache names it owns. Pages may need to be visited online again
-              before they work offline.
+              {messages.offlineCopies.confirmDescription}
             </p>
             <div className="flex flex-wrap gap-3">
               <button
@@ -174,14 +161,14 @@ export function OfflineStorageManager() {
                 onClick={() => void clearCaches()}
                 type="button"
               >
-                Confirm clear offline copies
+                {messages.offlineCopies.confirmAction}
               </button>
               <button
                 className="min-h-11 rounded-md border border-[var(--border)] px-4 text-sm"
                 onClick={() => setConfirmClearCaches(false)}
                 type="button"
               >
-                Cancel
+                {messages.cancelAction}
               </button>
             </div>
           </div>
@@ -193,28 +180,27 @@ export function OfflineStorageManager() {
         className="space-y-4 rounded-md border border-[var(--border)] bg-[var(--surface)] p-5"
       >
         <h2 className="text-2xl font-semibold" id="personal-data-heading">
-          Personal browser data
+          {messages.personal.heading}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          Saved observation plans and journal entries live in IndexedDB, separately from offline
-          page copies. Saved plans can contain the exact observer coordinates you explicitly chose
-          to store.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.personal.description}</p>
         {personal.kind === "loading" ? (
-          <p className="text-sm text-[var(--muted)]">Checking local IndexedDB…</p>
+          <p className="text-sm text-[var(--muted)]">{messages.personal.checking}</p>
         ) : personal.kind === "unavailable" ? (
-          <p className="text-sm text-[var(--muted)]">
-            Lumina cannot safely read the local personal-data counts right now. No data was changed.
-          </p>
+          <p className="text-sm text-[var(--muted)]">{messages.personal.unavailable}</p>
         ) : (
           <ul className="space-y-1 text-sm text-[var(--muted)]">
-            <li>{plural(personal.savedPlans, "saved observation plan")}</li>
-            <li>{plural(personal.journalEntries, "journal entry", "journal entries")}</li>
+            <li>{formatCountMessage(messages.personal.savedPlans, personal.savedPlans, locale)}</li>
+            <li>
+              {formatCountMessage(
+                messages.personal.journalEntries,
+                personal.journalEntries,
+                locale,
+              )}
+            </li>
           </ul>
         )}
         <p className="text-sm leading-6 text-[var(--muted)]">
-          Collections and learning progress use separate local browser stores and are not counted in
-          the IndexedDB summary above. Neither action on this page deletes them.
+          {messages.personal.separateStoresNotice}
         </p>
         <div className="flex flex-wrap gap-3">
           <button
@@ -223,20 +209,19 @@ export function OfflineStorageManager() {
             onClick={() => setConfirmDeletePlans(true)}
             type="button"
           >
-            Delete all saved plans
+            {messages.personal.deleteAction}
           </button>
           <Link
             className="inline-flex min-h-11 items-center text-sm text-[var(--link)] underline"
             href="/journal"
           >
-            Manage journal entries
+            {messages.personal.manageJournal}
           </Link>
         </div>
         {confirmDeletePlans ? (
           <div className="space-y-3 rounded-md border border-[var(--border-strong)] bg-[var(--background-raised)] p-4">
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Delete every saved observation plan from this browser? Journal entries and offline
-              copies remain separate and will not be cleared.
+              {messages.personal.confirmDescription}
             </p>
             <div className="flex flex-wrap gap-3">
               <button
@@ -244,14 +229,14 @@ export function OfflineStorageManager() {
                 onClick={() => void deletePlans()}
                 type="button"
               >
-                Confirm delete saved plans
+                {messages.personal.confirmAction}
               </button>
               <button
                 className="min-h-11 rounded-md border border-[var(--border)] px-4 text-sm"
                 onClick={() => setConfirmDeletePlans(false)}
                 type="button"
               >
-                Cancel
+                {messages.cancelAction}
               </button>
             </div>
           </div>

@@ -7,6 +7,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OfflineStorageManager } from "../src/components/offline-storage-manager";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { OfflineMessages } from "../src/lib/i18n/messages/types";
 import {
   LUMINA_PERSONAL_DB_NAME,
   closeJournalDatabase,
@@ -19,6 +22,10 @@ import { savedObservationPlanFixture } from "./saved-observation-plan-fixture";
 
 const deleteCache = vi.fn();
 const cacheKeys = vi.fn();
+
+function renderOfflineStorage(messages: OfflineMessages["storage"] = enMessages.offline.storage) {
+  return render(<OfflineStorageManager locale={DEFAULT_LOCALE} messages={messages} />);
+}
 
 async function resetPersonalDatabase(): Promise<void> {
   await closeJournalDatabase();
@@ -57,7 +64,7 @@ describe("offline storage manager", () => {
     await putSavedObservationPlan(savedObservationPlanFixture());
     await createJournalEntryInDatabase({ title: "Keep this journal" });
 
-    const { container } = render(<OfflineStorageManager />);
+    const { container } = renderOfflineStorage();
 
     expect(
       await screen.findByText(/approximately 12 MiB used of a 100 MiB origin quota/i),
@@ -75,7 +82,7 @@ describe("offline storage manager", () => {
     const user = userEvent.setup();
     await putSavedObservationPlan(savedObservationPlanFixture());
     await createJournalEntryInDatabase({ title: "Keep this journal" });
-    render(<OfflineStorageManager />);
+    renderOfflineStorage();
     await screen.findByText(/1 saved observation plan/i);
 
     await user.click(screen.getByRole("button", { name: "Clear offline copies" }));
@@ -94,7 +101,7 @@ describe("offline storage manager", () => {
     const user = userEvent.setup();
     await putSavedObservationPlan(savedObservationPlanFixture());
     await createJournalEntryInDatabase({ title: "Keep this journal" });
-    render(<OfflineStorageManager />);
+    renderOfflineStorage();
     await screen.findByText(/1 saved observation plan/i);
 
     await user.click(screen.getByRole("button", { name: "Delete all saved plans" }));
@@ -114,7 +121,7 @@ describe("offline storage manager", () => {
     await putSavedObservationPlan(savedObservationPlanFixture());
     await createJournalEntryInDatabase({ title: "Keep this journal" });
     deleteCache.mockRejectedValue(new DOMException("blocked", "SecurityError"));
-    render(<OfflineStorageManager />);
+    renderOfflineStorage();
     await screen.findByText(/1 saved observation plan/i);
 
     await user.click(screen.getByRole("button", { name: "Clear offline copies" }));
@@ -125,5 +132,27 @@ describe("offline storage manager", () => {
     );
     expect(await listSavedObservationPlans()).toHaveLength(1);
     expect(await listJournalEntries()).toHaveLength(1);
+  });
+
+  it("localizes controls while preserving stored counts and deletion behavior", async () => {
+    const user = userEvent.setup();
+    await putSavedObservationPlan(savedObservationPlanFixture());
+    const messages = {
+      ...enMessages.offline.storage,
+      personal: {
+        ...enMessages.offline.storage.personal,
+        deleteAction: "Localized delete action",
+        heading: "Localized personal data heading",
+      },
+    } satisfies OfflineMessages["storage"];
+
+    renderOfflineStorage(messages);
+
+    expect(
+      await screen.findByRole("heading", { name: "Localized personal data heading" }),
+    ).toBeVisible();
+    expect(await screen.findByText("1 saved observation plan")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Localized delete action" }));
+    expect(await listSavedObservationPlans()).toHaveLength(1);
   });
 });

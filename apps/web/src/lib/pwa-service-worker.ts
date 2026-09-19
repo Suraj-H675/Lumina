@@ -8,18 +8,44 @@ import {
   LUMINA_PWA_NETWORK_ONLY_BASE_PATHS,
   LUMINA_PWA_STATIC_CACHE,
 } from "./pwa-policy";
+import type { OfflineMessages } from "./i18n/messages/types";
 
 const OFFLINE_FALLBACK_PATH = "/offline";
 const INSTALL_SHELL_PATHS = [OFFLINE_FALLBACK_PATH, "/observe"] as const;
-const INLINE_OFFLINE_FALLBACK =
-  '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline — Lumina</title></head><body><main><h1>Lumina is offline</h1><p>This page is not available from Lumina\'s reviewed offline copies yet. Reconnect and visit it once before relying on offline access.</p></main></body></html>';
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+type ServiceWorkerOfflineMessages = Pick<
+  OfflineMessages["landing"],
+  "inlineDocumentTitle" | "inlineUnavailableDescription" | "title"
+>;
+
+export type LuminaServiceWorkerSourceOptions = Readonly<{
+  languageTag: string;
+  offlineMessages: ServiceWorkerOfflineMessages;
+}>;
+
+function buildInlineOfflineFallback({
+  languageTag,
+  offlineMessages,
+}: LuminaServiceWorkerSourceOptions): string {
+  return `<!doctype html><html lang="${escapeHtml(languageTag)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(offlineMessages.inlineDocumentTitle)}</title></head><body><main><h1>${escapeHtml(offlineMessages.title)}</h1><p>${escapeHtml(offlineMessages.inlineUnavailableDescription)}</p></main></body></html>`;
+}
 
 /**
  * Build the root-scoped service worker from the same frozen policy constants
  * used by the TypeScript classifier tests. The returned program intentionally
  * has no push/background-sync surface.
  */
-export function buildLuminaServiceWorkerSource(): string {
+export function buildLuminaServiceWorkerSource(options: LuminaServiceWorkerSourceOptions): string {
+  const inlineOfflineFallback = buildInlineOfflineFallback(options);
   return `"use strict";
 
 const CACHE_PREFIX = ${JSON.stringify(LUMINA_PWA_CACHE_PREFIX)};
@@ -30,7 +56,7 @@ const METADATA_PATH = ${JSON.stringify(LUMINA_PWA_METADATA_PATH)};
 const CONNECTIVITY_PATH = ${JSON.stringify(LUMINA_PWA_CONNECTIVITY_PATH)};
 const OFFLINE_FALLBACK_PATH = ${JSON.stringify(OFFLINE_FALLBACK_PATH)};
 const INSTALL_SHELL_PATHS = ${JSON.stringify(INSTALL_SHELL_PATHS)};
-const INLINE_OFFLINE_FALLBACK = ${JSON.stringify(INLINE_OFFLINE_FALLBACK)};
+const INLINE_OFFLINE_FALLBACK = ${JSON.stringify(inlineOfflineFallback)};
 const NETWORK_ONLY_BASE_PATHS = ${JSON.stringify(LUMINA_PWA_NETWORK_ONLY_BASE_PATHS)};
 const CACHEABLE_DOCUMENT_BASE_PATHS = ${JSON.stringify(LUMINA_PWA_CACHEABLE_DOCUMENT_BASE_PATHS)};
 const CURRENT_CACHES = new Set([DOCUMENT_CACHE, STATIC_CACHE, METADATA_CACHE]);

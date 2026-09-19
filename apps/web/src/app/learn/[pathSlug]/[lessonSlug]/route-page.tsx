@@ -6,7 +6,9 @@ import type { PublishedLocale } from "../../../../lib/i18n/locales";
 import type {
   LearningLessonMessages,
   LearningSourcesMessages,
+  PresentationModeMessages,
 } from "../../../../lib/i18n/messages/types";
+import { PresentationModeMessagesProvider } from "../../../../lib/i18n/presentation-mode-context";
 import { loadLearningContent } from "../../../../lib/learning/content";
 
 type LearningLessonPageProps = Readonly<{
@@ -32,11 +34,13 @@ export async function LearningLessonRoute({
   locale,
   messages,
   params,
+  presentationModeMessages,
   sourceMessages,
 }: LearningLessonPageProps &
   Readonly<{
     locale: PublishedLocale;
     messages: LearningLessonMessages;
+    presentationModeMessages: PresentationModeMessages;
     sourceMessages: LearningSourcesMessages;
   }>) {
   const { lessonSlug, pathSlug } = await params;
@@ -46,14 +50,16 @@ export async function LearningLessonRoute({
   const quiz = content.quizzes.find((entry) => entry.lesson_slug === lessonSlug);
   if (lesson === undefined || quiz === undefined) notFound();
   return (
-    <LearningLessonView
-      content={content}
-      lesson={lesson}
-      locale={locale}
-      messages={messages}
-      path={content.path}
-      quiz={quiz}
-      sourceMessages={sourceMessages}
-    />
+    <PresentationModeMessagesProvider messages={presentationModeMessages}>
+      <LearningLessonView
+        content={content}
+        lesson={lesson}
+        locale={locale}
+        messages={messages}
+        path={content.path}
+        quiz={quiz}
+        sourceMessages={sourceMessages}
+      />
+    </PresentationModeMessagesProvider>
   );
 }

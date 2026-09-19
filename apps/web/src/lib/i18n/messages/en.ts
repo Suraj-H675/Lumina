@@ -256,6 +256,15 @@ export const enMessages = {
     },
     title: "Mission Control",
   },
+  presentationMode: {
+    description: "The science and answers stay the same.",
+    label: "Presentation mode",
+    options: {
+      deepDive: "Deep Dive",
+      explorer: "Explorer",
+      student: "Student",
+    },
+  },
   routeBoundaries: {
     globalError: {
       description: "Lumina could not load. Try again, or return to the foundation home page later.",

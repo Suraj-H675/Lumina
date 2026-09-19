@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ScaleExplorerEnhanced } from "../../../../components/scale-explorer-enhanced";
 import { ScaleExplorerNoScript } from "../../../../components/scale-explorer-no-script";
+import type { PresentationModeMessages } from "../../../../lib/i18n/messages/types";
 import { DEFAULT_SCALE_EXPLORER_STATE } from "../../../../lib/simulations/scale-explorer";
 
 export const metadata: Metadata = {
@@ -13,7 +14,9 @@ export const metadata: Metadata = {
   description: "A safe fallback for an invalid Scale Explorer share state.",
 };
 
-export default function InvalidScaleExplorerStatePage() {
+export default function InvalidScaleExplorerStatePage({
+  presentationModeMessages,
+}: Readonly<{ presentationModeMessages: PresentationModeMessages }>) {
   return (
     <>
       <ScaleExplorerNoScript
@@ -23,6 +26,7 @@ export default function InvalidScaleExplorerStatePage() {
       <ScaleExplorerEnhanced
         initialState={DEFAULT_SCALE_EXPLORER_STATE}
         initialStateInvalid={true}
+        presentationModeMessages={presentationModeMessages}
       />
     </>
   );

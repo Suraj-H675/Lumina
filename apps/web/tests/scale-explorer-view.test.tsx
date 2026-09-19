@@ -1,5 +1,5 @@
 import { axe } from "jest-axe";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -8,6 +8,7 @@ import {
   DEFAULT_SCALE_EXPLORER_STATE,
   decodeScaleExplorerState,
 } from "../src/lib/simulations/scale-explorer";
+import { renderWithEnglishMessages as render } from "./i18n-render";
 
 beforeEach(() => {
   window.localStorage.clear();

@@ -238,4 +238,13 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.quiz.resultMastered).toContain("{correctCount}");
     expect(messages.quiz.resultMastered).toContain("{totalCount}");
   });
+
+  it("keeps the shared presentation-mode control in one typed cross-surface message group", () => {
+    const messages = enMessages.presentationMode;
+    expect(messages.label).toBe("Presentation mode");
+    expect(messages.description).toBe("The science and answers stay the same.");
+    expect(messages.options.explorer).toBe("Explorer");
+    expect(messages.options.student).toBe("Student");
+    expect(messages.options.deepDive).toBe("Deep Dive");
+  });
 });

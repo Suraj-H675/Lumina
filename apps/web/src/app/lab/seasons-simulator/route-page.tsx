@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { SeasonsSimulatorEnhanced } from "../../../components/seasons-simulator-enhanced";
 import { SeasonsSimulatorNoScript } from "../../../components/seasons-simulator-no-script";
+import type { PresentationModeMessages } from "../../../lib/i18n/messages/types";
 import {
   DEFAULT_SEASONS_STATE,
   decodeSeasonsState,
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 
 type SeasonsSimulatorPageProps = Readonly<{
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
 function stateFromSearchParams(
@@ -40,7 +42,10 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function SeasonsSimulatorPage({ searchParams }: SeasonsSimulatorPageProps) {
+export default async function SeasonsSimulatorPage({
+  presentationModeMessages,
+  searchParams,
+}: SeasonsSimulatorPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadSeasonsCalculation(requested.state, {
@@ -60,6 +65,7 @@ export default async function SeasonsSimulatorPage({ searchParams }: SeasonsSimu
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        presentationModeMessages={presentationModeMessages}
       />
     </>
   );

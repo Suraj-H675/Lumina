@@ -1,5 +1,5 @@
 import { axe } from "jest-axe";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,6 +11,7 @@ import {
   type TelescopeType,
   type TelescopeBuilderState,
 } from "../src/lib/simulations/telescope-builder";
+import { renderWithEnglishMessages as render } from "./i18n-render";
 
 const DEFAULT_RESULT: TelescopeBuilderCalculationResponse = {
   model_version: "telescope-builder-v1",

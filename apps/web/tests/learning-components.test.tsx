@@ -1,5 +1,5 @@
 import { axe } from "jest-axe";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -11,6 +11,7 @@ import {
   resetLearningProgress,
   getLearningProgressSnapshot,
 } from "../src/lib/learning/progress-store";
+import { renderWithEnglishMessages as render } from "./i18n-render";
 
 const content = loadLearningContent();
 const path = content.path;

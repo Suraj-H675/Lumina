@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 
 import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
 
+import type { PresentationModeMessages } from "../lib/i18n/messages/types";
+import { PresentationModeMessagesProvider } from "../lib/i18n/presentation-mode-context";
 import type { TelescopeBuilderState } from "../lib/simulations/telescope-builder";
 
 const InteractiveTelescopeBuilder = dynamic(
@@ -19,6 +21,7 @@ type TelescopeBuilderEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: TelescopeBuilderCalculationResponse | null;
   apiOrigin: string | null;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
 /** Progressive enhancement boundary; the server-rendered text alternative remains truthful. */
@@ -27,13 +30,16 @@ export function TelescopeBuilderEnhanced({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  presentationModeMessages,
 }: TelescopeBuilderEnhancedProps) {
   return (
-    <InteractiveTelescopeBuilder
-      apiOrigin={apiOrigin}
-      initialCalculation={initialCalculation}
-      initialState={initialState}
-      initialStateInvalid={initialStateInvalid}
-    />
+    <PresentationModeMessagesProvider messages={presentationModeMessages}>
+      <InteractiveTelescopeBuilder
+        apiOrigin={apiOrigin}
+        initialCalculation={initialCalculation}
+        initialState={initialState}
+        initialStateInvalid={initialStateInvalid}
+      />
+    </PresentationModeMessagesProvider>
   );
 }

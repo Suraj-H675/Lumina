@@ -1,10 +1,11 @@
 import { axe } from "jest-axe";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { HRDiagramExplorerEnhanced } from "../src/components/hr-diagram-explorer-enhanced";
 import { DEFAULT_HR_DIAGRAM_STATE } from "../src/lib/simulations/hr-diagram-explorer";
+import { renderWithEnglishMessages as render } from "./i18n-render";
 
 beforeEach(() => {
   window.localStorage.clear();

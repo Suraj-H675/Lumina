@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 
+import type { PresentationModeMessages } from "../lib/i18n/messages/types";
+import { PresentationModeMessagesProvider } from "../lib/i18n/presentation-mode-context";
 import type { HRDiagramState } from "../lib/simulations/hr-diagram-explorer";
 
 const InteractiveHRDiagramExplorer = dynamic(
@@ -15,16 +17,20 @@ const InteractiveHRDiagramExplorer = dynamic(
 type HRDiagramExplorerEnhancedLoaderProps = Readonly<{
   initialState: HRDiagramState;
   initialStateInvalid: boolean;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
 export function HRDiagramExplorerEnhancedLoader({
   initialState,
   initialStateInvalid,
+  presentationModeMessages,
 }: HRDiagramExplorerEnhancedLoaderProps) {
   return (
-    <InteractiveHRDiagramExplorer
-      initialState={initialState}
-      initialStateInvalid={initialStateInvalid}
-    />
+    <PresentationModeMessagesProvider messages={presentationModeMessages}>
+      <InteractiveHRDiagramExplorer
+        initialState={initialState}
+        initialStateInvalid={initialStateInvalid}
+      />
+    </PresentationModeMessagesProvider>
   );
 }

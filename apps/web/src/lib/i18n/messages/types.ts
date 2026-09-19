@@ -290,10 +290,21 @@ export type MissionControlMessages = Readonly<{
   title: string;
 }>;
 
+export type PresentationModeMessages = Readonly<{
+  description: string;
+  label: string;
+  options: Readonly<{
+    deepDive: string;
+    explorer: string;
+    student: string;
+  }>;
+}>;
+
 export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;
+  presentationMode: PresentationModeMessages;
   routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;
 }>;

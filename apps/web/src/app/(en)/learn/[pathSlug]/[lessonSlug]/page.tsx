@@ -18,6 +18,7 @@ export default function EnglishLearningLessonPage(
       {...props}
       locale={DEFAULT_LOCALE}
       messages={enMessages.learn.lesson}
+      presentationModeMessages={enMessages.presentationMode}
       sourceMessages={enMessages.learn.sources}
     />
   );

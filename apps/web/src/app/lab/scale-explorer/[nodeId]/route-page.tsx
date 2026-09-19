@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ScaleExplorerEnhanced } from "../../../../components/scale-explorer-enhanced";
 import { ScaleExplorerNoScript } from "../../../../components/scale-explorer-no-script";
+import type { PresentationModeMessages } from "../../../../lib/i18n/messages/types";
 import {
   SCALE_EXPLORER_NODE_IDS,
   SCALE_EXPLORER_MODEL_VERSION,
@@ -25,9 +26,13 @@ export function generateStaticParams(): Array<{ nodeId: string }> {
 
 type ScaleExplorerNodePageProps = Readonly<{
   params: Promise<{ nodeId: string }>;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
-export default async function ScaleExplorerNodePage({ params }: ScaleExplorerNodePageProps) {
+export default async function ScaleExplorerNodePage({
+  params,
+  presentationModeMessages,
+}: ScaleExplorerNodePageProps) {
   const { nodeId } = await params;
   if (!SCALE_EXPLORER_NODE_IDS.includes(nodeId as ScaleNodeId)) {
     return null;
@@ -40,7 +45,11 @@ export default async function ScaleExplorerNodePage({ params }: ScaleExplorerNod
   return (
     <>
       <ScaleExplorerNoScript initialState={initialState} initialStateInvalid={false} />
-      <ScaleExplorerEnhanced initialState={initialState} initialStateInvalid={false} />
+      <ScaleExplorerEnhanced
+        initialState={initialState}
+        initialStateInvalid={false}
+        presentationModeMessages={presentationModeMessages}
+      />
     </>
   );
 }

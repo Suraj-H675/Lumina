@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 
 import type { SeasonsCalculationResponse } from "@lumina/api-client";
 
+import type { PresentationModeMessages } from "../lib/i18n/messages/types";
+import { PresentationModeMessagesProvider } from "../lib/i18n/presentation-mode-context";
 import type { SeasonsState } from "../lib/simulations/seasons-simulator";
 
 const InteractiveSeasonsSimulator = dynamic(
@@ -19,6 +21,7 @@ type SeasonsSimulatorEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: SeasonsCalculationResponse | null;
   apiOrigin: string | null;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
 /** Progressive enhancement boundary; the server-rendered text alternative remains truthful. */
@@ -27,13 +30,16 @@ export function SeasonsSimulatorEnhanced({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  presentationModeMessages,
 }: SeasonsSimulatorEnhancedProps) {
   return (
-    <InteractiveSeasonsSimulator
-      apiOrigin={apiOrigin}
-      initialCalculation={initialCalculation}
-      initialState={initialState}
-      initialStateInvalid={initialStateInvalid}
-    />
+    <PresentationModeMessagesProvider messages={presentationModeMessages}>
+      <InteractiveSeasonsSimulator
+        apiOrigin={apiOrigin}
+        initialCalculation={initialCalculation}
+        initialState={initialState}
+        initialStateInvalid={initialStateInvalid}
+      />
+    </PresentationModeMessagesProvider>
   );
 }

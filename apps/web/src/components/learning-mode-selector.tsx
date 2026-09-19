@@ -2,22 +2,29 @@
 
 import { useEffect, useState } from "react";
 
+import { usePresentationModeMessages } from "../lib/i18n/presentation-mode-context";
 import { AUDIENCE_MODES, type AudienceMode } from "../lib/learning/content";
 
 const PRESENTATION_MODE_KEY = "lumina.presentation-mode.v1";
-
-const labels: Record<AudienceMode, string> = {
-  "deep-dive": "Deep Dive",
-  explorer: "Explorer",
-  student: "Student",
-};
 
 type LearningModeSelectorProps = Readonly<{
   onChange: (mode: AudienceMode) => void;
 }>;
 
 export function LearningModeSelector({ onChange }: LearningModeSelectorProps) {
+  const messages = usePresentationModeMessages();
   const [mode, setMode] = useState<AudienceMode>("explorer");
+
+  function optionLabel(option: AudienceMode): string {
+    switch (option) {
+      case "deep-dive":
+        return messages.options.deepDive;
+      case "explorer":
+        return messages.options.explorer;
+      case "student":
+        return messages.options.student;
+    }
+  }
 
   useEffect(() => {
     try {
@@ -51,7 +58,7 @@ export function LearningModeSelector({ onChange }: LearningModeSelectorProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <label className="text-sm font-semibold" htmlFor="learning-presentation-mode">
-        Presentation mode
+        {messages.label}
       </label>
       <select
         className="min-h-11 rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
@@ -61,11 +68,11 @@ export function LearningModeSelector({ onChange }: LearningModeSelectorProps) {
       >
         {AUDIENCE_MODES.map((option) => (
           <option key={option} value={option}>
-            {labels[option]}
+            {optionLabel(option)}
           </option>
         ))}
       </select>
-      <span className="text-sm text-[var(--muted)]">The science and answers stay the same.</span>
+      <span className="text-sm text-[var(--muted)]">{messages.description}</span>
     </div>
   );
 }

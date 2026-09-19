@@ -93,8 +93,10 @@ test.describe("Phase 8A — Participate", () => {
     await expect(page.getByText("Current project status unavailable").first()).toBeVisible();
     await expect(page.getByText("Currently public and live")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Galaxy Zoo" })).toBeVisible();
-    await expect(page.getByText("Twelve evergreen monthly challenges")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Hands-on activities" })).toBeVisible();
+    await expect(page.locator("#participate-challenges-heading")).toHaveText(
+      "Twelve evergreen monthly challenges",
+    );
+    await expect(page.locator("#participate-activities-heading")).toHaveText("Hands-on activities");
   });
 
   test("remains usable with forced colours, touch targets, and no horizontal overflow", async ({

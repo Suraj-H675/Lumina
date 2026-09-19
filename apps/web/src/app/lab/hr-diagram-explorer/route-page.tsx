@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { HRDiagramExplorerEnhancedLoader } from "../../../components/hr-diagram-explorer-enhanced-loader";
 import { HRDiagramExplorerNoScript } from "../../../components/hr-diagram-explorer-no-script";
+import type { PresentationModeMessages } from "../../../lib/i18n/messages/types";
 import {
   DEFAULT_HR_DIAGRAM_STATE,
   decodeHRDiagramState,
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 
 type HRDiagramExplorerPageProps = Readonly<{
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
 function stateFromSearchParams(
@@ -38,7 +40,10 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function HRDiagramExplorerPage({ searchParams }: HRDiagramExplorerPageProps) {
+export default async function HRDiagramExplorerPage({
+  presentationModeMessages,
+  searchParams,
+}: HRDiagramExplorerPageProps) {
   const requested = stateFromSearchParams(await searchParams);
 
   return (
@@ -50,6 +55,7 @@ export default async function HRDiagramExplorerPage({ searchParams }: HRDiagramE
       <HRDiagramExplorerEnhancedLoader
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        presentationModeMessages={presentationModeMessages}
       />
     </>
   );

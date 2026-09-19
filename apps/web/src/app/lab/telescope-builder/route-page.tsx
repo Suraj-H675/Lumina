@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { TelescopeBuilderEnhanced } from "../../../components/telescope-builder-enhanced";
 import { TelescopeBuilderNoScript } from "../../../components/telescope-builder-no-script";
+import type { PresentationModeMessages } from "../../../lib/i18n/messages/types";
 import {
   DEFAULT_TELESCOPE_BUILDER_STATE,
   decodeTelescopeBuilderState,
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 
 type TelescopeBuilderPageProps = Readonly<{
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+  presentationModeMessages: PresentationModeMessages;
 }>;
 
 function stateFromSearchParams(
@@ -40,7 +42,10 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function TelescopeBuilderPage({ searchParams }: TelescopeBuilderPageProps) {
+export default async function TelescopeBuilderPage({
+  presentationModeMessages,
+  searchParams,
+}: TelescopeBuilderPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadTelescopeBuilderCalculation(requested.state, {
@@ -62,6 +67,7 @@ export default async function TelescopeBuilderPage({ searchParams }: TelescopeBu
         initialCalculation={initialCalculation}
         initialState={initialState}
         initialStateInvalid={stateInvalid}
+        presentationModeMessages={presentationModeMessages}
       />
     </>
   );

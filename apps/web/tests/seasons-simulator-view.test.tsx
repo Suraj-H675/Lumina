@@ -1,11 +1,12 @@
 import { axe } from "jest-axe";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SeasonsSimulatorView } from "../src/components/seasons-simulator-view";
 import { DEFAULT_SEASONS_STATE } from "../src/lib/simulations/seasons-simulator";
 import type { SeasonsCalculationResponse } from "@lumina/api-client";
+import { renderWithEnglishMessages as render } from "./i18n-render";
 
 const JUNE_RESULT: SeasonsCalculationResponse = {
   model_version: "seasons-simulator-v1",

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { SiteShell } from "../components/site-shell";
 import { loadPublishedDictionary } from "../lib/i18n/dictionaries";
-import { DEFAULT_LOCALE, localeDefinition } from "../lib/i18n/locales";
+import { localeDefinition, type PublishedLocale } from "../lib/i18n/locales";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,10 +23,10 @@ export const viewport: Viewport = {
 
 type RootLayoutProps = Readonly<{
   children: ReactNode;
+  locale: PublishedLocale;
 }>;
 
-export default async function RootLayout({ children }: RootLayoutProps) {
-  const locale = DEFAULT_LOCALE;
+export async function LocaleRootLayout({ children, locale }: RootLayoutProps) {
   const definition = localeDefinition(locale);
   const messages = await loadPublishedDictionary(locale);
 

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { axe } from "jest-axe";
 import { describe, expect, it } from "vitest";
 
-import OfflinePage from "../src/app/offline/page";
+import OfflinePage from "../src/app/offline/route-page";
 
 describe("Lumina offline fallback page", () => {
   it("explains the bounded visited-content model without implying live data is available", () => {

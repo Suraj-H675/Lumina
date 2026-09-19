@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import LabPage from "../src/app/lab/page";
+import LabPage from "../src/app/lab/route-page";
 import { SiteNav } from "../src/components/site-nav";
 import { enMessages } from "../src/lib/i18n/messages/en";
 

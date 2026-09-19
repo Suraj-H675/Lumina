@@ -35,6 +35,31 @@ test("an unknown route uses the not-found experience", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("the locale route seam keeps English canonical and draft locale prefixes fail closed", async ({
+  page,
+}) => {
+  const canonicalResponse = await page.goto("/");
+  expect(canonicalResponse?.status()).toBe(200);
+  await expect(page).toHaveURL(/\/$/u);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+
+  const duplicateEnglish = await page.goto("/en");
+  expect(duplicateEnglish?.status()).toBe(404);
+  await expect(page).toHaveURL(/\/en$/u);
+  await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
+
+  const draftSpanish = await page.goto("/es");
+  expect(draftSpanish?.status()).toBe(404);
+  await expect(page).toHaveURL(/\/es$/u);
+  await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+
+  const unknownEnglishPath = await page.goto("/fr/not-a-lumina-route");
+  expect(unknownEnglishPath?.status()).toBe(404);
+  await expect(page).toHaveURL(/\/fr\/not-a-lumina-route$/u);
+  await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
+});
+
 test("the home page is accessible and usable at 320 CSS pixels without horizontal overflow", async ({
   page,
 }) => {

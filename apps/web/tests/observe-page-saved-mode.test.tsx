@@ -27,7 +27,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
-import ObservePage from "../src/app/observe/page";
+import ObservePage from "../src/app/observe/route-page";
 
 async function resetPersonalDatabase(): Promise<void> {
   await closeJournalDatabase();

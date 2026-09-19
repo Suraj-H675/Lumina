@@ -5,15 +5,24 @@ const appRoot = process.cwd();
 const nextRoot = resolve(appRoot, ".next");
 const MAX_DEEP_SKY_PAGE_BYTES = 64 * 1024;
 const WWT_SIGNATURES = ["ImageSets6", "WWTControlBuilder", "ConstellationNamePositions_v2_EN"];
+const ROUTE_GROUP = "(en)";
 
 const ROUTES = [
-  ["home", "server/app/page_client-reference-manifest.js", "/page"],
-  ["explore", "server/app/explore/page_client-reference-manifest.js", "/explore/page"],
-  ["object", "server/app/objects/[slug]/page_client-reference-manifest.js", "/objects/[slug]/page"],
+  ["home", `server/app/${ROUTE_GROUP}/page_client-reference-manifest.js`, `/${ROUTE_GROUP}/page`],
+  [
+    "explore",
+    `server/app/${ROUTE_GROUP}/explore/page_client-reference-manifest.js`,
+    `/${ROUTE_GROUP}/explore/page`,
+  ],
+  [
+    "object",
+    `server/app/${ROUTE_GROUP}/objects/[slug]/page_client-reference-manifest.js`,
+    `/${ROUTE_GROUP}/objects/[slug]/page`,
+  ],
   [
     "deep-sky",
-    "server/app/explore/deep-sky/page_client-reference-manifest.js",
-    "/explore/deep-sky/page",
+    `server/app/${ROUTE_GROUP}/explore/deep-sky/page_client-reference-manifest.js`,
+    `/${ROUTE_GROUP}/explore/deep-sky/page`,
   ],
 ];
 
@@ -85,8 +94,10 @@ try {
 
   const deepSky = routeManifests.get("deep-sky");
   const entryEntries = Object.entries(deepSky.entryJSFiles ?? {});
-  const pageEntry = entryEntries.find(([key]) => key.endsWith("/src/app/explore/deep-sky/page"));
-  const layoutEntry = entryEntries.find(([key]) => key.endsWith("/src/app/layout"));
+  const pageEntry = entryEntries.find(([key]) =>
+    key.endsWith(`/src/app/${ROUTE_GROUP}/explore/deep-sky/page`),
+  );
+  const layoutEntry = entryEntries.find(([key]) => key.endsWith(`/src/app/${ROUTE_GROUP}/layout`));
   if (pageEntry === undefined || layoutEntry === undefined) {
     fail("could not resolve deep-sky page/layout entry chunks");
   } else {

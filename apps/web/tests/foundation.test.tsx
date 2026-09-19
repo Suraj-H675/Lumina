@@ -7,17 +7,17 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import GlobalError from "../src/app/global-error";
-import LearningLoading from "../src/app/learn/loading";
-import NotFound from "../src/app/not-found";
+import LearningLoading from "../src/app/learn/route-loading";
+import NotFound from "../src/app/route-not-found";
 import { MissionControlHome } from "../src/app/mission-control-home";
 import { loadReviewedDiscoveries } from "../src/lib/discoveries/content";
-import RouteError from "../src/app/error";
+import RouteError from "../src/app/route-error";
 import { SiteShell } from "../src/components/site-shell";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 
 const appDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "../src/app");
 const rootLoadingPath = resolve(appDirectory, "loading.tsx");
-const learnLoadingPath = resolve(appDirectory, "learn/loading.tsx");
+const learnLoadingPath = resolve(appDirectory, "(en)/learn/loading.tsx");
 
 function renderHome() {
   return render(

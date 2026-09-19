@@ -293,4 +293,12 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.provider.counters.httpRequests).toBe("HTTP requests");
     expect(messages.provider.notRecorded).toBe("Not recorded");
   });
+
+  it("keeps the Lab index wrapper separate from authored laboratory records", () => {
+    const messages = enMessages.labIndex;
+    expect(messages.metadataTitle).toBe("Lab");
+    expect(messages.navigationLabel).toBe("Implemented laboratories");
+    expect(messages.openLab).toBe("Open lab →");
+    expect(messages.intro).toMatch(/reviewed Lumina laboratory/i);
+  });
 });

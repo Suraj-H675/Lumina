@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+import type { LabIndexMessages } from "../../lib/i18n/messages/types";
 
 const labs = [
   {
@@ -92,29 +95,28 @@ const labs = [
   },
 ] as const;
 
-export const metadata = {
-  alternates: {
-    canonical: "/lab",
-  },
-  title: "Lab",
-  description: "Lumina's implemented interactive astronomy laboratories.",
-};
+export function createLabMetadata(messages: LabIndexMessages): Metadata {
+  return {
+    alternates: {
+      canonical: "/lab",
+    },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
-export default function LabPage() {
+export default function LabPage({ messages }: Readonly<{ messages: LabIndexMessages }>) {
   return (
     <article className="space-y-10">
       <header className="max-w-3xl space-y-5">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Space Lab
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Lab</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Open a reviewed Lumina laboratory. Each lab keeps its model, assumptions, and accessible
-          text result visible alongside its interaction.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
       </header>
 
-      <nav aria-label="Implemented laboratories">
+      <nav aria-label={messages.navigationLabel}>
         <ul className="m-0 grid list-none gap-5 p-0 md:grid-cols-2 xl:grid-cols-4">
           {labs.map((lab) => (
             <li className="flex" key={lab.href}>
@@ -130,7 +132,9 @@ export default function LabPage() {
                     {lab.description}
                   </span>
                 </span>
-                <span className="mt-5 font-semibold text-[var(--link)] underline">Open lab →</span>
+                <span className="mt-5 font-semibold text-[var(--link)] underline">
+                  {messages.openLab}
+                </span>
               </Link>
             </li>
           ))}

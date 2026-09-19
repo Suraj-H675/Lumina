@@ -231,6 +231,16 @@ export type LearnMessages = Readonly<{
   sources: LearningSourcesMessages;
 }>;
 
+export type LabIndexMessages = Readonly<{
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  navigationLabel: string;
+  openLab: string;
+  title: string;
+}>;
+
 export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
@@ -559,6 +569,7 @@ export type StatusMessages = Readonly<{
 
 export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
+  labIndex: LabIndexMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;
   offline: OfflineMessages;

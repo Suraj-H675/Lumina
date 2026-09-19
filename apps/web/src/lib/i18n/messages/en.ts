@@ -24,6 +24,16 @@ export const enMessages = {
     title: "Reviewed discoveries",
     whyItMattersTitle: "Why it matters",
   },
+  labIndex: {
+    eyebrow: "Space Lab",
+    intro:
+      "Open a reviewed Lumina laboratory. Each lab keeps its model, assumptions, and accessible text result visible alongside its interaction.",
+    metadataDescription: "Lumina's implemented interactive astronomy laboratories.",
+    metadataTitle: "Lab",
+    navigationLabel: "Implemented laboratories",
+    openLab: "Open lab →",
+    title: "Lab",
+  },
   learn: {
     landing: {
       eyebrow: "Learn",

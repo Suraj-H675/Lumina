@@ -65,6 +65,7 @@ describe("collections accessibility (axe)", () => {
     const { container } = render(
       <CollectionDetailView
         collectionId={created.collection.id}
+        entityTypeMessages={enMessages.entityTypes}
         locale={DEFAULT_LOCALE}
         messages={enMessages.collections}
       />,

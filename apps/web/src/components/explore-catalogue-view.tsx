@@ -2,19 +2,24 @@ import Link from "next/link";
 
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
-import { entityTypeLabel } from "../lib/catalog-display";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionSaveMessages, ExploreMessages } from "../lib/i18n/messages/types";
+import type {
+  CollectionSaveMessages,
+  EntityTypeMessages,
+  ExploreMessages,
+} from "../lib/i18n/messages/types";
 import { SaveToCollectionsButton } from "./save-to-collections";
 
 /** Browse grid for the discovery state; order is the backend's canonical order. */
 export function EntityCardGrid({
   collectionSaveMessages,
+  entityTypeMessages,
   items,
   locale,
   messages,
 }: Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
+  entityTypeMessages: EntityTypeMessages;
   items: Array<EntitySummaryResponse>;
   locale: PublishedLocale;
   messages: ExploreMessages["browse"];
@@ -36,7 +41,7 @@ export function EntityCardGrid({
                 {entity.canonical_name}
               </span>
               <span className="text-sm text-[var(--muted)]">
-                {entityTypeLabel(entity.entity_type)}
+                {entityTypeMessages[entity.entity_type]}
               </span>
             </Link>
             <div className="flex items-center pr-1.5">

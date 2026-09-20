@@ -47,6 +47,7 @@ describe("ResultCard", () => {
     render(
       <ResultCard
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={enMessages.entityTypes}
         locale={DEFAULT_LOCALE}
         matchedAliasMessage={enMessages.explore.search.matchedAlias}
         result={searchItem()}
@@ -62,6 +63,7 @@ describe("ResultCard", () => {
     render(
       <ResultCard
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={enMessages.entityTypes}
         locale={DEFAULT_LOCALE}
         matchedAliasMessage={enMessages.explore.search.matchedAlias}
         result={searchItem({ match_reason: "exact_alias", matched_alias: "K2-18 b host" })}
@@ -71,9 +73,11 @@ describe("ResultCard", () => {
   });
 
   it("localizes the alias wrapper without rewriting the backend alias or identity", () => {
+    const entityTypeMessages = { ...enMessages.entityTypes, star: "Fixture star type" };
     render(
       <ResultCard
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={entityTypeMessages}
         locale={DEFAULT_LOCALE}
         matchedAliasMessage="Fixture match {alias}"
         result={searchItem({ match_reason: "exact_alias", matched_alias: "K2-18 b host" })}
@@ -82,6 +86,7 @@ describe("ResultCard", () => {
 
     expect(screen.getByRole("link", { name: /K2-18/ })).toHaveAttribute("href", "/objects/k2-18");
     expect(screen.getByText("Fixture match K2-18 b host")).toBeVisible();
+    expect(screen.getByText("Fixture star type")).toBeVisible();
   });
 });
 
@@ -90,6 +95,7 @@ describe("ExploreResultsView", () => {
     render(
       <ExploreResultsView
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={enMessages.entityTypes}
         items={[searchItem(), searchItem({ entity: { ...k2_18, canonical_name: "Kepler-186" } })]}
         locale={DEFAULT_LOCALE}
         messages={enMessages.explore.search}
@@ -108,6 +114,7 @@ describe("ExploreResultsView", () => {
     render(
       <ExploreResultsView
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={enMessages.entityTypes}
         items={[]}
         locale={DEFAULT_LOCALE}
         messages={enMessages.explore.search}
@@ -128,6 +135,7 @@ describe("ExploreResultsView", () => {
     render(
       <ExploreResultsView
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={enMessages.entityTypes}
         items={[]}
         locale={DEFAULT_LOCALE}
         messages={messages}
@@ -156,6 +164,7 @@ describe("Explore catalogue localization boundary", () => {
     const { rerender } = render(
       <EntityCardGrid
         collectionSaveMessages={SAVE_MESSAGES}
+        entityTypeMessages={{ ...enMessages.entityTypes, star: "Fixture browse type" }}
         items={[k2_18]}
         locale={DEFAULT_LOCALE}
         messages={browseMessages}
@@ -163,6 +172,7 @@ describe("Explore catalogue localization boundary", () => {
     );
     expect(screen.getByRole("list", { name: "Fixture catalogue objects" })).toBeVisible();
     expect(screen.getByRole("link", { name: /K2-18/ })).toHaveAttribute("href", "/objects/k2-18");
+    expect(screen.getByText("Fixture browse type")).toBeVisible();
 
     rerender(<ExploreEmptyState messages={browseMessages} />);
     expect(screen.getByRole("heading", { name: "Fixture empty title" })).toBeVisible();

@@ -2,8 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { DeepSkySelectionOutcome } from "../src/lib/server/deep-sky";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
-import type { DeepSkyMessages } from "../src/lib/i18n/messages/types";
+import type { DeepSkyMessages, EntityTypeMessages } from "../src/lib/i18n/messages/types";
 
 const { browseMock, selectionMock } = vi.hoisted(() => ({
   browseMock: vi.fn(),
@@ -55,7 +56,10 @@ const READY_SELECTION: DeepSkySelectionOutcome = {
   slug: "messier-31",
 };
 
-async function renderDeepSky(messages: DeepSkyMessages = enMessages.deepSky) {
+async function renderDeepSky(
+  messages: DeepSkyMessages = enMessages.deepSky,
+  entityTypeMessages: EntityTypeMessages = enMessages.entityTypes,
+) {
   browseMock.mockResolvedValue({
     items: [
       {
@@ -66,13 +70,15 @@ async function renderDeepSky(messages: DeepSkyMessages = enMessages.deepSky) {
       },
     ],
     kind: "ok",
-    truncatedTypes: ["nebula"],
-    unavailableTypes: ["cluster"],
+    truncatedTypes: ["nebula", "galaxy"],
+    unavailableTypes: ["cluster", "nebula"],
   });
   selectionMock.mockResolvedValue(READY_SELECTION);
 
   const page = await DeepSkyPage({
     coordinateDisclosureMessages: enMessages.coordinateDisclosure,
+    entityTypeMessages,
+    locale: DEFAULT_LOCALE,
     messages,
     searchParams: Promise.resolve({ layer: "infrared-wise", object: "messier-31" }),
   });
@@ -106,7 +112,12 @@ describe("Deep-sky route localization boundary", () => {
       },
     };
 
-    await renderDeepSky(messages);
+    await renderDeepSky(messages, {
+      ...enMessages.entityTypes,
+      cluster: "Fixture cluster type",
+      galaxy: "Fixture galaxy type",
+      nebula: "Fixture nebula type",
+    });
 
     expect(screen.getByRole("heading", { level: 1, name: "Fixture deep-sky title" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Fixture explore action" })).toHaveAttribute(
@@ -114,10 +125,15 @@ describe("Deep-sky route localization boundary", () => {
       "/explore",
     );
     expect(screen.getByRole("list", { name: "Fixture deep-sky list" })).toBeVisible();
-    expect(screen.getByText("Fixture unavailable types: Cluster.")).toBeVisible();
-    expect(screen.getByText("Fixture bounded types: Nebula.")).toBeVisible();
+    expect(
+      screen.getByText("Fixture unavailable types: Fixture cluster type, Fixture nebula type."),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Fixture bounded types: Fixture nebula type, Fixture galaxy type."),
+    ).toBeVisible();
     expect(screen.getByText("Fixture selected object")).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: "Messier 31" })).toBeVisible();
+    expect(screen.getAllByText("Fixture galaxy type").length).toBeGreaterThan(0);
     expect(screen.getByText("10.684708333333334°")).toBeVisible();
     expect(screen.getByText("41.26875°")).toBeVisible();
     expect(screen.getByText("J2000.0", { exact: true })).toBeVisible();

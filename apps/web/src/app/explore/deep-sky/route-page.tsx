@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { entityTypeLabel } from "../../../lib/catalog-display";
 import { formatCoordinateDisclosure } from "../../../lib/i18n/coordinate-disclosure";
-import { formatMessageTemplate } from "../../../lib/i18n/format";
+import { formatLocaleList, formatMessageTemplate } from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type {
   CoordinateDisclosureMessages,
   DeepSkyMessages,
+  EntityTypeMessages,
 } from "../../../lib/i18n/messages/types";
 import {
   loadDeepSkyBrowse,
@@ -25,6 +26,8 @@ export function createDeepSkyMetadata(messages: DeepSkyMessages): Metadata {
 
 type DeepSkyPageProps = Readonly<{
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  entityTypeMessages: EntityTypeMessages;
+  locale: PublishedLocale;
   messages: DeepSkyMessages;
   searchParams: Promise<Readonly<{ layer?: string | string[]; object?: string | string[] }>>;
 }>;
@@ -50,6 +53,8 @@ function selectionForInvalidQuery(): DeepSkySelectionOutcome {
 
 export default async function DeepSkyPage({
   coordinateDisclosureMessages,
+  entityTypeMessages,
+  locale,
   messages,
   searchParams,
 }: DeepSkyPageProps) {
@@ -113,7 +118,9 @@ export default async function DeepSkyPage({
         </div>
         <DeepSkyBrowse
           browse={browse}
+          entityTypeMessages={entityTypeMessages}
           layerId={activeLayer.id}
+          locale={locale}
           messages={messages.browse}
           selectedSlug={
             selection.kind === "none" ? null : "slug" in selection ? selection.slug : null
@@ -123,6 +130,7 @@ export default async function DeepSkyPage({
 
       <SelectedObject
         coordinateDisclosureMessages={coordinateDisclosureMessages}
+        entityTypeMessages={entityTypeMessages}
         messages={messages.selection}
         selection={selection}
       />
@@ -156,12 +164,16 @@ export default async function DeepSkyPage({
 
 function DeepSkyBrowse({
   browse,
+  entityTypeMessages,
   layerId,
+  locale,
   messages,
   selectedSlug,
 }: Readonly<{
   browse: Awaited<ReturnType<typeof loadDeepSkyBrowse>>;
+  entityTypeMessages: EntityTypeMessages;
   layerId: AtlasLayerId;
+  locale: PublishedLocale;
   messages: DeepSkyMessages["browse"];
   selectedSlug: string | null;
 }>) {
@@ -182,14 +194,22 @@ function DeepSkyBrowse({
       {browse.unavailableTypes.length > 0 ? (
         <p className="text-sm text-[var(--muted)]" role="status">
           {formatMessageTemplate(messages.unavailableTypes, {
-            types: browse.unavailableTypes.map(entityTypeLabel).join(", "),
+            types: formatLocaleList(
+              browse.unavailableTypes.map((entityType) => entityTypeMessages[entityType]),
+              locale,
+              { type: "unit" },
+            ),
           })}
         </p>
       ) : null}
       {browse.truncatedTypes.length > 0 ? (
         <p className="text-sm text-[var(--muted)]">
           {formatMessageTemplate(messages.boundedSlice, {
-            types: browse.truncatedTypes.map(entityTypeLabel).join(", "),
+            types: formatLocaleList(
+              browse.truncatedTypes.map((entityType) => entityTypeMessages[entityType]),
+              locale,
+              { type: "unit" },
+            ),
           })}
         </p>
       ) : null}
@@ -210,7 +230,7 @@ function DeepSkyBrowse({
                   {item.canonical_name}
                 </span>
                 <span className="text-sm text-[var(--muted)]">
-                  {entityTypeLabel(item.entity_type)}
+                  {entityTypeMessages[item.entity_type]}
                 </span>
               </Link>
             </li>
@@ -223,10 +243,12 @@ function DeepSkyBrowse({
 
 function SelectedObject({
   coordinateDisclosureMessages,
+  entityTypeMessages,
   messages,
   selection,
 }: Readonly<{
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  entityTypeMessages: EntityTypeMessages;
   messages: DeepSkyMessages["selection"];
   selection: DeepSkySelectionOutcome;
 }>) {
@@ -293,7 +315,7 @@ function SelectedObject({
         <h2 className="text-3xl font-semibold" id="selected-object-heading">
           {detail.canonical_name}
         </h2>
-        <p className="text-[var(--muted)]">{entityTypeLabel(detail.entity_type)}</p>
+        <p className="text-[var(--muted)]">{entityTypeMessages[detail.entity_type]}</p>
       </div>
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <CoordinateFact

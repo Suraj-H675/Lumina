@@ -12,6 +12,7 @@ import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type {
   CoordinateDisclosureMessages,
+  EntityTypeMessages,
   ObservationPlannerMessages,
 } from "../src/lib/i18n/messages/types";
 import { localDateString } from "../src/lib/observation/domain";
@@ -112,12 +113,14 @@ function renderPlanner(
   date = "2026-08-27",
   messages: ObservationPlannerMessages = enMessages.observationPlanner,
   coordinateDisclosureMessages: CoordinateDisclosureMessages = enMessages.coordinateDisclosure,
+  entityTypeMessages: EntityTypeMessages = enMessages.entityTypes,
 ) {
   return render(
     <ObservationPlanner
       catalogueSearchMessages={enMessages.catalogueSearch}
       coordinateDisclosureMessages={coordinateDisclosureMessages}
       detail={detail}
+      entityTypeMessages={entityTypeMessages}
       initialDate={date}
       journalEntryMessages={enMessages.journal.entry}
       locale={DEFAULT_LOCALE}
@@ -167,11 +170,15 @@ describe("ObservationPlanner", () => {
       },
     };
 
-    renderPlanner(plannerDetail(), "2026-08-27", messages);
+    renderPlanner(plannerDetail(), "2026-08-27", messages, enMessages.coordinateDisclosure, {
+      ...enMessages.entityTypes,
+      star: "Fixture planner target type",
+    });
 
     expect(screen.getByText("Planner message fixture")).toBeVisible();
     expect(screen.getByRole("button", { name: "Use fixture coordinates" })).toBeVisible();
     expect(screen.getByText(/Fixture zone/)).toBeVisible();
+    expect(screen.getByText(/Fixture planner target type/)).toBeVisible();
   });
 
   it("renders the result surface from the injected planner message group", async () => {

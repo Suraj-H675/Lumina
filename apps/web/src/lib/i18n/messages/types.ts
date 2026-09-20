@@ -60,6 +60,10 @@ export type GlobalErrorMessages = Readonly<{
 
 export type RouteBoundaryMessages = Readonly<{
   globalError: GlobalErrorMessages;
+  lab: Readonly<{
+    scaleExplorer: RouteErrorMessages;
+    telescopeBuilder: RouteErrorMessages;
+  }>;
   notFound: NotFoundMessages;
   routeError: RouteErrorMessages;
 }>;
@@ -565,6 +569,7 @@ export type ObjectMessages = Readonly<{
     sourceRecord: string;
     summary: string;
   }>;
+  routeError: RouteErrorMessages;
   science: Readonly<{
     empty: string;
     heading: string;
@@ -859,6 +864,10 @@ export type LearnMessages = Readonly<{
   lesson: LearningLessonMessages;
   path: LearningPathMessages;
   progressControls: LearningProgressControlsMessages;
+  routeState: Readonly<{
+    error: RouteErrorMessages;
+    loading: string;
+  }>;
   sources: LearningSourcesMessages;
 }>;
 

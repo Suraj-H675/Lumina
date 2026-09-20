@@ -558,6 +558,12 @@ export const enMessages = {
       sourceRecord: "Source record {recordId}",
       summary: "Where every value above comes from.",
     },
+    routeError: {
+      description:
+        "Something went wrong while opening this object. No diagnostic detail is exposed here.",
+      retry: "Try again",
+      title: "This page could not be loaded",
+    },
     science: {
       empty:
         "No measurements are published through Lumina for this object yet. This page will grow as reviewed data is added — nothing is estimated or filled in on your behalf.",
@@ -1634,6 +1640,15 @@ export const enMessages = {
       },
       title: "Your local learning data",
     },
+    routeState: {
+      error: {
+        description:
+          "The authored learning content is temporarily unavailable. Nothing was changed in your local progress.",
+        retry: "Try again",
+        title: "The learning path could not load",
+      },
+      loading: "The learning path is loading…",
+    },
     sources: {
       reviewSummary:
         "Authored content · version {version} · reviewed {reviewedAt} by {reviewedBy}.",
@@ -2022,6 +2037,20 @@ export const enMessages = {
       description: "Lumina could not load. Try again, or return to the foundation home page later.",
       retry: "Try again",
       title: "Something went wrong",
+    },
+    lab: {
+      scaleExplorer: {
+        description:
+          "The curated model was not available for this request. Try again; no scientific fallback data was substituted.",
+        retry: "Try again",
+        title: "Scale Explorer could not load",
+      },
+      telescopeBuilder: {
+        description:
+          "The reviewed model was not available for this request. Try again; no scientific fallback data was substituted.",
+        retry: "Try again",
+        title: "Telescope Builder could not load",
+      },
     },
     notFound: {
       code: "404",

@@ -19,7 +19,6 @@ import { JournalEntryButton } from "./journal-entry-button";
 import { ObservationConditions } from "./observation-conditions";
 import { SaveObservationPlanButton } from "./save-observation-plan-button";
 import { SkyFinder } from "./sky-finder";
-import { entityTypeLabel } from "../lib/catalog-display";
 import { formatCoordinateDisclosure } from "../lib/i18n/coordinate-disclosure";
 import {
   formatLocaleDateTime,
@@ -30,6 +29,7 @@ import type { PublishedLocale } from "../lib/i18n/locales";
 import type {
   CatalogueSearchMessages,
   CoordinateDisclosureMessages,
+  EntityTypeMessages,
   JournalEntryMessages,
   ObservationPlannerMessages,
 } from "../lib/i18n/messages/types";
@@ -54,6 +54,7 @@ export type ObservationPlannerProps = Readonly<{
   catalogueSearchMessages: CatalogueSearchMessages;
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
   detail: EntityDetailResponse | null;
+  entityTypeMessages: EntityTypeMessages;
   initialDate?: string;
   journalEntryMessages: JournalEntryMessages;
   locale: PublishedLocale;
@@ -579,6 +580,7 @@ export function ObservationPlanner({
   catalogueSearchMessages,
   coordinateDisclosureMessages,
   detail,
+  entityTypeMessages,
   initialDate,
   journalEntryMessages,
   locale,
@@ -707,7 +709,7 @@ export function ObservationPlanner({
         {detail !== null ? (
           <p className="text-sm text-[var(--muted)]">
             {formatMessageTemplate(messages.header.targetSummary, {
-              entityType: entityTypeLabel(detail.entity_type),
+              entityType: entityTypeMessages[detail.entity_type],
             })}
           </p>
         ) : null}

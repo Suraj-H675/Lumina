@@ -5,6 +5,7 @@ import type { PublishedLocale } from "../../lib/i18n/locales";
 import type {
   CatalogueSearchMessages,
   CoordinateDisclosureMessages,
+  EntityTypeMessages,
   JournalEntryMessages,
   ObservationPlannerMessages,
   SavedObservationPlanMessages,
@@ -23,6 +24,7 @@ export function createObserveMetadata(messages: ObservationPlannerMessages["meta
 type ObservePageProps = Readonly<{
   catalogueSearchMessages: CatalogueSearchMessages;
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  entityTypeMessages: EntityTypeMessages;
   journalEntryMessages: JournalEntryMessages;
   plannerLocale: PublishedLocale;
   plannerMessages: ObservationPlannerMessages;
@@ -38,6 +40,7 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 export default async function ObservePage({
   catalogueSearchMessages,
   coordinateDisclosureMessages,
+  entityTypeMessages,
   journalEntryMessages,
   plannerLocale,
   plannerMessages,
@@ -64,6 +67,7 @@ export default async function ObservePage({
       {...(initialSavedId === undefined ? {} : { initialSavedId })}
       catalogueSearchMessages={catalogueSearchMessages}
       coordinateDisclosureMessages={coordinateDisclosureMessages}
+      entityTypeMessages={entityTypeMessages}
       journalEntryMessages={journalEntryMessages}
       locale={plannerLocale}
       messages={plannerMessages}

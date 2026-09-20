@@ -13,6 +13,7 @@ export default function EnglishObservePage({
     <ObservePage
       catalogueSearchMessages={enMessages.catalogueSearch}
       coordinateDisclosureMessages={enMessages.coordinateDisclosure}
+      entityTypeMessages={enMessages.entityTypes}
       journalEntryMessages={enMessages.journal.entry}
       plannerLocale={DEFAULT_LOCALE}
       plannerMessages={enMessages.observationPlanner}

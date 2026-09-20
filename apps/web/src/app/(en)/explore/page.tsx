@@ -16,6 +16,7 @@ export default function EnglishExplorePage({
     <ExplorePage
       catalogueSearchMessages={enMessages.catalogueSearch}
       collectionSaveMessages={collectionSaveMessages}
+      entityTypeMessages={enMessages.entityTypes}
       locale={DEFAULT_LOCALE}
       messages={enMessages.explore}
       searchParams={searchParams}

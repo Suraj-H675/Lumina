@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { CollectionDetailView } from "../../../components/collection-detail-view";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
-import type { CollectionsMessages } from "../../../lib/i18n/messages/types";
+import type { CollectionsMessages, EntityTypeMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 
 /**
@@ -20,12 +20,18 @@ export function createCollectionDetailMetadata(
 }
 
 type CollectionPageProps = Readonly<{
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: CollectionsMessages;
   params: Promise<Readonly<{ collectionId: string }>>;
 }>;
 
-export default async function CollectionPage({ locale, messages, params }: CollectionPageProps) {
+export default async function CollectionPage({
+  entityTypeMessages,
+  locale,
+  messages,
+  params,
+}: CollectionPageProps) {
   const { collectionId } = await params;
 
   // Public API origin for bounded typeahead adds; carries no secrets.
@@ -36,6 +42,7 @@ export default async function CollectionPage({ locale, messages, params }: Colle
     <CollectionDetailView
       {...(apiOrigin === undefined ? {} : { apiOrigin })}
       collectionId={collectionId}
+      entityTypeMessages={entityTypeMessages}
       locale={locale}
       messages={messages}
     />

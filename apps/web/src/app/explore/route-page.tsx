@@ -13,6 +13,7 @@ import type { PublishedLocale } from "../../lib/i18n/locales";
 import type {
   CatalogueSearchMessages,
   CollectionSaveMessages,
+  EntityTypeMessages,
   ExploreMessages,
 } from "../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
@@ -28,6 +29,7 @@ export function createExploreMetadata(messages: ExploreMessages): Metadata {
 type ExplorePageProps = Readonly<{
   catalogueSearchMessages: CatalogueSearchMessages;
   collectionSaveMessages: CollectionSaveMessages;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: ExploreMessages;
   searchParams: Promise<Readonly<{ cursor?: string | string[]; q?: string | string[] }>>;
@@ -40,6 +42,7 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 export default async function ExplorePage({
   catalogueSearchMessages,
   collectionSaveMessages,
+  entityTypeMessages,
   locale,
   messages,
   searchParams,
@@ -113,6 +116,7 @@ export default async function ExplorePage({
       {committed ? (
         <ExploreSearchSection
           collectionSaveMessages={collectionSaveMessages}
+          entityTypeMessages={entityTypeMessages}
           locale={locale}
           messages={messages.search}
           query={query}
@@ -122,6 +126,7 @@ export default async function ExplorePage({
         <ExploreBrowseSection
           {...(cursor === undefined ? {} : { cursor })}
           collectionSaveMessages={collectionSaveMessages}
+          entityTypeMessages={entityTypeMessages}
           locale={locale}
           messages={messages.browse}
           unavailableMessages={messages.unavailable}
@@ -134,12 +139,14 @@ export default async function ExplorePage({
 /** Committed search state: results come straight from /api/v1/search, order untouched. */
 async function ExploreSearchSection({
   collectionSaveMessages,
+  entityTypeMessages,
   locale,
   messages,
   query,
   unavailableMessages,
 }: Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: ExploreMessages["search"];
   query: string;
@@ -158,6 +165,7 @@ async function ExploreSearchSection({
         </p>
         <ExploreResultsView
           collectionSaveMessages={collectionSaveMessages}
+          entityTypeMessages={entityTypeMessages}
           items={outcome.items}
           locale={locale}
           messages={messages}
@@ -186,12 +194,14 @@ async function ExploreSearchSection({
 async function ExploreBrowseSection({
   collectionSaveMessages,
   cursor,
+  entityTypeMessages,
   locale,
   messages,
   unavailableMessages,
 }: Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
   cursor?: string;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: ExploreMessages["browse"];
   unavailableMessages: ExploreMessages["unavailable"];
@@ -218,6 +228,7 @@ async function ExploreBrowseSection({
             ) : null}
             <EntityCardGrid
               collectionSaveMessages={collectionSaveMessages}
+              entityTypeMessages={entityTypeMessages}
               items={outcome.items}
               locale={locale}
               messages={messages}

@@ -7,7 +7,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import GlobalError from "../src/app/global-error";
+import ScaleExplorerError from "../src/app/lab/scale-explorer/route-error";
+import TelescopeBuilderError from "../src/app/lab/telescope-builder/route-error";
+import LearningError from "../src/app/learn/route-error";
 import LearningLoading from "../src/app/learn/route-loading";
+import ObjectRouteError from "../src/app/objects/[slug]/route-error";
 import NotFound from "../src/app/route-not-found";
 import { MissionControlHome } from "../src/app/mission-control-home";
 import { loadReviewedDiscoveries } from "../src/lib/discoveries/content";
@@ -93,7 +97,7 @@ describe("Lumina route boundaries", () => {
     expect(existsSync(rootLoadingPath)).toBe(false);
     expect(existsSync(learnLoadingPath)).toBe(true);
 
-    const { rerender } = render(<LearningLoading />);
+    const { rerender } = render(<LearningLoading message={enMessages.learn.routeState.loading} />);
     expect(screen.getByRole("status")).toHaveTextContent(/learning path is loading/i);
 
     rerender(<NotFound messages={enMessages.routeBoundaries.notFound} />);
@@ -122,5 +126,70 @@ describe("Lumina route boundaries", () => {
     rerender(<GlobalError error={rawError} reset={reset} />);
     expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
     expect(screen.queryByText(/private diagnostic detail/i)).not.toBeInTheDocument();
+  });
+
+  it("injects specialized route-boundary messages without exposing diagnostic details", () => {
+    const reset = vi.fn();
+    const rawError = new Error("private route diagnostic");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const { rerender } = render(
+      <LearningError
+        error={rawError}
+        messages={{
+          description: "Fixture learning recovery",
+          retry: "Fixture learning retry",
+          title: "Fixture learning error",
+        }}
+        reset={reset}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Fixture learning error" })).toBeVisible();
+    expect(screen.getByText("Fixture learning recovery")).toBeVisible();
+    expect(screen.queryByText(/private route diagnostic/i)).not.toBeInTheDocument();
+
+    rerender(
+      <ObjectRouteError
+        error={rawError}
+        messages={{
+          description: "Fixture object recovery",
+          retry: "Fixture object retry",
+          title: "Fixture object error",
+        }}
+        reset={reset}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Fixture object error" })).toBeVisible();
+    expect(screen.getByText("Fixture object recovery")).toBeVisible();
+    expect(screen.queryByText(/private route diagnostic/i)).not.toBeInTheDocument();
+
+    rerender(
+      <ScaleExplorerError
+        error={rawError}
+        messages={{
+          description: "Fixture scale recovery",
+          retry: "Fixture scale retry",
+          title: "Fixture scale error",
+        }}
+        reset={reset}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Fixture scale error" })).toBeVisible();
+
+    rerender(
+      <TelescopeBuilderError
+        error={rawError}
+        messages={{
+          description: "Fixture telescope recovery",
+          retry: "Fixture telescope retry",
+          title: "Fixture telescope error",
+        }}
+        reset={reset}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Fixture telescope error" })).toBeVisible();
+    expect(screen.queryByText(/private route diagnostic/i)).not.toBeInTheDocument();
+
+    consoleError.mockRestore();
   });
 });

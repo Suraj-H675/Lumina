@@ -4,18 +4,18 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
-import { entityTypeLabel } from "../lib/catalog-display";
 import { collectionStoreFailureMessage } from "../lib/collections-messages";
 import { addObjectsToCollection, useCollectionsData } from "../lib/collections-store";
 import { formatCountMessage, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionsMessages } from "../lib/i18n/messages/types";
+import type { CollectionsMessages, EntityTypeMessages } from "../lib/i18n/messages/types";
 import { useSuggestCatalogue } from "./use-suggest-catalogue";
 
 type AddObjectToCollectionControlProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
   collectionId: string;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: CollectionsMessages;
 }>;
@@ -32,6 +32,7 @@ type AddObjectToCollectionControlProps = Readonly<{
 export function AddObjectToCollectionControl({
   apiOrigin,
   collectionId,
+  entityTypeMessages,
   locale,
   messages,
 }: AddObjectToCollectionControlProps) {
@@ -213,7 +214,7 @@ export function AddObjectToCollectionControl({
                 {suggestion.canonical_name}
               </span>
               <span className="block text-xs text-[var(--muted)]">
-                {entityTypeLabel(suggestion.entity_type)}
+                {entityTypeMessages[suggestion.entity_type]}
               </span>
             </li>
           ))}

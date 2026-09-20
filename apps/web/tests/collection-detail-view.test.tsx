@@ -31,7 +31,12 @@ let collectionId: string;
 
 function renderDetail(id: string, messages: CollectionsMessages = enMessages.collections) {
   return render(
-    <CollectionDetailView collectionId={id} locale={DEFAULT_LOCALE} messages={messages} />,
+    <CollectionDetailView
+      collectionId={id}
+      entityTypeMessages={enMessages.entityTypes}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
+    />,
   );
 }
 
@@ -80,6 +85,21 @@ describe("CollectionDetailView", () => {
     expect(list.textContent).toContain("K2-18");
     expect(screen.getByRole("button", { name: "Remove K2-18 from the collection" })).toBeVisible();
     expect(document.body.textContent).not.toMatch(/magnitude/i);
+  });
+
+  it("renders saved object types from the injected entity vocabulary", () => {
+    store.addObjectToCollection(collectionId, K2_18);
+    render(
+      <CollectionDetailView
+        collectionId={collectionId}
+        entityTypeMessages={{ ...enMessages.entityTypes, star: "Fixture saved type" }}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.collections}
+      />,
+    );
+
+    expect(screen.getByText("Fixture saved type")).toBeVisible();
+    expect(screen.getByRole("link", { name: /K2-18/ })).toHaveAttribute("href", "/objects/k2-18");
   });
 
   it("renders a truthful missing-collection page for unknown ids", () => {

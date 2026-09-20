@@ -2,13 +2,18 @@ import type { CatalogSearchResponse } from "@lumina/api-client";
 
 import { formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionSaveMessages, ExploreMessages } from "../lib/i18n/messages/types";
+import type {
+  CollectionSaveMessages,
+  EntityTypeMessages,
+  ExploreMessages,
+} from "../lib/i18n/messages/types";
 import { ResultCard } from "./result-card";
 
 const SEARCH_EXAMPLE = "HD 209458";
 
 type ExploreResultsViewProps = Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
+  entityTypeMessages: EntityTypeMessages;
   items: CatalogSearchResponse["items"];
   locale: PublishedLocale;
   messages: ExploreMessages["search"];
@@ -21,6 +26,7 @@ type ExploreResultsViewProps = Readonly<{
  */
 export function ExploreResultsView({
   collectionSaveMessages,
+  entityTypeMessages,
   items,
   locale,
   messages,
@@ -53,6 +59,7 @@ export function ExploreResultsView({
       {items.map((item) => (
         <ResultCard
           collectionSaveMessages={collectionSaveMessages}
+          entityTypeMessages={entityTypeMessages}
           key={item.entity.id}
           locale={locale}
           matchedAliasMessage={messages.matchedAlias}

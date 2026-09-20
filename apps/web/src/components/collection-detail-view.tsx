@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 import { COMPARE_MAX_OBJECTS, buildCompareHref } from "../lib/compare-url";
-import { entityTypeLabel } from "../lib/catalog-display";
 import {
   collectionNameProblemMessage,
   collectionRenameNameHint,
@@ -21,7 +20,7 @@ import {
 } from "../lib/collections-store";
 import { formatCountMessage, formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionsMessages } from "../lib/i18n/messages/types";
+import type { CollectionsMessages, EntityTypeMessages } from "../lib/i18n/messages/types";
 import {
   CollectionLoadingNote,
   CorruptedStoragePanel,
@@ -50,6 +49,7 @@ type CollectionDetailViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
   collectionId: string;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: CollectionsMessages;
 }>;
@@ -57,6 +57,7 @@ type CollectionDetailViewProps = Readonly<{
 export function CollectionDetailView({
   apiOrigin,
   collectionId,
+  entityTypeMessages,
   locale,
   messages,
 }: CollectionDetailViewProps) {
@@ -146,6 +147,7 @@ export function CollectionDetailView({
         <AddObjectToCollectionControl
           {...(apiOrigin === undefined ? {} : { apiOrigin })}
           collectionId={collection.id}
+          entityTypeMessages={entityTypeMessages}
           locale={locale}
           messages={messages}
         />
@@ -176,6 +178,7 @@ export function CollectionDetailView({
             {collection.items.map((item) => (
               <SavedObjectRow
                 collectionId={collection.id}
+                entityTypeMessages={entityTypeMessages}
                 item={item}
                 key={item.slug}
                 messages={messages}
@@ -504,10 +507,12 @@ function CompareSelectionPanel({
 
 function SavedObjectRow({
   collectionId,
+  entityTypeMessages,
   item,
   messages,
 }: Readonly<{
   collectionId: string;
+  entityTypeMessages: EntityTypeMessages;
   item: CollectionItemSnapshot;
   messages: CollectionsMessages;
 }>) {
@@ -527,7 +532,7 @@ function SavedObjectRow({
             {item.canonical_name}
           </span>
           <span className="block text-sm text-[var(--muted)]">
-            {entityTypeLabel(item.entity_type)}
+            {entityTypeMessages[item.entity_type]}
           </span>
           {failure !== null ? (
             <span className="mt-1 block text-xs text-[#fda4af]" role="alert">

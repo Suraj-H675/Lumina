@@ -10,6 +10,11 @@ export default function EnglishCollectionPage({
   params,
 }: Readonly<{ params: Promise<Readonly<{ collectionId: string }>> }>) {
   return (
-    <CollectionPage locale={DEFAULT_LOCALE} messages={enMessages.collections} params={params} />
+    <CollectionPage
+      entityTypeMessages={enMessages.entityTypes}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.collections}
+      params={params}
+    />
   );
 }

@@ -125,6 +125,15 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.routeBoundaries.routeError.retry).toBe("Try again");
     expect(enMessages.routeBoundaries.globalError.title).toBe("Something went wrong");
     expect(enMessages.routeBoundaries.globalError.retry).toBe("Try again");
+    expect(enMessages.routeBoundaries.lab.scaleExplorer.title).toBe(
+      "Scale Explorer could not load",
+    );
+    expect(enMessages.routeBoundaries.lab.telescopeBuilder.title).toBe(
+      "Telescope Builder could not load",
+    );
+    expect(enMessages.learn.routeState.loading).toBe("The learning path is loading…");
+    expect(enMessages.learn.routeState.error.retry).toBe("Try again");
+    expect(enMessages.object.routeError.title).toBe("This page could not be loaded");
   });
 
   it("keeps Deep Sky atlas templates placeholder-complete", () => {

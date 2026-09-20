@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 
+import { formatMessageTemplate } from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SpaceWeatherMessages } from "../../../lib/i18n/messages/types";
+import { NOAA_SPACE_WEATHER_PREDICTION_CENTER_NAME } from "../../../lib/space-now/provider-display";
 import { loadNowSpaceWeather } from "../../../lib/server/space-now";
 import { SpaceWeatherView } from "./space-weather-view";
 
-export const metadata: Metadata = {
-  title: "Space Weather",
-  description:
-    "A source-backed NOAA Space Weather Prediction Center view of separate R, S, and G scales, planetary Kp, solar-wind measurements, and provider notifications.",
-};
+export function createSpaceWeatherMetadata(messages: SpaceWeatherMessages): Metadata {
+  return {
+    title: messages.metadataTitle,
+    description: formatMessageTemplate(messages.metadataDescription, {
+      provider: NOAA_SPACE_WEATHER_PREDICTION_CENTER_NAME,
+    }),
+  };
+}
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function SpaceWeatherPage() {
+export default async function SpaceWeatherPage({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: SpaceWeatherMessages }>) {
   const outcome = await loadNowSpaceWeather();
-  return <SpaceWeatherView outcome={outcome} />;
+  return <SpaceWeatherView locale={locale} messages={messages} outcome={outcome} />;
 }

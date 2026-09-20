@@ -6,8 +6,12 @@ import type { SpaceWeatherResponse } from "@lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
+import { createSpaceWeatherMetadata } from "../src/app/now/space-weather/route-page";
 import { SpaceWeatherView } from "../src/app/now/space-weather/space-weather-view";
 import { SiteShell } from "../src/components/site-shell";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { SpaceWeatherMessages } from "../src/lib/i18n/messages/types";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 import { loadNowSpaceWeather } from "../src/lib/server/space-now";
 
@@ -82,10 +86,17 @@ const response: SpaceWeatherResponse = {
   },
 };
 
-function renderPage(value: SpaceWeatherResponse) {
+function renderPage(
+  value: SpaceWeatherResponse,
+  messages: SpaceWeatherMessages = enMessages.spaceNow.spaceWeather,
+) {
   return render(
     <SiteShell {...EN_SHELL_PROPS}>
-      <SpaceWeatherView outcome={{ data: value, kind: "ok" }} />
+      <SpaceWeatherView
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+        outcome={{ data: value, kind: "ok" }}
+      />
     </SiteShell>,
   );
 }
@@ -100,6 +111,9 @@ describe("Space Now Space Weather", () => {
     expect(screen.getByText("G2 — Moderate")).toBeVisible();
     expect(screen.getByText("Latest observed Kp")).toBeVisible();
     expect(screen.getByText("Latest estimated Kp")).toBeVisible();
+    expect(screen.getByText("observed")).toBeVisible();
+    expect(screen.getByText("estimated")).toBeVisible();
+    expect(screen.getByText("Predicted")).toBeVisible();
     expect(screen.getByText("404 km/s")).toBeVisible();
     expect(screen.getByText("6 nT")).toBeVisible();
     expect(screen.getByText("-3 nT")).toBeVisible();
@@ -110,6 +124,88 @@ describe("Space Now Space Weather", () => {
     );
     expect(container.querySelector("script")).toBeNull();
     expect(container.innerHTML).not.toContain("Space Weather Score");
+  });
+
+  it("preserves high-precision scientific numbers while formatting them through the locale", () => {
+    renderPage({
+      ...response,
+      kp: {
+        ...response.kp,
+        latest_observed: {
+          ...response.kp.latest_observed!,
+          kp: 2.1234567890123,
+        },
+        forecast: [
+          {
+            ...response.kp.forecast[0]!,
+            kp: 5.678901234567,
+          },
+        ],
+      },
+      solar_wind: {
+        ...response.solar_wind!,
+        proton_speed_km_s: 404.123456789,
+      },
+    });
+
+    expect(screen.getByText("2.1234567890123")).toBeVisible();
+    expect(screen.getByText("5.678901234567")).toBeVisible();
+    expect(screen.getByText("404.123456789 km/s")).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting NOAA/SWPC source data", () => {
+    const messages: SpaceWeatherMessages = {
+      ...enMessages.spaceNow.spaceWeather,
+      kp: {
+        ...enMessages.spaceNow.spaceWeather.kp,
+        statuses: {
+          ...enMessages.spaceNow.spaceWeather.kp.statuses,
+          observed: "Fixture observed",
+        },
+        title: "Fixture Kp heading",
+      },
+      metadataDescription: "Fixture metadata from {provider}.",
+      metadataTitle: "Fixture Space Weather metadata",
+      notifications: {
+        ...enMessages.spaceNow.spaceWeather.notifications,
+        issueTime: "Fixture issue time: {time}",
+      },
+      scales: {
+        ...enMessages.spaceNow.spaceWeather.scales,
+        title: "Fixture {provider} scales heading",
+      },
+      source: {
+        ...enMessages.spaceNow.spaceWeather.source,
+        documentation: "Fixture documentation for {sourceName}",
+      },
+      title: "Fixture Space Weather",
+    };
+
+    renderPage(response, messages);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Fixture Space Weather" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture NOAA scales heading" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture Kp heading" })).toBeVisible();
+    expect(screen.getByText("Fixture observed")).toBeVisible();
+    expect(screen.getByText("R1 — Minor")).toBeVisible();
+    expect(screen.getByText("2026-09-12T09:00:00")).toBeVisible();
+    expect(screen.getByText("Fixture issue time: 2026-09-12T11:30:00")).toBeVisible();
+    expect(screen.getByText(/Plain provider text <script>/)).toBeVisible();
+    expect(screen.getByText("HF radio impacts are possible on the sunlit side.")).toBeVisible();
+    expect(screen.getByText("NOAA / NWS Space Weather Prediction Center.")).toBeVisible();
+    expect(screen.getByRole("link", { name: "NOAA Aurora 30-Minute Forecast" })).toHaveAttribute(
+      "href",
+      response.aurora.official_url,
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "Fixture documentation for NOAA / NWS Space Weather Prediction Center",
+      }),
+    ).toHaveAttribute("href", source.official_documentation_url);
+    expect(createSpaceWeatherMetadata(messages)).toEqual({
+      description: "Fixture metadata from NOAA Space Weather Prediction Center.",
+      title: "Fixture Space Weather metadata",
+    });
   });
 
   it("makes stale state and Lumina retrieval time explicit", () => {
@@ -153,7 +249,13 @@ describe("Space Now Space Weather", () => {
     expect(screen.getByText("No notification records are present in this snapshot.")).toBeVisible();
     expect(screen.getAllByText("Not reported").length).toBeGreaterThanOrEqual(3);
 
-    rerender(<SpaceWeatherView outcome={{ kind: "unavailable" }} />);
+    rerender(
+      <SpaceWeatherView
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.spaceNow.spaceWeather}
+        outcome={{ kind: "unavailable" }}
+      />,
+    );
     expect(screen.getByRole("status")).toHaveTextContent(
       "Space Weather data is currently unavailable.",
     );

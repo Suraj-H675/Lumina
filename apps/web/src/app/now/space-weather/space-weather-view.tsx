@@ -2,35 +2,53 @@ import type { SpaceWeatherResponse } from "@lumina/api-client";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { formatLocaleNumber, formatMessageTemplate } from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SpaceWeatherMessages } from "../../../lib/i18n/messages/types";
+import { NOAA_NAME, NOAA_SWPC_NAME, SWPC_NAME } from "../../../lib/space-now/provider-display";
 import type { NowSpaceWeatherOutcome } from "../../../lib/server/space-now";
 
-export function SpaceWeatherView({ outcome }: Readonly<{ outcome: NowSpaceWeatherOutcome }>) {
+export function SpaceWeatherView({
+  locale,
+  messages,
+  outcome,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpaceWeatherMessages;
+  outcome: NowSpaceWeatherOutcome;
+}>) {
   return (
     <article className="max-w-6xl space-y-10">
       <header className="max-w-3xl space-y-5">
         <p className="text-sm font-semibold tracking-[0.14em] text-[var(--accent)] uppercase">
-          Space Now
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Space Weather</h1>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
         <p className="text-lg leading-8 text-[var(--muted)]">
-          A calm, educational view of separate NOAA space-weather measurements, communication
-          scales, forecasts, and notifications. These facts are not an operational warning or a
-          local aurora-visibility prediction.
+          {formatMessageTemplate(messages.intro, { provider: NOAA_NAME })}
         </p>
       </header>
 
       {outcome.kind === "ok" ? (
-        <SpaceWeatherData response={outcome.data} />
+        <SpaceWeatherData locale={locale} messages={messages} response={outcome.data} />
       ) : (
-        <UnavailableSpaceWeather />
+        <UnavailableSpaceWeather messages={messages} />
       )}
     </article>
   );
 }
 
-function SpaceWeatherData({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function SpaceWeatherData({
+  locale,
+  messages,
+  response,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpaceWeatherMessages;
+  response: SpaceWeatherResponse;
+}>) {
   if (response.availability === "unavailable") {
-    return <UnavailableSpaceWeather response={response} />;
+    return <UnavailableSpaceWeather messages={messages} response={response} />;
   }
 
   return (
@@ -46,56 +64,75 @@ function SpaceWeatherData({ response }: Readonly<{ response: SpaceWeatherRespons
       >
         <h2 className="text-xl font-semibold">
           {response.availability === "stale"
-            ? "Stale Space Weather snapshot"
-            : "Fresh Space Weather snapshot"}
+            ? messages.snapshot.staleTitle
+            : messages.snapshot.freshTitle}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          This state describes Lumina&apos;s atomic cache snapshot. The NOAA product timestamps
-          below describe the underlying observations, estimates, forecasts, or notifications and are
-          not all from the same instant.
+          {formatMessageTemplate(messages.snapshot.description, {
+            provider: NOAA_NAME,
+          })}
         </p>
       </section>
 
-      <CurrentScales response={response} />
-      <KpSection response={response} />
-      <SolarWindSection response={response} />
-      <NotificationsSection response={response} />
-      <ImpactsSection response={response} />
-      <AuroraSection response={response} />
-      <FreshnessDetails response={response} />
-      <SourceDetails response={response} />
+      <CurrentScales messages={messages.scales} response={response} />
+      <KpSection locale={locale} messages={messages.kp} response={response} />
+      <SolarWindSection locale={locale} messages={messages.solarWind} response={response} />
+      <NotificationsSection messages={messages.notifications} response={response} />
+      <ImpactsSection messages={messages.impacts} response={response} />
+      <AuroraSection messages={messages.aurora} response={response} />
+      <FreshnessDetails messages={messages.freshness} response={response} />
+      <SourceDetails messages={messages.source} response={response} />
     </div>
   );
 }
 
-function CurrentScales({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function CurrentScales({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceWeatherMessages["scales"]; response: SpaceWeatherResponse }>) {
   const scales = response.scales;
   return (
     <section aria-labelledby="space-weather-scales-heading" className="space-y-5">
       <div className="space-y-3">
         <h2 className="text-2xl font-semibold" id="space-weather-scales-heading">
-          Current NOAA scales
+          {formatMessageTemplate(messages.title, { provider: NOAA_NAME })}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          NOAA keeps radio blackouts (R), solar radiation storms (S), and geomagnetic storms (G) as
-          separate source-defined categories. Lumina does not add their levels together.
+          {formatMessageTemplate(messages.description, { provider: NOAA_NAME })}
         </p>
       </div>
       {scales === null ? (
         <p className="border border-[var(--border)] p-5 leading-7 text-[var(--muted)]">
-          The current NOAA scale record is not available in this validated snapshot.
+          {formatMessageTemplate(messages.unavailable, { provider: NOAA_NAME })}
         </p>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-3">
-            <ScaleCard label="Radio blackouts" code="R" value={scales.radio_blackout} />
-            <ScaleCard label="Solar radiation storms" code="S" value={scales.solar_radiation} />
-            <ScaleCard label="Geomagnetic storms" code="G" value={scales.geomagnetic} />
+            <ScaleCard
+              code="R"
+              label={messages.families.radioBlackout}
+              messages={messages}
+              value={scales.radio_blackout}
+            />
+            <ScaleCard
+              code="S"
+              label={messages.families.solarRadiation}
+              messages={messages}
+              value={scales.solar_radiation}
+            />
+            <ScaleCard
+              code="G"
+              label={messages.families.geomagnetic}
+              messages={messages}
+              value={scales.geomagnetic}
+            />
           </div>
           <p className="text-sm leading-7 text-[var(--muted)]">
-            NOAA scale record time: <span className="font-medium">{scales.date_text}</span>{" "}
-            <span className="font-medium">{scales.time_text}</span>. Lumina preserves this source
-            time text without relabelling it as local time.
+            {formatMessageTemplate(messages.sourceTime, {
+              date: scales.date_text,
+              provider: NOAA_NAME,
+              time: scales.time_text,
+            })}
           </p>
         </>
       )}
@@ -106,10 +143,12 @@ function CurrentScales({ response }: Readonly<{ response: SpaceWeatherResponse }
 function ScaleCard({
   code,
   label,
+  messages,
   value,
 }: Readonly<{
   code: "G" | "R" | "S";
   label: string;
+  messages: SpaceWeatherMessages["scales"];
   value: NonNullable<SpaceWeatherResponse["scales"]>["geomagnetic"];
 }>) {
   return (
@@ -117,56 +156,81 @@ function ScaleCard({
       <h3 className="font-semibold">{label}</h3>
       <p className="text-2xl font-semibold">
         {code}
-        {value.level} — {value.text ?? "No source description"}
+        {value.level} — {value.text ?? messages.noSourceDescription}
       </p>
       <p className="text-sm leading-7 text-[var(--muted)]">
-        This is the NOAA {code} family level, not a Lumina severity score.
+        {formatMessageTemplate(messages.familyContext, {
+          code,
+          provider: NOAA_NAME,
+        })}
       </p>
     </article>
   );
 }
 
-function KpSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function KpSection({
+  locale,
+  messages,
+  response,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpaceWeatherMessages["kp"];
+  response: SpaceWeatherResponse;
+}>) {
   const { latest_observed: observed, latest_estimated: estimated, forecast } = response.kp;
   return (
     <section aria-labelledby="space-weather-kp-heading" className="space-y-5">
       <div className="space-y-3">
         <h2 className="text-2xl font-semibold" id="space-weather-kp-heading">
-          Planetary Kp
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          Kp is a dimensionless planetary geomagnetic index. Observed, estimated, and predicted rows
-          remain separate; Kp is not a local aurora probability and does not replace the NOAA R/S/G
-          scales.
+          {formatMessageTemplate(messages.description, { provider: NOAA_NAME })}
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <KpSummary label="Latest observed Kp" value={observed} />
-        <KpSummary label="Latest estimated Kp" value={estimated} />
+        <KpSummary
+          label={messages.labels.latestObserved}
+          locale={locale}
+          messages={messages}
+          value={observed}
+        />
+        <KpSummary
+          label={messages.labels.latestEstimated}
+          locale={locale}
+          messages={messages}
+          value={estimated}
+        />
       </div>
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Forecast Kp</h3>
+        <h3 className="text-xl font-semibold">{messages.forecast.heading}</h3>
         {forecast.length === 0 ? (
           <p className="border border-[var(--border)] p-5 leading-7 text-[var(--muted)]">
-            No predicted Kp rows are available in this snapshot.
+            {messages.forecast.empty}
           </p>
         ) : (
           <div className="overflow-x-auto border border-[var(--border)]" tabIndex={0}>
             <table className="min-w-[32rem] w-full border-collapse text-left text-sm">
-              <caption className="sr-only">NOAA predicted planetary Kp rows</caption>
+              <caption className="sr-only">
+                {formatMessageTemplate(messages.forecast.caption, { provider: NOAA_NAME })}
+              </caption>
               <thead className="bg-[var(--surface)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold" scope="col">
-                    NOAA product time
+                    {formatMessageTemplate(messages.forecast.headers.time, {
+                      provider: NOAA_NAME,
+                    })}
                   </th>
                   <th className="px-4 py-3 font-semibold" scope="col">
-                    Kp (dimensionless)
+                    {messages.forecast.headers.kp}
                   </th>
                   <th className="px-4 py-3 font-semibold" scope="col">
-                    NOAA scale field
+                    {formatMessageTemplate(messages.forecast.headers.scale, {
+                      provider: NOAA_NAME,
+                    })}
                   </th>
                   <th className="px-4 py-3 font-semibold" scope="col">
-                    Status
+                    {messages.forecast.headers.statusColumn}
                   </th>
                 </tr>
               </thead>
@@ -177,11 +241,15 @@ function KpSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
                     key={`${row.time_text}-${row.kp}`}
                   >
                     <td className="px-4 py-3 text-[var(--muted)]">{row.time_text}</td>
-                    <td className="px-4 py-3 text-[var(--muted)]">{row.kp}</td>
                     <td className="px-4 py-3 text-[var(--muted)]">
-                      {row.noaa_scale ?? "Not reported"}
+                      {formatSpaceWeatherNumber(row.kp, locale)}
                     </td>
-                    <td className="px-4 py-3 font-medium">Predicted</td>
+                    <td className="px-4 py-3 text-[var(--muted)]">
+                      {row.noaa_scale ?? messages.notReported}
+                    </td>
+                    <td className="px-4 py-3 font-medium">
+                      {kpForecastStatusLabel(row.status, messages)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -195,33 +263,41 @@ function KpSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
 
 function KpSummary({
   label,
+  locale,
+  messages,
   value,
 }: Readonly<{
   label: string;
+  locale: PublishedLocale;
+  messages: SpaceWeatherMessages["kp"];
   value: SpaceWeatherResponse["kp"]["latest_observed"];
 }>) {
   return (
     <article className="space-y-3 border border-[var(--border)] bg-[var(--surface)] p-5">
       <h3 className="font-semibold">{label}</h3>
       {value === null ? (
-        <p className="leading-7 text-[var(--muted)]">Not reported in this snapshot.</p>
+        <p className="leading-7 text-[var(--muted)]">{messages.notReportedInSnapshot}</p>
       ) : (
         <dl className="grid gap-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="font-medium">Kp</dt>
-            <dd className="text-2xl font-semibold">{value.kp}</dd>
+            <dt className="font-medium">{messages.labels.kp}</dt>
+            <dd className="text-2xl font-semibold">{formatSpaceWeatherNumber(value.kp, locale)}</dd>
           </div>
           <div>
-            <dt className="font-medium">Provider status</dt>
-            <dd className="text-[var(--muted)]">{value.status}</dd>
+            <dt className="font-medium">{messages.labels.providerStatus}</dt>
+            <dd className="text-[var(--muted)]">{kpStatusLabel(value.status, messages)}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="font-medium">NOAA product time</dt>
+            <dt className="font-medium">
+              {formatMessageTemplate(messages.labels.productTime, { provider: NOAA_NAME })}
+            </dt>
             <dd className="text-[var(--muted)]">{value.time_text}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="font-medium">NOAA scale field</dt>
-            <dd className="text-[var(--muted)]">{value.noaa_scale ?? "Not reported"}</dd>
+            <dt className="font-medium">
+              {formatMessageTemplate(messages.labels.scaleField, { provider: NOAA_NAME })}
+            </dt>
+            <dd className="text-[var(--muted)]">{value.noaa_scale ?? messages.notReported}</dd>
           </div>
         </dl>
       )}
@@ -229,40 +305,55 @@ function KpSummary({
   );
 }
 
-function SolarWindSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function SolarWindSection({
+  locale,
+  messages,
+  response,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpaceWeatherMessages["solarWind"];
+  response: SpaceWeatherResponse;
+}>) {
   const solarWind = response.solar_wind;
   return (
     <section aria-labelledby="space-weather-solar-wind-heading" className="space-y-5">
       <div className="space-y-3">
         <h2 className="text-2xl font-semibold" id="space-weather-solar-wind-heading">
-          Solar wind measurements
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          These are SWPC upstream or near-Earth spacecraft measurements, not ground measurements at
-          a user&apos;s location. A single speed or magnetic-field value does not guarantee a
-          geomagnetic storm or local aurora.
+          {formatMessageTemplate(messages.description, { provider: SWPC_NAME })}
         </p>
       </div>
       {solarWind === null ? (
         <p className="border border-[var(--border)] p-5 leading-7 text-[var(--muted)]">
-          Solar-wind measurements are not available in this validated snapshot.
+          {messages.unavailable}
         </p>
       ) : (
         <dl className="grid gap-4 border border-[var(--border)] p-5 sm:grid-cols-2">
           <MeasurementField
-            label="Solar-wind proton speed"
-            value={withUnit(solarWind.proton_speed_km_s, "km/s")}
+            label={messages.labels.protonSpeed}
+            locale={locale}
+            messages={messages}
             timestamp={solarWind.speed_time_utc}
+            unit="km/s"
+            value={solarWind.proton_speed_km_s}
           />
           <MeasurementField
-            label="Interplanetary magnetic-field magnitude (Bt)"
-            value={withUnit(solarWind.bt_nt, "nT")}
+            label={messages.labels.bt}
+            locale={locale}
+            messages={messages}
             timestamp={solarWind.field_time_utc}
+            unit="nT"
+            value={solarWind.bt_nt}
           />
           <MeasurementField
-            label="GSM north/south magnetic-field component (Bz)"
-            value={withUnit(solarWind.bz_gsm_nt, "nT")}
+            label={messages.labels.bz}
+            locale={locale}
+            messages={messages}
             timestamp={solarWind.field_time_utc}
+            unit="nT"
+            value={solarWind.bz_gsm_nt}
           />
         </dl>
       )}
@@ -272,35 +363,54 @@ function SolarWindSection({ response }: Readonly<{ response: SpaceWeatherRespons
 
 function MeasurementField({
   label,
+  locale,
+  messages,
   timestamp,
+  unit,
   value,
-}: Readonly<{ label: string; timestamp: string | null; value: string }>) {
+}: Readonly<{
+  label: string;
+  locale: PublishedLocale;
+  messages: SpaceWeatherMessages["solarWind"];
+  timestamp: string | null;
+  unit: string;
+  value: number | null;
+}>) {
   return (
     <div>
       <dt className="font-medium">{label}</dt>
-      <dd className="text-2xl font-semibold">{value}</dd>
+      <dd className="text-2xl font-semibold">
+        {value === null
+          ? messages.notReported
+          : formatSpaceWeatherNumber(value, locale) + " " + unit}
+      </dd>
       <dd className="mt-1 text-sm text-[var(--muted)]">
-        Source observation time: {timestamp === null ? "Not recorded" : timestamp}
+        {formatMessageTemplate(messages.sourceObservationTime, {
+          time: timestamp ?? messages.notRecorded,
+        })}
       </dd>
     </div>
   );
 }
 
-function NotificationsSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function NotificationsSection({
+  messages,
+  response,
+}: Readonly<{
+  messages: SpaceWeatherMessages["notifications"];
+  response: SpaceWeatherResponse;
+}>) {
   return (
     <section aria-labelledby="space-weather-notifications-heading" className="space-y-5">
       <div className="space-y-3">
         <h2 className="text-2xl font-semibold" id="space-weather-notifications-heading">
-          Latest SWPC notifications
+          {formatMessageTemplate(messages.title, { provider: SWPC_NAME })}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          These are recent provider-issued notification records. Lumina does not infer an active
-          alert, warning, watch, cancellation, or severity class from message prose.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
       </div>
       {response.latest_notifications.length === 0 ? (
         <p className="border border-[var(--border)] p-5 leading-7 text-[var(--muted)]">
-          No notification records are present in this snapshot.
+          {messages.empty}
         </p>
       ) : (
         <ol className="space-y-4">
@@ -311,7 +421,9 @@ function NotificationsSection({ response }: Readonly<{ response: SpaceWeatherRes
             >
               <h3 className="font-semibold">{notification.product_id}</h3>
               <p className="text-sm text-[var(--muted)]">
-                Provider issue time: {notification.issue_time_text}
+                {formatMessageTemplate(messages.issueTime, {
+                  time: notification.issue_time_text,
+                })}
               </p>
               <p className="whitespace-pre-line break-words leading-7">{notification.message}</p>
             </li>
@@ -322,20 +434,24 @@ function NotificationsSection({ response }: Readonly<{ response: SpaceWeatherRes
   );
 }
 
-function ImpactsSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function ImpactsSection({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceWeatherMessages["impacts"]; response: SpaceWeatherResponse }>) {
   return (
     <section aria-labelledby="space-weather-impacts-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="space-weather-impacts-heading">
-        NOAA impact context
+        {formatMessageTemplate(messages.title, { provider: NOAA_NAME })}
       </h2>
       <p className="leading-7 text-[var(--muted)]">
-        NOAA describes different possible effects for each scale family. This context is educational
-        and is not operational advice for aviation, power systems, spacecraft, or radiation safety.
+        {formatMessageTemplate(messages.description, { provider: NOAA_NAME })}
       </p>
       <ul className="grid gap-4 md:grid-cols-3">
         {response.impacts.map((impact) => (
           <li className="border border-[var(--border)] p-5" key={impact.family}>
-            <h3 className="font-semibold">{impact.family} family</h3>
+            <h3 className="font-semibold">
+              {formatMessageTemplate(messages.familyHeading, { family: impact.family })}
+            </h3>
             <p className="mt-2 leading-7 text-[var(--muted)]">{impact.summary}</p>
           </li>
         ))}
@@ -344,11 +460,14 @@ function ImpactsSection({ response }: Readonly<{ response: SpaceWeatherResponse 
   );
 }
 
-function AuroraSection({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function AuroraSection({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceWeatherMessages["aurora"]; response: SpaceWeatherResponse }>) {
   return (
     <section aria-labelledby="space-weather-aurora-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="space-weather-aurora-heading">
-        Aurora forecast context
+        {messages.title}
       </h2>
       <p className="leading-7 text-[var(--muted)]">{response.aurora.explanation}</p>
       <a
@@ -363,25 +482,43 @@ function AuroraSection({ response }: Readonly<{ response: SpaceWeatherResponse }
   );
 }
 
-function FreshnessDetails({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function FreshnessDetails({
+  messages,
+  response,
+}: Readonly<{
+  messages: SpaceWeatherMessages["freshness"];
+  response: SpaceWeatherResponse;
+}>) {
   const freshness = response.freshness;
   return (
     <section aria-labelledby="space-weather-freshness-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="space-weather-freshness-heading">
-        Lumina retrieval state
+        {messages.title}
       </h2>
       <dl className="grid gap-4 border border-[var(--border)] p-5 sm:grid-cols-2">
         <div>
-          <dt className="font-medium">Cache state</dt>
-          <dd className="text-[var(--muted)]">{freshness.cache_state}</dd>
+          <dt className="font-medium">{messages.cacheStateLabel}</dt>
+          <dd className="text-[var(--muted)]">{messages.cacheStates[freshness.cache_state]}</dd>
         </div>
-        <TimestampField label="Snapshot retrieved at (UTC)" value={freshness.retrieved_at} />
-        <TimestampField label="Fresh until (UTC)" value={freshness.fresh_until} />
-        <TimestampField label="Stale grace ends (UTC)" value={freshness.stale_until} />
+        <TimestampField
+          label={messages.retrievedAtLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.retrieved_at}
+        />
+        <TimestampField
+          label={messages.freshUntilLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.fresh_until}
+        />
+        <TimestampField
+          label={messages.staleUntilLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.stale_until}
+        />
         <div>
-          <dt className="font-medium">Last safe refresh failure</dt>
+          <dt className="font-medium">{messages.lastFailureLabel}</dt>
           <dd className="text-[var(--muted)]">
-            {freshness.last_refresh_failure_code ?? "None recorded"}
+            {freshness.last_refresh_failure_code ?? messages.noneRecorded}
           </dd>
         </div>
       </dl>
@@ -389,41 +526,43 @@ function FreshnessDetails({ response }: Readonly<{ response: SpaceWeatherRespons
   );
 }
 
-function SourceDetails({ response }: Readonly<{ response: SpaceWeatherResponse }>) {
+function SourceDetails({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceWeatherMessages["source"]; response: SpaceWeatherResponse }>) {
   return (
     <section aria-labelledby="space-weather-source-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="space-weather-source-heading">
-        Source and limitations
+        {messages.title}
       </h2>
       <div className="space-y-4 border border-[var(--border)] p-5">
         <p className="leading-7 text-[var(--muted)]">{response.source.attribution_text}</p>
         <p>
           <ExternalLink href={response.source.official_documentation_url}>
-            {response.source.name} official documentation
+            {formatMessageTemplate(messages.documentation, {
+              sourceName: response.source.name,
+            })}
           </ExternalLink>
         </p>
         <p className="text-sm leading-7 text-[var(--muted)]">
-          Lumina is educational/informational. Consult NOAA/SWPC directly for operational guidance;
-          this page is not an emergency warning replacement or a safety system.
+          {formatMessageTemplate(messages.limitations, { provider: NOAA_SWPC_NAME })}
         </p>
       </div>
       <Link className="inline-flex min-h-11 items-center text-[var(--link)] underline" href="/now">
-        Return to Space Now
+        {messages.returnToSpaceNow}
       </Link>
     </section>
   );
 }
 
-function UnavailableSpaceWeather({ response }: Readonly<{ response?: SpaceWeatherResponse }>) {
-  const reason = response?.unavailable_reason;
-  const detail =
-    reason === "provider_disabled"
-      ? "The Space Weather provider is disabled."
-      : reason === "no_cached_content"
-        ? "No validated Space Weather snapshot is available yet."
-        : reason === "cached_content_expired"
-          ? "The cached Space Weather snapshot has expired."
-          : "Space Weather data could not be loaded from Lumina right now.";
+function UnavailableSpaceWeather({
+  messages,
+  response,
+}: Readonly<{
+  messages: SpaceWeatherMessages;
+  response?: SpaceWeatherResponse;
+}>) {
+  const detail = unavailableMessage(response?.unavailable_reason, messages.unavailable);
 
   return (
     <section aria-labelledby="space-weather-unavailable-heading" className="space-y-6">
@@ -433,14 +572,14 @@ function UnavailableSpaceWeather({ response }: Readonly<{ response?: SpaceWeathe
         role="status"
       >
         <h2 className="text-2xl font-semibold" id="space-weather-unavailable-heading">
-          Space Weather data is currently unavailable.
+          {messages.unavailable.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{detail}</p>
       </div>
       {response === undefined ? null : (
         <>
-          <FreshnessDetails response={response} />
-          <SourceDetails response={response} />
+          <FreshnessDetails messages={messages.freshness} response={response} />
+          <SourceDetails messages={messages.source} response={response} />
         </>
       )}
       {response === undefined ? (
@@ -448,19 +587,23 @@ function UnavailableSpaceWeather({ response }: Readonly<{ response?: SpaceWeathe
           className="inline-flex min-h-11 items-center text-[var(--link)] underline"
           href="/now"
         >
-          Return to Space Now
+          {messages.source.returnToSpaceNow}
         </Link>
       ) : null}
     </section>
   );
 }
 
-function TimestampField({ label, value }: Readonly<{ label: string; value: string | null }>) {
+function TimestampField({
+  label,
+  notRecorded,
+  value,
+}: Readonly<{ label: string; notRecorded: string; value: string | null }>) {
   return (
     <div>
       <dt className="font-medium">{label}</dt>
       <dd className="text-[var(--muted)]">
-        {value === null ? "Not recorded" : <time dateTime={value}>{value}</time>}
+        {value === null ? notRecorded : <time dateTime={value}>{value}</time>}
       </dd>
     </div>
   );
@@ -479,6 +622,39 @@ function ExternalLink({ children, href }: Readonly<{ children: ReactNode; href: 
   );
 }
 
-function withUnit(value: number | null, unit: string): string {
-  return value === null ? "Not reported" : `${value} ${unit}`;
+function formatSpaceWeatherNumber(value: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(value, locale, {
+    maximumFractionDigits: 20,
+    useGrouping: false,
+  });
+}
+
+function kpStatusLabel(
+  status: NonNullable<SpaceWeatherResponse["kp"]["latest_observed"]>["status"],
+  messages: SpaceWeatherMessages["kp"],
+): string {
+  if (status === "observed") return messages.statuses.observed;
+  if (status === "estimated") return messages.statuses.estimated;
+  if (status === "predicted") return messages.statuses.predicted;
+  return messages.notReported;
+}
+
+function kpForecastStatusLabel(
+  status: NonNullable<SpaceWeatherResponse["kp"]["latest_observed"]>["status"],
+  messages: SpaceWeatherMessages["kp"],
+): string {
+  if (status === "observed") return messages.forecast.statuses.observed;
+  if (status === "estimated") return messages.forecast.statuses.estimated;
+  if (status === "predicted") return messages.forecast.statuses.predicted;
+  return messages.notReported;
+}
+
+function unavailableMessage(
+  reason: SpaceWeatherResponse["unavailable_reason"] | undefined,
+  messages: SpaceWeatherMessages["unavailable"],
+): string {
+  if (reason === "provider_disabled") return messages.providerDisabled;
+  if (reason === "no_cached_content") return messages.noCachedContent;
+  if (reason === "cached_content_expired") return messages.cachedContentExpired;
+  return messages.generic;
 }

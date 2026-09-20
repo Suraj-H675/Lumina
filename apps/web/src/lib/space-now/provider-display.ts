@@ -6,3 +6,7 @@ export const CELESTRAK_NAME = "CelesTrak";
 export const SGP4_NAME = "SGP4";
 export const SATELLITE_STATIONS_GROUP_NAME = "STATIONS";
 export const SATELLITE_VISUAL_GROUP_NAME = "VISUAL";
+export const NOAA_NAME = "NOAA";
+export const NOAA_SPACE_WEATHER_PREDICTION_CENTER_NAME = "NOAA Space Weather Prediction Center";
+export const NOAA_SWPC_NAME = "NOAA/SWPC";
+export const SWPC_NAME = "SWPC";

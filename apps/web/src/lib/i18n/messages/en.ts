@@ -2794,6 +2794,133 @@ export const enMessages = {
         title: "Satellite data is currently unavailable",
       },
     },
+    spaceWeather: {
+      aurora: {
+        title: "Aurora forecast context",
+      },
+      eyebrow: "Space Now",
+      freshness: {
+        cacheStateLabel: "Cache state",
+        cacheStates: {
+          expired: "expired",
+          fresh: "fresh",
+          missing: "missing",
+          stale: "stale",
+        },
+        freshUntilLabel: "Fresh until (UTC)",
+        lastFailureLabel: "Last safe refresh failure",
+        noneRecorded: "None recorded",
+        notRecorded: "Not recorded",
+        retrievedAtLabel: "Snapshot retrieved at (UTC)",
+        staleUntilLabel: "Stale grace ends (UTC)",
+        title: "Lumina retrieval state",
+      },
+      impacts: {
+        description:
+          "{provider} describes different possible effects for each scale family. This context is educational and is not operational advice for aviation, power systems, spacecraft, or radiation safety.",
+        familyHeading: "{family} family",
+        title: "{provider} impact context",
+      },
+      intro:
+        "A calm, educational view of separate {provider} space-weather measurements, communication scales, forecasts, and notifications. These facts are not an operational warning or a local aurora-visibility prediction.",
+      kp: {
+        description:
+          "Kp is a dimensionless planetary geomagnetic index. Observed, estimated, and predicted rows remain separate; Kp is not a local aurora probability and does not replace the {provider} R/S/G scales.",
+        forecast: {
+          caption: "{provider} predicted planetary Kp rows",
+          empty: "No predicted Kp rows are available in this snapshot.",
+          heading: "Forecast Kp",
+          headers: {
+            kp: "Kp (dimensionless)",
+            scale: "{provider} scale field",
+            statusColumn: "Status",
+            time: "{provider} product time",
+          },
+          statuses: {
+            estimated: "Estimated",
+            observed: "Observed",
+            predicted: "Predicted",
+          },
+        },
+        labels: {
+          kp: "Kp",
+          latestEstimated: "Latest estimated Kp",
+          latestObserved: "Latest observed Kp",
+          productTime: "{provider} product time",
+          providerStatus: "Provider status",
+          scaleField: "{provider} scale field",
+        },
+        notReported: "Not reported",
+        notReportedInSnapshot: "Not reported in this snapshot.",
+        statuses: {
+          estimated: "estimated",
+          observed: "observed",
+          predicted: "predicted",
+        },
+        title: "Planetary Kp",
+      },
+      metadataDescription:
+        "A source-backed {provider} view of separate R, S, and G scales, planetary Kp, solar-wind measurements, and provider notifications.",
+      metadataTitle: "Space Weather",
+      notifications: {
+        description:
+          "These are recent provider-issued notification records. Lumina does not infer an active alert, warning, watch, cancellation, or severity class from message prose.",
+        empty: "No notification records are present in this snapshot.",
+        issueTime: "Provider issue time: {time}",
+        title: "Latest {provider} notifications",
+      },
+      scales: {
+        description:
+          "{provider} keeps radio blackouts (R), solar radiation storms (S), and geomagnetic storms (G) as separate source-defined categories. Lumina does not add their levels together.",
+        families: {
+          geomagnetic: "Geomagnetic storms",
+          radioBlackout: "Radio blackouts",
+          solarRadiation: "Solar radiation storms",
+        },
+        familyContext: "This is the {provider} {code} family level, not a Lumina severity score.",
+        noSourceDescription: "No source description",
+        sourceTime:
+          "{provider} scale record time: {date} {time}. Lumina preserves this source time text without relabelling it as local time.",
+        title: "Current {provider} scales",
+        unavailable:
+          "The current {provider} scale record is not available in this validated snapshot.",
+      },
+      snapshot: {
+        description:
+          "This state describes Lumina's atomic cache snapshot. The {provider} product timestamps below describe the underlying observations, estimates, forecasts, or notifications and are not all from the same instant.",
+        freshTitle: "Fresh Space Weather snapshot",
+        staleTitle: "Stale Space Weather snapshot",
+      },
+      solarWind: {
+        description:
+          "These are {provider} upstream or near-Earth spacecraft measurements, not ground measurements at a user's location. A single speed or magnetic-field value does not guarantee a geomagnetic storm or local aurora.",
+        labels: {
+          bt: "Interplanetary magnetic-field magnitude (Bt)",
+          bz: "GSM north/south magnetic-field component (Bz)",
+          protonSpeed: "Solar-wind proton speed",
+        },
+        notRecorded: "Not recorded",
+        notReported: "Not reported",
+        sourceObservationTime: "Source observation time: {time}",
+        title: "Solar wind measurements",
+        unavailable: "Solar-wind measurements are not available in this validated snapshot.",
+      },
+      source: {
+        documentation: "{sourceName} official documentation",
+        limitations:
+          "Lumina is educational/informational. Consult {provider} directly for operational guidance; this page is not an emergency warning replacement or a safety system.",
+        returnToSpaceNow: "Return to Space Now",
+        title: "Source and limitations",
+      },
+      title: "Space Weather",
+      unavailable: {
+        cachedContentExpired: "The cached Space Weather snapshot has expired.",
+        generic: "Space Weather data could not be loaded from Lumina right now.",
+        noCachedContent: "No validated Space Weather snapshot is available yet.",
+        providerDisabled: "The Space Weather provider is disabled.",
+        title: "Space Weather data is currently unavailable.",
+      },
+    },
     metadataDescription:
       "A source-backed Daily Visual from NASA Astronomy Picture of the Day, with clear dates, credit, and retrieval state.",
     metadataTitle: "Space Now",

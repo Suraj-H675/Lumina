@@ -2090,6 +2090,123 @@ export type SatelliteMessages = Readonly<{
   }>;
 }>;
 
+export type SpaceWeatherMessages = Readonly<{
+  aurora: Readonly<{
+    title: string;
+  }>;
+  eyebrow: string;
+  freshness: Readonly<{
+    cacheStateLabel: string;
+    cacheStates: Readonly<{
+      expired: string;
+      fresh: string;
+      missing: string;
+      stale: string;
+    }>;
+    freshUntilLabel: string;
+    lastFailureLabel: string;
+    noneRecorded: string;
+    notRecorded: string;
+    retrievedAtLabel: string;
+    staleUntilLabel: string;
+    title: string;
+  }>;
+  impacts: Readonly<{
+    description: string;
+    familyHeading: string;
+    title: string;
+  }>;
+  intro: string;
+  kp: Readonly<{
+    description: string;
+    forecast: Readonly<{
+      caption: string;
+      empty: string;
+      heading: string;
+      headers: Readonly<{
+        kp: string;
+        scale: string;
+        statusColumn: string;
+        time: string;
+      }>;
+      statuses: Readonly<{
+        estimated: string;
+        observed: string;
+        predicted: string;
+      }>;
+    }>;
+    labels: Readonly<{
+      kp: string;
+      latestEstimated: string;
+      latestObserved: string;
+      productTime: string;
+      providerStatus: string;
+      scaleField: string;
+    }>;
+    notReported: string;
+    notReportedInSnapshot: string;
+    statuses: Readonly<{
+      estimated: string;
+      observed: string;
+      predicted: string;
+    }>;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  notifications: Readonly<{
+    description: string;
+    empty: string;
+    issueTime: string;
+    title: string;
+  }>;
+  scales: Readonly<{
+    description: string;
+    families: Readonly<{
+      geomagnetic: string;
+      radioBlackout: string;
+      solarRadiation: string;
+    }>;
+    familyContext: string;
+    noSourceDescription: string;
+    sourceTime: string;
+    title: string;
+    unavailable: string;
+  }>;
+  snapshot: Readonly<{
+    description: string;
+    freshTitle: string;
+    staleTitle: string;
+  }>;
+  solarWind: Readonly<{
+    description: string;
+    labels: Readonly<{
+      bt: string;
+      bz: string;
+      protonSpeed: string;
+    }>;
+    notRecorded: string;
+    notReported: string;
+    sourceObservationTime: string;
+    title: string;
+    unavailable: string;
+  }>;
+  source: Readonly<{
+    documentation: string;
+    limitations: string;
+    returnToSpaceNow: string;
+    title: string;
+  }>;
+  title: string;
+  unavailable: Readonly<{
+    cachedContentExpired: string;
+    generic: string;
+    noCachedContent: string;
+    providerDisabled: string;
+    title: string;
+  }>;
+}>;
+
 export type SpaceNowMessages = Readonly<{
   dailyVisual: Readonly<{
     aboutTitle: string;
@@ -2116,6 +2233,7 @@ export type SpaceNowMessages = Readonly<{
   launches: LaunchCenterMessages;
   nearEarth: NearEarthMessages;
   satellites: SatelliteMessages;
+  spaceWeather: SpaceWeatherMessages;
   metadataDescription: string;
   metadataTitle: string;
   navigation: Readonly<{

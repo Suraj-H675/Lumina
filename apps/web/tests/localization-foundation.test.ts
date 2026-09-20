@@ -231,6 +231,36 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.passFinder.result.illumination).toContain("{sunAltitude}");
   });
 
+  it("keeps Space Weather provider/data templates explicit and placeholder-complete", () => {
+    const messages = enMessages.spaceNow.spaceWeather;
+    expect(messages.intro).toContain("{provider}");
+    expect(messages.metadataDescription).toContain("{provider}");
+    expect(messages.snapshot.description).toContain("{provider}");
+    expect(messages.impacts.description).toContain("{provider}");
+    expect(messages.impacts.title).toContain("{provider}");
+    expect(messages.impacts.familyHeading).toContain("{family}");
+    expect(messages.kp.description).toContain("{provider}");
+    expect(messages.kp.forecast.caption).toContain("{provider}");
+    expect(messages.kp.forecast.headers.time).toContain("{provider}");
+    expect(messages.kp.forecast.headers.scale).toContain("{provider}");
+    expect(messages.kp.labels.productTime).toContain("{provider}");
+    expect(messages.kp.labels.scaleField).toContain("{provider}");
+    expect(messages.notifications.title).toContain("{provider}");
+    expect(messages.notifications.issueTime).toContain("{time}");
+    expect(messages.scales.description).toContain("{provider}");
+    expect(messages.scales.title).toContain("{provider}");
+    expect(messages.scales.unavailable).toContain("{provider}");
+    expect(messages.scales.familyContext).toContain("{provider}");
+    expect(messages.scales.familyContext).toContain("{code}");
+    expect(messages.scales.sourceTime).toContain("{provider}");
+    expect(messages.scales.sourceTime).toContain("{date}");
+    expect(messages.scales.sourceTime).toContain("{time}");
+    expect(messages.solarWind.description).toContain("{provider}");
+    expect(messages.solarWind.sourceObservationTime).toContain("{time}");
+    expect(messages.source.documentation).toContain("{sourceName}");
+    expect(messages.source.limitations).toContain("{provider}");
+  });
+
   it("keeps Deep Sky atlas templates placeholder-complete", () => {
     expect(enMessages.deepSky.atlas.activation.readyForTarget).toContain("{objectName}");
     expect(enMessages.deepSky.atlas.status.checkingSurvey).toContain("{layerLabel}");

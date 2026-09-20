@@ -1046,6 +1046,35 @@ export type IdentifyMessages = Readonly<{
     }>;
     title: string;
   }>;
+  surveyComparison: Readonly<{
+    action: string;
+    creditLabel: string;
+    description: string;
+    eyebrow: string;
+    fieldDescription: string;
+    fieldDescriptionClamped: string;
+    figures: Readonly<{
+      localAlt: string;
+      localCaption: string;
+      surveyCaption: string;
+      surveyRegionLabel: string;
+    }>;
+    layerLabel: string;
+    privacy: string;
+    sourceDetails: string;
+    states: Readonly<{
+      checking: string;
+      comparisonReady: string;
+      contextLost: string;
+      contextRestored: string;
+      layerApplyFailed: string;
+      layerUnavailable: string;
+      loading: string;
+      rendererFailed: string;
+      showingLayer: string;
+    }>;
+    title: string;
+  }>;
   status: Readonly<{
     deleted: Readonly<{
       description: string;

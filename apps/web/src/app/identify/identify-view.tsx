@@ -409,6 +409,8 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
             />
             <SurveyComparisonPanel
               imageUrl={state.active.previewUrl}
+              locale={locale}
+              messages={messages.surveyComparison}
               solution={solutionState.data}
             />
             <IdentifyJournalPanel

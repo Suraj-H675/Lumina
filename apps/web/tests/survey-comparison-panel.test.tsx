@@ -4,6 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { IdentifyMessages } from "../src/lib/i18n/messages/types";
+
 const wwt = vi.hoisted(() => ({
   attach: vi.fn(),
   detach: vi.fn(),
@@ -70,11 +74,22 @@ beforeEach(() => {
   );
 });
 
+function renderSurvey(
+  messages: IdentifyMessages["surveyComparison"] = enMessages.identify.surveyComparison,
+) {
+  return render(
+    <SurveyComparisonPanel
+      imageUrl="blob:local"
+      locale={DEFAULT_LOCALE}
+      messages={messages}
+      solution={solution}
+    />,
+  );
+}
+
 describe("SurveyComparisonPanel", () => {
   it("keeps survey network and WWT dormant until explicit activation", async () => {
-    const { container } = render(
-      <SurveyComparisonPanel imageUrl="blob:local" solution={solution} />,
-    );
+    const { container } = renderSurvey();
 
     expect(wwt.probe).not.toHaveBeenCalled();
     expect(wwt.attach).not.toHaveBeenCalled();
@@ -86,7 +101,7 @@ describe("SurveyComparisonPanel", () => {
 
   it("focuses the certified atlas on the exact solved center and field diameter", async () => {
     const user = userEvent.setup();
-    render(<SurveyComparisonPanel imageUrl="blob:local" solution={solution} />);
+    renderSurvey();
     await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
     await waitFor(() => expect(wwt.attach).toHaveBeenCalledOnce());
     expect(wwt.probe).toHaveBeenCalledWith("visible-dss2");
@@ -103,7 +118,7 @@ describe("SurveyComparisonPanel", () => {
   it("refuses an unavailable survey before starting WWT", async () => {
     const user = userEvent.setup();
     wwt.probe.mockResolvedValueOnce(false);
-    render(<SurveyComparisonPanel imageUrl="blob:local" solution={solution} />);
+    renderSurvey();
 
     await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/unavailable right now/i);
@@ -112,7 +127,7 @@ describe("SurveyComparisonPanel", () => {
 
   it("switches only to an available reviewed layer and detaches on unmount", async () => {
     const user = userEvent.setup();
-    const view = render(<SurveyComparisonPanel imageUrl="blob:local" solution={solution} />);
+    const view = renderSurvey();
     await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
     await waitFor(() => expect(wwt.attach).toHaveBeenCalledOnce());
     await user.selectOptions(screen.getByLabelText("Survey layer"), "infrared-wise");
@@ -123,5 +138,44 @@ describe("SurveyComparisonPanel", () => {
 
     view.unmount();
     expect(wwt.detach).toHaveBeenCalledOnce();
+  });
+
+  it("localizes wrapper and state copy without rewriting survey or solved-field data", async () => {
+    const user = userEvent.setup();
+    const messages: IdentifyMessages["surveyComparison"] = {
+      ...enMessages.identify.surveyComparison,
+      action: "Fixture open survey",
+      description: "Fixture comparison through {service}.",
+      fieldDescription: "Fixture field {fieldOfView}°.",
+      figures: {
+        ...enMessages.identify.surveyComparison.figures,
+        surveyCaption: "Fixture context: {layer}",
+      },
+      states: {
+        ...enMessages.identify.surveyComparison.states,
+        showingLayer: "Fixture showing {layer}.",
+      },
+      title: "Fixture survey comparison",
+    };
+
+    renderSurvey(messages);
+
+    expect(screen.getByRole("heading", { name: "Fixture survey comparison" })).toBeVisible();
+    expect(screen.getByText("Fixture comparison through WorldWide Telescope.")).toBeVisible();
+    expect(screen.getByText("Fixture field 5.000°.")).toBeVisible();
+    expect(screen.getByText("Fixture context: Visible · DSS2")).toBeVisible();
+    expect(screen.getByText(/Copyright DSS Consortium/)).toBeVisible();
+    expect(wwt.probe).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Fixture open survey" }));
+    await waitFor(() => expect(wwt.focus).toHaveBeenCalledOnce());
+    expect(wwt.focus).toHaveBeenCalledWith({
+      declinationDegrees: -6.2,
+      fieldOfViewDegrees: 5,
+      reducedMotion: false,
+      rightAscensionDegrees: 82.5,
+    });
+    await user.selectOptions(screen.getByLabelText("Survey layer"), "infrared-wise");
+    await waitFor(() => expect(screen.getByText("Fixture showing Infrared · WISE.")).toBeVisible());
+    expect(wwt.setLayer).toHaveBeenLastCalledWith("infrared-wise");
   });
 });

@@ -991,6 +991,41 @@ export const enMessages = {
       },
       title: "Solved field and WCS-backed annotations",
     },
+    surveyComparison: {
+      action: "Open survey comparison",
+      creditLabel: "Credit:",
+      description:
+        "Compare your solved image with a reviewed {service} survey layer centered on the same astrometric field. The two views are not pixel-registered and are not photometrically equivalent; orientation, projection, epoch, resolution, bandpass, and processing may differ.",
+      eyebrow: "Opt-in survey context",
+      fieldDescription:
+        "Lumina requests a {fieldOfView}° atlas field from the solved center, derived as twice the normalized solution radius.",
+      fieldDescriptionClamped:
+        "Lumina requests a {fieldOfView}° atlas field from the solved center, derived as twice the normalized solution radius and clamped to the certified atlas range.",
+      figures: {
+        localAlt: "Original solved astronomical image for survey comparison",
+        localCaption: "Your local solved image",
+        surveyCaption: "{layer} survey context",
+        surveyRegionLabel: "{service} survey comparison",
+      },
+      layerLabel: "Survey layer",
+      privacy:
+        "Opening this comparison contacts approved {serviceShort}/survey hosts, which may observe the sky region being requested. Your uploaded image bytes, filename, journal data, and observer location are not sent to those hosts by this panel.",
+      sourceDetails: "Source details",
+      states: {
+        checking: "Checking {layer} availability…",
+        comparisonReady: "Survey comparison ready.",
+        contextLost: "The survey graphics context was lost. The local image remains available.",
+        contextRestored: "Graphics context restored.",
+        layerApplyFailed:
+          "The selected survey layer could not be applied. The previous view remains available.",
+        layerUnavailable: "{layer} imagery is unavailable right now.",
+        loading: "Starting the survey renderer…",
+        rendererFailed:
+          "The survey renderer could not start. Your local solved image remains available.",
+        showingLayer: "Showing {layer}.",
+      },
+      title: "Compare with survey context",
+    },
     status: {
       deleted: {
         description: "The private object was removed and identifying metadata was scrubbed.",

@@ -3,22 +3,42 @@
 import type { IdentificationSolutionResponse } from "@lumina/api-client";
 import { useEffect, useRef, useState } from "react";
 
+import { formatLocaleFixedNumber, formatMessageTemplate } from "../../lib/i18n/format";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { IdentifyMessages } from "../../lib/i18n/messages/types";
 import { surveyComparisonField } from "../../lib/identification/survey-comparison";
-import { ATLAS_LAYERS, type AtlasLayerId } from "../../lib/wwt/atlas";
+import {
+  ATLAS_LAYERS,
+  WORLDWIDE_TELESCOPE_NAME,
+  WORLDWIDE_TELESCOPE_SHORT_NAME,
+  type AtlasLayerId,
+} from "../../lib/wwt/atlas";
 import type { WwtAtlasSession } from "../../lib/wwt/client";
+
+type SurveyErrorReason = "layerApplyFailed" | "layerUnavailable" | "rendererFailed";
+type SurveyReadyReason = "comparisonReady" | "contextRestored" | "showingLayer";
 
 type SurveyState =
   | Readonly<{ kind: "idle" }>
   | Readonly<{ kind: "checking"; layerLabel: string }>
   | Readonly<{ kind: "loading" }>
-  | Readonly<{ kind: "ready"; message?: string }>
-  | Readonly<{ kind: "error"; message: string }>
+  | Readonly<{ kind: "ready"; reason: Exclude<SurveyReadyReason, "showingLayer"> }>
+  | Readonly<{ kind: "ready"; layerLabel: string; reason: "showingLayer" }>
+  | Readonly<{ kind: "error"; reason: Exclude<SurveyErrorReason, "layerUnavailable"> }>
+  | Readonly<{ kind: "error"; layerLabel: string; reason: "layerUnavailable" }>
   | Readonly<{ kind: "context-lost" }>;
 
 export function SurveyComparisonPanel({
   imageUrl,
+  locale,
+  messages,
   solution,
-}: Readonly<{ imageUrl: string; solution: IdentificationSolutionResponse }>) {
+}: Readonly<{
+  imageUrl: string;
+  locale: PublishedLocale;
+  messages: IdentifyMessages["surveyComparison"];
+  solution: IdentificationSolutionResponse;
+}>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef<WwtAtlasSession | null>(null);
   const [layerId, setLayerId] = useState<AtlasLayerId>("visible-dss2");
@@ -51,30 +71,24 @@ export function SurveyComparisonPanel({
       const { attachWwtAtlas, probeAtlasLayerAvailability } = await import("../../lib/wwt/client");
       setState({ kind: "checking", layerLabel: activeLayer.label });
       if (!(await probeAtlasLayerAvailability(layerId))) {
-        setState({
-          kind: "error",
-          message: `${activeLayer.label} imagery is unavailable right now.`,
-        });
+        setState({ kind: "error", layerLabel: activeLayer.label, reason: "layerUnavailable" });
         return;
       }
       setState({ kind: "loading" });
       const session = await attachWwtAtlas(containerRef.current, {
         onContextLost: () => setState({ kind: "context-lost" }),
-        onContextRestored: () => setState({ kind: "ready", message: "Graphics context restored." }),
+        onContextRestored: () => setState({ kind: "ready", reason: "contextRestored" }),
       });
       sessionRef.current = session;
       setSessionActive(true);
       session.setLayer(layerId);
       await focus(session);
-      setState({ kind: "ready", message: "Survey comparison ready." });
+      setState({ kind: "ready", reason: "comparisonReady" });
     } catch {
       sessionRef.current?.detach();
       sessionRef.current = null;
       setSessionActive(false);
-      setState({
-        kind: "error",
-        message: "The survey renderer could not start. Your local solved image remains available.",
-      });
+      setState({ kind: "error", reason: "rendererFailed" });
     }
   }
 
@@ -90,22 +104,15 @@ export function SurveyComparisonPanel({
     try {
       const { probeAtlasLayerAvailability } = await import("../../lib/wwt/client");
       if (!(await probeAtlasLayerAvailability(nextLayerId))) {
-        setState({
-          kind: "error",
-          message: `${nextLayer.label} imagery is unavailable right now.`,
-        });
+        setState({ kind: "error", layerLabel: nextLayer.label, reason: "layerUnavailable" });
         return;
       }
       sessionRef.current.setLayer(nextLayerId);
       setLayerId(nextLayerId);
       await focus(sessionRef.current);
-      setState({ kind: "ready", message: `Showing ${nextLayer.label}.` });
+      setState({ kind: "ready", layerLabel: nextLayer.label, reason: "showingLayer" });
     } catch {
-      setState({
-        kind: "error",
-        message:
-          "The selected survey layer could not be applied. The previous view remains available.",
-      });
+      setState({ kind: "error", reason: "layerApplyFailed" });
     }
   }
 
@@ -116,21 +123,20 @@ export function SurveyComparisonPanel({
     >
       <div className="max-w-4xl space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Opt-in survey context
+          {messages.eyebrow}
         </p>
         <h2 className="text-2xl font-semibold" id="survey-comparison-heading">
-          Compare with survey context
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          Compare your solved image with a reviewed WorldWide Telescope survey layer centered on the
-          same astrometric field. The two views are not pixel-registered and are not photometrically
-          equivalent; orientation, projection, epoch, resolution, bandpass, and processing may
-          differ.
+          {formatMessageTemplate(messages.description, {
+            service: WORLDWIDE_TELESCOPE_NAME,
+          })}
         </p>
       </div>
 
       <label className="block max-w-md space-y-2 font-semibold">
-        <span>Survey layer</span>
+        <span>{messages.layerLabel}</span>
         <select
           className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
           disabled={state.kind === "checking" || state.kind === "loading"}
@@ -151,36 +157,44 @@ export function SurveyComparisonPanel({
           onClick={() => void activate()}
           type="button"
         >
-          Open survey comparison
+          {messages.action}
         </button>
       ) : null}
       {state.kind === "checking" ? (
-        <p role="status">Checking {state.layerLabel} availability…</p>
+        <p role="status">
+          {formatMessageTemplate(messages.states.checking, { layer: state.layerLabel })}
+        </p>
       ) : null}
-      {state.kind === "loading" ? <p role="status">Starting the survey renderer…</p> : null}
-      {state.kind === "context-lost" ? (
-        <p role="alert">The survey graphics context was lost. The local image remains available.</p>
+      {state.kind === "loading" ? <p role="status">{messages.states.loading}</p> : null}
+      {state.kind === "context-lost" ? <p role="alert">{messages.states.contextLost}</p> : null}
+      {state.kind === "error" ? (
+        <p role="alert">{surveyErrorMessage(state, messages.states)}</p>
       ) : null}
-      {state.kind === "error" ? <p role="alert">{state.message}</p> : null}
-      {state.kind === "ready" && state.message ? <p role="status">{state.message}</p> : null}
+      {state.kind === "ready" ? (
+        <p role="status">{surveyReadyMessage(state, messages.states)}</p>
+      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <figure className="min-w-0 space-y-3">
-          <figcaption className="font-semibold">Your local solved image</figcaption>
+          <figcaption className="font-semibold">{messages.figures.localCaption}</figcaption>
           <div className="overflow-auto border border-[var(--border)] bg-[var(--surface)] p-2">
             {/* A raw img preserves the private browser blob URL; Next image optimization must not proxy it. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              alt="Original solved astronomical image for survey comparison"
+              alt={messages.figures.localAlt}
               className="h-auto max-h-[60vh] w-full object-contain"
               src={imageUrl}
             />
           </div>
         </figure>
         <figure className="min-w-0 space-y-3">
-          <figcaption className="font-semibold">{activeLayer.label} survey context</figcaption>
+          <figcaption className="font-semibold">
+            {formatMessageTemplate(messages.figures.surveyCaption, { layer: activeLayer.label })}
+          </figcaption>
           <div
-            aria-label="WorldWide Telescope survey comparison"
+            aria-label={formatMessageTemplate(messages.figures.surveyRegionLabel, {
+              service: WORLDWIDE_TELESCOPE_NAME,
+            })}
             className="aspect-square min-h-64 overflow-hidden border border-[var(--border)] bg-black"
             id="lumina-wwt-atlas"
             ref={containerRef}
@@ -190,28 +204,53 @@ export function SurveyComparisonPanel({
       </div>
       <div className="max-w-4xl space-y-2 text-sm leading-6 text-[var(--muted)]">
         <p>
-          Lumina requests a {field.field_of_view_deg.toFixed(3)}° atlas field from the solved
-          center, derived as twice the normalized solution radius
-          {field.was_clamped ? " and clamped to the certified atlas range" : ""}.
+          {formatMessageTemplate(
+            field.was_clamped ? messages.fieldDescriptionClamped : messages.fieldDescription,
+            {
+              fieldOfView: formatLocaleFixedNumber(field.field_of_view_deg, 3, locale),
+            },
+          )}
         </p>
         <p>{activeLayer.interpretation}</p>
         <p>
-          Opening this comparison contacts approved WWT/survey hosts, which may observe the sky
-          region being requested. Your uploaded image bytes, filename, journal data, and observer
-          location are not sent to those hosts by this panel.
+          {formatMessageTemplate(messages.privacy, {
+            serviceShort: WORLDWIDE_TELESCOPE_SHORT_NAME,
+          })}
         </p>
         <p>
-          Credit: {activeLayer.creditText}{" "}
+          {messages.creditLabel} {activeLayer.creditText}{" "}
           <a
             className="font-semibold text-[var(--link)] underline"
             href={activeLayer.creditUrl}
             rel="noreferrer"
             target="_blank"
           >
-            Source details
+            {messages.sourceDetails}
           </a>
         </p>
       </div>
     </section>
   );
+}
+
+function surveyErrorMessage(
+  state: Extract<SurveyState, { kind: "error" }>,
+  messages: IdentifyMessages["surveyComparison"]["states"],
+): string {
+  if (state.reason === "layerUnavailable") {
+    return formatMessageTemplate(messages.layerUnavailable, { layer: state.layerLabel });
+  }
+  if (state.reason === "layerApplyFailed") return messages.layerApplyFailed;
+  return messages.rendererFailed;
+}
+
+function surveyReadyMessage(
+  state: Extract<SurveyState, { kind: "ready" }>,
+  messages: IdentifyMessages["surveyComparison"]["states"],
+): string {
+  if (state.reason === "showingLayer") {
+    return formatMessageTemplate(messages.showingLayer, { layer: state.layerLabel });
+  }
+  if (state.reason === "contextRestored") return messages.contextRestored;
+  return messages.comparisonReady;
 }

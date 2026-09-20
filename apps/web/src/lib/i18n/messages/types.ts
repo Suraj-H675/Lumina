@@ -479,6 +479,77 @@ export type JournalMessages = Readonly<{
   }>;
 }>;
 
+export type SavedObservationPlanMessages = Readonly<{
+  actions: Readonly<{
+    cancelDelete: string;
+    confirmDelete: string;
+    deletePlan: string;
+    openPlanner: string;
+    planAgain: string;
+  }>;
+  delete: Readonly<{
+    description: string;
+    failure: string;
+    title: string;
+  }>;
+  events: Readonly<{
+    astronomicalDawn: string;
+    astronomicalDusk: string;
+    circumpolar: string;
+    neverRises: string;
+    notDuringNight: string;
+    rise: string;
+    set: string;
+    sunriseGeometric: string;
+    sunsetGeometric: string;
+    transit: string;
+    unavailable: string;
+  }>;
+  eyebrow: string;
+  loading: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  night: Readonly<{
+    darknessUnavailable: string;
+    highestAltitude: string;
+    title: string;
+  }>;
+  observer: Readonly<{
+    altitudeValue: string;
+    azimuthValue: string;
+    locationLabel: string;
+    locationValue: string;
+    selectedTimeLabel: string;
+    skyPositionLabel: string;
+    storedLocal: string;
+    title: string;
+  }>;
+  samples: Readonly<{
+    altitudeGeometric: string;
+    label: string;
+    savedInstant: string;
+    title: string;
+  }>;
+  snapshotDescription: string;
+  snapshotSummary: string;
+  source: Readonly<{
+    calculationDescription: string;
+    datasetSummary: string;
+    referenceEpochLabel: string;
+    sourceRecordLabel: string;
+    title: string;
+  }>;
+  states: Readonly<{
+    corrupted: Readonly<{ body: string; heading: string }>;
+    deleted: Readonly<{ body: string; heading: string }>;
+    error: Readonly<{ body: string; heading: string }>;
+    invalid: Readonly<{ body: string; heading: string }>;
+    missing: Readonly<{ body: string; heading: string }>;
+    unavailable: Readonly<{ body: string; heading: string }>;
+  }>;
+}>;
+
 export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
@@ -899,6 +970,7 @@ export type LuminaMessages = Readonly<{
   participate: ParticipateMessages;
   presentationMode: PresentationModeMessages;
   routeBoundaries: RouteBoundaryMessages;
+  savedObservationPlan: SavedObservationPlanMessages;
   shell: SiteShellMessages;
   spaceNow: SpaceNowMessages;
   status: StatusMessages;

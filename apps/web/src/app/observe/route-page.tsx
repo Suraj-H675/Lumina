@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { ObserveExperience } from "../../components/observe-experience";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { SavedObservationPlanMessages } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadObjectBySlugPerRequest } from "../../lib/server/catalog";
@@ -12,6 +14,8 @@ export const metadata: Metadata = {
 };
 
 type ObservePageProps = Readonly<{
+  savedPlanLocale: PublishedLocale;
+  savedPlanMessages: SavedObservationPlanMessages;
   searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
 }>;
 
@@ -19,7 +23,11 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function ObservePage({ searchParams }: ObservePageProps) {
+export default async function ObservePage({
+  savedPlanLocale,
+  savedPlanMessages,
+  searchParams,
+}: ObservePageProps) {
   const params = await searchParams;
   const hasSavedParam = Object.prototype.hasOwnProperty.call(params, "saved");
   const initialSavedId = hasSavedParam ? (firstValue(params.saved)?.trim() ?? "") : undefined;
@@ -37,6 +45,8 @@ export default async function ObservePage({ searchParams }: ObservePageProps) {
       detail={outcome?.kind === "ok" ? outcome.detail : null}
       {...(initialDate === undefined ? {} : { initialDate })}
       {...(initialSavedId === undefined ? {} : { initialSavedId })}
+      savedPlanLocale={savedPlanLocale}
+      savedPlanMessages={savedPlanMessages}
       slug={hasSavedParam ? null : slug}
       targetUnavailable={outcome !== null && outcome.kind !== "ok"}
     />

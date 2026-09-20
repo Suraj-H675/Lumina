@@ -4,10 +4,14 @@ import { useSyncExternalStore } from "react";
 
 import { ObservationPlanner, type ObservationPlannerProps } from "./observation-planner";
 import { SavedObservationPlanView } from "./saved-observation-plan-view";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SavedObservationPlanMessages } from "../lib/i18n/messages/types";
 
 type ObserveExperienceProps = ObservationPlannerProps &
   Readonly<{
     initialSavedId?: string;
+    savedPlanLocale: PublishedLocale;
+    savedPlanMessages: SavedObservationPlanMessages;
   }>;
 
 function subscribeLocation(onStoreChange: () => void): () => void {
@@ -23,7 +27,12 @@ function savedIdFromLocation(): string | null {
   return params.get("saved") ?? "";
 }
 
-export function ObserveExperience({ initialSavedId, ...plannerProps }: ObserveExperienceProps) {
+export function ObserveExperience({
+  initialSavedId,
+  savedPlanLocale,
+  savedPlanMessages,
+  ...plannerProps
+}: ObserveExperienceProps) {
   const browserSavedId = useSyncExternalStore(
     subscribeLocation,
     savedIdFromLocation,
@@ -31,6 +40,14 @@ export function ObserveExperience({ initialSavedId, ...plannerProps }: ObserveEx
   );
   const savedId = browserSavedId ?? initialSavedId ?? null;
 
-  if (savedId !== null) return <SavedObservationPlanView savedId={savedId} />;
+  if (savedId !== null) {
+    return (
+      <SavedObservationPlanView
+        locale={savedPlanLocale}
+        messages={savedPlanMessages}
+        savedId={savedId}
+      />
+    );
+  }
   return <ObservationPlanner {...plannerProps} />;
 }

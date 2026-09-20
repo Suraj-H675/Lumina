@@ -9,6 +9,8 @@ import {
   closeJournalDatabase,
   putSavedObservationPlan,
 } from "../src/lib/journal/database";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { savedObservationPlanFixture } from "./saved-observation-plan-fixture";
 
 const { loadObjectMock } = vi.hoisted(() => ({
@@ -48,6 +50,8 @@ describe("observe server route saved mode", () => {
     window.history.replaceState({}, "", `/observe?saved=${saved.id}`);
 
     const page = await ObservePage({
+      savedPlanLocale: DEFAULT_LOCALE,
+      savedPlanMessages: enMessages.savedObservationPlan,
       searchParams: Promise.resolve({
         date: "2026-09-19",
         object: "k2-18",
@@ -64,6 +68,8 @@ describe("observe server route saved mode", () => {
     window.history.replaceState({}, "", "/observe?saved=not-a-uuid&object=k2-18");
 
     const page = await ObservePage({
+      savedPlanLocale: DEFAULT_LOCALE,
+      savedPlanMessages: enMessages.savedObservationPlan,
       searchParams: Promise.resolve({ object: "k2-18", saved: "not-a-uuid" }),
     });
     render(page);

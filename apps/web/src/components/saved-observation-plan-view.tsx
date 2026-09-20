@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import {
+  formatLocaleDateTime,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SavedObservationPlanMessages } from "../lib/i18n/messages/types";
+import {
   SavedPlanStorageError,
   deleteSavedObservationPlan,
   getSavedObservationPlan,
@@ -20,8 +27,8 @@ type LoadedState =
   | Readonly<{ kind: "error" }>
   | Readonly<{ kind: "deleted" }>;
 
-function formatInstant(instant: string, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatInstant(instant: string, timeZone: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(new Date(instant), locale, {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
@@ -29,7 +36,18 @@ function formatInstant(instant: string, timeZone: string): string {
     timeZone,
     timeZoneName: "short",
     year: "numeric",
-  }).format(new Date(instant));
+  });
+}
+
+function formatNightDate(value: string, locale: PublishedLocale): string {
+  const date = new Date(`${value}T12:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return formatLocaleDateTime(date, locale, {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  });
 }
 
 function formatEvent(
@@ -37,12 +55,14 @@ function formatEvent(
     | SavedObservationPlan["planner"]["night"]["sunset"]
     | SavedObservationPlan["planner"]["target_events"]["rise"],
   timeZone: string,
+  locale: PublishedLocale,
+  messages: SavedObservationPlanMessages["events"],
 ): string {
-  if (event.kind === "time") return formatInstant(event.instant_utc, timeZone);
-  if (event.kind === "circumpolar") return "Circumpolar from the saved latitude";
-  if (event.kind === "never-rises") return "Never rises from the saved latitude";
-  if (event.kind === "not-during-night") return "No event during the saved observing night";
-  return "Unavailable in the saved calculation";
+  if (event.kind === "time") return formatInstant(event.instant_utc, timeZone, locale);
+  if (event.kind === "circumpolar") return messages.circumpolar;
+  if (event.kind === "never-rises") return messages.neverRises;
+  if (event.kind === "not-during-night") return messages.notDuringNight;
+  return messages.unavailable;
 }
 
 function classifyReadFailure(error: unknown): LoadedState {
@@ -56,37 +76,12 @@ function classifyReadFailure(error: unknown): LoadedState {
 
 function EmptySavedPlanState({
   kind,
-}: Readonly<{ kind: Exclude<LoadedState["kind"], "loaded" | "loading"> }>) {
-  const content =
-    kind === "deleted"
-      ? {
-          heading: "Saved plan deleted",
-          body: "This local snapshot was removed from this browser. Other Lumina personal data was not cleared.",
-        }
-      : kind === "missing"
-        ? {
-            heading: "Saved plan not found",
-            body: "This browser does not have a saved plan with that local identifier. Lumina did not substitute another plan.",
-          }
-        : kind === "invalid"
-          ? {
-              heading: "Saved plan address is invalid",
-              body: "The local saved-plan identifier is malformed, so Lumina did not query IndexedDB for another record.",
-            }
-          : kind === "unavailable"
-            ? {
-                heading: "Saved plans are unavailable",
-                body: "This browser is not allowing Lumina to read its local IndexedDB storage right now.",
-              }
-            : kind === "corrupted"
-              ? {
-                  heading: "Saved plan storage could not be trusted",
-                  body: "The stored record failed validation. Lumina left the local data untouched instead of guessing or repairing it silently.",
-                }
-              : {
-                  heading: "Saved plan could not be read",
-                  body: "Lumina could not read this local snapshot. No replacement calculation was created.",
-                };
+  messages,
+}: Readonly<{
+  kind: Exclude<LoadedState["kind"], "loaded" | "loading">;
+  messages: SavedObservationPlanMessages;
+}>) {
+  const content = messages.states[kind === "error" ? "error" : kind];
 
   return (
     <section className="space-y-5">
@@ -96,13 +91,21 @@ function EmptySavedPlanState({
         className="inline-flex min-h-11 items-center text-[var(--link)] underline"
         href="/observe"
       >
-        Open observation planner
+        {messages.actions.openPlanner}
       </Link>
     </section>
   );
 }
 
-export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string }>) {
+export function SavedObservationPlanView({
+  locale,
+  messages,
+  savedId,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SavedObservationPlanMessages;
+  savedId: string;
+}>) {
   const [state, setState] = useState<LoadedState>({ kind: "loading" });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -128,19 +131,21 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
       setState({ kind: "deleted" });
       setConfirmDelete(false);
     } catch {
-      setDeleteError("Lumina could not delete this saved plan. The local record may still exist.");
+      setDeleteError(messages.delete.failure);
     }
-  }, [savedId]);
+  }, [messages.delete.failure, savedId]);
 
   if (state.kind === "loading") {
     return (
       <section aria-live="polite" className="space-y-3">
-        <h1 className="text-4xl font-semibold tracking-tight">Loading saved plan…</h1>
-        <p className="text-[var(--muted)]">Reading this browser&apos;s local IndexedDB snapshot.</p>
+        <h1 className="text-4xl font-semibold tracking-tight">{messages.loading.title}</h1>
+        <p className="text-[var(--muted)]">{messages.loading.description}</p>
       </section>
     );
   }
-  if (state.kind !== "loaded") return <EmptySavedPlanState kind={state.kind} />;
+  if (state.kind !== "loaded") {
+    return <EmptySavedPlanState kind={state.kind} messages={messages} />;
+  }
 
   const { plan } = state;
   const selected = plan.planner.selected;
@@ -152,53 +157,76 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
     <article className="space-y-9">
       <header className="space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Saved observation plan
+          {messages.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
           {plan.target.canonical_name}
         </h1>
         <p className="max-w-3xl text-lg leading-8 text-[var(--muted)]">
-          This is a saved snapshot, not a current recomputation. It preserves the exact local
-          inputs, source context, and deterministic result from when you chose Save plan.
+          {messages.snapshotDescription}
         </p>
         <p className="text-sm text-[var(--muted)]">
-          Saved{" "}
-          <time dateTime={plan.created_at}>{formatInstant(plan.created_at, plan.time_zone)}</time>
-          {" · "}night of {plan.night_date} · {plan.time_zone}
+          {formatMessageTemplate(messages.snapshotSummary, {
+            nightDate: formatNightDate(plan.night_date, locale),
+            savedAt: formatInstant(plan.created_at, plan.time_zone, locale),
+            timeZone: plan.time_zone,
+          })}
         </p>
       </header>
 
       <section aria-labelledby="saved-observer-heading" className="space-y-3">
         <h2 className="text-2xl font-semibold" id="saved-observer-heading">
-          Saved observer and selected instant
+          {messages.observer.title}
         </h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-              Location
+              {messages.observer.locationLabel}
             </p>
             <p className="mt-2 font-mono text-sm">
-              {plan.observer.latitude_deg.toFixed(6)}°, {plan.observer.longitude_deg.toFixed(6)}°
+              {formatMessageTemplate(messages.observer.locationValue, {
+                latitude: formatLocaleNumber(plan.observer.latitude_deg, locale, {
+                  maximumFractionDigits: 6,
+                  minimumFractionDigits: 6,
+                }),
+                longitude: formatLocaleNumber(plan.observer.longitude_deg, locale, {
+                  maximumFractionDigits: 6,
+                  minimumFractionDigits: 6,
+                }),
+              })}
             </p>
             <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
-              Stored only in this browser.
+              {messages.observer.storedLocal}
             </p>
           </div>
           <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-              Selected time
+              {messages.observer.selectedTimeLabel}
             </p>
-            <p className="mt-2 text-sm">{formatInstant(plan.selected_time_utc, plan.time_zone)}</p>
+            <p className="mt-2 text-sm">
+              {formatInstant(plan.selected_time_utc, plan.time_zone, locale)}
+            </p>
           </div>
           <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-              Sky position
+              {messages.observer.skyPositionLabel}
             </p>
             <p className="mt-2 font-mono text-sm">
-              Altitude {selected.position.altitude_deg.toFixed(1)}°
+              {formatMessageTemplate(messages.observer.altitudeValue, {
+                altitude: formatLocaleNumber(selected.position.altitude_deg, locale, {
+                  maximumFractionDigits: 1,
+                  minimumFractionDigits: 1,
+                }),
+              })}
             </p>
             <p className="mt-1 font-mono text-sm">
-              Azimuth {selected.position.azimuth_deg.toFixed(1)}° · {selected.position.compass}
+              {formatMessageTemplate(messages.observer.azimuthValue, {
+                azimuth: formatLocaleNumber(selected.position.azimuth_deg, locale, {
+                  maximumFractionDigits: 1,
+                  minimumFractionDigits: 1,
+                }),
+                compass: selected.position.compass,
+              })}
             </p>
           </div>
         </div>
@@ -206,24 +234,27 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
 
       <section aria-labelledby="saved-night-heading" className="space-y-4">
         <h2 className="text-2xl font-semibold" id="saved-night-heading">
-          Saved night geometry
+          {messages.night.title}
         </h2>
         {max !== null ? (
           <p className="leading-7 text-[var(--muted)]">
-            Highest sampled altitude during astronomical darkness: {max.altitude_deg.toFixed(1)}° at{" "}
-            {formatInstant(max.instant_utc, plan.time_zone)}.
+            {formatMessageTemplate(messages.night.highestAltitude, {
+              altitude: formatLocaleNumber(max.altitude_deg, locale, {
+                maximumFractionDigits: 1,
+                minimumFractionDigits: 1,
+              }),
+              instant: formatInstant(max.instant_utc, plan.time_zone, locale),
+            })}
           </p>
         ) : (
-          <p className="leading-7 text-[var(--muted)]">
-            Astronomical darkness was unavailable in this saved calculation.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.night.darknessUnavailable}</p>
         )}
         <dl className="grid gap-3 sm:grid-cols-3">
           {(
             [
-              ["Rise", plan.planner.target_events.rise],
-              ["Transit", plan.planner.target_events.transit],
-              ["Set", plan.planner.target_events.set],
+              [messages.events.rise, plan.planner.target_events.rise],
+              [messages.events.transit, plan.planner.target_events.transit],
+              [messages.events.set, plan.planner.target_events.set],
             ] as const
           ).map(([label, event]) => (
             <div
@@ -233,17 +264,19 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
               <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
                 {label}
               </dt>
-              <dd className="mt-2 text-sm">{formatEvent(event, plan.time_zone)}</dd>
+              <dd className="mt-2 text-sm">
+                {formatEvent(event, plan.time_zone, locale, messages.events)}
+              </dd>
             </div>
           ))}
         </dl>
         <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(
             [
-              ["Sunset · geometric", plan.planner.night.sunset],
-              ["Astronomical dusk", plan.planner.night.astronomical_dusk],
-              ["Astronomical dawn", plan.planner.night.astronomical_dawn],
-              ["Sunrise · geometric", plan.planner.night.sunrise],
+              [messages.events.sunsetGeometric, plan.planner.night.sunset],
+              [messages.events.astronomicalDusk, plan.planner.night.astronomical_dusk],
+              [messages.events.astronomicalDawn, plan.planner.night.astronomical_dawn],
+              [messages.events.sunriseGeometric, plan.planner.night.sunrise],
             ] as const
           ).map(([label, event]) => (
             <div
@@ -253,7 +286,9 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
               <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
                 {label}
               </dt>
-              <dd className="mt-2 text-sm">{formatEvent(event, plan.time_zone)}</dd>
+              <dd className="mt-2 text-sm">
+                {formatEvent(event, plan.time_zone, locale, messages.events)}
+              </dd>
             </div>
           ))}
         </dl>
@@ -261,28 +296,36 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
 
       <section aria-labelledby="saved-samples-heading" className="space-y-3">
         <h2 className="text-2xl font-semibold" id="saved-samples-heading">
-          Saved altitude samples
+          {messages.samples.title}
         </h2>
         <div className="overflow-x-auto rounded-md border border-[var(--border)]">
           <table
-            aria-label="Saved altitude samples"
+            aria-label={messages.samples.label}
             className="w-full min-w-[30rem] text-left text-sm"
           >
             <thead className="bg-[var(--background-raised)]">
               <tr>
                 <th className="px-4 py-3 font-semibold" scope="col">
-                  Saved instant
+                  {messages.samples.savedInstant}
                 </th>
                 <th className="px-4 py-3 font-semibold" scope="col">
-                  Altitude · geometric
+                  {messages.samples.altitudeGeometric}
                 </th>
               </tr>
             </thead>
             <tbody>
               {plan.planner.altitude_samples.map((sample) => (
                 <tr className="border-t border-[var(--border)]" key={sample.instant_utc}>
-                  <td className="px-4 py-3">{formatInstant(sample.instant_utc, plan.time_zone)}</td>
-                  <td className="px-4 py-3 font-mono">{sample.altitude_deg.toFixed(1)}°</td>
+                  <td className="px-4 py-3">
+                    {formatInstant(sample.instant_utc, plan.time_zone, locale)}
+                  </td>
+                  <td className="px-4 py-3 font-mono">
+                    {formatLocaleNumber(sample.altitude_deg, locale, {
+                      maximumFractionDigits: 1,
+                      minimumFractionDigits: 1,
+                    })}
+                    °
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -295,16 +338,30 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
         className="space-y-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-5"
       >
         <h2 className="text-xl font-semibold" id="saved-source-heading">
-          Source and calculation snapshot
+          {messages.source.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          {source.provider_name} · {source.dataset_name} ({source.dataset_release_version}) · source
-          record <span className="font-mono">{source.source_record_id}</span> · reference epoch J
-          {source.reference_epoch.toFixed(1)}.
+          {formatMessageTemplate(messages.source.datasetSummary, {
+            datasetName: source.dataset_name,
+            providerName: source.provider_name,
+            referenceEpoch: formatLocaleNumber(source.reference_epoch, locale, {
+              maximumFractionDigits: 1,
+              minimumFractionDigits: 1,
+            }),
+            referenceEpochLabel: messages.source.referenceEpochLabel,
+            releaseVersion: source.dataset_release_version,
+            sourceRecordId: source.source_record_id,
+            sourceRecordLabel: messages.source.sourceRecordLabel,
+          })}
         </p>
         <p className="leading-7 text-[var(--muted)]">
-          astronomy-engine {plan.model.astronomy_engine_version} · geometric topocentric calculation
-          · no refraction · astronomical darkness at solar altitude −18°.
+          astronomy-engine {plan.model.astronomy_engine_version} ·{" "}
+          {formatMessageTemplate(messages.source.calculationDescription, {
+            solarAltitude: formatLocaleNumber(
+              plan.model.astronomical_darkness_solar_altitude_deg,
+              locale,
+            ),
+          })}
         </p>
       </section>
 
@@ -313,14 +370,14 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
           className="inline-flex min-h-11 items-center text-[var(--link)] underline"
           href={repeatHref}
         >
-          Plan this target again
+          {messages.actions.planAgain}
         </Link>
         <button
           className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold"
           onClick={() => setConfirmDelete(true)}
           type="button"
         >
-          Delete saved plan
+          {messages.actions.deletePlan}
         </button>
       </div>
 
@@ -330,11 +387,10 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
           className="rounded-md border border-[var(--border-strong)] bg-[var(--background-raised)] p-4"
         >
           <h2 className="text-lg font-semibold" id="delete-saved-plan-heading">
-            Delete this local snapshot?
+            {messages.delete.title}
           </h2>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            This removes only this saved plan from this browser. It does not clear journal entries,
-            other saved plans, or offline page copies.
+            {messages.delete.description}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <button
@@ -342,14 +398,14 @@ export function SavedObservationPlanView({ savedId }: Readonly<{ savedId: string
               onClick={() => void deletePlan()}
               type="button"
             >
-              Confirm delete
+              {messages.actions.confirmDelete}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border)] px-4 text-sm"
               onClick={() => setConfirmDelete(false)}
               type="button"
             >
-              Cancel
+              {messages.actions.cancelDelete}
             </button>
           </div>
         </section>

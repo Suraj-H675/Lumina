@@ -5,6 +5,8 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ObserveExperience } from "../src/components/observe-experience";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import {
   LUMINA_PERSONAL_DB_NAME,
   closeJournalDatabase,
@@ -39,7 +41,15 @@ describe("observe route client mode", () => {
     await putSavedObservationPlan(saved);
     window.history.replaceState({}, "", `/observe?saved=${saved.id}`);
 
-    render(<ObserveExperience detail={null} slug={null} targetUnavailable={false} />);
+    render(
+      <ObserveExperience
+        detail={null}
+        savedPlanLocale={DEFAULT_LOCALE}
+        savedPlanMessages={enMessages.savedObservationPlan}
+        slug={null}
+        targetUnavailable={false}
+      />,
+    );
 
     expect(await screen.findByRole("heading", { level: 1, name: "K2-18 1" })).toBeVisible();
     expect(
@@ -56,6 +66,8 @@ describe("observe route client mode", () => {
       <ObserveExperience
         detail={null}
         initialSavedId={saved.id}
+        savedPlanLocale={DEFAULT_LOCALE}
+        savedPlanMessages={enMessages.savedObservationPlan}
         slug={null}
         targetUnavailable={false}
       />,

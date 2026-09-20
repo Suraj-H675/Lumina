@@ -313,6 +313,99 @@ export const enMessages = {
       useImported: "Use imported",
     },
   },
+  savedObservationPlan: {
+    actions: {
+      cancelDelete: "Cancel",
+      confirmDelete: "Confirm delete",
+      deletePlan: "Delete saved plan",
+      openPlanner: "Open observation planner",
+      planAgain: "Plan this target again",
+    },
+    delete: {
+      description:
+        "This removes only this saved plan from this browser. It does not clear journal entries, other saved plans, or offline page copies.",
+      failure: "Lumina could not delete this saved plan. The local record may still exist.",
+      title: "Delete this local snapshot?",
+    },
+    events: {
+      astronomicalDawn: "Astronomical dawn",
+      astronomicalDusk: "Astronomical dusk",
+      circumpolar: "Circumpolar from the saved latitude",
+      neverRises: "Never rises from the saved latitude",
+      notDuringNight: "No event during the saved observing night",
+      rise: "Rise",
+      set: "Set",
+      sunriseGeometric: "Sunrise · geometric",
+      sunsetGeometric: "Sunset · geometric",
+      transit: "Transit",
+      unavailable: "Unavailable in the saved calculation",
+    },
+    eyebrow: "Saved observation plan",
+    loading: {
+      description: "Reading this browser's local IndexedDB snapshot.",
+      title: "Loading saved plan…",
+    },
+    night: {
+      darknessUnavailable: "Astronomical darkness was unavailable in this saved calculation.",
+      highestAltitude:
+        "Highest sampled altitude during astronomical darkness: {altitude}° at {instant}.",
+      title: "Saved night geometry",
+    },
+    observer: {
+      altitudeValue: "Altitude {altitude}°",
+      azimuthValue: "Azimuth {azimuth}° · {compass}",
+      locationLabel: "Location",
+      locationValue: "{latitude}°, {longitude}°",
+      selectedTimeLabel: "Selected time",
+      skyPositionLabel: "Sky position",
+      storedLocal: "Stored only in this browser.",
+      title: "Saved observer and selected instant",
+    },
+    samples: {
+      altitudeGeometric: "Altitude · geometric",
+      label: "Saved altitude samples",
+      savedInstant: "Saved instant",
+      title: "Saved altitude samples",
+    },
+    snapshotDescription:
+      "This is a saved snapshot, not a current recomputation. It preserves the exact local inputs, source context, and deterministic result from when you chose Save plan.",
+    snapshotSummary: "Saved {savedAt} · night of {nightDate} · {timeZone}",
+    source: {
+      calculationDescription:
+        "geometric topocentric calculation · no refraction · astronomical darkness at solar altitude {solarAltitude}°.",
+      datasetSummary:
+        "{providerName} · {datasetName} ({releaseVersion}) · {sourceRecordLabel} {sourceRecordId} · {referenceEpochLabel} J{referenceEpoch}.",
+      referenceEpochLabel: "reference epoch",
+      sourceRecordLabel: "source record",
+      title: "Source and calculation snapshot",
+    },
+    states: {
+      corrupted: {
+        body: "The stored record failed validation. Lumina left the local data untouched instead of guessing or repairing it silently.",
+        heading: "Saved plan storage could not be trusted",
+      },
+      deleted: {
+        body: "This local snapshot was removed from this browser. Other Lumina personal data was not cleared.",
+        heading: "Saved plan deleted",
+      },
+      error: {
+        body: "Lumina could not read this local snapshot. No replacement calculation was created.",
+        heading: "Saved plan could not be read",
+      },
+      invalid: {
+        body: "The local saved-plan identifier is malformed, so Lumina did not query IndexedDB for another record.",
+        heading: "Saved plan address is invalid",
+      },
+      missing: {
+        body: "This browser does not have a saved plan with that local identifier. Lumina did not substitute another plan.",
+        heading: "Saved plan not found",
+      },
+      unavailable: {
+        body: "This browser is not allowing Lumina to read its local IndexedDB storage right now.",
+        heading: "Saved plans are unavailable",
+      },
+    },
+  },
   labIndex: {
     eyebrow: "Space Lab",
     intro:

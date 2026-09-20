@@ -7,6 +7,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { SavedObservationPlanView } from "../src/components/saved-observation-plan-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { SavedObservationPlanMessages } from "../src/lib/i18n/messages/types";
 import {
   LUMINA_PERSONAL_DB_NAME,
   closeJournalDatabase,
@@ -20,6 +23,15 @@ async function resetPersonalDatabase(): Promise<void> {
   await Dexie.delete(LUMINA_PERSONAL_DB_NAME);
 }
 
+function renderSavedPlan(
+  savedId: string,
+  messages: SavedObservationPlanMessages = enMessages.savedObservationPlan,
+) {
+  return render(
+    <SavedObservationPlanView locale={DEFAULT_LOCALE} messages={messages} savedId={savedId} />,
+  );
+}
+
 beforeEach(resetPersonalDatabase);
 afterEach(resetPersonalDatabase);
 
@@ -28,7 +40,7 @@ describe("saved observation plan view", () => {
     const saved = savedObservationPlanFixture();
     await putSavedObservationPlan(saved);
 
-    render(<SavedObservationPlanView savedId={saved.id} />);
+    renderSavedPlan(saved.id);
 
     expect(await screen.findByRole("heading", { level: 1, name: "K2-18 1" })).toBeVisible();
     expect(screen.getByText(/saved observation plan/i)).toBeVisible();
@@ -45,7 +57,7 @@ describe("saved observation plan view", () => {
   });
 
   it("shows an explicit missing state and never invents a replacement plan", async () => {
-    render(<SavedObservationPlanView savedId="13000000-0000-4000-8000-000000000099" />);
+    renderSavedPlan("13000000-0000-4000-8000-000000000099");
 
     expect(
       await screen.findByRole("heading", { level: 1, name: "Saved plan not found" }),
@@ -57,7 +69,7 @@ describe("saved observation plan view", () => {
     const user = userEvent.setup();
     const saved = savedObservationPlanFixture();
     await putSavedObservationPlan(saved);
-    render(<SavedObservationPlanView savedId={saved.id} />);
+    renderSavedPlan(saved.id);
 
     await screen.findByRole("heading", { level: 1, name: "K2-18 1" });
     await user.click(screen.getByRole("button", { name: "Delete saved plan" }));
@@ -73,8 +85,37 @@ describe("saved observation plan view", () => {
   it("passes an axe smoke check for a loaded local snapshot", async () => {
     const saved = savedObservationPlanFixture();
     await putSavedObservationPlan(saved);
-    const { container } = render(<SavedObservationPlanView savedId={saved.id} />);
+    const { container } = renderSavedPlan(saved.id);
     await screen.findByRole("heading", { level: 1, name: "K2-18 1" });
     expect((await axe(container)).violations).toHaveLength(0);
+  });
+
+  it("localizes snapshot chrome without rewriting stored target, source, model, or timezone data", async () => {
+    const saved = savedObservationPlanFixture();
+    await putSavedObservationPlan(saved);
+    const messages = {
+      ...enMessages.savedObservationPlan,
+      eyebrow: "Localized saved-plan eyebrow",
+      observer: {
+        ...enMessages.savedObservationPlan.observer,
+        title: "Localized observer section",
+      },
+      source: {
+        ...enMessages.savedObservationPlan.source,
+        title: "Localized source section",
+      },
+    } satisfies SavedObservationPlanMessages;
+
+    renderSavedPlan(saved.id, messages);
+
+    expect(await screen.findByText("Localized saved-plan eyebrow")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Localized observer section" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Localized source section" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "K2-18 1" })).toBeVisible();
+    expect(screen.getByText(/ESA Gaia Archive/)).toBeVisible();
+    expect(screen.getByText(/gaia-source-record-3910747531814692736/)).toBeVisible();
+    expect(screen.getByText(/astronomy-engine 2\.1\.19/)).toBeVisible();
+    expect(screen.getByText(/Asia\/Kolkata/)).toBeVisible();
+    expect(screen.getByText(/SSW/)).toBeVisible();
   });
 });

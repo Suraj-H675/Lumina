@@ -339,4 +339,16 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.transfer.importComplete).toContain("{keptLocal}");
     expect(messages.failures.storageCorrupted).toMatch(/left the local bytes untouched/i);
   });
+
+  it("keeps saved observation-plan chrome separate from snapshot science and personal values", () => {
+    const messages = enMessages.savedObservationPlan;
+    expect(messages.snapshotSummary).toContain("{savedAt}");
+    expect(messages.snapshotSummary).toContain("{timeZone}");
+    expect(messages.observer.locationValue).toContain("{latitude}");
+    expect(messages.observer.azimuthValue).toContain("{compass}");
+    expect(messages.night.highestAltitude).toContain("{altitude}");
+    expect(messages.source.datasetSummary).toContain("{sourceRecordId}");
+    expect(messages.source.calculationDescription).toContain("{solarAltitude}");
+    expect(messages.states.corrupted.body).toMatch(/left the local data untouched/i);
+  });
 });

@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { CompareCell, CompareModel, CompareObjectState } from "../lib/compare-model";
 import { COMPARE_MAX_OBJECTS } from "../lib/compare-url";
 import { entityTypeLabel, formatMeasurementValue } from "../lib/catalog-display";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 import { CompareAddObject } from "./compare-add-object";
 import { CompareRemoveButton } from "./compare-remove-button";
 import { CompareSaveSelected } from "./compare-save-selected";
@@ -10,6 +12,8 @@ import { CompareSaveSelected } from "./compare-save-selected";
 type CompareViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
+  collectionSaveMessages: CollectionSaveMessages;
+  locale: PublishedLocale;
   model: CompareModel;
   selectedSlugs: ReadonlyArray<string>;
 }>;
@@ -101,7 +105,13 @@ function EmptyCompare({ apiOrigin }: Readonly<{ apiOrigin?: string }>) {
  * The provenance-safe comparison experience. Every displayed value keeps its
  * source; nothing is scored, ranked, or silently merged.
  */
-export function CompareView({ apiOrigin, model, selectedSlugs }: CompareViewProps) {
+export function CompareView({
+  apiOrigin,
+  collectionSaveMessages,
+  locale,
+  model,
+  selectedSlugs,
+}: CompareViewProps) {
   const { objects, rows } = model;
   const atMaximum = selectedSlugs.length >= COMPARE_MAX_OBJECTS;
   const loadedCount = objects.filter((state) => state.kind === "ok").length;
@@ -193,7 +203,11 @@ export function CompareView({ apiOrigin, model, selectedSlugs }: CompareViewProp
       </section>
 
       {/* Collections integration: save the compared objects (identity only). */}
-      <CompareSaveSelected identities={saveableIdentities} />
+      <CompareSaveSelected
+        identities={saveableIdentities}
+        locale={locale}
+        messages={collectionSaveMessages}
+      />
 
       {loadedCount === 0 ? (
         <section aria-labelledby="compare-data-heading" className="space-y-4">

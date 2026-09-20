@@ -231,6 +231,24 @@ test("journey 5 — select two objects and launch the frozen /compare contract",
   await expect(page.getByText(/Gaia G-band mean magnitude/i).first()).toBeVisible();
 });
 
+test("journey 5b — save compared objects into one existing collection", async ({ page }) => {
+  await seedShelf(page, []);
+  await page.goto(`/compare?object=${K2_18}&object=${KEPLER_452}`);
+  await expect(page.getByRole("heading", { level: 1, name: "Compare" })).toBeVisible();
+
+  const dialog = await openDialog(
+    page,
+    /save compared objects/iu,
+    "Save 2 objects to a collection",
+  );
+  await dialog.getByLabel("Collection").selectOption(SHELF_ID);
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog.getByText(/Saved 2 objects to the collection/i)).toBeVisible();
+
+  const data = await readCollections(page);
+  expect(data.collections[0]?.items.map((item) => item.slug)).toEqual([K2_18, KEPLER_452]);
+});
+
 test("journey 6 — remove an object; removal persists across reload", async ({ page }) => {
   await seedShelf(page, [K2_18, KEPLER_452]);
   await openCollection(page);

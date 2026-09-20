@@ -310,6 +310,10 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.detail.removeObjectLabel).toContain("{objectName}");
     expect(messages.detail.deleteTitle).toContain("{collectionName}");
     expect(messages.addObject.savedAnnouncement).toContain("{objectName}");
+    expect(messages.save.trigger.saveAriaLabel).toContain("{objectName}");
+    expect(messages.save.picker.createdAnnouncement).toContain("{collectionName}");
+    expect(messages.save.compare.title).toContain("{countText}");
+    expect(messages.save.compare.willSave).toContain("{objects}");
     expect(messages.validation.tooLongName).toContain("{max}");
     expect(messages.failures.collectionLimit).toContain("{max}");
     expect(messages.shared.corrupted.confirmResetAction).toMatch(/confirm reset/i);

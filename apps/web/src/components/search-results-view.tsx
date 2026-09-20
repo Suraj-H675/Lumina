@@ -1,9 +1,13 @@
 import type { CatalogSearchResponse } from "@lumina/api-client";
 
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 import { ResultCard } from "./result-card";
 
 type ExploreResultsViewProps = Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
   items: CatalogSearchResponse["items"];
+  locale: PublishedLocale;
   query: string;
 }>;
 
@@ -11,7 +15,12 @@ type ExploreResultsViewProps = Readonly<{
  * Committed search results, rendered strictly in the order returned by the
  * accepted search engine. Match tiers and similarity internals never surface.
  */
-export function ExploreResultsView({ items, query }: ExploreResultsViewProps) {
+export function ExploreResultsView({
+  collectionSaveMessages,
+  items,
+  locale,
+  query,
+}: ExploreResultsViewProps) {
   if (items.length === 0) {
     return (
       <section
@@ -35,7 +44,12 @@ export function ExploreResultsView({ items, query }: ExploreResultsViewProps) {
   return (
     <ul aria-label="Search results" className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
-        <ResultCard key={item.entity.id} result={item} />
+        <ResultCard
+          collectionSaveMessages={collectionSaveMessages}
+          key={item.entity.id}
+          locale={locale}
+          result={item}
+        />
       ))}
     </ul>
   );

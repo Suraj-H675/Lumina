@@ -7,7 +7,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
+import { collectionSaveMessageSlice } from "../src/lib/collections-messages";
 import * as store from "../src/lib/collections-store";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { CollectionSaveMessages } from "../src/lib/i18n/messages/types";
 import {
   SaveToCollectionsButton,
   type ObjectIdentity,
@@ -21,6 +25,23 @@ const K2_18: ObjectIdentity = {
   entity_type: "star",
   slug: "k2-18",
 };
+
+const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
+
+function renderSaveButton(
+  identity: ObjectIdentity = K2_18,
+  variant?: "primary" | "icon",
+  messages: CollectionSaveMessages = SAVE_MESSAGES,
+) {
+  return render(
+    <SaveToCollectionsButton
+      identity={identity}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
+      {...(variant === undefined ? {} : { variant })}
+    />,
+  );
+}
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -47,7 +68,7 @@ function persistedCollections(): Array<{
 
 describe("SaveToCollectionsButton — trigger", () => {
   it("renders an accessible Save action with a hollow marker before any save", () => {
-    render(<SaveToCollectionsButton identity={K2_18} />);
+    renderSaveButton();
     const button = screen.getByRole("button", { name: "Save K2-18 to a collection" });
     expect(button).toBeVisible();
     expect(button.textContent).toContain("Save");
@@ -58,7 +79,7 @@ describe("SaveToCollectionsButton — trigger", () => {
     if (!created.ok || created.collection === undefined) throw new Error("setup failed");
     store.addObjectToCollection(created.collection.id, K2_18);
 
-    render(<SaveToCollectionsButton identity={K2_18} />);
+    renderSaveButton();
     expect(screen.getByRole("button", { name: /manage where k2-18 is saved/i })).toBeVisible();
     expect(
       screen.getByRole("button", { name: /manage where k2-18 is saved/i }).textContent,
@@ -66,7 +87,7 @@ describe("SaveToCollectionsButton — trigger", () => {
   });
 
   it("the compact card variant carries the object's name accessibly", () => {
-    render(<SaveToCollectionsButton identity={K2_18} variant="icon" />);
+    renderSaveButton(K2_18, "icon");
     expect(screen.getByRole("button", { name: "Save K2-18 to a collection" })).toBeVisible();
   });
 });
@@ -77,7 +98,7 @@ describe("SaveToCollectionsDialog", () => {
     if (!created.ok || created.collection === undefined) throw new Error("setup failed");
     const user = userEvent.setup();
 
-    render(<SaveToCollectionsButton identity={K2_18} />);
+    renderSaveButton();
     await user.click(screen.getByRole("button", { name: /save k2-18/i }));
 
     const dialog = screen.getByRole("dialog", { name: "Save to a collection" });
@@ -105,7 +126,7 @@ describe("SaveToCollectionsDialog", () => {
     if (!created.ok || created.collection === undefined) throw new Error("setup failed");
     const user = userEvent.setup();
 
-    render(<SaveToCollectionsButton identity={K2_18} variant="icon" />);
+    renderSaveButton(K2_18, "icon");
     await user.click(screen.getByRole("button", { name: /save k2-18/i }));
     const checkbox = screen.getByRole("checkbox", { name: "Alpha" });
 
@@ -118,7 +139,7 @@ describe("SaveToCollectionsDialog", () => {
 
     // Saving again through a fresh trigger keeps exactly one item.
     await user.click(screen.getByRole("button", { name: "Done" }));
-    render(<SaveToCollectionsButton identity={KEPLER_452_IDENTITY} variant="icon" />);
+    renderSaveButton(KEPLER_452_IDENTITY, "icon");
     await user.click(screen.getAllByRole("button", { name: /save kepler-452/i })[0] as HTMLElement);
     await user.click(screen.getByRole("checkbox", { name: "Alpha" }));
     await waitFor(() => {
@@ -138,7 +159,7 @@ describe("SaveToCollectionsDialog", () => {
     window.dispatchEvent(new StorageEvent("storage", { key: COLLECTIONS_STORAGE_KEY }));
     const user = userEvent.setup();
 
-    render(<SaveToCollectionsButton identity={K2_18} />);
+    renderSaveButton();
     await user.click(screen.getByRole("button", { name: /save k2-18/i }));
 
     const dialog = screen.getByRole("dialog", { name: "Save to a collection" });
@@ -171,7 +192,7 @@ describe("SaveToCollectionsDialog", () => {
       store.createCollection("Blocked Era");
       const user = userEvent.setup();
 
-      render(<SaveToCollectionsButton identity={K2_18} />);
+      renderSaveButton();
       await user.click(screen.getByRole("button", { name: /save k2-18/i }));
       // With storage broken the dialog explains instead of failing; nothing
       // was persisted anywhere along the way.
@@ -180,6 +201,36 @@ describe("SaveToCollectionsDialog", () => {
     } finally {
       vi.restoreAllMocks();
     }
+  });
+
+  it("localizes picker controls without rewriting object or collection identity", async () => {
+    const created = store.createCollection("Alpha");
+    if (!created.ok || created.collection === undefined) throw new Error("setup failed");
+    const messages = {
+      ...SAVE_MESSAGES,
+      save: {
+        ...SAVE_MESSAGES.save,
+        picker: {
+          ...SAVE_MESSAGES.save.picker,
+          title: "Localized picker title",
+        },
+        trigger: {
+          ...SAVE_MESSAGES.save.trigger,
+          saveAction: "Localized save",
+          saveAriaLabel: "Localized save {objectName}",
+        },
+      },
+    } satisfies CollectionSaveMessages;
+    const user = userEvent.setup();
+
+    renderSaveButton(K2_18, undefined, messages);
+    const trigger = screen.getByRole("button", { name: "Localized save K2-18" });
+    expect(trigger).toHaveTextContent("Localized save");
+    await user.click(trigger);
+
+    expect(screen.getByRole("dialog", { name: "Localized picker title" })).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: "Alpha" })).toBeVisible();
+    expect(screen.getByText(/K2-18/)).toBeVisible();
   });
 });
 
@@ -202,7 +253,9 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
   }
 
   it("offers no save control when nothing comparable is loaded", () => {
-    render(<CompareSaveSelected identities={[]} />);
+    render(
+      <CompareSaveSelected identities={[]} locale={DEFAULT_LOCALE} messages={SAVE_MESSAGES} />,
+    );
     expect(screen.queryByRole("button", { name: /save compared objects/i })).toBeNull();
   });
 
@@ -211,7 +264,13 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
     if (!created.ok || created.collection === undefined) throw new Error("setup failed");
     const user = userEvent.setup();
 
-    render(<CompareSaveSelected identities={twoObjectCompare()} />);
+    render(
+      <CompareSaveSelected
+        identities={twoObjectCompare()}
+        locale={DEFAULT_LOCALE}
+        messages={SAVE_MESSAGES}
+      />,
+    );
     await user.click(screen.getByRole("button", { name: /save compared objects/i }));
 
     const select = screen.getByLabelText("Collection");
@@ -226,7 +285,13 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
 
   it("creates a collection inline without abandoning the comparison", async () => {
     const user = userEvent.setup();
-    render(<CompareSaveSelected identities={twoObjectCompare()} />);
+    render(
+      <CompareSaveSelected
+        identities={twoObjectCompare()}
+        locale={DEFAULT_LOCALE}
+        messages={SAVE_MESSAGES}
+      />,
+    );
     await user.click(screen.getByRole("button", { name: /save compared objects/i }));
 
     await user.selectOptions(screen.getByLabelText("Collection"), "__create__");
@@ -251,7 +316,13 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
     store.addObjectsToCollection(created.collection.id, twoObjectCompare());
     const user = userEvent.setup();
 
-    render(<CompareSaveSelected identities={twoObjectCompare()} />);
+    render(
+      <CompareSaveSelected
+        identities={twoObjectCompare()}
+        locale={DEFAULT_LOCALE}
+        messages={SAVE_MESSAGES}
+      />,
+    );
     await user.click(screen.getByRole("button", { name: /save compared objects/i }));
     await user.selectOptions(screen.getByLabelText("Collection"), created.collection.id);
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -267,5 +338,36 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
       { detail: fixtureDetail.kepler452, kind: "ok", slug: "kepler-452" },
     ]);
     expect(model.rows.length).toBeGreaterThan(0);
+  });
+
+  it("localizes compare-save chrome while preserving object and collection values", async () => {
+    const created = store.createCollection("Alpha");
+    if (!created.ok || created.collection === undefined) throw new Error("setup failed");
+    const messages = {
+      ...SAVE_MESSAGES,
+      save: {
+        ...SAVE_MESSAGES.save,
+        compare: {
+          ...SAVE_MESSAGES.save.compare,
+          collectionLabel: "Localized collection label",
+          triggerAction: "Localized compare save",
+        },
+      },
+    } satisfies CollectionSaveMessages;
+    const user = userEvent.setup();
+
+    render(
+      <CompareSaveSelected
+        identities={twoObjectCompare()}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Localized compare save" }));
+
+    expect(screen.getByLabelText("Localized collection label")).toBeVisible();
+    expect(screen.getByRole("option", { name: "Alpha" })).toBeVisible();
+    expect(screen.getByText(/K2-18/)).toBeVisible();
+    expect(screen.getByText(/Kepler-452/)).toBeVisible();
   });
 });

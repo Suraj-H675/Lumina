@@ -10,8 +10,13 @@ vi.mock("next/navigation", () => ({
 
 import type { CompareModel } from "../src/lib/compare-model";
 import { buildCompareModel } from "../src/lib/compare-model";
+import { collectionSaveMessageSlice } from "../src/lib/collections-messages";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { CompareView } from "../src/components/compare-view";
 import { fixtureDetail } from "./support/compare-fixtures";
+
+const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
 
 afterEach(() => {
   pushMock.mockReset();
@@ -26,14 +31,28 @@ function twoObjectModel(): CompareModel {
 
 describe("CompareView", () => {
   it("renders the empty state with the add-object control", () => {
-    render(<CompareView model={buildCompareModel([])} selectedSlugs={[]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={buildCompareModel([])}
+        selectedSlugs={[]}
+      />,
+    );
     expect(screen.getByRole("heading", { name: "Nothing selected yet" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: /add an object to compare/i })).toBeEnabled();
   });
 
   it("shows the one-object partial state inviting another object", () => {
     const model = buildCompareModel([{ detail: fixtureDetail.k2_18, kind: "ok", slug: "k2-18" }]);
-    render(<CompareView model={model} selectedSlugs={["k2-18"]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={model}
+        selectedSlugs={["k2-18"]}
+      />,
+    );
 
     // A polite live region invites adding another object.
     expect(
@@ -47,7 +66,14 @@ describe("CompareView", () => {
   });
 
   it("renders the desktop matrix with provenance per value", () => {
-    render(<CompareView model={twoObjectModel()} selectedSlugs={["k2-18", "kepler-452"]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={twoObjectModel()}
+        selectedSlugs={["k2-18", "kepler-452"]}
+      />,
+    );
 
     const table = screen.getByRole("table");
     expect(table).toBeInTheDocument();
@@ -74,7 +100,14 @@ describe("CompareView", () => {
       { detail: fixtureDetail.k2_18, kind: "ok", slug: "k2-18" },
       { detail, kind: "ok", slug: "kepler-452" },
     ]);
-    render(<CompareView model={model} selectedSlugs={["k2-18", "kepler-452"]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={model}
+        selectedSlugs={["k2-18", "kepler-452"]}
+      />,
+    );
 
     expect(screen.getAllByText("Not available").length).toBeGreaterThanOrEqual(2);
   });
@@ -84,7 +117,14 @@ describe("CompareView", () => {
       { detail: fixtureDetail.k2_18, kind: "ok", slug: "k2-18" },
       { kind: "unknown", slug: "ghost-planet" },
     ]);
-    render(<CompareView model={model} selectedSlugs={["k2-18", "ghost-planet"]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={model}
+        selectedSlugs={["k2-18", "ghost-planet"]}
+      />,
+    );
 
     expect(screen.getAllByText(/ghost-planet/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText("No catalogue object").length).toBeGreaterThan(0);
@@ -102,14 +142,28 @@ describe("CompareView", () => {
       { detail: fixtureDetail.kepler452, kind: "ok", slug: "kepler-452" },
       { detail: fixtureDetail.hd209458, kind: "ok", slug: "hd-209458" },
     ]);
-    render(<CompareView model={model} selectedSlugs={["k2-18", "kepler-452", "hd-209458"]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={model}
+        selectedSlugs={["k2-18", "kepler-452", "hd-209458"]}
+      />,
+    );
 
     expect(screen.getByText(/comparison full — 3 objects maximum/i)).toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: /add an object to compare/i })).toBeNull();
   });
 
   it("removes a selected object through the committed URL", async () => {
-    render(<CompareView model={twoObjectModel()} selectedSlugs={["k2-18", "kepler-452"]} />);
+    render(
+      <CompareView
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        model={twoObjectModel()}
+        selectedSlugs={["k2-18", "kepler-452"]}
+      />,
+    );
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /Remove K2-18 from the comparison/i }));

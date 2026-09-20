@@ -5,10 +5,10 @@ import { useCallback, useState } from "react";
 import type { EntityType } from "@lumina/api-client";
 
 import {
-  MAX_ITEMS_PER_COLLECTION,
-  collectionContainsSlug,
-  collectionNameProblem,
-} from "../lib/collections-model";
+  collectionNameProblemMessage,
+  collectionStoreFailureMessage,
+} from "../lib/collections-messages";
+import { MAX_ITEMS_PER_COLLECTION, collectionContainsSlug } from "../lib/collections-model";
 import {
   addObjectToCollection,
   createCollectionWithObjects,
@@ -19,6 +19,9 @@ import {
   useCollectionsStatus,
   type StoreResult,
 } from "../lib/collections-store";
+import { formatCountMessage, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 import { ModalDialog } from "./modal-dialog";
 
 /**
@@ -46,18 +49,30 @@ const iconButtonClassName =
 /** The shared picker dialog: choose collections, create one, or recover. */
 export function SaveToCollectionsDialog({
   identity,
+  locale,
+  messages,
   onClose,
-}: Readonly<{ identity: ObjectIdentity; onClose: () => void }>) {
+}: Readonly<{
+  identity: ObjectIdentity;
+  locale: PublishedLocale;
+  messages: CollectionSaveMessages;
+  onClose: () => void;
+}>) {
   const status = useCollectionsStatus();
   const data = useCollectionsData();
   const [newName, setNewName] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const [resetArmed, setResetArmed] = useState(false);
 
-  const announceResult = useCallback((result: StoreResult, successText: string): boolean => {
-    setAnnouncement(result.ok ? successText : result.message);
-    return result.ok;
-  }, []);
+  const announceResult = useCallback(
+    (result: StoreResult, successText: string): boolean => {
+      setAnnouncement(
+        result.ok ? successText : collectionStoreFailureMessage(result.reason, messages.failures),
+      );
+      return result.ok;
+    },
+    [messages.failures],
+  );
 
   const toggleMembership = useCallback(
     (collectionId: string, collectionName: string, currentlySaved: boolean) => {
@@ -67,82 +82,90 @@ export function SaveToCollectionsDialog({
       announceResult(
         result,
         currentlySaved
-          ? `Removed ${identity.canonical_name} from ${collectionName}.`
-          : `Saved ${identity.canonical_name} to ${collectionName}.`,
+          ? formatMessageTemplate(messages.save.picker.removedAnnouncement, {
+              collectionName,
+              objectName: identity.canonical_name,
+            })
+          : formatMessageTemplate(messages.save.picker.savedAnnouncement, {
+              collectionName,
+              objectName: identity.canonical_name,
+            }),
       );
     },
-    [announceResult, identity],
+    [announceResult, identity, messages.save.picker],
   );
 
   const handleCreate = useCallback(() => {
     const created = createCollectionWithObjects(newName, [identity]);
     if (!created.ok) {
-      setAnnouncement(created.message);
+      setAnnouncement(collectionStoreFailureMessage(created.reason, messages.failures));
       return;
     }
     const createdCollection = created.collection;
     if (createdCollection === undefined) {
-      setAnnouncement("The collection was created, but could not be opened for saving.");
+      setAnnouncement(messages.save.picker.createdUnavailable);
       return;
     }
     setNewName("");
     announceResult(
       created,
-      `Created ${createdCollection.name} and saved ${identity.canonical_name}.`,
+      formatMessageTemplate(messages.save.picker.createdAnnouncement, {
+        collectionName: createdCollection.name,
+        objectName: identity.canonical_name,
+      }),
     );
-  }, [announceResult, identity, newName]);
+  }, [announceResult, identity, messages.failures, messages.save.picker, newName]);
 
   const handleReset = useCallback(() => {
     if (!resetArmed) {
       setResetArmed(true);
-      setAnnouncement(
-        "Resetting erases every local collection on this device. Confirm to continue.",
-      );
+      setAnnouncement(messages.save.picker.resetWarning);
       return;
     }
     const result = resetCollections();
     setResetArmed(false);
-    announceResult(result, "Local collections were cleared.");
-  }, [announceResult, resetArmed]);
+    announceResult(result, messages.save.picker.resetSuccess);
+  }, [announceResult, messages.save.picker, resetArmed]);
 
   return (
     <ModalDialog
-      description={`Collections are stored only in this browser on this device. Choose where to save ${identity.canonical_name}.`}
+      description={formatMessageTemplate(messages.save.picker.description, {
+        objectName: identity.canonical_name,
+      })}
       onClose={onClose}
       open
-      title="Save to a collection"
+      title={messages.save.picker.title}
     >
       {status === "loading" ? (
         <p className="text-sm text-[var(--muted)]" role="status">
-          Checking your saved collections…
+          {messages.save.loading}
         </p>
       ) : null}
 
       {status === "unavailable" ? (
         <p className="text-sm leading-6 text-[var(--muted)]" role="status">
-          This browser is blocking local storage, so Lumina cannot save collections here right now.
-          Browsing and comparing still work normally.
+          {messages.save.picker.unavailable}
         </p>
       ) : null}
 
       {status === "corrupted" ? (
         <div className="space-y-4">
           <p className="text-sm leading-6 text-[var(--muted)]" role="status">
-            Your saved collections could not be read from this browser&apos;s storage. Nothing has
-            been changed or deleted — resetting replaces them with an empty slate. Browsing, search,
-            and comparison remain available meanwhile.
+            {messages.save.picker.corruptedDescription}
           </p>
           <button
             aria-label={
               resetArmed
-                ? "Confirm: reset all local collections"
-                : "Reset all local collections on this device"
+                ? messages.save.picker.confirmResetAriaLabel
+                : messages.save.picker.resetAriaLabel
             }
             className={primaryButtonClassName}
             onClick={handleReset}
             type="button"
           >
-            {resetArmed ? "Confirm reset — erase all local collections" : "Reset local collections"}
+            {resetArmed
+              ? messages.save.picker.confirmResetAction
+              : messages.save.picker.resetAction}
           </button>
         </div>
       ) : null}
@@ -150,11 +173,9 @@ export function SaveToCollectionsDialog({
       {status === "ready" ? (
         <div className="space-y-5">
           {data.collections.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">
-              No collections yet — name your first one below.
-            </p>
+            <p className="text-sm text-[var(--muted)]">{messages.save.picker.empty}</p>
           ) : (
-            <ul aria-label="Your collections" className="space-y-2 p-0">
+            <ul aria-label={messages.save.picker.listLabel} className="space-y-2 p-0">
               {data.collections.map((collection) => {
                 const savedHere = collectionContainsSlug(collection, identity.slug);
                 const full = collection.items.length >= MAX_ITEMS_PER_COLLECTION && !savedHere;
@@ -184,7 +205,13 @@ export function SaveToCollectionsDialog({
                       </span>
                     </label>
                     <span className="shrink-0 text-xs text-[var(--muted)]">
-                      {full ? "Full" : `${collection.items.length} saved`}
+                      {full
+                        ? messages.save.picker.full
+                        : formatCountMessage(
+                            messages.save.picker.savedCount,
+                            collection.items.length,
+                            locale,
+                          )}
                     </span>
                   </li>
                 );
@@ -203,7 +230,7 @@ export function SaveToCollectionsDialog({
               className="block text-sm font-medium text-[var(--foreground)]"
               htmlFor="save-picker-new-collection"
             >
-              New collection
+              {messages.save.picker.newCollectionLabel}
             </label>
             <div className="flex gap-2">
               <input
@@ -212,16 +239,16 @@ export function SaveToCollectionsDialog({
                 id="save-picker-new-collection"
                 maxLength={80}
                 onChange={(event) => setNewName(event.target.value)}
-                placeholder="e.g. Interesting Worlds"
+                placeholder={messages.validation.placeholder}
                 type="text"
                 value={newName}
               />
               <button
                 className={`${primaryButtonClassName} shrink-0`}
-                disabled={collectionNameProblem(newName) !== null}
+                disabled={collectionNameProblemMessage(newName, messages.validation) !== null}
                 type="submit"
               >
-                Create
+                {messages.save.picker.createAction}
               </button>
             </div>
           </form>
@@ -232,7 +259,7 @@ export function SaveToCollectionsDialog({
 
           <div className="flex justify-end border-t border-[var(--border)] pt-4">
             <button className={primaryButtonClassName} onClick={onClose} type="button">
-              Done
+              {messages.save.picker.doneAction}
             </button>
           </div>
         </div>
@@ -243,6 +270,8 @@ export function SaveToCollectionsDialog({
 
 type SaveToCollectionsButtonProps = Readonly<{
   identity: ObjectIdentity;
+  locale: PublishedLocale;
+  messages: CollectionSaveMessages;
   /** "primary" for object/compare pages; "icon" for compact catalogue cards. */
   variant?: "primary" | "icon";
 }>;
@@ -254,14 +283,20 @@ type SaveToCollectionsButtonProps = Readonly<{
  */
 export function SaveToCollectionsButton({
   identity,
+  locale,
+  messages,
   variant = "primary",
 }: SaveToCollectionsButtonProps) {
   const [open, setOpen] = useState(false);
   const savedAnywhere = useCollectionsContaining(identity.slug).length > 0;
 
   const accessibleName = savedAnywhere
-    ? `Saved. Manage where ${identity.canonical_name} is saved`
-    : `Save ${identity.canonical_name} to a collection`;
+    ? formatMessageTemplate(messages.save.trigger.manageAriaLabel, {
+        objectName: identity.canonical_name,
+      })
+    : formatMessageTemplate(messages.save.trigger.saveAriaLabel, {
+        objectName: identity.canonical_name,
+      });
 
   return (
     <>
@@ -289,10 +324,17 @@ export function SaveToCollectionsButton({
           type="button"
         >
           <span aria-hidden="true">{savedAnywhere ? "★" : "☆"}</span>
-          {savedAnywhere ? "Saved" : "Save"}
+          {savedAnywhere ? messages.save.trigger.savedAction : messages.save.trigger.saveAction}
         </button>
       )}
-      {open ? <SaveToCollectionsDialog identity={identity} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <SaveToCollectionsDialog
+          identity={identity}
+          locale={locale}
+          messages={messages}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

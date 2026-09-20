@@ -8,6 +8,8 @@ import {
   ExploreUnavailableState,
 } from "../../components/explore-catalogue-view";
 import { ExploreResultsView } from "../../components/search-results-view";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadExploreCatalogue, searchCatalogue } from "../../lib/server/catalog";
 
@@ -18,6 +20,8 @@ export const metadata: Metadata = {
 };
 
 type ExplorePageProps = Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  locale: PublishedLocale;
   searchParams: Promise<Readonly<{ cursor?: string | string[]; q?: string | string[] }>>;
 }>;
 
@@ -25,7 +29,11 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function ExplorePage({ searchParams }: ExplorePageProps) {
+export default async function ExplorePage({
+  collectionSaveMessages,
+  locale,
+  searchParams,
+}: ExplorePageProps) {
   const params = await searchParams;
   const query = (firstValue(params.q) ?? "").trim();
   const rawCursor = firstValue(params.cursor)?.trim();
@@ -94,16 +102,32 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
       </div>
 
       {committed ? (
-        <ExploreSearchSection query={query} />
+        <ExploreSearchSection
+          collectionSaveMessages={collectionSaveMessages}
+          locale={locale}
+          query={query}
+        />
       ) : (
-        <ExploreBrowseSection {...(cursor === undefined ? {} : { cursor })} />
+        <ExploreBrowseSection
+          {...(cursor === undefined ? {} : { cursor })}
+          collectionSaveMessages={collectionSaveMessages}
+          locale={locale}
+        />
       )}
     </div>
   );
 }
 
 /** Committed search state: results come straight from /api/v1/search, order untouched. */
-async function ExploreSearchSection({ query }: Readonly<{ query: string }>) {
+async function ExploreSearchSection({
+  collectionSaveMessages,
+  locale,
+  query,
+}: Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  locale: PublishedLocale;
+  query: string;
+}>) {
   const outcome = await searchCatalogue(query);
 
   if (outcome.kind === "ok") {
@@ -117,7 +141,12 @@ async function ExploreSearchSection({ query }: Readonly<{ query: string }>) {
           <span className="font-mono text-[var(--foreground)]">{query}</span>, ranked by the
           catalogue search engine.
         </p>
-        <ExploreResultsView items={outcome.items} query={query} />
+        <ExploreResultsView
+          collectionSaveMessages={collectionSaveMessages}
+          items={outcome.items}
+          locale={locale}
+          query={query}
+        />
       </section>
     );
   }
@@ -142,7 +171,15 @@ async function ExploreSearchSection({ query }: Readonly<{ query: string }>) {
 }
 
 /** Discovery state: the bounded canonical browse slice. */
-async function ExploreBrowseSection({ cursor }: Readonly<{ cursor?: string }>) {
+async function ExploreBrowseSection({
+  collectionSaveMessages,
+  cursor,
+  locale,
+}: Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  cursor?: string;
+  locale: PublishedLocale;
+}>) {
   const outcome = await loadExploreCatalogue(cursor === undefined ? {} : { cursor });
 
   return (
@@ -165,7 +202,11 @@ async function ExploreBrowseSection({ cursor }: Readonly<{ cursor?: string }>) {
                   : `Showing the next ${outcome.items.length} objects.`}
               </p>
             ) : null}
-            <EntityCardGrid items={outcome.items} />
+            <EntityCardGrid
+              collectionSaveMessages={collectionSaveMessages}
+              items={outcome.items}
+              locale={locale}
+            />
             {outcome.nextCursor !== null ? (
               <nav aria-label="Catalogue pagination" className="flex justify-end">
                 <Link

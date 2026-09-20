@@ -6,7 +6,15 @@ import {
 } from "./collections-model";
 import type { StoreFailureReason } from "./collections-store";
 import { formatMessageTemplate } from "./i18n/format";
-import type { CollectionsMessages } from "./i18n/messages/types";
+import type { CollectionsMessages, CollectionSaveMessages } from "./i18n/messages/types";
+
+export function collectionSaveMessageSlice(messages: CollectionsMessages): CollectionSaveMessages {
+  return {
+    failures: messages.failures,
+    save: messages.save,
+    validation: messages.validation,
+  };
+}
 
 export function collectionNameProblemMessage(
   raw: string,

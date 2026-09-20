@@ -3,11 +3,19 @@ import type { Metadata } from "next";
 import { CompareView } from "../../components/compare-view";
 import { buildCompareModel } from "../../lib/compare-model";
 import { compareSelectionFromSearchParams } from "../../lib/compare-url";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadCompareObjectsPerRequest } from "../../lib/server/compare";
 
-type ComparePageProps = Readonly<{
+type CompareRoutePageProps = Readonly<{
   searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
+}>;
+
+type ComparePageProps = Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  locale: PublishedLocale;
+  searchParams: CompareRoutePageProps["searchParams"];
 }>;
 
 /**
@@ -15,7 +23,7 @@ type ComparePageProps = Readonly<{
  * actually loaded; every other state gets the generic truthful title. No
  * descriptive science copy is invented.
  */
-export async function generateMetadata({ searchParams }: ComparePageProps): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: CompareRoutePageProps): Promise<Metadata> {
   const params = await searchParams;
   const selection = compareSelectionFromSearchParams(params);
   let title = "Compare catalogue objects";
@@ -44,7 +52,11 @@ export async function generateMetadata({ searchParams }: ComparePageProps): Prom
  * and build the provenance-safe comparison model; client components handle
  * only the add/remove interactions.
  */
-export default async function ComparePage({ searchParams }: ComparePageProps) {
+export default async function ComparePage({
+  collectionSaveMessages,
+  locale,
+  searchParams,
+}: ComparePageProps) {
   const params = await searchParams;
   const selection = compareSelectionFromSearchParams(params);
 
@@ -73,6 +85,8 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
 
       <CompareView
         {...(apiOrigin === undefined ? {} : { apiOrigin })}
+        collectionSaveMessages={collectionSaveMessages}
+        locale={locale}
         model={model}
         selectedSlugs={selection.slugs}
       />

@@ -161,6 +161,55 @@ export type CollectionsMessages = Readonly<{
     sectionLabel: string;
     title: string;
   }>;
+  save: Readonly<{
+    compare: Readonly<{
+      alreadySaved: string;
+      chooseCollection: string;
+      collectionLabel: string;
+      corrupted: string;
+      description: string;
+      newCollectionNameLabel: string;
+      newCollectionOption: string;
+      objectCount: CountMessageTemplates;
+      saveAction: string;
+      savedToCollection: string;
+      savedToNamedCollection: string;
+      title: string;
+      triggerAction: string;
+      unavailable: string;
+      willSave: string;
+    }>;
+    loading: string;
+    picker: Readonly<{
+      confirmResetAction: string;
+      confirmResetAriaLabel: string;
+      createAction: string;
+      createdAnnouncement: string;
+      createdUnavailable: string;
+      corruptedDescription: string;
+      description: string;
+      doneAction: string;
+      empty: string;
+      full: string;
+      listLabel: string;
+      newCollectionLabel: string;
+      removedAnnouncement: string;
+      resetAction: string;
+      resetAriaLabel: string;
+      resetSuccess: string;
+      resetWarning: string;
+      savedAnnouncement: string;
+      savedCount: CountMessageTemplates;
+      title: string;
+      unavailable: string;
+    }>;
+    trigger: Readonly<{
+      manageAriaLabel: string;
+      saveAction: string;
+      saveAriaLabel: string;
+      savedAction: string;
+    }>;
+  }>;
   shared: Readonly<{
     corrupted: Readonly<{
       confirmResetAction: string;
@@ -189,6 +238,7 @@ export type CollectionsMessages = Readonly<{
 }>;
 
 export type CollectionStateMessages = Pick<CollectionsMessages, "failures" | "shared">;
+export type CollectionSaveMessages = Pick<CollectionsMessages, "failures" | "save" | "validation">;
 
 export type LearnLandingMessages = Readonly<{
   eyebrow: string;

@@ -97,6 +97,67 @@ export const enMessages = {
       sectionLabel: "Your collections",
       title: "Collections",
     },
+    save: {
+      compare: {
+        alreadySaved: "Already saved — every object was in the collection.",
+        chooseCollection: "Choose a collection…",
+        collectionLabel: "Collection",
+        corrupted:
+          "Your saved collections could not be read. Open Collections to reset them; nothing has been changed meanwhile.",
+        description:
+          "Objects are saved into one of your collections — stored only in this browser.",
+        newCollectionNameLabel: "New collection name",
+        newCollectionOption: "+ New collection…",
+        objectCount: {
+          one: "{count} object",
+          other: "{count} objects",
+        },
+        saveAction: "Save",
+        savedToCollection: "Saved {countText} to the collection.",
+        savedToNamedCollection: "Saved {countText} to {collectionName}.",
+        title: "Save {countText} to a collection",
+        triggerAction: "Save compared objects",
+        unavailable: "This browser is blocking local storage, so saving is unavailable right now.",
+        willSave: "Will save: {objects}",
+      },
+      loading: "Checking your saved collections…",
+      picker: {
+        confirmResetAction: "Confirm reset — erase all local collections",
+        confirmResetAriaLabel: "Confirm: reset all local collections",
+        createAction: "Create",
+        createdAnnouncement: "Created {collectionName} and saved {objectName}.",
+        createdUnavailable: "The collection was created, but could not be opened for saving.",
+        corruptedDescription:
+          "Your saved collections could not be read from this browser's storage. Nothing has been changed or deleted — resetting replaces them with an empty slate. Browsing, search, and comparison remain available meanwhile.",
+        description:
+          "Collections are stored only in this browser on this device. Choose where to save {objectName}.",
+        doneAction: "Done",
+        empty: "No collections yet — name your first one below.",
+        full: "Full",
+        listLabel: "Your collections",
+        newCollectionLabel: "New collection",
+        removedAnnouncement: "Removed {objectName} from {collectionName}.",
+        resetAction: "Reset local collections",
+        resetAriaLabel: "Reset all local collections on this device",
+        resetSuccess: "Local collections were cleared.",
+        resetWarning:
+          "Resetting erases every local collection on this device. Confirm to continue.",
+        savedAnnouncement: "Saved {objectName} to {collectionName}.",
+        savedCount: {
+          one: "{count} saved",
+          other: "{count} saved",
+        },
+        title: "Save to a collection",
+        unavailable:
+          "This browser is blocking local storage, so Lumina cannot save collections here right now. Browsing and comparing still work normally.",
+      },
+      trigger: {
+        manageAriaLabel: "Saved. Manage where {objectName} is saved",
+        saveAction: "Save",
+        saveAriaLabel: "Save {objectName} to a collection",
+        savedAction: "Saved",
+      },
+    },
     shared: {
       corrupted: {
         confirmResetAction: "Confirm reset — erase all local collections",

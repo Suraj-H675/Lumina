@@ -3,10 +3,20 @@ import Link from "next/link";
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
 import { entityTypeLabel } from "../lib/catalog-display";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 import { SaveToCollectionsButton } from "./save-to-collections";
 
 /** Browse grid for the discovery state; order is the backend's canonical order. */
-export function EntityCardGrid({ items }: Readonly<{ items: Array<EntitySummaryResponse> }>) {
+export function EntityCardGrid({
+  collectionSaveMessages,
+  items,
+  locale,
+}: Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  items: Array<EntitySummaryResponse>;
+  locale: PublishedLocale;
+}>) {
   return (
     <ul aria-label="Catalogue objects" className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((entity) => (
@@ -31,6 +41,8 @@ export function EntityCardGrid({ items }: Readonly<{ items: Array<EntitySummaryR
                   entity_type: entity.entity_type,
                   slug: entity.slug,
                 }}
+                locale={locale}
+                messages={collectionSaveMessages}
                 variant="icon"
               />
             </div>

@@ -3,9 +3,13 @@ import Link from "next/link";
 import type { CatalogSearchResponse } from "@lumina/api-client";
 
 import { entityTypeLabel } from "../lib/catalog-display";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 import { SaveToCollectionsButton } from "./save-to-collections";
 
 type ResultCardProps = Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  locale: PublishedLocale;
   result: CatalogSearchResponse["items"][number];
 }>;
 
@@ -15,7 +19,7 @@ type ResultCardProps = Readonly<{
  * The card remains primary navigation with a distinct, separately named Save
  * control beside it.
  */
-export function ResultCard({ result }: ResultCardProps) {
+export function ResultCard({ collectionSaveMessages, locale, result }: ResultCardProps) {
   const { entity, matched_alias: matchedAlias } = result;
   return (
     <li className="list-none">
@@ -43,6 +47,8 @@ export function ResultCard({ result }: ResultCardProps) {
               entity_type: entity.entity_type,
               slug: entity.slug,
             }}
+            locale={locale}
+            messages={collectionSaveMessages}
             variant="icon"
           />
         </div>

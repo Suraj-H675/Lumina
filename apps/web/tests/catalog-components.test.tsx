@@ -12,8 +12,12 @@ import { ObjectNotFoundView } from "../src/components/object-not-found-view";
 import { ObjectView } from "../src/components/object-view";
 import { ResultCard } from "../src/components/result-card";
 import { ExploreResultsView } from "../src/components/search-results-view";
+import { collectionSaveMessageSlice } from "../src/lib/collections-messages";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 
 const K2_18_ID = "403d0e71-8d81-5c52-abad-c4666c1b5cd6";
+const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
 
 const k2_18: EntitySummaryResponse = {
   canonical_name: "K2-18",
@@ -35,7 +39,13 @@ function searchItem(
 
 describe("ResultCard", () => {
   it("renders the canonical name as the hero identity with a restrained secondary line", () => {
-    render(<ResultCard result={searchItem()} />);
+    render(
+      <ResultCard
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        result={searchItem()}
+      />,
+    );
 
     const link = screen.getByRole("link", { name: /K2-18/ });
     expect(link).toHaveAttribute("href", "/objects/k2-18");
@@ -45,6 +55,8 @@ describe("ResultCard", () => {
   it("shows the matched alias only when the backend reported one", () => {
     render(
       <ResultCard
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
         result={searchItem({ match_reason: "exact_alias", matched_alias: "K2-18 b host" })}
       />,
     );
@@ -56,7 +68,9 @@ describe("ExploreResultsView", () => {
   it("lists results in backend order and never displays similarity internals", () => {
     render(
       <ExploreResultsView
+        collectionSaveMessages={SAVE_MESSAGES}
         items={[searchItem(), searchItem({ entity: { ...k2_18, canonical_name: "Kepler-186" } })]}
+        locale={DEFAULT_LOCALE}
         query="ke"
       />,
     );
@@ -69,7 +83,14 @@ describe("ExploreResultsView", () => {
   });
 
   it("communicates that nothing matched without inventing suggestions", () => {
-    render(<ExploreResultsView items={[]} query="zzzz" />);
+    render(
+      <ExploreResultsView
+        collectionSaveMessages={SAVE_MESSAGES}
+        items={[]}
+        locale={DEFAULT_LOCALE}
+        query="zzzz"
+      />,
+    );
 
     expect(screen.getByRole("heading", { name: /no objects matched/i })).toBeVisible();
   });
@@ -118,7 +139,14 @@ describe("ObjectView", () => {
   }
 
   it("presents identity, scientific data with units, provenance, and a return affordance", () => {
-    render(<ObjectView detail={detail()} slug="51-pegasi" />);
+    render(
+      <ObjectView
+        collectionSaveMessages={SAVE_MESSAGES}
+        detail={detail()}
+        locale={DEFAULT_LOCALE}
+        slug="51-pegasi"
+      />,
+    );
 
     expect(screen.getByRole("heading", { level: 1, name: "51 Pegasi" })).toBeVisible();
     expect(screen.getByRole("link", { name: /observe/i })).toHaveAttribute(
@@ -138,7 +166,9 @@ describe("ObjectView", () => {
   it("stays intentional when no scientific data is available yet", () => {
     render(
       <ObjectView
+        collectionSaveMessages={SAVE_MESSAGES}
         detail={{ canonical_name: "HD 209458", entity_type: "star", id: K2_18_ID, quantities: [] }}
+        locale={DEFAULT_LOCALE}
         slug="hd-209458"
       />,
     );
@@ -151,7 +181,14 @@ describe("ObjectView", () => {
   });
 
   it("passes an axe accessibility scan with data present", async () => {
-    const { container } = render(<ObjectView detail={detail()} slug="51-pegasi" />);
+    const { container } = render(
+      <ObjectView
+        collectionSaveMessages={SAVE_MESSAGES}
+        detail={detail()}
+        locale={DEFAULT_LOCALE}
+        slug="51-pegasi"
+      />,
+    );
     expect((await axe(container)).violations).toEqual([]);
   });
 });

@@ -4,13 +4,21 @@ import Link from "next/link";
 import { ObjectNotFoundView } from "../../../components/object-not-found-view";
 import { ObjectView } from "../../../components/object-view";
 import { entityTypeLabel } from "../../../lib/catalog-display";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../../../lib/i18n/messages/types";
 import { loadObjectBySlugPerRequest } from "../../../lib/server/catalog";
 
-type ObjectPageProps = Readonly<{
+type ObjectRoutePageProps = Readonly<{
   params: Promise<Readonly<{ slug: string }>>;
 }>;
 
-export async function generateMetadata({ params }: ObjectPageProps): Promise<Metadata> {
+type ObjectPageProps = Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
+  locale: PublishedLocale;
+  params: ObjectRoutePageProps["params"];
+}>;
+
+export async function generateMetadata({ params }: ObjectRoutePageProps): Promise<Metadata> {
   const { slug } = await params;
   const outcome = await loadObjectBySlugPerRequest(slug);
   if (outcome.kind === "object-not-found") {
@@ -27,7 +35,11 @@ export async function generateMetadata({ params }: ObjectPageProps): Promise<Met
   };
 }
 
-export default async function ObjectPage({ params }: ObjectPageProps) {
+export default async function ObjectPage({
+  collectionSaveMessages,
+  locale,
+  params,
+}: ObjectPageProps) {
   const { slug } = await params;
   const outcome = await loadObjectBySlugPerRequest(slug);
 
@@ -61,5 +73,12 @@ export default async function ObjectPage({ params }: ObjectPageProps) {
     );
   }
 
-  return <ObjectView detail={outcome.detail} slug={slug} />;
+  return (
+    <ObjectView
+      collectionSaveMessages={collectionSaveMessages}
+      detail={outcome.detail}
+      locale={locale}
+      slug={slug}
+    />
+  );
 }

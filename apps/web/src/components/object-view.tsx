@@ -10,9 +10,13 @@ import {
   objectProvenanceRows,
   objectTitle,
 } from "../lib/catalog-display";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 
 type ObjectViewProps = Readonly<{
+  collectionSaveMessages: CollectionSaveMessages;
   detail: EntityDetailResponse;
+  locale: PublishedLocale;
   /** The public slug that resolved to this entity; used for the compare link. */
   slug: string;
 }>;
@@ -22,7 +26,7 @@ type ObjectViewProps = Readonly<{
  * data and provenance the accepted public contract exposes. Nothing is
  * inferred; quantities without a canonical selection are stated as such.
  */
-export function ObjectView({ detail, slug }: ObjectViewProps) {
+export function ObjectView({ collectionSaveMessages, detail, locale, slug }: ObjectViewProps) {
   const title = objectTitle(detail);
   const provenanceRows = objectProvenanceRows(detail);
   const measuredQuantities = detail.quantities.filter((entry) => entry.current_selection !== null);
@@ -65,6 +69,8 @@ export function ObjectView({ detail, slug }: ObjectViewProps) {
               entity_type: detail.entity_type,
               slug,
             }}
+            locale={locale}
+            messages={collectionSaveMessages}
           />
           <JournalEntryButton entityId={detail.id} objectName={title} />
         </div>

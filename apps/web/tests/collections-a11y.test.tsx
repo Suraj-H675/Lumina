@@ -8,6 +8,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
+import { collectionSaveMessageSlice } from "../src/lib/collections-messages";
 import * as store from "../src/lib/collections-store";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
@@ -24,6 +25,8 @@ const K2_18: ObjectIdentity = {
   entity_type: "star",
   slug: "k2-18",
 };
+
+const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -72,7 +75,9 @@ describe("collections accessibility (axe)", () => {
   it("save picker dialog passes while open", async () => {
     store.createCollection("Alpha");
     const user = userEvent.setup();
-    const { container } = render(<SaveToCollectionsButton identity={K2_18} />);
+    const { container } = render(
+      <SaveToCollectionsButton identity={K2_18} locale={DEFAULT_LOCALE} messages={SAVE_MESSAGES} />,
+    );
     await user.click(screen.getByRole("button", { name: /save k2-18/i }));
     expect((await axe(container)).violations).toEqual([]);
   });
@@ -86,6 +91,8 @@ describe("collections accessibility (axe)", () => {
           K2_18,
           { canonical_name: "Kepler-452", entity_type: "star", slug: "kepler-452" },
         ]}
+        locale={DEFAULT_LOCALE}
+        messages={SAVE_MESSAGES}
       />,
     );
     await user.click(screen.getByRole("button", { name: /save compared objects/i }));

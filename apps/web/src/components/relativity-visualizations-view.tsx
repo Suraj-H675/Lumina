@@ -9,6 +9,13 @@ import {
 } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RelativityVisualizationsMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_RELATIVITY_VISUALIZATIONS_STATE,
   RELATIVITY_LIGHT_CONE,
   RELATIVITY_VISUALIZATIONS_DEFINITION,
@@ -28,6 +35,8 @@ type RelativityVisualizationsViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: RelativityVisualizationsCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: RelativityVisualizationsMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
@@ -49,13 +58,18 @@ function stateFromBrowser(): Readonly<{ state: RelativityVisualizationsState; in
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
-function SourceList() {
+function SourceList({
+  messages,
+}: Readonly<{ messages: RelativityVisualizationsMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {RELATIVITY_VISUALIZATIONS_DEFINITION.references.map((sourceId) => {
@@ -65,7 +79,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -81,17 +95,19 @@ function SourceList() {
   );
 }
 
-function LightConeFigure() {
+function LightConeFigure({
+  messages,
+}: Readonly<{ messages: RelativityVisualizationsMessages["lightCone"] }>) {
   return (
     <figure className="space-y-3">
       <div className="max-w-xl rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
         <svg
-          aria-label="Reviewed normalized special-relativity light-cone diagram"
+          aria-label={messages.ariaLabel}
           className="h-auto w-full"
           role="img"
           viewBox="-1.25 -1.25 2.5 2.5"
         >
-          <title>Reviewed normalized light-cone diagram</title>
+          <title>{messages.svgTitle}</title>
           <line
             className="text-[var(--muted)]"
             stroke="currentColor"
@@ -126,9 +142,10 @@ function LightConeFigure() {
         </svg>
       </div>
       <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        {RELATIVITY_LIGHT_CONE.note} Coordinate convention:{" "}
-        {RELATIVITY_LIGHT_CONE.coordinate_system}. The diagonal boundaries are reviewed static
-        teaching geometry, not values calculated from the controls.
+        {formatMessageTemplate(messages.caption, {
+          coordinateSystem: RELATIVITY_LIGHT_CONE.coordinate_system,
+          note: RELATIVITY_LIGHT_CONE.note,
+        })}
       </figcaption>
     </figure>
   );
@@ -139,6 +156,8 @@ export function RelativityVisualizationsView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: RelativityVisualizationsViewProps) {
   const [state, setState] = useState(initialState);
   const [draftBeta, setDraftBeta] = useState(String(initialState.relative_speed_fraction_c));
@@ -165,7 +184,7 @@ export function RelativityVisualizationsView({
     async (nextState: RelativityVisualizationsState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -183,14 +202,12 @@ export function RelativityVisualizationsView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Relativity Visualizations model rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateRelativityVisualizationsCalculationResult(
@@ -199,7 +216,7 @@ export function RelativityVisualizationsView({
         );
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned relativity state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -213,12 +230,12 @@ export function RelativityVisualizationsView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -243,7 +260,7 @@ export function RelativityVisualizationsView({
       draftProperLength.trim().length === 0 ||
       draftSeparation.trim().length === 0
     ) {
-      setMessage("One or more controls are empty or outside the reviewed v1 domain.");
+      setMessage(messages.failures.emptyInput);
       return;
     }
     const next = validateRelativityVisualizationsState({
@@ -255,9 +272,7 @@ export function RelativityVisualizationsView({
       simultaneous_event_separation_m: Number(draftSeparation),
     });
     if (next === null) {
-      setMessage(
-        "The requested values are outside the reviewed special-relativity v1 domain. Lumina does not clamp or reinterpret them.",
-      );
+      setMessage(messages.failures.outOfDomain);
       return;
     }
     void recalculate(next, true);
@@ -273,42 +288,33 @@ export function RelativityVisualizationsView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · One-dimensional inertial special relativity
+          {messages.header.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Relativity Visualizations
+          {messages.header.title}
         </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Compare measurements made by two inertial frames moving at constant relative speed along
-          one shared axis. This model teaches frame-dependent time, length, and simultaneity; it
-          does not model acceleration or gravity.
-        </p>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared relativity state rejected.</strong> The reviewed synthetic inertial-frame
-          preset is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="relativity-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="relativity-input-heading">
-            Inertial-frame teaching controls
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Frame S&apos; moves in the +x direction relative to S. Proper time belongs to a clock at
-            rest in its defining frame; proper length belongs to an object at rest in its defining
-            frame. The event pair is simultaneous in S before it is compared with S&apos;.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-5" onSubmit={submit}>
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="block font-semibold">Relative speed β = v/c</span>
+              <span className="block font-semibold">{messages.controls.fields.relativeSpeed}</span>
               <input
-                aria-label="Relative speed as fraction of c"
+                aria-label={messages.controls.fieldAriaLabels.relativeSpeed}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={RELATIVITY_VISUALIZATIONS_LIMITS.maxRelativeSpeedFractionC}
@@ -323,9 +329,9 @@ export function RelativityVisualizationsView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Proper time (s)</span>
+              <span className="block font-semibold">{messages.controls.fields.properTime}</span>
               <input
-                aria-label="Proper time in seconds"
+                aria-label={messages.controls.fieldAriaLabels.properTime}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={RELATIVITY_VISUALIZATIONS_LIMITS.maxProperTimeS}
@@ -340,9 +346,9 @@ export function RelativityVisualizationsView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Proper length (m)</span>
+              <span className="block font-semibold">{messages.controls.fields.properLength}</span>
               <input
-                aria-label="Proper length in meters"
+                aria-label={messages.controls.fieldAriaLabels.properLength}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={RELATIVITY_VISUALIZATIONS_LIMITS.maxProperLengthM}
@@ -357,9 +363,9 @@ export function RelativityVisualizationsView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Simultaneous-event +x separation (m)</span>
+              <span className="block font-semibold">{messages.controls.fields.separation}</span>
               <input
-                aria-label="Simultaneous event separation in meters"
+                aria-label={messages.controls.fieldAriaLabels.separation}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={RELATIVITY_VISUALIZATIONS_LIMITS.maxSimultaneousEventSeparationM}
@@ -380,7 +386,9 @@ export function RelativityVisualizationsView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate special relativity"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -388,7 +396,7 @@ export function RelativityVisualizationsView({
               onClick={resetDefault}
               type="button"
             >
-              Reset synthetic preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -399,41 +407,41 @@ export function RelativityVisualizationsView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated Lorentz factor, time-dilation, length-contraction, or simultaneity
-            value is substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="relativity-result-heading" className="space-y-8">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="relativity-result-heading">
-              Canonical inertial-frame result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. All user-dependent physical values below were
-              returned by the canonical Python model.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Relative speed</p>
-              <p className="mt-1 font-semibold">{format(calculation.relative_speed_m_s)} m/s</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.relativeSpeed}</p>
+              <p className="mt-1 font-semibold">
+                {format(calculation.relative_speed_m_s, locale)} m/s
+              </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Lorentz factor γ</p>
-              <p className="mt-1 font-semibold">{format(calculation.lorentz_factor)}</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.lorentzFactor}</p>
+              <p className="mt-1 font-semibold">{format(calculation.lorentz_factor, locale)}</p>
             </div>
           </div>
 
           <section aria-labelledby="relativity-time-heading" className="space-y-3">
             <h3 className="text-xl font-semibold" id="relativity-time-heading">
-              1. Time dilation
+              {messages.result.timeTitle}
             </h3>
             <p className="text-3xl font-semibold">
-              {format(calculation.dilated_time_s)} <span className="text-base">s</span>
+              {format(calculation.dilated_time_s, locale)} <span className="text-base">s</span>
             </p>
             <p className="max-w-4xl leading-7 text-[var(--muted)]">
               {calculation.time_dilation_note}
@@ -442,10 +450,10 @@ export function RelativityVisualizationsView({
 
           <section aria-labelledby="relativity-length-heading" className="space-y-3">
             <h3 className="text-xl font-semibold" id="relativity-length-heading">
-              2. Length contraction
+              {messages.result.lengthTitle}
             </h3>
             <p className="text-3xl font-semibold">
-              {format(calculation.contracted_length_m)} <span className="text-base">m</span>
+              {format(calculation.contracted_length_m, locale)} <span className="text-base">m</span>
             </p>
             <p className="max-w-4xl leading-7 text-[var(--muted)]">
               {calculation.length_contraction_note}
@@ -454,10 +462,11 @@ export function RelativityVisualizationsView({
 
           <section aria-labelledby="relativity-simultaneity-heading" className="space-y-3">
             <h3 className="text-xl font-semibold" id="relativity-simultaneity-heading">
-              3. Relativity of simultaneity
+              {messages.result.simultaneityTitle}
             </h3>
             <p className="text-3xl font-semibold">
-              {format(calculation.simultaneity_offset_s)} <span className="text-base">s</span>
+              {format(calculation.simultaneity_offset_s, locale)}{" "}
+              <span className="text-base">s</span>
             </p>
             <p className="max-w-4xl leading-7 text-[var(--muted)]">
               {calculation.simultaneity_interpretation}
@@ -469,14 +478,11 @@ export function RelativityVisualizationsView({
       <section aria-labelledby="relativity-light-cone-heading" className="space-y-4">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="relativity-light-cone-heading">
-            4. Light cones and causal boundaries
+            {messages.lightCone.sectionTitle}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            The reviewed normalized diagram shows the lightlike boundaries of one event. It is a
-            conceptual causal-structure lesson, not a user-input calculation.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.lightCone.sectionDescription}</p>
         </div>
-        <LightConeFigure />
+        <LightConeFigure messages={messages.lightCone} />
       </section>
 
       <section
@@ -484,17 +490,14 @@ export function RelativityVisualizationsView({
         className="max-w-4xl rounded-md border border-[var(--border)] p-5"
       >
         <h2 className="text-xl font-semibold" id="relativity-gravity-heading">
-          Gravitational redshift uses a different model
+          {messages.gravity.title}
         </h2>
-        <p className="mt-2 leading-7 text-[var(--muted)]">
-          This lab is special relativity only. For a static clock outside an ideal Schwarzschild
-          black hole, use the already-certified gravitational-redshift model.
-        </p>
+        <p className="mt-2 leading-7 text-[var(--muted)]">{messages.gravity.description}</p>
         <Link
           className="mt-3 inline-block font-semibold text-[var(--link)] underline"
           href="/lab/black-hole-relativity"
         >
-          Open Black-Hole / Relativity Lab →
+          {messages.gravity.link}
         </Link>
       </section>
 
@@ -503,16 +506,18 @@ export function RelativityVisualizationsView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="relativity-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
           {RELATIVITY_VISUALIZATIONS_DEFINITION.summary}
         </p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {RELATIVITY_VISUALIZATIONS_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -520,7 +525,7 @@ export function RelativityVisualizationsView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {RELATIVITY_VISUALIZATIONS_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -530,7 +535,7 @@ export function RelativityVisualizationsView({
           </div>
         </details>
         <details>
-          <summary className="cursor-pointer font-semibold">Reviewed model equations</summary>
+          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
           <ul className="mt-3 list-disc space-y-3 pl-6 text-sm leading-6 text-[var(--muted)]">
             {RELATIVITY_VISUALIZATIONS_DEFINITION.equations.map((equation) => (
               <li key={equation.id}>
@@ -541,15 +546,18 @@ export function RelativityVisualizationsView({
           </ul>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: β={format(state.relative_speed_fraction_c)}; proper time{" "}
-          {format(state.proper_time_s)} s; proper length {format(state.proper_length_m)} m; S event
-          separation {format(state.simultaneous_event_separation_m)} m.
+          {formatMessageTemplate(messages.model.currentState, {
+            beta: format(state.relative_speed_fraction_c, locale),
+            properLength: format(state.proper_length_m, locale),
+            properTime: format(state.proper_time_s, locale),
+            separation: format(state.simultaneous_event_separation_m, locale),
+          })}
         </p>
       </section>
     </article>

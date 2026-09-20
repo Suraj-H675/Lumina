@@ -1506,9 +1506,230 @@ export type RadialVelocityMessages = Readonly<{
   }>;
 }>;
 
+export type BlackHoleRelativityMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    massAriaLabel: string;
+    massLabel: string;
+    radiusAriaLabel: string;
+    radiusLabel: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    emptyInput: string;
+    outOfDomain: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  landmarks: Readonly<{
+    caption: string;
+    description: string;
+    headers: Readonly<{
+      interpretation: string;
+      landmark: string;
+      radiusM: string;
+      radiusRs: string;
+    }>;
+    schematicAriaLabel: string;
+    schematicCaption: string;
+    selectedStaticObserver: string;
+    tableAriaLabel: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    clock: Readonly<{
+      farAwayInterval: string;
+      frequencyRatio: string;
+      properTimeRate: string;
+      redshift: string;
+      title: string;
+    }>;
+    controlDisclosure: string;
+    eyebrow: string;
+    intro: string;
+    requestedStateTitle: string;
+    result: Readonly<{
+      gravitationalParameter: string;
+      modelVersion: string;
+      schwarzschildRadius: string;
+      selectedObserverRadius: string;
+      title: string;
+    }>;
+    stateLabels: Readonly<{
+      mass: string;
+      massUnit: string;
+      staticObserverRadius: string;
+    }>;
+    tableCaption: string;
+    tableHeaders: Readonly<{
+      landmark: string;
+      meaning: string;
+      radiusM: string;
+      radiusRs: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  result: Readonly<{
+    clock: Readonly<{
+      farAwayInterval: string;
+      frequencyRatio: string;
+      redshift: string;
+      selectedRadius: string;
+      title: string;
+    }>;
+    description: string;
+    metrics: Readonly<{
+      clockRate: string;
+      eventHorizonRadius: string;
+      gravitationalParameter: string;
+      redshift: string;
+    }>;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+}>;
+
+export type RelativityVisualizationsMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fields: Readonly<{
+      properLength: string;
+      properTime: string;
+      relativeSpeed: string;
+      separation: string;
+    }>;
+    fieldAriaLabels: Readonly<{
+      properLength: string;
+      properTime: string;
+      relativeSpeed: string;
+      separation: string;
+    }>;
+    title: string;
+  }>;
+  failures: Readonly<{
+    emptyInput: string;
+    outOfDomain: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  gravity: Readonly<{
+    description: string;
+    link: string;
+    noScriptLink: string;
+    noScriptSuffix: string;
+    noScriptTitle: string;
+    title: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  lightCone: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    noScriptCoordinateConvention: string;
+    noScriptTitle: string;
+    sectionDescription: string;
+    sectionTitle: string;
+    svgTitle: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    eyebrow: string;
+    intro: string;
+    requestedStateTitle: string;
+    result: Readonly<{
+      dilatedInterval: string;
+      lengthTitle: string;
+      lorentzFactor: string;
+      modelVersion: string;
+      movingLength: string;
+      relativeSpeed: string;
+      simultaneityOffset: string;
+      simultaneityTitle: string;
+      timeTitle: string;
+      title: string;
+    }>;
+    stateLabels: Readonly<{
+      properLength: string;
+      properTime: string;
+      relativeSpeed: string;
+      separation: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    lengthTitle: string;
+    lorentzFactor: string;
+    relativeSpeed: string;
+    simultaneityTitle: string;
+    timeTitle: string;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
+  blackHoleRelativity: BlackHoleRelativityMessages;
   orbitSandbox: OrbitSandboxMessages;
   radialVelocity: RadialVelocityMessages;
+  relativityVisualizations: RelativityVisualizationsMessages;
   transitMethod: TransitMethodMessages;
 }>;
 

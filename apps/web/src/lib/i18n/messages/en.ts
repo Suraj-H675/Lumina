@@ -2167,6 +2167,134 @@ export const enMessages = {
     title: "Lab",
   },
   simulationLabs: {
+    blackHoleRelativity: {
+      actions: {
+        calculate: "Calculate Schwarzschild model",
+        calculating: "Calculating…",
+        reset: "Reset synthetic preset",
+      },
+      controls: {
+        description:
+          "The mass control is the IAU nominal-solar gravitational-parameter ratio, not a measured mass in kilograms. The radius control selects a hypothetical accelerated observer held static outside the horizon; it is not a free-fall or orbital state.",
+        massAriaLabel: "Black-hole nominal solar mass scale",
+        massLabel: "Nominal-solar GM scale",
+        radiusAriaLabel: "Static observer radius in Schwarzschild radii",
+        radiusLabel: "Static observer radius Rₛ",
+        title: "Schwarzschild teaching controls",
+      },
+      failures: {
+        emptyInput: "One or more controls are empty or outside the reviewed v1 domain.",
+        outOfDomain:
+          "The requested values are outside the reviewed Schwarzschild v1 domain. Lumina does not clamp or reinterpret them.",
+        rejected:
+          "The canonical Black-Hole / Relativity Lab rejected this state. The last valid result remains visible.",
+        resultMismatch:
+          "The returned result did not match the requested versioned relativity state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      header: {
+        eyebrow: "Phase 7 · Schwarzschild landmark + static-clock teaching model",
+        intro:
+          "Explore an ideal non-rotating, uncharged Schwarzschild black hole through source-backed landmark radii and a hypothetical static clock. This is not ray tracing, an observed black-hole reconstruction, an orbit simulator, or an accretion model.",
+        title: "Black-Hole / Relativity Lab",
+      },
+      invalidState: {
+        description: "The reviewed synthetic Schwarzschild preset is shown instead.",
+        inline:
+          "Shared relativity state rejected. The reviewed synthetic Schwarzschild preset is shown instead.",
+        title: "Shared relativity state rejected",
+      },
+      landmarks: {
+        caption: "Canonical landmark radii returned by Python.",
+        description:
+          "Horizon, photon sphere, and ISCO are distinct returned geometric/geodesic landmarks. The selected static observer is not following those geodesics.",
+        headers: {
+          interpretation: "Interpretation",
+          landmark: "Landmark",
+          radiusM: "Areal radius m",
+          radiusRs: "Radius Rₛ",
+        },
+        schematicAriaLabel: "Returned Schwarzschild landmark areal-radius schematic",
+        schematicCaption:
+          "Presentation-only scaling of API-returned Schwarzschild areal radii. This is not proper radial distance, ray tracing, a black-hole shadow, an accretion image, or a direct observation. The browser does not calculate relativity results.",
+        selectedStaticObserver: "Selected static observer",
+        tableAriaLabel: "Scrollable Schwarzschild landmark table",
+        title: "Schwarzschild landmarks",
+      },
+      metadataDescription:
+        "Explore a deterministic Schwarzschild teaching model with Python-owned event-horizon, photon-sphere, ISCO, static-clock, and gravitational-redshift calculations.",
+      metadataTitle: "Black-Hole / Relativity Lab",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed browser state: nominal-solar GM scale {mass}; static observer at {radius} Rₛ.",
+        equations: "Reviewed model equations",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        clock: {
+          farAwayInterval: "Far-away interval per local interval",
+          frequencyRatio: "Frequency at infinity / local emitted frequency",
+          properTimeRate: "Local proper-time rate / asymptotic time",
+          redshift: "Gravitational redshift z",
+          title: "Static clock and redshift",
+        },
+        controlDisclosure:
+          "The mass control is the IAU nominal-solar gravitational-parameter ratio, not a measured mass in kilograms. The selected observer is an accelerated hoverer, not a freely falling or orbiting observer.",
+        eyebrow: "Phase 7 / Black-Hole / Relativity Lab",
+        intro:
+          "Explore a source-backed Schwarzschild landmark and static-clock teaching model. Lumina's Python astronomy domain owns all horizon, photon-sphere, ISCO, clock-rate, and gravitational-redshift calculations.",
+        requestedStateTitle: "Requested teaching state",
+        result: {
+          gravitationalParameter: "Gravitational parameter",
+          modelVersion: "Model version",
+          schwarzschildRadius: "Schwarzschild/event-horizon areal radius",
+          selectedObserverRadius: "Selected static-observer areal radius",
+          title: "Canonical Schwarzschild result",
+        },
+        stateLabels: {
+          mass: "Nominal-solar GM scale",
+          massUnit: "nominal solar masses",
+          staticObserverRadius: "Static observer areal radius",
+        },
+        tableCaption: "Python-returned Schwarzschild landmarks.",
+        tableHeaders: {
+          landmark: "Landmark",
+          meaning: "Meaning",
+          radiusM: "Radius m",
+          radiusRs: "Radius Rₛ",
+        },
+        unavailableDescription:
+          "No browser-generated horizon, photon-sphere, ISCO, clock-rate, or redshift value is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      result: {
+        clock: {
+          farAwayInterval: "Far-away interval per local interval",
+          frequencyRatio: "Frequency at infinity / local frequency",
+          redshift: "Gravitational redshift z",
+          selectedRadius: "Selected areal radius",
+          title: "Static clock and infinity-referenced redshift",
+        },
+        description:
+          "Model {modelVersion}. All physical values below were returned by the canonical Python model.",
+        metrics: {
+          clockRate: "Static clock rate / infinity",
+          eventHorizonRadius: "Event-horizon areal radius",
+          gravitationalParameter: "Gravitational parameter",
+          redshift: "Gravitational redshift z",
+        },
+        title: "Canonical Schwarzschild result",
+        unavailableDescription:
+          "No browser-generated horizon, photon-sphere, ISCO, clock-rate, or gravitational-redshift value is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+    },
     orbitSandbox: {
       actions: {
         calculate: "Calculate orbit",
@@ -2414,6 +2542,127 @@ export const enMessages = {
         unavailableNoScriptDescription:
           "No substitute or browser-generated RV curve was fabricated.",
         unavailableNoScriptTitle: "Calculation unavailable",
+        unavailableTitle: "No canonical result available",
+      },
+    },
+    relativityVisualizations: {
+      actions: {
+        calculate: "Calculate special relativity",
+        calculating: "Calculating…",
+        reset: "Reset synthetic preset",
+      },
+      controls: {
+        description:
+          "Frame S' moves in the +x direction relative to S. Proper time belongs to a clock at rest in its defining frame; proper length belongs to an object at rest in its defining frame. The event pair is simultaneous in S before it is compared with S'.",
+        fieldAriaLabels: {
+          properLength: "Proper length in meters",
+          properTime: "Proper time in seconds",
+          relativeSpeed: "Relative speed as fraction of c",
+          separation: "Simultaneous event separation in meters",
+        },
+        fields: {
+          properLength: "Proper length (m)",
+          properTime: "Proper time (s)",
+          relativeSpeed: "Relative speed β = v/c",
+          separation: "Simultaneous-event +x separation (m)",
+        },
+        title: "Inertial-frame teaching controls",
+      },
+      failures: {
+        emptyInput: "One or more controls are empty or outside the reviewed v1 domain.",
+        outOfDomain:
+          "The requested values are outside the reviewed special-relativity v1 domain. Lumina does not clamp or reinterpret them.",
+        rejected:
+          "The canonical Relativity Visualizations model rejected this state. The last valid result remains visible.",
+        resultMismatch:
+          "The returned result did not match the requested versioned relativity state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      gravity: {
+        description:
+          "This lab is special relativity only. For a static clock outside an ideal Schwarzschild black hole, use the already-certified gravitational-redshift model.",
+        link: "Open Black-Hole / Relativity Lab →",
+        noScriptLink: "Open the certified Schwarzschild Black-Hole / Relativity Lab",
+        noScriptSuffix: "for the static-clock gravitational-redshift lesson.",
+        noScriptTitle: "Gravitational redshift is a separate model",
+        title: "Gravitational redshift uses a different model",
+      },
+      header: {
+        eyebrow: "Phase 7 · One-dimensional inertial special relativity",
+        intro:
+          "Compare measurements made by two inertial frames moving at constant relative speed along one shared axis. This model teaches frame-dependent time, length, and simultaneity; it does not model acceleration or gravity.",
+        title: "Relativity Visualizations",
+      },
+      invalidState: {
+        description: "The reviewed synthetic inertial-frame preset is shown instead.",
+        inline:
+          "Shared relativity state rejected. The reviewed synthetic inertial-frame preset is shown instead.",
+        title: "Shared relativity state rejected",
+      },
+      lightCone: {
+        ariaLabel: "Reviewed normalized special-relativity light-cone diagram",
+        caption:
+          "{note} Coordinate convention: {coordinateSystem}. The diagonal boundaries are reviewed static teaching geometry, not values calculated from the controls.",
+        noScriptCoordinateConvention: "Coordinate convention: {coordinateSystem}",
+        noScriptTitle: "Light cones",
+        sectionDescription:
+          "The reviewed normalized diagram shows the lightlike boundaries of one event. It is a conceptual causal-structure lesson, not a user-input calculation.",
+        sectionTitle: "4. Light cones and causal boundaries",
+        svgTitle: "Reviewed normalized light-cone diagram",
+      },
+      metadataDescription:
+        "Explore Python-owned one-dimensional special-relativity time dilation, length contraction, simultaneity, and reviewed light-cone teaching geometry.",
+      metadataTitle: "Relativity Visualizations",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed browser state: β={beta}; proper time {properTime} s; proper length {properLength} m; S event separation {separation} m.",
+        equations: "Reviewed model equations",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        eyebrow: "Phase 7 / Special Relativity",
+        intro:
+          "Explore a one-dimensional inertial-frame special-relativity teaching model. Lumina's Python astronomy domain owns the Lorentz factor, time-dilation, length-contraction, and relativity-of-simultaneity calculations.",
+        requestedStateTitle: "Requested teaching state",
+        result: {
+          dilatedInterval: "Dilated interval",
+          lengthTitle: "Length contraction",
+          lorentzFactor: "Lorentz factor γ",
+          modelVersion: "Model version",
+          movingLength: "Moving-frame length",
+          relativeSpeed: "Relative speed",
+          simultaneityOffset: "Signed B-minus-A time offset in S'",
+          simultaneityTitle: "Relativity of simultaneity",
+          timeTitle: "Time dilation",
+          title: "Canonical special-relativity result",
+        },
+        stateLabels: {
+          properLength: "Proper length",
+          properTime: "Proper time",
+          relativeSpeed: "Relative speed",
+          separation: "Simultaneous-event +x separation in S",
+        },
+        unavailableDescription:
+          "No browser-generated Lorentz factor, time-dilation, length-contraction, or simultaneity value is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. All user-dependent physical values below were returned by the canonical Python model.",
+        lengthTitle: "2. Length contraction",
+        lorentzFactor: "Lorentz factor γ",
+        relativeSpeed: "Relative speed",
+        simultaneityTitle: "3. Relativity of simultaneity",
+        timeTitle: "1. Time dilation",
+        title: "Canonical inertial-frame result",
+        unavailableDescription:
+          "No browser-generated Lorentz factor, time-dilation, length-contraction, or simultaneity value is substituted.",
         unavailableTitle: "No canonical result available",
       },
     },

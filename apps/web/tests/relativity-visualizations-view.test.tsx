@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RelativityVisualizationsView } from "../src/components/relativity-visualizations-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { RelativityVisualizationsMessages } from "../src/lib/i18n/messages/types";
 import { DEFAULT_RELATIVITY_VISUALIZATIONS_STATE } from "../src/lib/simulations/relativity-visualizations";
 import {
   RELATIVITY_VISUALIZATIONS_BETA_08_RESULT,
@@ -18,13 +21,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderView(invalid = false) {
+function renderView(
+  invalid = false,
+  messages: RelativityVisualizationsMessages = enMessages.simulationLabs.relativityVisualizations,
+) {
   return render(
     <RelativityVisualizationsView
       apiOrigin="http://127.0.0.1:8000"
       initialCalculation={RELATIVITY_VISUALIZATIONS_DEFAULT_RESULT}
       initialState={DEFAULT_RELATIVITY_VISUALIZATIONS_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
     />,
   );
 }
@@ -131,5 +139,28 @@ describe("RelativityVisualizationsView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/outside the reviewed special-relativity v1 domain/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned frame notes or reviewed sources", () => {
+    const messages: RelativityVisualizationsMessages = {
+      ...enMessages.simulationLabs.relativityVisualizations,
+      header: {
+        ...enMessages.simulationLabs.relativityVisualizations.header,
+        title: "Fixture Relativity Visuals",
+      },
+      result: {
+        ...enMessages.simulationLabs.relativityVisualizations.result,
+        lorentzFactor: "Fixture gamma label",
+      },
+    };
+
+    renderView(false, messages);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Fixture Relativity Visuals" }),
+    ).toBeVisible();
+    expect(screen.getByText("Fixture gamma label")).toBeVisible();
+    expect(screen.getByText(/not a photographic appearance/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: /5.3 Time Dilation/i })).toBeVisible();
   });
 });

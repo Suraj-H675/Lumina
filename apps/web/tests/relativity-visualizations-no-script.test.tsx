@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { RelativityVisualizationsNoScript } from "../src/components/relativity-visualizations-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_RELATIVITY_VISUALIZATIONS_STATE } from "../src/lib/simulations/relativity-visualizations";
 import { RELATIVITY_VISUALIZATIONS_DEFAULT_RESULT } from "./relativity-visualizations-fixture";
 
@@ -12,6 +14,8 @@ describe("RelativityVisualizationsNoScript", () => {
         initialCalculation={RELATIVITY_VISUALIZATIONS_DEFAULT_RESULT}
         initialState={DEFAULT_RELATIVITY_VISUALIZATIONS_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.relativityVisualizations}
       />,
     );
     expect(markup).toContain("Relativity Visualizations");
@@ -32,6 +36,8 @@ describe("RelativityVisualizationsNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_RELATIVITY_VISUALIZATIONS_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.relativityVisualizations}
       />,
     );
     expect(markup).toContain("Shared relativity state rejected");

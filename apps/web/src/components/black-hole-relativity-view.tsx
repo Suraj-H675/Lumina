@@ -5,6 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { requestEndpoint, type BlackHoleRelativityCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { BlackHoleRelativityMessages } from "../lib/i18n/messages/types";
+import {
   BLACK_HOLE_RELATIVITY_DEFINITION,
   BLACK_HOLE_RELATIVITY_LIMITS,
   BLACK_HOLE_RELATIVITY_MODEL_VERSION,
@@ -23,6 +30,8 @@ type BlackHoleRelativityViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: BlackHoleRelativityCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: BlackHoleRelativityMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
@@ -43,13 +52,16 @@ function stateFromBrowser(): Readonly<{ state: BlackHoleRelativityState; invalid
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: BlackHoleRelativityMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {BLACK_HOLE_RELATIVITY_DEFINITION.references.map((sourceId) => {
@@ -57,7 +69,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -73,20 +85,27 @@ function SourceList() {
   );
 }
 
-function LandmarkTable({ result }: Readonly<{ result: BlackHoleRelativityCalculationResponse }>) {
+function LandmarkTable({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: BlackHoleRelativityMessages["landmarks"];
+  result: BlackHoleRelativityCalculationResponse;
+}>) {
   return (
-    <div
-      aria-label="Scrollable Schwarzschild landmark table"
-      className="overflow-x-auto"
-      tabIndex={0}
-    >
+    <div aria-label={messages.tableAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[760px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Canonical landmark radii returned by Python.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
-            {["Landmark", "Radius Rₛ", "Areal radius m", "Interpretation"].map((heading) => (
+            {[
+              messages.headers.landmark,
+              messages.headers.radiusRs,
+              messages.headers.radiusM,
+              messages.headers.interpretation,
+            ].map((heading) => (
               <th
                 className="border-b border-[var(--border)] p-2 text-left"
                 key={heading}
@@ -102,10 +121,10 @@ function LandmarkTable({ result }: Readonly<{ result: BlackHoleRelativityCalcula
             <tr key={row.id}>
               <td className="border-b border-[var(--border)] p-2 font-semibold">{row.label}</td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.radius_rs)}
+                {format(row.radius_rs, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.radius_m)}
+                {format(row.radius_m, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2">{row.interpretation}</td>
             </tr>
@@ -117,8 +136,14 @@ function LandmarkTable({ result }: Readonly<{ result: BlackHoleRelativityCalcula
 }
 
 function ReturnedLandmarkSchematic({
+  locale,
+  messages,
   result,
-}: Readonly<{ result: BlackHoleRelativityCalculationResponse }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: BlackHoleRelativityMessages["landmarks"];
+  result: BlackHoleRelativityCalculationResponse;
+}>) {
   const rows = [
     ...result.landmarks.map((row) => ({
       id: row.id,
@@ -127,7 +152,7 @@ function ReturnedLandmarkSchematic({
     })),
     {
       id: "selected_static_observer",
-      label: "Selected static observer",
+      label: messages.selectedStaticObserver,
       radiusM: result.static_observer_areal_radius_m,
     },
   ];
@@ -135,7 +160,7 @@ function ReturnedLandmarkSchematic({
   return (
     <figure className="space-y-3">
       <div
-        aria-label="Returned Schwarzschild landmark areal-radius schematic"
+        aria-label={messages.schematicAriaLabel}
         className="space-y-3 rounded-md border border-[var(--border)] p-4"
         role="img"
       >
@@ -143,7 +168,7 @@ function ReturnedLandmarkSchematic({
           <div className="space-y-1" key={row.id}>
             <div className="flex flex-wrap justify-between gap-2 text-sm">
               <span>{row.label}</span>
-              <span className="font-mono">{format(row.radiusM)} m</span>
+              <span className="font-mono">{format(row.radiusM, locale)} m</span>
             </div>
             <div className="h-3 w-full rounded-sm border border-[var(--border)]">
               <div
@@ -155,9 +180,7 @@ function ReturnedLandmarkSchematic({
         ))}
       </div>
       <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        Presentation-only scaling of API-returned Schwarzschild areal radii. This is not proper
-        radial distance, ray tracing, a black-hole shadow, an accretion image, or a direct
-        observation. The browser does not calculate relativity results.
+        {messages.schematicCaption}
       </figcaption>
     </figure>
   );
@@ -168,6 +191,8 @@ export function BlackHoleRelativityView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: BlackHoleRelativityViewProps) {
   const [state, setState] = useState(initialState);
   const [draftMass, setDraftMass] = useState(String(initialState.mass_nominal_solar));
@@ -188,7 +213,7 @@ export function BlackHoleRelativityView({
     async (nextState: BlackHoleRelativityState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -206,20 +231,18 @@ export function BlackHoleRelativityView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Black-Hole / Relativity Lab rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateBlackHoleRelativityCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned relativity state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -233,12 +256,12 @@ export function BlackHoleRelativityView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -258,7 +281,7 @@ export function BlackHoleRelativityView({
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (draftMass.trim().length === 0 || draftRadius.trim().length === 0) {
-      setMessage("One or more controls are empty or outside the reviewed v1 domain.");
+      setMessage(messages.failures.emptyInput);
       return;
     }
     const next = validateBlackHoleRelativityState({
@@ -268,9 +291,7 @@ export function BlackHoleRelativityView({
       static_observer_radius_rs: Number(draftRadius),
     });
     if (next === null) {
-      setMessage(
-        "The requested values are outside the reviewed Schwarzschild v1 domain. Lumina does not clamp or reinterpret them.",
-      );
+      setMessage(messages.failures.outOfDomain);
       return;
     }
     void recalculate(next, true);
@@ -286,42 +307,33 @@ export function BlackHoleRelativityView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · Schwarzschild landmark + static-clock teaching model
+          {messages.header.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Black-Hole / Relativity Lab
+          {messages.header.title}
         </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore an ideal non-rotating, uncharged Schwarzschild black hole through source-backed
-          landmark radii and a hypothetical static clock. This is not ray tracing, an observed
-          black-hole reconstruction, an orbit simulator, or an accretion model.
-        </p>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared relativity state rejected.</strong> The reviewed synthetic Schwarzschild
-          preset is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="black-hole-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="black-hole-input-heading">
-            Schwarzschild teaching controls
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            The mass control is the IAU nominal-solar gravitational-parameter ratio, not a measured
-            mass in kilograms. The radius control selects a hypothetical accelerated observer held
-            static outside the horizon; it is not a free-fall or orbital state.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-5" onSubmit={submit}>
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="block font-semibold">Nominal-solar GM scale</span>
+              <span className="block font-semibold">{messages.controls.massLabel}</span>
               <input
-                aria-label="Black-hole nominal solar mass scale"
+                aria-label={messages.controls.massAriaLabel}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={BLACK_HOLE_RELATIVITY_LIMITS.maxMassNominalSolar}
@@ -336,9 +348,9 @@ export function BlackHoleRelativityView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Static observer radius Rₛ</span>
+              <span className="block font-semibold">{messages.controls.radiusLabel}</span>
               <input
-                aria-label="Static observer radius in Schwarzschild radii"
+                aria-label={messages.controls.radiusAriaLabel}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={BLACK_HOLE_RELATIVITY_LIMITS.maxStaticObserverRadiusRs}
@@ -359,7 +371,9 @@ export function BlackHoleRelativityView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate Schwarzschild model"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -367,7 +381,7 @@ export function BlackHoleRelativityView({
               onClick={resetDefault}
               type="button"
             >
-              Reset synthetic preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -378,94 +392,105 @@ export function BlackHoleRelativityView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated horizon, photon-sphere, ISCO, clock-rate, or gravitational-redshift
-            value is substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="black-hole-result-heading" className="space-y-7">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="black-hole-result-heading">
-              Canonical Schwarzschild result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. All physical values below were returned by the
-              canonical Python model.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Gravitational parameter</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.metrics.gravitationalParameter}
+              </p>
               <p className="mt-1 font-semibold">
-                {format(calculation.gravitational_parameter_m3_s2)} m³/s²
+                {format(calculation.gravitational_parameter_m3_s2, locale)} m³/s²
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Event-horizon areal radius</p>
-              <p className="mt-1 font-semibold">{format(calculation.schwarzschild_radius_m)} m</p>
-            </div>
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Static clock rate / infinity</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.metrics.eventHorizonRadius}
+              </p>
               <p className="mt-1 font-semibold">
-                {format(calculation.proper_time_rate_vs_infinity)}
+                {format(calculation.schwarzschild_radius_m, locale)} m
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Gravitational redshift z</p>
-              <p className="mt-1 font-semibold">{format(calculation.gravitational_redshift_z)}</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.metrics.clockRate}</p>
+              <p className="mt-1 font-semibold">
+                {format(calculation.proper_time_rate_vs_infinity, locale)}
+              </p>
+            </div>
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
+              <p className="text-sm text-[var(--muted)]">{messages.result.metrics.redshift}</p>
+              <p className="mt-1 font-semibold">
+                {format(calculation.gravitational_redshift_z, locale)}
+              </p>
             </div>
           </div>
 
           <section aria-labelledby="black-hole-landmarks-heading" className="space-y-4">
             <div className="max-w-4xl space-y-2">
               <h3 className="text-xl font-semibold" id="black-hole-landmarks-heading">
-                Schwarzschild landmarks
+                {messages.landmarks.title}
               </h3>
-              <p className="leading-7 text-[var(--muted)]">
-                Horizon, photon sphere, and ISCO are distinct returned geometric/geodesic landmarks.
-                The selected static observer is not following those geodesics.
-              </p>
+              <p className="leading-7 text-[var(--muted)]">{messages.landmarks.description}</p>
             </div>
-            <ReturnedLandmarkSchematic result={calculation} />
-            <LandmarkTable result={calculation} />
+            <ReturnedLandmarkSchematic
+              locale={locale}
+              messages={messages.landmarks}
+              result={calculation}
+            />
+            <LandmarkTable locale={locale} messages={messages.landmarks} result={calculation} />
           </section>
 
           <section aria-labelledby="black-hole-clock-heading" className="space-y-4">
             <div className="max-w-4xl space-y-2">
               <h3 className="text-xl font-semibold" id="black-hole-clock-heading">
-                Static clock and infinity-referenced redshift
+                {messages.result.clock.title}
               </h3>
               <p className="leading-7 text-[var(--muted)]">{calculation.observer_note}</p>
             </div>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-md border border-[var(--border)] p-4">
-                <dt className="text-sm text-[var(--muted)]">Selected areal radius</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.result.clock.selectedRadius}
+                </dt>
                 <dd className="mt-1 font-mono">
-                  {format(calculation.static_observer_areal_radius_m)} m
+                  {format(calculation.static_observer_areal_radius_m, locale)} m
                 </dd>
               </div>
               <div className="rounded-md border border-[var(--border)] p-4">
                 <dt className="text-sm text-[var(--muted)]">
-                  Frequency at infinity / local frequency
+                  {messages.result.clock.frequencyRatio}
                 </dt>
                 <dd className="mt-1 font-mono">
-                  {format(calculation.frequency_ratio_at_infinity)}
+                  {format(calculation.frequency_ratio_at_infinity, locale)}
                 </dd>
               </div>
               <div className="rounded-md border border-[var(--border)] p-4">
                 <dt className="text-sm text-[var(--muted)]">
-                  Far-away interval per local interval
+                  {messages.result.clock.farAwayInterval}
                 </dt>
                 <dd className="mt-1 font-mono">
-                  {format(calculation.far_away_interval_per_local_interval)}
+                  {format(calculation.far_away_interval_per_local_interval, locale)}
                 </dd>
               </div>
               <div className="rounded-md border border-[var(--border)] p-4">
-                <dt className="text-sm text-[var(--muted)]">Gravitational redshift z</dt>
-                <dd className="mt-1 font-mono">{format(calculation.gravitational_redshift_z)}</dd>
+                <dt className="text-sm text-[var(--muted)]">{messages.result.clock.redshift}</dt>
+                <dd className="mt-1 font-mono">
+                  {format(calculation.gravitational_redshift_z, locale)}
+                </dd>
               </div>
             </dl>
           </section>
@@ -481,14 +506,16 @@ export function BlackHoleRelativityView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="black-hole-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{BLACK_HOLE_RELATIVITY_DEFINITION.summary}</p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {BLACK_HOLE_RELATIVITY_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -496,7 +523,7 @@ export function BlackHoleRelativityView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {BLACK_HOLE_RELATIVITY_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -506,7 +533,7 @@ export function BlackHoleRelativityView({
           </div>
         </details>
         <details>
-          <summary className="cursor-pointer font-semibold">Reviewed model equations</summary>
+          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
           <ul className="mt-3 list-disc space-y-3 pl-6 text-sm leading-6 text-[var(--muted)]">
             {BLACK_HOLE_RELATIVITY_DEFINITION.equations.map((equation) => (
               <li key={equation.id}>
@@ -517,14 +544,16 @@ export function BlackHoleRelativityView({
           </ul>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: nominal-solar GM scale {format(state.mass_nominal_solar)}
-          ; static observer at {format(state.static_observer_radius_rs)} Rₛ.
+          {formatMessageTemplate(messages.model.currentState, {
+            mass: format(state.mass_nominal_solar, locale),
+            radius: format(state.static_observer_radius_rs, locale),
+          })}
         </p>
       </section>
     </article>

@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import type { RelativityVisualizationsCalculationResponse } from "@lumina/api-client";
 
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RelativityVisualizationsMessages } from "../lib/i18n/messages/types";
 import type { RelativityVisualizationsState } from "../lib/simulations/relativity-visualizations";
 
 const InteractiveRelativityVisualizations = dynamic(
@@ -18,6 +20,8 @@ type RelativityVisualizationsEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: RelativityVisualizationsCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: RelativityVisualizationsMessages;
 }>;
 
 export function RelativityVisualizationsEnhanced(props: RelativityVisualizationsEnhancedProps) {

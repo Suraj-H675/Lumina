@@ -429,6 +429,12 @@ describe("Phase 8C localization foundation", () => {
   });
 
   it("keeps deterministic simulation-lab templates placeholder-complete", () => {
+    const blackHole = enMessages.simulationLabs.blackHoleRelativity;
+    expect(blackHole.model.currentState).toContain("{mass}");
+    expect(blackHole.model.currentState).toContain("{radius}");
+    expect(blackHole.model.sourceUnavailable).toContain("{sourceId}");
+    expect(blackHole.result.description).toContain("{modelVersion}");
+
     const orbit = enMessages.simulationLabs.orbitSandbox;
     expect(orbit.model.currentState).toContain("{xPosition}");
     expect(orbit.model.currentState).toContain("{yVelocity}");
@@ -468,6 +474,17 @@ describe("Phase 8C localization foundation", () => {
     expect(radialVelocity.preview.description).toContain("{shown}");
     expect(radialVelocity.preview.description).toContain("{total}");
     expect(radialVelocity.result.model).toContain("{modelVersion}");
+
+    const relativity = enMessages.simulationLabs.relativityVisualizations;
+    expect(relativity.lightCone.caption).toContain("{note}");
+    expect(relativity.lightCone.caption).toContain("{coordinateSystem}");
+    expect(relativity.lightCone.noScriptCoordinateConvention).toContain("{coordinateSystem}");
+    expect(relativity.model.currentState).toContain("{beta}");
+    expect(relativity.model.currentState).toContain("{properTime}");
+    expect(relativity.model.currentState).toContain("{properLength}");
+    expect(relativity.model.currentState).toContain("{separation}");
+    expect(relativity.model.sourceUnavailable).toContain("{sourceId}");
+    expect(relativity.result.description).toContain("{modelVersion}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

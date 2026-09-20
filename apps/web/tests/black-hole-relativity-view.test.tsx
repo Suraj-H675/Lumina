@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BlackHoleRelativityView } from "../src/components/black-hole-relativity-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { BlackHoleRelativityMessages } from "../src/lib/i18n/messages/types";
 import { DEFAULT_BLACK_HOLE_RELATIVITY_STATE } from "../src/lib/simulations/black-hole-relativity";
 import {
   BLACK_HOLE_RELATIVITY_DEFAULT_RESULT,
@@ -18,13 +21,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderView(invalid = false) {
+function renderView(
+  invalid = false,
+  messages: BlackHoleRelativityMessages = enMessages.simulationLabs.blackHoleRelativity,
+) {
   return render(
     <BlackHoleRelativityView
       apiOrigin="http://127.0.0.1:8000"
       initialCalculation={BLACK_HOLE_RELATIVITY_DEFAULT_RESULT}
       initialState={DEFAULT_BLACK_HOLE_RELATIVITY_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
     />,
   );
 }
@@ -110,5 +118,31 @@ describe("BlackHoleRelativityView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/outside the reviewed Schwarzschild v1 domain/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned Schwarzschild science or sources", () => {
+    const messages: BlackHoleRelativityMessages = {
+      ...enMessages.simulationLabs.blackHoleRelativity,
+      header: {
+        ...enMessages.simulationLabs.blackHoleRelativity.header,
+        title: "Fixture Schwarzschild Lab",
+      },
+      result: {
+        ...enMessages.simulationLabs.blackHoleRelativity.result,
+        metrics: {
+          ...enMessages.simulationLabs.blackHoleRelativity.result.metrics,
+          redshift: "Fixture redshift label",
+        },
+      },
+    };
+
+    renderView(false, messages);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Fixture Schwarzschild Lab" }),
+    ).toBeVisible();
+    expect(screen.getByText("Fixture redshift label")).toBeVisible();
+    expect(screen.getByText(/not freely falling/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: /IAU 2015 Resolution B3/i })).toBeVisible();
   });
 });

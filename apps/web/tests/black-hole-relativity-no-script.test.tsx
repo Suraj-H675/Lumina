@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { BlackHoleRelativityNoScript } from "../src/components/black-hole-relativity-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_BLACK_HOLE_RELATIVITY_STATE } from "../src/lib/simulations/black-hole-relativity";
 import { BLACK_HOLE_RELATIVITY_DEFAULT_RESULT } from "./black-hole-relativity-fixture";
 
@@ -12,6 +14,8 @@ describe("BlackHoleRelativityNoScript", () => {
         initialCalculation={BLACK_HOLE_RELATIVITY_DEFAULT_RESULT}
         initialState={DEFAULT_BLACK_HOLE_RELATIVITY_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.blackHoleRelativity}
       />,
     );
     expect(markup).toContain("Black-Hole / Relativity Lab");
@@ -30,6 +34,8 @@ describe("BlackHoleRelativityNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_BLACK_HOLE_RELATIVITY_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.blackHoleRelativity}
       />,
     );
     expect(markup).toContain("Shared relativity state rejected");

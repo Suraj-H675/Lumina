@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { RelativityVisualizationsEnhanced } from "../../../components/relativity-visualizations-enhanced";
 import { RelativityVisualizationsNoScript } from "../../../components/relativity-visualizations-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { RelativityVisualizationsMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadRelativityVisualizationsCalculation } from "../../../lib/server/relativity-visualizations";
 import {
@@ -10,16 +12,19 @@ import {
   type RelativityVisualizationsState,
 } from "../../../lib/simulations/relativity-visualizations";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/relativity-visualizations" },
-  title: "Relativity Visualizations",
-  description:
-    "Explore Python-owned one-dimensional special-relativity time dilation, length contraction, simultaneity, and reviewed light-cone teaching geometry.",
-};
+export function createRelativityVisualizationsMetadata(
+  messages: RelativityVisualizationsMessages,
+): Metadata {
+  return {
+    alternates: { canonical: "/lab/relativity-visualizations" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type RelativityVisualizationsPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: RelativityVisualizationsMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -36,6 +41,8 @@ function stateFromSearchParams(
 }
 
 export default async function RelativityVisualizationsPage({
+  locale,
+  messages,
   searchParams,
 }: RelativityVisualizationsPageProps) {
   const requested = stateFromSearchParams(await searchParams);
@@ -51,12 +58,16 @@ export default async function RelativityVisualizationsPage({
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <RelativityVisualizationsEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

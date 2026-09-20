@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import type { BlackHoleRelativityCalculationResponse } from "@lumina/api-client";
 
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { BlackHoleRelativityMessages } from "../lib/i18n/messages/types";
 import type { BlackHoleRelativityState } from "../lib/simulations/black-hole-relativity";
 
 const InteractiveBlackHoleRelativity = dynamic(
@@ -15,6 +17,8 @@ type BlackHoleRelativityEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: BlackHoleRelativityCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: BlackHoleRelativityMessages;
 }>;
 
 export function BlackHoleRelativityEnhanced(props: BlackHoleRelativityEnhancedProps) {

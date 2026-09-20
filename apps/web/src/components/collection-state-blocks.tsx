@@ -2,7 +2,9 @@
 
 import { useCallback, useState } from "react";
 
+import { collectionStoreFailureMessage } from "../lib/collections-messages";
 import { resetCollections } from "../lib/collections-store";
+import type { CollectionsMessages, CollectionStateMessages } from "../lib/i18n/messages/types";
 
 /**
  * Honest bounded states shared by every collections surface: while the store
@@ -14,25 +16,30 @@ import { resetCollections } from "../lib/collections-store";
 const secondaryButtonClassName =
   "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
 
-export function CollectionLoadingNote() {
+export function CollectionLoadingNote({
+  messages,
+}: Readonly<{ messages: CollectionsMessages["shared"] }>) {
   return (
     <p className="text-sm text-[var(--muted)]" role="status">
-      Checking your saved collections…
+      {messages.loading}
     </p>
   );
 }
 
-export function StorageUnavailableNote({ context }: Readonly<{ context: "page" | "picker" }>) {
+export function StorageUnavailableNote({
+  context,
+  messages,
+}: Readonly<{ context: "page" | "picker"; messages: CollectionsMessages["shared"] }>) {
   return (
     <div
       className="max-w-xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-6"
       role="status"
     >
-      <h2 className="text-lg font-semibold">Local storage is unavailable</h2>
+      <h2 className="text-lg font-semibold">{messages.storageUnavailable.title}</h2>
       <p className="mt-2 leading-7 text-[var(--muted)]">
-        This browser is blocking site storage, so Lumina cannot save or show collections right now.
-        {context === "picker" ? " Nothing was changed." : ""} Browsing, search, object pages, and
-        comparison all keep working normally.
+        {context === "picker"
+          ? messages.storageUnavailable.pickerDescription
+          : messages.storageUnavailable.pageDescription}
       </p>
     </div>
   );
@@ -43,39 +50,42 @@ export function StorageUnavailableNote({ context }: Readonly<{ context: "page" |
  * the bytes untouched until an explicit two-step confirmation, and reminds the
  * visitor that the rest of Lumina remains usable.
  */
-export function CorruptedStoragePanel({ compact = false }: Readonly<{ compact?: boolean }>) {
+export function CorruptedStoragePanel({
+  compact = false,
+  messages,
+}: Readonly<{ compact?: boolean; messages: CollectionStateMessages }>) {
   const [resetArmed, setResetArmed] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleReset = useCallback(() => {
     if (!resetArmed) {
       setResetArmed(true);
-      setMessage("Resetting erases every saved collection on this device. Confirm to continue.");
+      setMessage(messages.shared.corrupted.resetWarning);
       return;
     }
     const result = resetCollections();
     if (result.ok) {
-      setMessage("Local collections were cleared.");
+      setMessage(messages.shared.corrupted.resetSuccess);
       setResetArmed(false);
     } else {
-      setMessage(result.message);
+      setMessage(collectionStoreFailureMessage(result.reason, messages.failures));
     }
-  }, [resetArmed]);
+  }, [messages, resetArmed]);
 
   return (
     <div
       className={`space-y-4 ${compact ? "" : "max-w-xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-6"}`}
     >
       <div role="status">
-        <h2 className="text-lg font-semibold">Your saved collections could not be read</h2>
+        <h2 className="text-lg font-semibold">{messages.shared.corrupted.title}</h2>
         <p className="mt-2 leading-7 text-[var(--muted)]">
-          The data stored for collections in this browser could not be understood. Nothing has been
-          changed or deleted. You can keep browsing, searching, and comparing normally, or reset
-          collections below to start fresh.
+          {messages.shared.corrupted.description}
         </p>
       </div>
       <button className={secondaryButtonClassName} onClick={handleReset} type="button">
-        {resetArmed ? "Confirm reset — erase all local collections" : "Reset local collections"}
+        {resetArmed
+          ? messages.shared.corrupted.confirmResetAction
+          : messages.shared.corrupted.resetAction}
       </button>
       <p aria-live="polite" className="min-h-6 text-sm text-[var(--muted)]" role="status">
         {message}

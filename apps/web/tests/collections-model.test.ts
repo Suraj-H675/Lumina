@@ -7,6 +7,7 @@ import {
   MAX_ITEMS_PER_COLLECTION,
   addObjectsMutation,
   collectionNameProblem,
+  collectionNameProblemReason,
   collectionsContainingSlug,
   createCollectionMutation,
   deleteCollectionMutation,
@@ -42,13 +43,16 @@ describe("collection name validation", () => {
   it("trims and collapses whitespace", () => {
     expect(normalizeCollectionName("  Interesting   Worlds \n")).toBe("Interesting Worlds");
     expect(collectionNameProblem("   ")).toMatch(/name/i);
+    expect(collectionNameProblemReason("   ")).toBe("blank");
     expect(collectionNameProblem("Interesting Worlds")).toBeNull();
+    expect(collectionNameProblemReason("Interesting Worlds")).toBeNull();
   });
 
   it("bounds names by Unicode code points, not UTF-16 units", () => {
     const emojiName = "🪐".repeat(COLLECTION_NAME_MAX_CODE_POINTS);
     expect(collectionNameProblem(emojiName)).toBeNull();
     expect(collectionNameProblem(`${emojiName}🪐`)).toMatch(/60 characters/u);
+    expect(collectionNameProblemReason(`${emojiName}🪐`)).toBe("too-long");
   });
 
   it("finds duplicates case-insensitively with an exclusion id for renames", () => {

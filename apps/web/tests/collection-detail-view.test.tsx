@@ -11,6 +11,9 @@ vi.mock("next/navigation", () => ({
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
 import * as store from "../src/lib/collections-store";
 import { CollectionDetailView } from "../src/components/collection-detail-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { CollectionsMessages } from "../src/lib/i18n/messages/types";
 
 const K2_18 = { canonical_name: "K2-18", entity_type: "star" as const, slug: "k2-18" };
 const KEPLER_186 = {
@@ -25,6 +28,12 @@ const KEPLER_452 = {
 };
 
 let collectionId: string;
+
+function renderDetail(id: string, messages: CollectionsMessages = enMessages.collections) {
+  return render(
+    <CollectionDetailView collectionId={id} locale={DEFAULT_LOCALE} messages={messages} />,
+  );
+}
 
 beforeEach(() => {
   // Reset BOTH layers through the store's legitimate update path: wipe the
@@ -58,7 +67,7 @@ function persisted(): {
 describe("CollectionDetailView", () => {
   it("shows the collection with its saved objects and local-only disclosure", () => {
     store.addObjectToCollection(collectionId, K2_18);
-    render(<CollectionDetailView collectionId={collectionId} />);
+    renderDetail(collectionId);
 
     expect(screen.getByRole("heading", { level: 1, name: "Interesting Worlds" })).toBeVisible();
     expect(screen.getByText(/saved in this browser on this device/i)).toBeVisible();
@@ -74,7 +83,7 @@ describe("CollectionDetailView", () => {
   });
 
   it("renders a truthful missing-collection page for unknown ids", () => {
-    render(<CollectionDetailView collectionId="never-existed" />);
+    renderDetail("never-existed");
     expect(
       screen.getByRole("heading", { name: /this collection is not on this device/i }),
     ).toBeVisible();
@@ -84,7 +93,7 @@ describe("CollectionDetailView", () => {
 
   it("removes an object and persists the removal", async () => {
     store.addObjectToCollection(collectionId, K2_18);
-    render(<CollectionDetailView collectionId={collectionId} />);
+    renderDetail(collectionId);
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Remove K2-18 from the collection" }));
@@ -101,7 +110,7 @@ describe("CollectionDetailView", () => {
   it("renames through the dialog preserving identity, then persists", async () => {
     store.addObjectToCollection(collectionId, K2_18);
     const user = userEvent.setup();
-    render(<CollectionDetailView collectionId={collectionId} />);
+    renderDetail(collectionId);
 
     await user.click(screen.getByRole("button", { name: "Rename" }));
     const dialog = screen.getByRole("dialog", { name: "Rename collection" });
@@ -124,7 +133,7 @@ describe("CollectionDetailView", () => {
     const second = store.createCollection("Other");
     if (!second.ok) throw new Error("setup failed");
     const user = userEvent.setup();
-    render(<CollectionDetailView collectionId={collectionId} />);
+    renderDetail(collectionId);
 
     await user.click(screen.getByRole("button", { name: "Rename" }));
     const input = screen.getByLabelText("Name");
@@ -137,7 +146,7 @@ describe("CollectionDetailView", () => {
   it("deletes only after explicit confirmation and navigates back", async () => {
     store.addObjectToCollection(collectionId, K2_18);
     const user = userEvent.setup();
-    render(<CollectionDetailView collectionId={collectionId} />);
+    renderDetail(collectionId);
 
     await user.click(screen.getByRole("button", { name: "Delete" }));
     const dialog = screen.getByRole("dialog", { name: "Delete Interesting Worlds?" });
@@ -163,7 +172,7 @@ describe("CollectionDetailView", () => {
       store.addObjectToCollection(collectionId, K2_18);
       store.addObjectToCollection(collectionId, KEPLER_186);
       const user = userEvent.setup();
-      render(<CollectionDetailView collectionId={collectionId} />);
+      renderDetail(collectionId);
 
       // Nothing selected yet: the launch control stays disabled.
       const compare = screen.getByRole("button", { name: /Compare selected/i });
@@ -184,7 +193,7 @@ describe("CollectionDetailView", () => {
         store.addObjectToCollection(collectionId, object);
       }
       const user = userEvent.setup();
-      render(<CollectionDetailView collectionId={collectionId} />);
+      renderDetail(collectionId);
 
       const first = screen.getByRole("checkbox", { name: /k2-18/i });
       const second = screen.getByRole("checkbox", { name: /kepler-186/i });
@@ -207,7 +216,7 @@ describe("CollectionDetailView", () => {
         store.addObjectToCollection(collectionId, object);
       }
       const user = userEvent.setup();
-      render(<CollectionDetailView collectionId={collectionId} />);
+      renderDetail(collectionId);
 
       await user.click(screen.getByRole("checkbox", { name: /k2-18/i }));
       await user.click(screen.getByRole("checkbox", { name: /kepler-186/i }));
@@ -218,11 +227,33 @@ describe("CollectionDetailView", () => {
   });
 
   it("shows the empty-collection state pointing at Explore", () => {
-    render(<CollectionDetailView collectionId={collectionId} />);
+    renderDetail(collectionId);
     expect(screen.getByText(/no objects saved here yet/i)).toBeVisible();
     expect(screen.getByRole("link", { name: "Explore catalogue" })).toHaveAttribute(
       "href",
       "/explore",
     );
+  });
+
+  it("localizes detail controls without rewriting collection or object identity", () => {
+    store.addObjectToCollection(collectionId, K2_18);
+    const messages = {
+      ...enMessages.collections,
+      detail: {
+        ...enMessages.collections.detail,
+        backToCollections: "← Localized collections",
+        savedHeading: "Localized saved objects",
+      },
+    } satisfies CollectionsMessages;
+
+    renderDetail(collectionId, messages);
+
+    expect(screen.getByRole("link", { name: "← Localized collections" })).toHaveAttribute(
+      "href",
+      "/collections",
+    );
+    expect(screen.getByRole("heading", { level: 1, name: "Interesting Worlds" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Localized saved objects" })).toBeVisible();
+    expect(screen.getByRole("link", { name: /K2-18/ })).toHaveAttribute("href", "/objects/k2-18");
   });
 });

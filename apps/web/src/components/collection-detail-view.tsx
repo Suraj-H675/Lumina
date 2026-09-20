@@ -7,10 +7,11 @@ import { useCallback, useMemo, useState } from "react";
 import { COMPARE_MAX_OBJECTS, buildCompareHref } from "../lib/compare-url";
 import { entityTypeLabel } from "../lib/catalog-display";
 import {
-  collectionNameProblem,
-  normalizeCollectionName,
-  type CollectionItemSnapshot,
-} from "../lib/collections-model";
+  collectionNameProblemMessage,
+  collectionRenameNameHint,
+  collectionStoreFailureMessage,
+} from "../lib/collections-messages";
+import { normalizeCollectionName, type CollectionItemSnapshot } from "../lib/collections-model";
 import {
   deleteCollection,
   removeObjectFromCollection,
@@ -18,6 +19,9 @@ import {
   useCollectionsData,
   useCollectionsStatus,
 } from "../lib/collections-store";
+import { formatCountMessage, formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionsMessages } from "../lib/i18n/messages/types";
 import {
   CollectionLoadingNote,
   CorruptedStoragePanel,
@@ -46,9 +50,16 @@ type CollectionDetailViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
   collectionId: string;
+  locale: PublishedLocale;
+  messages: CollectionsMessages;
 }>;
 
-export function CollectionDetailView({ apiOrigin, collectionId }: CollectionDetailViewProps) {
+export function CollectionDetailView({
+  apiOrigin,
+  collectionId,
+  locale,
+  messages,
+}: CollectionDetailViewProps) {
   const status = useCollectionsStatus();
   const data = useCollectionsData();
 
@@ -62,8 +73,8 @@ export function CollectionDetailView({ apiOrigin, collectionId }: CollectionDeta
   if (status === "loading") {
     return (
       <div className="space-y-6">
-        <BackToCollectionsLink />
-        <CollectionLoadingNote />
+        <BackToCollectionsLink messages={messages} />
+        <CollectionLoadingNote messages={messages.shared} />
       </div>
     );
   }
@@ -71,9 +82,9 @@ export function CollectionDetailView({ apiOrigin, collectionId }: CollectionDeta
   if (status === "unavailable" || status === "corrupted") {
     return (
       <div className="space-y-6">
-        <BackToCollectionsLink />
-        <StorageUnavailableNote context="page" />
-        {status === "corrupted" ? <CorruptedStoragePanel compact /> : null}
+        <BackToCollectionsLink messages={messages} />
+        <StorageUnavailableNote context="page" messages={messages.shared} />
+        {status === "corrupted" ? <CorruptedStoragePanel compact messages={messages} /> : null}
       </div>
     );
   }
@@ -81,17 +92,15 @@ export function CollectionDetailView({ apiOrigin, collectionId }: CollectionDeta
   if (collection === undefined) {
     return (
       <div className="max-w-xl space-y-6">
-        <BackToCollectionsLink />
+        <BackToCollectionsLink messages={messages} />
         <section aria-labelledby="missing-collection-heading">
           <h1 className="text-2xl font-semibold tracking-tight" id="missing-collection-heading">
-            This collection is not on this device
+            {messages.detail.missingTitle}
           </h1>
-          <p className="mt-3 leading-7 text-[var(--muted)]">
-            Collections are stored per browser. There is nothing saved under this address here.
-          </p>
+          <p className="mt-3 leading-7 text-[var(--muted)]">{messages.detail.missingDescription}</p>
           <p className="mt-6">
             <Link className={secondaryLinkClassName} href="/collections">
-              Go to your collections
+              {messages.detail.goToCollections}
             </Link>
           </p>
         </section>
@@ -102,65 +111,75 @@ export function CollectionDetailView({ apiOrigin, collectionId }: CollectionDeta
   return (
     <div className="space-y-10">
       <header className="space-y-3">
-        <BackToCollectionsLink />
+        <BackToCollectionsLink messages={messages} />
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{collection.name}</h1>
         <p className="text-lg text-[var(--muted)]">
-          {collection.items.length === 1 ? "1 object" : `${collection.items.length} objects`} ·
-          Saved in this browser on this device
+          {formatMessageTemplate(messages.detail.savedSummary, {
+            countText: formatCountMessage(
+              messages.detail.objectCount,
+              collection.items.length,
+              locale,
+            ),
+          })}
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
-          <RenameCollectionButton collection={collection} />
+          <RenameCollectionButton collection={collection} messages={messages} />
           <DeleteCollectionButton
             collection={{
               id: collection.id,
               itemCount: collection.items.length,
               name: collection.name,
             }}
+            locale={locale}
+            messages={messages}
           />
         </div>
       </header>
 
-      <CompareSelectionPanel items={collection.items} />
+      <CompareSelectionPanel items={collection.items} locale={locale} messages={messages} />
 
       <section aria-labelledby="add-object-heading" className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 id="add-object-heading">Add object</h2>
-          <span className="text-sm text-[var(--muted)]">
-            Search the reviewed catalogue for something to save here.
-          </span>
+          <h2 id="add-object-heading">{messages.detail.addHeading}</h2>
+          <span className="text-sm text-[var(--muted)]">{messages.detail.addDescription}</span>
         </div>
         <AddObjectToCollectionControl
           {...(apiOrigin === undefined ? {} : { apiOrigin })}
           collectionId={collection.id}
+          locale={locale}
+          messages={messages}
         />
       </section>
 
       <section aria-labelledby="saved-items-heading" className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 id="saved-items-heading">Saved objects</h2>
-          <span className="text-sm text-[var(--muted)]">
-            Identities are snapshots; open any object for its current reviewed data.
-          </span>
+          <h2 id="saved-items-heading">{messages.detail.savedHeading}</h2>
+          <span className="text-sm text-[var(--muted)]">{messages.detail.savedDescription}</span>
         </div>
         {collection.items.length === 0 ? (
           <div className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-8">
-            <h3 className="text-lg font-semibold">No objects saved here yet</h3>
-            <p className="mt-2 leading-7 text-[var(--muted)]">
-              Add objects above, or save them while exploring the catalogue.
-            </p>
+            <h3 className="text-lg font-semibold">{messages.detail.emptyTitle}</h3>
+            <p className="mt-2 leading-7 text-[var(--muted)]">{messages.detail.emptyDescription}</p>
             <p className="mt-4">
               <Link className={secondaryLinkClassName} href="/explore">
-                Explore catalogue
+                {messages.detail.exploreCatalogue}
               </Link>
             </p>
           </div>
         ) : (
           <ul
-            aria-label={`Objects in ${collection.name}`}
+            aria-label={formatMessageTemplate(messages.detail.objectsListLabel, {
+              collectionName: collection.name,
+            })}
             className="grid list-none gap-3 p-0 md:grid-cols-2"
           >
             {collection.items.map((item) => (
-              <SavedObjectRow collectionId={collection.id} item={item} key={item.slug} />
+              <SavedObjectRow
+                collectionId={collection.id}
+                item={item}
+                key={item.slug}
+                messages={messages}
+              />
             ))}
           </ul>
         )}
@@ -169,13 +188,13 @@ export function CollectionDetailView({ apiOrigin, collectionId }: CollectionDeta
   );
 }
 
-function BackToCollectionsLink() {
+function BackToCollectionsLink({ messages }: Readonly<{ messages: CollectionsMessages }>) {
   return (
     <Link
       className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-[var(--muted)] underline decoration-[var(--border-strong)] underline-offset-4 transition-colors hover:text-[var(--foreground)]"
       href="/collections"
     >
-      ← Collections
+      {messages.detail.backToCollections}
     </Link>
   );
 }
@@ -186,13 +205,14 @@ function BackToCollectionsLink() {
 
 function RenameCollectionButton({
   collection,
-}: Readonly<{ collection: { id: string; name: string } }>) {
+  messages,
+}: Readonly<{ collection: { id: string; name: string }; messages: CollectionsMessages }>) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(collection.name);
   const [storeProblem, setStoreProblem] = useState<string | null>(null);
   const allCollections = useCollectionsData().collections;
 
-  const problem = collectionNameProblem(name);
+  const problem = collectionNameProblemMessage(name, messages.validation);
   const normalizedName = normalizeCollectionName(name).toLowerCase();
   const duplicate =
     problem === null &&
@@ -215,11 +235,11 @@ function RenameCollectionButton({
     const result = renameCollection(collection.id, name);
     if (!result.ok) {
       // Storage-level failure: keep the dialog open with the honest message.
-      setStoreProblem(result.message);
+      setStoreProblem(collectionStoreFailureMessage(result.reason, messages.failures));
       return;
     }
     setOpen(false);
-  }, [collection.id, invalid, name]);
+  }, [collection.id, invalid, messages.failures, name]);
 
   // Always-present live hint: the requirement, the exact conflict, or the
   // storage failure — never an invisible disabled state.
@@ -227,8 +247,8 @@ function RenameCollectionButton({
     problem !== null
       ? problem
       : duplicate
-        ? "You already have a collection with this name."
-        : (storeProblem ?? "Up to 60 characters.");
+        ? messages.validation.duplicateName
+        : (storeProblem ?? collectionRenameNameHint(messages.validation));
 
   return (
     <>
@@ -238,14 +258,14 @@ function RenameCollectionButton({
         onClick={startRename}
         type="button"
       >
-        Rename
+        {messages.detail.renameAction}
       </button>
       {open ? (
         <ModalDialog
-          description="The collection keeps its saved objects."
+          description={messages.detail.renameDescription}
           onClose={() => setOpen(false)}
           open
-          title="Rename collection"
+          title={messages.detail.renameTitle}
         >
           <form
             onSubmit={(event) => {
@@ -255,7 +275,7 @@ function RenameCollectionButton({
           >
             <div className="space-y-2">
               <label className="block text-sm font-medium" htmlFor="rename-collection-name">
-                Name
+                {messages.validation.nameLabel}
               </label>
               <input
                 aria-describedby="rename-collection-name-hint"
@@ -282,10 +302,10 @@ function RenameCollectionButton({
                 onClick={() => setOpen(false)}
                 type="button"
               >
-                Cancel
+                {messages.detail.cancelAction}
               </button>
               <button className={primaryButtonClassName} disabled={invalid} type="submit">
-                Save name
+                {messages.detail.saveNameAction}
               </button>
             </div>
           </form>
@@ -297,7 +317,13 @@ function RenameCollectionButton({
 
 function DeleteCollectionButton({
   collection,
-}: Readonly<{ collection: { id: string; itemCount: number; name: string } }>) {
+  locale,
+  messages,
+}: Readonly<{
+  collection: { id: string; itemCount: number; name: string };
+  locale: PublishedLocale;
+  messages: CollectionsMessages;
+}>) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -306,12 +332,12 @@ function DeleteCollectionButton({
     const result = deleteCollection(collection.id);
     if (!result.ok) {
       // Keep the dialog open and say exactly why the deletion did not happen.
-      setFailure(result.message);
+      setFailure(collectionStoreFailureMessage(result.reason, messages.failures));
       return;
     }
     setOpen(false);
     router.push("/collections");
-  }, [collection.id, router]);
+  }, [collection.id, messages.failures, router]);
 
   const startDelete = useCallback(() => {
     setFailure(null);
@@ -326,20 +352,22 @@ function DeleteCollectionButton({
         onClick={startDelete}
         type="button"
       >
-        Delete
+        {messages.detail.deleteAction}
       </button>
       {open ? (
         <ModalDialog
-          description={`This removes “${collection.name}” from this browser only. The Lumina catalogue itself is not affected.`}
+          description={formatMessageTemplate(messages.detail.deleteDescription, {
+            collectionName: collection.name,
+          })}
           onClose={() => setOpen(false)}
           open
-          title={`Delete ${collection.name}?`}
+          title={formatMessageTemplate(messages.detail.deleteTitle, {
+            collectionName: collection.name,
+          })}
         >
           <div className="space-y-4">
             <p className="leading-7 text-[var(--muted)]">
-              {collection.itemCount === 1
-                ? "Its 1 saved object will be removed with it."
-                : `Its ${collection.itemCount} saved objects will be removed with it.`}
+              {formatCountMessage(messages.detail.deleteItemCount, collection.itemCount, locale)}
             </p>
             {failure !== null ? (
               <p className="text-sm text-[#fda4af]" role="alert">
@@ -352,10 +380,10 @@ function DeleteCollectionButton({
                 onClick={() => setOpen(false)}
                 type="button"
               >
-                Keep collection
+                {messages.detail.keepCollectionAction}
               </button>
               <button className={dangerButtonClassName} onClick={confirmDelete} type="button">
-                Delete collection
+                {messages.detail.deleteCollectionAction}
               </button>
             </div>
           </div>
@@ -371,7 +399,13 @@ function DeleteCollectionButton({
 
 function CompareSelectionPanel({
   items,
-}: Readonly<{ items: ReadonlyArray<CollectionItemSnapshot> }>) {
+  locale,
+  messages,
+}: Readonly<{
+  items: ReadonlyArray<CollectionItemSnapshot>;
+  locale: PublishedLocale;
+  messages: CollectionsMessages;
+}>) {
   const router = useRouter();
   const [selectedSlugs, setSelectedSlugs] = useState<Array<string>>([]);
 
@@ -396,20 +430,20 @@ function CompareSelectionPanel({
   return (
     <section aria-labelledby="compare-selection-heading" className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 id="compare-selection-heading">Compare saved objects</h2>
+        <h2 id="compare-selection-heading">{messages.detail.compareHeading}</h2>
         <span className="text-sm text-[var(--muted)]">
-          Choose 2–3 to compare — maximum {COMPARE_MAX_OBJECTS}.
+          {formatMessageTemplate(messages.detail.compareDescription, {
+            max: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
+          })}
         </span>
       </div>
 
       {items.length < 2 ? (
-        <p className="text-sm leading-6 text-[var(--muted)]">
-          Save at least two objects to compare them side by side.
-        </p>
+        <p className="text-sm leading-6 text-[var(--muted)]">{messages.detail.compareEmpty}</p>
       ) : (
         <>
           <ul
-            aria-label="Select objects to compare"
+            aria-label={messages.detail.selectObjectsLabel}
             className="grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-3"
           >
             {items.map((item) => {
@@ -444,11 +478,17 @@ function CompareSelectionPanel({
               onClick={launchCompare}
               type="button"
             >
-              ⇄ Compare selected{selectedSlugs.length > 0 ? ` (${selectedSlugs.length})` : ""}
+              {selectedSlugs.length > 0
+                ? formatMessageTemplate(messages.detail.compareSelectedWithCount, {
+                    count: formatLocaleNumber(selectedSlugs.length, locale),
+                  })
+                : messages.detail.compareSelected}
             </button>
             {atMaximum ? (
               <span className="text-sm text-[var(--muted)]" role="status">
-                Maximum of {COMPARE_MAX_OBJECTS} reached — unselect one to choose another.
+                {formatMessageTemplate(messages.detail.compareMaximumReached, {
+                  max: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
+                })}
               </span>
             ) : null}
           </div>
@@ -465,17 +505,19 @@ function CompareSelectionPanel({
 function SavedObjectRow({
   collectionId,
   item,
+  messages,
 }: Readonly<{
   collectionId: string;
   item: CollectionItemSnapshot;
+  messages: CollectionsMessages;
 }>) {
   const [failure, setFailure] = useState<string | null>(null);
 
   const handleRemove = useCallback(() => {
     const result = removeObjectFromCollection(collectionId, item.slug);
     // Storage failure keeps the row in place; say why instead of staying mute.
-    setFailure(result.ok ? null : result.message);
-  }, [collectionId, item.slug]);
+    setFailure(result.ok ? null : collectionStoreFailureMessage(result.reason, messages.failures));
+  }, [collectionId, item.slug, messages]);
 
   return (
     <li className="list-none">
@@ -494,7 +536,9 @@ function SavedObjectRow({
           ) : null}
         </Link>
         <button
-          aria-label={`Remove ${item.canonical_name} from the collection`}
+          aria-label={formatMessageTemplate(messages.detail.removeObjectLabel, {
+            objectName: item.canonical_name,
+          })}
           className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
           onClick={handleRemove}
           type="button"

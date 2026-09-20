@@ -5,12 +5,20 @@ import { useCallback, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { collectionNameProblem, normalizeCollectionName } from "../lib/collections-model";
+import {
+  collectionDefaultNameHint,
+  collectionNameProblemMessage,
+  collectionStoreFailureMessage,
+} from "../lib/collections-messages";
+import { normalizeCollectionName } from "../lib/collections-model";
 import {
   createCollection,
   useCollectionsData,
   useCollectionsStatus,
 } from "../lib/collections-store";
+import { formatCountMessage } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionsMessages } from "../lib/i18n/messages/types";
 import {
   CollectionLoadingNote,
   CorruptedStoragePanel,
@@ -33,7 +41,10 @@ const primaryButtonClassName =
 const secondaryButtonClassName =
   "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
 
-export function CollectionsOverview() {
+export function CollectionsOverview({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: CollectionsMessages }>) {
   const status = useCollectionsStatus();
   const data = useCollectionsData();
   const router = useRouter();
@@ -53,14 +64,12 @@ export function CollectionsOverview() {
     <div className="space-y-10">
       <header className="max-w-3xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Your shelf
+          {messages.overview.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Collections</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Keep the objects you investigate — from Explore or Compare — in small personal sets.
-          Collections are saved in this browser on this device; they are not accounts and do not
-          sync elsewhere. Clearing this site&apos;s browser data will remove them.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.overview.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.overview.intro}</p>
       </header>
 
       <div className="flex flex-wrap gap-3">
@@ -70,28 +79,28 @@ export function CollectionsOverview() {
           onClick={() => setCreateOpen(true)}
           type="button"
         >
-          + Create a collection
+          {messages.overview.createAction}
         </button>
         <Link className={secondaryButtonClassName} href="/explore">
-          Explore objects
+          {messages.overview.exploreObjects}
         </Link>
       </div>
 
       <section aria-labelledby="your-collections-heading" className="space-y-4">
         <h2 id="your-collections-heading" className="sr-only">
-          Your collections
+          {messages.overview.sectionLabel}
         </h2>
         {status === "loading" ? (
-          <CollectionLoadingNote />
+          <CollectionLoadingNote messages={messages.shared} />
         ) : status === "unavailable" ? (
-          <StorageUnavailableNote context="page" />
+          <StorageUnavailableNote context="page" messages={messages.shared} />
         ) : status === "corrupted" ? (
-          <CorruptedStoragePanel />
+          <CorruptedStoragePanel messages={messages} />
         ) : data.collections.length === 0 ? (
           <div className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-8">
-            <h3 className="text-lg font-semibold">No collections yet</h3>
+            <h3 className="text-lg font-semibold">{messages.overview.emptyTitle}</h3>
             <p className="mt-2 leading-7 text-[var(--muted)]">
-              Create your first collection — then save objects to it while exploring or comparing.
+              {messages.overview.emptyDescription}
             </p>
             <p className="mt-4 flex flex-wrap gap-3">
               <button
@@ -100,16 +109,16 @@ export function CollectionsOverview() {
                 onClick={() => setCreateOpen(true)}
                 type="button"
               >
-                Create your first collection
+                {messages.overview.createFirstAction}
               </button>
               <Link className={secondaryButtonClassName} href="/explore">
-                Browse objects
+                {messages.overview.browseObjects}
               </Link>
             </p>
           </div>
         ) : (
           <ul
-            aria-label="Your collections"
+            aria-label={messages.overview.sectionLabel}
             className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
           >
             {data.collections.map((collection) => (
@@ -122,9 +131,11 @@ export function CollectionsOverview() {
                     {collection.name}
                   </span>
                   <span className="text-sm text-[var(--muted)]">
-                    {collection.items.length === 1
-                      ? "1 object"
-                      : `${collection.items.length} objects`}
+                    {formatCountMessage(
+                      messages.overview.objectCount,
+                      collection.items.length,
+                      locale,
+                    )}
                   </span>
                 </Link>
               </li>
@@ -134,24 +145,29 @@ export function CollectionsOverview() {
       </section>
 
       {createOpen ? (
-        <CreateCollectionDialog onClose={() => setCreateOpen(false)} onCreated={handleCreated} />
+        <CreateCollectionDialog
+          messages={messages}
+          onClose={() => setCreateOpen(false)}
+          onCreated={handleCreated}
+        />
       ) : null}
     </div>
   );
 }
 
 type CreateCollectionDialogProps = Readonly<{
+  messages: CollectionsMessages;
   onClose: () => void;
   onCreated: (collectionId: string) => void;
 }>;
 
 /** Accessible create flow: live validation hints, Enter submits, Escape cancels. */
-function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogProps) {
+function CreateCollectionDialog({ messages, onClose, onCreated }: CreateCollectionDialogProps) {
   const [name, setName] = useState("");
   const [storeProblem, setStoreProblem] = useState<string | null>(null);
   const existingCollections = useCollectionsData().collections;
 
-  const problem = collectionNameProblem(name);
+  const problem = collectionNameProblemMessage(name, messages.validation);
   const normalizedName = normalizeCollectionName(name).toLowerCase();
   const duplicate =
     problem === null &&
@@ -166,12 +182,12 @@ function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogPr
     if (!result.ok) {
       // Storage-level failure: say exactly what happened instead of doing
       // nothing, and never pretend the collection exists.
-      setStoreProblem(result.message);
+      setStoreProblem(collectionStoreFailureMessage(result.reason, messages.failures));
       return;
     }
     const createdId = result.collection?.id;
     if (createdId !== undefined) onCreated(createdId);
-  }, [duplicate, name, onCreated, problem]);
+  }, [duplicate, messages.failures, name, onCreated, problem]);
 
   // One always-present polite hint doubles as the accessible description, so
   // screen readers hear the requirement (or the exact problem) immediately —
@@ -180,15 +196,15 @@ function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogPr
     problem !== null
       ? problem
       : duplicate
-        ? "You already have a collection with this name."
-        : (storeProblem ?? "Up to 60 characters. You can rename it later.");
+        ? messages.validation.duplicateName
+        : (storeProblem ?? collectionDefaultNameHint(messages.validation));
 
   return (
     <ModalDialog
-      description="Collections live only in this browser on this device."
+      description={messages.overview.createDialogDescription}
       onClose={onClose}
       open
-      title="Create a collection"
+      title={messages.overview.createDialogTitle}
     >
       <form
         className="space-y-4"
@@ -199,7 +215,7 @@ function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogPr
       >
         <div className="space-y-2">
           <label className="block text-sm font-medium" htmlFor="create-collection-name">
-            Name
+            {messages.validation.nameLabel}
           </label>
           <input
             aria-describedby="create-collection-name-hint"
@@ -209,7 +225,7 @@ function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogPr
             id="create-collection-name"
             maxLength={80}
             onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Interesting Worlds"
+            placeholder={messages.validation.placeholder}
             type="text"
             value={name}
           />
@@ -223,10 +239,10 @@ function CreateCollectionDialog({ onClose, onCreated }: CreateCollectionDialogPr
         </div>
         <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
           <button className={secondaryButtonClassName} onClick={onClose} type="button">
-            Cancel
+            {messages.detail.cancelAction}
           </button>
           <button className={primaryButtonClassName} disabled={invalid} type="submit">
-            Create collection
+            {messages.overview.createSubmitAction}
           </button>
         </div>
       </form>

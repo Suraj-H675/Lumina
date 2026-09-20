@@ -86,6 +86,110 @@ export type DiscoveriesMessages = Readonly<{
   whyItMattersTitle: string;
 }>;
 
+export type CollectionsMessages = Readonly<{
+  addObject: Readonly<{
+    inputLabel: string;
+    placeholder: string;
+    savedAnnouncement: string;
+    suggestionsAvailable: CountMessageTemplates;
+  }>;
+  detail: Readonly<{
+    addDescription: string;
+    addHeading: string;
+    backToCollections: string;
+    cancelAction: string;
+    compareDescription: string;
+    compareEmpty: string;
+    compareHeading: string;
+    compareMaximumReached: string;
+    compareSelected: string;
+    compareSelectedWithCount: string;
+    deleteAction: string;
+    deleteCollectionAction: string;
+    deleteDescription: string;
+    deleteItemCount: CountMessageTemplates;
+    deleteTitle: string;
+    emptyDescription: string;
+    emptyTitle: string;
+    exploreCatalogue: string;
+    goToCollections: string;
+    keepCollectionAction: string;
+    missingDescription: string;
+    missingTitle: string;
+    objectCount: CountMessageTemplates;
+    objectsListLabel: string;
+    removeObjectLabel: string;
+    renameAction: string;
+    renameDescription: string;
+    renameTitle: string;
+    saveNameAction: string;
+    savedDescription: string;
+    savedHeading: string;
+    savedSummary: string;
+    selectObjectsLabel: string;
+  }>;
+  failures: Readonly<{
+    collectionLimit: string;
+    collectionNotFound: string;
+    duplicateName: string;
+    invalidName: string;
+    invalidObject: string;
+    itemLimit: string;
+    storageCorrupted: string;
+    storageUnavailable: string;
+    storageWriteFailed: string;
+  }>;
+  metadata: Readonly<{
+    detailDescription: string;
+    detailTitle: string;
+    overviewDescription: string;
+    overviewTitle: string;
+  }>;
+  overview: Readonly<{
+    browseObjects: string;
+    createAction: string;
+    createDialogDescription: string;
+    createDialogTitle: string;
+    createFirstAction: string;
+    createSubmitAction: string;
+    emptyDescription: string;
+    emptyTitle: string;
+    exploreObjects: string;
+    eyebrow: string;
+    intro: string;
+    objectCount: CountMessageTemplates;
+    sectionLabel: string;
+    title: string;
+  }>;
+  shared: Readonly<{
+    corrupted: Readonly<{
+      confirmResetAction: string;
+      description: string;
+      resetAction: string;
+      resetSuccess: string;
+      resetWarning: string;
+      title: string;
+    }>;
+    loading: string;
+    storageUnavailable: Readonly<{
+      pageDescription: string;
+      pickerDescription: string;
+      title: string;
+    }>;
+  }>;
+  validation: Readonly<{
+    blankName: string;
+    defaultHint: string;
+    duplicateName: string;
+    nameLabel: string;
+    placeholder: string;
+    renameHint: string;
+    tooLongName: string;
+  }>;
+}>;
+
+export type CollectionStateMessages = Pick<CollectionsMessages, "failures" | "shared">;
+
 export type LearnLandingMessages = Readonly<{
   eyebrow: string;
   intro: string;
@@ -568,6 +672,7 @@ export type StatusMessages = Readonly<{
 }>;
 
 export type LuminaMessages = Readonly<{
+  collections: CollectionsMessages;
   discoveries: DiscoveriesMessages;
   labIndex: LabIndexMessages;
   learn: LearnMessages;

@@ -1,6 +1,132 @@
 import type { LuminaMessages } from "./types";
 
 export const enMessages = {
+  collections: {
+    addObject: {
+      inputLabel: "Find an object to save in this collection",
+      placeholder: "e.g. K2-18",
+      savedAnnouncement: "Saved {objectName} to the collection.",
+      suggestionsAvailable: {
+        one: "{count} suggestion available",
+        other: "{count} suggestions available",
+      },
+    },
+    detail: {
+      addDescription: "Search the reviewed catalogue for something to save here.",
+      addHeading: "Add object",
+      backToCollections: "← Collections",
+      cancelAction: "Cancel",
+      compareDescription: "Choose 2–3 to compare — maximum {max}.",
+      compareEmpty: "Save at least two objects to compare them side by side.",
+      compareHeading: "Compare saved objects",
+      compareMaximumReached: "Maximum of {max} reached — unselect one to choose another.",
+      compareSelected: "⇄ Compare selected",
+      compareSelectedWithCount: "⇄ Compare selected ({count})",
+      deleteAction: "Delete",
+      deleteCollectionAction: "Delete collection",
+      deleteDescription:
+        "This removes “{collectionName}” from this browser only. The Lumina catalogue itself is not affected.",
+      deleteItemCount: {
+        one: "Its {count} saved object will be removed with it.",
+        other: "Its {count} saved objects will be removed with it.",
+      },
+      deleteTitle: "Delete {collectionName}?",
+      emptyDescription: "Add objects above, or save them while exploring the catalogue.",
+      emptyTitle: "No objects saved here yet",
+      exploreCatalogue: "Explore catalogue",
+      goToCollections: "Go to your collections",
+      keepCollectionAction: "Keep collection",
+      missingDescription:
+        "Collections are stored per browser. There is nothing saved under this address here.",
+      missingTitle: "This collection is not on this device",
+      objectCount: {
+        one: "{count} object",
+        other: "{count} objects",
+      },
+      objectsListLabel: "Objects in {collectionName}",
+      removeObjectLabel: "Remove {objectName} from the collection",
+      renameAction: "Rename",
+      renameDescription: "The collection keeps its saved objects.",
+      renameTitle: "Rename collection",
+      saveNameAction: "Save name",
+      savedDescription: "Identities are snapshots; open any object for its current reviewed data.",
+      savedHeading: "Saved objects",
+      savedSummary: "{countText} · Saved in this browser on this device",
+      selectObjectsLabel: "Select objects to compare",
+    },
+    failures: {
+      collectionLimit: "You have reached the maximum of {max} collections.",
+      collectionNotFound: "That collection no longer exists on this device.",
+      duplicateName: "You already have a collection with this name.",
+      invalidName: "Use a collection name from 1 to {max} characters.",
+      invalidObject: "That object has an invalid catalogue identity and could not be saved.",
+      itemLimit: "This collection has reached the maximum of {max} saved objects.",
+      storageCorrupted:
+        "Saved collections could not be read from this browser. Reset them from the Collections page to continue.",
+      storageUnavailable:
+        "Local storage is not available, so collections cannot be changed right now.",
+      storageWriteFailed:
+        "The browser refused the storage write. Nothing was changed; storage may be full or restricted.",
+    },
+    metadata: {
+      detailDescription:
+        "One of your object collections. Collections are stored locally in this browser on this device.",
+      detailTitle: "Collection",
+      overviewDescription:
+        "Create and browse your own collections of catalogue objects. Saved locally in this browser — no account needed.",
+      overviewTitle: "Collections",
+    },
+    overview: {
+      browseObjects: "Browse objects",
+      createAction: "+ Create a collection",
+      createDialogDescription: "Collections live only in this browser on this device.",
+      createDialogTitle: "Create a collection",
+      createFirstAction: "Create your first collection",
+      createSubmitAction: "Create collection",
+      emptyDescription:
+        "Create your first collection — then save objects to it while exploring or comparing.",
+      emptyTitle: "No collections yet",
+      exploreObjects: "Explore objects",
+      eyebrow: "Your shelf",
+      intro:
+        "Keep the objects you investigate — from Explore or Compare — in small personal sets. Collections are saved in this browser on this device; they are not accounts and do not sync elsewhere. Clearing this site's browser data will remove them.",
+      objectCount: {
+        one: "{count} object",
+        other: "{count} objects",
+      },
+      sectionLabel: "Your collections",
+      title: "Collections",
+    },
+    shared: {
+      corrupted: {
+        confirmResetAction: "Confirm reset — erase all local collections",
+        description:
+          "The data stored for collections in this browser could not be understood. Nothing has been changed or deleted. You can keep browsing, searching, and comparing normally, or reset collections below to start fresh.",
+        resetAction: "Reset local collections",
+        resetSuccess: "Local collections were cleared.",
+        resetWarning:
+          "Resetting erases every saved collection on this device. Confirm to continue.",
+        title: "Your saved collections could not be read",
+      },
+      loading: "Checking your saved collections…",
+      storageUnavailable: {
+        pageDescription:
+          "This browser is blocking site storage, so Lumina cannot save or show collections right now. Browsing, search, object pages, and comparison all keep working normally.",
+        pickerDescription:
+          "This browser is blocking site storage, so Lumina cannot save or show collections right now. Nothing was changed. Browsing, search, object pages, and comparison all keep working normally.",
+        title: "Local storage is unavailable",
+      },
+    },
+    validation: {
+      blankName: "Give the collection a name.",
+      defaultHint: "Up to {max} characters. You can rename it later.",
+      duplicateName: "You already have a collection with this name.",
+      nameLabel: "Name",
+      placeholder: "e.g. Interesting Worlds",
+      renameHint: "Up to {max} characters.",
+      tooLongName: "Keep the name within {max} characters.",
+    },
+  },
   discoveries: {
     backToMissionControl: "Back to Mission Control",
     bundleReviewed: "Bundle reviewed {reviewedAt}.",

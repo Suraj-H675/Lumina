@@ -301,4 +301,17 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.openLab).toBe("Open lab →");
     expect(messages.intro).toMatch(/reviewed Lumina laboratory/i);
   });
+
+  it("keeps Collections interface copy separate from local user data and stable store reasons", () => {
+    const messages = enMessages.collections;
+    expect(messages.metadata.overviewTitle).toBe("Collections");
+    expect(messages.overview.objectCount.one).toContain("{count}");
+    expect(messages.detail.objectsListLabel).toContain("{collectionName}");
+    expect(messages.detail.removeObjectLabel).toContain("{objectName}");
+    expect(messages.detail.deleteTitle).toContain("{collectionName}");
+    expect(messages.addObject.savedAnnouncement).toContain("{objectName}");
+    expect(messages.validation.tooLongName).toContain("{max}");
+    expect(messages.failures.collectionLimit).toContain("{max}");
+    expect(messages.shared.corrupted.confirmResetAction).toMatch(/confirm reset/i);
+  });
 });

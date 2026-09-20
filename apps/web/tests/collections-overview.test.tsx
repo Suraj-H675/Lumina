@@ -10,7 +10,14 @@ vi.mock("next/navigation", () => ({
 
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
 import * as store from "../src/lib/collections-store";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { CollectionsMessages } from "../src/lib/i18n/messages/types";
 import { CollectionsOverview } from "../src/components/collections-overview";
+
+function renderOverview(messages: CollectionsMessages = enMessages.collections) {
+  return render(<CollectionsOverview locale={DEFAULT_LOCALE} messages={messages} />);
+}
 
 /**
  * Component tests drive the REAL store against jsdom localStorage. State is
@@ -34,7 +41,7 @@ afterEach(() => {
 
 describe("CollectionsOverview", () => {
   it("shows the local-storage explanation and leads the empty state to Explore", async () => {
-    render(<CollectionsOverview />);
+    renderOverview();
 
     expect(await screen.findByRole("heading", { level: 1, name: "Collections" })).toBeVisible();
     expect(screen.getByText(/saved in this browser on this device/i)).toBeVisible();
@@ -50,7 +57,7 @@ describe("CollectionsOverview", () => {
 
   it("creates a collection through the dialog and navigates into it", async () => {
     const user = userEvent.setup();
-    render(<CollectionsOverview />);
+    renderOverview();
 
     await user.click(await screen.findByRole("button", { name: "+ Create a collection" }));
     const dialog = screen.getByRole("dialog", { name: "Create a collection" });
@@ -75,7 +82,7 @@ describe("CollectionsOverview", () => {
     reseedStorage(window.localStorage.getItem(COLLECTIONS_STORAGE_KEY) ?? "");
 
     const user = userEvent.setup();
-    render(<CollectionsOverview />);
+    renderOverview();
     await user.click(await screen.findByRole("button", { name: "+ Create a collection" }));
 
     const nameInput = screen.getByLabelText("Name");
@@ -100,7 +107,7 @@ describe("CollectionsOverview", () => {
 
   it("Escape closes the create dialog without saving", async () => {
     const user = userEvent.setup();
-    render(<CollectionsOverview />);
+    renderOverview();
     await user.click(await screen.findByRole("button", { name: "+ Create a collection" }));
     await user.type(screen.getByLabelText("Name"), "Ephemeral");
     await user.keyboard("{Escape}");
@@ -122,7 +129,7 @@ describe("CollectionsOverview", () => {
     store.createCollection("Beta");
     reseedStorage(window.localStorage.getItem(COLLECTIONS_STORAGE_KEY) ?? "");
 
-    render(<CollectionsOverview />);
+    renderOverview();
     const list = await screen.findByRole("list", { name: "Your collections" });
     const alphaLink = screen.getByRole("link", { name: /Alpha/ });
     expect(alphaLink).toHaveAttribute("href", `/collections/${created.collection.id}`);
@@ -133,7 +140,7 @@ describe("CollectionsOverview", () => {
   it("offers the two-step reset in the corrupted-recovery state and keeps data until confirmed", async () => {
     reseedStorage("{definitely not json");
     const user = userEvent.setup();
-    render(<CollectionsOverview />);
+    renderOverview();
 
     expect(
       await screen.findByRole("heading", { name: /your saved collections could not be read/i }),
@@ -160,17 +167,43 @@ describe("CollectionsOverview", () => {
     });
     try {
       const user = userEvent.setup();
-      render(<CollectionsOverview />);
+      renderOverview();
       await user.click(await screen.findByRole("button", { name: "+ Create a collection" }));
       const nameInput = screen.getByLabelText("Name");
       await user.type(nameInput, "Doomed");
       // The store refuses the write and the dialog announces it honestly.
       await user.click(screen.getByRole("button", { name: "Create collection" }));
-      expect(await screen.findByText(/blocking local storage/i)).toBeVisible();
+      expect(await screen.findByText(/local storage is not available/i)).toBeVisible();
       expect(nameInput).toBeInvalid();
       expect(pushMock).not.toHaveBeenCalled();
     } finally {
       setItem.mockRestore();
     }
+  });
+
+  it("localizes overview controls without rewriting user-created collection names", async () => {
+    store.createCollection("Deep Sky");
+    reseedStorage(window.localStorage.getItem(COLLECTIONS_STORAGE_KEY) ?? "");
+    const messages = {
+      ...enMessages.collections,
+      overview: {
+        ...enMessages.collections.overview,
+        createAction: "+ Localized create action",
+        sectionLabel: "Localized collections list",
+        title: "Localized Collections title",
+      },
+    } satisfies CollectionsMessages;
+
+    renderOverview(messages);
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Localized Collections title" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "+ Localized create action" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "Localized collections list" })).toBeVisible();
+    expect(screen.getByRole("link", { name: /Deep Sky/ })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/collections\//u),
+    );
   });
 });

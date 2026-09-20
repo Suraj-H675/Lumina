@@ -106,6 +106,8 @@ export type MutationFailureReason =
   | "collection-not-found"
   | "invalid-object";
 
+export type CollectionNameProblemReason = "blank" | "too-long";
+
 export type MutationSuccess<R = Record<string, never>> = Readonly<
   { data: CollectionsData; ok: true } & R
 >;
@@ -183,10 +185,20 @@ function isValidCollectionName(value: unknown): value is string {
  * combine this with {@link findDuplicateCollectionName}.
  */
 export function collectionNameProblem(raw: string): string | null {
-  const normalized = normalizeCollectionName(raw);
-  if (normalized.length === 0) return "Give the collection a name.";
-  if ([...normalized].length > COLLECTION_NAME_MAX_CODE_POINTS) {
+  const reason = collectionNameProblemReason(raw);
+  if (reason === "blank") return "Give the collection a name.";
+  if (reason === "too-long") {
     return `Keep the name within ${COLLECTION_NAME_MAX_CODE_POINTS} characters.`;
+  }
+  return null;
+}
+
+/** Stable validation reason for UI localization without parsing English text. */
+export function collectionNameProblemReason(raw: string): CollectionNameProblemReason | null {
+  const normalized = normalizeCollectionName(raw);
+  if (normalized.length === 0) return "blank";
+  if ([...normalized].length > COLLECTION_NAME_MAX_CODE_POINTS) {
+    return "too-long";
   }
   return null;
 }

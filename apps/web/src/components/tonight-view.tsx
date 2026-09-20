@@ -17,6 +17,7 @@ import {
   useCollectionsStatus,
   type CollectionsStatus,
 } from "../lib/collections-store";
+import type { CollectionStateMessages } from "../lib/i18n/messages/types";
 import {
   isValidNightDate,
   localDateString,
@@ -65,6 +66,7 @@ import {
 
 type TonightViewProps = Readonly<{
   apiOrigin?: string;
+  collectionStateMessages: CollectionStateMessages;
   initialDate?: string;
 }>;
 
@@ -218,12 +220,14 @@ function useTonightDetailLoad(
 }
 
 function CollectionScope({
+  collectionStateMessages,
   collectionsStatus,
   selectedCollectionId,
   collections,
   onChange,
 }: Readonly<{
   collections: ReadonlyArray<Readonly<{ id: string; items: ReadonlyArray<unknown>; name: string }>>;
+  collectionStateMessages: CollectionStateMessages;
   collectionsStatus: CollectionsStatus;
   onChange: (collectionId: string) => void;
   selectedCollectionId: string | null;
@@ -236,9 +240,15 @@ function CollectionScope({
         </h2>
         <span className="text-sm text-[var(--muted)]">One collection at a time</span>
       </div>
-      {collectionsStatus === "loading" ? <CollectionLoadingNote /> : null}
-      {collectionsStatus === "unavailable" ? <StorageUnavailableNote context="page" /> : null}
-      {collectionsStatus === "corrupted" ? <CorruptedStoragePanel /> : null}
+      {collectionsStatus === "loading" ? (
+        <CollectionLoadingNote messages={collectionStateMessages.shared} />
+      ) : null}
+      {collectionsStatus === "unavailable" ? (
+        <StorageUnavailableNote context="page" messages={collectionStateMessages.shared} />
+      ) : null}
+      {collectionsStatus === "corrupted" ? (
+        <CorruptedStoragePanel messages={collectionStateMessages} />
+      ) : null}
       {collectionsStatus === "ready" && collections.length === 0 ? (
         <div className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-7">
           <h3 className="text-lg font-semibold">Save objects to use Tonight</h3>
@@ -1112,7 +1122,7 @@ function AnalysisResults({
   );
 }
 
-export function TonightView({ apiOrigin, initialDate }: TonightViewProps) {
+export function TonightView({ apiOrigin, collectionStateMessages, initialDate }: TonightViewProps) {
   const router = useRouter();
   const collectionsStatus = useCollectionsStatus();
   const collectionsData = useCollectionsData();
@@ -1253,6 +1263,7 @@ export function TonightView({ apiOrigin, initialDate }: TonightViewProps) {
       </header>
 
       <CollectionScope
+        collectionStateMessages={collectionStateMessages}
         collections={collectionsData.collections}
         collectionsStatus={collectionsStatus}
         onChange={(collectionId) => {

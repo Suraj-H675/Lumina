@@ -12,6 +12,7 @@ import type { EntityDetailResponse, EntitySummaryResponse } from "@lumina/api-cl
 
 import { TonightView } from "../src/components/tonight-view";
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { localDateString } from "../src/lib/observation/domain";
 import { clearTonightCatalogueDetailCache } from "../src/lib/tonight/catalogue-loader";
 import { clearWeatherForecastCache } from "../src/lib/weather/use-observation-weather";
@@ -20,6 +21,10 @@ const ORIGIN = "http://127.0.0.1:8000";
 const NIGHT = "2026-08-27";
 const COLLECTION_ID = "11111111-2222-4333-8444-555555555555";
 const SECOND_COLLECTION_ID = "22222222-3333-4444-8555-666666666666";
+const COLLECTION_STATE_MESSAGES = {
+  failures: enMessages.collections.failures,
+  shared: enMessages.collections.shared,
+};
 
 const source = {
   dataset: {
@@ -197,7 +202,13 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
-    render(<TonightView apiOrigin={ORIGIN} initialDate={NIGHT} />);
+    render(
+      <TonightView
+        apiOrigin={ORIGIN}
+        collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        initialDate={NIGHT}
+      />,
+    );
 
     expect(await screen.findByRole("heading", { name: "Tonight" })).toBeVisible();
     expect(await screen.findByRole("combobox", { name: /collection to analyze/i })).toHaveValue(
@@ -247,7 +258,13 @@ describe("TonightView", () => {
     const fetchImplementation = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", fetchImplementation);
 
-    render(<TonightView apiOrigin={ORIGIN} initialDate={NIGHT} />);
+    render(
+      <TonightView
+        apiOrigin={ORIGIN}
+        collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        initialDate={NIGHT}
+      />,
+    );
 
     expect(await screen.findByText(/Save objects to use Tonight/i)).toBeVisible();
     expect(screen.getByRole("link", { name: "Open Collections" })).toHaveAttribute(
@@ -261,7 +278,7 @@ describe("TonightView", () => {
     window.localStorage.setItem(COLLECTIONS_STORAGE_KEY, "{corrupt");
     window.dispatchEvent(new StorageEvent("storage", { key: COLLECTIONS_STORAGE_KEY }));
 
-    render(<TonightView initialDate={NIGHT} />);
+    render(<TonightView collectionStateMessages={COLLECTION_STATE_MESSAGES} initialDate={NIGHT} />);
 
     expect(
       await screen.findByRole("heading", { name: /your saved collections could not be read/i }),
@@ -301,7 +318,13 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
-    render(<TonightView apiOrigin={ORIGIN} initialDate={today} />);
+    render(
+      <TonightView
+        apiOrigin={ORIGIN}
+        collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        initialDate={today}
+      />,
+    );
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -365,7 +388,13 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
-    render(<TonightView apiOrigin={ORIGIN} initialDate={today} />);
+    render(
+      <TonightView
+        apiOrigin={ORIGIN}
+        collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        initialDate={today}
+      />,
+    );
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -449,7 +478,13 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
-    render(<TonightView apiOrigin={ORIGIN} initialDate={NIGHT} />);
+    render(
+      <TonightView
+        apiOrigin={ORIGIN}
+        collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        initialDate={NIGHT}
+      />,
+    );
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));

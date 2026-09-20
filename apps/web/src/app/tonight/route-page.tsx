@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { TonightView } from "../../components/tonight-view";
+import type { CollectionStateMessages } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 type TonightPageProps = Readonly<{
+  collectionStateMessages: CollectionStateMessages;
   searchParams: Promise<Readonly<{ date?: string | string[] }>>;
 }>;
 
@@ -18,7 +20,10 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function TonightPage({ searchParams }: TonightPageProps) {
+export default async function TonightPage({
+  collectionStateMessages,
+  searchParams,
+}: TonightPageProps) {
   const params = await searchParams;
   const date = firstValue(params.date);
   const initialDate = date !== undefined && isValidNightDate(date) ? date : undefined;
@@ -28,6 +33,7 @@ export default async function TonightPage({ searchParams }: TonightPageProps) {
   return (
     <TonightView
       {...(apiOrigin === undefined ? {} : { apiOrigin })}
+      collectionStateMessages={collectionStateMessages}
       {...(initialDate === undefined ? {} : { initialDate })}
     />
   );

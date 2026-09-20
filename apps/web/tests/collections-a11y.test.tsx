@@ -9,6 +9,8 @@ vi.mock("next/navigation", () => ({
 
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
 import * as store from "../src/lib/collections-store";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { CollectionsOverview } from "../src/components/collections-overview";
 import { CollectionDetailView } from "../src/components/collection-detail-view";
 import {
@@ -34,14 +36,18 @@ beforeEach(() => {
 
 describe("collections accessibility (axe)", () => {
   it("empty overview passes", async () => {
-    const { container } = render(<CollectionsOverview />);
+    const { container } = render(
+      <CollectionsOverview locale={DEFAULT_LOCALE} messages={enMessages.collections} />,
+    );
     expect((await axe(container)).violations).toEqual([]);
   });
 
   it("populated overview passes", async () => {
     store.createCollection("Alpha");
     store.createCollection("Beta");
-    const { container } = render(<CollectionsOverview />);
+    const { container } = render(
+      <CollectionsOverview locale={DEFAULT_LOCALE} messages={enMessages.collections} />,
+    );
     expect((await axe(container)).violations).toEqual([]);
   });
 
@@ -53,7 +59,13 @@ describe("collections accessibility (axe)", () => {
       { canonical_name: "Kepler-186", entity_type: "star", slug: "kepler-186" },
       { canonical_name: "Kepler-452", entity_type: "star", slug: "kepler-452" },
     ]);
-    const { container } = render(<CollectionDetailView collectionId={created.collection.id} />);
+    const { container } = render(
+      <CollectionDetailView
+        collectionId={created.collection.id}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.collections}
+      />,
+    );
     expect((await axe(container)).violations).toEqual([]);
   });
 
@@ -83,7 +95,9 @@ describe("collections accessibility (axe)", () => {
   it("corrupted-recovery panel passes", async () => {
     window.localStorage.setItem(COLLECTIONS_STORAGE_KEY, "{corrupt");
     window.dispatchEvent(new StorageEvent("storage", { key: COLLECTIONS_STORAGE_KEY }));
-    const { container } = render(<CollectionsOverview />);
+    const { container } = render(
+      <CollectionsOverview locale={DEFAULT_LOCALE} messages={enMessages.collections} />,
+    );
     expect((await axe(container)).violations).toEqual([]);
   });
 });

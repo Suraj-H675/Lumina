@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { CollectionDetailView } from "../../../components/collection-detail-view";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { CollectionsMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 
 /**
@@ -8,17 +10,22 @@ import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
  * (and must not) reflect its name; the truthful generic title comes from the
  * layout template. The page shell is still server-rendered.
  */
-export const metadata: Metadata = {
-  description:
-    "One of your object collections. Collections are stored locally in this browser on this device.",
-  title: "Collection",
-};
+export function createCollectionDetailMetadata(
+  messages: CollectionsMessages["metadata"],
+): Metadata {
+  return {
+    description: messages.detailDescription,
+    title: messages.detailTitle,
+  };
+}
 
 type CollectionPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: CollectionsMessages;
   params: Promise<Readonly<{ collectionId: string }>>;
 }>;
 
-export default async function CollectionPage({ params }: CollectionPageProps) {
+export default async function CollectionPage({ locale, messages, params }: CollectionPageProps) {
   const { collectionId } = await params;
 
   // Public API origin for bounded typeahead adds; carries no secrets.
@@ -29,6 +36,8 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     <CollectionDetailView
       {...(apiOrigin === undefined ? {} : { apiOrigin })}
       collectionId={collectionId}
+      locale={locale}
+      messages={messages}
     />
   );
 }

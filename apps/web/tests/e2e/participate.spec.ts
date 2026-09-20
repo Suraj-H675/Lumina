@@ -82,15 +82,22 @@ test.describe("Phase 8A — Participate", () => {
   }, testInfo) => {
     await setParticipateStubMode(testInfo, "stale");
     await page.goto("/participate");
-    await expect(page.getByText("Project status may be stale")).toBeVisible();
+    await expect(page.locator("#participate-freshness-heading")).toHaveText(
+      "Project status may be stale",
+    );
     await expect(
-      page.getByText(/Currently public and live — status may be stale/).first(),
+      page
+        .locator('section[aria-labelledby="participate-projects-heading"]')
+        .getByText(/Currently public and live — status may be stale/)
+        .first(),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Galaxy Zoo" })).toBeVisible();
 
     await setParticipateStubMode(testInfo, "unavailable");
     await page.goto("/participate");
-    await expect(page.getByText("Current project status unavailable").first()).toBeVisible();
+    await expect(page.locator("#participate-freshness-heading")).toHaveText(
+      "Current project status unavailable",
+    );
     await expect(page.getByText("Currently public and live")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Galaxy Zoo" })).toBeVisible();
     await expect(page.locator("#participate-challenges-heading")).toHaveText(

@@ -5,13 +5,19 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
 import { entityTypeLabel } from "../lib/catalog-display";
+import { collectionStoreFailureMessage } from "../lib/collections-messages";
 import { addObjectsToCollection, useCollectionsData } from "../lib/collections-store";
+import { formatCountMessage, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CollectionsMessages } from "../lib/i18n/messages/types";
 import { useSuggestCatalogue } from "./use-suggest-catalogue";
 
 type AddObjectToCollectionControlProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
   collectionId: string;
+  locale: PublishedLocale;
+  messages: CollectionsMessages;
 }>;
 
 /**
@@ -26,6 +32,8 @@ type AddObjectToCollectionControlProps = Readonly<{
 export function AddObjectToCollectionControl({
   apiOrigin,
   collectionId,
+  locale,
+  messages,
 }: AddObjectToCollectionControlProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -99,10 +107,14 @@ export function AddObjectToCollectionControl({
         },
       ]);
       setAnnouncement(
-        result.ok ? `Saved ${suggestion.canonical_name} to the collection.` : result.message,
+        result.ok
+          ? formatMessageTemplate(messages.addObject.savedAnnouncement, {
+              objectName: suggestion.canonical_name,
+            })
+          : collectionStoreFailureMessage(result.reason, messages.failures),
       );
     },
-    [collectionId, reset],
+    [collectionId, messages, reset],
   );
 
   const handleKeyDown = useCallback(
@@ -149,7 +161,7 @@ export function AddObjectToCollectionControl({
   return (
     <div onBlur={dismissOnBlur} ref={containerRef}>
       <label className="sr-only" htmlFor={inputId}>
-        Find an object to save in this collection
+        {messages.addObject.inputLabel}
       </label>
       <div className="flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 focus-within:border-[var(--border-strong)]">
         <span aria-hidden="true" className="text-[var(--muted)]">
@@ -167,7 +179,7 @@ export function AddObjectToCollectionControl({
           onChange={(event) => handleInputChange(event.target.value)}
           onFocus={() => setInputFocused(true)}
           onKeyDown={handleKeyDown}
-          placeholder="e.g. K2-18"
+          placeholder={messages.addObject.placeholder}
           role="combobox"
           type="search"
           value={query}
@@ -175,7 +187,7 @@ export function AddObjectToCollectionControl({
       </div>
       <p aria-live="polite" className="sr-only" role="status">
         {open && suggestions.length > 0
-          ? `${suggestions.length} suggestion${suggestions.length === 1 ? "" : "s"} available`
+          ? formatCountMessage(messages.addObject.suggestionsAvailable, suggestions.length, locale)
           : announcement}
       </p>
       {open && suggestions.length > 0 ? (

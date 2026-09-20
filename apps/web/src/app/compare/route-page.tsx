@@ -3,8 +3,13 @@ import type { Metadata } from "next";
 import { CompareView } from "../../components/compare-view";
 import { buildCompareModel } from "../../lib/compare-model";
 import { compareSelectionFromSearchParams } from "../../lib/compare-url";
+import { formatMessageTemplate } from "../../lib/i18n/format";
 import type { PublishedLocale } from "../../lib/i18n/locales";
-import type { CollectionSaveMessages } from "../../lib/i18n/messages/types";
+import type {
+  CollectionSaveMessages,
+  CompareMessages,
+  EntityTypeMessages,
+} from "../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadCompareObjectsPerRequest } from "../../lib/server/compare";
 
@@ -14,7 +19,9 @@ type CompareRoutePageProps = Readonly<{
 
 type ComparePageProps = Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
+  messages: CompareMessages;
   searchParams: CompareRoutePageProps["searchParams"];
 }>;
 
@@ -23,10 +30,13 @@ type ComparePageProps = Readonly<{
  * actually loaded; every other state gets the generic truthful title. No
  * descriptive science copy is invented.
  */
-export async function generateMetadata({ searchParams }: CompareRoutePageProps): Promise<Metadata> {
+export async function createCompareMetadata(
+  { searchParams }: CompareRoutePageProps,
+  messages: CompareMessages["metadata"],
+): Promise<Metadata> {
   const params = await searchParams;
   const selection = compareSelectionFromSearchParams(params);
-  let title = "Compare catalogue objects";
+  let title = messages.genericTitle;
   if (selection.slugs.length >= 2) {
     const states = await loadCompareObjectsPerRequest(selection.slugs);
     const names: Array<string> = [];
@@ -36,12 +46,22 @@ export async function generateMetadata({ searchParams }: CompareRoutePageProps):
     }
     // The root layout template supplies the "— Lumina" suffix.
     if (names.length === selection.slugs.length) {
-      title = names.join(" vs ");
+      if (names.length === 2) {
+        title = formatMessageTemplate(messages.twoObjectTitle, {
+          first: names[0] ?? "",
+          second: names[1] ?? "",
+        });
+      } else if (names.length === 3) {
+        title = formatMessageTemplate(messages.threeObjectTitle, {
+          first: names[0] ?? "",
+          second: names[1] ?? "",
+          third: names[2] ?? "",
+        });
+      }
     }
   }
   return {
-    description:
-      "Compare reviewed astronomical measurements side by side, with every value's source attached.",
+    description: messages.description,
     title,
   };
 }
@@ -54,7 +74,9 @@ export async function generateMetadata({ searchParams }: CompareRoutePageProps):
  */
 export default async function ComparePage({
   collectionSaveMessages,
+  entityTypeMessages,
   locale,
+  messages,
   searchParams,
 }: ComparePageProps) {
   const params = await searchParams;
@@ -74,19 +96,20 @@ export default async function ComparePage({
     <div className="space-y-10">
       <header className="max-w-3xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          The catalogue
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Compare</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Put up to three catalogue objects side by side. Every value keeps its exact units and its
-          source — Lumina compares published measurements honestly and never scores them.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       <CompareView
         {...(apiOrigin === undefined ? {} : { apiOrigin })}
         collectionSaveMessages={collectionSaveMessages}
+        entityTypeMessages={entityTypeMessages}
         locale={locale}
+        messages={messages}
         model={model}
         selectedSlugs={selection.slugs}
       />

@@ -2,9 +2,14 @@ import Link from "next/link";
 
 import type { CompareCell, CompareModel, CompareObjectState } from "../lib/compare-model";
 import { COMPARE_MAX_OBJECTS } from "../lib/compare-url";
-import { entityTypeLabel, formatMeasurementValue } from "../lib/catalog-display";
+import { formatMeasurementValue } from "../lib/catalog-display";
+import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
+import type {
+  CollectionSaveMessages,
+  CompareMessages,
+  EntityTypeMessages,
+} from "../lib/i18n/messages/types";
 import { CompareAddObject } from "./compare-add-object";
 import { CompareRemoveButton } from "./compare-remove-button";
 import { CompareSaveSelected } from "./compare-save-selected";
@@ -13,7 +18,9 @@ type CompareViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
   collectionSaveMessages: CollectionSaveMessages;
+  entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
+  messages: CompareMessages;
   model: CompareModel;
   selectedSlugs: ReadonlyArray<string>;
 }>;
@@ -24,45 +31,62 @@ type SlotIdentity = Readonly<{
   meta: string;
 }>;
 
-function slotIdentity(state: CompareObjectState): SlotIdentity {
+function slotIdentity(
+  state: CompareObjectState,
+  messages: CompareMessages["slots"],
+  entityTypeMessages: EntityTypeMessages,
+): SlotIdentity {
   switch (state.kind) {
     case "ok":
       return {
         heading: state.detail.canonical_name,
         href: `/objects/${state.slug}`,
-        meta: entityTypeLabel(state.detail.entity_type),
+        meta: entityTypeMessages[state.detail.entity_type],
       };
     case "unknown":
       return {
-        heading: "Unknown object",
+        heading: messages.unknownTitle,
         href: null,
-        meta: `“${state.slug}” is not in the catalogue`,
+        meta: formatMessageTemplate(messages.unknownDescription, { slug: state.slug }),
       };
     case "unavailable":
       return {
-        heading: "Unavailable right now",
+        heading: messages.unavailableTitle,
         href: null,
-        meta: "The catalogue service could not be reached for this object.",
+        meta: messages.unavailableDescription,
       };
   }
 }
 
 function unavailableText(
   kind: Extract<CompareCell, { kind: "unknown" | "unavailable" | "unmeasured" }>["kind"],
+  messages: CompareMessages["cells"],
 ) {
   switch (kind) {
     case "unknown":
-      return "No catalogue object";
+      return messages.unknown;
     case "unavailable":
-      return "Not available";
+      return messages.unavailable;
     case "unmeasured":
-      return "Tracked, no canonical selection yet";
+      return messages.unmeasured;
   }
 }
 
-function CellValue({ cell }: Readonly<{ cell: CompareCell }>) {
+function CellValue({
+  cell,
+  locale,
+  messages,
+}: Readonly<{
+  cell: CompareCell;
+  locale: PublishedLocale;
+  messages: CompareMessages["cells"];
+}>) {
   if (cell.kind !== "value") {
-    return <span className="text-sm text-[var(--muted)] italic">{unavailableText(cell.kind)}</span>;
+    return (
+      <span className="text-sm text-[var(--muted)] italic">
+        {unavailableText(cell.kind, messages)}
+      </span>
+    );
   }
   return (
     <span className="block">
@@ -71,31 +95,48 @@ function CellValue({ cell }: Readonly<{ cell: CompareCell }>) {
       </span>{" "}
       <span className="text-sm text-[var(--accent)]">{cell.measurement.unitSymbol}</span>
       <span className="mt-0.5 block text-xs text-[var(--muted)]">
-        {cell.measurementCount > 1
-          ? `${cell.measurementCount} measurements recorded — canonical selection shown · `
-          : ""}
-        source: {cell.measurement.sourceLabel}
+        {cell.measurementCount === 1
+          ? formatMessageTemplate(messages.measurementDetails.one, {
+              sourceLabel: cell.measurement.sourceLabel,
+            })
+          : formatMessageTemplate(messages.measurementDetails.multiple, {
+              count: formatLocaleNumber(cell.measurementCount, locale),
+              sourceLabel: cell.measurement.sourceLabel,
+            })}
       </span>
       <span className="mt-0.5 block text-xs text-[var(--muted)]">
-        original: {cell.measurement.originalValue} {cell.measurement.originalUnit}
+        {formatMessageTemplate(messages.original, {
+          originalUnit: cell.measurement.originalUnit,
+          originalValue: cell.measurement.originalValue,
+        })}
       </span>
     </span>
   );
 }
 
-function EmptyCompare({ apiOrigin }: Readonly<{ apiOrigin?: string }>) {
+function EmptyCompare({
+  apiOrigin,
+  locale,
+  messages,
+}: Readonly<{
+  apiOrigin?: string;
+  locale: PublishedLocale;
+  messages: CompareMessages;
+}>) {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8">
-        <h2 className="text-xl font-semibold">Nothing selected yet</h2>
-        <p className="mt-2 leading-7 text-[var(--muted)]">
-          Add two or three objects to see their reviewed measurements side by side, each with its
-          own source. Lumina compares published values honestly — it never scores or ranks them.
-        </p>
+        <h2 className="text-xl font-semibold">{messages.empty.title}</h2>
+        <p className="mt-2 leading-7 text-[var(--muted)]">{messages.empty.description}</p>
       </div>
       <section aria-labelledby="compare-add-heading" className="space-y-3">
-        <h2 id="compare-add-heading">Add an object</h2>
-        <CompareAddObject {...(apiOrigin === undefined ? {} : { apiOrigin })} selectedSlugs={[]} />
+        <h2 id="compare-add-heading">{messages.empty.addHeading}</h2>
+        <CompareAddObject
+          {...(apiOrigin === undefined ? {} : { apiOrigin })}
+          locale={locale}
+          messages={messages.add}
+          selectedSlugs={[]}
+        />
       </section>
     </div>
   );
@@ -108,7 +149,9 @@ function EmptyCompare({ apiOrigin }: Readonly<{ apiOrigin?: string }>) {
 export function CompareView({
   apiOrigin,
   collectionSaveMessages,
+  entityTypeMessages,
   locale,
+  messages,
   model,
   selectedSlugs,
 }: CompareViewProps) {
@@ -117,10 +160,18 @@ export function CompareView({
   const loadedCount = objects.filter((state) => state.kind === "ok").length;
 
   if (objects.length === 0) {
-    return <EmptyCompare {...(apiOrigin === undefined ? {} : { apiOrigin })} />;
+    return (
+      <EmptyCompare
+        {...(apiOrigin === undefined ? {} : { apiOrigin })}
+        locale={locale}
+        messages={messages}
+      />
+    );
   }
 
-  const identities = objects.map(slotIdentity);
+  const identities = objects.map((state) =>
+    slotIdentity(state, messages.slots, entityTypeMessages),
+  );
   // Save-the-objects payload: only successfully loaded slots contribute an
   // identity snapshot; unknown/unavailable slots are not catalogue objects.
   const saveableIdentities = objects.flatMap((state) =>
@@ -137,20 +188,17 @@ export function CompareView({
   // Invite a second object only when there is room to actually add one; when
   // the comparison is full (or only unknown/unavailable slots remain), that
   // state is communicated by the selector itself instead of contradicting it.
-  const partialCopy =
-    loadedCount === 1 && !atMaximum
-      ? "Add one more object to start the side-by-side comparison."
-      : null;
+  const partialCopy = loadedCount === 1 && !atMaximum ? messages.selection.partial : null;
 
   return (
     <div className="space-y-10">
       {/* B. Object selector */}
       <section aria-labelledby="compare-selection-heading" className="space-y-4">
         <h2 className="sr-only" id="compare-selection-heading">
-          Selected objects
+          {messages.selection.heading}
         </h2>
         <ul
-          aria-label="Selected compare objects"
+          aria-label={messages.selection.ariaLabel}
           className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4"
         >
           {identities.map((identity, index) => (
@@ -176,6 +224,7 @@ export function CompareView({
               {selectedSlugs[index] !== undefined ? (
                 <CompareRemoveButton
                   displayName={identity.heading}
+                  removeAction={messages.removeAction}
                   removeSlug={selectedSlugs[index] as string}
                   slugs={selectedSlugs}
                 />
@@ -186,12 +235,16 @@ export function CompareView({
             <li className="h-full rounded-md border border-dashed border-[var(--border-strong)] px-4 py-2">
               <CompareAddObject
                 {...(apiOrigin === undefined ? {} : { apiOrigin })}
+                locale={locale}
+                messages={messages.add}
                 selectedSlugs={selectedSlugs}
               />
             </li>
           ) : (
             <li className="flex h-full items-center rounded-md border border-dashed border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)]">
-              Comparison full — {COMPARE_MAX_OBJECTS} objects maximum. Remove one to add another.
+              {formatMessageTemplate(messages.selection.full, {
+                count: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
+              })}
             </li>
           )}
         </ul>
@@ -212,26 +265,23 @@ export function CompareView({
       {loadedCount === 0 ? (
         <section aria-labelledby="compare-data-heading" className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-            <h2 id="compare-data-heading">Scientific comparison</h2>
-            <span className="text-sm text-[var(--muted)]">Nothing to compare yet.</span>
+            <h2 id="compare-data-heading">{messages.comparison.heading}</h2>
+            <span className="text-sm text-[var(--muted)]">{messages.comparison.emptySummary}</span>
           </div>
-          <p className="leading-7 text-[var(--muted)]">
-            None of the selected slots could be loaded from the catalogue right now. The selection
-            stays in the address bar, so you can retry in a moment or remove the slots above.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.comparison.emptyDescription}</p>
         </section>
       ) : (
         <>
           {/* C. Identity comparison */}
           <section aria-labelledby="compare-identity-heading" className="space-y-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-              <h2 id="compare-identity-heading">Identity</h2>
+              <h2 id="compare-identity-heading">{messages.comparison.identityHeading}</h2>
               <span className="text-sm text-[var(--muted)]">
-                Canonical identities from the reviewed catalogue.
+                {messages.comparison.identitySummary}
               </span>
             </div>
             <ul
-              aria-label="Identity comparison"
+              aria-label={messages.comparison.identityAriaLabel}
               className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
             >
               {identities.map((identity, index) =>
@@ -256,25 +306,22 @@ export function CompareView({
           {/* D/E. Scientific comparison with per-value provenance */}
           <section aria-labelledby="compare-data-heading" className="space-y-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-              <h2 id="compare-data-heading">Scientific comparison</h2>
+              <h2 id="compare-data-heading">{messages.comparison.heading}</h2>
               <span className="text-sm text-[var(--muted)]">
-                Values keep their exact units and sources; competing measurements stay visible
-                through the recorded count. Nothing here is scored or ranked.
+                {messages.comparison.scienceSummary}
               </span>
             </div>
 
             {/* Desktop matrix */}
             <table className="hidden w-full border-collapse lg:table">
-              <caption className="sr-only">
-                Side-by-side comparison of measured quantities; every value shows its source.
-              </caption>
+              <caption className="sr-only">{messages.comparison.tableCaption}</caption>
               <thead>
                 <tr>
                   <th
                     className="w-56 border-b border-[var(--border)] pb-2 pr-4 text-left text-sm font-medium text-[var(--muted)]"
                     scope="col"
                   >
-                    Quantity
+                    {messages.comparison.quantityHeading}
                   </th>
                   {identities.map((identity, index) => (
                     <th
@@ -306,7 +353,7 @@ export function CompareView({
                         className="border-b border-[var(--border)] py-4 pr-6"
                         key={selectedSlugs[index] ?? `cell-${index}`}
                       >
-                        <CellValue cell={cell} />
+                        <CellValue cell={cell} locale={locale} messages={messages.cells} />
                       </td>
                     ))}
                   </tr>
@@ -315,7 +362,10 @@ export function CompareView({
             </table>
 
             {/* Mobile / tablet: quantity-by-quantity stacked sections */}
-            <ul aria-label="Quantity comparisons" className="list-none space-y-8 p-0 lg:hidden">
+            <ul
+              aria-label={messages.comparison.quantityListAriaLabel}
+              className="list-none space-y-8 p-0 lg:hidden"
+            >
               {rows.map((row) => (
                 <li className="space-y-3" key={row.quantityCode}>
                   <h3 className="border-b border-[var(--border)] pb-1 text-lg font-semibold">
@@ -331,7 +381,7 @@ export function CompareView({
                         <p className="text-sm font-semibold text-[var(--foreground)]">
                           {identities[index]?.heading}
                         </p>
-                        <CellValue cell={cell} />
+                        <CellValue cell={cell} locale={locale} messages={messages.cells} />
                       </li>
                     ))}
                   </ul>
@@ -347,7 +397,7 @@ export function CompareView({
           className="inline-flex min-h-11 items-center gap-2 font-medium text-[var(--link)] underline"
           href="/explore"
         >
-          ← Back to Explore
+          {messages.footerBackToExplore}
         </Link>
       </footer>
     </div>

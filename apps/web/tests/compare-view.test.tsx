@@ -17,6 +17,12 @@ import { CompareView } from "../src/components/compare-view";
 import { fixtureDetail } from "./support/compare-fixtures";
 
 const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
+const DEFAULT_COMPARE_PROPS = {
+  collectionSaveMessages: SAVE_MESSAGES,
+  entityTypeMessages: enMessages.entityTypes,
+  locale: DEFAULT_LOCALE,
+  messages: enMessages.compare,
+} as const;
 
 afterEach(() => {
   pushMock.mockReset();
@@ -32,12 +38,7 @@ function twoObjectModel(): CompareModel {
 describe("CompareView", () => {
   it("renders the empty state with the add-object control", () => {
     render(
-      <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
-        model={buildCompareModel([])}
-        selectedSlugs={[]}
-      />,
+      <CompareView {...DEFAULT_COMPARE_PROPS} model={buildCompareModel([])} selectedSlugs={[]} />,
     );
     expect(screen.getByRole("heading", { name: "Nothing selected yet" })).toBeVisible();
     expect(screen.getByRole("combobox", { name: /add an object to compare/i })).toBeEnabled();
@@ -45,14 +46,7 @@ describe("CompareView", () => {
 
   it("shows the one-object partial state inviting another object", () => {
     const model = buildCompareModel([{ detail: fixtureDetail.k2_18, kind: "ok", slug: "k2-18" }]);
-    render(
-      <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
-        model={model}
-        selectedSlugs={["k2-18"]}
-      />,
-    );
+    render(<CompareView {...DEFAULT_COMPARE_PROPS} model={model} selectedSlugs={["k2-18"]} />);
 
     // A polite live region invites adding another object.
     expect(
@@ -68,8 +62,7 @@ describe("CompareView", () => {
   it("renders the desktop matrix with provenance per value", () => {
     render(
       <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
+        {...DEFAULT_COMPARE_PROPS}
         model={twoObjectModel()}
         selectedSlugs={["k2-18", "kepler-452"]}
       />,
@@ -91,6 +84,71 @@ describe("CompareView", () => {
     expect(document.body.textContent).not.toMatch(/\b(winner|better|worse|best|score)\b/i);
   });
 
+  it("localizes Compare chrome without rewriting catalogue science, identity, or URLs", async () => {
+    const messages = {
+      ...enMessages.compare,
+      cells: {
+        ...enMessages.compare.cells,
+        measurementDetails: {
+          one: "Fixture source {sourceLabel}",
+          multiple: "Fixture {count} sources {sourceLabel}",
+        },
+        original: "Fixture original {originalValue} {originalUnit}",
+      },
+      comparison: {
+        ...enMessages.compare.comparison,
+        heading: "Fixture scientific comparison",
+        identityHeading: "Fixture identity",
+      },
+      removeAction: "Fixture remove {displayName}",
+      selection: {
+        ...enMessages.compare.selection,
+        ariaLabel: "Fixture selected objects",
+      },
+    };
+    const entityTypes = {
+      ...enMessages.entityTypes,
+      star: "Fixture star",
+    };
+
+    render(
+      <CompareView
+        {...DEFAULT_COMPARE_PROPS}
+        entityTypeMessages={entityTypes}
+        messages={messages}
+        model={twoObjectModel()}
+        selectedSlugs={["k2-18", "kepler-452"]}
+      />,
+    );
+
+    expect(screen.getByRole("list", { name: "Fixture selected objects" })).toBeVisible();
+    expect(screen.getAllByText("Fixture star").length).toBeGreaterThan(0);
+    for (const link of screen.getAllByRole("link", { name: "K2-18" })) {
+      expect(link).toHaveAttribute("href", "/objects/k2-18");
+    }
+    for (const link of screen.getAllByRole("link", { name: "Kepler-452" })) {
+      expect(link).toHaveAttribute("href", "/objects/kepler-452");
+    }
+    expect(screen.getByRole("heading", { name: "Fixture identity" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture scientific comparison" })).toBeVisible();
+    expect(
+      screen.getAllByText(/Gaia G-band mean magnitude \(Vega scale\)/u).length,
+    ).toBeGreaterThan(0);
+    expect(document.body.textContent).toContain("12.4008");
+    expect(document.body.textContent).toContain("13.3929");
+    expect(document.body.textContent).toContain("mag");
+    expect(document.body.textContent).toContain(
+      "ESA Gaia Archive · Gaia Data Release 3 main source catalogue (dr3)",
+    );
+    expect(document.body.textContent).toContain("Fixture original 12.400764 mag");
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Fixture remove K2-18" }));
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/compare?object=kepler-452");
+    });
+  });
+
   it("marks missing cells as unavailable without color-only signalling", () => {
     const detail = {
       ...fixtureDetail.kepler452,
@@ -102,8 +160,7 @@ describe("CompareView", () => {
     ]);
     render(
       <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
+        {...DEFAULT_COMPARE_PROPS}
         model={model}
         selectedSlugs={["k2-18", "kepler-452"]}
       />,
@@ -119,8 +176,7 @@ describe("CompareView", () => {
     ]);
     render(
       <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
+        {...DEFAULT_COMPARE_PROPS}
         model={model}
         selectedSlugs={["k2-18", "ghost-planet"]}
       />,
@@ -144,8 +200,7 @@ describe("CompareView", () => {
     ]);
     render(
       <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
+        {...DEFAULT_COMPARE_PROPS}
         model={model}
         selectedSlugs={["k2-18", "kepler-452", "hd-209458"]}
       />,
@@ -158,8 +213,7 @@ describe("CompareView", () => {
   it("removes a selected object through the committed URL", async () => {
     render(
       <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
+        {...DEFAULT_COMPARE_PROPS}
         model={twoObjectModel()}
         selectedSlugs={["k2-18", "kepler-452"]}
       />,

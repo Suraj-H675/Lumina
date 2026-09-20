@@ -14,6 +14,12 @@ import { CompareView } from "../src/components/compare-view";
 import { fixtureDetail } from "./support/compare-fixtures";
 
 const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
+const DEFAULT_COMPARE_PROPS = {
+  collectionSaveMessages: SAVE_MESSAGES,
+  entityTypeMessages: enMessages.entityTypes,
+  locale: DEFAULT_LOCALE,
+  messages: enMessages.compare,
+} as const;
 
 describe("CompareView accessibility", () => {
   it("passes an axe scan with a loaded two-object comparison", async () => {
@@ -23,8 +29,7 @@ describe("CompareView accessibility", () => {
     ]);
     const { container } = render(
       <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
+        {...DEFAULT_COMPARE_PROPS}
         model={model}
         selectedSlugs={["k2-18", "kepler-452"]}
       />,
@@ -34,12 +39,7 @@ describe("CompareView accessibility", () => {
 
   it("passes an axe scan in the empty state", async () => {
     const { container } = render(
-      <CompareView
-        collectionSaveMessages={SAVE_MESSAGES}
-        locale={DEFAULT_LOCALE}
-        model={buildCompareModel([])}
-        selectedSlugs={[]}
-      />,
+      <CompareView {...DEFAULT_COMPARE_PROPS} model={buildCompareModel([])} selectedSlugs={[]} />,
     );
     expect((await axe(container)).violations).toEqual([]);
   });

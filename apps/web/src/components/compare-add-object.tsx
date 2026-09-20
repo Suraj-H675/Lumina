@@ -6,6 +6,9 @@ import { useCallback, useId, useMemo, useRef, useState } from "react";
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
 import { COMPARE_MAX_OBJECTS } from "../lib/compare-url";
+import { formatCountMessage } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CompareMessages } from "../lib/i18n/messages/types";
 import { useSuggestCatalogue } from "./use-suggest-catalogue";
 
 type CompareAddObjectProps = Readonly<{
@@ -13,6 +16,8 @@ type CompareAddObjectProps = Readonly<{
   selectedSlugs: ReadonlyArray<string>;
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
+  locale: PublishedLocale;
+  messages: CompareMessages["add"];
 }>;
 
 /**
@@ -21,7 +26,12 @@ type CompareAddObjectProps = Readonly<{
  * server-side). Selecting a suggestion appends its slug to the committed
  * repeated `object` query parameters — the URL remains the only state store.
  */
-export function CompareAddObject({ apiOrigin, selectedSlugs }: CompareAddObjectProps) {
+export function CompareAddObject({
+  apiOrigin,
+  locale,
+  messages,
+  selectedSlugs,
+}: CompareAddObjectProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -123,7 +133,7 @@ export function CompareAddObject({ apiOrigin, selectedSlugs }: CompareAddObjectP
   return (
     <div onBlur={dismissOnBlur} ref={containerRef}>
       <label className="sr-only" htmlFor={inputId}>
-        Add an object to compare
+        {messages.inputLabel}
       </label>
       <div className="flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 focus-within:border-[var(--border-strong)]">
         <span aria-hidden="true" className="text-[var(--muted)]">
@@ -140,9 +150,7 @@ export function CompareAddObject({ apiOrigin, selectedSlugs }: CompareAddObjectP
           id={inputId}
           onChange={(event) => handleInputChange(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={
-            atMaximum ? "Comparison is full — remove an object to add another" : "e.g. K2-18"
-          }
+          placeholder={atMaximum ? messages.fullPlaceholder : messages.placeholder}
           role="combobox"
           type="search"
           value={query}
@@ -150,9 +158,9 @@ export function CompareAddObject({ apiOrigin, selectedSlugs }: CompareAddObjectP
       </div>
       <p aria-live="polite" className="sr-only" role="status">
         {atMaximum
-          ? "The comparison is at the maximum of three objects."
+          ? messages.maximumStatus
           : open && suggestions.length > 0
-            ? `${suggestions.length} suggestion${suggestions.length === 1 ? "" : "s"} available`
+            ? formatCountMessage(messages.suggestionsAvailable, suggestions.length, locale)
             : ""}
       </p>
       {!atMaximum && open && suggestions.length > 0 ? (

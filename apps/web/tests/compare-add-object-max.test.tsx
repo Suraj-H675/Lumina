@@ -14,8 +14,14 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { CompareAddObject } from "../src/components/compare-add-object";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 
 const COMBOBOX = { name: /add an object to compare/i };
+const DEFAULT_ADD_PROPS = {
+  locale: DEFAULT_LOCALE,
+  messages: enMessages.compare.add,
+} as const;
 
 function jsonOk(body: unknown): { json: () => Promise<unknown>; ok: boolean; status: number } {
   return { json: () => Promise.resolve(body), ok: true, status: 200 };
@@ -41,7 +47,13 @@ describe("CompareAddObject keyboard and maximum behaviour", () => {
     fetchMock.mockResolvedValue(
       jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
-    render(<CompareAddObject apiOrigin="http://127.0.0.1:8765" selectedSlugs={["kepler-452"]} />);
+    render(
+      <CompareAddObject
+        {...DEFAULT_ADD_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        selectedSlugs={["kepler-452"]}
+      />,
+    );
 
     const user = userEvent.setup();
     const input = screen.getByRole("combobox", COMBOBOX);
@@ -61,7 +73,13 @@ describe("CompareAddObject keyboard and maximum behaviour", () => {
     fetchMock.mockResolvedValue(
       jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
-    render(<CompareAddObject apiOrigin="http://127.0.0.1:8765" selectedSlugs={[]} />);
+    render(
+      <CompareAddObject
+        {...DEFAULT_ADD_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        selectedSlugs={[]}
+      />,
+    );
 
     const user = userEvent.setup();
     const input = screen.getByRole("combobox", COMBOBOX);
@@ -79,6 +97,7 @@ describe("CompareAddObject keyboard and maximum behaviour", () => {
     );
     render(
       <CompareAddObject
+        {...DEFAULT_ADD_PROPS}
         apiOrigin="http://127.0.0.1:8765"
         selectedSlugs={["k2-18", "kepler-452", "51-pegasi"]}
       />,

@@ -379,6 +379,76 @@ export const enMessages = {
     title: "Reviewed discoveries",
     whyItMattersTitle: "Why it matters",
   },
+  compare: {
+    add: {
+      fullPlaceholder: "Comparison is full — remove an object to add another",
+      inputLabel: "Add an object to compare",
+      maximumStatus: "The comparison is at the maximum of three objects.",
+      placeholder: "e.g. K2-18",
+      suggestionsAvailable: {
+        one: "{count} suggestion available",
+        other: "{count} suggestions available",
+      },
+    },
+    cells: {
+      measurementDetails: {
+        one: "source: {sourceLabel}",
+        multiple:
+          "{count} measurements recorded — canonical selection shown · source: {sourceLabel}",
+      },
+      original: "original: {originalValue} {originalUnit}",
+      unavailable: "Not available",
+      unknown: "No catalogue object",
+      unmeasured: "Tracked, no canonical selection yet",
+    },
+    comparison: {
+      emptyDescription:
+        "None of the selected slots could be loaded from the catalogue right now. The selection stays in the address bar, so you can retry in a moment or remove the slots above.",
+      emptySummary: "Nothing to compare yet.",
+      heading: "Scientific comparison",
+      identityAriaLabel: "Identity comparison",
+      identityHeading: "Identity",
+      identitySummary: "Canonical identities from the reviewed catalogue.",
+      quantityHeading: "Quantity",
+      quantityListAriaLabel: "Quantity comparisons",
+      scienceSummary:
+        "Values keep their exact units and sources; competing measurements stay visible through the recorded count. Nothing here is scored or ranked.",
+      tableCaption: "Side-by-side comparison of measured quantities; every value shows its source.",
+    },
+    empty: {
+      addHeading: "Add an object",
+      description:
+        "Add two or three objects to see their reviewed measurements side by side, each with its own source. Lumina compares published values honestly — it never scores or ranks them.",
+      title: "Nothing selected yet",
+    },
+    footerBackToExplore: "← Back to Explore",
+    header: {
+      eyebrow: "The catalogue",
+      intro:
+        "Put up to three catalogue objects side by side. Every value keeps its exact units and its source — Lumina compares published measurements honestly and never scores them.",
+      title: "Compare",
+    },
+    metadata: {
+      description:
+        "Compare reviewed astronomical measurements side by side, with every value's source attached.",
+      genericTitle: "Compare catalogue objects",
+      threeObjectTitle: "{first} vs {second} vs {third}",
+      twoObjectTitle: "{first} vs {second}",
+    },
+    removeAction: "Remove {displayName} from the comparison",
+    selection: {
+      ariaLabel: "Selected compare objects",
+      full: "Comparison full — {count} objects maximum. Remove one to add another.",
+      heading: "Selected objects",
+      partial: "Add one more object to start the side-by-side comparison.",
+    },
+    slots: {
+      unavailableDescription: "The catalogue service could not be reached for this object.",
+      unavailableTitle: "Unavailable right now",
+      unknownDescription: "“{slug}” is not in the catalogue",
+      unknownTitle: "Unknown object",
+    },
+  },
   entityTypes: {
     asteroid: "Asteroid",
     black_hole: "Black hole",

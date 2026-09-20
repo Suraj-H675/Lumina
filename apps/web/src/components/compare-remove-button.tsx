@@ -4,9 +4,13 @@ import { useRouter } from "next/navigation";
 
 import { useCallback } from "react";
 
+import { formatMessageTemplate } from "../lib/i18n/format";
+
 type CompareRemoveButtonProps = Readonly<{
   /** Human identity used in the accessible name (canonical name or slot label). */
   displayName: string;
+  /** Locale-owned accessible-name template. */
+  removeAction: string;
   /** The slug this button removes from the committed URL state. */
   removeSlug: string;
   /** Every currently selected slug, in URL order. */
@@ -17,7 +21,12 @@ type CompareRemoveButtonProps = Readonly<{
  * Remove one object from the comparison by navigating to the remaining
  * selection. The URL owns the state, so browser back/forward keeps working.
  */
-export function CompareRemoveButton({ displayName, removeSlug, slugs }: CompareRemoveButtonProps) {
+export function CompareRemoveButton({
+  displayName,
+  removeAction,
+  removeSlug,
+  slugs,
+}: CompareRemoveButtonProps) {
   const router = useRouter();
 
   const remove = useCallback(() => {
@@ -31,7 +40,7 @@ export function CompareRemoveButton({ displayName, removeSlug, slugs }: CompareR
 
   return (
     <button
-      aria-label={`Remove ${displayName} from the comparison`}
+      aria-label={formatMessageTemplate(removeAction, { displayName })}
       className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
       onClick={remove}
       type="button"

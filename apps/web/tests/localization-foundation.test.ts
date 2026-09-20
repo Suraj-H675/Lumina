@@ -179,6 +179,39 @@ describe("Phase 8C localization foundation", () => {
     ).toBe("Star · 2 measured quantities");
   });
 
+  it("keeps Compare templates placeholder-complete and preserves English count grammar", () => {
+    expect(enMessages.compare.metadata.twoObjectTitle).toContain("{first}");
+    expect(enMessages.compare.metadata.twoObjectTitle).toContain("{second}");
+    expect(enMessages.compare.metadata.threeObjectTitle).toContain("{third}");
+    expect(enMessages.compare.slots.unknownDescription).toContain("{slug}");
+    expect(enMessages.compare.removeAction).toContain("{displayName}");
+    expect(enMessages.compare.selection.full).toContain("{count}");
+    expect(enMessages.compare.add.suggestionsAvailable.one).toContain("{count}");
+    expect(enMessages.compare.cells.measurementDetails.one).toContain("{sourceLabel}");
+    expect(enMessages.compare.cells.measurementDetails.multiple).toContain("{count}");
+    expect(enMessages.compare.cells.measurementDetails.multiple).toContain("{sourceLabel}");
+    expect(enMessages.compare.cells.original).toContain("{originalValue}");
+    expect(enMessages.compare.cells.original).toContain("{originalUnit}");
+
+    expect(formatCountMessage(enMessages.compare.add.suggestionsAvailable, 1, "en")).toBe(
+      "1 suggestion available",
+    );
+    expect(formatCountMessage(enMessages.compare.add.suggestionsAvailable, 2, "en")).toBe(
+      "2 suggestions available",
+    );
+    expect(
+      formatMessageTemplate(enMessages.compare.cells.measurementDetails.one, {
+        sourceLabel: "Fixture source",
+      }),
+    ).toBe("source: Fixture source");
+    expect(
+      formatMessageTemplate(enMessages.compare.cells.measurementDetails.multiple, {
+        count: formatLocaleNumber(2, "en"),
+        sourceLabel: "Fixture source",
+      }),
+    ).toBe("2 measurements recorded — canonical selection shown · source: Fixture source");
+  });
+
   it("keeps the Mission Control page shell in the typed English dictionary", () => {
     expect(enMessages.missionControl.metadataTitle).toBe("Mission Control");
     expect(enMessages.missionControl.eyebrow).toBe("Mission Control");

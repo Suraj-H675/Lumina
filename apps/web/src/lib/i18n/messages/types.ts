@@ -272,6 +272,68 @@ export type EntityTypeMessages = Readonly<{
   system: string;
 }>;
 
+export type CompareMessages = Readonly<{
+  add: Readonly<{
+    fullPlaceholder: string;
+    inputLabel: string;
+    maximumStatus: string;
+    placeholder: string;
+    suggestionsAvailable: CountMessageTemplates;
+  }>;
+  cells: Readonly<{
+    measurementDetails: Readonly<{
+      multiple: string;
+      one: string;
+    }>;
+    original: string;
+    unavailable: string;
+    unknown: string;
+    unmeasured: string;
+  }>;
+  comparison: Readonly<{
+    emptyDescription: string;
+    emptySummary: string;
+    heading: string;
+    identityAriaLabel: string;
+    identityHeading: string;
+    identitySummary: string;
+    quantityHeading: string;
+    quantityListAriaLabel: string;
+    scienceSummary: string;
+    tableCaption: string;
+  }>;
+  empty: Readonly<{
+    addHeading: string;
+    description: string;
+    title: string;
+  }>;
+  footerBackToExplore: string;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  metadata: Readonly<{
+    description: string;
+    genericTitle: string;
+    twoObjectTitle: string;
+    threeObjectTitle: string;
+  }>;
+  removeAction: string;
+  selection: Readonly<{
+    ariaLabel: string;
+    full: string;
+    heading: string;
+    partial: string;
+  }>;
+  slots: Readonly<{
+    unavailableDescription: string;
+    unavailableTitle: string;
+    unknownDescription: string;
+    unknownTitle: string;
+  }>;
+}>;
+
 export type ExploreMessages = Readonly<{
   browse: Readonly<{
     emptyDescription: string;
@@ -1640,6 +1702,7 @@ export type StatusMessages = Readonly<{
 export type LuminaMessages = Readonly<{
   catalogueSearch: CatalogueSearchMessages;
   collections: CollectionsMessages;
+  compare: CompareMessages;
   coordinateDisclosure: CoordinateDisclosureMessages;
   deepSky: DeepSkyMessages;
   discoveries: DiscoveriesMessages;

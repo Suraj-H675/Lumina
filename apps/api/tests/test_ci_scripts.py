@@ -550,6 +550,9 @@ for mount in mounts:
         record["temp_root"] = str(output.parent)
 
 with Path(os.environ["FAKE_DOCKER_LOG"]).open("a", encoding="utf-8") as handle:
+    log_write_delay = float(os.environ.get("FAKE_DOCKER_LOG_WRITE_DELAY", "0"))
+    if log_write_delay > 0:
+        time.sleep(log_write_delay)
     handle.write(json.dumps(record, sort_keys=True) + "\\n")
 
 if os.environ.get("FAKE_SLEEP_SCOPE") == scope:
@@ -875,6 +878,7 @@ def test_security_signal_cleanup_removes_private_temporary_output(
 ) -> None:
     repository, log, environment = _security_repository(tmp_path)
     environment["FAKE_SLEEP_SCOPE"] = "history"
+    environment["FAKE_DOCKER_LOG_WRITE_DELAY"] = "0.05"
     process = subprocess.Popen(
         ["bash", str(SECURITY_SCRIPT)],
         cwd=repository,
@@ -885,10 +889,11 @@ def test_security_signal_cleanup_removes_private_temporary_output(
         start_new_session=True,
     )
     deadline = time.monotonic() + 10
-    while time.monotonic() < deadline and not log.exists():
+    while time.monotonic() < deadline and (not log.exists() or log.stat().st_size == 0):
         time.sleep(0.01)
-    assert log.exists()
+    assert log.exists() and log.stat().st_size > 0
     records = _scanner_records(log)
+    assert records
     temporary_root = records[0].get("temp_root")
     if not isinstance(temporary_root, str):
         temporary_directories = list(tmp_path.glob("lumina-security-*"))

@@ -812,4 +812,95 @@ export const enMessages = {
     },
     skipToMainContent: "Skip to main content",
   },
+  spaceNow: {
+    dailyVisual: {
+      aboutTitle: "About this APOD",
+      actions: {
+        image: "View today's APOD image",
+        video: "Watch today's APOD video",
+      },
+      contentDateLabel: "APOD content date",
+      copyrightLabel: "Copyright / credit:",
+      eyebrow: "Daily Visual",
+      externalMediaNotice:
+        "Lumina does not automatically load or redistribute the external media. The official APOD page is opened only when you choose the action above.",
+      freshSnapshot: "Fresh Daily Visual snapshot",
+      freshnessDescription:
+        "Freshness describes when Lumina last retrieved and validated this snapshot; it does not describe when the underlying image or video was created.",
+      invalidOfficialLink:
+        "The official APOD page link is unavailable because the date-derived destination did not pass Lumina's fixed-origin check.",
+      mediaTypeLabel: "Media type",
+      mediaTypes: {
+        image: "Image",
+        video: "Video",
+      },
+      staleSnapshot: "Stale Daily Visual snapshot",
+    },
+    eyebrow: "Space Now",
+    intro:
+      "One carefully sourced Daily Visual from NASA Astronomy Picture of the Day, with its content date, credit, and Lumina retrieval state kept distinct.",
+    metadataDescription:
+      "A source-backed Daily Visual from NASA Astronomy Picture of the Day, with clear dates, credit, and retrieval state.",
+    metadataTitle: "Space Now",
+    navigation: {
+      launches: {
+        action: "Open Launch Center",
+        description:
+          "See source status, NET precision, launch windows, mission, vehicle, site, official links, and provider update times. Exact countdowns appear only when the source marks a Go launch precise to the second or minute.",
+        eyebrow: "Launch Center",
+        title: "Follow upcoming launches without fake precision",
+      },
+      nearEarth: {
+        action: "View near-Earth approaches",
+        description:
+          "Review predicted Earth close-approach times, nominal distances, relative speeds, estimated diameter ranges, and source classifications in a separate current-feed view.",
+        eyebrow: "Near-Earth approaches",
+        title: "See the next NASA NeoWs close approaches",
+      },
+      satellites: {
+        action: "Open Satellite Passes",
+        description:
+          "Browse selected CelesTrak STATIONS and VISUAL records, inspect element freshness, and run a local SGP4 pass calculation for a location you explicitly provide. Illumination and sky state are shown separately; Lumina does not claim optical visibility.",
+        eyebrow: "Satellite passes",
+        title: "Predict selected satellite passes from cached elements",
+      },
+      spaceWeather: {
+        action: "View Space Weather",
+        description:
+          "Review current R/S/G scale values, observed and predicted planetary Kp, source-timestamped solar-wind measurements, and recent SWPC notifications in an educational snapshot.",
+        eyebrow: "NOAA Space Weather",
+        title: "See separate NOAA scales, Kp, solar wind, and notifications",
+      },
+    },
+    retrieval: {
+      cacheStateLabel: "Cache state",
+      cacheStates: {
+        expired: "expired",
+        fresh: "fresh",
+        missing: "missing",
+        stale: "stale",
+      },
+      freshUntilLabel: "Fresh until (UTC)",
+      lastFailureLabel: "Last safe refresh failure",
+      noneRecorded: "None recorded",
+      notRecorded: "Not recorded",
+      retrievedAtLabel: "Retrieved at (UTC)",
+      staleUntilLabel: "Stale grace ends (UTC)",
+      title: "Lumina retrieval state",
+    },
+    source: {
+      apiDocumentation: "NASA Open APIs",
+      mediaGuidance: "NASA media guidance",
+      officialPage: "Official APOD page",
+      title: "Source and credit",
+    },
+    title: "Space Now",
+    unavailable: {
+      cachedContentExpired: "The cached Daily Visual snapshot has expired.",
+      generic: "The Daily Visual could not be loaded from Lumina right now.",
+      noCachedContent: "No validated Daily Visual snapshot is available yet.",
+      providerDisabled: "The Daily Visual provider is disabled.",
+      title: "Daily Visual is currently unavailable.",
+    },
+  },
 } as const satisfies LuminaMessages;

@@ -1,147 +1,154 @@
 import type { ApodResponse } from "@lumina/api-client";
 import Link from "next/link";
 
+import type { SpaceNowMessages } from "../../lib/i18n/messages/types";
 import type { NowApodOutcome } from "../../lib/server/space-now";
 
-export function SpaceNowView({ outcome }: Readonly<{ outcome: NowApodOutcome }>) {
+export function SpaceNowView({
+  messages,
+  outcome,
+}: Readonly<{ messages: SpaceNowMessages; outcome: NowApodOutcome }>) {
   return (
     <article className="max-w-4xl space-y-10">
       <header className="max-w-2xl space-y-5">
         <p className="text-sm font-semibold tracking-[0.14em] text-[var(--accent)] uppercase">
-          Space Now
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Space Now</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          One carefully sourced Daily Visual from NASA Astronomy Picture of the Day, with its
-          content date, credit, and Lumina retrieval state kept distinct.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
       </header>
 
-      {outcome.kind === "ok" ? <DailyVisual response={outcome.data} /> : <UnavailableDailyVisual />}
-      <LaunchNavigation />
-      <SatelliteNavigation />
-      <NearEarthNavigation />
-      <SpaceWeatherNavigation />
+      {outcome.kind === "ok" ? (
+        <DailyVisual messages={messages} response={outcome.data} />
+      ) : (
+        <UnavailableDailyVisual messages={messages} />
+      )}
+      <LaunchNavigation messages={messages.navigation.launches} />
+      <SatelliteNavigation messages={messages.navigation.satellites} />
+      <NearEarthNavigation messages={messages.navigation.nearEarth} />
+      <SpaceWeatherNavigation messages={messages.navigation.spaceWeather} />
     </article>
   );
 }
 
-function LaunchNavigation() {
+function LaunchNavigation({
+  messages,
+}: Readonly<{ messages: SpaceNowMessages["navigation"]["launches"] }>) {
   return (
     <section
       aria-labelledby="launch-navigation-heading"
       className="space-y-4 border-t border-[var(--border)] pt-8"
     >
       <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-        Launch Center
+        {messages.eyebrow}
       </p>
       <h2 className="text-2xl font-semibold" id="launch-navigation-heading">
-        Follow upcoming launches without fake precision
+        {messages.title}
       </h2>
-      <p className="max-w-2xl leading-7 text-[var(--muted)]">
-        See source status, NET precision, launch windows, mission, vehicle, site, official links,
-        and provider update times. Exact countdowns appear only when the source marks a Go launch
-        precise to the second or minute.
-      </p>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.description}</p>
       <Link
         className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
         href="/now/launches"
       >
-        Open Launch Center
+        {messages.action}
       </Link>
     </section>
   );
 }
 
-function SatelliteNavigation() {
+function SatelliteNavigation({
+  messages,
+}: Readonly<{ messages: SpaceNowMessages["navigation"]["satellites"] }>) {
   return (
     <section
       aria-labelledby="satellite-navigation-heading"
       className="space-y-4 border-t border-[var(--border)] pt-8"
     >
       <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-        Satellite passes
+        {messages.eyebrow}
       </p>
       <h2 className="text-2xl font-semibold" id="satellite-navigation-heading">
-        Predict selected satellite passes from cached elements
+        {messages.title}
       </h2>
-      <p className="max-w-2xl leading-7 text-[var(--muted)]">
-        Browse selected CelesTrak STATIONS and VISUAL records, inspect element freshness, and run a
-        local SGP4 pass calculation for a location you explicitly provide. Illumination and sky
-        state are shown separately; Lumina does not claim optical visibility.
-      </p>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.description}</p>
       <Link
         className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
         href="/now/satellites"
       >
-        Open Satellite Passes
+        {messages.action}
       </Link>
     </section>
   );
 }
 
-function NearEarthNavigation() {
+function NearEarthNavigation({
+  messages,
+}: Readonly<{ messages: SpaceNowMessages["navigation"]["nearEarth"] }>) {
   return (
     <section
       aria-labelledby="near-earth-navigation-heading"
       className="space-y-4 border-t border-[var(--border)] pt-8"
     >
       <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-        Near-Earth approaches
+        {messages.eyebrow}
       </p>
       <h2 className="text-2xl font-semibold" id="near-earth-navigation-heading">
-        See the next NASA NeoWs close approaches
+        {messages.title}
       </h2>
-      <p className="max-w-2xl leading-7 text-[var(--muted)]">
-        Review predicted Earth close-approach times, nominal distances, relative speeds, estimated
-        diameter ranges, and source classifications in a separate current-feed view.
-      </p>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.description}</p>
       <Link
         className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
         href="/now/near-earth"
       >
-        View near-Earth approaches
+        {messages.action}
       </Link>
     </section>
   );
 }
 
-function SpaceWeatherNavigation() {
+function SpaceWeatherNavigation({
+  messages,
+}: Readonly<{ messages: SpaceNowMessages["navigation"]["spaceWeather"] }>) {
   return (
     <section
       aria-labelledby="space-weather-navigation-heading"
       className="space-y-4 border-t border-[var(--border)] pt-8"
     >
       <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-        NOAA Space Weather
+        {messages.eyebrow}
       </p>
       <h2 className="text-2xl font-semibold" id="space-weather-navigation-heading">
-        See separate NOAA scales, Kp, solar wind, and notifications
+        {messages.title}
       </h2>
-      <p className="max-w-2xl leading-7 text-[var(--muted)]">
-        Review current R/S/G scale values, observed and predicted planetary Kp, source-timestamped
-        solar-wind measurements, and recent SWPC notifications in an educational snapshot.
-      </p>
+      <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.description}</p>
       <Link
         className="inline-flex min-h-11 items-center border border-[var(--accent)] px-4 font-semibold text-[var(--link)] underline underline-offset-4"
         href="/now/space-weather"
       >
-        View Space Weather
+        {messages.action}
       </Link>
     </section>
   );
 }
 
-function DailyVisual({ response }: Readonly<{ response: ApodResponse }>) {
+function DailyVisual({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceNowMessages; response: ApodResponse }>) {
   if (response.availability === "unavailable" || response.content === null) {
-    return <UnavailableDailyVisual response={response} />;
+    return <UnavailableDailyVisual messages={messages} response={response} />;
   }
 
   const content = response.content;
   const pageUrl = fixedApodPageUrl(content.date, content.apod_page_url);
-  const mediaLabel = content.media_type === "image" ? "Image" : "Video";
+  const mediaLabel =
+    content.media_type === "image"
+      ? messages.dailyVisual.mediaTypes.image
+      : messages.dailyVisual.mediaTypes.video;
   const actionLabel =
-    content.media_type === "image" ? "View today's APOD image" : "Watch today's APOD video";
+    content.media_type === "image"
+      ? messages.dailyVisual.actions.image
+      : messages.dailyVisual.actions.video;
 
   return (
     <section aria-labelledby="daily-visual-heading" className="space-y-7">
@@ -156,45 +163,44 @@ function DailyVisual({ response }: Readonly<{ response: ApodResponse }>) {
       >
         <p className="font-semibold">
           {response.availability === "stale"
-            ? "Stale Daily Visual snapshot"
-            : "Fresh Daily Visual snapshot"}
+            ? messages.dailyVisual.staleSnapshot
+            : messages.dailyVisual.freshSnapshot}
         </p>
-        <p className="leading-7 text-[var(--muted)]">
-          Freshness describes when Lumina last retrieved and validated this snapshot; it does not
-          describe when the underlying image or video was created.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.dailyVisual.freshnessDescription}</p>
       </div>
 
       <div className="space-y-5 border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7">
         <div className="space-y-3">
           <p className="text-sm font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
-            Daily Visual
+            {messages.dailyVisual.eyebrow}
           </p>
           <h2 className="text-3xl font-semibold tracking-tight" id="daily-visual-heading">
             {content.title}
           </h2>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="font-medium">APOD content date</dt>
+              <dt className="font-medium">{messages.dailyVisual.contentDateLabel}</dt>
               <dd className="text-[var(--muted)]">
                 <time dateTime={content.date}>{content.date}</time>
               </dd>
             </div>
             <div>
-              <dt className="font-medium">Media type</dt>
+              <dt className="font-medium">{messages.dailyVisual.mediaTypeLabel}</dt>
               <dd className="text-[var(--muted)]">{mediaLabel}</dd>
             </div>
           </dl>
         </div>
 
         <div className="space-y-3 border-t border-[var(--border)] pt-5">
-          <h3 className="text-xl font-semibold">About this APOD</h3>
+          <h3 className="text-xl font-semibold">{messages.dailyVisual.aboutTitle}</h3>
           <p className="whitespace-pre-line leading-8 text-[var(--muted)]">{content.explanation}</p>
         </div>
 
         {content.copyright === null ? null : (
           <p className="border-t border-[var(--border)] pt-5 text-sm leading-7 text-[var(--muted)]">
-            <span className="font-medium text-[var(--foreground)]">Copyright / credit:</span>{" "}
+            <span className="font-medium text-[var(--foreground)]">
+              {messages.dailyVisual.copyrightLabel}
+            </span>{" "}
             {content.copyright}
           </p>
         )}
@@ -202,8 +208,7 @@ function DailyVisual({ response }: Readonly<{ response: ApodResponse }>) {
         <div className="border-t border-[var(--border)] pt-5">
           {pageUrl === null ? (
             <p className="leading-7 text-[var(--muted)]">
-              The official APOD page link is unavailable because the date-derived destination did
-              not pass Lumina&apos;s fixed-origin check.
+              {messages.dailyVisual.invalidOfficialLink}
             </p>
           ) : (
             <a
@@ -216,37 +221,51 @@ function DailyVisual({ response }: Readonly<{ response: ApodResponse }>) {
             </a>
           )}
           <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-            Lumina does not automatically load or redistribute the external media. The official APOD
-            page is opened only when you choose the action above.
+            {messages.dailyVisual.externalMediaNotice}
           </p>
         </div>
       </div>
 
-      <FreshnessDetails response={response} />
-      <SourceDetails response={response} />
+      <FreshnessDetails messages={messages.retrieval} response={response} />
+      <SourceDetails messages={messages.source} response={response} />
     </section>
   );
 }
 
-function FreshnessDetails({ response }: Readonly<{ response: ApodResponse }>) {
+function FreshnessDetails({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceNowMessages["retrieval"]; response: ApodResponse }>) {
   const freshness = response.freshness;
   return (
     <section aria-labelledby="freshness-heading" className="space-y-4">
       <h2 className="text-xl font-semibold" id="freshness-heading">
-        Lumina retrieval state
+        {messages.title}
       </h2>
       <dl className="grid gap-4 border border-[var(--border)] p-5 sm:grid-cols-2">
         <div>
-          <dt className="font-medium">Cache state</dt>
-          <dd className="text-[var(--muted)]">{freshness.cache_state}</dd>
+          <dt className="font-medium">{messages.cacheStateLabel}</dt>
+          <dd className="text-[var(--muted)]">{messages.cacheStates[freshness.cache_state]}</dd>
         </div>
-        <TimestampField label="Retrieved at (UTC)" value={freshness.retrieved_at} />
-        <TimestampField label="Fresh until (UTC)" value={freshness.fresh_until} />
-        <TimestampField label="Stale grace ends (UTC)" value={freshness.stale_until} />
+        <TimestampField
+          label={messages.retrievedAtLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.retrieved_at}
+        />
+        <TimestampField
+          label={messages.freshUntilLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.fresh_until}
+        />
+        <TimestampField
+          label={messages.staleUntilLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.stale_until}
+        />
         <div>
-          <dt className="font-medium">Last safe refresh failure</dt>
+          <dt className="font-medium">{messages.lastFailureLabel}</dt>
           <dd className="text-[var(--muted)]">
-            {freshness.last_refresh_failure_code ?? "None recorded"}
+            {freshness.last_refresh_failure_code ?? messages.noneRecorded}
           </dd>
         </div>
       </dl>
@@ -254,35 +273,43 @@ function FreshnessDetails({ response }: Readonly<{ response: ApodResponse }>) {
   );
 }
 
-function SourceDetails({ response }: Readonly<{ response: ApodResponse }>) {
+function SourceDetails({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceNowMessages["source"]; response: ApodResponse }>) {
   const source = response.source;
   return (
     <section aria-labelledby="source-heading" className="space-y-4">
       <h2 className="text-xl font-semibold" id="source-heading">
-        Source and credit
+        {messages.title}
       </h2>
       <div className="space-y-4 border border-[var(--border)] p-5">
         <p className="leading-7 text-[var(--muted)]">{source.attribution_text}</p>
         <p className="flex flex-wrap gap-x-5 gap-y-2 leading-7">
-          <ExternalLink href={source.official_url}>Official APOD page</ExternalLink>
-          <ExternalLink href={source.api_documentation_url}>NASA Open APIs</ExternalLink>
-          <ExternalLink href={source.media_usage_url}>NASA media guidance</ExternalLink>
+          <ExternalLink href={source.official_url}>{messages.officialPage}</ExternalLink>
+          <ExternalLink href={source.api_documentation_url}>
+            {messages.apiDocumentation}
+          </ExternalLink>
+          <ExternalLink href={source.media_usage_url}>{messages.mediaGuidance}</ExternalLink>
         </p>
       </div>
     </section>
   );
 }
 
-function UnavailableDailyVisual({ response }: Readonly<{ response?: ApodResponse }>) {
+function UnavailableDailyVisual({
+  messages,
+  response,
+}: Readonly<{ messages: SpaceNowMessages; response?: ApodResponse }>) {
   const reason = response?.unavailable_reason;
   const detail =
     reason === "provider_disabled"
-      ? "The Daily Visual provider is disabled."
+      ? messages.unavailable.providerDisabled
       : reason === "no_cached_content"
-        ? "No validated Daily Visual snapshot is available yet."
+        ? messages.unavailable.noCachedContent
         : reason === "cached_content_expired"
-          ? "The cached Daily Visual snapshot has expired."
-          : "The Daily Visual could not be loaded from Lumina right now.";
+          ? messages.unavailable.cachedContentExpired
+          : messages.unavailable.generic;
 
   return (
     <section aria-labelledby="daily-visual-unavailable-heading" className="space-y-5">
@@ -292,26 +319,30 @@ function UnavailableDailyVisual({ response }: Readonly<{ response?: ApodResponse
         role="status"
       >
         <h2 className="text-2xl font-semibold" id="daily-visual-unavailable-heading">
-          Daily Visual is currently unavailable.
+          {messages.unavailable.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{detail}</p>
       </div>
       {response === undefined ? null : (
         <>
-          <FreshnessDetails response={response} />
-          <SourceDetails response={response} />
+          <FreshnessDetails messages={messages.retrieval} response={response} />
+          <SourceDetails messages={messages.source} response={response} />
         </>
       )}
     </section>
   );
 }
 
-function TimestampField({ label, value }: Readonly<{ label: string; value: string | null }>) {
+function TimestampField({
+  label,
+  notRecorded,
+  value,
+}: Readonly<{ label: string; notRecorded: string; value: string | null }>) {
   return (
     <div>
       <dt className="font-medium">{label}</dt>
       <dd className="text-[var(--muted)]">
-        {value === null ? "Not recorded" : <time dateTime={value}>{value}</time>}
+        {value === null ? notRecorded : <time dateTime={value}>{value}</time>}
       </dd>
     </div>
   );

@@ -318,4 +318,13 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.failures.collectionLimit).toContain("{max}");
     expect(messages.shared.corrupted.confirmResetAction).toMatch(/confirm reset/i);
   });
+
+  it("keeps Space Now wrapper/state copy separate from provider APOD payloads", () => {
+    const messages = enMessages.spaceNow;
+    expect(messages.metadataTitle).toBe("Space Now");
+    expect(messages.dailyVisual.contentDateLabel).toBe("APOD content date");
+    expect(messages.retrieval.cacheStates.expired).toBe("expired");
+    expect(messages.navigation.launches.action).toBe("Open Launch Center");
+    expect(messages.unavailable.cachedContentExpired).toMatch(/expired/i);
+  });
 });

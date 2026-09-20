@@ -454,6 +454,89 @@ export type MissionControlMessages = Readonly<{
   title: string;
 }>;
 
+export type SpaceNowMessages = Readonly<{
+  dailyVisual: Readonly<{
+    aboutTitle: string;
+    actions: Readonly<{
+      image: string;
+      video: string;
+    }>;
+    contentDateLabel: string;
+    copyrightLabel: string;
+    eyebrow: string;
+    externalMediaNotice: string;
+    freshSnapshot: string;
+    freshnessDescription: string;
+    invalidOfficialLink: string;
+    mediaTypeLabel: string;
+    mediaTypes: Readonly<{
+      image: string;
+      video: string;
+    }>;
+    staleSnapshot: string;
+  }>;
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  navigation: Readonly<{
+    launches: Readonly<{
+      action: string;
+      description: string;
+      eyebrow: string;
+      title: string;
+    }>;
+    nearEarth: Readonly<{
+      action: string;
+      description: string;
+      eyebrow: string;
+      title: string;
+    }>;
+    satellites: Readonly<{
+      action: string;
+      description: string;
+      eyebrow: string;
+      title: string;
+    }>;
+    spaceWeather: Readonly<{
+      action: string;
+      description: string;
+      eyebrow: string;
+      title: string;
+    }>;
+  }>;
+  retrieval: Readonly<{
+    cacheStateLabel: string;
+    cacheStates: Readonly<{
+      expired: string;
+      fresh: string;
+      missing: string;
+      stale: string;
+    }>;
+    freshUntilLabel: string;
+    lastFailureLabel: string;
+    noneRecorded: string;
+    notRecorded: string;
+    retrievedAtLabel: string;
+    staleUntilLabel: string;
+    title: string;
+  }>;
+  source: Readonly<{
+    apiDocumentation: string;
+    mediaGuidance: string;
+    officialPage: string;
+    title: string;
+  }>;
+  title: string;
+  unavailable: Readonly<{
+    cachedContentExpired: string;
+    generic: string;
+    noCachedContent: string;
+    providerDisabled: string;
+    title: string;
+  }>;
+}>;
+
 export type ParticipateMessages = Readonly<{
   activities: Readonly<{
     ageGuidanceLabel: string;
@@ -732,5 +815,6 @@ export type LuminaMessages = Readonly<{
   presentationMode: PresentationModeMessages;
   routeBoundaries: RouteBoundaryMessages;
   shell: SiteShellMessages;
+  spaceNow: SpaceNowMessages;
   status: StatusMessages;
 }>;

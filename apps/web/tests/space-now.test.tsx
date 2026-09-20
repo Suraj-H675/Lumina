@@ -9,6 +9,8 @@ vi.mock("server-only", () => ({}));
 import { SpaceNowView } from "../src/app/now/space-now-view";
 import { SiteShell } from "../src/components/site-shell";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { SpaceNowMessages } from "../src/lib/i18n/messages/types";
 import { loadNowApod } from "../src/lib/server/space-now";
 
 const source = {
@@ -54,10 +56,10 @@ const videoResponse: ApodResponse = {
   },
 };
 
-function renderPage(response: ApodResponse) {
+function renderPage(response: ApodResponse, messages: SpaceNowMessages = enMessages.spaceNow) {
   return render(
     <SiteShell {...EN_SHELL_PROPS}>
-      <SpaceNowView outcome={{ data: response, kind: "ok" }} />
+      <SpaceNowView messages={messages} outcome={{ data: response, kind: "ok" }} />
     </SiteShell>,
   );
 }
@@ -133,6 +135,46 @@ describe("Space Now Daily Visual", () => {
     expect(screen.getByText("The Daily Visual provider is disabled.")).toBeVisible();
     expect(screen.queryByText("Fixture Creator <img src=x>")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /APOD image|APOD video/i })).not.toBeInTheDocument();
+  });
+
+  it("localizes Lumina chrome without rewriting APOD/provider source values", () => {
+    const messages = {
+      ...enMessages.spaceNow,
+      dailyVisual: {
+        ...enMessages.spaceNow.dailyVisual,
+        aboutTitle: "Localized APOD wrapper",
+        contentDateLabel: "Localized content date",
+      },
+      retrieval: {
+        ...enMessages.spaceNow.retrieval,
+        lastFailureLabel: "Localized refresh failure",
+      },
+      title: "Localized Space Now",
+    } satisfies SpaceNowMessages;
+
+    renderPage(
+      {
+        ...imageResponse,
+        freshness: {
+          ...freshness,
+          last_refresh_failure_code: "provider.timeout",
+        },
+      },
+      messages,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Localized Space Now" })).toBeVisible();
+    expect(screen.getByText("Localized content date")).toBeVisible();
+    expect(screen.getByText("Localized APOD wrapper")).toBeVisible();
+    expect(screen.getByText("Localized refresh failure")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: /script>alert/ })).toBeVisible();
+    expect(screen.getByText(/NASA explanation text remains plain text/)).toBeVisible();
+    expect(screen.getByText("Fixture Creator <img src=x>")).toBeVisible();
+    expect(screen.getByText("provider.timeout")).toBeVisible();
+    expect(screen.getByText("2026-09-09")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: enMessages.spaceNow.dailyVisual.actions.image }),
+    ).toHaveAttribute("href", "https://apod.nasa.gov/apod/ap260909.html");
   });
 
   it.each([

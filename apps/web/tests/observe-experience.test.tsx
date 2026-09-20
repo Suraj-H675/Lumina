@@ -44,6 +44,7 @@ describe("observe route client mode", () => {
     render(
       <ObserveExperience
         detail={null}
+        journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
         messages={enMessages.observationPlanner}
         savedPlanLocale={DEFAULT_LOCALE}
@@ -68,6 +69,7 @@ describe("observe route client mode", () => {
       <ObserveExperience
         detail={null}
         initialSavedId={saved.id}
+        journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
         messages={enMessages.observationPlanner}
         savedPlanLocale={DEFAULT_LOCALE}

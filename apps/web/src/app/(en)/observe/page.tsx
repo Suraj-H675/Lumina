@@ -11,6 +11,7 @@ export default function EnglishObservePage({
 }>) {
   return (
     <ObservePage
+      journalEntryMessages={enMessages.journal.entry}
       plannerLocale={DEFAULT_LOCALE}
       plannerMessages={enMessages.observationPlanner}
       savedPlanLocale={DEFAULT_LOCALE}

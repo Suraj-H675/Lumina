@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
+import { formatMessageTemplate } from "../lib/i18n/format";
+import type { JournalEntryMessages } from "../lib/i18n/messages/types";
 import { saveCatalogObservationToJournal } from "../lib/journal/catalog";
 import { JournalStorageError } from "../lib/journal/database";
 import type { ConfirmedJournalLocation } from "../lib/journal/model";
@@ -16,13 +18,17 @@ type PlannerJournalContext = Readonly<{
 
 type JournalEntryButtonProps = Readonly<{
   entityId: string;
+  messages: JournalEntryMessages;
   objectName: string;
   plannerContext?: PlannerJournalContext;
 }>;
 
+type LocationValidationReason =
+  "coordinate-pair-required" | "coordinates-invalid" | "location-label-required";
+
 type ParsedLocation =
   | Readonly<{ location: ConfirmedJournalLocation | null; ok: true }>
-  | Readonly<{ message: string; ok: false }>;
+  | Readonly<{ ok: false; reason: LocationValidationReason }>;
 
 const inputClassName =
   "min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]";
@@ -52,10 +58,10 @@ function parseLocation(
   const hasLongitude = longitudeValue.trim().length > 0;
   if (!hasLatitude && !hasLongitude && label.length === 0) return { location: null, ok: true };
   if (label.length === 0) {
-    return { message: "Add a location label or clear the location fields.", ok: false };
+    return { ok: false, reason: "location-label-required" };
   }
   if (hasLatitude !== hasLongitude) {
-    return { message: "Enter both latitude and longitude, or leave both blank.", ok: false };
+    return { ok: false, reason: "coordinate-pair-required" };
   }
   if (!hasLatitude) {
     return {
@@ -78,7 +84,7 @@ function parseLocation(
     longitude < -180 ||
     longitude > 180
   ) {
-    return { message: "Latitude must be −90…90 and longitude −180…180.", ok: false };
+    return { ok: false, reason: "coordinates-invalid" };
   }
   return {
     location: {
@@ -91,24 +97,34 @@ function parseLocation(
   };
 }
 
-function storageFailureMessage(error: unknown): string {
+function locationValidationMessage(
+  reason: LocationValidationReason,
+  messages: JournalEntryMessages["validation"],
+): string {
+  if (reason === "location-label-required") return messages.locationLabelRequired;
+  if (reason === "coordinate-pair-required") return messages.coordinatePairRequired;
+  return messages.coordinatesInvalid;
+}
+
+function storageFailureMessage(error: unknown, messages: JournalEntryMessages["failures"]): string {
   if (!(error instanceof JournalStorageError)) {
-    return "The local journal save failed. Nothing was uploaded or changed remotely.";
+    return messages.generic;
   }
   if (error.reason === "entry-limit") {
-    return "The local journal has reached its entry limit. Remove an entry before saving another.";
+    return messages.entryLimit;
   }
   if (error.reason === "storage-unavailable") {
-    return "This browser is not allowing IndexedDB journal storage right now.";
+    return messages.storageUnavailable;
   }
   if (error.reason === "invalid-entry") {
-    return "The journal fields could not be validated. Check them and try again.";
+    return messages.invalidEntry;
   }
-  return "The browser rejected the local journal write. Nothing was uploaded remotely.";
+  return messages.writeRejected;
 }
 
 export function JournalEntryButton({
   entityId,
+  messages,
   objectName,
   plannerContext,
 }: JournalEntryButtonProps) {
@@ -133,20 +149,23 @@ export function JournalEntryButton({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (title.trim().length === 0) {
-      setState({ kind: "error", message: "Give this journal entry a title." });
+      setState({ kind: "error", message: messages.validation.titleRequired });
       return;
     }
     const timeUtc = observationTimeUtc(observedAt);
     if (observedAt.length > 0 && timeUtc === null) {
       setState({
         kind: "error",
-        message: "Enter a valid observation date and time, or leave it blank.",
+        message: messages.validation.timeInvalid,
       });
       return;
     }
     const parsedLocation = parseLocation(locationLabel, latitude, longitude);
     if (!parsedLocation.ok) {
-      setState({ kind: "error", message: parsedLocation.message });
+      setState({
+        kind: "error",
+        message: locationValidationMessage(parsedLocation.reason, messages.validation),
+      });
       return;
     }
     setState({ kind: "saving" });
@@ -161,52 +180,51 @@ export function JournalEntryButton({
       });
       setState({ entryId: entry.id, kind: "saved" });
     } catch (error) {
-      setState({ kind: "error", message: storageFailureMessage(error) });
+      setState({ kind: "error", message: storageFailureMessage(error, messages.failures) });
     }
   }
 
   return (
     <>
       <button className={actionClassName} onClick={() => setOpen(true)} type="button">
-        <span aria-hidden="true">✎</span> Add to journal
+        <span aria-hidden="true">✎</span> {messages.addAction}
       </button>
       {open ? (
         <ModalDialog
-          description={`Create a browser-local observation entry for ${objectName}. Time and location are saved only from fields you explicitly confirm here.`}
+          description={formatMessageTemplate(messages.description, { objectName })}
           onClose={close}
           open
-          title="Create journal entry"
+          title={messages.dialogTitle}
         >
           {state.kind === "saved" ? (
             <div className="space-y-4" role="status">
-              <p className="font-semibold">Saved to this browser&apos;s local journal.</p>
+              <p className="font-semibold">{messages.savedStatus}</p>
               <Link className="font-semibold text-[var(--link)] underline" href="/journal">
-                Open Journal
+                {messages.openJournal}
               </Link>
               <button className={actionClassName} onClick={close} type="button">
-                Done
+                {messages.doneAction}
               </button>
             </div>
           ) : (
             <form className="space-y-5" onSubmit={(event) => void submit(event)}>
-              <p className="text-sm leading-6 text-[var(--muted)]">
-                The catalogue object is recorded as a local reference. Lumina does not infer when or
-                where you observed it.
-              </p>
+              <p className="text-sm leading-6 text-[var(--muted)]">{messages.form.intro}</p>
               <label className="block space-y-1.5 text-sm font-medium">
-                <span>Journal title</span>
+                <span>{messages.form.titleLabel}</span>
                 <input
                   className={inputClassName}
                   maxLength={120}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder={`${objectName} observation`}
+                  placeholder={formatMessageTemplate(messages.form.titlePlaceholder, {
+                    objectName,
+                  })}
                   required
                   value={title}
                 />
               </label>
               <div className="space-y-2">
                 <label className="block space-y-1.5 text-sm font-medium">
-                  <span>Observation date and time (optional)</span>
+                  <span>{messages.form.observationTimeLabel}</span>
                   <input
                     className={inputClassName}
                     onChange={(event) => setObservedAt(event.target.value)}
@@ -222,16 +240,15 @@ export function JournalEntryButton({
                     }
                     type="button"
                   >
-                    Use selected planner time
+                    {messages.form.usePlannerTime}
                   </button>
                 ) : null}
-                <p className="text-xs leading-5 text-[var(--muted)]">
-                  Stored as UTC only after you save this form. Leave blank if the observation time
-                  is unknown.
-                </p>
+                <p className="text-xs leading-5 text-[var(--muted)]">{messages.form.timeHelp}</p>
               </div>
               <fieldset className="space-y-3 rounded-md border border-[var(--border)] p-4">
-                <legend className="px-1 text-sm font-semibold">Location (optional)</legend>
+                <legend className="px-1 text-sm font-semibold">
+                  {messages.form.locationLegend}
+                </legend>
                 {plannerContext !== undefined ? (
                   <div className="space-y-2">
                     <button
@@ -240,31 +257,30 @@ export function JournalEntryButton({
                         setLatitude(String(plannerContext.latitudeDeg));
                         setLongitude(String(plannerContext.longitudeDeg));
                         if (locationLabel.trim().length === 0)
-                          setLocationLabel("Planner coordinates");
+                          setLocationLabel(messages.form.plannerLocationLabel);
                       }}
                       type="button"
                     >
-                      Use planner coordinates
+                      {messages.form.usePlannerCoordinates}
                     </button>
                     <p className="text-xs leading-5 text-[var(--muted)]">
-                      Exact planner coordinates are not copied into the journal unless you choose
-                      this action and then save the form.
+                      {messages.form.plannerCoordinatesHelp}
                     </p>
                   </div>
                 ) : null}
                 <label className="block space-y-1.5 text-sm font-medium">
-                  <span>Location label</span>
+                  <span>{messages.form.locationLabel}</span>
                   <input
                     className={inputClassName}
                     maxLength={120}
                     onChange={(event) => setLocationLabel(event.target.value)}
-                    placeholder="Example: Back garden"
+                    placeholder={messages.form.locationPlaceholder}
                     value={locationLabel}
                   />
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block space-y-1.5 text-sm font-medium">
-                    <span>Latitude</span>
+                    <span>{messages.form.latitudeLabel}</span>
                     <input
                       className={inputClassName}
                       inputMode="decimal"
@@ -277,7 +293,7 @@ export function JournalEntryButton({
                     />
                   </label>
                   <label className="block space-y-1.5 text-sm font-medium">
-                    <span>Longitude</span>
+                    <span>{messages.form.longitudeLabel}</span>
                     <input
                       className={inputClassName}
                       inputMode="decimal"
@@ -292,7 +308,7 @@ export function JournalEntryButton({
                 </div>
               </fieldset>
               <label className="block space-y-1.5 text-sm font-medium">
-                <span>Notes (optional)</span>
+                <span>{messages.form.notesLabel}</span>
                 <textarea
                   className={`${inputClassName} min-h-28 py-3`}
                   maxLength={10_000}
@@ -307,10 +323,10 @@ export function JournalEntryButton({
                   disabled={state.kind === "saving"}
                   type="submit"
                 >
-                  {state.kind === "saving" ? "Saving locally…" : "Save to local journal"}
+                  {state.kind === "saving" ? messages.form.savingAction : messages.form.saveAction}
                 </button>
                 <button className={actionClassName} onClick={close} type="button">
-                  Cancel
+                  {messages.cancelAction}
                 </button>
               </div>
             </form>

@@ -113,6 +113,7 @@ function renderPlanner(
     <ObservationPlanner
       detail={detail}
       initialDate={date}
+      journalEntryMessages={enMessages.journal.entry}
       locale={DEFAULT_LOCALE}
       messages={messages}
       slug={detail === null ? null : "k2-18"}

@@ -143,6 +143,7 @@ describe("ObjectView", () => {
       <ObjectView
         collectionSaveMessages={SAVE_MESSAGES}
         detail={detail()}
+        journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
         slug="51-pegasi"
       />,
@@ -168,6 +169,7 @@ describe("ObjectView", () => {
       <ObjectView
         collectionSaveMessages={SAVE_MESSAGES}
         detail={{ canonical_name: "HD 209458", entity_type: "star", id: K2_18_ID, quantities: [] }}
+        journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
         slug="hd-209458"
       />,
@@ -185,6 +187,7 @@ describe("ObjectView", () => {
       <ObjectView
         collectionSaveMessages={SAVE_MESSAGES}
         detail={detail()}
+        journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
         slug="51-pegasi"
       />,

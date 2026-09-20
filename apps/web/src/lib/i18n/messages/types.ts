@@ -395,7 +395,51 @@ export type LabIndexMessages = Readonly<{
   title: string;
 }>;
 
+export type JournalEntryMessages = Readonly<{
+  addAction: string;
+  cancelAction: string;
+  description: string;
+  dialogTitle: string;
+  doneAction: string;
+  failures: Readonly<{
+    entryLimit: string;
+    generic: string;
+    invalidEntry: string;
+    storageUnavailable: string;
+    writeRejected: string;
+  }>;
+  form: Readonly<{
+    intro: string;
+    latitudeLabel: string;
+    locationLabel: string;
+    locationLegend: string;
+    locationPlaceholder: string;
+    longitudeLabel: string;
+    notesLabel: string;
+    observationTimeLabel: string;
+    plannerCoordinatesHelp: string;
+    plannerLocationLabel: string;
+    saveAction: string;
+    savingAction: string;
+    timeHelp: string;
+    titleLabel: string;
+    titlePlaceholder: string;
+    usePlannerCoordinates: string;
+    usePlannerTime: string;
+  }>;
+  openJournal: string;
+  savedStatus: string;
+  validation: Readonly<{
+    coordinatePairRequired: string;
+    coordinatesInvalid: string;
+    locationLabelRequired: string;
+    timeInvalid: string;
+    titleRequired: string;
+  }>;
+}>;
+
 export type JournalMessages = Readonly<{
+  entry: JournalEntryMessages;
   entries: Readonly<{
     conditionsTitle: string;
     coordinateFrameLabel: string;

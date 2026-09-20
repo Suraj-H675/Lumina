@@ -382,4 +382,12 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.failures.identifierUnavailable).toMatch(/local identifier/i);
     expect(messages.savedStatus).toMatch(/snapshot/i);
   });
+
+  it("keeps the reusable journal-entry action in the journal message group", () => {
+    const messages = enMessages.journal.entry;
+    expect(messages.description).toContain("{objectName}");
+    expect(messages.form.titlePlaceholder).toContain("{objectName}");
+    expect(messages.form.plannerCoordinatesHelp).toMatch(/not copied/i);
+    expect(messages.validation.coordinatesInvalid).toMatch(/longitude/i);
+  });
 });

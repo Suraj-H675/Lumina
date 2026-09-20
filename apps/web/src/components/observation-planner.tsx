@@ -26,7 +26,7 @@ import {
   formatMessageTemplate,
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { ObservationPlannerMessages } from "../lib/i18n/messages/types";
+import type { JournalEntryMessages, ObservationPlannerMessages } from "../lib/i18n/messages/types";
 import {
   computeObservationPlan,
   coordinateProfileForSource,
@@ -47,6 +47,7 @@ export type ObservationPlannerProps = Readonly<{
   apiOrigin?: string;
   detail: EntityDetailResponse | null;
   initialDate?: string;
+  journalEntryMessages: JournalEntryMessages;
   locale: PublishedLocale;
   messages: ObservationPlannerMessages;
   slug: string | null;
@@ -377,6 +378,7 @@ function AltitudeChart({
 }
 
 function PlannerResults({
+  journalEntryMessages,
   locale,
   messages,
   nightDate,
@@ -387,6 +389,7 @@ function PlannerResults({
   targetSlug,
   timeZone,
 }: Readonly<{
+  journalEntryMessages: JournalEntryMessages;
   locale: PublishedLocale;
   messages: ObservationPlannerMessages;
   nightDate: string;
@@ -420,6 +423,7 @@ function PlannerResults({
         ) : null}
         <JournalEntryButton
           entityId={targetEntityId}
+          messages={journalEntryMessages}
           objectName={targetName}
           plannerContext={{
             latitudeDeg: plan.location.latitude,
@@ -544,6 +548,7 @@ export function ObservationPlanner({
   apiOrigin,
   detail,
   initialDate,
+  journalEntryMessages,
   locale,
   messages,
   slug,
@@ -910,6 +915,7 @@ export function ObservationPlanner({
             </section>
           ) : plan !== null ? (
             <PlannerResults
+              journalEntryMessages={journalEntryMessages}
               locale={locale}
               messages={messages}
               plan={plan}

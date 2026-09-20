@@ -5,7 +5,10 @@ import { ObjectNotFoundView } from "../../../components/object-not-found-view";
 import { ObjectView } from "../../../components/object-view";
 import { entityTypeLabel } from "../../../lib/catalog-display";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
-import type { CollectionSaveMessages } from "../../../lib/i18n/messages/types";
+import type {
+  CollectionSaveMessages,
+  JournalEntryMessages,
+} from "../../../lib/i18n/messages/types";
 import { loadObjectBySlugPerRequest } from "../../../lib/server/catalog";
 
 type ObjectRoutePageProps = Readonly<{
@@ -14,6 +17,7 @@ type ObjectRoutePageProps = Readonly<{
 
 type ObjectPageProps = Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
+  journalEntryMessages: JournalEntryMessages;
   locale: PublishedLocale;
   params: ObjectRoutePageProps["params"];
 }>;
@@ -37,6 +41,7 @@ export async function generateMetadata({ params }: ObjectRoutePageProps): Promis
 
 export default async function ObjectPage({
   collectionSaveMessages,
+  journalEntryMessages,
   locale,
   params,
 }: ObjectPageProps) {
@@ -77,6 +82,7 @@ export default async function ObjectPage({
     <ObjectView
       collectionSaveMessages={collectionSaveMessages}
       detail={outcome.detail}
+      journalEntryMessages={journalEntryMessages}
       locale={locale}
       slug={slug}
     />

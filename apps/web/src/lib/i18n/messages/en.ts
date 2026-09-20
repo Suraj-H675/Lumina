@@ -212,6 +212,54 @@ export const enMessages = {
     whyItMattersTitle: "Why it matters",
   },
   journal: {
+    entry: {
+      addAction: "Add to journal",
+      cancelAction: "Cancel",
+      description:
+        "Create a browser-local observation entry for {objectName}. Time and location are saved only from fields you explicitly confirm here.",
+      dialogTitle: "Create journal entry",
+      doneAction: "Done",
+      failures: {
+        entryLimit:
+          "The local journal has reached its entry limit. Remove an entry before saving another.",
+        generic: "The local journal save failed. Nothing was uploaded or changed remotely.",
+        invalidEntry: "The journal fields could not be validated. Check them and try again.",
+        storageUnavailable: "This browser is not allowing IndexedDB journal storage right now.",
+        writeRejected:
+          "The browser rejected the local journal write. Nothing was uploaded remotely.",
+      },
+      form: {
+        intro:
+          "The catalogue object is recorded as a local reference. Lumina does not infer when or where you observed it.",
+        latitudeLabel: "Latitude",
+        locationLabel: "Location label",
+        locationLegend: "Location (optional)",
+        locationPlaceholder: "Example: Back garden",
+        longitudeLabel: "Longitude",
+        notesLabel: "Notes (optional)",
+        observationTimeLabel: "Observation date and time (optional)",
+        plannerCoordinatesHelp:
+          "Exact planner coordinates are not copied into the journal unless you choose this action and then save the form.",
+        plannerLocationLabel: "Planner coordinates",
+        saveAction: "Save to local journal",
+        savingAction: "Saving locally…",
+        timeHelp:
+          "Stored as UTC only after you save this form. Leave blank if the observation time is unknown.",
+        titleLabel: "Journal title",
+        titlePlaceholder: "{objectName} observation",
+        usePlannerCoordinates: "Use planner coordinates",
+        usePlannerTime: "Use selected planner time",
+      },
+      openJournal: "Open Journal",
+      savedStatus: "Saved to this browser's local journal.",
+      validation: {
+        coordinatePairRequired: "Enter both latitude and longitude, or leave both blank.",
+        coordinatesInvalid: "Latitude must be −90…90 and longitude −180…180.",
+        locationLabelRequired: "Add a location label or clear the location fields.",
+        timeInvalid: "Enter a valid observation date and time, or leave it blank.",
+        titleRequired: "Give this journal entry a title.",
+      },
+    },
     entries: {
       conditionsTitle: "Conditions",
       coordinateFrameLabel: "Coordinate frame",

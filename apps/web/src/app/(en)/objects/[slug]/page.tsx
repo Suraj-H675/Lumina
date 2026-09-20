@@ -13,6 +13,7 @@ export default function EnglishObjectPage({
   return (
     <ObjectPage
       collectionSaveMessages={collectionSaveMessages}
+      journalEntryMessages={enMessages.journal.entry}
       locale={DEFAULT_LOCALE}
       params={params}
     />

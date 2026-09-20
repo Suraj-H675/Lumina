@@ -313,6 +313,84 @@ export const enMessages = {
       useImported: "Use imported",
     },
   },
+  observationPlanner: {
+    coordinateSource: {
+      description:
+        "Multiple accepted positions are available; choose which paired source to calculate.",
+      heading: "Coordinate source",
+      option: "{datasetName} · source record {sourceRecordId}",
+    },
+    coordinatesUnavailable: {
+      description:
+        "This object does not currently have a usable accepted Gaia ICRS position. Lumina has not estimated or substituted coordinates.",
+      title: "Observation planning unavailable",
+    },
+    header: {
+      chooseObject: "Choose an object",
+      description:
+        "Find when this catalogue object is highest and where to look from your location. These are geometric sky calculations, not a weather or visibility forecast.",
+      eyebrow: "Observation planner",
+      openObject: "Open object",
+      targetSummary: "{entityType} · select a different target below",
+    },
+    location: {
+      calculateAction: "Calculate with these coordinates",
+      coordinateHelp: "Latitude −90° to 90° · longitude −180° to 180°. No city lookup is used.",
+      currentLocation: "Current location {latitude}°, {longitude}°",
+      deviceNote: "Used on this device for the calculation",
+      geolocationFailures: {
+        denied: "Location permission was denied. You can enter coordinates manually.",
+        timeout: "Location lookup timed out. Try again or enter coordinates manually.",
+        unavailable: "Your browser could not determine a location. Try manual coordinates.",
+        unknown: "Location lookup was unavailable. Enter coordinates manually instead.",
+      },
+      geolocationUnsupported:
+        "This browser does not support location access. Enter coordinates manually.",
+      invalidCoordinates: "Enter a latitude from −90 to 90 and a longitude from −180 to 180.",
+      latitudeLabel: "Latitude",
+      longitudeLabel: "Longitude",
+      lookupBusy: "Looking up location…",
+      manualLegend: "Enter coordinates manually",
+      privacyDescription:
+        "Your precise location stays in this browser. It is not sent to Lumina's catalogue API.",
+      title: "Observer location",
+      useMyLocation: "Use my location",
+    },
+    metadata: {
+      description:
+        "Plan when and where to observe a Lumina catalogue object using deterministic astronomical calculations.",
+      title: "Observation planner",
+    },
+    night: {
+      dateHelp: "The evening beginning on this local date, continuing into the next morning.",
+      dateLabel: "Night of",
+      nowAction: "Now",
+      selectedTimeHelp:
+        "Inspect altitude and azimuth at one instant; this does not change the night window.",
+      selectedTimeLabel: "Selected local time",
+      summary: "Night of {date}",
+      timeZoneSummary: "Times shown in {timeZone}",
+      title: "Observing night",
+    },
+    states: {
+      invalidTime: {
+        description: "Choose a valid night and local time to try again.",
+        title: "This time could not be calculated",
+      },
+      locationRequired: {
+        description:
+          "Choose Use my location or enter latitude and longitude. No calculation begins until a valid observer location is available.",
+        title: "Add a location to calculate the sky position",
+      },
+    },
+    target: {
+      emptyDescription:
+        "Select an object to begin. Observation calculations use only an accepted catalogue position.",
+      heading: "Target",
+      reviewedSuggestions: "Uses the reviewed catalogue suggestions",
+      unavailable: "That target could not be loaded. Choose another catalogue object.",
+    },
+  },
   savedObservationPlan: {
     actions: {
       cancelDelete: "Cancel",

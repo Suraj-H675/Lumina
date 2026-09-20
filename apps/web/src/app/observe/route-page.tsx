@@ -2,18 +2,24 @@ import type { Metadata } from "next";
 
 import { ObserveExperience } from "../../components/observe-experience";
 import type { PublishedLocale } from "../../lib/i18n/locales";
-import type { SavedObservationPlanMessages } from "../../lib/i18n/messages/types";
+import type {
+  ObservationPlannerMessages,
+  SavedObservationPlanMessages,
+} from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadObjectBySlugPerRequest } from "../../lib/server/catalog";
 
-export const metadata: Metadata = {
-  title: "Observation planner",
-  description:
-    "Plan when and where to observe a Lumina catalogue object using deterministic astronomical calculations.",
-};
+export function createObserveMetadata(messages: ObservationPlannerMessages["metadata"]): Metadata {
+  return {
+    description: messages.description,
+    title: messages.title,
+  };
+}
 
 type ObservePageProps = Readonly<{
+  plannerLocale: PublishedLocale;
+  plannerMessages: ObservationPlannerMessages;
   savedPlanLocale: PublishedLocale;
   savedPlanMessages: SavedObservationPlanMessages;
   searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
@@ -24,6 +30,8 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function ObservePage({
+  plannerLocale,
+  plannerMessages,
   savedPlanLocale,
   savedPlanMessages,
   searchParams,
@@ -45,6 +53,8 @@ export default async function ObservePage({
       detail={outcome?.kind === "ok" ? outcome.detail : null}
       {...(initialDate === undefined ? {} : { initialDate })}
       {...(initialSavedId === undefined ? {} : { initialSavedId })}
+      locale={plannerLocale}
+      messages={plannerMessages}
       savedPlanLocale={savedPlanLocale}
       savedPlanMessages={savedPlanMessages}
       slug={hasSavedParam ? null : slug}

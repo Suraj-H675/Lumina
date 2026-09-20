@@ -8,6 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EntityDetailResponse } from "@lumina/api-client";
 
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { ObservationPlannerMessages } from "../src/lib/i18n/messages/types";
 import { localDateString } from "../src/lib/observation/domain";
 import {
   BRIGHT_STAR_CONTEXT_URL,
@@ -101,11 +104,17 @@ function plannerDetail(): EntityDetailResponse {
   };
 }
 
-function renderPlanner(detail: EntityDetailResponse | null = plannerDetail(), date = "2026-08-27") {
+function renderPlanner(
+  detail: EntityDetailResponse | null = plannerDetail(),
+  date = "2026-08-27",
+  messages: ObservationPlannerMessages = enMessages.observationPlanner,
+) {
   return render(
     <ObservationPlanner
       detail={detail}
       initialDate={date}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
       slug={detail === null ? null : "k2-18"}
       targetUnavailable={false}
     />,
@@ -134,6 +143,30 @@ afterEach(() => {
 });
 
 describe("ObservationPlanner", () => {
+  it("renders the setup shell from the injected planner message group", () => {
+    const messages: ObservationPlannerMessages = {
+      ...enMessages.observationPlanner,
+      header: {
+        ...enMessages.observationPlanner.header,
+        eyebrow: "Planner message fixture",
+      },
+      location: {
+        ...enMessages.observationPlanner.location,
+        useMyLocation: "Use fixture coordinates",
+      },
+      night: {
+        ...enMessages.observationPlanner.night,
+        timeZoneSummary: "Fixture zone {timeZone}",
+      },
+    };
+
+    renderPlanner(plannerDetail(), "2026-08-27", messages);
+
+    expect(screen.getByText("Planner message fixture")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Use fixture coordinates" })).toBeVisible();
+    expect(screen.getByText(/Fixture zone/)).toBeVisible();
+  });
+
   it("starts with a target, night controls, and an intentional location request", () => {
     renderPlanner();
 

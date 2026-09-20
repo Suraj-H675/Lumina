@@ -1,8 +1,8 @@
 import { DEFAULT_LOCALE } from "../../../lib/i18n/locales";
 import { enMessages } from "../../../lib/i18n/messages/en";
-import ObservePage, { metadata } from "../../observe/route-page";
+import ObservePage, { createObserveMetadata } from "../../observe/route-page";
 
-export { metadata };
+export const metadata = createObserveMetadata(enMessages.observationPlanner.metadata);
 
 export default function EnglishObservePage({
   searchParams,
@@ -11,6 +11,8 @@ export default function EnglishObservePage({
 }>) {
   return (
     <ObservePage
+      plannerLocale={DEFAULT_LOCALE}
+      plannerMessages={enMessages.observationPlanner}
       savedPlanLocale={DEFAULT_LOCALE}
       savedPlanMessages={enMessages.savedObservationPlan}
       searchParams={searchParams}

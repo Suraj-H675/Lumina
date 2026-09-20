@@ -351,4 +351,16 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.source.calculationDescription).toContain("{solarAltitude}");
     expect(messages.states.corrupted.body).toMatch(/left the local data untouched/i);
   });
+
+  it("keeps the live observation planner setup shell in one typed message group", () => {
+    const messages = enMessages.observationPlanner;
+    expect(messages.metadata.title).toBe("Observation planner");
+    expect(messages.header.targetSummary).toContain("{entityType}");
+    expect(messages.location.currentLocation).toContain("{latitude}");
+    expect(messages.location.currentLocation).toContain("{longitude}");
+    expect(messages.night.timeZoneSummary).toContain("{timeZone}");
+    expect(messages.night.summary).toContain("{date}");
+    expect(messages.coordinateSource.option).toContain("{sourceRecordId}");
+    expect(messages.states.locationRequired.title).toMatch(/add a location/i);
+  });
 });

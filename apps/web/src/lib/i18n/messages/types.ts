@@ -550,6 +550,76 @@ export type SavedObservationPlanMessages = Readonly<{
   }>;
 }>;
 
+export type ObservationPlannerMessages = Readonly<{
+  coordinateSource: Readonly<{
+    description: string;
+    heading: string;
+    option: string;
+  }>;
+  coordinatesUnavailable: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  header: Readonly<{
+    chooseObject: string;
+    description: string;
+    eyebrow: string;
+    openObject: string;
+    targetSummary: string;
+  }>;
+  location: Readonly<{
+    calculateAction: string;
+    coordinateHelp: string;
+    currentLocation: string;
+    deviceNote: string;
+    geolocationFailures: Readonly<{
+      denied: string;
+      timeout: string;
+      unavailable: string;
+      unknown: string;
+    }>;
+    geolocationUnsupported: string;
+    invalidCoordinates: string;
+    latitudeLabel: string;
+    longitudeLabel: string;
+    lookupBusy: string;
+    manualLegend: string;
+    privacyDescription: string;
+    title: string;
+    useMyLocation: string;
+  }>;
+  metadata: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  night: Readonly<{
+    dateHelp: string;
+    dateLabel: string;
+    nowAction: string;
+    selectedTimeHelp: string;
+    selectedTimeLabel: string;
+    summary: string;
+    timeZoneSummary: string;
+    title: string;
+  }>;
+  states: Readonly<{
+    invalidTime: Readonly<{
+      description: string;
+      title: string;
+    }>;
+    locationRequired: Readonly<{
+      description: string;
+      title: string;
+    }>;
+  }>;
+  target: Readonly<{
+    emptyDescription: string;
+    heading: string;
+    reviewedSuggestions: string;
+    unavailable: string;
+  }>;
+}>;
+
 export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
@@ -966,6 +1036,7 @@ export type LuminaMessages = Readonly<{
   labIndex: LabIndexMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;
+  observationPlanner: ObservationPlannerMessages;
   offline: OfflineMessages;
   participate: ParticipateMessages;
   presentationMode: PresentationModeMessages;

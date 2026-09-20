@@ -21,6 +21,13 @@ import { SaveObservationPlanButton } from "./save-observation-plan-button";
 import { SkyFinder } from "./sky-finder";
 import { entityTypeLabel } from "../lib/catalog-display";
 import {
+  formatLocaleDateTime,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ObservationPlannerMessages } from "../lib/i18n/messages/types";
+import {
   computeObservationPlan,
   coordinateProfileForSource,
   extractCoordinatePairs,
@@ -29,7 +36,6 @@ import {
   isValidNightDate,
   localDateString,
   localInstantForNightTime,
-  observerGeolocationErrorMessage,
   parseObserverLocationInputs,
   type NightEvent,
   type ObservationPlan,
@@ -41,6 +47,8 @@ export type ObservationPlannerProps = Readonly<{
   apiOrigin?: string;
   detail: EntityDetailResponse | null;
   initialDate?: string;
+  locale: PublishedLocale;
+  messages: ObservationPlannerMessages;
   slug: string | null;
   targetUnavailable: boolean;
 }>;
@@ -67,15 +75,15 @@ function useBrowserTimeZone(): string {
   );
 }
 
-function formatDateLabel(nightDate: string, timeZone: string): string {
+function formatDateLabel(nightDate: string, timeZone: string, locale: PublishedLocale): string {
   const instant = localInstantForNightTime(nightDate, "12:00");
   if (instant === null) return nightDate;
-  return new Intl.DateTimeFormat(undefined, {
+  return formatLocaleDateTime(instant, locale, {
     day: "numeric",
     month: "short",
     timeZone,
     year: "numeric",
-  }).format(instant);
+  });
 }
 
 function formatTime(instant: Date, timeZone: string): string {
@@ -116,8 +124,21 @@ function formatTargetEvent(event: TargetEvent, timeZone: string): string {
   return "Unavailable";
 }
 
-function roundedLocationValue(value: number): string {
-  return value.toFixed(3);
+function formatLocationValue(value: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(value, locale, {
+    maximumFractionDigits: 3,
+    minimumFractionDigits: 3,
+  });
+}
+
+function geolocationFailureMessage(
+  code: number,
+  messages: ObservationPlannerMessages["location"]["geolocationFailures"],
+): string {
+  if (code === 1) return messages.denied;
+  if (code === 2) return messages.unavailable;
+  if (code === 3) return messages.timeout;
+  return messages.unknown;
 }
 
 function eventTimeOrFallback(event: NightEvent, timeZone: string): string {
@@ -447,6 +468,8 @@ export function ObservationPlanner({
   apiOrigin,
   detail,
   initialDate,
+  locale,
+  messages,
   slug,
   targetUnavailable,
 }: ObservationPlannerProps) {
@@ -501,21 +524,19 @@ export function ObservationPlanner({
       const parsed = parseObserverLocationInputs(latitude, longitude);
       if (parsed === null) {
         setLocation(null);
-        setLocationError("Enter a latitude from −90 to 90 and a longitude from −180 to 180.");
+        setLocationError(messages.location.invalidCoordinates);
         return;
       }
       setLocation(parsed);
       setLocationError("");
     },
-    [latitude, longitude],
+    [latitude, longitude, messages.location.invalidCoordinates],
   );
 
   const handleGeolocation = useCallback(() => {
     setLocationError("");
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
-      setLocationError(
-        "This browser does not support location access. Enter coordinates manually.",
-      );
+      setLocationError(messages.location.geolocationUnsupported);
       return;
     }
     setGeoBusy(true);
@@ -532,32 +553,33 @@ export function ObservationPlanner({
         setGeoBusy(false);
       },
       (error) => {
-        setLocationError(observerGeolocationErrorMessage(error.code));
+        setLocationError(
+          geolocationFailureMessage(error.code, messages.location.geolocationFailures),
+        );
         setGeoBusy(false);
       },
       { enableHighAccuracy: false, maximumAge: 0, timeout: 10_000 },
     );
-  }, []);
+  }, [messages.location.geolocationFailures, messages.location.geolocationUnsupported]);
 
   const useNow = useCallback(() => {
     const now = new Date();
     if (activeNightDate === localDateString(now)) setSelectedTime(localTimeString(now));
   }, [activeNightDate]);
 
-  const targetTitle = detail?.canonical_name ?? "Choose an object";
+  const targetTitle = detail?.canonical_name ?? messages.header.chooseObject;
 
   return (
     <div className="space-y-10">
       <header className="space-y-5">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Observation planner
+          {messages.header.eyebrow}
         </p>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{targetTitle}</h1>
             <p className="mt-3 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-              Find when this catalogue object is highest and where to look from your location. These
-              are geometric sky calculations, not a weather or visibility forecast.
+              {messages.header.description}
             </p>
           </div>
           {detail !== null && slug !== null ? (
@@ -565,13 +587,15 @@ export function ObservationPlanner({
               className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
               href={`/objects/${slug}`}
             >
-              Open object
+              {messages.header.openObject}
             </Link>
           ) : null}
         </div>
         {detail !== null ? (
           <p className="text-sm text-[var(--muted)]">
-            {entityTypeLabel(detail.entity_type)} · select a different target below
+            {formatMessageTemplate(messages.header.targetSummary, {
+              entityType: entityTypeLabel(detail.entity_type),
+            })}
           </p>
         ) : null}
       </header>
@@ -579,11 +603,9 @@ export function ObservationPlanner({
       <section aria-labelledby="target-heading" className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
           <h2 className="text-xl font-semibold" id="target-heading">
-            Target
+            {messages.target.heading}
           </h2>
-          <span className="text-sm text-[var(--muted)]">
-            Uses the reviewed catalogue suggestions
-          </span>
+          <span className="text-sm text-[var(--muted)]">{messages.target.reviewedSuggestions}</span>
         </div>
         <div className="relative max-w-2xl">
           <CatalogueSearchBox
@@ -593,14 +615,11 @@ export function ObservationPlanner({
           />
         </div>
         {targetUnavailable ? (
-          <p className="text-sm text-[var(--muted)]">
-            That target could not be loaded. Choose another catalogue object.
-          </p>
+          <p className="text-sm text-[var(--muted)]">{messages.target.unavailable}</p>
         ) : null}
         {detail === null ? (
           <p className="max-w-2xl leading-7 text-[var(--muted)]">
-            Select an object to begin. Observation calculations use only an accepted catalogue
-            position.
+            {messages.target.emptyDescription}
           </p>
         ) : null}
       </section>
@@ -611,11 +630,10 @@ export function ObservationPlanner({
           className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-5"
         >
           <h2 className="text-xl font-semibold" id="coordinates-unavailable-heading">
-            Observation planning unavailable
+            {messages.coordinatesUnavailable.title}
           </h2>
           <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-            This object does not currently have a usable accepted Gaia ICRS position. Lumina has not
-            estimated or substituted coordinates.
+            {messages.coordinatesUnavailable.description}
           </p>
         </section>
       ) : null}
@@ -625,17 +643,14 @@ export function ObservationPlanner({
           <section aria-labelledby="location-heading" className="space-y-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
               <h2 className="text-xl font-semibold" id="location-heading">
-                Observer location
+                {messages.location.title}
               </h2>
-              <span className="text-sm text-[var(--muted)]">
-                Used on this device for the calculation
-              </span>
+              <span className="text-sm text-[var(--muted)]">{messages.location.deviceNote}</span>
             </div>
             <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
               <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
                 <p className="text-sm leading-6 text-[var(--muted)]">
-                  Your precise location stays in this browser. It is not sent to Lumina&apos;s
-                  catalogue API.
+                  {messages.location.privacyDescription}
                 </p>
                 <button
                   className="mt-4 inline-flex min-h-11 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-strong)] disabled:cursor-wait disabled:opacity-70"
@@ -643,12 +658,14 @@ export function ObservationPlanner({
                   onClick={handleGeolocation}
                   type="button"
                 >
-                  {geoBusy ? "Looking up location…" : "Use my location"}
+                  {geoBusy ? messages.location.lookupBusy : messages.location.useMyLocation}
                 </button>
                 {location !== null ? (
                   <p className="mt-4 text-sm text-[var(--foreground)]">
-                    Current location {roundedLocationValue(location.latitude)}°,{" "}
-                    {roundedLocationValue(location.longitude)}°
+                    {formatMessageTemplate(messages.location.currentLocation, {
+                      latitude: formatLocationValue(location.latitude, locale),
+                      longitude: formatLocationValue(location.longitude, locale),
+                    })}
                   </p>
                 ) : null}
                 {locationError ? (
@@ -663,14 +680,14 @@ export function ObservationPlanner({
               >
                 <fieldset>
                   <legend className="text-sm font-semibold text-[var(--foreground)]">
-                    Enter coordinates manually
+                    {messages.location.manualLegend}
                   </legend>
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <label
                       className="space-y-1.5 text-sm text-[var(--muted)]"
                       htmlFor="observer-latitude"
                     >
-                      <span className="block">Latitude</span>
+                      <span className="block">{messages.location.latitudeLabel}</span>
                       <input
                         aria-describedby="observer-coordinate-help"
                         className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
@@ -686,7 +703,7 @@ export function ObservationPlanner({
                       className="space-y-1.5 text-sm text-[var(--muted)]"
                       htmlFor="observer-longitude"
                     >
-                      <span className="block">Longitude</span>
+                      <span className="block">{messages.location.longitudeLabel}</span>
                       <input
                         aria-describedby="observer-coordinate-help"
                         className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
@@ -703,13 +720,13 @@ export function ObservationPlanner({
                     className="mt-3 text-xs leading-5 text-[var(--muted)]"
                     id="observer-coordinate-help"
                   >
-                    Latitude −90° to 90° · longitude −180° to 180°. No city lookup is used.
+                    {messages.location.coordinateHelp}
                   </p>
                   <button
                     className="mt-4 inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
                     type="submit"
                   >
-                    Calculate with these coordinates
+                    {messages.location.calculateAction}
                   </button>
                 </fieldset>
               </form>
@@ -719,13 +736,17 @@ export function ObservationPlanner({
           <section aria-labelledby="night-heading" className="space-y-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
               <h2 className="text-xl font-semibold" id="night-heading">
-                Observing night
+                {messages.night.title}
               </h2>
-              <span className="text-sm text-[var(--muted)]">Times shown in {timeZone}</span>
+              <span className="text-sm text-[var(--muted)]">
+                {formatMessageTemplate(messages.night.timeZoneSummary, { timeZone })}
+              </span>
             </div>
             <div className="grid gap-4 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:grid-cols-2">
               <label className="space-y-1.5 text-sm text-[var(--muted)]" htmlFor="observing-date">
-                <span className="block font-medium text-[var(--foreground)]">Night of</span>
+                <span className="block font-medium text-[var(--foreground)]">
+                  {messages.night.dateLabel}
+                </span>
                 <input
                   className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
                   id="observing-date"
@@ -733,13 +754,11 @@ export function ObservationPlanner({
                   type="date"
                   value={activeNightDate}
                 />
-                <span className="block text-xs leading-5">
-                  The evening beginning on this local date, continuing into the next morning.
-                </span>
+                <span className="block text-xs leading-5">{messages.night.dateHelp}</span>
               </label>
               <label className="space-y-1.5 text-sm text-[var(--muted)]" htmlFor="selected-time">
                 <span className="block font-medium text-[var(--foreground)]">
-                  Selected local time
+                  {messages.night.selectedTimeLabel}
                 </span>
                 <input
                   className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
@@ -748,10 +767,7 @@ export function ObservationPlanner({
                   type="time"
                   value={selectedTime}
                 />
-                <span className="block text-xs leading-5">
-                  Inspect altitude and azimuth at one instant; this does not change the night
-                  window.
-                </span>
+                <span className="block text-xs leading-5">{messages.night.selectedTimeHelp}</span>
               </label>
             </div>
             {activeNightDate === localDateString(new Date()) ? (
@@ -760,12 +776,14 @@ export function ObservationPlanner({
                 onClick={useNow}
                 type="button"
               >
-                Now
+                {messages.night.nowAction}
               </button>
             ) : null}
             {activeNightDate !== "" && isValidNightDate(activeNightDate) ? (
               <p className="text-sm text-[var(--muted)]">
-                Night of {formatDateLabel(activeNightDate, timeZone)}
+                {formatMessageTemplate(messages.night.summary, {
+                  date: formatDateLabel(activeNightDate, timeZone, locale),
+                })}
               </p>
             ) : null}
           </section>
@@ -780,11 +798,10 @@ export function ObservationPlanner({
                   className="block font-semibold text-[var(--foreground)]"
                   id="source-selector-heading"
                 >
-                  Coordinate source
+                  {messages.coordinateSource.heading}
                 </span>
                 <span className="block text-[var(--muted)]">
-                  Multiple accepted positions are available; choose which paired source to
-                  calculate.
+                  {messages.coordinateSource.description}
                 </span>
                 <select
                   className="min-h-11 w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
@@ -794,7 +811,10 @@ export function ObservationPlanner({
                 >
                   {coordinatePairs.map((pair) => (
                     <option key={pair.sourceKey} value={pair.sourceKey}>
-                      {pair.source.dataset.name} · source record {pair.source.source_record_id}
+                      {formatMessageTemplate(messages.coordinateSource.option, {
+                        datasetName: pair.source.dataset.name,
+                        sourceRecordId: pair.source.source_record_id,
+                      })}
                     </option>
                   ))}
                 </select>
@@ -807,12 +827,9 @@ export function ObservationPlanner({
               aria-live="polite"
               className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5"
             >
-              <h2 className="text-xl font-semibold">
-                Add a location to calculate the sky position
-              </h2>
+              <h2 className="text-xl font-semibold">{messages.states.locationRequired.title}</h2>
               <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-                Choose Use my location or enter latitude and longitude. No calculation begins until
-                a valid observer location is available.
+                {messages.states.locationRequired.description}
               </p>
             </section>
           ) : plan !== null ? (
@@ -830,9 +847,9 @@ export function ObservationPlanner({
               aria-live="polite"
               className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5"
             >
-              <h2 className="text-xl font-semibold">This time could not be calculated</h2>
+              <h2 className="text-xl font-semibold">{messages.states.invalidTime.title}</h2>
               <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-                Choose a valid night and local time to try again.
+                {messages.states.invalidTime.description}
               </p>
             </section>
           )}

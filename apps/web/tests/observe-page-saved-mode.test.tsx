@@ -50,6 +50,8 @@ describe("observe server route saved mode", () => {
     window.history.replaceState({}, "", `/observe?saved=${saved.id}`);
 
     const page = await ObservePage({
+      plannerLocale: DEFAULT_LOCALE,
+      plannerMessages: enMessages.observationPlanner,
       savedPlanLocale: DEFAULT_LOCALE,
       savedPlanMessages: enMessages.savedObservationPlan,
       searchParams: Promise.resolve({
@@ -68,6 +70,8 @@ describe("observe server route saved mode", () => {
     window.history.replaceState({}, "", "/observe?saved=not-a-uuid&object=k2-18");
 
     const page = await ObservePage({
+      plannerLocale: DEFAULT_LOCALE,
+      plannerMessages: enMessages.observationPlanner,
       savedPlanLocale: DEFAULT_LOCALE,
       savedPlanMessages: enMessages.savedObservationPlan,
       searchParams: Promise.resolve({ object: "k2-18", saved: "not-a-uuid" }),

@@ -746,6 +746,124 @@ export type ObservationConditionsMessages = Readonly<{
   }>;
 }>;
 
+export type SkyFinderMessages = Readonly<{
+  brightStars: Readonly<{
+    markerDescription: string;
+    positionsDescription: string;
+    sourceDescription: string;
+    states: Readonly<{
+      hidden: string;
+      loading: string;
+      shown: CountMessageTemplates;
+      shownCapped: string;
+      unavailable: string;
+    }>;
+    title: string;
+  }>;
+  compass: Readonly<{
+    e: string;
+    ene: string;
+    ese: string;
+    n: string;
+    ne: string;
+    nne: string;
+    nnw: string;
+    nw: string;
+    s: string;
+    se: string;
+    sse: string;
+    ssw: string;
+    sw: string;
+    w: string;
+    wnw: string;
+    wsw: string;
+  }>;
+  constellation: Readonly<{
+    abbreviation: string;
+    boundaryDescription: string;
+    name: string;
+    officialRegion: string;
+    sourceDescription: string;
+    states: Readonly<{
+      hidden: string;
+      loading: string;
+      noVisibleBoundary: string;
+      shown: string;
+      unavailable: string;
+    }>;
+    title: string;
+  }>;
+  guidance: Readonly<{
+    aboveHorizonValue: string;
+    altitude: string;
+    belowDescription: string;
+    belowHeading: string;
+    direction: string;
+    directionValue: string;
+    face: string;
+    heading: string;
+    localObstructions: string;
+    lookUp: string;
+    reference: string;
+    spokenAbove: string;
+    spokenBelow: string;
+    spokenDegrees: string;
+    trueAzimuth: string;
+  }>;
+  map: Readonly<{
+    caption: string;
+    horizon: string;
+    zenith: string;
+  }>;
+  namedAnchors: Readonly<{
+    altitudeGeometric: string;
+    angularSeparation: string;
+    listAriaLabel: string;
+    nearest: string;
+    objectiveContext: string;
+    rowAriaLabel: string;
+    sourceDescription: string;
+    states: Readonly<{
+      hidden: string;
+      loading: string;
+      ready: CountMessageTemplates;
+      unavailable: string;
+    }>;
+    title: string;
+  }>;
+  overview: Readonly<{
+    description: string;
+    eyebrow: string;
+    noSensors: string;
+    title: string;
+  }>;
+  references: Readonly<{
+    altitudeGeometric: string;
+    bodies: Readonly<{
+      jupiter: string;
+      mars: string;
+      mercury: string;
+      saturn: string;
+      sun: string;
+      venus: string;
+    }>;
+    geometricOnly: string;
+    hidden: string;
+    moon: string;
+    moonUnavailable: string;
+    noneAboveHorizon: string;
+    rowAriaLabel: string;
+    targetTag: string;
+    title: string;
+  }>;
+  toggles: Readonly<{
+    brightStars: Readonly<{ help: string; label: string }>;
+    constellation: Readonly<{ help: string; label: string }>;
+    namedAnchors: Readonly<{ help: string; label: string }>;
+    solarSystem: Readonly<{ help: string; label: string }>;
+  }>;
+}>;
+
 export type ObservationPlannerMessages = Readonly<{
   chart: Readonly<{
     accessibleHighest: string;
@@ -841,6 +959,7 @@ export type ObservationPlannerMessages = Readonly<{
     }>;
   }>;
   savePlan: SaveObservationPlanMessages;
+  skyFinder: SkyFinderMessages;
   states: Readonly<{
     invalidTime: Readonly<{
       description: string;

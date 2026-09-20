@@ -390,6 +390,23 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.weather.timeline.point).toContain("{cloudCover}");
   });
 
+  it("keeps Sky Finder presentation and dynamic labels in the planner message group", () => {
+    const messages = enMessages.observationPlanner.skyFinder;
+    expect(messages.guidance.heading).toContain("{targetName}");
+    expect(messages.guidance.directionValue).toContain("{azimuth}");
+    expect(messages.guidance.spokenAbove).toContain("{compass}");
+    expect(messages.brightStars.states.shownCapped).toContain("{cap}");
+    expect(messages.brightStars.states.shownCapped).toContain("{count}");
+    expect(messages.constellation.name).toContain("{name}");
+    expect(messages.constellation.abbreviation).toContain("{abbreviation}");
+    expect(messages.namedAnchors.nearest).toContain("{separation}");
+    expect(messages.namedAnchors.rowAriaLabel).toContain("{altitude}");
+    expect(messages.references.rowAriaLabel).toContain("{azimuth}");
+    expect(messages.toggles.solarSystem.help).toContain("{bodies}");
+    expect(messages.compass.n).toBe("N");
+    expect(messages.references.bodies.sun).toBe("Sun");
+  });
+
   it("keeps the local saved-plan action in the planner message group", () => {
     const messages = enMessages.observationPlanner.savePlan;
     expect(messages.description).toMatch(/only in this browser/i);

@@ -3,6 +3,14 @@
 import { useEffect, useId, useMemo, useState } from "react";
 
 import {
+  formatCountMessage,
+  formatLocaleList,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SkyFinderMessages } from "../lib/i18n/messages/types";
+import {
   loadBrightStarContext,
   type BrightContextStar,
 } from "../lib/observation/bright-star-context";
@@ -18,6 +26,7 @@ import {
 import { calculateMoonHorizontalPosition } from "../lib/observation/lunar";
 import type { HorizontalPosition, ObservationPlan } from "../lib/observation/domain";
 import {
+  BRIGHT_STAR_RENDER_CAP,
   NAMED_ANCHOR_LABEL_CAP,
   calculateBrightContextHorizontalPositions,
   computeSolarSystemMarkers,
@@ -36,6 +45,7 @@ import {
   type SkyFinderTarget,
   type SkyProjectionPoint,
   type SkyReferenceMarker,
+  type SolarSystemBodyKey,
   type PositionedBrightContextStar,
   type PositionedNamedSkyAnchor,
   type ProjectedConstellationBoundary,
@@ -49,18 +59,25 @@ const SKY_VIEW = {
   belowHorizonPadding: 14,
 } as const;
 
-const CARDINAL_LABELS = [
-  { azimuth: 0, label: "N" },
-  { azimuth: 45, label: "NE" },
-  { azimuth: 90, label: "E" },
-  { azimuth: 135, label: "SE" },
-  { azimuth: 180, label: "S" },
-  { azimuth: 225, label: "SW" },
-  { azimuth: 270, label: "W" },
-  { azimuth: 315, label: "NW" },
+const GUIDE_AZIMUTHS = [0, 45, 90, 135, 180, 225, 270, 315] as const;
+const COMPASS_KEYS = [
+  "n",
+  "nne",
+  "ne",
+  "ene",
+  "e",
+  "ese",
+  "se",
+  "sse",
+  "s",
+  "ssw",
+  "sw",
+  "wsw",
+  "w",
+  "wnw",
+  "nw",
+  "nnw",
 ] as const;
-
-const GUIDE_AZIMUTHS = CARDINAL_LABELS.map(({ azimuth }) => azimuth);
 
 type BrightStarContextState =
   | Readonly<{ status: "idle" | "loading" | "failure" }>
@@ -74,20 +91,61 @@ type ConstellationContextState =
   | Readonly<{ status: "loading" | "failure" }>
   | Readonly<{ status: "ready"; context: ConstellationContext }>;
 
-function formatAltitude(altitude: number): string {
-  return `${altitude < 0 ? "−" : ""}${Math.abs(altitude).toFixed(1)}°`;
+function formatAltitude(altitude: number, locale: PublishedLocale): string {
+  return `${altitude < 0 ? "−" : ""}${formatLocaleNumber(Math.abs(altitude), locale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })}°`;
 }
 
-function formatAzimuth(position: HorizontalPosition): string {
-  return `${position.azimuth.toFixed(1)}° · ${position.compass}`;
+function compassKey(azimuth: number): (typeof COMPASS_KEYS)[number] | null {
+  if (!Number.isFinite(azimuth)) return null;
+  const normalized = ((azimuth % 360) + 360) % 360;
+  const index = Math.floor((normalized + 11.25) / 22.5) % COMPASS_KEYS.length;
+  return COMPASS_KEYS[index] ?? null;
 }
 
-function formatSpokenAltitude(altitude: number): string {
-  return `${Math.abs(altitude).toFixed(1)} degrees`;
+function compassLabel(azimuth: number, messages: SkyFinderMessages["compass"]): string {
+  const key = compassKey(azimuth);
+  return key === null ? "—" : messages[key];
 }
 
-function formatAngularSeparation(separation: number): string {
-  return `${separation.toFixed(1)}°`;
+function formatAzimuth(
+  position: HorizontalPosition,
+  locale: PublishedLocale,
+  messages: SkyFinderMessages["compass"],
+): string {
+  return `${formatLocaleNumber(position.azimuth, locale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })}° · ${compassLabel(position.azimuth, messages)}`;
+}
+
+function formatSpokenAltitude(
+  altitude: number,
+  locale: PublishedLocale,
+  messages: SkyFinderMessages["guidance"],
+): string {
+  return formatMessageTemplate(messages.spokenDegrees, {
+    value: formatLocaleNumber(Math.abs(altitude), locale, {
+      maximumFractionDigits: 1,
+      minimumFractionDigits: 1,
+    }),
+  });
+}
+
+function formatAngularSeparation(separation: number, locale: PublishedLocale): string {
+  return `${formatLocaleNumber(separation, locale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })}°`;
+}
+
+function referenceBodyLabel(
+  body: SolarSystemBodyKey,
+  messages: SkyFinderMessages["references"]["bodies"],
+): string {
+  return messages[body];
 }
 
 function pointForAzimuth(azimuth: number, radius: number): Readonly<{ x: number; y: number }> {
@@ -349,6 +407,8 @@ function NamedAnchorLayer({
 function SkyProjection({
   contextStars,
   constellationBoundary,
+  locale,
+  messages,
   namedAnchorLabels,
   namedAnchors,
   target,
@@ -357,6 +417,8 @@ function SkyProjection({
 }: Readonly<{
   contextStars: ReadonlyArray<PositionedBrightContextStar>;
   constellationBoundary: ProjectedConstellationBoundary;
+  locale: PublishedLocale;
+  messages: SkyFinderMessages;
   moon: HorizontalPosition | null;
   namedAnchorLabels: ReadonlyArray<PositionedNamedSkyAnchor>;
   namedAnchors: ReadonlyArray<PositionedNamedSkyAnchor>;
@@ -430,14 +492,15 @@ function SkyProjection({
           <ConstellationBoundaryLayer paths={constellationBoundary} />
           <BrightStarLayer stars={contextStars} />
           <NamedAnchorLayer anchors={namedAnchors} labels={namedAnchorLabels} />
-          {CARDINAL_LABELS.map(({ azimuth, label }) => {
+          {GUIDE_AZIMUTHS.map((azimuth) => {
             const point = pointForAzimuth(azimuth, SKY_VIEW.skyRadius + 22);
+            const label = compassLabel(azimuth, messages.compass);
             return (
               <text
                 fill={azimuth % 90 === 0 ? "var(--foreground)" : "var(--muted)"}
                 fontSize={azimuth % 90 === 0 ? "14" : "11"}
                 fontWeight={azimuth % 90 === 0 ? "700" : "600"}
-                key={label}
+                key={azimuth}
                 textAnchor="middle"
                 x={point.x}
                 y={point.y + 4}
@@ -447,16 +510,16 @@ function SkyProjection({
             );
           })}
           <text fill="var(--muted)" fontSize="10" textAnchor="middle" x={SKY_VIEW.centerX} y="333">
-            Horizon · 0°
+            {messages.map.horizon}
           </text>
           <text fill="var(--muted)" fontSize="10" textAnchor="middle" x={SKY_VIEW.centerX} y="174">
-            Zenith · 90°
+            {messages.map.zenith}
           </text>
           <text fill="var(--muted)" fontSize="10" textAnchor="middle" x="136" y="184">
-            60°
+            {formatLocaleNumber(60, locale)}°
           </text>
           <text fill="var(--muted)" fontSize="10" textAnchor="middle" x="84" y="184">
-            30°
+            {formatLocaleNumber(30, locale)}°
           </text>
           {references.map((reference) => {
             const projection = projectHorizontalPosition(reference.position, SKY_VIEW);
@@ -464,13 +527,17 @@ function SkyProjection({
               <SecondaryMarker
                 key={reference.body}
                 kind="reference"
-                name={reference.name}
+                name={referenceBodyLabel(reference.body, messages.references.bodies)}
                 point={projection}
               />
             );
           })}
           {moonProjection !== null ? (
-            <SecondaryMarker kind="moon" name="Moon" point={moonProjection.point} />
+            <SecondaryMarker
+              kind="moon"
+              name={messages.references.moon}
+              point={moonProjection.point}
+            />
           ) : null}
           <TargetMarker projection={targetProjection} target={target} />
         </svg>
@@ -479,8 +546,7 @@ function SkyProjection({
         className="text-sm leading-6 text-[var(--muted)]"
         id={`sky-projection-caption-${gradientId}`}
       >
-        North is at the top, east is right, south is bottom, and west is left. The horizon is the
-        outer circle; altitude increases toward the zenith at the center. Rings mark 30° and 60°.
+        {messages.map.caption}
       </figcaption>
     </figure>
   );
@@ -488,26 +554,33 @@ function SkyProjection({
 
 function BrightStarContextMetadata({
   contextState,
+  locale,
+  messages,
   selection,
   showContext,
   transformFailed,
 }: Readonly<{
   contextState: BrightStarContextState;
+  locale: PublishedLocale;
+  messages: SkyFinderMessages["brightStars"];
   selection: RenderedBrightContextSelection;
   showContext: boolean;
   transformFailed: boolean;
 }>) {
   let status: string;
   if (!showContext) {
-    status = "Bright-star context is hidden.";
+    status = messages.states.hidden;
   } else if (contextState.status === "idle" || contextState.status === "loading") {
-    status = "Loading pinned bright-star context…";
+    status = messages.states.loading;
   } else if (contextState.status === "failure" || transformFailed) {
-    status = "Bright-star context unavailable.";
+    status = messages.states.unavailable;
   } else if (selection.capApplied) {
-    status = `Showing the 1,200 brightest context stars above the horizon from the pinned Gaia DR3 G ≤ 5.5 slice. ${selection.aboveHorizonCount.toLocaleString()} context stars are above the geometric horizon.`;
+    status = formatMessageTemplate(messages.states.shownCapped, {
+      cap: formatLocaleNumber(BRIGHT_STAR_RENDER_CAP, locale),
+      count: formatLocaleNumber(selection.aboveHorizonCount, locale),
+    });
   } else {
-    status = `${selection.aboveHorizonCount.toLocaleString()} context stars above the geometric horizon.`;
+    status = formatCountMessage(messages.states.shown, selection.aboveHorizonCount, locale);
   }
   return (
     <section
@@ -520,24 +593,16 @@ function BrightStarContextMetadata({
           className="text-lg font-semibold text-[var(--foreground)]"
           id="bright-star-context-heading"
         >
-          Bright-star context
+          {messages.title}
         </h3>
         <span className="text-xs text-[var(--muted)]">Gaia DR3 · G ≤ 5.5</span>
       </div>
       <p className="mt-2 text-sm leading-6 text-[var(--foreground)]" role="status">
         {status}
       </p>
-      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
-        Positions: Gaia DR3 catalogue epoch J2016.0. Proper motion not propagated.
-      </p>
-      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-        Marker size is derived from Gaia G magnitude; it is a visual encoding, not stellar physical
-        size or a guarantee of visibility.
-      </p>
-      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-        Source: ESA Gaia Archive · processed by Gaia DPAC. Context rows are not searchable Lumina
-        catalogue entities.
-      </p>
+      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">{messages.positionsDescription}</p>
+      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">{messages.markerDescription}</p>
+      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">{messages.sourceDescription}</p>
     </section>
   );
 }
@@ -545,27 +610,29 @@ function BrightStarContextMetadata({
 function ConstellationContextMetadata({
   boundaryPaths,
   contextState,
+  messages,
   region,
   membership,
   showBoundary,
 }: Readonly<{
   boundaryPaths: ProjectedConstellationBoundary;
   contextState: ConstellationContextState;
+  messages: SkyFinderMessages["constellation"];
   membership: TargetMembership | null;
   region: ConstellationRegion | null;
   showBoundary: boolean;
 }>) {
   let status: string;
   if (contextState.status === "loading") {
-    status = "Loading constellation context…";
+    status = messages.states.loading;
   } else if (contextState.status === "failure" || membership === null || region === null) {
-    status = "Constellation context unavailable.";
+    status = messages.states.unavailable;
   } else if (!showBoundary) {
-    status = "Constellation boundary is hidden.";
+    status = messages.states.hidden;
   } else if (boundaryPaths.length === 0) {
-    status = "No boundary segment is above the geometric horizon at this selected time.";
+    status = messages.states.noVisibleBoundary;
   } else {
-    status = "Target constellation boundary shown for the selected observer and instant.";
+    status = messages.states.shown;
   }
   return (
     <section
@@ -578,9 +645,9 @@ function ConstellationContextMetadata({
           className="text-lg font-semibold text-[var(--foreground)]"
           id="constellation-context-heading"
         >
-          Constellation region
+          {messages.title}
         </h3>
-        <span className="text-xs text-[var(--muted)]">Official IAU region</span>
+        <span className="text-xs text-[var(--muted)]">{messages.officialRegion}</span>
       </div>
       {membership !== null && region !== null ? (
         <>
@@ -588,26 +655,20 @@ function ConstellationContextMetadata({
             className="mt-2 text-xl font-semibold text-[var(--foreground)]"
             data-testid="sky-finder-target-constellation"
           >
-            Constellation {region.latinName}
+            {formatMessageTemplate(messages.name, { name: region.latinName })}
           </p>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Official abbreviation{" "}
-            <span className="font-mono">{membership.constellationAbbreviation}</span>
+            {formatMessageTemplate(messages.abbreviation, {
+              abbreviation: membership.constellationAbbreviation,
+            })}
           </p>
         </>
       ) : null}
       <p className="mt-2 text-sm leading-6 text-[var(--foreground)]" role="status">
         {status}
       </p>
-      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
-        Constellations are official IAU sky regions; the boundary shown is not a stick-figure
-        drawing. The pinned boundary coordinates are J2000.0 equatorial regions transformed to the
-        selected observer and instant.
-      </p>
-      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-        Source: International Astronomical Union. This context uses region geometry only; it does
-        not describe physical proximity or guarantee visibility.
-      </p>
+      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">{messages.boundaryDescription}</p>
+      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">{messages.sourceDescription}</p>
     </section>
   );
 }
@@ -616,31 +677,36 @@ function NamedAnchorReferenceList({
   anchors,
   brightContextStatus,
   contextState,
+  locale,
+  messages,
   showAnchors,
   transformFailed,
 }: Readonly<{
   anchors: ReadonlyArray<PositionedNamedSkyAnchor>;
   brightContextStatus: BrightStarContextState["status"];
   contextState: NamedAnchorContextState;
+  locale: PublishedLocale;
+  messages: SkyFinderMessages;
   showAnchors: boolean;
   transformFailed: boolean;
 }>) {
+  const anchorMessages = messages.namedAnchors;
   const referenceAnchors = anchors.slice(0, NAMED_ANCHOR_LABEL_CAP);
   const nearest = anchors[0];
   let status: string;
   if (!showAnchors) {
-    status = "Named star anchor markers and labels are hidden.";
+    status = anchorMessages.states.hidden;
   } else if (contextState.status === "loading" || brightContextStatus === "loading") {
-    status = "Loading named sky anchors…";
+    status = anchorMessages.states.loading;
   } else if (
     contextState.status === "failure" ||
     brightContextStatus === "failure" ||
     transformFailed ||
     anchors.length === 0
   ) {
-    status = "Named star anchors unavailable.";
+    status = anchorMessages.states.unavailable;
   } else {
-    status = `${anchors.length.toLocaleString()} named anchors reuse the pinned Gaia star positions.`;
+    status = formatCountMessage(anchorMessages.states.ready, anchors.length, locale);
   }
   return (
     <section
@@ -650,55 +716,81 @@ function NamedAnchorReferenceList({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-lg font-semibold text-[var(--foreground)]" id="named-anchor-heading">
-          Named sky anchors
+          {anchorMessages.title}
         </h3>
-        <span className="text-xs text-[var(--muted)]">Objective geometric context</span>
+        <span className="text-xs text-[var(--muted)]">{anchorMessages.objectiveContext}</span>
       </div>
       <p className="mt-2 text-sm leading-6 text-[var(--foreground)]" role="status">
         {status}
       </p>
       {nearest !== undefined && showAnchors ? (
         <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
-          Nearest named sky anchor by angular separation:{" "}
-          <span className="font-semibold">{nearest.iauName}</span> ·{" "}
-          {formatAngularSeparation(nearest.angularSeparationDegrees)}.
+          {formatMessageTemplate(anchorMessages.nearest, {
+            name: nearest.iauName,
+            separation: formatAngularSeparation(nearest.angularSeparationDegrees, locale),
+          })}
         </p>
       ) : null}
       {referenceAnchors.length > 0 ? (
-        <ul aria-label="Named sky anchors at selected time" className="mt-2">
+        <ul aria-label={anchorMessages.listAriaLabel} className="mt-2">
           {referenceAnchors.map((anchor) => (
             <li
-              aria-label={`${anchor.iauName}: altitude ${formatAltitude(anchor.position.altitude)}; azimuth ${formatAzimuth(anchor.position)}; angular separation ${formatAngularSeparation(anchor.angularSeparationDegrees)} from target`}
+              aria-label={formatMessageTemplate(anchorMessages.rowAriaLabel, {
+                altitude: formatAltitude(anchor.position.altitude, locale),
+                azimuth: formatAzimuth(anchor.position, locale, messages.compass),
+                name: anchor.iauName,
+                separation: formatAngularSeparation(anchor.angularSeparationDegrees, locale),
+              })}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-1 border-b border-[var(--border)] py-3 last:border-b-0"
               data-testid="sky-finder-named-anchor-row"
               key={anchor.gaiaSourceId}
             >
               <span className="font-medium text-[var(--foreground)]">{anchor.iauName}</span>
               <span className="font-mono text-sm text-[var(--foreground)]">
-                {formatAltitude(anchor.position.altitude)}
+                {formatAltitude(anchor.position.altitude, locale)}
               </span>
-              <span className="text-xs text-[var(--muted)]">Altitude · geometric</span>
+              <span className="text-xs text-[var(--muted)]">
+                {anchorMessages.altitudeGeometric}
+              </span>
               <span className="font-mono text-sm text-[var(--muted)]">
-                {formatAzimuth(anchor.position)}
+                {formatAzimuth(anchor.position, locale, messages.compass)}
               </span>
               <span className="col-span-2 text-xs text-[var(--muted)]">
-                Angular separation from target ·{" "}
-                {formatAngularSeparation(anchor.angularSeparationDegrees)}
+                {formatMessageTemplate(anchorMessages.angularSeparation, {
+                  separation: formatAngularSeparation(anchor.angularSeparationDegrees, locale),
+                })}
               </span>
             </li>
           ))}
         </ul>
       ) : null}
       <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-        Proper names: IAU Working Group on Star Names. Positions: ESA Gaia DR3 / Gaia DPAC. Above
-        the geometric horizon is not a naked-eye visibility claim; proper motion is not propagated.
+        {anchorMessages.sourceDescription}
       </p>
     </section>
   );
 }
 
-function FinderInstruction({ target }: Readonly<{ target: SkyFinderTarget }>) {
+function FinderInstruction({
+  locale,
+  messages,
+  target,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SkyFinderMessages;
+  target: SkyFinderTarget;
+}>) {
+  const guidance = messages.guidance;
   const isBelowHorizon = target.position.altitude < 0;
+  const formattedAzimuth = formatAzimuth(target.position, locale, messages.compass);
+  const compass = compassLabel(target.position.azimuth, messages.compass);
+  const spokenAltitude = formatSpokenAltitude(target.position.altitude, locale, guidance);
+  const spokenAzimuth = formatMessageTemplate(guidance.spokenDegrees, {
+    value: formatLocaleNumber(target.position.azimuth, locale, {
+      maximumFractionDigits: 1,
+      minimumFractionDigits: 1,
+    }),
+  });
   return (
     <aside
       aria-labelledby="sky-finder-instruction-heading"
@@ -706,78 +798,84 @@ function FinderInstruction({ target }: Readonly<{ target: SkyFinderTarget }>) {
       data-testid="sky-finder-target-guidance"
     >
       <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-        How to find {target.name}
+        {formatMessageTemplate(guidance.heading, { targetName: target.name })}
       </p>
       <h3 className="sr-only" id="sky-finder-instruction-heading">
-        How to find {target.name}
+        {formatMessageTemplate(guidance.heading, { targetName: target.name })}
       </h3>
       {isBelowHorizon ? (
         <>
           <p className="mt-4 text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            Target is below the horizon
+            {guidance.belowHeading}
           </p>
           <dl className="mt-5 space-y-4">
             <div>
               <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-                Direction
+                {guidance.direction}
               </dt>
               <dd className="mt-1 text-xl font-medium text-[var(--foreground)]">
-                {formatAzimuth(target.position)} true azimuth
+                {formatMessageTemplate(guidance.directionValue, { azimuth: formattedAzimuth })}
               </dd>
             </div>
             <div>
               <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-                Altitude
+                {guidance.altitude}
               </dt>
               <dd className="mt-1 font-mono text-2xl text-[var(--foreground)]">
-                {formatAltitude(target.position.altitude)}
+                {formatAltitude(target.position.altitude, locale)}
               </dd>
             </div>
           </dl>
           <p className="mt-5 text-sm leading-6 text-[var(--muted)]">
-            The direction shows where {target.name} would rise or set from this location. It is not
-            currently in the visible sky.
+            {formatMessageTemplate(guidance.belowDescription, { targetName: target.name })}
           </p>
         </>
       ) : (
         <>
           <p className="mt-4 text-sm font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            Face
+            {guidance.face}
           </p>
           <p className="mt-1 text-4xl font-semibold tracking-tight text-[var(--foreground)]">
-            {target.position.compass}
+            {compass}
           </p>
           <dl className="mt-5 space-y-4">
             <div>
               <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-                True azimuth
+                {guidance.trueAzimuth}
               </dt>
               <dd className="mt-1 text-xl font-medium text-[var(--foreground)]">
-                {target.position.azimuth.toFixed(1)}°
+                {formatAltitude(target.position.azimuth, locale)}
               </dd>
             </div>
             <div>
               <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-                Look up
+                {guidance.lookUp}
               </dt>
               <dd className="mt-1 text-xl font-medium text-[var(--foreground)]">
-                {formatAltitude(target.position.altitude)} above the geometric horizon
+                {formatMessageTemplate(guidance.aboveHorizonValue, {
+                  altitude: formatAltitude(target.position.altitude, locale),
+                })}
               </dd>
             </div>
           </dl>
         </>
       )}
       <p className="mt-5 border-t border-[var(--border)] pt-4 text-xs leading-5 text-[var(--muted)]">
-        Reference: geometric horizon. Azimuth is measured clockwise from true north. Phone or
-        magnetic compass readings can differ by location.
+        {guidance.reference}
       </p>
-      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
-        The finder does not model local obstructions such as trees, buildings, or terrain.
-      </p>
+      <p className="mt-2 text-xs leading-5 text-[var(--muted)]">{guidance.localObstructions}</p>
       <p className="sr-only">
         {isBelowHorizon
-          ? `The target is ${formatSpokenAltitude(target.position.altitude)} below the geometric horizon at azimuth ${target.position.azimuth.toFixed(1)} degrees ${target.position.compass}.`
-          : `The target is ${formatSpokenAltitude(target.position.altitude)} above the geometric horizon at azimuth ${target.position.azimuth.toFixed(1)} degrees ${target.position.compass}.`}
+          ? formatMessageTemplate(guidance.spokenBelow, {
+              altitude: spokenAltitude,
+              azimuth: spokenAzimuth,
+              compass,
+            })
+          : formatMessageTemplate(guidance.spokenAbove, {
+              altitude: spokenAltitude,
+              azimuth: spokenAzimuth,
+              compass,
+            })}
       </p>
     </aside>
   );
@@ -785,16 +883,25 @@ function FinderInstruction({ target }: Readonly<{ target: SkyFinderTarget }>) {
 
 function PositionRow({
   label,
+  locale,
+  messages,
   position,
   role,
 }: Readonly<{
   label: string;
+  locale: PublishedLocale;
+  messages: SkyFinderMessages;
   position: HorizontalPosition;
   role: "moon" | "reference" | "target";
 }>) {
+  const references = messages.references;
   return (
     <li
-      aria-label={`${label}: altitude ${formatAltitude(position.altitude)}; azimuth ${formatAzimuth(position)}`}
+      aria-label={formatMessageTemplate(references.rowAriaLabel, {
+        altitude: formatAltitude(position.altitude, locale),
+        azimuth: formatAzimuth(position, locale, messages.compass),
+        label,
+      })}
       className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-1 border-b border-[var(--border)] py-3 last:border-b-0"
     >
       <span
@@ -804,29 +911,36 @@ function PositionRow({
       >
         {label}
         {role === "target" ? (
-          <span className="ml-2 text-xs text-[var(--accent)]">target</span>
+          <span className="ml-2 text-xs text-[var(--accent)]">{references.targetTag}</span>
         ) : null}
       </span>
       <span className="font-mono text-sm text-[var(--foreground)]">
-        {formatAltitude(position.altitude)}
+        {formatAltitude(position.altitude, locale)}
       </span>
-      <span className="text-xs text-[var(--muted)]">Altitude · geometric</span>
-      <span className="font-mono text-sm text-[var(--muted)]">{formatAzimuth(position)}</span>
+      <span className="text-xs text-[var(--muted)]">{references.altitudeGeometric}</span>
+      <span className="font-mono text-sm text-[var(--muted)]">
+        {formatAzimuth(position, locale, messages.compass)}
+      </span>
     </li>
   );
 }
 
 function ReferenceList({
+  locale,
+  messages,
   showReferences,
   target,
   moon,
   references,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: SkyFinderMessages;
   moon: HorizontalPosition | null;
   references: ReadonlyArray<SkyReferenceMarker>;
   showReferences: boolean;
   target: SkyFinderTarget;
 }>) {
+  const referenceMessages = messages.references;
   return (
     <section
       aria-labelledby="sky-finder-reference-heading"
@@ -837,47 +951,64 @@ function ReferenceList({
           className="text-lg font-semibold text-[var(--foreground)]"
           id="sky-finder-reference-heading"
         >
-          Reference objects at selected time
+          {referenceMessages.title}
         </h3>
-        <span className="text-xs text-[var(--muted)]">Geometric positions only</span>
+        <span className="text-xs text-[var(--muted)]">{referenceMessages.geometricOnly}</span>
       </div>
       <ul className="mt-2">
-        <PositionRow label={target.name} position={target.position} role="target" />
-        {moon !== null ? <PositionRow label="Moon" position={moon} role="moon" /> : null}
+        <PositionRow
+          label={target.name}
+          locale={locale}
+          messages={messages}
+          position={target.position}
+          role="target"
+        />
+        {moon !== null ? (
+          <PositionRow
+            label={referenceMessages.moon}
+            locale={locale}
+            messages={messages}
+            position={moon}
+            role="moon"
+          />
+        ) : null}
         {references.map((reference) => (
           <PositionRow
             key={reference.body}
-            label={reference.name}
+            label={referenceBodyLabel(reference.body, referenceMessages.bodies)}
+            locale={locale}
+            messages={messages}
             position={reference.position}
             role="reference"
           />
         ))}
       </ul>
       {moon === null ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          The Moon position is unavailable for this selected instant.
-        </p>
+        <p className="mt-3 text-sm text-[var(--muted)]">{referenceMessages.moonUnavailable}</p>
       ) : null}
       {references.length === 0 && showReferences ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          No supported solar-system reference body is above the geometric horizon at this time.
-        </p>
+        <p className="mt-3 text-sm text-[var(--muted)]">{referenceMessages.noneAboveHorizon}</p>
       ) : null}
       {references.length === 0 && !showReferences ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          Solar-system reference markers are hidden. Turn on the toggle to list bodies above the
-          geometric horizon.
-        </p>
+        <p className="mt-3 text-sm text-[var(--muted)]">{referenceMessages.hidden}</p>
       ) : null}
     </section>
   );
 }
 
 export function SkyFinder({
+  locale,
+  messages,
   plan,
   targetName,
   targetSlug,
-}: Readonly<{ plan: ObservationPlan; targetName: string; targetSlug: string }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SkyFinderMessages;
+  plan: ObservationPlan;
+  targetName: string;
+  targetSlug: string;
+}>) {
   const [showReferences, setShowReferences] = useState(true);
   const [showBrightStarContext, setShowBrightStarContext] = useState(true);
   const [showNamedAnchors, setShowNamedAnchors] = useState(true);
@@ -1013,27 +1144,38 @@ export function SkyFinder({
   const namedAnchorLabels = useMemo(() => selectNamedAnchorLabels(namedAnchors), [namedAnchors]);
   const references = showReferences ? filterAboveHorizonMarkers(solarSystemMarkers) : [];
   const finderId = useId().replaceAll(":", "");
+  const solarSystemBodies = formatLocaleList(
+    (
+      [
+        "sun",
+        "mercury",
+        "venus",
+        "mars",
+        "jupiter",
+        "saturn",
+      ] as const satisfies ReadonlyArray<SolarSystemBodyKey>
+    ).map((body) => referenceBodyLabel(body, messages.references.bodies)),
+    locale,
+  );
 
   return (
     <section aria-labelledby={`sky-finder-heading-${finderId}`} className="space-y-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
         <div>
           <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-            Selected-time finder
+            {messages.overview.eyebrow}
           </p>
           <h2
             className="mt-1 text-2xl font-semibold tracking-tight"
             id={`sky-finder-heading-${finderId}`}
           >
-            Sky Finder
+            {messages.overview.title}
           </h2>
         </div>
-        <span className="text-sm text-[var(--muted)]">No device sensors used</span>
+        <span className="text-sm text-[var(--muted)]">{messages.overview.noSensors}</span>
       </div>
       <p className="max-w-3xl text-sm leading-6 text-[var(--muted)]">
-        Use the direction card and circular map to orient yourself at the selected local time. The
-        target marker is primary; named sky anchors, the Moon, solar-system markers, the target
-        constellation region, and pinned Gaia bright stars are context.
+        {messages.overview.description}
       </p>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
         <SkyProjection
@@ -1041,6 +1183,8 @@ export function SkyFinder({
             showBrightStarContext && !brightStarTransformFailed ? brightStarSelection.stars : []
           }
           constellationBoundary={showConstellationBoundary ? constellationBoundary : []}
+          locale={locale}
+          messages={messages}
           moon={moon}
           namedAnchorLabels={showNamedAnchors ? namedAnchorLabels : []}
           namedAnchors={showNamedAnchors ? namedAnchors : []}
@@ -1048,7 +1192,7 @@ export function SkyFinder({
           target={target}
         />
         <div className="space-y-4">
-          <FinderInstruction target={target} />
+          <FinderInstruction locale={locale} messages={messages} target={target} />
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
               aria-describedby={`sky-finder-named-anchor-toggle-help-${finderId}`}
@@ -1057,14 +1201,13 @@ export function SkyFinder({
               onChange={(event) => setShowNamedAnchors(event.target.checked)}
               type="checkbox"
             />
-            <span>Show named star anchors</span>
+            <span>{messages.toggles.namedAnchors.label}</span>
           </label>
           <p
             className="text-xs leading-5 text-[var(--muted)]"
             id={`sky-finder-named-anchor-toggle-help-${finderId}`}
           >
-            Official IAU proper names are layered onto their matching Gaia DR3 context stars. The
-            underlying bright-star dots are controlled separately.
+            {messages.toggles.namedAnchors.help}
           </p>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
@@ -1074,14 +1217,13 @@ export function SkyFinder({
               onChange={(event) => setShowConstellationBoundary(event.target.checked)}
               type="checkbox"
             />
-            <span>Show constellation boundary</span>
+            <span>{messages.toggles.constellation.label}</span>
           </label>
           <p
             className="text-xs leading-5 text-[var(--muted)]"
             id={`sky-finder-constellation-toggle-help-${finderId}`}
           >
-            Shows the selected target&apos;s official IAU sky-region boundary, not an artistic
-            constellation drawing.
+            {messages.toggles.constellation.help}
           </p>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
@@ -1091,14 +1233,13 @@ export function SkyFinder({
               onChange={(event) => setShowBrightStarContext(event.target.checked)}
               type="checkbox"
             />
-            <span>Show bright-star context</span>
+            <span>{messages.toggles.brightStars.label}</span>
           </label>
           <p
             className="text-xs leading-5 text-[var(--muted)]"
             id={`sky-finder-star-toggle-help-${finderId}`}
           >
-            Neutral markers come only from the pinned Gaia DR3 G ≤ 5.5 context artifact and are
-            shown above the geometric horizon.
+            {messages.toggles.brightStars.help}
           </p>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]">
             <input
@@ -1108,19 +1249,22 @@ export function SkyFinder({
               onChange={(event) => setShowReferences(event.target.checked)}
               type="checkbox"
             />
-            <span>Show solar-system markers</span>
+            <span>{messages.toggles.solarSystem.label}</span>
           </label>
           <p
             className="text-xs leading-5 text-[var(--muted)]"
             id={`sky-finder-solar-toggle-help-${finderId}`}
           >
-            Sun, Mercury, Venus, Mars, Jupiter, and Saturn are shown only when above the geometric
-            horizon. Above the horizon does not mean visible.
+            {formatMessageTemplate(messages.toggles.solarSystem.help, {
+              bodies: solarSystemBodies,
+            })}
           </p>
         </div>
       </div>
       <BrightStarContextMetadata
         contextState={brightStarContext}
+        locale={locale}
+        messages={messages.brightStars}
         selection={brightStarSelection}
         showContext={showBrightStarContext}
         transformFailed={brightStarTransformFailed}
@@ -1128,6 +1272,7 @@ export function SkyFinder({
       <ConstellationContextMetadata
         boundaryPaths={constellationBoundary}
         contextState={constellationContext}
+        messages={messages.constellation}
         membership={targetConstellationMembership}
         region={targetConstellationRegion}
         showBoundary={showConstellationBoundary}
@@ -1136,10 +1281,14 @@ export function SkyFinder({
         anchors={namedAnchors}
         brightContextStatus={brightStarContext.status}
         contextState={namedAnchorContext}
+        locale={locale}
+        messages={messages}
         showAnchors={showNamedAnchors}
         transformFailed={brightStarTransformFailed}
       />
       <ReferenceList
+        locale={locale}
+        messages={messages}
         moon={moon}
         references={references}
         showReferences={showReferences}

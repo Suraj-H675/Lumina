@@ -48,11 +48,10 @@ export type SkyFinderTarget = Readonly<{
   position: HorizontalPosition;
 }>;
 
-export type SolarSystemBodyName = "Sun" | "Mercury" | "Venus" | "Mars" | "Jupiter" | "Saturn";
+export type SolarSystemBodyKey = "sun" | "mercury" | "venus" | "mars" | "jupiter" | "saturn";
 
 export type SkyReferenceMarker = Readonly<{
-  body: SolarSystemBodyName;
-  name: SolarSystemBodyName;
+  body: SolarSystemBodyKey;
   position: HorizontalPosition;
 }>;
 
@@ -88,15 +87,15 @@ export type ProjectedConstellationBoundary = ReadonlyArray<ReadonlyArray<SkyProj
 const SOLAR_SYSTEM_BODIES: ReadonlyArray<
   Readonly<{
     body: Astronomy.Body;
-    name: SolarSystemBodyName;
+    key: SolarSystemBodyKey;
   }>
 > = [
-  { body: Astronomy.Body.Sun, name: "Sun" },
-  { body: Astronomy.Body.Mercury, name: "Mercury" },
-  { body: Astronomy.Body.Venus, name: "Venus" },
-  { body: Astronomy.Body.Mars, name: "Mars" },
-  { body: Astronomy.Body.Jupiter, name: "Jupiter" },
-  { body: Astronomy.Body.Saturn, name: "Saturn" },
+  { body: Astronomy.Body.Sun, key: "sun" },
+  { body: Astronomy.Body.Mercury, key: "mercury" },
+  { body: Astronomy.Body.Venus, key: "venus" },
+  { body: Astronomy.Body.Mars, key: "mars" },
+  { body: Astronomy.Body.Jupiter, key: "jupiter" },
+  { body: Astronomy.Body.Saturn, key: "saturn" },
 ];
 
 const DEFAULT_BELOW_HORIZON_PADDING = 14;
@@ -265,9 +264,9 @@ export function computeSolarSystemMarkers(
 ): Array<SkyReferenceMarker> {
   if (validateObserverLocation(location) === null || !Number.isFinite(instant.getTime())) return [];
 
-  return SOLAR_SYSTEM_BODIES.flatMap(({ body, name }) => {
+  return SOLAR_SYSTEM_BODIES.flatMap(({ body, key }) => {
     const position = observerPosition(location, instant, body);
-    return position === null ? [] : [{ body: name, name, position }];
+    return position === null ? [] : [{ body: key, position }];
   });
 }
 

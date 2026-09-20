@@ -337,6 +337,45 @@ describe("ObservationPlanner", () => {
     expect(screen.getByRole("button", { name: "Load fixture weather" })).toBeVisible();
   });
 
+  it("renders Sky Finder chrome and reference labels from injected messages", async () => {
+    const user = userEvent.setup();
+    const messages: ObservationPlannerMessages = {
+      ...enMessages.observationPlanner,
+      skyFinder: {
+        ...enMessages.observationPlanner.skyFinder,
+        brightStars: {
+          ...enMessages.observationPlanner.skyFinder.brightStars,
+          title: "Fixture bright-star context",
+        },
+        overview: {
+          ...enMessages.observationPlanner.skyFinder.overview,
+          title: "Fixture Sky Finder",
+        },
+        references: {
+          ...enMessages.observationPlanner.skyFinder.references,
+          moon: "Fixture Moon",
+        },
+        toggles: {
+          ...enMessages.observationPlanner.skyFinder.toggles,
+          brightStars: {
+            ...enMessages.observationPlanner.skyFinder.toggles.brightStars,
+            label: "Show fixture star context",
+          },
+        },
+      },
+    };
+
+    renderPlanner(plannerDetail(), "2026-08-27", messages);
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    expect(await screen.findByRole("heading", { name: "Fixture Sky Finder" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture bright-star context" })).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: "Show fixture star context" })).toBeVisible();
+    expect(screen.getAllByText("Fixture Moon").length).toBeGreaterThan(0);
+  });
+
   it("shows the selected-time finder and updates its guidance with the planner time", async () => {
     const user = userEvent.setup();
     renderPlanner();

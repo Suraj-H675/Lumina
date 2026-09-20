@@ -536,7 +536,13 @@ function PlannerResults({
         </dl>
       </div>
 
-      <SkyFinder plan={plan} targetName={targetName} targetSlug={targetSlug} />
+      <SkyFinder
+        locale={locale}
+        messages={messages.skyFinder}
+        plan={plan}
+        targetName={targetName}
+        targetSlug={targetSlug}
+      />
       <AltitudeChart locale={locale} messages={messages.chart} plan={plan} timeZone={timeZone} />
       <ObservationConditions
         locale={locale}

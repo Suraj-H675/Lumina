@@ -637,6 +637,159 @@ export const enMessages = {
       savingAction: "Saving plan…",
       title: "Keep this plan on this device",
     },
+    skyFinder: {
+      brightStars: {
+        markerDescription:
+          "Marker size is derived from Gaia G magnitude; it is a visual encoding, not stellar physical size or a guarantee of visibility.",
+        positionsDescription:
+          "Positions: Gaia DR3 catalogue epoch J2016.0. Proper motion not propagated.",
+        sourceDescription:
+          "Source: ESA Gaia Archive · processed by Gaia DPAC. Context rows are not searchable Lumina catalogue entities.",
+        states: {
+          hidden: "Bright-star context is hidden.",
+          loading: "Loading pinned bright-star context…",
+          shown: {
+            one: "{count} context stars above the geometric horizon.",
+            other: "{count} context stars above the geometric horizon.",
+          },
+          shownCapped:
+            "Showing the {cap} brightest context stars above the horizon from the pinned Gaia DR3 G ≤ 5.5 slice. {count} context stars are above the geometric horizon.",
+          unavailable: "Bright-star context unavailable.",
+        },
+        title: "Bright-star context",
+      },
+      compass: {
+        e: "E",
+        ene: "ENE",
+        ese: "ESE",
+        n: "N",
+        ne: "NE",
+        nne: "NNE",
+        nnw: "NNW",
+        nw: "NW",
+        s: "S",
+        se: "SE",
+        sse: "SSE",
+        ssw: "SSW",
+        sw: "SW",
+        w: "W",
+        wnw: "WNW",
+        wsw: "WSW",
+      },
+      constellation: {
+        abbreviation: "Official abbreviation {abbreviation}",
+        boundaryDescription:
+          "Constellations are official IAU sky regions; the boundary shown is not a stick-figure drawing. The pinned boundary coordinates are J2000.0 equatorial regions transformed to the selected observer and instant.",
+        name: "Constellation {name}",
+        officialRegion: "Official IAU region",
+        sourceDescription:
+          "Source: International Astronomical Union. This context uses region geometry only; it does not describe physical proximity or guarantee visibility.",
+        states: {
+          hidden: "Constellation boundary is hidden.",
+          loading: "Loading constellation context…",
+          noVisibleBoundary:
+            "No boundary segment is above the geometric horizon at this selected time.",
+          shown: "Target constellation boundary shown for the selected observer and instant.",
+          unavailable: "Constellation context unavailable.",
+        },
+        title: "Constellation region",
+      },
+      guidance: {
+        aboveHorizonValue: "{altitude} above the geometric horizon",
+        altitude: "Altitude",
+        belowDescription:
+          "The direction shows where {targetName} would rise or set from this location. It is not currently in the visible sky.",
+        belowHeading: "Target is below the horizon",
+        direction: "Direction",
+        directionValue: "{azimuth} true azimuth",
+        face: "Face",
+        heading: "How to find {targetName}",
+        localObstructions:
+          "The finder does not model local obstructions such as trees, buildings, or terrain.",
+        lookUp: "Look up",
+        reference:
+          "Reference: geometric horizon. Azimuth is measured clockwise from true north. Phone or magnetic compass readings can differ by location.",
+        spokenAbove:
+          "The target is {altitude} above the geometric horizon at azimuth {azimuth} {compass}.",
+        spokenBelow:
+          "The target is {altitude} below the geometric horizon at azimuth {azimuth} {compass}.",
+        spokenDegrees: "{value} degrees",
+        trueAzimuth: "True azimuth",
+      },
+      map: {
+        caption:
+          "North is at the top, east is right, south is bottom, and west is left. The horizon is the outer circle; altitude increases toward the zenith at the center. Rings mark 30° and 60°.",
+        horizon: "Horizon · 0°",
+        zenith: "Zenith · 90°",
+      },
+      namedAnchors: {
+        altitudeGeometric: "Altitude · geometric",
+        angularSeparation: "Angular separation from target · {separation}",
+        listAriaLabel: "Named sky anchors at selected time",
+        nearest: "Nearest named sky anchor by angular separation: {name} · {separation}.",
+        objectiveContext: "Objective geometric context",
+        rowAriaLabel:
+          "{name}: altitude {altitude}; azimuth {azimuth}; angular separation {separation} from target",
+        sourceDescription:
+          "Proper names: IAU Working Group on Star Names. Positions: ESA Gaia DR3 / Gaia DPAC. Above the geometric horizon is not a naked-eye visibility claim; proper motion is not propagated.",
+        states: {
+          hidden: "Named star anchor markers and labels are hidden.",
+          loading: "Loading named sky anchors…",
+          ready: {
+            one: "{count} named anchors reuse the pinned Gaia star positions.",
+            other: "{count} named anchors reuse the pinned Gaia star positions.",
+          },
+          unavailable: "Named star anchors unavailable.",
+        },
+        title: "Named sky anchors",
+      },
+      overview: {
+        description:
+          "Use the direction card and circular map to orient yourself at the selected local time. The target marker is primary; named sky anchors, the Moon, solar-system markers, the target constellation region, and pinned Gaia bright stars are context.",
+        eyebrow: "Selected-time finder",
+        noSensors: "No device sensors used",
+        title: "Sky Finder",
+      },
+      references: {
+        altitudeGeometric: "Altitude · geometric",
+        bodies: {
+          jupiter: "Jupiter",
+          mars: "Mars",
+          mercury: "Mercury",
+          saturn: "Saturn",
+          sun: "Sun",
+          venus: "Venus",
+        },
+        geometricOnly: "Geometric positions only",
+        hidden:
+          "Solar-system reference markers are hidden. Turn on the toggle to list bodies above the geometric horizon.",
+        moon: "Moon",
+        moonUnavailable: "The Moon position is unavailable for this selected instant.",
+        noneAboveHorizon:
+          "No supported solar-system reference body is above the geometric horizon at this time.",
+        rowAriaLabel: "{label}: altitude {altitude}; azimuth {azimuth}",
+        targetTag: "target",
+        title: "Reference objects at selected time",
+      },
+      toggles: {
+        brightStars: {
+          help: "Neutral markers come only from the pinned Gaia DR3 G ≤ 5.5 context artifact and are shown above the geometric horizon.",
+          label: "Show bright-star context",
+        },
+        constellation: {
+          help: "Shows the selected target's official IAU sky-region boundary, not an artistic constellation drawing.",
+          label: "Show constellation boundary",
+        },
+        namedAnchors: {
+          help: "Official IAU proper names are layered onto their matching Gaia DR3 context stars. The underlying bright-star dots are controlled separately.",
+          label: "Show named star anchors",
+        },
+        solarSystem: {
+          help: "{bodies} are shown only when above the geometric horizon. Above the horizon does not mean visible.",
+          label: "Show solar-system markers",
+        },
+      },
+    },
     states: {
       invalidTime: {
         description: "Choose a valid night and local time to try again.",

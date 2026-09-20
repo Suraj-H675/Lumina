@@ -92,16 +92,16 @@ describe("sky finder solar-system references", () => {
 
   it("returns finite observer-specific positions in deterministic order without Earth", () => {
     const markers = computeSolarSystemMarkers(location, instant);
-    expect(markers.map((marker) => marker.name)).toEqual([
-      "Sun",
-      "Mercury",
-      "Venus",
-      "Mars",
-      "Jupiter",
-      "Saturn",
+    expect(markers.map((marker) => marker.body)).toEqual([
+      "sun",
+      "mercury",
+      "venus",
+      "mars",
+      "jupiter",
+      "saturn",
     ]);
     expect(new Set(markers.map((marker) => marker.body)).size).toBe(markers.length);
-    expect(markers.map((marker) => marker.name)).not.toContain("Earth");
+    expect(markers.map((marker) => marker.body)).not.toContain("earth");
     expect(
       markers.every(
         (marker) =>
@@ -120,8 +120,8 @@ describe("sky finder solar-system references", () => {
     const visible = filterAboveHorizonMarkers(markers);
     expect(visible.length).toBeGreaterThan(0);
     expect(visible.every((marker) => marker.position.altitude >= 0)).toBe(true);
-    expect(visible.map((marker) => marker.name)).toEqual(
-      markers.filter((marker) => marker.position.altitude >= 0).map((marker) => marker.name),
+    expect(visible.map((marker) => marker.body)).toEqual(
+      markers.filter((marker) => marker.position.altitude >= 0).map((marker) => marker.body),
     );
   });
 

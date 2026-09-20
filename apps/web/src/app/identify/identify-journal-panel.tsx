@@ -6,17 +6,43 @@ import type { FormEvent } from "react";
 
 import type { IdentificationSolutionResponse } from "@lumina/api-client";
 
+import { formatLocaleNumber, formatMessageTemplate } from "../../lib/i18n/format";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { IdentifyMessages } from "../../lib/i18n/messages/types";
+import { NOVA_SERVICE_SHORT_NAME } from "../../lib/identification/provider-display";
 import {
   IdentificationJournalSaveError,
   saveIdentificationSolutionToJournal,
 } from "../../lib/journal/identification";
+import { MAX_JOURNAL_OBJECTS } from "../../lib/journal/model";
+
+type JournalValidationReason =
+  | "coordinatePairRequired"
+  | "coordinatesInvalid"
+  | "locationLabelRequired"
+  | "solvedTimestampUnavailable"
+  | "timeInvalid"
+  | "titleRequired";
+
+type JournalFailureReason =
+  | "attachment"
+  | "entryLimit"
+  | "generic"
+  | "invalidFields"
+  | "rollbackFailed"
+  | "storageUnavailable"
+  | "writeRejected";
 
 export function IdentifyJournalPanel({
   completedAt,
+  locale,
+  messages,
   solution,
   sourceImage,
 }: Readonly<{
   completedAt: string | null;
+  locale: PublishedLocale;
+  messages: IdentifyMessages["journalPanel"];
   solution: IdentificationSolutionResponse;
   sourceImage: File | null;
 }>) {
@@ -34,33 +60,28 @@ export function IdentifyJournalPanel({
     | Readonly<{ kind: "idle" }>
     | Readonly<{ kind: "saving" }>
     | Readonly<{ entryId: string; kind: "saved" }>
-    | Readonly<{ kind: "error"; message: string }>
+    | Readonly<{ kind: "error"; reason: JournalValidationReason; source: "validation" }>
+    | Readonly<{ kind: "error"; reason: JournalFailureReason; source: "failure" }>
   >({ kind: "idle" });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (completedAt === null) {
-      setState({
-        kind: "error",
-        message: "The solved-result timestamp is unavailable, so the journal save was refused.",
-      });
+      setState({ kind: "error", reason: "solvedTimestampUnavailable", source: "validation" });
       return;
     }
     const parsedLocation = parseLocation(locationLabel, latitude, longitude);
     if (!parsedLocation.ok) {
-      setState({ kind: "error", message: parsedLocation.message });
+      setState({ kind: "error", reason: parsedLocation.reason, source: "validation" });
       return;
     }
     const observationTimeUtc = parseObservationTime(observationTime);
     if (observationTime.length > 0 && observationTimeUtc === null) {
-      setState({
-        kind: "error",
-        message: "Enter a valid observation date and time, or leave it blank.",
-      });
+      setState({ kind: "error", reason: "timeInvalid", source: "validation" });
       return;
     }
     if (title.trim().length === 0) {
-      setState({ kind: "error", message: "Give this journal entry a title." });
+      setState({ kind: "error", reason: "titleRequired", source: "validation" });
       return;
     }
 
@@ -83,7 +104,7 @@ export function IdentifyJournalPanel({
       });
       setState({ entryId: entry.id, kind: "saved" });
     } catch (error) {
-      setState({ kind: "error", message: journalFailureMessage(error) });
+      setState({ kind: "error", reason: journalFailureReason(error), source: "failure" });
     }
   }
 
@@ -94,49 +115,46 @@ export function IdentifyJournalPanel({
     >
       <div className="max-w-4xl space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Browser-local journal
+          {messages.eyebrow}
         </p>
         <h2 className="text-2xl font-semibold" id="identify-journal-heading">
-          Save this solved observation
+          {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          Journal data stays in this browser. Lumina does not read EXIF time or location into the
-          journal: date, place, equipment, conditions, and notes below are saved only from what you
-          explicitly enter.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
         <p className="text-sm leading-6 text-[var(--muted)]">
-          The journal keeps a bounded local snapshot of at most 100 unique loaded annotation labels,
-          plus the normalized plate-solve calibration and WCS fingerprint. It never stores Nova
-          provider job or submission identifiers.
+          {formatMessageTemplate(messages.snapshotDisclosure, {
+            count: formatLocaleNumber(MAX_JOURNAL_OBJECTS, locale),
+            service: NOVA_SERVICE_SHORT_NAME,
+          })}
         </p>
       </div>
 
       {state.kind === "saved" ? (
         <div className="space-y-3" role="status">
-          <p className="font-semibold">Saved to this browser&apos;s local journal.</p>
+          <p className="font-semibold">{messages.savedStatus}</p>
           <p className="text-sm text-[var(--muted)]">
-            Entry ID: <code>{state.entryId}</code>
+            {messages.entryIdLabel} <code>{state.entryId}</code>
           </p>
           <Link className="font-semibold text-[var(--link)] underline" href="/journal">
-            Open Journal
+            {messages.actions.openJournal}
           </Link>
         </div>
       ) : (
         <form className="grid gap-5 lg:grid-cols-2" onSubmit={(event) => void submit(event)}>
           <label className="space-y-2 font-semibold lg:col-span-2">
-            <span>Journal title</span>
+            <span>{messages.fields.title}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               maxLength={120}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Example: Andromeda wide-field test"
+              placeholder={messages.fields.titlePlaceholder}
               required
               value={title}
             />
           </label>
 
           <label className="space-y-2 font-semibold">
-            <span>Observation date and time (optional)</span>
+            <span>{messages.fields.observationTime}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               onChange={(event) => setObservationTime(event.target.value)}
@@ -144,24 +162,23 @@ export function IdentifyJournalPanel({
               value={observationTime}
             />
             <span className="block text-xs font-normal leading-5 text-[var(--muted)]">
-              Interpreted in this browser&apos;s current time zone and stored as UTC. Leave blank if
-              you do not know it.
+              {messages.fields.observationTimeHelp}
             </span>
           </label>
 
           <label className="space-y-2 font-semibold">
-            <span>Location label (optional)</span>
+            <span>{messages.fields.location}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               maxLength={120}
               onChange={(event) => setLocationLabel(event.target.value)}
-              placeholder="Example: Back garden"
+              placeholder={messages.fields.locationPlaceholder}
               value={locationLabel}
             />
           </label>
 
           <label className="space-y-2 font-semibold">
-            <span>Latitude (optional)</span>
+            <span>{messages.fields.latitude}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               inputMode="decimal"
@@ -175,7 +192,7 @@ export function IdentifyJournalPanel({
           </label>
 
           <label className="space-y-2 font-semibold">
-            <span>Longitude (optional)</span>
+            <span>{messages.fields.longitude}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               inputMode="decimal"
@@ -189,7 +206,7 @@ export function IdentifyJournalPanel({
           </label>
 
           <label className="space-y-2 font-semibold">
-            <span>Telescope / optics (optional)</span>
+            <span>{messages.fields.telescope}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               maxLength={140}
@@ -199,7 +216,7 @@ export function IdentifyJournalPanel({
           </label>
 
           <label className="space-y-2 font-semibold">
-            <span>Camera (optional)</span>
+            <span>{messages.fields.camera}</span>
             <input
               className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
               maxLength={140}
@@ -209,7 +226,7 @@ export function IdentifyJournalPanel({
           </label>
 
           <label className="space-y-2 font-semibold lg:col-span-2">
-            <span>Conditions (optional)</span>
+            <span>{messages.fields.conditions}</span>
             <textarea
               className="min-h-24 w-full border border-[var(--border-strong)] bg-[var(--background)] p-3"
               maxLength={2_000}
@@ -219,7 +236,7 @@ export function IdentifyJournalPanel({
           </label>
 
           <label className="space-y-2 font-semibold lg:col-span-2">
-            <span>Notes (optional)</span>
+            <span>{messages.fields.notes}</span>
             <textarea
               className="min-h-32 w-full border border-[var(--border-strong)] bg-[var(--background)] p-3"
               maxLength={10_000}
@@ -237,17 +254,18 @@ export function IdentifyJournalPanel({
               type="checkbox"
             />
             <span>
-              <strong>Keep a local copy of this image in the browser journal.</strong>
+              <strong>{messages.attachment.title}</strong>
               <span className="mt-1 block text-sm leading-6 text-[var(--muted)]">
-                Off by default. If enabled, Lumina stores a filename-free JPEG/PNG Blob in local
-                IndexedDB; it is not uploaded again.
+                {messages.attachment.description}
               </span>
             </span>
           </label>
 
           {state.kind === "error" ? (
             <p className="lg:col-span-2" role="alert">
-              {state.message}
+              {state.source === "validation"
+                ? messages.validation[state.reason]
+                : messages.failures[state.reason]}
             </p>
           ) : null}
 
@@ -256,7 +274,7 @@ export function IdentifyJournalPanel({
             disabled={state.kind === "saving"}
             type="submit"
           >
-            {state.kind === "saving" ? "Saving locally…" : "Save to local journal"}
+            {state.kind === "saving" ? messages.actions.saving : messages.actions.save}
           </button>
         </form>
       )}
@@ -266,7 +284,10 @@ export function IdentifyJournalPanel({
 
 type ParsedLocation =
   | Readonly<{ label: string; latitudeDeg: number | null; longitudeDeg: number | null; ok: true }>
-  | Readonly<{ message: string; ok: false }>;
+  | Readonly<{
+      ok: false;
+      reason: "coordinatePairRequired" | "coordinatesInvalid" | "locationLabelRequired";
+    }>;
 
 function parseLocation(
   labelValue: string,
@@ -279,13 +300,9 @@ function parseLocation(
   if (!hasLatitude && !hasLongitude && label.length === 0) {
     return { label: "", latitudeDeg: null, longitudeDeg: null, ok: true };
   }
-  if (label.length === 0)
-    return { message: "Add a location label or clear the location fields.", ok: false };
+  if (label.length === 0) return { ok: false, reason: "locationLabelRequired" };
   if (hasLatitude !== hasLongitude) {
-    return {
-      message: "Enter both latitude and longitude, or leave both coordinates blank.",
-      ok: false,
-    };
+    return { ok: false, reason: "coordinatePairRequired" };
   }
   if (!hasLatitude) return { label, latitudeDeg: null, longitudeDeg: null, ok: true };
   const latitudeDeg = Number(latitudeValue);
@@ -298,7 +315,7 @@ function parseLocation(
     longitudeDeg < -180 ||
     longitudeDeg > 180
   ) {
-    return { message: "Latitude must be −90…90 and longitude −180…180.", ok: false };
+    return { ok: false, reason: "coordinatesInvalid" };
   }
   return { label, latitudeDeg, longitudeDeg, ok: true };
 }
@@ -309,26 +326,24 @@ function parseObservationTime(value: string): string | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
-function journalFailureMessage(error: unknown): string {
-  if (!(error instanceof IdentificationJournalSaveError)) {
-    return "The local journal save failed. Nothing was intentionally uploaded or changed remotely.";
-  }
+function journalFailureReason(error: unknown): JournalFailureReason {
+  if (!(error instanceof IdentificationJournalSaveError)) return "generic";
   switch (error.reason) {
     case "entry-limit":
-      return "The local journal has reached its entry limit. Remove entries before saving another.";
+      return "entryLimit";
     case "attachment-limit":
     case "invalid-attachment":
-      return "The journal entry could not retain that local image attachment.";
+      return "attachment";
     case "storage-unavailable":
-      return "This browser is not allowing IndexedDB journal storage right now.";
+      return "storageUnavailable";
     case "attachment-rollback-failed":
-      return "The image attachment failed and Lumina could not fully roll back the local journal operation. Review the Journal before retrying.";
+      return "rollbackFailed";
     case "invalid-journal-input":
     case "invalid-entry":
-      return "The journal fields could not be validated. Check the entered values and try again.";
+      return "invalidFields";
     case "entry-not-found":
     case "storage-corrupted":
     case "storage-write-failed":
-      return "The browser rejected the journal write. Nothing was changed on the remote solver.";
+      return "writeRejected";
   }
 }

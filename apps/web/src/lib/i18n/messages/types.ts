@@ -922,6 +922,54 @@ export type IdentifyMessages = Readonly<{
     remoteEyebrow: string;
     title: string;
   }>;
+  journalPanel: Readonly<{
+    actions: Readonly<{
+      openJournal: string;
+      save: string;
+      saving: string;
+    }>;
+    attachment: Readonly<{
+      description: string;
+      title: string;
+    }>;
+    description: string;
+    entryIdLabel: string;
+    eyebrow: string;
+    failures: Readonly<{
+      attachment: string;
+      entryLimit: string;
+      generic: string;
+      invalidFields: string;
+      rollbackFailed: string;
+      storageUnavailable: string;
+      writeRejected: string;
+    }>;
+    fields: Readonly<{
+      camera: string;
+      conditions: string;
+      latitude: string;
+      location: string;
+      locationPlaceholder: string;
+      longitude: string;
+      notes: string;
+      observationTime: string;
+      observationTimeHelp: string;
+      telescope: string;
+      title: string;
+      titlePlaceholder: string;
+    }>;
+    savedStatus: string;
+    snapshotDisclosure: string;
+    title: string;
+    validation: Readonly<{
+      coordinatePairRequired: string;
+      coordinatesInvalid: string;
+      locationLabelRequired: string;
+      solvedTimestampUnavailable: string;
+      timeInvalid: string;
+      titleRequired: string;
+    }>;
+  }>;
   metadata: Readonly<{
     description: string;
     title: string;

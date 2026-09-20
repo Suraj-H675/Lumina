@@ -413,6 +413,8 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
             />
             <IdentifyJournalPanel
               completedAt={state.active.status.completed_at}
+              locale={locale}
+              messages={messages.journalPanel}
               solution={solutionState.data}
               sourceImage={state.active.sourceImage}
             />

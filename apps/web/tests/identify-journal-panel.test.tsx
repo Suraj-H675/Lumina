@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { IdentifyMessages } from "../src/lib/i18n/messages/types";
 
 const journalMocks = vi.hoisted(() => ({ save: vi.fn() }));
 
@@ -56,15 +59,24 @@ beforeEach(() => {
   journalMocks.save.mockResolvedValue({ id: "11000000-0000-4000-8000-000000000001" });
 });
 
+function renderJournalPanel(
+  sourceImage: File | null = null,
+  messages: IdentifyMessages["journalPanel"] = enMessages.identify.journalPanel,
+) {
+  return render(
+    <IdentifyJournalPanel
+      completedAt="2026-09-16T15:04:00.000Z"
+      locale={DEFAULT_LOCALE}
+      messages={messages}
+      solution={solution}
+      sourceImage={sourceImage}
+    />,
+  );
+}
+
 describe("Identify journal save panel", () => {
   it("keeps time, location, and image retention opt-in blank by default", async () => {
-    const { container } = render(
-      <IdentifyJournalPanel
-        completedAt="2026-09-16T15:04:00.000Z"
-        solution={solution}
-        sourceImage={null}
-      />,
-    );
+    const { container } = renderJournalPanel();
 
     expect(screen.getByText(/does not read EXIF time or location/i)).toBeVisible();
     expect(screen.getByLabelText(/Observation date and time/i)).toHaveValue("");
@@ -76,13 +88,7 @@ describe("Identify journal save panel", () => {
 
   it("saves a derived solution without inventing observation metadata", async () => {
     const user = userEvent.setup();
-    render(
-      <IdentifyJournalPanel
-        completedAt="2026-09-16T15:04:00.000Z"
-        solution={solution}
-        sourceImage={null}
-      />,
-    );
+    renderJournalPanel();
     await user.type(screen.getByLabelText("Journal title"), "Orion test");
     await user.click(screen.getByRole("button", { name: "Save to local journal" }));
 
@@ -103,13 +109,7 @@ describe("Identify journal save panel", () => {
 
   it("requires a complete coordinate pair and an explicit location label", async () => {
     const user = userEvent.setup();
-    render(
-      <IdentifyJournalPanel
-        completedAt="2026-09-16T15:04:00.000Z"
-        solution={solution}
-        sourceImage={null}
-      />,
-    );
+    renderJournalPanel();
     await user.type(screen.getByLabelText("Journal title"), "Coordinate test");
     await user.type(screen.getByLabelText(/^Latitude/i), "12.9");
     await user.click(screen.getByRole("button", { name: "Save to local journal" }));
@@ -121,13 +121,7 @@ describe("Identify journal save panel", () => {
   it("persists exact user-entered metadata and only attaches the image after opt-in", async () => {
     const user = userEvent.setup();
     const file = new File([new Uint8Array([1, 2, 3])], "private-name.png", { type: "image/png" });
-    render(
-      <IdentifyJournalPanel
-        completedAt="2026-09-16T15:04:00.000Z"
-        solution={solution}
-        sourceImage={file}
-      />,
-    );
+    renderJournalPanel(file);
     await user.type(screen.getByLabelText("Journal title"), "Back garden Orion");
     await user.type(screen.getByLabelText(/Observation date and time/i), "2026-09-16T21:30");
     await user.type(screen.getByLabelText(/Location label/i), "Back garden");
@@ -147,6 +141,48 @@ describe("Identify journal save panel", () => {
         longitudeDeg: 77.5946,
         sourceImage: file,
         telescope: "100 mm refractor",
+      }),
+    );
+  });
+
+  it("localizes journal chrome without changing explicit metadata or attachment opt-in", async () => {
+    const user = userEvent.setup();
+    const file = new File([new Uint8Array([1, 2, 3])], "private-name.png", { type: "image/png" });
+    const messages: IdentifyMessages["journalPanel"] = {
+      ...enMessages.identify.journalPanel,
+      actions: {
+        ...enMessages.identify.journalPanel.actions,
+        save: "Fixture save locally",
+      },
+      fields: {
+        ...enMessages.identify.journalPanel.fields,
+        camera: "Fixture camera field",
+        title: "Fixture journal title",
+      },
+      snapshotDisclosure:
+        "Fixture snapshot keeps {count} labels and no {service} provider identifiers.",
+      title: "Fixture solved-observation journal",
+    };
+
+    renderJournalPanel(file, messages);
+
+    expect(
+      screen.getByRole("heading", { name: "Fixture solved-observation journal" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Fixture snapshot keeps 100 labels and no Nova provider identifiers."),
+    ).toBeVisible();
+    await user.type(screen.getByLabelText("Fixture journal title"), "Translated chrome test");
+    await user.type(screen.getByLabelText("Fixture camera field"), "APS-C");
+    await user.click(screen.getByRole("checkbox", { name: /Keep a local copy/i }));
+    await user.click(screen.getByRole("button", { name: "Fixture save locally" }));
+
+    expect(journalMocks.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachImage: true,
+        camera: "APS-C",
+        sourceImage: file,
+        title: "Translated chrome test",
       }),
     );
   });

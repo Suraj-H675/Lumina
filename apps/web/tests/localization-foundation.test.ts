@@ -163,6 +163,8 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.identify.captureChecks.metrics.sourceDimensionsValue).toContain("{height}");
     expect(enMessages.identify.captureChecks.nonOpaque.one).toContain("{count}");
     expect(enMessages.identify.captureChecks.nonOpaque.other).toContain("{count}");
+    expect(enMessages.identify.journalPanel.snapshotDisclosure).toContain("{count}");
+    expect(enMessages.identify.journalPanel.snapshotDisclosure).toContain("{service}");
   });
 
   it("keeps Deep Sky atlas templates placeholder-complete", () => {

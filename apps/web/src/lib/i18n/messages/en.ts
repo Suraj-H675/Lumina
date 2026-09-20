@@ -839,6 +839,65 @@ export const enMessages = {
       remoteEyebrow: "Identify · Phase 6B remote plate solving",
       title: "Identify an astronomical image",
     },
+    journalPanel: {
+      actions: {
+        openJournal: "Open Journal",
+        save: "Save to local journal",
+        saving: "Saving locally…",
+      },
+      attachment: {
+        description:
+          "Off by default. If enabled, Lumina stores a filename-free JPEG/PNG Blob in local IndexedDB; it is not uploaded again.",
+        title: "Keep a local copy of this image in the browser journal.",
+      },
+      description:
+        "Journal data stays in this browser. Lumina does not read EXIF time or location into the journal: date, place, equipment, conditions, and notes below are saved only from what you explicitly enter.",
+      entryIdLabel: "Entry ID:",
+      eyebrow: "Browser-local journal",
+      failures: {
+        attachment: "The journal entry could not retain that local image attachment.",
+        entryLimit:
+          "The local journal has reached its entry limit. Remove entries before saving another.",
+        generic:
+          "The local journal save failed. Nothing was intentionally uploaded or changed remotely.",
+        invalidFields:
+          "The journal fields could not be validated. Check the entered values and try again.",
+        rollbackFailed:
+          "The image attachment failed and Lumina could not fully roll back the local journal operation. Review the Journal before retrying.",
+        storageUnavailable: "This browser is not allowing IndexedDB journal storage right now.",
+        writeRejected:
+          "The browser rejected the journal write. Nothing was changed on the remote solver.",
+      },
+      fields: {
+        camera: "Camera (optional)",
+        conditions: "Conditions (optional)",
+        latitude: "Latitude (optional)",
+        location: "Location label (optional)",
+        locationPlaceholder: "Example: Back garden",
+        longitude: "Longitude (optional)",
+        notes: "Notes (optional)",
+        observationTime: "Observation date and time (optional)",
+        observationTimeHelp:
+          "Interpreted in this browser's current time zone and stored as UTC. Leave blank if you do not know it.",
+        telescope: "Telescope / optics (optional)",
+        title: "Journal title",
+        titlePlaceholder: "Example: Andromeda wide-field test",
+      },
+      savedStatus: "Saved to this browser's local journal.",
+      snapshotDisclosure:
+        "The journal keeps a bounded local snapshot of at most {count} unique loaded annotation labels, plus the normalized plate-solve calibration and WCS fingerprint. It never stores {service} provider job or submission identifiers.",
+      title: "Save this solved observation",
+      validation: {
+        coordinatePairRequired:
+          "Enter both latitude and longitude, or leave both coordinates blank.",
+        coordinatesInvalid: "Latitude must be −90…90 and longitude −180…180.",
+        locationLabelRequired: "Add a location label or clear the location fields.",
+        solvedTimestampUnavailable:
+          "The solved-result timestamp is unavailable, so the journal save was refused.",
+        timeInvalid: "Enter a valid observation date and time, or leave it blank.",
+        titleRequired: "Give this journal entry a title.",
+      },
+    },
     metadata: {
       description:
         "Upload an astronomical image for Lumina's private identification workflow. Remote plate solving is used only when explicitly enabled and consented to.",

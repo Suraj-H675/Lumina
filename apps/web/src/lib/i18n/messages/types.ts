@@ -395,6 +395,90 @@ export type LabIndexMessages = Readonly<{
   title: string;
 }>;
 
+export type JournalMessages = Readonly<{
+  entries: Readonly<{
+    conditionsTitle: string;
+    coordinateFrameLabel: string;
+    deleteGroupLabel: string;
+    deleteLocalEntry: string;
+    entryIdLabel: string;
+    equipmentLabel: string;
+    followUpLabel: string;
+    followUpMarked: string;
+    followUpNotMarked: string;
+    keepEntry: string;
+    localImageLabel: string;
+    localImageNotRetained: string;
+    localImageRetained: string;
+    locationLabel: string;
+    locationWithCoordinates: string;
+    moreSavedObjects: CountMessageTemplates;
+    noPlateSolve: string;
+    notRecorded: string;
+    notesTitle: string;
+    observationTimeLabel: string;
+    pixelScaleLabel: string;
+    pixelScaleValue: string;
+    plateSolveProvenance: string;
+    savedAt: string;
+    savedObjectsLabel: string;
+    savedObjectsTitle: string;
+    snapshotIdLabel: string;
+    solvedCenterLabel: string;
+    solvedCenterValue: string;
+    solverVersionLabel: string;
+    confirmLocalDelete: string;
+    wcsFingerprintLabel: string;
+  }>;
+  eyebrow: string;
+  failures: Readonly<{
+    storageCorrupted: string;
+    storageUnavailable: string;
+  }>;
+  identifyAnotherImage: string;
+  intro: string;
+  loading: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  privacyDetail: string;
+  states: Readonly<{
+    emptyDescription: string;
+    emptyTitle: string;
+    entriesTitle: string;
+    unavailableTitle: string;
+  }>;
+  title: string;
+  transfer: Readonly<{
+    applyReviewedImport: string;
+    conflictSummary: string;
+    conflictTitle: string;
+    description: string;
+    exportAction: string;
+    exportFailure: string;
+    importActionWorking: string;
+    importComplete: string;
+    importDescription: string;
+    importFileLabel: string;
+    importFileSizeInvalid: string;
+    importInvalid: string;
+    importPreviewTitle: string;
+    importPreviewConflicts: CountMessageTemplates;
+    importPreviewNewEntries: CountMessageTemplates;
+    keepLocal: string;
+    preparingExport: string;
+    recommendationKeepLocal: string;
+    recommendationUseImported: string;
+    title: string;
+    useImported: string;
+    failures: Readonly<{
+      generic: string;
+      invalid: string;
+      previewStale: string;
+      unresolved: string;
+    }>;
+  }>;
+}>;
+
 export type MissionControlMessages = Readonly<{
   aboutBody: string;
   aboutTitle: string;
@@ -807,6 +891,7 @@ export type StatusMessages = Readonly<{
 export type LuminaMessages = Readonly<{
   collections: CollectionsMessages;
   discoveries: DiscoveriesMessages;
+  journal: JournalMessages;
   labIndex: LabIndexMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;

@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { JournalEntry } from "../src/lib/journal/model";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { JournalMessages } from "../src/lib/i18n/messages/types";
 
 const journalMocks = vi.hoisted(() => ({
   deleteEntry: vi.fn(),
@@ -16,6 +19,10 @@ vi.mock("../src/lib/journal/database", () => ({
 }));
 
 import { JournalView } from "../src/app/journal/journal-view";
+
+function renderJournal(messages: JournalMessages = enMessages.journal) {
+  return render(<JournalView locale={DEFAULT_LOCALE} messages={messages} />);
+}
 
 const entry: JournalEntry = {
   attachment_ids: ["13000000-0000-4000-8000-000000000001"],
@@ -63,7 +70,7 @@ beforeEach(() => {
 
 describe("JournalView", () => {
   it("renders validated local observation data accessibly without implying server storage", async () => {
-    const { container } = render(<JournalView />);
+    const { container } = renderJournal();
 
     expect(await screen.findByRole("heading", { name: "Orion test" })).toBeVisible();
     expect(screen.getByText(/only in this browser's local IndexedDB/i)).toBeVisible();
@@ -76,7 +83,7 @@ describe("JournalView", () => {
 
   it("deletes the local entry only after explicit confirmation", async () => {
     const user = userEvent.setup();
-    render(<JournalView />);
+    renderJournal();
     await screen.findByRole("heading", { name: "Orion test" });
 
     await user.click(screen.getByRole("button", { name: "Delete local journal entry" }));
@@ -90,9 +97,37 @@ describe("JournalView", () => {
 
   it("shows an honest unavailable state instead of silently discarding local data", async () => {
     journalMocks.listEntries.mockRejectedValue({ reason: "storage-corrupted" });
-    render(<JournalView />);
+    renderJournal();
 
     expect(await screen.findByRole("heading", { name: "Local journal unavailable" })).toBeVisible();
     expect(screen.getByText(/left the local bytes untouched/i)).toBeVisible();
+  });
+
+  it("localizes Journal chrome without rewriting stored personal or plate-solve values", async () => {
+    const user = userEvent.setup();
+    const messages = {
+      ...enMessages.journal,
+      entries: {
+        ...enMessages.journal.entries,
+        observationTimeLabel: "Localized observation time",
+        plateSolveProvenance: "Localized provenance",
+      },
+      title: "Localized Journal",
+    } satisfies JournalMessages;
+
+    renderJournal(messages);
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Localized Journal" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized observation time")).toBeVisible();
+    expect(screen.getByText("Orion test")).toBeVisible();
+    expect(screen.getByText(/Back garden/)).toBeVisible();
+    expect(screen.getByText("Orion Nebula")).toBeVisible();
+    expect(screen.getByText("Broad core visible.")).toBeVisible();
+    await user.click(screen.getByText("Localized provenance"));
+    expect(screen.getByText(/nova-fixture-v1/)).toBeVisible();
+    expect(screen.getByText(entry.id)).toBeVisible();
+    expect(screen.getByText("Localized provenance")).toBeVisible();
   });
 });

@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import {
+  formatCountMessage,
+  formatLocaleDateTime,
+  formatLocaleList,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../lib/i18n/format";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { JournalMessages } from "../../lib/i18n/messages/types";
+import {
   deleteJournalEntry,
   listJournalEntries,
   type JournalStorageError,
@@ -16,7 +25,10 @@ type JournalUiState =
   | Readonly<{ entries: JournalEntry[]; kind: "ready" }>
   | Readonly<{ kind: "error"; message: string }>;
 
-export function JournalView() {
+export function JournalView({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: JournalMessages }>) {
   const [state, setState] = useState<JournalUiState>({ kind: "loading" });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -25,9 +37,9 @@ export function JournalView() {
       const entries = await listJournalEntries();
       setState({ entries, kind: "ready" });
     } catch (error) {
-      setState({ kind: "error", message: journalLoadMessage(error) });
+      setState({ kind: "error", message: journalLoadMessage(error, messages.failures) });
     }
-  }, []);
+  }, [messages.failures]);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,12 +48,14 @@ export function JournalView() {
         if (!cancelled) setState({ entries, kind: "ready" });
       })
       .catch((error: unknown) => {
-        if (!cancelled) setState({ kind: "error", message: journalLoadMessage(error) });
+        if (!cancelled) {
+          setState({ kind: "error", message: journalLoadMessage(error, messages.failures) });
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [messages.failures]);
 
   async function remove(entryId: string) {
     try {
@@ -50,7 +64,7 @@ export function JournalView() {
       setDeleteConfirmId(null);
       setState({ entries, kind: "ready" });
     } catch (error) {
-      setState({ kind: "error", message: journalLoadMessage(error) });
+      setState({ kind: "error", message: journalLoadMessage(error, messages.failures) });
     }
   }
 
@@ -58,18 +72,11 @@ export function JournalView() {
     <div className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Browser-local observations
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Observation Journal</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          These entries live only in this browser&apos;s local IndexedDB. Lumina does not send
-          journal notes, confirmed locations, equipment, or locally retained image attachments to
-          the API.
-        </p>
-        <p className="leading-7 text-[var(--muted)]">
-          Plate-solve snapshots come from Lumina&apos;s normalized WCS result. Observation time and
-          location appear only when you explicitly confirmed them while saving.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
+        <p className="leading-7 text-[var(--muted)]">{messages.privacyDetail}</p>
       </header>
 
       <div className="flex flex-wrap gap-3">
@@ -77,31 +84,34 @@ export function JournalView() {
           className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold"
           href="/identify"
         >
-          Identify another image
+          {messages.identifyAnotherImage}
         </Link>
       </div>
 
-      <JournalTransferControls onImported={() => void reloadJournal()} />
+      <JournalTransferControls
+        locale={locale}
+        messages={messages.transfer}
+        onImported={() => void reloadJournal()}
+      />
 
       {state.kind === "loading" ? (
-        <p role="status">Loading the local journal…</p>
+        <p role="status">{messages.loading}</p>
       ) : state.kind === "error" ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-xl font-semibold">Local journal unavailable</h2>
+          <h2 className="text-xl font-semibold">{messages.states.unavailableTitle}</h2>
           <p className="mt-2 text-[var(--muted)]">{state.message}</p>
         </section>
       ) : state.entries.length === 0 ? (
         <section className="border border-[var(--border)] p-5 sm:p-7">
-          <h2 className="text-2xl font-semibold">No journal entries yet</h2>
+          <h2 className="text-2xl font-semibold">{messages.states.emptyTitle}</h2>
           <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">
-            Add an observation from a catalogue object or observation plan, or solve an image in
-            Identify and save its normalized astrometric result.
+            {messages.states.emptyDescription}
           </p>
         </section>
       ) : (
         <section aria-labelledby="journal-entries-heading" className="space-y-5">
           <h2 className="text-2xl font-semibold" id="journal-entries-heading">
-            Saved observations
+            {messages.states.entriesTitle}
           </h2>
           <div className="grid gap-5">
             {state.entries.map((entry) => (
@@ -109,6 +119,8 @@ export function JournalView() {
                 deleting={deleteConfirmId === entry.id}
                 entry={entry}
                 key={entry.id}
+                locale={locale}
+                messages={messages.entries}
                 onCancelDelete={() => setDeleteConfirmId(null)}
                 onConfirmDelete={() => void remove(entry.id)}
                 onRequestDelete={() => setDeleteConfirmId(entry.id)}
@@ -124,12 +136,16 @@ export function JournalView() {
 function JournalEntryCard({
   deleting,
   entry,
+  locale,
+  messages,
   onCancelDelete,
   onConfirmDelete,
   onRequestDelete,
 }: Readonly<{
   deleting: boolean;
   entry: JournalEntry;
+  locale: PublishedLocale;
+  messages: JournalMessages["entries"];
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
   onRequestDelete: () => void;
@@ -138,54 +154,86 @@ function JournalEntryCard({
     <article className="space-y-5 border border-[var(--border)] p-5 sm:p-7">
       <div className="space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Saved {formatTimestamp(entry.created_at)}
+          {formatMessageTemplate(messages.savedAt, {
+            timestamp: formatTimestamp(entry.created_at, locale),
+          })}
         </p>
         <h3 className="text-2xl font-semibold">{entry.title}</h3>
         <p className="text-sm text-[var(--muted)]">
-          Entry ID: <code>{entry.id}</code>
+          {messages.entryIdLabel} <code>{entry.id}</code>
         </p>
       </div>
 
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
-          label="Observation time"
+          label={messages.observationTimeLabel}
           value={
-            entry.observed_time === null ? "Not recorded" : formatTimestamp(entry.observed_time.utc)
+            entry.observed_time === null
+              ? messages.notRecorded
+              : formatTimestamp(entry.observed_time.utc, locale)
           }
         />
-        <Metric label="Location" value={formatLocation(entry)} />
+        <Metric label={messages.locationLabel} value={formatLocation(entry, locale, messages)} />
         <Metric
-          label="Solved center"
-          value={
-            entry.plate_solve === null
-              ? "No plate solve"
-              : `${entry.plate_solve.center_ra_deg.toFixed(6)}° RA, ${entry.plate_solve.center_dec_deg.toFixed(6)}° Dec`
-          }
-        />
-        <Metric label="Coordinate frame" value={entry.plate_solve?.frame ?? "Not recorded"} />
-        <Metric
-          label="Pixel scale"
+          label={messages.solvedCenterLabel}
           value={
             entry.plate_solve === null
-              ? "Not recorded"
-              : `${entry.plate_solve.pixel_scale_arcsec.toFixed(3)} arcsec/pixel`
+              ? messages.noPlateSolve
+              : formatMessageTemplate(messages.solvedCenterValue, {
+                  dec: formatLocaleNumber(entry.plate_solve.center_dec_deg, locale, {
+                    maximumFractionDigits: 6,
+                    minimumFractionDigits: 6,
+                  }),
+                  ra: formatLocaleNumber(entry.plate_solve.center_ra_deg, locale, {
+                    maximumFractionDigits: 6,
+                    minimumFractionDigits: 6,
+                  }),
+                })
           }
         />
         <Metric
-          label="Equipment"
-          value={entry.equipment.length === 0 ? "Not recorded" : entry.equipment.join(" · ")}
+          label={messages.coordinateFrameLabel}
+          value={entry.plate_solve?.frame ?? messages.notRecorded}
         />
         <Metric
-          label="Local image"
-          value={entry.attachment_ids.length === 0 ? "Not retained" : "Retained in this browser"}
+          label={messages.pixelScaleLabel}
+          value={
+            entry.plate_solve === null
+              ? messages.notRecorded
+              : formatMessageTemplate(messages.pixelScaleValue, {
+                  value: formatLocaleNumber(entry.plate_solve.pixel_scale_arcsec, locale, {
+                    maximumFractionDigits: 3,
+                    minimumFractionDigits: 3,
+                  }),
+                })
+          }
         />
-        <Metric label="Follow-up" value={entry.follow_up ? "Marked" : "Not marked"} />
+        <Metric
+          label={messages.equipmentLabel}
+          value={
+            entry.equipment.length === 0
+              ? messages.notRecorded
+              : formatLocaleList(entry.equipment, locale)
+          }
+        />
+        <Metric
+          label={messages.localImageLabel}
+          value={
+            entry.attachment_ids.length === 0
+              ? messages.localImageNotRetained
+              : messages.localImageRetained
+          }
+        />
+        <Metric
+          label={messages.followUpLabel}
+          value={entry.follow_up ? messages.followUpMarked : messages.followUpNotMarked}
+        />
       </dl>
 
       {entry.objects.length > 0 ? (
         <div className="space-y-2">
-          <h4 className="font-semibold">Saved objects</h4>
-          <ul className="flex flex-wrap gap-2" aria-label="Saved objects">
+          <h4 className="font-semibold">{messages.savedObjectsTitle}</h4>
+          <ul className="flex flex-wrap gap-2" aria-label={messages.savedObjectsLabel}>
             {entry.objects.slice(0, 20).map((object) => (
               <li
                 className="border border-[var(--border)] px-2 py-1 text-sm"
@@ -197,7 +245,7 @@ function JournalEntryCard({
           </ul>
           {entry.objects.length > 20 ? (
             <p className="text-sm text-[var(--muted)]">
-              + {entry.objects.length - 20} more saved objects
+              {formatCountMessage(messages.moreSavedObjects, entry.objects.length - 20, locale)}
             </p>
           ) : null}
         </div>
@@ -205,7 +253,7 @@ function JournalEntryCard({
 
       {entry.conditions !== null && entry.conditions.length > 0 ? (
         <div>
-          <h4 className="font-semibold">Conditions</h4>
+          <h4 className="font-semibold">{messages.conditionsTitle}</h4>
           <p className="mt-1 whitespace-pre-wrap leading-7 text-[var(--muted)]">
             {entry.conditions}
           </p>
@@ -213,23 +261,25 @@ function JournalEntryCard({
       ) : null}
       {entry.notes.length > 0 ? (
         <div>
-          <h4 className="font-semibold">Notes</h4>
+          <h4 className="font-semibold">{messages.notesTitle}</h4>
           <p className="mt-1 whitespace-pre-wrap leading-7 text-[var(--muted)]">{entry.notes}</p>
         </div>
       ) : null}
 
       {entry.plate_solve === null ? null : (
         <details className="border border-[var(--border)] p-4">
-          <summary className="cursor-pointer font-semibold">Plate-solve provenance</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.plateSolveProvenance}
+          </summary>
           <div className="mt-3 space-y-2 text-sm text-[var(--muted)]">
             <p>
-              Solver version: <code>{entry.plate_solve.solver_version}</code>
+              {messages.solverVersionLabel} <code>{entry.plate_solve.solver_version}</code>
             </p>
             <p>
-              WCS fingerprint: <code>{entry.plate_solve.wcs_source_sha256}</code>
+              {messages.wcsFingerprintLabel} <code>{entry.plate_solve.wcs_source_sha256}</code>
             </p>
             <p>
-              Solution snapshot ID: <code>{entry.plate_solve.snapshot_id}</code>
+              {messages.snapshotIdLabel} <code>{entry.plate_solve.snapshot_id}</code>
             </p>
           </div>
         </details>
@@ -237,20 +287,24 @@ function JournalEntryCard({
 
       <div className="border-t border-[var(--border)] pt-4">
         {deleting ? (
-          <div className="flex flex-wrap gap-3" role="group" aria-label={`Delete ${entry.title}`}>
+          <div
+            className="flex flex-wrap gap-3"
+            role="group"
+            aria-label={formatMessageTemplate(messages.deleteGroupLabel, { title: entry.title })}
+          >
             <button
               className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
               onClick={onConfirmDelete}
               type="button"
             >
-              Confirm local delete
+              {messages.confirmLocalDelete}
             </button>
             <button
               className="min-h-11 px-4 font-semibold text-[var(--link)] underline"
               onClick={onCancelDelete}
               type="button"
             >
-              Keep entry
+              {messages.keepEntry}
             </button>
           </div>
         ) : (
@@ -259,7 +313,7 @@ function JournalEntryCard({
             onClick={onRequestDelete}
             type="button"
           >
-            Delete local journal entry
+            {messages.deleteLocalEntry}
           </button>
         )}
       </div>
@@ -276,27 +330,49 @@ function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
   );
 }
 
-function formatLocation(entry: JournalEntry): string {
-  if (entry.location === null) return "Not recorded";
+function formatLocation(
+  entry: JournalEntry,
+  locale: PublishedLocale,
+  messages: JournalMessages["entries"],
+): string {
+  if (entry.location === null) return messages.notRecorded;
   if (entry.location.latitude_deg === null || entry.location.longitude_deg === null) {
     return entry.location.label;
   }
-  return `${entry.location.label} · ${entry.location.latitude_deg.toFixed(4)}°, ${entry.location.longitude_deg.toFixed(4)}°`;
+  return formatMessageTemplate(messages.locationWithCoordinates, {
+    label: entry.location.label,
+    latitude: formatLocaleNumber(entry.location.latitude_deg, locale, {
+      maximumFractionDigits: 4,
+      minimumFractionDigits: 4,
+    }),
+    longitude: formatLocaleNumber(entry.location.longitude_deg, locale, {
+      maximumFractionDigits: 4,
+      minimumFractionDigits: 4,
+    }),
+  });
 }
 
-function formatTimestamp(value: string): string {
+function formatTimestamp(value: string, locale: PublishedLocale): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? value
-    : date.toISOString().replace("T", " ").replace(".000Z", " UTC");
+    : formatLocaleDateTime(date, locale, {
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23",
+        minute: "2-digit",
+        month: "short",
+        second: "2-digit",
+        timeZone: "UTC",
+        timeZoneName: "short",
+        year: "numeric",
+      });
 }
 
-function journalLoadMessage(error: unknown): string {
+function journalLoadMessage(error: unknown, messages: JournalMessages["failures"]): string {
   const reason =
     typeof error === "object" && error !== null && "reason" in error
       ? (error as JournalStorageError).reason
       : null;
-  return reason === "storage-corrupted"
-    ? "Saved journal data failed validation. Lumina left the local bytes untouched rather than guessing."
-    : "This browser is not allowing Lumina to read the local journal right now.";
+  return reason === "storage-corrupted" ? messages.storageCorrupted : messages.storageUnavailable;
 }

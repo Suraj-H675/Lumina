@@ -211,6 +211,108 @@ export const enMessages = {
     title: "Reviewed discoveries",
     whyItMattersTitle: "Why it matters",
   },
+  journal: {
+    entries: {
+      conditionsTitle: "Conditions",
+      coordinateFrameLabel: "Coordinate frame",
+      deleteGroupLabel: "Delete {title}",
+      deleteLocalEntry: "Delete local journal entry",
+      entryIdLabel: "Entry ID:",
+      equipmentLabel: "Equipment",
+      followUpLabel: "Follow-up",
+      followUpMarked: "Marked",
+      followUpNotMarked: "Not marked",
+      keepEntry: "Keep entry",
+      localImageLabel: "Local image",
+      localImageNotRetained: "Not retained",
+      localImageRetained: "Retained in this browser",
+      locationLabel: "Location",
+      locationWithCoordinates: "{label} · {latitude}°, {longitude}°",
+      moreSavedObjects: {
+        one: "+ {count} more saved object",
+        other: "+ {count} more saved objects",
+      },
+      noPlateSolve: "No plate solve",
+      notRecorded: "Not recorded",
+      notesTitle: "Notes",
+      observationTimeLabel: "Observation time",
+      pixelScaleLabel: "Pixel scale",
+      pixelScaleValue: "{value} arcsec/pixel",
+      plateSolveProvenance: "Plate-solve provenance",
+      savedAt: "Saved {timestamp}",
+      savedObjectsLabel: "Saved objects",
+      savedObjectsTitle: "Saved objects",
+      snapshotIdLabel: "Solution snapshot ID:",
+      solvedCenterLabel: "Solved center",
+      solvedCenterValue: "{ra}° RA, {dec}° Dec",
+      solverVersionLabel: "Solver version:",
+      confirmLocalDelete: "Confirm local delete",
+      wcsFingerprintLabel: "WCS fingerprint:",
+    },
+    eyebrow: "Browser-local observations",
+    failures: {
+      storageCorrupted:
+        "Saved journal data failed validation. Lumina left the local bytes untouched rather than guessing.",
+      storageUnavailable:
+        "This browser is not allowing Lumina to read the local journal right now.",
+    },
+    identifyAnotherImage: "Identify another image",
+    intro:
+      "These entries live only in this browser's local IndexedDB. Lumina does not send journal notes, confirmed locations, equipment, or locally retained image attachments to the API.",
+    loading: "Loading the local journal…",
+    metadataDescription: "Review observations saved locally in this browser.",
+    metadataTitle: "Journal · Lumina",
+    privacyDetail:
+      "Plate-solve snapshots come from Lumina's normalized WCS result. Observation time and location appear only when you explicitly confirmed them while saving.",
+    states: {
+      emptyDescription:
+        "Add an observation from a catalogue object or observation plan, or solve an image in Identify and save its normalized astrometric result.",
+      emptyTitle: "No journal entries yet",
+      entriesTitle: "Saved observations",
+      unavailableTitle: "Local journal unavailable",
+    },
+    title: "Observation Journal",
+    transfer: {
+      applyReviewedImport: "Apply reviewed import",
+      conflictSummary:
+        "Local updated {localUpdated} · imported updated {importedUpdated}. Lumina's timestamp-based suggestion is {recommendation}, but you must choose.",
+      conflictTitle: "Conflict {id}",
+      description:
+        "Journal exports are portable personal-data files. They can contain your notes, explicitly confirmed location/time, equipment, normalized plate-solve snapshots, and any image Blobs you chose to retain. Store exports accordingly.",
+      exportAction: "Export local journal",
+      exportFailure: "The browser could not prepare a validated journal export.",
+      failures: {
+        generic: "The journal import could not be completed safely; local data was left unchanged.",
+        invalid: "The journal file could not be validated, so local data was left unchanged.",
+        previewStale:
+          "The local journal changed after the preview. Review the import again before applying it.",
+        unresolved: "Resolve every journal conflict before importing.",
+      },
+      importActionWorking: "Importing…",
+      importComplete:
+        "Import complete: {added} added, {replaced} replaced, {keptLocal} kept local.",
+      importDescription:
+        "Lumina validates the version, entry schema, attachment hashes, and whole-journal checksum before previewing any import. Existing entries are never silently overwritten.",
+      importFileLabel: "Import a Lumina journal file",
+      importFileSizeInvalid: "That journal file is empty or exceeds Lumina's bounded import limit.",
+      importInvalid: "That journal file could not be validated. Nothing was imported.",
+      importPreviewConflicts: {
+        one: "{count} conflict requiring a decision",
+        other: "{count} conflicts requiring a decision",
+      },
+      importPreviewNewEntries: {
+        one: "{count} new entry",
+        other: "{count} new entries",
+      },
+      importPreviewTitle: "Import preview",
+      keepLocal: "Keep local",
+      preparingExport: "Preparing export…",
+      recommendationKeepLocal: "keep local",
+      recommendationUseImported: "use imported",
+      title: "Export or import journal data",
+      useImported: "Use imported",
+    },
+  },
   labIndex: {
     eyebrow: "Space Lab",
     intro:

@@ -327,4 +327,16 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.navigation.launches.action).toBe("Open Launch Center");
     expect(messages.unavailable.cachedContentExpired).toMatch(/expired/i);
   });
+
+  it("keeps Journal interface copy separate from personal observation and import data", () => {
+    const messages = enMessages.journal;
+    expect(messages.metadataTitle).toBe("Journal · Lumina");
+    expect(messages.entries.savedAt).toContain("{timestamp}");
+    expect(messages.entries.deleteGroupLabel).toContain("{title}");
+    expect(messages.entries.locationWithCoordinates).toContain("{label}");
+    expect(messages.transfer.conflictTitle).toContain("{id}");
+    expect(messages.transfer.conflictSummary).toContain("{localUpdated}");
+    expect(messages.transfer.importComplete).toContain("{keptLocal}");
+    expect(messages.failures.storageCorrupted).toMatch(/left the local bytes untouched/i);
+  });
 });

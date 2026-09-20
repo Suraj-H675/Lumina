@@ -3,6 +3,10 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { JournalMessages } from "../src/lib/i18n/messages/types";
+
 const transferMocks = vi.hoisted(() => ({
   apply: vi.fn(),
   createExport: vi.fn(),
@@ -22,6 +26,15 @@ vi.mock("../src/lib/journal/export", () => ({
 }));
 
 import { JournalTransferControls } from "../src/app/journal/journal-transfer-controls";
+
+function renderTransfer(
+  onImported = vi.fn(),
+  messages: JournalMessages["transfer"] = enMessages.journal.transfer,
+) {
+  return render(
+    <JournalTransferControls locale={DEFAULT_LOCALE} messages={messages} onImported={onImported} />,
+  );
+}
 
 const bundle = { attachments: [], entries: [], exported_at: "2026-09-16T16:00:00.000Z" };
 const conflict = {
@@ -53,7 +66,7 @@ beforeEach(() => {
 
 describe("JournalTransferControls", () => {
   it("warns that portable exports may contain sensitive local data and passes axe", async () => {
-    const { container } = render(<JournalTransferControls onImported={vi.fn()} />);
+    const { container } = renderTransfer();
     expect(
       screen.getByText(/can contain your notes, explicitly confirmed location\/time/i),
     ).toBeVisible();
@@ -66,7 +79,7 @@ describe("JournalTransferControls", () => {
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => undefined);
-    render(<JournalTransferControls onImported={vi.fn()} />);
+    renderTransfer();
 
     await user.click(screen.getByRole("button", { name: "Export local journal" }));
 
@@ -79,7 +92,7 @@ describe("JournalTransferControls", () => {
 
   it("rejects an oversized import before parsing untrusted bytes", async () => {
     const user = userEvent.setup();
-    render(<JournalTransferControls onImported={vi.fn()} />);
+    renderTransfer();
     const file = new File(["{}"], "journal.json", { type: "application/json" });
     Object.defineProperty(file, "size", { configurable: true, value: 64 * 1024 * 1024 + 1 });
 
@@ -97,18 +110,18 @@ describe("JournalTransferControls", () => {
       exported_at: bundle.exported_at,
     });
     const onImported = vi.fn();
-    render(<JournalTransferControls onImported={onImported} />);
+    renderTransfer(onImported);
 
     await user.upload(
       screen.getByLabelText("Import a Lumina journal file"),
       new File(["{}"], "journal.json", { type: "application/json" }),
     );
     expect(await screen.findByRole("heading", { name: "Import preview" })).toBeVisible();
-    expect(screen.getByText(/New entries:/i)).toHaveTextContent("1");
+    expect(screen.getByText("1 new entry")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Apply reviewed import" }));
     expect(screen.getByRole("status")).toHaveTextContent(
-      /Choose how to resolve every conflicting entry/i,
+      /Resolve every journal conflict before importing/i,
     );
     expect(transferMocks.apply).not.toHaveBeenCalled();
 
@@ -125,7 +138,7 @@ describe("JournalTransferControls", () => {
 
   it("reports a validation failure without applying anything", async () => {
     transferMocks.parse.mockRejectedValue(new Error("bad"));
-    render(<JournalTransferControls onImported={vi.fn()} />);
+    renderTransfer();
     const input = screen.getByLabelText("Import a Lumina journal file");
 
     fireEvent.change(input, {
@@ -134,5 +147,33 @@ describe("JournalTransferControls", () => {
 
     expect(await screen.findByRole("status")).toHaveTextContent(/could not be validated/i);
     expect(transferMocks.apply).not.toHaveBeenCalled();
+  });
+
+  it("localizes transfer controls without rewriting conflict identifiers or timestamps", async () => {
+    const user = userEvent.setup();
+    transferMocks.preview.mockResolvedValue({
+      added_ids: [],
+      conflicts: [conflict],
+      exported_at: bundle.exported_at,
+    });
+    const messages = {
+      ...enMessages.journal.transfer,
+      importPreviewTitle: "Localized import preview",
+      keepLocal: "Localized keep local",
+      title: "Localized journal transfer",
+    } satisfies JournalMessages["transfer"];
+
+    renderTransfer(vi.fn(), messages);
+    expect(screen.getByRole("heading", { name: "Localized journal transfer" })).toBeVisible();
+
+    await user.upload(
+      screen.getByLabelText(messages.importFileLabel),
+      new File(["{}"], "journal.json", { type: "application/json" }),
+    );
+
+    expect(await screen.findByRole("heading", { name: "Localized import preview" })).toBeVisible();
+    expect(screen.getByText(new RegExp(conflict.id, "u"))).toBeVisible();
+    expect(screen.getByRole("radio", { name: "Localized keep local" })).toBeVisible();
+    expect(screen.getByText(/Sep 16, 2026/)).toBeVisible();
   });
 });

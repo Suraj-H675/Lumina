@@ -4,10 +4,21 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SolarSystemDistanceExplorer } from "../src/app/explore/solar-system/solar-system-distance-explorer";
+import { createSolarSystemDistanceMetadata } from "../src/app/explore/solar-system/route-page";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { SolarSystemDistanceMessages } from "../src/lib/i18n/messages/types";
+
+function renderExplorer(
+  messages: SolarSystemDistanceMessages["explorer"] = enMessages.explore.solarSystemDistance
+    .explorer,
+) {
+  return render(<SolarSystemDistanceExplorer locale={DEFAULT_LOCALE} messages={messages} />);
+}
 
 describe("Phase 5B Solar System Distance Explorer", () => {
   it("renders the reviewed log-distance model accessibly without implying a current snapshot", async () => {
-    const { container } = render(<SolarSystemDistanceExplorer />);
+    const { container } = renderExplorer();
 
     expect(
       screen.getByRole("heading", { level: 2, name: "Mean distance from the Sun" }),
@@ -28,7 +39,7 @@ describe("Phase 5B Solar System Distance Explorer", () => {
   });
 
   it("switches only between precomputed log and linear positions", async () => {
-    render(<SolarSystemDistanceExplorer />);
+    renderExplorer();
     const user = userEvent.setup();
 
     expect(screen.getByText(/^0\.387 AU · 0\.00% of this log track$/i)).toBeVisible();
@@ -42,7 +53,7 @@ describe("Phase 5B Solar System Distance Explorer", () => {
   });
 
   it("selects a planet while keeping distance and size semantics separate", async () => {
-    render(<SolarSystemDistanceExplorer />);
+    renderExplorer();
     const user = userEvent.setup();
 
     await user.click(screen.getByRole("button", { name: "Jupiter" }));
@@ -57,5 +68,43 @@ describe("Phase 5B Solar System Distance Explorer", () => {
     expect(
       within(jupiterRegion).getByText(/Distance and body size are different quantities/i),
     ).toBeVisible();
+  });
+
+  it("localizes explorer chrome without rewriting reviewed body/model data", () => {
+    const messages: SolarSystemDistanceMessages["explorer"] = {
+      ...enMessages.explore.solarSystemDistance.explorer,
+      modelEyebrow: "Fixture model {modelVersion}",
+      selected: {
+        ...enMessages.explore.solarSystemDistance.explorer.selected,
+        meanDistanceLabel: "Fixture mean distance",
+      },
+      title: "Fixture distance heading",
+      trackSummary: "Fixture {distance} {unit} · {position}% · {mode}",
+    };
+
+    renderExplorer(messages);
+
+    expect(screen.getByRole("heading", { name: "Fixture distance heading" })).toBeVisible();
+    expect(screen.getByText("Fixture model solar-system-distance-v1")).toBeVisible();
+    expect(screen.getByText("Fixture 0.387 AU · 0.00% · log")).toBeVisible();
+    const earthRegion = screen.getByRole("region", { name: "Earth" });
+    expect(within(earthRegion).getByText("Fixture mean distance")).toBeVisible();
+    expect(within(earthRegion).getByText("1 AU", { exact: true })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Mercury" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Neptune" })).toBeVisible();
+  });
+
+  it("creates localized metadata without changing the canonical route", () => {
+    const messages: SolarSystemDistanceMessages = {
+      ...enMessages.explore.solarSystemDistance,
+      metadataDescription: "Fixture Solar System metadata",
+      metadataTitle: "Fixture Solar System title",
+    };
+
+    expect(createSolarSystemDistanceMetadata(messages)).toEqual({
+      alternates: { canonical: "/explore/solar-system" },
+      description: "Fixture Solar System metadata",
+      title: "Fixture Solar System title",
+    });
   });
 });

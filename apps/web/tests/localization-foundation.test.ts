@@ -290,6 +290,23 @@ describe("Phase 8C localization foundation", () => {
     ).toBe("2 results for Kepler, ranked by the catalogue search engine.");
   });
 
+  it("keeps Solar System Distance Explorer data placeholders explicit", () => {
+    const messages = enMessages.explore.solarSystemDistance;
+    expect(messages.intro).toContain("{provider}");
+    expect(messages.explorer.description).toContain("{provider}");
+    expect(messages.explorer.logDescription).toContain("{unit}");
+    expect(messages.explorer.modelEyebrow).toContain("{modelVersion}");
+    expect(messages.explorer.selected.compareSizeAction).toContain("{body}");
+    expect(messages.explorer.sunOrigin).toContain("{unit}");
+    expect(messages.explorer.trackSummary).toContain("{distance}");
+    expect(messages.explorer.trackSummary).toContain("{unit}");
+    expect(messages.explorer.trackSummary).toContain("{position}");
+    expect(messages.explorer.trackSummary).toContain("{mode}");
+    expect(messages.explorer.dataAlternative.logUndefined).toContain("{unit}");
+    expect(messages.explorer.valueWithUnit).toContain("{value}");
+    expect(messages.explorer.valueWithUnit).toContain("{unit}");
+  });
+
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {
     expect(enMessages.entityTypes.star).toBe("Star");
     expect(enMessages.entityTypes.dwarf_planet).toBe("Dwarf planet");

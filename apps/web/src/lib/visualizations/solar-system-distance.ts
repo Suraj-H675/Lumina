@@ -3,6 +3,8 @@ import solarSystemArtifact from "../../../../../data/seed/solar-system-distance-
 export const SOLAR_SYSTEM_MODEL_VERSION = "solar-system-distance-v1" as const;
 export const SOLAR_SYSTEM_SCHEMA_VERSION = 1 as const;
 export const SOLAR_SYSTEM_ARTIFACT_VERSION = 1 as const;
+export const SOLAR_SYSTEM_PROVIDER_NAME = "NASA" as const;
+export const SOLAR_SYSTEM_DISTANCE_UNIT = "AU" as const;
 
 export const SOLAR_SYSTEM_BODY_IDS = [
   "sun",

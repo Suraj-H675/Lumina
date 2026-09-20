@@ -502,6 +502,69 @@ export type TonightMessages = Readonly<{
   }>;
 }>;
 
+export type SolarSystemDistanceMessages = Readonly<{
+  backToExplore: string;
+  continue: Readonly<{
+    action: string;
+    description: string;
+    title: string;
+  }>;
+  eyebrow: string;
+  explorer: Readonly<{
+    dataAlternative: Readonly<{
+      description: string;
+      headers: Readonly<{
+        body: string;
+        lightTime: string;
+        linearTrack: string;
+        logTrack: string;
+        meanDistance: string;
+      }>;
+      logUndefined: string;
+      title: string;
+    }>;
+    description: string;
+    logDescription: string;
+    linearDescription: string;
+    modelEyebrow: string;
+    scaleAriaLabel: string;
+    scaleModes: Readonly<{
+      linearAction: string;
+      linearTrackName: string;
+      logAction: string;
+      logTrackName: string;
+    }>;
+    selected: Readonly<{
+      compareSizeAction: string;
+      disclosure: string;
+      earthRatioLabel: string;
+      eyebrow: string;
+      lightTimeLabel: string;
+      meanDistanceLabel: string;
+    }>;
+    sunOrigin: string;
+    trackSummary: string;
+    title: string;
+    valueWithUnit: string;
+  }>;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptionsTitle: string;
+    description: string;
+    limitationsTitle: string;
+    linearMappingLabel: string;
+    logMappingLabel: string;
+    title: string;
+  }>;
+  sources: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  title: string;
+}>;
+
 export type ExploreMessages = Readonly<{
   browse: Readonly<{
     emptyDescription: string;
@@ -526,6 +589,7 @@ export type ExploreMessages = Readonly<{
   }>;
   metadataDescription: string;
   metadataTitle: string;
+  solarSystemDistance: SolarSystemDistanceMessages;
   search: Readonly<{
     heading: string;
     invalidQuery: string;

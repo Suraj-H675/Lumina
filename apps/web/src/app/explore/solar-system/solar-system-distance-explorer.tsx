@@ -4,9 +4,18 @@ import Link from "next/link";
 import { useState } from "react";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SolarSystemDistanceMessages } from "../../../lib/i18n/messages/types";
+import {
   SOLAR_SYSTEM_BODIES,
   SOLAR_SYSTEM_DEFINITION,
+  SOLAR_SYSTEM_DISTANCE_UNIT,
   SOLAR_SYSTEM_PLANETS,
+  SOLAR_SYSTEM_PROVIDER_NAME,
   solarSystemBodyById,
   solarSystemPosition,
   type SolarSystemBody,
@@ -16,7 +25,10 @@ import {
 
 const DEFAULT_BODY_ID: SolarSystemBodyId = "earth";
 
-export function SolarSystemDistanceExplorer() {
+export function SolarSystemDistanceExplorer({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: SolarSystemDistanceMessages["explorer"] }>) {
   const [mode, setMode] = useState<SolarSystemScaleMode>("log");
   const [selectedId, setSelectedId] = useState<SolarSystemBodyId>(DEFAULT_BODY_ID);
   const selected = solarSystemBodyById(selectedId) ?? SOLAR_SYSTEM_BODIES[3]!;
@@ -29,40 +41,50 @@ export function SolarSystemDistanceExplorer() {
       >
         <div className="max-w-4xl space-y-3">
           <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-            Reviewed reference model · {SOLAR_SYSTEM_DEFINITION.model_version}
+            {formatMessageTemplate(messages.modelEyebrow, {
+              modelVersion: SOLAR_SYSTEM_DEFINITION.model_version,
+            })}
           </p>
           <h2 className="text-2xl font-semibold" id="system-model-heading">
-            Mean distance from the Sun
+            {messages.title}
           </h2>
           <p className="leading-7 text-[var(--muted)]">
-            This is a distance comparison, not a live Solar System snapshot. Each planet uses the
-            cited NASA mean distance from the Sun. Marker sizes are uniform and do not represent
-            body diameter.
+            {formatMessageTemplate(messages.description, {
+              provider: SOLAR_SYSTEM_PROVIDER_NAME,
+            })}
           </p>
         </div>
 
-        <div aria-label="Distance scale" className="flex flex-wrap gap-2" role="group">
+        <div aria-label={messages.scaleAriaLabel} className="flex flex-wrap gap-2" role="group">
           <ScaleButton active={mode === "log"} onClick={() => setMode("log")}>
-            Log distance
+            {messages.scaleModes.logAction}
           </ScaleButton>
           <ScaleButton active={mode === "linear"} onClick={() => setMode("linear")}>
-            Linear distance
+            {messages.scaleModes.linearAction}
           </ScaleButton>
         </div>
 
         <div className="border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
           <p className="text-sm leading-6 text-[var(--muted)]">
             {mode === "log"
-              ? "Log view uses log10 of the reviewed mean Sun distance, normalized from Mercury to Neptune. The Sun is kept separately at 0 AU because log10(0) is undefined."
-              : "Linear view places each planet by its reviewed mean Sun distance relative to Neptune. Inner-planet bars therefore become very short."}
+              ? formatMessageTemplate(messages.logDescription, {
+                  unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+                })
+              : messages.linearDescription}
           </p>
         </div>
 
         <div className="space-y-3" data-testid="solar-system-distance-track">
-          <OriginRow selected={selectedId === "sun"} onSelect={() => setSelectedId("sun")} />
+          <OriginRow
+            messages={messages}
+            selected={selectedId === "sun"}
+            onSelect={() => setSelectedId("sun")}
+          />
           {SOLAR_SYSTEM_PLANETS.map((planet) => (
             <PlanetDistanceRow
               key={planet.id}
+              locale={locale}
+              messages={messages}
               mode={mode}
               onSelect={() => setSelectedId(planet.id)}
               planet={planet}
@@ -72,8 +94,12 @@ export function SolarSystemDistanceExplorer() {
         </div>
       </section>
 
-      <SelectedBody body={selected} />
-      <DistanceTable />
+      <SelectedBody body={selected} locale={locale} messages={messages} />
+      <DistanceTable
+        locale={locale}
+        messages={messages.dataAlternative}
+        valueWithUnit={messages.valueWithUnit}
+      />
     </div>
   );
 }
@@ -95,7 +121,16 @@ function ScaleButton({
   );
 }
 
-function OriginRow({ selected, onSelect }: Readonly<{ selected: boolean; onSelect: () => void }>) {
+function OriginRow({
+  messages,
+  selected,
+  onSelect,
+}: Readonly<{
+  messages: SolarSystemDistanceMessages["explorer"];
+  selected: boolean;
+  onSelect: () => void;
+}>) {
+  const sun = SOLAR_SYSTEM_BODIES[0]!;
   return (
     <div className="grid gap-2 sm:grid-cols-[7rem_1fr] sm:items-center">
       <button
@@ -104,7 +139,7 @@ function OriginRow({ selected, onSelect }: Readonly<{ selected: boolean; onSelec
         onClick={onSelect}
         type="button"
       >
-        Sun
+        {sun.name}
       </button>
       <div className="flex min-h-11 items-center gap-3">
         <span
@@ -112,7 +147,9 @@ function OriginRow({ selected, onSelect }: Readonly<{ selected: boolean; onSelec
           className="inline-block size-3 shrink-0 rounded-full border border-current"
         />
         <span className="text-sm text-[var(--muted)]">
-          0 AU · origin; excluded from log transform
+          {formatMessageTemplate(messages.sunOrigin, {
+            unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+          })}
         </span>
       </div>
     </div>
@@ -120,11 +157,15 @@ function OriginRow({ selected, onSelect }: Readonly<{ selected: boolean; onSelec
 }
 
 function PlanetDistanceRow({
+  locale,
+  messages,
   mode,
   onSelect,
   planet,
   selected,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: SolarSystemDistanceMessages["explorer"];
   mode: SolarSystemScaleMode;
   onSelect: () => void;
   planet: SolarSystemBody;
@@ -155,15 +196,32 @@ function PlanetDistanceRow({
           />
         </div>
         <p className="text-xs text-[var(--muted)]">
-          {planet.mean_distance_au.toLocaleString("en-US", { maximumFractionDigits: 3 })} AU ·{" "}
-          {position.toFixed(2)}% of this {mode} track
+          {formatMessageTemplate(messages.trackSummary, {
+            distance: formatLocaleNumber(planet.mean_distance_au, locale, {
+              maximumFractionDigits: 3,
+            }),
+            mode:
+              mode === "log"
+                ? messages.scaleModes.logTrackName
+                : messages.scaleModes.linearTrackName,
+            position: formatLocaleFixedNumber(position, 2, locale),
+            unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+          })}
         </p>
       </div>
     </div>
   );
 }
 
-function SelectedBody({ body }: Readonly<{ body: SolarSystemBody }>) {
+function SelectedBody({
+  body,
+  locale,
+  messages,
+}: Readonly<{
+  body: SolarSystemBody;
+  locale: PublishedLocale;
+  messages: SolarSystemDistanceMessages["explorer"];
+}>) {
   const isSun = body.id === "sun";
   return (
     <section
@@ -172,7 +230,7 @@ function SelectedBody({ body }: Readonly<{ body: SolarSystemBody }>) {
     >
       <div className="space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Selected reference body
+          {messages.selected.eyebrow}
         </p>
         <h2 className="text-3xl font-semibold" id="selected-system-body-heading">
           {body.name}
@@ -181,19 +239,33 @@ function SelectedBody({ body }: Readonly<{ body: SolarSystemBody }>) {
       </div>
       <dl className="grid gap-4 sm:grid-cols-3">
         <Fact
-          label="Mean Sun distance"
-          value={`${body.mean_distance_au.toLocaleString("en-US", { maximumFractionDigits: 3 })} AU`}
+          label={messages.selected.meanDistanceLabel}
+          value={formatMessageTemplate(messages.valueWithUnit, {
+            unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+            value: formatLocaleNumber(body.mean_distance_au, locale, {
+              maximumFractionDigits: 3,
+            }),
+          })}
         />
         <Fact
-          label="Light-time context"
-          value={isSun ? "0" : `${body.light_time_value} ${body.light_time_unit}`}
-        />
-        <Fact
-          label="Relative to Earth's mean distance"
+          label={messages.selected.lightTimeLabel}
           value={
             isSun
-              ? "0×"
-              : `${body.earth_distance_ratio.toLocaleString("en-US", { maximumFractionDigits: 3 })}×`
+              ? formatLocaleNumber(0, locale)
+              : formatMessageTemplate(messages.valueWithUnit, {
+                  unit: body.light_time_unit,
+                  value: formatSolarSystemRawNumber(body.light_time_value, locale),
+                })
+          }
+        />
+        <Fact
+          label={messages.selected.earthRatioLabel}
+          value={
+            isSun
+              ? formatLocaleNumber(0, locale) + "×"
+              : formatLocaleNumber(body.earth_distance_ratio, locale, {
+                  maximumFractionDigits: 3,
+                }) + "×"
           }
         />
       </dl>
@@ -202,12 +274,13 @@ function SelectedBody({ body }: Readonly<{ body: SolarSystemBody }>) {
           className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
           href={`/lab/scale-explorer/${body.scale_explorer_node_id}`}
         >
-          Compare {body.name}&apos;s characteristic size →
+          {formatMessageTemplate(messages.selected.compareSizeAction, {
+            body: body.name,
+          })}
         </Link>
       </div>
       <p className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        Distance and body size are different quantities. Lumina intentionally keeps them in separate
-        reviewed models rather than drawing planet marker diameters on the distance track.
+        {messages.selected.disclosure}
       </p>
     </section>
   );
@@ -222,41 +295,61 @@ function Fact({ label, value }: Readonly<{ label: string; value: string }>) {
   );
 }
 
-function DistanceTable() {
+function DistanceTable({
+  locale,
+  messages,
+  valueWithUnit,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SolarSystemDistanceMessages["explorer"]["dataAlternative"];
+  valueWithUnit: string;
+}>) {
   return (
     <section aria-labelledby="distance-table-heading" className="space-y-4">
       <div className="max-w-3xl space-y-2">
         <h2 className="text-2xl font-semibold" id="distance-table-heading">
-          Data alternative
+          {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          The numeric table is authoritative when visual spacing is difficult to compare.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
       </div>
       <div className="overflow-x-auto border border-[var(--border)]">
         <table className="w-full min-w-[46rem] border-collapse text-left">
           <thead>
             <tr className="border-b border-[var(--border)]">
-              <th className="p-3">Body</th>
-              <th className="p-3">Mean Sun distance</th>
-              <th className="p-3">Light-time context</th>
-              <th className="p-3">Linear track</th>
-              <th className="p-3">Log track</th>
+              <th className="p-3">{messages.headers.body}</th>
+              <th className="p-3">{messages.headers.meanDistance}</th>
+              <th className="p-3">{messages.headers.lightTime}</th>
+              <th className="p-3">{messages.headers.linearTrack}</th>
+              <th className="p-3">{messages.headers.logTrack}</th>
             </tr>
           </thead>
           <tbody>
             {SOLAR_SYSTEM_BODIES.map((body) => (
               <tr className="border-b border-[var(--border)] last:border-0" key={body.id}>
                 <th className="p-3 font-semibold">{body.name}</th>
-                <td className="p-3 font-mono">{body.mean_distance_au} AU</td>
-                <td className="p-3">
-                  {body.id === "sun" ? "0" : `${body.light_time_value} ${body.light_time_unit}`}
+                <td className="p-3 font-mono">
+                  {formatMessageTemplate(valueWithUnit, {
+                    unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+                    value: formatSolarSystemRawNumber(body.mean_distance_au, locale),
+                  })}
                 </td>
-                <td className="p-3 font-mono">{body.linear_position_percent.toFixed(2)}%</td>
+                <td className="p-3">
+                  {body.id === "sun"
+                    ? formatLocaleNumber(0, locale)
+                    : formatMessageTemplate(valueWithUnit, {
+                        unit: body.light_time_unit,
+                        value: formatSolarSystemRawNumber(body.light_time_value, locale),
+                      })}
+                </td>
+                <td className="p-3 font-mono">
+                  {formatLocaleFixedNumber(body.linear_position_percent, 2, locale)}%
+                </td>
                 <td className="p-3 font-mono">
                   {body.log_position_percent === null
-                    ? "not defined at 0 AU"
-                    : `${body.log_position_percent.toFixed(2)}%`}
+                    ? formatMessageTemplate(messages.logUndefined, {
+                        unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+                      })
+                    : formatLocaleFixedNumber(body.log_position_percent, 2, locale) + "%"}
                 </td>
               </tr>
             ))}
@@ -265,4 +358,11 @@ function DistanceTable() {
       </div>
     </section>
   );
+}
+
+function formatSolarSystemRawNumber(value: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(value, locale, {
+    maximumFractionDigits: 20,
+    useGrouping: false,
+  });
 }

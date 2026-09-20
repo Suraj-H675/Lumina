@@ -506,6 +506,78 @@ export const enMessages = {
     metadataDescription:
       "Search and browse Lumina's reviewed astronomical catalogue. Every published value keeps its source and provenance.",
     metadataTitle: "Explore the catalogue",
+    solarSystemDistance: {
+      backToExplore: "← Explore catalogue",
+      continue: {
+        action: "Open characteristic-size Scale Explorer →",
+        description:
+          "Distance from the Sun and physical body size answer different questions. Keep them separate, then compare them intentionally.",
+        title: "Continue across scales",
+      },
+      eyebrow: "Cosmic Zoom · Phase 5B",
+      explorer: {
+        dataAlternative: {
+          description:
+            "The numeric table is authoritative when visual spacing is difficult to compare.",
+          headers: {
+            body: "Body",
+            lightTime: "Light-time context",
+            linearTrack: "Linear track",
+            logTrack: "Log track",
+            meanDistance: "Mean Sun distance",
+          },
+          logUndefined: "not defined at 0 {unit}",
+          title: "Data alternative",
+        },
+        description:
+          "This is a distance comparison, not a live Solar System snapshot. Each planet uses the cited {provider} mean distance from the Sun. Marker sizes are uniform and do not represent body diameter.",
+        linearDescription:
+          "Linear view places each planet by its reviewed mean Sun distance relative to Neptune. Inner-planet bars therefore become very short.",
+        logDescription:
+          "Log view uses log10 of the reviewed mean Sun distance, normalized from Mercury to Neptune. The Sun is kept separately at 0 {unit} because log10(0) is undefined.",
+        modelEyebrow: "Reviewed reference model · {modelVersion}",
+        scaleAriaLabel: "Distance scale",
+        scaleModes: {
+          linearAction: "Linear distance",
+          linearTrackName: "linear",
+          logAction: "Log distance",
+          logTrackName: "log",
+        },
+        selected: {
+          compareSizeAction: "Compare {body}'s characteristic size →",
+          disclosure:
+            "Distance and body size are different quantities. Lumina intentionally keeps them in separate reviewed models rather than drawing planet marker diameters on the distance track.",
+          earthRatioLabel: "Relative to Earth's mean distance",
+          eyebrow: "Selected reference body",
+          lightTimeLabel: "Light-time context",
+          meanDistanceLabel: "Mean Sun distance",
+        },
+        sunOrigin: "0 {unit} · origin; excluded from log transform",
+        trackSummary: "{distance} {unit} · {position}% of this {mode} track",
+        title: "Mean distance from the Sun",
+        valueWithUnit: "{value} {unit}",
+      },
+      intro:
+        "See why one scale cannot show the inner and outer planets equally well. This reviewed model compares {provider} mean distances from the Sun; it does not pretend to show where the planets are right now.",
+      metadataDescription:
+        "Compare reviewed mean Sun distances across the eight planets in linear and logarithmic views without implying current planetary positions.",
+      metadataTitle: "Solar System Distance Explorer",
+      model: {
+        assumptionsTitle: "Assumptions",
+        description:
+          "The browser consumes a checked-in artifact produced by Lumina's Python astronomy domain. It switches only between precomputed linear and logarithmic positions; it does not recalculate orbital science in the renderer.",
+        limitationsTitle: "Limitations",
+        linearMappingLabel: "Linear mapping",
+        logMappingLabel: "Log mapping",
+        title: "Model and limitations",
+      },
+      sources: {
+        description:
+          "Source scope is kept beside the model so a reference value is never mistaken for live ephemeris data.",
+        title: "Sources",
+      },
+      title: "Solar System Distance Explorer",
+    },
     search: {
       heading: "Search results",
       invalidQuery: "That search could not be validated. Try a shorter or simpler query.",

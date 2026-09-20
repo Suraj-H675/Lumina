@@ -9,6 +9,9 @@ import {
 } from "@lumina/api-client";
 
 import { OrbitSandboxView } from "../src/components/orbit-sandbox-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { OrbitSandboxMessages } from "../src/lib/i18n/messages/types";
 import {
   DEFAULT_ORBIT_SANDBOX_STATE,
   buildOrbitVisualTransform,
@@ -79,6 +82,7 @@ afterEach(() => {
 function renderView(
   initialCalculation: OrbitSandboxCalculationResponse | null = DEFAULT_RESULT,
   initialStateInvalid = false,
+  messages: OrbitSandboxMessages = enMessages.simulationLabs.orbitSandbox,
 ) {
   return render(
     <OrbitSandboxView
@@ -86,6 +90,8 @@ function renderView(
       initialCalculation={initialCalculation}
       initialState={DEFAULT_ORBIT_SANDBOX_STATE}
       initialStateInvalid={initialStateInvalid}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
     />,
   );
 }
@@ -177,5 +183,34 @@ describe("OrbitSandboxView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/empty, non-finite, or outside/i)).toBeVisible();
+  });
+
+  it("localizes interface state without rewriting reviewed model or source content", () => {
+    const messages: OrbitSandboxMessages = {
+      ...enMessages.simulationLabs.orbitSandbox,
+      classification: {
+        ...enMessages.simulationLabs.orbitSandbox.classification,
+        bound: "Fixture bound label",
+      },
+      header: {
+        ...enMessages.simulationLabs.orbitSandbox.header,
+        title: "Fixture Orbit Sandbox",
+      },
+      result: {
+        ...enMessages.simulationLabs.orbitSandbox.result,
+        labels: {
+          ...enMessages.simulationLabs.orbitSandbox.result.labels,
+          classification: "Fixture classification",
+        },
+      },
+    };
+
+    renderView(DEFAULT_RESULT, false, messages);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Fixture Orbit Sandbox" })).toBeVisible();
+    expect(screen.getByText("Fixture classification")).toBeVisible();
+    expect(screen.getByText("Fixture bound label")).toBeVisible();
+    expect(screen.getByText(/No n-body perturbations/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fundamental Physical Constants/i)).toBeVisible();
   });
 });

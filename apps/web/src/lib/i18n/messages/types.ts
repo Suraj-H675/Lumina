@@ -1166,6 +1166,352 @@ export type LabIndexMessages = Readonly<{
   title: string;
 }>;
 
+export type OrbitSandboxMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  classification: Readonly<{
+    bound: string;
+    collision: string;
+    escape: string;
+    parabolicNear: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  fields: Readonly<{
+    centralMass: string;
+    centralRadius: string;
+    duration: string;
+    positionX: string;
+    positionY: string;
+    secondaryMass: string;
+    timeStep: string;
+    velocityX: string;
+    velocityY: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    currentStateTitle: string;
+    eyebrow: string;
+    intro: string;
+    modelTitle: string;
+    collisionTimeLabel: string;
+    stateLabels: Readonly<{
+      centralMass: string;
+      centralRadius: string;
+      duration: string;
+      initialPosition: string;
+      initialVelocity: string;
+      secondaryMass: string;
+      timeStep: string;
+    }>;
+  }>;
+  notApplicable: string;
+  preview: Readonly<{
+    description: string;
+    headers: Readonly<{
+      distance: string;
+      speed: string;
+      time: string;
+      x: string;
+      y: string;
+    }>;
+    summary: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      apoapsis: string;
+      classification: string;
+      collisionTime: string;
+      eccentricity: string;
+      maxAngularMomentumDrift: string;
+      maxSpecificEnergyDrift: string;
+      periapsis: string;
+      period: string;
+      semiMajorAxis: string;
+      specificAngularMomentum: string;
+      specificOrbitalEnergy: string;
+      trajectorySamples: string;
+    }>;
+    model: string;
+    noScriptCaption: string;
+    noScriptTitle: string;
+    notReached: string;
+    title: string;
+    unavailableDescription: string;
+    unavailableNoScriptDescription: string;
+    unavailableNoScriptTitle: string;
+    unavailableTitle: string;
+  }>;
+  trajectory: Readonly<{
+    description: string;
+    caption: string;
+    title: string;
+  }>;
+}>;
+
+export type TransitMethodMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  classification: Readonly<{
+    full: string;
+    grazing: string;
+    noTransit: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  fields: Readonly<{
+    inclination: string;
+    orbitalPeriod: string;
+    planetRadius: string;
+    semiMajorAxis: string;
+    stellarRadius: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    currentStateTitle: string;
+    eyebrow: string;
+    intro: string;
+    modelTitle: string;
+    stateLabels: Readonly<{
+      inclination: string;
+      orbitalPeriod: string;
+      planetRadius: string;
+      semiMajorAxis: string;
+      stellarRadius: string;
+    }>;
+  }>;
+  notApplicable: string;
+  preview: Readonly<{
+    description: string;
+    headers: Readonly<{
+      orbitalPhase: string;
+      projectedSeparation: string;
+      relativeFlux: string;
+      time: string;
+    }>;
+    summary: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      alignment: string;
+      centralDepthApproximation: string;
+      fullDuration: string;
+      impactParameter: string;
+      lightCurveSamples: string;
+      maximumDepth: string;
+      maximumUniformSourceDepth: string;
+      radiusRatio: string;
+      scaledSemiMajorAxis: string;
+      totalDuration: string;
+    }>;
+    model: string;
+    noScriptCaption: string;
+    noScriptLabels: Readonly<{
+      alignment: string;
+      centralDepthApproximation: string;
+      fullDuration: string;
+      impactParameter: string;
+      lightCurveSamples: string;
+      maximumDepth: string;
+      maximumUniformSourceDepth: string;
+      radiusRatio: string;
+      scaledSemiMajorAxis: string;
+      totalDuration: string;
+    }>;
+    noScriptTitle: string;
+    noTransit: string;
+    title: string;
+    unavailableDescription: string;
+    unavailableNoScriptDescription: string;
+    unavailableNoScriptTitle: string;
+    unavailableTitle: string;
+  }>;
+  lightCurve: Readonly<{
+    caption: string;
+    description: string;
+    title: string;
+  }>;
+}>;
+
+export type RadialVelocityMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  curve: Readonly<{
+    caption: string;
+    description: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  fields: Readonly<{
+    argumentOfPeriastron: string;
+    companionMass: string;
+    eccentricity: string;
+    inclination: string;
+    meanAnomalyAtEpoch: string;
+    orbitalPeriod: string;
+    stellarMass: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  minimumMass: Readonly<{
+    description: string;
+    noScriptDescription: string;
+    noScriptTitle: string;
+    title: string;
+  }>;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    currentStateTitle: string;
+    intro: string;
+    modelTitle: string;
+    stateLabels: Readonly<{
+      argumentOfPeriastron: string;
+      companionMass: string;
+      eccentricity: string;
+      inclination: string;
+      meanAnomalyAtEpoch: string;
+      orbitalPeriod: string;
+      stellarMass: string;
+    }>;
+  }>;
+  preview: Readonly<{
+    description: string;
+    headers: Readonly<{
+      orbitalPhase: string;
+      stellarRv: string;
+      time: string;
+    }>;
+    summary: string;
+  }>;
+  result: Readonly<{
+    labels: Readonly<{
+      edgeOnMinimumMass: string;
+      inclinationProjection: string;
+      massFunction: string;
+      projectedMass: string;
+      samples: string;
+      semiAmplitude: string;
+    }>;
+    model: string;
+    noScriptCaption: string;
+    noScriptLabels: Readonly<{
+      edgeOnMinimumMass: string;
+      inclinationProjection: string;
+      massFunction: string;
+      projectedMass: string;
+      samples: string;
+      semiAmplitude: string;
+    }>;
+    title: string;
+    unavailableDescription: string;
+    unavailableNoScriptDescription: string;
+    unavailableNoScriptTitle: string;
+    unavailableTitle: string;
+  }>;
+}>;
+
+export type SimulationLabMessages = Readonly<{
+  orbitSandbox: OrbitSandboxMessages;
+  radialVelocity: RadialVelocityMessages;
+  transitMethod: TransitMethodMessages;
+}>;
+
 export type IdentifyMessages = Readonly<{
   captureChecks: Readonly<{
     actions: Readonly<{
@@ -2868,6 +3214,7 @@ export type LuminaMessages = Readonly<{
   routeBoundaries: RouteBoundaryMessages;
   savedObservationPlan: SavedObservationPlanMessages;
   shell: SiteShellMessages;
+  simulationLabs: SimulationLabMessages;
   spaceNow: SpaceNowMessages;
   status: StatusMessages;
   tonight: TonightMessages;

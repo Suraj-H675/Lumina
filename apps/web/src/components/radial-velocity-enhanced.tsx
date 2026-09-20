@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import type { RadialVelocityCalculationResponse } from "@lumina/api-client";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RadialVelocityMessages } from "../lib/i18n/messages/types";
 import type { RadialVelocityState } from "../lib/simulations/radial-velocity";
 
 const InteractiveRadialVelocity = dynamic(
@@ -14,6 +16,8 @@ type RadialVelocityEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: RadialVelocityCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: RadialVelocityMessages;
 }>;
 
 export function RadialVelocityEnhanced(props: RadialVelocityEnhancedProps) {

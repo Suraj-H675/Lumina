@@ -2166,6 +2166,389 @@ export const enMessages = {
     openLab: "Open lab →",
     title: "Lab",
   },
+  simulationLabs: {
+    orbitSandbox: {
+      actions: {
+        calculate: "Calculate orbit",
+        calculating: "Calculating…",
+        reset: "Reset Earth-like circular preset",
+      },
+      classification: {
+        bound: "Bound",
+        collision: "Collision",
+        escape: "Escape",
+        parabolicNear: "Near-parabolic",
+      },
+      controls: {
+        description:
+          "Units are SI. Browser checks cover only finite field ranges; derived physical and numerical-domain constraints are enforced by the canonical API and are never silently clamped.",
+        title: "Initial state and integration window",
+      },
+      failures: {
+        invalidInput:
+          "One or more inputs are empty, non-finite, or outside the published coarse range.",
+        rejected:
+          "The canonical Orbit Sandbox rejected this configuration. Check the speed, central-body compactness, secondary mass, time step, and trajectory-point budget. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned orbit state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      fields: {
+        centralMass: "Central mass",
+        centralRadius: "Central collision radius",
+        duration: "Simulation duration",
+        positionX: "Initial x position",
+        positionY: "Initial y position",
+        secondaryMass: "Secondary mass",
+        timeStep: "Integration time step",
+        velocityX: "Initial x velocity",
+        velocityY: "Initial y velocity",
+      },
+      header: {
+        eyebrow: "Phase 7 · deterministic simulation",
+        intro:
+          "Explore planar Newtonian relative two-body motion from an explicit initial position and velocity. Analytic initial elements and the velocity-Verlet trajectory are calculated only by Lumina's canonical Python astronomy domain.",
+        title: "Orbit Sandbox",
+      },
+      invalidState: {
+        description:
+          "The malformed or unsupported shared state was replaced with the reviewed default.",
+        inline: "Shared state rejected. The reviewed Earth-like default is shown instead.",
+        title: "Shared orbit state rejected",
+      },
+      metadataDescription:
+        "Explore a reviewed deterministic Newtonian two-body model with explicit orbital elements, collision handling, and numerical drift diagnostics.",
+      metadataTitle: "Orbit Sandbox",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed state: {xPosition} m x-position, {yVelocity} m/s y-velocity, {duration} s duration.",
+        equations: "Equations",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        collisionTimeLabel: "Collision time in requested window",
+        currentStateTitle: "Current input state",
+        eyebrow: "Phase 7 / Orbit Sandbox",
+        intro:
+          "Explore a deterministic planar Newtonian two-body model. The canonical orbital elements and trajectory are calculated by Lumina's server-side astronomy domain, not by this page.",
+        modelTitle: "Model, assumptions, limitations, and provenance",
+        stateLabels: {
+          centralMass: "Central mass",
+          centralRadius: "Central collision radius",
+          duration: "Duration",
+          initialPosition: "Initial position",
+          initialVelocity: "Initial velocity",
+          secondaryMass: "Secondary mass",
+          timeStep: "Time step",
+        },
+      },
+      notApplicable: "Not applicable",
+      preview: {
+        description:
+          "Showing {shown} of {total} returned samples at a fixed display stride, always including the final sample. This table does not interpolate or recalculate the orbit.",
+        headers: {
+          distance: "Distance (m)",
+          speed: "Speed (m/s)",
+          time: "Time (s)",
+          x: "x (m)",
+          y: "y (m)",
+        },
+        summary: "Trajectory data preview",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. The conic elements describe the initial idealized state; the plotted forward trajectory is a separate finite-step numerical result with its own drift diagnostics.",
+        labels: {
+          apoapsis: "Apoapsis",
+          classification: "Classification",
+          collisionTime: "Collision time",
+          eccentricity: "Eccentricity",
+          maxAngularMomentumDrift: "Max angular-momentum drift",
+          maxSpecificEnergyDrift: "Max specific-energy drift",
+          periapsis: "Periapsis",
+          period: "Period",
+          semiMajorAxis: "Semi-major axis",
+          specificAngularMomentum: "Specific angular momentum",
+          specificOrbitalEnergy: "Specific orbital energy",
+          trajectorySamples: "Trajectory samples",
+        },
+        model: "Model {modelVersion}",
+        noScriptCaption: "Canonical Newtonian two-body result from Lumina's astronomy API.",
+        noScriptTitle: "Canonical result",
+        notReached: "Not reached in requested window",
+        title: "Canonical orbit result",
+        unavailableDescription: "No browser-generated fallback orbit is substituted.",
+        unavailableNoScriptDescription: "No substitute or browser-generated orbit was fabricated.",
+        unavailableNoScriptTitle: "Calculation unavailable",
+        unavailableTitle: "No canonical result available",
+      },
+      trajectory: {
+        caption:
+          "Coordinates are uniformly normalized from the returned relative positions. Filled point = start; outlined point = final returned sample. Central-body marker is deliberately enlarged and not to physical scale. Plot half-span: {halfSpan} m.",
+        description:
+          "A display-normalized plot of {count} API-returned trajectory samples. The central body marker is enlarged for legibility and is not to physical scale.",
+        title: "Returned relative trajectory",
+      },
+    },
+    radialVelocity: {
+      actions: {
+        calculate: "Calculate radial velocity",
+        calculating: "Calculating…",
+        reset: "Reset synthetic circular preset",
+      },
+      controls: {
+        description:
+          "Inputs define a forward model. Real RV observations do not generally reveal inclination or true companion mass by themselves.",
+        title: "Model inputs",
+      },
+      curve: {
+        caption:
+          "Horizontal position uses returned time; vertical position uses returned stellar reflex velocity. Returned range: {minimum} to {maximum} m/s. A flat line is the valid face-on result.",
+        description:
+          "Display-normalized plot of {count} API-returned stellar reflex-velocity samples over one orbital period. The browser does not solve the orbit.",
+        title: "Returned stellar radial-velocity curve",
+      },
+      failures: {
+        invalidInput:
+          "One or more inputs are empty, non-finite, outside the reviewed range, or violate the companion-to-star mass-ratio boundary.",
+        rejected:
+          "The canonical Radial Velocity model rejected this configuration. Check masses, period, eccentricity, inclination, and phase angles. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned RV state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      fields: {
+        argumentOfPeriastron: "Star's argument of periastron",
+        companionMass: "Companion mass",
+        eccentricity: "Eccentricity",
+        inclination: "Inclination",
+        meanAnomalyAtEpoch: "Mean anomaly at epoch",
+        orbitalPeriod: "Orbital period",
+        stellarMass: "Stellar mass",
+      },
+      header: {
+        eyebrow: "Phase 7 / Radial Velocity Lab",
+        intro:
+          "Explore the star's deterministic Keplerian reflex signal, how inclination suppresses the observed velocity, and why radial velocity constrains a minimum mass rather than a unique true companion mass.",
+        title: "Radial Velocity Lab",
+      },
+      invalidState: {
+        description:
+          "The malformed or unsupported shared state was replaced with the reviewed synthetic default.",
+        title: "Shared radial-velocity state rejected",
+      },
+      metadataDescription:
+        "Explore deterministic Keplerian stellar reflex velocity, inclination degeneracy, and exact spectroscopic mass-function limits.",
+      metadataTitle: "Radial Velocity Lab",
+      minimumMass: {
+        description:
+          "The conventional projected quantity Mp sin(i) is useful shorthand. Lumina also reports the exact edge-on minimum companion mass obtained from the spectroscopic mass function, which retains the companion mass in the denominator. They converge in the small-companion limit but are not treated as the same algebraic quantity in this model.",
+        noScriptDescription:
+          "Lumina reports both the conventional projected quantity Mp sin(i) and the exact edge-on minimum mass implied by the spectroscopic mass function. They are not treated as algebraically identical when the companion mass matters in the denominator.",
+        noScriptTitle: "Minimum-mass interpretation",
+        title: "Mp sin(i) and the exact minimum mass are related, not identical",
+      },
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed state: stellar mass {stellarMass} kg, companion mass {companionMass} kg, period {period} s, eccentricity {eccentricity}, inclination {inclination}°.",
+        equations: "Equations",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        currentStateTitle: "Current input state",
+        intro:
+          "Explore deterministic Keplerian stellar reflex velocity and the inclination–mass degeneracy. Lumina's Python astronomy domain solves the orbit and mass function; this page does not recreate those equations in the browser.",
+        modelTitle: "Model, assumptions, limitations, and provenance",
+        stateLabels: {
+          argumentOfPeriastron: "Star's argument of periastron",
+          companionMass: "Companion mass",
+          eccentricity: "Eccentricity",
+          inclination: "Inclination",
+          meanAnomalyAtEpoch: "Mean anomaly at epoch",
+          orbitalPeriod: "Orbital period",
+          stellarMass: "Stellar mass",
+        },
+      },
+      preview: {
+        description:
+          "Showing {shown} of {total} returned samples at a fixed display stride. This table does not interpolate or resynthesize radial velocity.",
+        headers: {
+          orbitalPhase: "Orbital phase",
+          stellarRv: "Stellar RV (m/s)",
+          time: "Time (s)",
+        },
+        summary: "RV data preview",
+      },
+      result: {
+        labels: {
+          edgeOnMinimumMass: "Exact edge-on minimum mass",
+          inclinationProjection: "Inclination projection",
+          massFunction: "Spectroscopic mass function",
+          projectedMass: "Projected mass Mp sin(i)",
+          samples: "Returned RV samples",
+          semiAmplitude: "RV semi-amplitude K",
+        },
+        model: "Model {modelVersion}",
+        noScriptCaption: "Canonical Radial Velocity result from Lumina's astronomy API.",
+        noScriptLabels: {
+          edgeOnMinimumMass: "Exact edge-on minimum companion mass",
+          inclinationProjection: "Inclination projection",
+          massFunction: "Spectroscopic mass function",
+          projectedMass: "Projected companion mass Mp sin(i)",
+          samples: "RV samples",
+          semiAmplitude: "RV semi-amplitude",
+        },
+        title: "Canonical result",
+        unavailableDescription:
+          "Lumina does not fabricate an RV curve in the browser when the canonical service is unavailable.",
+        unavailableNoScriptDescription:
+          "No substitute or browser-generated RV curve was fabricated.",
+        unavailableNoScriptTitle: "Calculation unavailable",
+        unavailableTitle: "No canonical result available",
+      },
+    },
+    transitMethod: {
+      actions: {
+        calculate: "Calculate transit",
+        calculating: "Calculating…",
+        reset: "Reset synthetic central-transit preset",
+      },
+      classification: {
+        full: "Full transit",
+        grazing: "Grazing transit",
+        noTransit: "No transit",
+      },
+      controls: {
+        description:
+          "Browser checks cover only finite field ranges. Relational constraints—such as the planet being smaller than the star and the orbit clearing both disks—are enforced by the canonical API and are never silently clamped.",
+        title: "Circular-orbit geometry inputs",
+      },
+      failures: {
+        invalidInput:
+          "One or more inputs are empty, non-finite, or outside the published coarse field range.",
+        rejected:
+          "The canonical Transit Method model rejected this configuration. Check the planet/star sizes, orbital radius, period, and inclination. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned transit state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      fields: {
+        inclination: "Inclination",
+        orbitalPeriod: "Orbital period",
+        planetRadius: "Planet radius",
+        semiMajorAxis: "Semi-major axis",
+        stellarRadius: "Stellar radius",
+      },
+      header: {
+        eyebrow: "Phase 7 · deterministic simulation",
+        intro:
+          "Explore how circular orbital alignment and relative sizes shape an idealized exoplanet transit. Lumina's canonical Python astronomy domain returns the geometry, contact times, and uniform-source light curve; the browser only validates and displays that result.",
+        title: "Transit Method Lab",
+      },
+      invalidState: {
+        description:
+          "The malformed or unsupported shared state was replaced with the reviewed default.",
+        inline: "Shared state rejected. The reviewed synthetic default is shown instead.",
+        title: "Shared transit state rejected",
+      },
+      lightCurve: {
+        caption:
+          "Horizontal position uses returned time from mid-transit; vertical position uses returned relative flux. Returned flux range: {minimum} to {maximum}. A flat line is a valid no-transit result.",
+        description:
+          "Display-normalized plot of {count} API-returned relative-flux samples around mid-transit. The browser does not recalculate transit flux.",
+        title: "Returned relative-flux light curve",
+      },
+      metadataDescription:
+        "Explore a deterministic circular-orbit exoplanet transit model with exact uniform-source overlap, contact durations, and explicit limitations.",
+      metadataTitle: "Transit Method Lab",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed state: stellar radius {stellarRadius} m, planet radius {planetRadius} m, period {period} s, inclination {inclination}°.",
+        equations: "Equations",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        currentStateTitle: "Current input state",
+        eyebrow: "Phase 7 / Transit Method Lab",
+        intro:
+          "Explore a deterministic circular-orbit, uniformly bright stellar-disk transit model. Lumina's Python astronomy domain calculates the geometry and light curve; this page does not recreate the transit equations in the browser.",
+        modelTitle: "Model, assumptions, limitations, and provenance",
+        stateLabels: {
+          inclination: "Inclination",
+          orbitalPeriod: "Orbital period",
+          planetRadius: "Planet radius",
+          semiMajorAxis: "Semi-major axis",
+          stellarRadius: "Stellar radius",
+        },
+      },
+      notApplicable: "Not applicable",
+      preview: {
+        description:
+          "Showing {shown} of {total} returned samples at a fixed display stride, always including the final sample. This table does not interpolate or resynthesize flux values.",
+        headers: {
+          orbitalPhase: "Orbital phase",
+          projectedSeparation: "Projected separation (R⋆)",
+          relativeFlux: "Relative flux",
+          time: "Time from mid-transit (s)",
+        },
+        summary: "Light-curve data preview",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. A no-transit classification is a valid geometric outcome. V1 intentionally provides no detectability score because real detectability depends on stellar variability, instrument noise, cadence, and analysis choices that this idealized model does not simulate.",
+        labels: {
+          alignment: "Alignment",
+          centralDepthApproximation: "Central depth approximation",
+          fullDuration: "Second-to-third contact duration",
+          impactParameter: "Impact parameter",
+          lightCurveSamples: "Light-curve samples",
+          maximumDepth: "Maximum depth",
+          maximumUniformSourceDepth: "Maximum uniform-source depth",
+          radiusRatio: "Radius ratio Rp/R⋆",
+          scaledSemiMajorAxis: "Scaled semi-major axis a/R⋆",
+          totalDuration: "First-to-fourth contact duration",
+        },
+        model: "Model {modelVersion}",
+        noScriptCaption: "Canonical Transit Method result from Lumina's astronomy API.",
+        noScriptLabels: {
+          alignment: "Alignment classification",
+          centralDepthApproximation: "Central depth approximation",
+          fullDuration: "Second-to-third contact duration",
+          impactParameter: "Impact parameter",
+          lightCurveSamples: "Light-curve samples",
+          maximumDepth: "Maximum depth",
+          maximumUniformSourceDepth: "Maximum uniform-source depth",
+          radiusRatio: "Radius ratio",
+          scaledSemiMajorAxis: "Scaled semi-major axis",
+          totalDuration: "First-to-fourth contact duration",
+        },
+        noScriptTitle: "Canonical result",
+        noTransit: "No transit",
+        title: "Canonical transit result",
+        unavailableDescription:
+          "No browser-generated fallback transit or light curve is substituted.",
+        unavailableNoScriptDescription:
+          "No substitute or browser-generated light curve was fabricated.",
+        unavailableNoScriptTitle: "Calculation unavailable",
+        unavailableTitle: "No canonical result available",
+      },
+    },
+  },
   learn: {
     landing: {
       eyebrow: "Learn",

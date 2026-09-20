@@ -14,7 +14,7 @@ test.describe("Phase 7 — Orbit Sandbox", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Orbit Sandbox" })).toHaveCount(1);
     await expect(page.getByRole("table")).toHaveCount(1);
     await expect(page.getByRole("table").locator("tbody tr")).toHaveCount(12);
-    await expect(page.getByText("bound", { exact: true })).toBeVisible();
+    await expect(page.getByText("Bound", { exact: true })).toBeVisible();
     await expect(page.getByText("601", { exact: true })).toBeVisible();
     await expect(page.getByText(/orbit-sandbox-v1/)).toBeVisible();
     await expect(page.getByText(/No n-body perturbations/i)).toBeVisible();
@@ -22,7 +22,7 @@ test.describe("Phase 7 — Orbit Sandbox", () => {
     await page.goto("/lab/orbit-sandbox?state=not-json");
     await expect(page.getByRole("heading", { name: "Shared orbit state rejected" })).toBeVisible();
     await expect(page.getByRole("table")).toHaveCount(1);
-    await expect(page.getByText("bound", { exact: true })).toBeVisible();
+    await expect(page.getByText("Bound", { exact: true })).toBeVisible();
 
     await context.close();
   });

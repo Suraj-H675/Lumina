@@ -5,6 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { requestEndpoint, type TransitMethodCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { TransitMethodMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_TRANSIT_METHOD_STATE,
   TRANSIT_DEFINITION,
   TRANSIT_INPUT_RANGES,
@@ -23,18 +30,23 @@ type TransitMethodViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: TransitMethodCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: TransitMethodMessages;
 }>;
 
 type NumericField = Exclude<keyof TransitMethodState, "version" | "model_version">;
 type DraftState = Record<NumericField, string>;
 type RequestState = "idle" | "loading" | "unavailable";
 
-const FIELD_COPY: Record<NumericField, Readonly<{ label: string; unit: string; step: string }>> = {
-  stellar_radius_m: { label: "Stellar radius", unit: "m", step: "any" },
-  planet_radius_m: { label: "Planet radius", unit: "m", step: "any" },
-  semi_major_axis_m: { label: "Semi-major axis", unit: "m", step: "any" },
-  orbital_period_s: { label: "Orbital period", unit: "s", step: "any" },
-  inclination_deg: { label: "Inclination", unit: "deg", step: "any" },
+const FIELD_META: Record<
+  NumericField,
+  Readonly<{ messageKey: keyof TransitMethodMessages["fields"]; unit: string; step: string }>
+> = {
+  stellar_radius_m: { messageKey: "stellarRadius", unit: "m", step: "any" },
+  planet_radius_m: { messageKey: "planetRadius", unit: "m", step: "any" },
+  semi_major_axis_m: { messageKey: "semiMajorAxis", unit: "m", step: "any" },
+  orbital_period_s: { messageKey: "orbitalPeriod", unit: "s", step: "any" },
+  inclination_deg: { messageKey: "inclination", unit: "deg", step: "any" },
 };
 
 function draftsForState(state: TransitMethodState): DraftState {
@@ -76,25 +88,36 @@ function stateFromBrowser(): Readonly<{ state: TransitMethodState; invalid: bool
     : { state: decoded, invalid: false };
 }
 
-function format(value: number | null, digits = 6): string {
-  if (value === null) return "Not applicable";
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 2 });
+function format(
+  value: number | null,
+  locale: PublishedLocale,
+  notApplicable: string,
+  digits = 6,
+): string {
+  if (value === null) return notApplicable;
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 2 });
 }
 
-function percent(value: number): string {
-  return new Intl.NumberFormat("en", {
+function percent(value: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(value, locale, {
     style: "percent",
     maximumSignificantDigits: 5,
-  }).format(value);
+  });
 }
 
-function classificationLabel(value: TransitMethodCalculationResponse["classification"]): string {
+function classificationLabel(
+  value: TransitMethodCalculationResponse["classification"],
+  messages: TransitMethodMessages["classification"],
+): string {
   const labels: Record<TransitMethodCalculationResponse["classification"], string> = {
-    full: "Full transit",
-    grazing: "Grazing transit",
-    no_transit: "No transit",
+    full: messages.full,
+    grazing: messages.grazing,
+    no_transit: messages.noTransit,
   };
   return labels[value];
 }
@@ -104,20 +127,22 @@ function NumericInput({
   value,
   onChange,
   disabled,
+  messages,
 }: Readonly<{
   field: NumericField;
   value: string;
   onChange: (next: string) => void;
   disabled: boolean;
+  messages: TransitMethodMessages["fields"];
 }>) {
-  const copy = FIELD_COPY[field];
+  const meta = FIELD_META[field];
   const range = TRANSIT_INPUT_RANGES[field];
   const id = `transit-${field}`;
   return (
     <label className="space-y-2" htmlFor={id}>
       <span className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-        <span>{copy.label}</span>
-        <span className="text-xs font-normal text-[var(--muted)]">{copy.unit}</span>
+        <span>{messages[meta.messageKey]}</span>
+        <span className="text-xs font-normal text-[var(--muted)]">{meta.unit}</span>
       </span>
       <input
         className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-sm"
@@ -127,7 +152,7 @@ function NumericInput({
         max={range.max}
         min={range.min}
         onChange={(event) => onChange(event.target.value)}
-        step={copy.step}
+        step={meta.step}
         type="number"
         value={value}
       />
@@ -135,7 +160,7 @@ function NumericInput({
   );
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: TransitMethodMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {TRANSIT_DEFINITION.references.map((sourceId) => {
@@ -143,7 +168,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -159,7 +184,15 @@ function SourceList() {
   );
 }
 
-function LightCurveFigure({ result }: Readonly<{ result: TransitMethodCalculationResponse }>) {
+function LightCurveFigure({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: TransitMethodMessages;
+  result: TransitMethodCalculationResponse;
+}>) {
   const visual = buildTransitLightCurveVisual(result);
   if (visual === null) return null;
   return (
@@ -171,42 +204,66 @@ function LightCurveFigure({ result }: Readonly<{ result: TransitMethodCalculatio
         role="img"
         viewBox="0 0 100 100"
       >
-        <title id="transit-light-curve-title">Returned relative-flux light curve</title>
+        <title id="transit-light-curve-title">{messages.lightCurve.title}</title>
         <desc id="transit-light-curve-description">
-          Display-normalized plot of {result.light_curve.length} API-returned relative-flux samples
-          around mid-transit. The browser does not recalculate transit flux.
+          {formatMessageTemplate(messages.lightCurve.description, {
+            count: formatLocaleNumber(result.light_curve.length, locale),
+          })}
         </desc>
         <line x1="5" x2="95" y1="50" y2="50" stroke="currentColor" opacity="0.1" />
         <line x1="50" x2="50" y1="8" y2="92" stroke="currentColor" opacity="0.12" />
         <path d={visual.path} fill="none" stroke="currentColor" strokeWidth="0.8" />
       </svg>
       <figcaption className="text-sm leading-6 text-[var(--muted)]">
-        Horizontal position uses returned time from mid-transit; vertical position uses returned
-        relative flux. Returned flux range: {format(visual.minimum_flux, 6)} to{" "}
-        {format(visual.maximum_flux, 6)}. A flat line is a valid no-transit result.
+        {formatMessageTemplate(messages.lightCurve.caption, {
+          maximum: format(visual.maximum_flux, locale, messages.notApplicable, 6),
+          minimum: format(visual.minimum_flux, locale, messages.notApplicable, 6),
+        })}
       </figcaption>
     </figure>
   );
 }
 
-function ResultSummary({ result }: Readonly<{ result: TransitMethodCalculationResponse }>) {
+function ResultSummary({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: TransitMethodMessages;
+  result: TransitMethodCalculationResponse;
+}>) {
+  const labels = messages.result.labels;
   const rows = [
-    ["Alignment", classificationLabel(result.classification)],
-    ["Radius ratio Rp/R⋆", format(result.radius_ratio)],
-    ["Scaled semi-major axis a/R⋆", format(result.scaled_semi_major_axis)],
-    ["Impact parameter", format(result.impact_parameter)],
-    ["Central depth approximation", percent(result.central_depth_approximation_fraction)],
-    ["Maximum uniform-source depth", percent(result.maximum_depth_fraction)],
-    ["Maximum depth", `${format(result.maximum_depth_ppm)} ppm`],
+    [labels.alignment, classificationLabel(result.classification, messages.classification)],
+    [labels.radiusRatio, format(result.radius_ratio, locale, messages.notApplicable)],
     [
-      "First-to-fourth contact duration",
-      result.total_duration_s === null ? "No transit" : `${format(result.total_duration_s)} s`,
+      labels.scaledSemiMajorAxis,
+      format(result.scaled_semi_major_axis, locale, messages.notApplicable),
+    ],
+    [labels.impactParameter, format(result.impact_parameter, locale, messages.notApplicable)],
+    [
+      labels.centralDepthApproximation,
+      percent(result.central_depth_approximation_fraction, locale),
+    ],
+    [labels.maximumUniformSourceDepth, percent(result.maximum_depth_fraction, locale)],
+    [
+      labels.maximumDepth,
+      `${format(result.maximum_depth_ppm, locale, messages.notApplicable)} ppm`,
     ],
     [
-      "Second-to-third contact duration",
-      result.full_duration_s === null ? "Not applicable" : `${format(result.full_duration_s)} s`,
+      labels.totalDuration,
+      result.total_duration_s === null
+        ? messages.result.noTransit
+        : `${format(result.total_duration_s, locale, messages.notApplicable)} s`,
     ],
-    ["Light-curve samples", String(result.light_curve.length)],
+    [
+      labels.fullDuration,
+      result.full_duration_s === null
+        ? messages.notApplicable
+        : `${format(result.full_duration_s, locale, messages.notApplicable)} s`,
+    ],
+    [labels.lightCurveSamples, formatLocaleNumber(result.light_curve.length, locale)],
   ] as const;
   return (
     <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -223,36 +280,52 @@ function ResultSummary({ result }: Readonly<{ result: TransitMethodCalculationRe
   );
 }
 
-function LightCurveDataPreview({ result }: Readonly<{ result: TransitMethodCalculationResponse }>) {
+function LightCurveDataPreview({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: TransitMethodMessages;
+  result: TransitMethodCalculationResponse;
+}>) {
   const step = Math.max(1, Math.ceil(result.light_curve.length / 20));
   const preview = result.light_curve.filter((_, index) => index % step === 0);
   const last = result.light_curve.at(-1)!;
   if (preview.at(-1) !== last) preview.push(last);
   return (
     <details className="rounded-md border border-[var(--border)] p-4">
-      <summary className="cursor-pointer font-semibold">Light-curve data preview</summary>
+      <summary className="cursor-pointer font-semibold">{messages.preview.summary}</summary>
       <p className="mt-3 text-sm text-[var(--muted)]">
-        Showing {preview.length} of {result.light_curve.length} returned samples at a fixed display
-        stride, always including the final sample. This table does not interpolate or resynthesize
-        flux values.
+        {formatMessageTemplate(messages.preview.description, {
+          shown: formatLocaleNumber(preview.length, locale),
+          total: formatLocaleNumber(result.light_curve.length, locale),
+        })}
       </p>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[42rem] text-left text-sm">
           <thead>
             <tr>
-              <th>Time from mid-transit (s)</th>
-              <th>Orbital phase</th>
-              <th>Projected separation (R⋆)</th>
-              <th>Relative flux</th>
+              <th>{messages.preview.headers.time}</th>
+              <th>{messages.preview.headers.orbitalPhase}</th>
+              <th>{messages.preview.headers.projectedSeparation}</th>
+              <th>{messages.preview.headers.relativeFlux}</th>
             </tr>
           </thead>
           <tbody>
             {preview.map((point) => (
               <tr key={point.time_from_mid_transit_s}>
-                <td>{format(point.time_from_mid_transit_s, 5)}</td>
-                <td>{format(point.orbital_phase, 5)}</td>
-                <td>{format(point.projected_separation_stellar_radii, 5)}</td>
-                <td>{format(point.relative_flux, 7)}</td>
+                <td>{format(point.time_from_mid_transit_s, locale, messages.notApplicable, 5)}</td>
+                <td>{format(point.orbital_phase, locale, messages.notApplicable, 5)}</td>
+                <td>
+                  {format(
+                    point.projected_separation_stellar_radii,
+                    locale,
+                    messages.notApplicable,
+                    5,
+                  )}
+                </td>
+                <td>{format(point.relative_flux, locale, messages.notApplicable, 7)}</td>
               </tr>
             ))}
           </tbody>
@@ -267,6 +340,8 @@ export function TransitMethodView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: TransitMethodViewProps) {
   const [state, setState] = useState(initialState);
   const [draft, setDraft] = useState<DraftState>(() => draftsForState(initialState));
@@ -281,7 +356,7 @@ export function TransitMethodView({
     async (nextState: TransitMethodState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -297,20 +372,18 @@ export function TransitMethodView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Transit Method model rejected this configuration. Check the planet/star sizes, orbital radius, period, and inclination. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateTransitMethodCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned transit state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -325,12 +398,12 @@ export function TransitMethodView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [apiOrigin],
+    [apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -356,9 +429,7 @@ export function TransitMethodView({
     event.preventDefault();
     const next = stateForDraft(draft);
     if (next === null) {
-      setMessage(
-        "One or more inputs are empty, non-finite, or outside the published coarse field range.",
-      );
+      setMessage(messages.failures.invalidInput);
       return;
     }
     void recalculate(next, true);
@@ -375,41 +446,35 @@ export function TransitMethodView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · deterministic simulation
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Transit Method Lab</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore how circular orbital alignment and relative sizes shape an idealized exoplanet
-          transit. Lumina&apos;s canonical Python astronomy domain returns the geometry, contact
-          times, and uniform-source light curve; the browser only validates and displays that
-          result.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared state rejected.</strong> The reviewed synthetic default is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="transit-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="transit-input-heading">
-            Circular-orbit geometry inputs
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Browser checks cover only finite field ranges. Relational constraints—such as the planet
-            being smaller than the star and the orbit clearing both disks—are enforced by the
-            canonical API and are never silently clamped.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-5" onSubmit={submit}>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(Object.keys(FIELD_COPY) as NumericField[]).map((field) => (
+            {(Object.keys(FIELD_META) as NumericField[]).map((field) => (
               <NumericInput
                 disabled={requestState === "loading"}
                 field={field}
                 key={field}
+                messages={messages.fields}
                 onChange={(value) => {
                   setDraft((current) => ({ ...current, [field]: value }));
                   setMessage("");
@@ -424,7 +489,9 @@ export function TransitMethodView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate transit"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -432,7 +499,7 @@ export function TransitMethodView({
               onClick={resetDefault}
               type="button"
             >
-              Reset synthetic central-transit preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -443,27 +510,26 @@ export function TransitMethodView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated fallback transit or light curve is substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="transit-result-heading" className="space-y-6">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="transit-result-heading">
-              Canonical transit result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. A no-transit classification is a valid geometric
-              outcome. V1 intentionally provides no detectability score because real detectability
-              depends on stellar variability, instrument noise, cadence, and analysis choices that
-              this idealized model does not simulate.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
-          <ResultSummary result={calculation} />
-          {currentVisual === null ? null : <LightCurveFigure result={calculation} />}
-          <LightCurveDataPreview result={calculation} />
+          <ResultSummary locale={locale} messages={messages} result={calculation} />
+          {currentVisual === null ? null : (
+            <LightCurveFigure locale={locale} messages={messages} result={calculation} />
+          )}
+          <LightCurveDataPreview locale={locale} messages={messages} result={calculation} />
         </section>
       )}
 
@@ -472,12 +538,12 @@ export function TransitMethodView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="transit-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{TRANSIT_DEFINITION.default_preset}</p>
         <p className="leading-7 text-[var(--muted)]">{TRANSIT_DEFINITION.sampling_policy}</p>
         <details>
-          <summary className="cursor-pointer font-semibold">Equations</summary>
+          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
           <dl className="mt-3 space-y-3 text-sm">
             {Object.entries(TRANSIT_DEFINITION.equations).map(([name, equation]) => (
               <div key={name}>
@@ -488,10 +554,12 @@ export function TransitMethodView({
           </dl>
         </details>
         <details>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {TRANSIT_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -499,7 +567,7 @@ export function TransitMethodView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {TRANSIT_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -509,15 +577,18 @@ export function TransitMethodView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed state: stellar radius {format(state.stellar_radius_m, 4)} m, planet
-          radius {format(state.planet_radius_m, 4)} m, period {format(state.orbital_period_s, 4)} s,
-          inclination {format(state.inclination_deg, 4)}°.
+          {formatMessageTemplate(messages.model.currentState, {
+            inclination: format(state.inclination_deg, locale, messages.notApplicable, 4),
+            period: format(state.orbital_period_s, locale, messages.notApplicable, 4),
+            planetRadius: format(state.planet_radius_m, locale, messages.notApplicable, 4),
+            stellarRadius: format(state.stellar_radius_m, locale, messages.notApplicable, 4),
+          })}
         </p>
       </section>
     </article>

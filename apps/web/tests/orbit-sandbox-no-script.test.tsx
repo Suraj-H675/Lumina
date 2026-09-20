@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import type { OrbitSandboxCalculationResponse } from "@lumina/api-client";
 
 import { OrbitSandboxNoScript } from "../src/components/orbit-sandbox-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_ORBIT_SANDBOX_STATE } from "../src/lib/simulations/orbit-sandbox";
 
 const RESULT: OrbitSandboxCalculationResponse = {
@@ -48,13 +50,17 @@ describe("OrbitSandboxNoScript", () => {
         initialCalculation={RESULT}
         initialState={DEFAULT_ORBIT_SANDBOX_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.orbitSandbox}
       />,
     );
 
     expect(markup).toContain("Canonical result");
+    expect(markup).toContain("Phase 7 / Orbit Sandbox");
     expect(markup).toContain("orbit-sandbox-v1");
     expect(markup).toContain("Specific orbital energy");
-    expect(markup).toContain("bound");
+    expect(markup).toContain("Collision time in requested window");
+    expect(markup).toContain("Bound");
     expect(markup).toContain("velocity verlet position");
     expect(markup).toContain("No n-body perturbations");
     expect(markup).toContain("Fundamental Physical Constants");
@@ -66,6 +72,8 @@ describe("OrbitSandboxNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_ORBIT_SANDBOX_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.orbitSandbox}
       />,
     );
 

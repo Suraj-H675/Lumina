@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { RadialVelocityNoScript } from "../src/components/radial-velocity-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_RADIAL_VELOCITY_STATE } from "../src/lib/simulations/radial-velocity";
 import { RADIAL_VELOCITY_DEFAULT_RESULT } from "./radial-velocity-fixture";
 
@@ -12,6 +14,8 @@ describe("RadialVelocityNoScript", () => {
         initialCalculation={RADIAL_VELOCITY_DEFAULT_RESULT}
         initialState={DEFAULT_RADIAL_VELOCITY_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.radialVelocity}
       />,
     );
 
@@ -30,6 +34,8 @@ describe("RadialVelocityNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_RADIAL_VELOCITY_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.radialVelocity}
       />,
     );
 

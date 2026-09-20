@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import type { OrbitSandboxCalculationResponse } from "@lumina/api-client";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { OrbitSandboxMessages } from "../lib/i18n/messages/types";
 import type { OrbitSandboxState } from "../lib/simulations/orbit-sandbox";
 
 const InteractiveOrbitSandbox = dynamic(
@@ -14,6 +16,8 @@ type OrbitSandboxEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: OrbitSandboxCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: OrbitSandboxMessages;
 }>;
 
 export function OrbitSandboxEnhanced(props: OrbitSandboxEnhancedProps) {

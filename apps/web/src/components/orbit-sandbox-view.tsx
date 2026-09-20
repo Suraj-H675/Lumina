@@ -5,6 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { requestEndpoint, type OrbitSandboxCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { OrbitSandboxMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_ORBIT_SANDBOX_STATE,
   ORBIT_DEFINITION,
   ORBIT_INPUT_RANGES,
@@ -23,22 +30,27 @@ type OrbitSandboxViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: OrbitSandboxCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: OrbitSandboxMessages;
 }>;
 
 type NumericField = Exclude<keyof OrbitSandboxState, "version" | "model_version">;
 type DraftState = Record<NumericField, string>;
 type RequestState = "idle" | "loading" | "unavailable";
 
-const FIELD_COPY: Record<NumericField, Readonly<{ label: string; unit: string; step: string }>> = {
-  central_mass_kg: { label: "Central mass", unit: "kg", step: "any" },
-  central_radius_m: { label: "Central collision radius", unit: "m", step: "any" },
-  orbiting_body_mass_kg: { label: "Secondary mass", unit: "kg", step: "any" },
-  position_x_m: { label: "Initial x position", unit: "m", step: "any" },
-  position_y_m: { label: "Initial y position", unit: "m", step: "any" },
-  velocity_x_m_s: { label: "Initial x velocity", unit: "m/s", step: "any" },
-  velocity_y_m_s: { label: "Initial y velocity", unit: "m/s", step: "any" },
-  duration_s: { label: "Simulation duration", unit: "s", step: "any" },
-  time_step_s: { label: "Integration time step", unit: "s", step: "any" },
+const FIELD_META: Record<
+  NumericField,
+  Readonly<{ messageKey: keyof OrbitSandboxMessages["fields"]; unit: string; step: string }>
+> = {
+  central_mass_kg: { messageKey: "centralMass", unit: "kg", step: "any" },
+  central_radius_m: { messageKey: "centralRadius", unit: "m", step: "any" },
+  orbiting_body_mass_kg: { messageKey: "secondaryMass", unit: "kg", step: "any" },
+  position_x_m: { messageKey: "positionX", unit: "m", step: "any" },
+  position_y_m: { messageKey: "positionY", unit: "m", step: "any" },
+  velocity_x_m_s: { messageKey: "velocityX", unit: "m/s", step: "any" },
+  velocity_y_m_s: { messageKey: "velocityY", unit: "m/s", step: "any" },
+  duration_s: { messageKey: "duration", unit: "s", step: "any" },
+  time_step_s: { messageKey: "timeStep", unit: "s", step: "any" },
 };
 
 function draftsForState(state: OrbitSandboxState): DraftState {
@@ -88,19 +100,30 @@ function stateFromBrowser(): Readonly<{ state: OrbitSandboxState; invalid: boole
     : { state: decoded, invalid: false };
 }
 
-function format(value: number | null, digits = 6): string {
-  if (value === null) return "Not applicable";
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 2 });
+function format(
+  value: number | null,
+  locale: PublishedLocale,
+  notApplicable: string,
+  digits = 6,
+): string {
+  if (value === null) return notApplicable;
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 2 });
 }
 
-function classificationLabel(value: OrbitSandboxCalculationResponse["classification"]): string {
+function classificationLabel(
+  value: OrbitSandboxCalculationResponse["classification"],
+  messages: OrbitSandboxMessages["classification"],
+): string {
   const labels: Record<OrbitSandboxCalculationResponse["classification"], string> = {
-    bound: "Bound",
-    parabolic_near: "Near-parabolic",
-    escape: "Escape",
-    collision: "Collision",
+    bound: messages.bound,
+    parabolic_near: messages.parabolicNear,
+    escape: messages.escape,
+    collision: messages.collision,
   };
   return labels[value];
 }
@@ -110,20 +133,22 @@ function NumericInput({
   value,
   onChange,
   disabled,
+  messages,
 }: Readonly<{
   field: NumericField;
   value: string;
   onChange: (next: string) => void;
   disabled: boolean;
+  messages: OrbitSandboxMessages["fields"];
 }>) {
-  const copy = FIELD_COPY[field];
+  const meta = FIELD_META[field];
   const range = ORBIT_INPUT_RANGES[field];
   const id = `orbit-${field}`;
   return (
     <label className="space-y-2" htmlFor={id}>
       <span className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-        <span>{copy.label}</span>
-        <span className="text-xs font-normal text-[var(--muted)]">{copy.unit}</span>
+        <span>{messages[meta.messageKey]}</span>
+        <span className="text-xs font-normal text-[var(--muted)]">{meta.unit}</span>
       </span>
       <input
         className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-sm"
@@ -133,7 +158,7 @@ function NumericInput({
         max={range.max}
         min={range.min}
         onChange={(event) => onChange(event.target.value)}
-        step={copy.step}
+        step={meta.step}
         type="number"
         value={value}
       />
@@ -141,7 +166,7 @@ function NumericInput({
   );
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: OrbitSandboxMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {ORBIT_DEFINITION.references.map((sourceId) => {
@@ -149,7 +174,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -165,7 +190,15 @@ function SourceList() {
   );
 }
 
-function TrajectoryFigure({ result }: Readonly<{ result: OrbitSandboxCalculationResponse }>) {
+function TrajectoryFigure({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: OrbitSandboxMessages;
+  result: OrbitSandboxCalculationResponse;
+}>) {
   const visual = buildOrbitVisualTransform(result);
   if (visual === null) return null;
   const finalPoint = visual.points.at(-1)!;
@@ -178,10 +211,11 @@ function TrajectoryFigure({ result }: Readonly<{ result: OrbitSandboxCalculation
         role="img"
         viewBox="0 0 100 100"
       >
-        <title id="orbit-trajectory-title">Returned relative trajectory</title>
+        <title id="orbit-trajectory-title">{messages.trajectory.title}</title>
         <desc id="orbit-trajectory-description">
-          A display-normalized plot of {result.trajectory.length} API-returned trajectory samples.
-          The central body marker is enlarged for legibility and is not to physical scale.
+          {formatMessageTemplate(messages.trajectory.description, {
+            count: formatLocaleNumber(result.trajectory.length, locale),
+          })}
         </desc>
         <line x1="50" x2="50" y1="3" y2="97" stroke="currentColor" opacity="0.12" />
         <line x1="3" x2="97" y1="50" y2="50" stroke="currentColor" opacity="0.12" />
@@ -197,38 +231,69 @@ function TrajectoryFigure({ result }: Readonly<{ result: OrbitSandboxCalculation
         <circle cx={finalPoint.x} cy={finalPoint.y} fill="none" r="1.8" stroke="currentColor" />
       </svg>
       <figcaption className="text-sm leading-6 text-[var(--muted)]">
-        Coordinates are uniformly normalized from the returned relative positions. Filled point =
-        start; outlined point = final returned sample. Central-body marker is deliberately enlarged
-        and not to physical scale. Plot half-span: {format(visual.scale_m, 3)} m.
+        {formatMessageTemplate(messages.trajectory.caption, {
+          halfSpan: format(visual.scale_m, locale, messages.notApplicable, 3),
+        })}
       </figcaption>
     </figure>
   );
 }
 
-function ResultSummary({ result }: Readonly<{ result: OrbitSandboxCalculationResponse }>) {
+function ResultSummary({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: OrbitSandboxMessages;
+  result: OrbitSandboxCalculationResponse;
+}>) {
+  const labels = messages.result.labels;
   const rows = [
-    ["Classification", classificationLabel(result.classification)],
-    ["Eccentricity", format(result.eccentricity)],
-    ["Specific orbital energy", `${format(result.specific_orbital_energy_j_per_kg)} J/kg`],
-    ["Specific angular momentum", `${format(result.specific_angular_momentum_m2_per_s)} m²/s`],
+    [labels.classification, classificationLabel(result.classification, messages.classification)],
+    [labels.eccentricity, format(result.eccentricity, locale, messages.notApplicable)],
     [
-      "Semi-major axis",
+      labels.specificOrbitalEnergy,
+      `${format(result.specific_orbital_energy_j_per_kg, locale, messages.notApplicable)} J/kg`,
+    ],
+    [
+      labels.specificAngularMomentum,
+      `${format(result.specific_angular_momentum_m2_per_s, locale, messages.notApplicable)} m²/s`,
+    ],
+    [
+      labels.semiMajorAxis,
       result.semi_major_axis_m === null
-        ? "Not applicable"
-        : `${format(result.semi_major_axis_m)} m`,
+        ? messages.notApplicable
+        : `${format(result.semi_major_axis_m, locale, messages.notApplicable)} m`,
     ],
-    ["Period", result.period_s === null ? "Not applicable" : `${format(result.period_s)} s`],
-    ["Periapsis", `${format(result.periapsis_m)} m`],
-    ["Apoapsis", result.apoapsis_m === null ? "Not applicable" : `${format(result.apoapsis_m)} m`],
     [
-      "Collision time",
-      result.collision_time_s === null
-        ? "Not reached in requested window"
-        : `${format(result.collision_time_s)} s`,
+      labels.period,
+      result.period_s === null
+        ? messages.notApplicable
+        : `${format(result.period_s, locale, messages.notApplicable)} s`,
     ],
-    ["Trajectory samples", String(result.trajectory.length)],
-    ["Max specific-energy drift", format(result.max_specific_energy_drift_fraction)],
-    ["Max angular-momentum drift", format(result.max_specific_angular_momentum_drift_fraction)],
+    [labels.periapsis, `${format(result.periapsis_m, locale, messages.notApplicable)} m`],
+    [
+      labels.apoapsis,
+      result.apoapsis_m === null
+        ? messages.notApplicable
+        : `${format(result.apoapsis_m, locale, messages.notApplicable)} m`,
+    ],
+    [
+      labels.collisionTime,
+      result.collision_time_s === null
+        ? messages.result.notReached
+        : `${format(result.collision_time_s, locale, messages.notApplicable)} s`,
+    ],
+    [labels.trajectorySamples, formatLocaleNumber(result.trajectory.length, locale)],
+    [
+      labels.maxSpecificEnergyDrift,
+      format(result.max_specific_energy_drift_fraction, locale, messages.notApplicable),
+    ],
+    [
+      labels.maxAngularMomentumDrift,
+      format(result.max_specific_angular_momentum_drift_fraction, locale, messages.notApplicable),
+    ],
   ] as const;
   return (
     <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -245,38 +310,47 @@ function ResultSummary({ result }: Readonly<{ result: OrbitSandboxCalculationRes
   );
 }
 
-function TrajectoryDataPreview({ result }: Readonly<{ result: OrbitSandboxCalculationResponse }>) {
+function TrajectoryDataPreview({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: OrbitSandboxMessages;
+  result: OrbitSandboxCalculationResponse;
+}>) {
   const step = Math.max(1, Math.ceil(result.trajectory.length / 20));
   const preview = result.trajectory.filter((_, index) => index % step === 0);
   const last = result.trajectory.at(-1)!;
   if (preview.at(-1) !== last) preview.push(last);
   return (
     <details className="rounded-md border border-[var(--border)] p-4">
-      <summary className="cursor-pointer font-semibold">Trajectory data preview</summary>
+      <summary className="cursor-pointer font-semibold">{messages.preview.summary}</summary>
       <p className="mt-3 text-sm text-[var(--muted)]">
-        Showing {preview.length} of {result.trajectory.length} returned samples at a fixed display
-        stride, always including the final sample. This table does not interpolate or recalculate
-        the orbit.
+        {formatMessageTemplate(messages.preview.description, {
+          shown: formatLocaleNumber(preview.length, locale),
+          total: formatLocaleNumber(result.trajectory.length, locale),
+        })}
       </p>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[42rem] text-left text-sm">
           <thead>
             <tr>
-              <th>Time (s)</th>
-              <th>x (m)</th>
-              <th>y (m)</th>
-              <th>Distance (m)</th>
-              <th>Speed (m/s)</th>
+              <th>{messages.preview.headers.time}</th>
+              <th>{messages.preview.headers.x}</th>
+              <th>{messages.preview.headers.y}</th>
+              <th>{messages.preview.headers.distance}</th>
+              <th>{messages.preview.headers.speed}</th>
             </tr>
           </thead>
           <tbody>
             {preview.map((point) => (
               <tr key={point.time_s}>
-                <td>{format(point.time_s, 4)}</td>
-                <td>{format(point.x_m, 4)}</td>
-                <td>{format(point.y_m, 4)}</td>
-                <td>{format(point.distance_m, 4)}</td>
-                <td>{format(point.speed_m_s, 4)}</td>
+                <td>{format(point.time_s, locale, messages.notApplicable, 4)}</td>
+                <td>{format(point.x_m, locale, messages.notApplicable, 4)}</td>
+                <td>{format(point.y_m, locale, messages.notApplicable, 4)}</td>
+                <td>{format(point.distance_m, locale, messages.notApplicable, 4)}</td>
+                <td>{format(point.speed_m_s, locale, messages.notApplicable, 4)}</td>
               </tr>
             ))}
           </tbody>
@@ -291,6 +365,8 @@ export function OrbitSandboxView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: OrbitSandboxViewProps) {
   const [state, setState] = useState(initialState);
   const [draft, setDraft] = useState<DraftState>(() => draftsForState(initialState));
@@ -305,7 +381,7 @@ export function OrbitSandboxView({
     async (nextState: OrbitSandboxState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -321,20 +397,18 @@ export function OrbitSandboxView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Orbit Sandbox rejected this configuration. Check the speed, central-body compactness, secondary mass, time step, and trajectory-point budget. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateOrbitSandboxCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned orbit state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -349,12 +423,12 @@ export function OrbitSandboxView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [apiOrigin],
+    [apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -380,9 +454,7 @@ export function OrbitSandboxView({
     event.preventDefault();
     const next = stateForDraft(draft);
     if (next === null) {
-      setMessage(
-        "One or more inputs are empty, non-finite, or outside the published coarse range.",
-      );
+      setMessage(messages.failures.invalidInput);
       return;
     }
     void recalculate(next, true);
@@ -399,40 +471,35 @@ export function OrbitSandboxView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · deterministic simulation
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Orbit Sandbox</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore planar Newtonian relative two-body motion from an explicit initial position and
-          velocity. Analytic initial elements and the velocity-Verlet trajectory are calculated only
-          by Lumina&apos;s canonical Python astronomy domain.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared state rejected.</strong> The reviewed Earth-like default is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="orbit-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="orbit-input-heading">
-            Initial state and integration window
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Units are SI. Browser checks cover only finite field ranges; derived physical and
-            numerical-domain constraints are enforced by the canonical API and are never silently
-            clamped.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-5" onSubmit={submit}>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(Object.keys(FIELD_COPY) as NumericField[]).map((field) => (
+            {(Object.keys(FIELD_META) as NumericField[]).map((field) => (
               <NumericInput
                 disabled={requestState === "loading"}
                 field={field}
                 key={field}
+                messages={messages.fields}
                 onChange={(value) => {
                   setDraft((current) => ({ ...current, [field]: value }));
                   setMessage("");
@@ -447,7 +514,9 @@ export function OrbitSandboxView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate orbit"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -455,7 +524,7 @@ export function OrbitSandboxView({
               onClick={resetDefault}
               type="button"
             >
-              Reset Earth-like circular preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -466,26 +535,26 @@ export function OrbitSandboxView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated fallback orbit is substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="orbit-result-heading" className="space-y-6">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="orbit-result-heading">
-              Canonical orbit result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. The conic elements describe the initial idealized
-              state; the plotted forward trajectory is a separate finite-step numerical result with
-              its own drift diagnostics.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
-          <ResultSummary result={calculation} />
-          {currentVisual === null ? null : <TrajectoryFigure result={calculation} />}
-          <TrajectoryDataPreview result={calculation} />
+          <ResultSummary locale={locale} messages={messages} result={calculation} />
+          {currentVisual === null ? null : (
+            <TrajectoryFigure locale={locale} messages={messages} result={calculation} />
+          )}
+          <TrajectoryDataPreview locale={locale} messages={messages} result={calculation} />
         </section>
       )}
 
@@ -494,7 +563,7 @@ export function OrbitSandboxView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="orbit-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
           {ORBIT_DEFINITION.calculation_module.valid_domain}
@@ -503,7 +572,7 @@ export function OrbitSandboxView({
           {ORBIT_DEFINITION.calculation_module.numerical_policy}
         </p>
         <details>
-          <summary className="cursor-pointer font-semibold">Equations</summary>
+          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
           <dl className="mt-3 space-y-3 text-sm">
             {Object.entries(ORBIT_DEFINITION.calculation_module.equations).map(
               ([name, equation]) => (
@@ -516,10 +585,12 @@ export function OrbitSandboxView({
           </dl>
         </details>
         <details>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {ORBIT_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -527,7 +598,7 @@ export function OrbitSandboxView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {ORBIT_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -537,15 +608,17 @@ export function OrbitSandboxView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed state: {format(state.position_x_m, 3)} m x-position,{" "}
-          {format(state.velocity_y_m_s, 3)} m/s y-velocity, {format(state.duration_s, 3)} s
-          duration.
+          {formatMessageTemplate(messages.model.currentState, {
+            duration: format(state.duration_s, locale, messages.notApplicable, 3),
+            xPosition: format(state.position_x_m, locale, messages.notApplicable, 3),
+            yVelocity: format(state.velocity_y_m_s, locale, messages.notApplicable, 3),
+          })}
         </p>
       </section>
     </article>

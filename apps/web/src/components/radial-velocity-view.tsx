@@ -5,6 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { requestEndpoint, type RadialVelocityCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RadialVelocityMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_RADIAL_VELOCITY_STATE,
   RADIAL_VELOCITY_DEFINITION,
   RADIAL_VELOCITY_INPUT_RANGES,
@@ -23,24 +30,29 @@ type RadialVelocityViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: RadialVelocityCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: RadialVelocityMessages;
 }>;
 
 type NumericField = Exclude<keyof RadialVelocityState, "version" | "model_version">;
 type DraftState = Record<NumericField, string>;
 type RequestState = "idle" | "loading" | "unavailable";
 
-const FIELD_COPY: Record<NumericField, Readonly<{ label: string; unit: string; step: string }>> = {
-  stellar_mass_kg: { label: "Stellar mass", unit: "kg", step: "any" },
-  planet_mass_kg: { label: "Companion mass", unit: "kg", step: "any" },
-  orbital_period_s: { label: "Orbital period", unit: "s", step: "any" },
-  eccentricity: { label: "Eccentricity", unit: "dimensionless", step: "any" },
-  inclination_deg: { label: "Inclination", unit: "deg", step: "any" },
+const FIELD_META: Record<
+  NumericField,
+  Readonly<{ messageKey: keyof RadialVelocityMessages["fields"]; unit: string; step: string }>
+> = {
+  stellar_mass_kg: { messageKey: "stellarMass", unit: "kg", step: "any" },
+  planet_mass_kg: { messageKey: "companionMass", unit: "kg", step: "any" },
+  orbital_period_s: { messageKey: "orbitalPeriod", unit: "s", step: "any" },
+  eccentricity: { messageKey: "eccentricity", unit: "dimensionless", step: "any" },
+  inclination_deg: { messageKey: "inclination", unit: "deg", step: "any" },
   stellar_argument_of_periastron_deg: {
-    label: "Star's argument of periastron",
+    messageKey: "argumentOfPeriastron",
     unit: "deg",
     step: "any",
   },
-  mean_anomaly_at_epoch_deg: { label: "Mean anomaly at epoch", unit: "deg", step: "any" },
+  mean_anomaly_at_epoch_deg: { messageKey: "meanAnomalyAtEpoch", unit: "deg", step: "any" },
 };
 
 function draftsForState(state: RadialVelocityState): DraftState {
@@ -86,10 +98,13 @@ function stateFromBrowser(): Readonly<{ state: RadialVelocityState; invalid: boo
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 2 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 2 });
 }
 
 function NumericInput({
@@ -97,13 +112,15 @@ function NumericInput({
   value,
   onChange,
   disabled,
+  messages,
 }: Readonly<{
   field: NumericField;
   value: string;
   onChange: (next: string) => void;
   disabled: boolean;
+  messages: RadialVelocityMessages["fields"];
 }>) {
-  const copy = FIELD_COPY[field];
+  const meta = FIELD_META[field];
   const range = RADIAL_VELOCITY_INPUT_RANGES[field];
   const id = `rv-${field}`;
   const max =
@@ -113,8 +130,8 @@ function NumericInput({
   return (
     <label className="space-y-2" htmlFor={id}>
       <span className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-        <span>{copy.label}</span>
-        <span className="text-xs font-normal text-[var(--muted)]">{copy.unit}</span>
+        <span>{messages[meta.messageKey]}</span>
+        <span className="text-xs font-normal text-[var(--muted)]">{meta.unit}</span>
       </span>
       <input
         className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-sm"
@@ -124,7 +141,7 @@ function NumericInput({
         max={max}
         min={range.min}
         onChange={(event) => onChange(event.target.value)}
-        step={copy.step}
+        step={meta.step}
         type="number"
         value={value}
       />
@@ -132,7 +149,7 @@ function NumericInput({
   );
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: RadialVelocityMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {RADIAL_VELOCITY_DEFINITION.references.map((sourceId) => {
@@ -140,7 +157,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -156,7 +173,15 @@ function SourceList() {
   );
 }
 
-function CurveFigure({ result }: Readonly<{ result: RadialVelocityCalculationResponse }>) {
+function CurveFigure({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: RadialVelocityMessages;
+  result: RadialVelocityCalculationResponse;
+}>) {
   const visual = buildRadialVelocityVisual(result);
   if (visual === null) return null;
   return (
@@ -168,31 +193,42 @@ function CurveFigure({ result }: Readonly<{ result: RadialVelocityCalculationRes
         role="img"
         viewBox="0 0 100 100"
       >
-        <title id="rv-curve-title">Returned stellar radial-velocity curve</title>
+        <title id="rv-curve-title">{messages.curve.title}</title>
         <desc id="rv-curve-description">
-          Display-normalized plot of {result.curve.length} API-returned stellar reflex-velocity
-          samples over one orbital period. The browser does not solve the orbit.
+          {formatMessageTemplate(messages.curve.description, {
+            count: formatLocaleNumber(result.curve.length, locale),
+          })}
         </desc>
         <line x1="5" x2="95" y1="50" y2="50" stroke="currentColor" opacity="0.14" />
         <path d={visual.path} fill="none" stroke="currentColor" strokeWidth="0.8" />
       </svg>
       <figcaption className="text-sm leading-6 text-[var(--muted)]">
-        Horizontal position uses returned time; vertical position uses returned stellar reflex
-        velocity. Returned range: {format(visual.minimum_velocity_m_s)} to{" "}
-        {format(visual.maximum_velocity_m_s)} m/s. A flat line is the valid face-on result.
+        {formatMessageTemplate(messages.curve.caption, {
+          maximum: format(visual.maximum_velocity_m_s, locale),
+          minimum: format(visual.minimum_velocity_m_s, locale),
+        })}
       </figcaption>
     </figure>
   );
 }
 
-function ResultSummary({ result }: Readonly<{ result: RadialVelocityCalculationResponse }>) {
+function ResultSummary({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: RadialVelocityMessages;
+  result: RadialVelocityCalculationResponse;
+}>) {
+  const labels = messages.result.labels;
   const rows = [
-    ["RV semi-amplitude K", `${format(result.semi_amplitude_m_s)} m/s`],
-    ["Inclination projection", format(result.inclination_projection)],
-    ["Projected mass Mp sin(i)", `${format(result.projected_planet_mass_kg)} kg`],
-    ["Spectroscopic mass function", `${format(result.mass_function_kg)} kg`],
-    ["Exact edge-on minimum mass", `${format(result.edge_on_minimum_mass_kg)} kg`],
-    ["Returned RV samples", String(result.curve.length)],
+    [labels.semiAmplitude, `${format(result.semi_amplitude_m_s, locale)} m/s`],
+    [labels.inclinationProjection, format(result.inclination_projection, locale)],
+    [labels.projectedMass, `${format(result.projected_planet_mass_kg, locale)} kg`],
+    [labels.massFunction, `${format(result.mass_function_kg, locale)} kg`],
+    [labels.edgeOnMinimumMass, `${format(result.edge_on_minimum_mass_kg, locale)} kg`],
+    [labels.samples, formatLocaleNumber(result.curve.length, locale)],
   ] as const;
   return (
     <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -209,33 +245,43 @@ function ResultSummary({ result }: Readonly<{ result: RadialVelocityCalculationR
   );
 }
 
-function DataPreview({ result }: Readonly<{ result: RadialVelocityCalculationResponse }>) {
+function DataPreview({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: RadialVelocityMessages;
+  result: RadialVelocityCalculationResponse;
+}>) {
   const step = Math.max(1, Math.ceil(result.curve.length / 20));
   const preview = result.curve.filter((_, index) => index % step === 0);
   const last = result.curve.at(-1)!;
   if (preview.at(-1) !== last) preview.push(last);
   return (
     <details className="rounded-md border border-[var(--border)] p-4">
-      <summary className="cursor-pointer font-semibold">RV data preview</summary>
+      <summary className="cursor-pointer font-semibold">{messages.preview.summary}</summary>
       <p className="mt-3 text-sm text-[var(--muted)]">
-        Showing {preview.length} of {result.curve.length} returned samples at a fixed display
-        stride. This table does not interpolate or resynthesize radial velocity.
+        {formatMessageTemplate(messages.preview.description, {
+          shown: formatLocaleNumber(preview.length, locale),
+          total: formatLocaleNumber(result.curve.length, locale),
+        })}
       </p>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[36rem] text-left text-sm">
           <thead>
             <tr>
-              <th>Time (s)</th>
-              <th>Orbital phase</th>
-              <th>Stellar RV (m/s)</th>
+              <th>{messages.preview.headers.time}</th>
+              <th>{messages.preview.headers.orbitalPhase}</th>
+              <th>{messages.preview.headers.stellarRv}</th>
             </tr>
           </thead>
           <tbody>
             {preview.map((point) => (
               <tr key={point.time_s}>
-                <td>{format(point.time_s, 5)}</td>
-                <td>{format(point.orbital_phase, 5)}</td>
-                <td>{format(point.radial_velocity_m_s, 7)}</td>
+                <td>{format(point.time_s, locale, 5)}</td>
+                <td>{format(point.orbital_phase, locale, 5)}</td>
+                <td>{format(point.radial_velocity_m_s, locale, 7)}</td>
               </tr>
             ))}
           </tbody>
@@ -250,6 +296,8 @@ export function RadialVelocityView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: RadialVelocityViewProps) {
   const [state, setState] = useState(initialState);
   const [draft, setDraft] = useState<DraftState>(() => draftsForState(initialState));
@@ -264,7 +312,7 @@ export function RadialVelocityView({
     async (nextState: RadialVelocityState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -284,20 +332,18 @@ export function RadialVelocityView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Radial Velocity model rejected this configuration. Check masses, period, eccentricity, inclination, and phase angles. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateRadialVelocityCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned RV state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -312,12 +358,12 @@ export function RadialVelocityView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [apiOrigin],
+    [apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -340,9 +386,7 @@ export function RadialVelocityView({
 
   const calculate = async () => {
     if (draftState === null) {
-      setMessage(
-        "One or more inputs are empty, non-finite, outside the reviewed range, or violate the companion-to-star mass-ratio boundary.",
-      );
+      setMessage(messages.failures.invalidInput);
       return;
     }
     await recalculate(draftState, true);
@@ -357,42 +401,37 @@ export function RadialVelocityView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-5">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 / Radial Velocity Lab
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Radial Velocity Lab</h1>
-        <p className="max-w-3xl text-lg leading-8 text-[var(--muted)]">
-          Explore the star&apos;s deterministic Keplerian reflex signal, how inclination suppresses
-          the observed velocity, and why radial velocity constrains a minimum mass rather than a
-          unique true companion mass.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="max-w-3xl text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="rounded-md border border-[var(--border-strong)] p-4" role="alert">
-          <h2 className="font-semibold">Shared radial-velocity state rejected</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            The malformed or unsupported shared state was replaced with the reviewed synthetic
-            default.
-          </p>
+          <h2 className="font-semibold">{messages.invalidState.title}</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">{messages.invalidState.description}</p>
         </aside>
       ) : null}
 
       <section aria-labelledby="rv-controls-heading" className="space-y-5">
         <div>
           <h2 className="text-2xl font-semibold" id="rv-controls-heading">
-            Model inputs
+            {messages.controls.title}
           </h2>
           <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">
-            Inputs define a forward model. Real RV observations do not generally reveal inclination
-            or true companion mass by themselves.
+            {messages.controls.description}
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {(Object.keys(FIELD_COPY) as NumericField[]).map((field) => (
+          {(Object.keys(FIELD_META) as NumericField[]).map((field) => (
             <NumericInput
               disabled={busy}
               field={field}
               key={field}
+              messages={messages.fields}
               onChange={(value) => setDraft((current) => ({ ...current, [field]: value }))}
               value={draft[field]}
             />
@@ -405,7 +444,7 @@ export function RadialVelocityView({
             onClick={() => void calculate()}
             type="button"
           >
-            {busy ? "Calculating…" : "Calculate radial velocity"}
+            {busy ? messages.actions.calculating : messages.actions.calculate}
           </button>
           <button
             className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -413,7 +452,7 @@ export function RadialVelocityView({
             onClick={reset}
             type="button"
           >
-            Reset synthetic circular preset
+            {messages.actions.reset}
           </button>
         </div>
         {message ? (
@@ -425,22 +464,23 @@ export function RadialVelocityView({
 
       <section aria-labelledby="rv-result-heading" className="space-y-6">
         <h2 className="text-2xl font-semibold" id="rv-result-heading">
-          Canonical result
+          {messages.result.title}
         </h2>
         {calculation === null ? (
           <div className="rounded-md border border-[var(--border)] p-5">
-            <h3 className="font-semibold">No canonical result available</h3>
-            <p className="mt-2 text-[var(--muted)]">
-              Lumina does not fabricate an RV curve in the browser when the canonical service is
-              unavailable.
-            </p>
+            <h3 className="font-semibold">{messages.result.unavailableTitle}</h3>
+            <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
           </div>
         ) : (
           <>
-            <p className="text-sm text-[var(--muted)]">Model {calculation.model_version}</p>
-            <ResultSummary result={calculation} />
-            <CurveFigure result={calculation} />
-            <DataPreview result={calculation} />
+            <p className="text-sm text-[var(--muted)]">
+              {formatMessageTemplate(messages.result.model, {
+                modelVersion: calculation.model_version,
+              })}
+            </p>
+            <ResultSummary locale={locale} messages={messages} result={calculation} />
+            <CurveFigure locale={locale} messages={messages} result={calculation} />
+            <DataPreview locale={locale} messages={messages} result={calculation} />
           </>
         )}
       </section>
@@ -450,26 +490,21 @@ export function RadialVelocityView({
         className="space-y-3 rounded-md border border-[var(--border)] p-5"
       >
         <h2 className="text-2xl font-semibold" id="rv-minimum-mass-heading">
-          Mp sin(i) and the exact minimum mass are related, not identical
+          {messages.minimumMass.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          The conventional projected quantity Mp sin(i) is useful shorthand. Lumina also reports the
-          exact edge-on minimum companion mass obtained from the spectroscopic mass function, which
-          retains the companion mass in the denominator. They converge in the small-companion limit
-          but are not treated as the same algebraic quantity in this model.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.minimumMass.description}</p>
       </section>
 
       <section aria-labelledby="rv-model-heading" className="space-y-5">
         <h2 className="text-2xl font-semibold" id="rv-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{RADIAL_VELOCITY_DEFINITION.default_preset}</p>
         <p className="leading-7 text-[var(--muted)]">
           {RADIAL_VELOCITY_DEFINITION.sampling_policy}
         </p>
         <details>
-          <summary className="cursor-pointer font-semibold">Equations</summary>
+          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
           <dl className="mt-3 space-y-3 text-sm">
             {Object.entries(RADIAL_VELOCITY_DEFINITION.equations).map(([name, equation]) => (
               <div key={name}>
@@ -480,10 +515,12 @@ export function RadialVelocityView({
           </dl>
         </details>
         <details>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {RADIAL_VELOCITY_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -491,7 +528,7 @@ export function RadialVelocityView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {RADIAL_VELOCITY_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -501,16 +538,19 @@ export function RadialVelocityView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed state: stellar mass {format(state.stellar_mass_kg, 4)} kg, companion
-          mass {format(state.planet_mass_kg, 4)} kg, period {format(state.orbital_period_s, 4)} s,
-          eccentricity {format(state.eccentricity, 4)}, inclination{" "}
-          {format(state.inclination_deg, 4)}°.
+          {formatMessageTemplate(messages.model.currentState, {
+            companionMass: format(state.planet_mass_kg, locale, 4),
+            eccentricity: format(state.eccentricity, locale, 4),
+            inclination: format(state.inclination_deg, locale, 4),
+            period: format(state.orbital_period_s, locale, 4),
+            stellarMass: format(state.stellar_mass_kg, locale, 4),
+          })}
         </p>
       </section>
     </article>

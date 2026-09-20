@@ -6,6 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TransitMethodCalculationResponse } from "@lumina/api-client";
 
 import { TransitMethodView } from "../src/components/transit-method-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { TransitMethodMessages } from "../src/lib/i18n/messages/types";
 import {
   DEFAULT_TRANSIT_METHOD_STATE,
   type TransitMethodState,
@@ -23,6 +26,7 @@ afterEach(() => {
 function renderView(
   initialCalculation: TransitMethodCalculationResponse | null = TRANSIT_DEFAULT_RESULT,
   initialStateInvalid = false,
+  messages: TransitMethodMessages = enMessages.simulationLabs.transitMethod,
 ) {
   return render(
     <TransitMethodView
@@ -30,6 +34,8 @@ function renderView(
       initialCalculation={initialCalculation}
       initialState={DEFAULT_TRANSIT_METHOD_STATE}
       initialStateInvalid={initialStateInvalid}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
     />,
   );
 }
@@ -118,5 +124,34 @@ describe("TransitMethodView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/empty, non-finite, or outside/i)).toBeVisible();
+  });
+
+  it("localizes interface state without rewriting reviewed transit model or source content", () => {
+    const messages: TransitMethodMessages = {
+      ...enMessages.simulationLabs.transitMethod,
+      classification: {
+        ...enMessages.simulationLabs.transitMethod.classification,
+        full: "Fixture full transit",
+      },
+      header: {
+        ...enMessages.simulationLabs.transitMethod.header,
+        title: "Fixture Transit Method",
+      },
+      result: {
+        ...enMessages.simulationLabs.transitMethod.result,
+        labels: {
+          ...enMessages.simulationLabs.transitMethod.result.labels,
+          alignment: "Fixture alignment",
+        },
+      },
+    };
+
+    renderView(TRANSIT_DEFAULT_RESULT, false, messages);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Fixture Transit Method" })).toBeVisible();
+    expect(screen.getByText("Fixture alignment")).toBeVisible();
+    expect(screen.getByText("Fixture full transit")).toBeVisible();
+    expect(screen.getByText(/No limb darkening/i)).toBeInTheDocument();
+    expect(screen.getByText(/Analytic Lightcurves for Planetary Transit Searches/i)).toBeVisible();
   });
 });

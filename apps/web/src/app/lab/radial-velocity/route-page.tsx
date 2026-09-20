@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { RadialVelocityEnhanced } from "../../../components/radial-velocity-enhanced";
 import { RadialVelocityNoScript } from "../../../components/radial-velocity-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { RadialVelocityMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadRadialVelocityCalculation } from "../../../lib/server/radial-velocity";
 import {
@@ -10,16 +12,17 @@ import {
   type RadialVelocityState,
 } from "../../../lib/simulations/radial-velocity";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/radial-velocity" },
-  title: "Radial Velocity Lab",
-  description:
-    "Explore deterministic Keplerian stellar reflex velocity, inclination degeneracy, and exact spectroscopic mass-function limits.",
-};
+export function createRadialVelocityMetadata(messages: RadialVelocityMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/radial-velocity" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type RadialVelocityPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: RadialVelocityMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function RadialVelocityPage({ searchParams }: RadialVelocityPageProps) {
+export default async function RadialVelocityPage({
+  locale,
+  messages,
+  searchParams,
+}: RadialVelocityPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadRadialVelocityCalculation(requested.state, {
@@ -49,12 +56,16 @@ export default async function RadialVelocityPage({ searchParams }: RadialVelocit
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <RadialVelocityEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

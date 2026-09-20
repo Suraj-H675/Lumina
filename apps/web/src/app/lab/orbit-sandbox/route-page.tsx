@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { OrbitSandboxEnhanced } from "../../../components/orbit-sandbox-enhanced";
 import { OrbitSandboxNoScript } from "../../../components/orbit-sandbox-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { OrbitSandboxMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadOrbitSandboxCalculation } from "../../../lib/server/orbit-sandbox";
 import {
@@ -10,16 +12,17 @@ import {
   type OrbitSandboxState,
 } from "../../../lib/simulations/orbit-sandbox";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/orbit-sandbox" },
-  title: "Orbit Sandbox",
-  description:
-    "Explore a reviewed deterministic Newtonian two-body model with explicit orbital elements, collision handling, and numerical drift diagnostics.",
-};
+export function createOrbitSandboxMetadata(messages: OrbitSandboxMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/orbit-sandbox" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type OrbitSandboxPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: OrbitSandboxMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function OrbitSandboxPage({ searchParams }: OrbitSandboxPageProps) {
+export default async function OrbitSandboxPage({
+  locale,
+  messages,
+  searchParams,
+}: OrbitSandboxPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadOrbitSandboxCalculation(requested.state, {
@@ -49,12 +56,16 @@ export default async function OrbitSandboxPage({ searchParams }: OrbitSandboxPag
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <OrbitSandboxEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

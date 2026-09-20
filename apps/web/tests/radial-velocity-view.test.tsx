@@ -6,6 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RadialVelocityCalculationResponse } from "@lumina/api-client";
 
 import { RadialVelocityView } from "../src/components/radial-velocity-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { RadialVelocityMessages } from "../src/lib/i18n/messages/types";
 import {
   DEFAULT_RADIAL_VELOCITY_STATE,
   type RadialVelocityState,
@@ -26,6 +29,7 @@ afterEach(() => {
 function renderView(
   initialCalculation: RadialVelocityCalculationResponse | null = RADIAL_VELOCITY_DEFAULT_RESULT,
   initialStateInvalid = false,
+  messages: RadialVelocityMessages = enMessages.simulationLabs.radialVelocity,
 ) {
   return render(
     <RadialVelocityView
@@ -33,6 +37,8 @@ function renderView(
       initialCalculation={initialCalculation}
       initialState={DEFAULT_RADIAL_VELOCITY_STATE}
       initialStateInvalid={initialStateInvalid}
+      locale={DEFAULT_LOCALE}
+      messages={messages}
     />,
   );
 }
@@ -123,5 +129,31 @@ describe("RadialVelocityView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/empty, non-finite, outside/i)).toBeVisible();
+  });
+
+  it("localizes interface labels without rewriting reviewed radial-velocity content", () => {
+    const messages: RadialVelocityMessages = {
+      ...enMessages.simulationLabs.radialVelocity,
+      header: {
+        ...enMessages.simulationLabs.radialVelocity.header,
+        title: "Fixture Radial Velocity",
+      },
+      result: {
+        ...enMessages.simulationLabs.radialVelocity.result,
+        labels: {
+          ...enMessages.simulationLabs.radialVelocity.result.labels,
+          semiAmplitude: "Fixture semi-amplitude",
+        },
+      },
+    };
+
+    renderView(RADIAL_VELOCITY_DEFAULT_RESULT, false, messages);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Fixture Radial Velocity" }),
+    ).toBeVisible();
+    expect(screen.getByText("Fixture semi-amplitude")).toBeVisible();
+    expect(screen.getByText(/No stellar activity/i)).toBeInTheDocument();
+    expect(screen.getByText(/Exoplanet Detection Methods/i)).toBeVisible();
   });
 });

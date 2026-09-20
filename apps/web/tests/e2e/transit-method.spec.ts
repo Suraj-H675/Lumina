@@ -14,7 +14,7 @@ test.describe("Phase 7 — Transit Method Lab", () => {
     );
     await expect(page.getByRole("table")).toHaveCount(1);
     await expect(page.getByRole("table").locator("tbody tr")).toHaveCount(10);
-    await expect(page.getByText("full", { exact: true })).toBeVisible();
+    await expect(page.getByText("Full transit", { exact: true })).toBeVisible();
     await expect(page.getByText("301", { exact: true })).toBeVisible();
     await expect(page.getByText(/transit-method-v1/)).toBeVisible();
     await expect(page.getByText(/No limb darkening/i)).toBeVisible();
@@ -25,7 +25,7 @@ test.describe("Phase 7 — Transit Method Lab", () => {
       page.getByRole("heading", { name: "Shared transit state rejected" }),
     ).toBeVisible();
     await expect(page.getByRole("table")).toHaveCount(1);
-    await expect(page.getByText("full", { exact: true })).toBeVisible();
+    await expect(page.getByText("Full transit", { exact: true })).toBeVisible();
 
     await context.close();
   });

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { TransitMethodEnhanced } from "../../../components/transit-method-enhanced";
 import { TransitMethodNoScript } from "../../../components/transit-method-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { TransitMethodMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadTransitMethodCalculation } from "../../../lib/server/transit-method";
 import {
@@ -10,16 +12,17 @@ import {
   type TransitMethodState,
 } from "../../../lib/simulations/transit-method";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/transit-method" },
-  title: "Transit Method Lab",
-  description:
-    "Explore a deterministic circular-orbit exoplanet transit model with exact uniform-source overlap, contact durations, and explicit limitations.",
-};
+export function createTransitMethodMetadata(messages: TransitMethodMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/transit-method" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type TransitMethodPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: TransitMethodMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function TransitMethodPage({ searchParams }: TransitMethodPageProps) {
+export default async function TransitMethodPage({
+  locale,
+  messages,
+  searchParams,
+}: TransitMethodPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadTransitMethodCalculation(requested.state, {
@@ -49,12 +56,16 @@ export default async function TransitMethodPage({ searchParams }: TransitMethodP
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <TransitMethodEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

@@ -428,6 +428,48 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.inventory.headers.value).toContain("{unit}");
   });
 
+  it("keeps deterministic simulation-lab templates placeholder-complete", () => {
+    const orbit = enMessages.simulationLabs.orbitSandbox;
+    expect(orbit.model.currentState).toContain("{xPosition}");
+    expect(orbit.model.currentState).toContain("{yVelocity}");
+    expect(orbit.model.currentState).toContain("{duration}");
+    expect(orbit.model.sourceUnavailable).toContain("{sourceId}");
+    expect(orbit.preview.description).toContain("{shown}");
+    expect(orbit.preview.description).toContain("{total}");
+    expect(orbit.result.description).toContain("{modelVersion}");
+    expect(orbit.result.model).toContain("{modelVersion}");
+    expect(orbit.trajectory.caption).toContain("{halfSpan}");
+    expect(orbit.trajectory.description).toContain("{count}");
+
+    const transit = enMessages.simulationLabs.transitMethod;
+    expect(transit.lightCurve.caption).toContain("{minimum}");
+    expect(transit.lightCurve.caption).toContain("{maximum}");
+    expect(transit.lightCurve.description).toContain("{count}");
+    expect(transit.model.currentState).toContain("{stellarRadius}");
+    expect(transit.model.currentState).toContain("{planetRadius}");
+    expect(transit.model.currentState).toContain("{period}");
+    expect(transit.model.currentState).toContain("{inclination}");
+    expect(transit.model.sourceUnavailable).toContain("{sourceId}");
+    expect(transit.preview.description).toContain("{shown}");
+    expect(transit.preview.description).toContain("{total}");
+    expect(transit.result.description).toContain("{modelVersion}");
+    expect(transit.result.model).toContain("{modelVersion}");
+
+    const radialVelocity = enMessages.simulationLabs.radialVelocity;
+    expect(radialVelocity.curve.caption).toContain("{minimum}");
+    expect(radialVelocity.curve.caption).toContain("{maximum}");
+    expect(radialVelocity.curve.description).toContain("{count}");
+    expect(radialVelocity.model.currentState).toContain("{stellarMass}");
+    expect(radialVelocity.model.currentState).toContain("{companionMass}");
+    expect(radialVelocity.model.currentState).toContain("{period}");
+    expect(radialVelocity.model.currentState).toContain("{eccentricity}");
+    expect(radialVelocity.model.currentState).toContain("{inclination}");
+    expect(radialVelocity.model.sourceUnavailable).toContain("{sourceId}");
+    expect(radialVelocity.preview.description).toContain("{shown}");
+    expect(radialVelocity.preview.description).toContain("{total}");
+    expect(radialVelocity.result.model).toContain("{modelVersion}");
+  });
+
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {
     expect(enMessages.entityTypes.star).toBe("Star");
     expect(enMessages.entityTypes.dwarf_planet).toBe("Dwarf planet");

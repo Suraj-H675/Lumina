@@ -550,6 +550,23 @@ export type SavedObservationPlanMessages = Readonly<{
   }>;
 }>;
 
+export type SaveObservationPlanMessages = Readonly<{
+  description: string;
+  failures: Readonly<{
+    generic: string;
+    identifierUnavailable: string;
+    planLimit: string;
+    quotaExceeded: string;
+    storageCorrupted: string;
+    storageUnavailable: string;
+  }>;
+  openSavedPlan: string;
+  saveAction: string;
+  savingAction: string;
+  savedStatus: string;
+  title: string;
+}>;
+
 export type ObservationPlannerMessages = Readonly<{
   chart: Readonly<{
     accessibleHighest: string;
@@ -643,6 +660,7 @@ export type ObservationPlannerMessages = Readonly<{
       title: string;
     }>;
   }>;
+  savePlan: SaveObservationPlanMessages;
   states: Readonly<{
     invalidTime: Readonly<{
       description: string;

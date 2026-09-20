@@ -374,4 +374,12 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.chart.accessibleHighest).toContain("{time}");
     expect(messages.results.events.circumpolar).toMatch(/latitude/i);
   });
+
+  it("keeps the local saved-plan action in the planner message group", () => {
+    const messages = enMessages.observationPlanner.savePlan;
+    expect(messages.description).toMatch(/only in this browser/i);
+    expect(messages.failures.planLimit).toContain("{count}");
+    expect(messages.failures.identifierUnavailable).toMatch(/local identifier/i);
+    expect(messages.savedStatus).toMatch(/snapshot/i);
+  });
 });

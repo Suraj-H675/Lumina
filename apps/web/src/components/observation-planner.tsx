@@ -428,6 +428,8 @@ function PlannerResults({
           }}
         />
         <SaveObservationPlanButton
+          locale={locale}
+          messages={messages.savePlan}
           nightDate={nightDate}
           plan={plan}
           target={{

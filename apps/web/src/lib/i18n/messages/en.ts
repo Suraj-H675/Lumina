@@ -416,6 +416,28 @@ export const enMessages = {
         title: "Position source",
       },
     },
+    savePlan: {
+      description:
+        "Saving this plan stores the exact observer coordinates, selected time, target, calculated geometry, and source context only in this browser. Lumina does not send this saved plan to the server or put the coordinates in its URL.",
+      failures: {
+        generic: "Lumina could not save this plan locally. Nothing was sent to the server.",
+        identifierUnavailable:
+          "This browser cannot create a safe local identifier for the saved plan.",
+        planLimit:
+          "This browser already has {count} saved plans. Delete one before saving another.",
+        quotaExceeded:
+          "This browser does not have enough local storage space to save another plan.",
+        storageCorrupted:
+          "Saved-plan storage could not be read safely. Existing local data was not changed.",
+        storageUnavailable: "This browser is not allowing Lumina to store saved plans right now.",
+      },
+      openSavedPlan: "Open saved plan",
+      saveAction: "Save plan",
+      savedStatus:
+        "Saved locally in this browser. The saved view is a snapshot, not a future recomputation.",
+      savingAction: "Saving plan…",
+      title: "Keep this plan on this device",
+    },
     states: {
       invalidTime: {
         description: "Choose a valid night and local time to try again.",

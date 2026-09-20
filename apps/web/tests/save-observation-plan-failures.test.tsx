@@ -14,7 +14,10 @@ vi.mock("../src/lib/journal/database", async (importOriginal) => {
 });
 
 import { SaveObservationPlanButton } from "../src/components/save-observation-plan-button";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { SavedPlanStorageError } from "../src/lib/journal/database";
+import { MAX_SAVED_OBSERVATION_PLANS } from "../src/lib/observation/saved-plan";
 
 beforeEach(() => {
   putSavedObservationPlanMock.mockReset();
@@ -23,6 +26,8 @@ beforeEach(() => {
 function renderButton() {
   return render(
     <SaveObservationPlanButton
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.observationPlanner.savePlan}
       nightDate="2026-09-19"
       plan={observationPlanFixture}
       target={savedPlanTargetFixture}
@@ -56,5 +61,18 @@ describe("saved-plan storage failures", () => {
       /not allowing Lumina to store saved plans/i,
     );
     expect(screen.queryByText(/saved locally/i)).not.toBeInTheDocument();
+  });
+
+  it("reports the actual saved-plan limit from the persistence contract", async () => {
+    putSavedObservationPlanMock.mockRejectedValue(new SavedPlanStorageError("plan-limit"));
+    const user = userEvent.setup();
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      `already has ${MAX_SAVED_OBSERVATION_PLANS} saved plans`,
+    );
+    expect(screen.queryByRole("link", { name: "Open saved plan" })).not.toBeInTheDocument();
   });
 });

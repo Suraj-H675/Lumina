@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { SolutionOverlay } from "../src/app/identify/solution-overlay";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { IdentifyMessages } from "../src/lib/i18n/messages/types";
 
 const solution = {
   annotations: [
@@ -48,17 +51,23 @@ const solution = {
   },
 };
 
+const overlayDefaults = {
+  imageUrl: "blob:local-preview",
+  locale: DEFAULT_LOCALE,
+  messages: enMessages.identify.solutionOverlay,
+  solution,
+};
+
 describe("Identification solution overlay", () => {
   it("renders WCS-derived pixel annotations and calibration accessibly", async () => {
     const onLoadMore = vi.fn();
     const { container } = render(
       <SolutionOverlay
+        {...overlayDefaults}
         completedAt="2026-09-16T12:00:01Z"
-        imageUrl="blob:local-preview"
         loadingMore={false}
         loadMoreWarning={false}
         onLoadMore={onLoadMore}
-        solution={solution}
       />,
     );
 
@@ -79,16 +88,75 @@ describe("Identification solution overlay", () => {
     expect((await axe(container)).violations).toHaveLength(0);
   });
 
+  it("localizes overlay chrome without rewriting WCS, provider, annotation, or solver data", () => {
+    const messages: IdentifyMessages["solutionOverlay"] = {
+      ...enMessages.identify.solutionOverlay,
+      comparison: {
+        ...enMessages.identify.solutionOverlay.comparison,
+        legend: "Fixture image comparison",
+        zoomLabel: "Fixture zoom {zoom}×",
+      },
+      provenance: {
+        ...enMessages.identify.solutionOverlay.provenance,
+        solverLabel: "Fixture solver:",
+        title: "Fixture solution provenance",
+      },
+      table: {
+        ...enMessages.identify.solutionOverlay.table,
+        caption: "Fixture annotation table",
+      },
+      title: "Fixture solved-field title",
+    };
+
+    render(
+      <SolutionOverlay
+        {...overlayDefaults}
+        completedAt="2026-09-16T12:00:01Z"
+        loadingMore={false}
+        loadMoreWarning={false}
+        messages={messages}
+        onLoadMore={() => undefined}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Fixture solved-field title" })).toBeVisible();
+    expect(screen.getByText("Fixture image comparison")).toBeVisible();
+    expect(screen.getByText("Fixture zoom 1.0×")).toBeVisible();
+    fireEvent.click(screen.getByText("Fixture solution provenance"));
+    expect(
+      screen.getByText(/Fixture solver: Astrometry.net Nova \(nova-fixture-v1\)/),
+    ).toBeVisible();
+    expect(screen.getByText("Fixture annotation table")).toBeVisible();
+    expect(screen.getByText("82.500000°")).toBeVisible();
+    expect(screen.getAllByText("Rigel").length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+    ).toBeVisible();
+  });
+
+  it("preserves non-zero solution timestamp milliseconds in locale-aware presentation", () => {
+    render(
+      <SolutionOverlay
+        {...overlayDefaults}
+        completedAt="2026-09-16T12:00:01.123Z"
+        loadingMore={false}
+        loadMoreWarning={false}
+        onLoadMore={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText(/12:00:01\.123/)).toBeVisible();
+  });
+
   it("switches to the original image and filters annotation categories without moving pixels", async () => {
     const user = userEvent.setup();
     render(
       <SolutionOverlay
+        {...overlayDefaults}
         completedAt={null}
-        imageUrl="blob:local-preview"
         loadingMore={false}
         loadMoreWarning={false}
         onLoadMore={() => undefined}
-        solution={solution}
       />,
     );
 
@@ -112,12 +180,11 @@ describe("Identification solution overlay", () => {
     const onLoadMore = vi.fn();
     const { rerender } = render(
       <SolutionOverlay
+        {...overlayDefaults}
         completedAt={null}
-        imageUrl="blob:local-preview"
         loadingMore={false}
         loadMoreWarning={false}
         onLoadMore={onLoadMore}
-        solution={solution}
       />,
     );
 
@@ -129,12 +196,11 @@ describe("Identification solution overlay", () => {
 
     rerender(
       <SolutionOverlay
+        {...overlayDefaults}
         completedAt={null}
-        imageUrl="blob:local-preview"
         loadingMore={false}
         loadMoreWarning
         onLoadMore={onLoadMore}
-        solution={solution}
       />,
     );
     expect(screen.getByRole("alert")).toHaveTextContent(/temporarily unavailable/i);

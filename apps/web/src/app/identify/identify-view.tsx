@@ -13,6 +13,13 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
+import { formatLocaleNumber, formatMessageTemplate } from "../../lib/i18n/format";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { IdentifyMessages } from "../../lib/i18n/messages/types";
+import {
+  ASTROMETRY_PROVIDER_NAME,
+  NOVA_SERVICE_NAME,
+} from "../../lib/identification/provider-display";
 import { CaptureChecksPanel } from "./capture-checks-panel";
 import { IdentifyJournalPanel } from "./identify-journal-panel";
 import { SolutionOverlay } from "./solution-overlay";
@@ -21,7 +28,19 @@ import { SurveyComparisonPanel } from "./survey-comparison-panel";
 type IdentifyViewProps = Readonly<{
   apiOrigin: string;
   capabilities: IdentificationCapabilitiesResponse;
+  locale: PublishedLocale;
+  messages: IdentifyMessages;
 }>;
+
+type UploadErrorReason =
+  | "consentRequired"
+  | "fileRequired"
+  | "serverMediaOnly"
+  | "sizeLimit"
+  | "timeout"
+  | "unavailable"
+  | "unsupportedMedia"
+  | "validationFailed";
 
 type ActiveSubmission = Readonly<{
   jobId: string | null;
@@ -48,11 +67,11 @@ type UiState =
   | Readonly<{ kind: "uploading" }>
   | Readonly<{ active: ActiveSubmission; kind: "active"; pollingWarning: boolean }>
   | Readonly<{ kind: "deleted" }>
-  | Readonly<{ kind: "error"; message: string }>;
+  | Readonly<{ kind: "error"; reason: UploadErrorReason }>;
 
 const TERMINAL = new Set(["succeeded", "unsolved", "failed", "dead_letter", "expired", "deleted"]);
 
-export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
+export function IdentifyView({ apiOrigin, capabilities, locale, messages }: IdentifyViewProps) {
   const [consented, setConsented] = useState(false);
   const [state, setState] = useState<UiState>({ kind: "idle" });
   const [solutionState, setSolutionState] = useState<SolutionUiState>({ kind: "idle" });
@@ -153,26 +172,20 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
     event.preventDefault();
     const file = fileRef.current?.files?.[0];
     if (!consented) {
-      setState({
-        kind: "error",
-        message: "Confirm the temporary private processing notice first.",
-      });
+      setState({ kind: "error", reason: "consentRequired" });
       return;
     }
     if (file === undefined) {
-      setState({ kind: "error", message: "Choose one JPEG or PNG image first." });
+      setState({ kind: "error", reason: "fileRequired" });
       return;
     }
     const accepted = capabilities.accepted_media_types ?? ["image/jpeg", "image/png"];
     if (!accepted.includes(file.type as "image/jpeg" | "image/png")) {
-      setState({ kind: "error", message: "Choose a JPEG or PNG image." });
+      setState({ kind: "error", reason: "unsupportedMedia" });
       return;
     }
     if (file.size > capabilities.max_bytes) {
-      setState({
-        kind: "error",
-        message: "That image exceeds the current private-upload size limit.",
-      });
+      setState({ kind: "error", reason: "sizeLimit" });
       return;
     }
 
@@ -187,7 +200,7 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       consentRemoteProcessing: capabilities.remote_processing,
     });
     if (result.kind !== "ok") {
-      setState({ kind: "error", message: uploadFailureMessage(result) });
+      setState({ kind: "error", reason: uploadFailureReason(result) });
       return;
     }
     const previewUrl = result.data.solver_type === "nova" ? URL.createObjectURL(file) : null;
@@ -263,20 +276,22 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
           {capabilities.remote_processing
-            ? "Identify · Phase 6B remote plate solving"
-            : "Identify · Phase 6A infrastructure"}
+            ? messages.header.remoteEyebrow
+            : messages.header.localEyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Identify an astronomical image
+          {messages.header.title}
         </h1>
         <p className="text-lg leading-8 text-[var(--muted)]">
           {capabilities.remote_processing
-            ? "Lumina can send one explicitly consented image to Astrometry.net Nova for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations."
-            : "This phase validates Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic fake fixture: it does not identify the sky and does not return astrometric coordinates."}
+            ? formatMessageTemplate(messages.header.remoteDescription, {
+                service: NOVA_SERVICE_NAME,
+              })
+            : messages.header.localDescription}
         </p>
       </header>
 
-      <PrivacyNotice capabilities={capabilities} />
+      <PrivacyNotice capabilities={capabilities} locale={locale} messages={messages.privacy} />
 
       <section
         aria-labelledby="identify-upload-heading"
@@ -284,17 +299,14 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       >
         <div className="max-w-3xl space-y-2">
           <h2 className="text-2xl font-semibold" id="identify-upload-heading">
-            Upload one private image
+            {messages.upload.heading}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Filename and original bytes are temporary server-private data. They are never published
-            in the status response.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.upload.description}</p>
         </div>
         <form className="space-y-5" onSubmit={(event) => void submit(event)}>
           <div className="space-y-2">
             <label className="block font-semibold" htmlFor="identify-file">
-              JPEG or PNG image
+              {messages.upload.fileLabel}
             </label>
             <input
               accept={(capabilities.accepted_media_types ?? ["image/jpeg", "image/png"]).join(",")}
@@ -306,9 +318,11 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
               type="file"
             />
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Current bound: {formatBytes(capabilities.max_bytes)} and{" "}
-              {formatInteger(capabilities.max_pixels)} pixels; each dimension must be at least{" "}
-              {capabilities.min_dimension_px ?? 32}px.
+              {formatMessageTemplate(messages.upload.bound, {
+                maxBytes: formatBytes(capabilities.max_bytes, locale),
+                maxPixels: formatLocaleNumber(capabilities.max_pixels, locale),
+                minDimension: formatLocaleNumber(capabilities.min_dimension_px ?? 32, locale),
+              })}
             </p>
           </div>
 
@@ -322,8 +336,13 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
             />
             <span>
               {capabilities.remote_processing
-                ? "I explicitly consent to Lumina temporarily storing this image and sending its bytes to the third-party Astrometry.net Nova service for private plate solving. Deleting the submission below removes Lumina's local temporary copy and identifying metadata; remote deletion and retention remain subject to Astrometry.net's service limitations."
-                : "I understand that Lumina will temporarily store and process this image on the server for this identification job. No remote Astrometry.net service is contacted in this mode, and I can delete the temporary submission below."}
+                ? formatMessageTemplate(messages.upload.consentRemote, {
+                    provider: ASTROMETRY_PROVIDER_NAME,
+                    service: NOVA_SERVICE_NAME,
+                  })
+                : formatMessageTemplate(messages.upload.consentLocal, {
+                    provider: ASTROMETRY_PROVIDER_NAME,
+                  })}
             </span>
           </label>
 
@@ -334,23 +353,22 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
           >
             {state.kind === "uploading"
               ? capabilities.remote_processing
-                ? "Uploading for remote solve…"
-                : "Uploading privately…"
+                ? messages.upload.actions.uploadingRemote
+                : messages.upload.actions.uploadingLocal
               : capabilities.remote_processing
-                ? "Start remote plate solve"
-                : "Start private infrastructure check"}
+                ? messages.upload.actions.startRemote
+                : messages.upload.actions.startLocal}
           </button>
         </form>
         <noscript>
-          <p className="mt-4 border border-[var(--border)] p-4">
-            JavaScript is required to upload, poll this temporary job, and request deletion. The
-            privacy and retention policy above remains authoritative.
-          </p>
+          <p className="mt-4 border border-[var(--border)] p-4">{messages.upload.noScript}</p>
         </noscript>
       </section>
 
       <StatusPanel
         deleteConfirm={deleteConfirm}
+        locale={locale}
+        messages={messages}
         remoteProcessing={capabilities.remote_processing}
         onCancelDelete={() => setDeleteConfirm(false)}
         onConfirmDelete={() => void deleteActive()}
@@ -363,24 +381,28 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
       state.active.status?.status === "succeeded" &&
       state.active.status.solution_available ? (
         solutionState.kind === "idle" ? (
-          <StatusMessage title="Loading normalized solution">
-            Loading Lumina&apos;s stored calibration, WCS, and annotations.
+          <StatusMessage title={messages.status.solution.loadingTitle}>
+            {messages.status.solution.loadingDescription}
           </StatusMessage>
         ) : solutionState.kind === "error" ? (
-          <StatusMessage alert title="Solution temporarily unavailable">
-            The solve completed, but the normalized solution could not be loaded safely.
+          <StatusMessage alert title={messages.status.solution.unavailableTitle}>
+            {messages.status.solution.unavailableDescription}
           </StatusMessage>
         ) : solutionState.kind === "ready" && state.active.previewUrl !== null ? (
           <>
             <SolutionOverlay
               completedAt={state.active.status.completed_at}
               imageUrl={state.active.previewUrl}
+              locale={locale}
               loadingMore={solutionState.loadingMore}
               loadMoreWarning={solutionState.warning}
+              messages={messages.solutionOverlay}
               onLoadMore={() => void loadMoreAnnotations()}
               solution={solutionState.data}
             />
             <CaptureChecksPanel
+              locale={locale}
+              messages={messages.captureChecks}
               sourceHeightPx={solutionState.data.wcs.image_height}
               sourceImage={state.active.sourceImage}
               sourceWidthPx={solutionState.data.wcs.image_width}
@@ -403,57 +425,53 @@ export function IdentifyView({ apiOrigin, capabilities }: IdentifyViewProps) {
 
 function PrivacyNotice({
   capabilities,
-}: Readonly<{ capabilities: IdentificationCapabilitiesResponse }>) {
+  locale,
+  messages,
+}: Readonly<{
+  capabilities: IdentificationCapabilitiesResponse;
+  locale: PublishedLocale;
+  messages: IdentifyMessages["privacy"];
+}>) {
   return (
     <section
       aria-labelledby="identify-privacy-heading"
       className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7"
     >
       <h2 className="text-2xl font-semibold" id="identify-privacy-heading">
-        {capabilities.remote_processing
-          ? "Remote processing requires your consent"
-          : "Private by design in this phase"}
+        {capabilities.remote_processing ? messages.remote.title : messages.local.title}
       </h2>
       <ul className="list-disc space-y-2 pl-5 leading-7 text-[var(--muted)]">
         {capabilities.remote_processing ? (
           <>
             <li>
-              The image is sent to Astrometry.net Nova only after explicit consent. Lumina keeps the
-              provider API key and provider-side identifiers server-private.
+              {formatMessageTemplate(messages.remote.sentToProvider, {
+                service: NOVA_SERVICE_NAME,
+              })}
             </li>
             <li>
-              Lumina requests Nova&apos;s private visibility mode and disallows provider-side
-              modification and commercial use for the submitted image.
+              {formatMessageTemplate(messages.remote.privateMode, {
+                service: NOVA_SERVICE_NAME,
+              })}
             </li>
             <li>
-              Deleting here removes Lumina&apos;s local temporary object and scrubs identifying
-              local metadata. Astrometry.net controls any provider-side retention or deletion
-              limitations.
+              {formatMessageTemplate(messages.remote.deletion, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+              })}
             </li>
-            <li>
-              A remote solve can finish without finding an astrometric solution; Lumina reports that
-              separately from processing failure.
-            </li>
+            <li>{messages.remote.unsolved}</li>
           </>
         ) : (
           <>
-            <li>No remote plate-solving service is contacted; remote processing is disabled.</li>
-            <li>
-              Deletion removes the private object and scrubs filename/hash metadata from the
-              temporary record.
-            </li>
-            <li>
-              The fake solver verifies workflow integrity only; a success state is not a sky
-              identification.
-            </li>
+            <li>{messages.local.noRemote}</li>
+            <li>{messages.local.deletion}</li>
+            <li>{messages.local.fakeSolver}</li>
           </>
         )}
         <li>
-          {capabilities.remote_processing
-            ? "The configured local retention period is"
-            : "The configured retention period is"}{" "}
-          {capabilities.retention_hours} hours. Terminal jobs are eligible for cleanup after the
-          retention policy; abandoned uploads are also bounded.
+          {formatMessageTemplate(
+            capabilities.remote_processing ? messages.retentionRemote : messages.retentionLocal,
+            { hours: formatLocaleNumber(capabilities.retention_hours, locale) },
+          )}
         </li>
       </ul>
     </section>
@@ -462,6 +480,8 @@ function PrivacyNotice({
 
 function StatusPanel({
   deleteConfirm,
+  locale,
+  messages,
   onCancelDelete,
   onConfirmDelete,
   onRequestDelete,
@@ -469,6 +489,8 @@ function StatusPanel({
   state,
 }: Readonly<{
   deleteConfirm: boolean;
+  locale: PublishedLocale;
+  messages: IdentifyMessages;
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
   onRequestDelete: () => void;
@@ -479,25 +501,29 @@ function StatusPanel({
   if (state.kind === "uploading") {
     return (
       <StatusMessage
-        title={remoteProcessing ? "Preparing remote plate solve" : "Uploading privately"}
+        title={
+          remoteProcessing
+            ? messages.status.uploading.remoteTitle
+            : messages.status.uploading.localTitle
+        }
       >
         {remoteProcessing
-          ? "Validating the bounded image and creating a consented remote solve before provider processing begins."
-          : "Validating and storing the bounded image before the fake job is queued."}
+          ? messages.status.uploading.remoteDescription
+          : messages.status.uploading.localDescription}
       </StatusMessage>
     );
   }
   if (state.kind === "deleted") {
     return (
-      <StatusMessage title="Temporary submission deleted">
-        The private object was removed and identifying metadata was scrubbed.
+      <StatusMessage title={messages.status.deleted.title}>
+        {messages.status.deleted.description}
       </StatusMessage>
     );
   }
   if (state.kind === "error") {
     return (
-      <StatusMessage alert title="Upload not started">
-        {state.message}
+      <StatusMessage alert title={messages.status.errorTitle}>
+        {messages.upload.errors[state.reason]}
       </StatusMessage>
     );
   }
@@ -510,133 +536,136 @@ function StatusPanel({
     >
       <div className="space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Temporary job
+          {messages.status.eyebrow}
         </p>
         <h2 className="text-2xl font-semibold" id="identify-status-heading">
-          Identification infrastructure status
+          {messages.status.heading}
         </h2>
         {state.active.jobId === null ? (
           <p className="text-sm text-[var(--muted)]">
-            Remote provider identifiers are kept private and are not exposed in this interface.
+            {messages.status.providerIdentifiersPrivate}
           </p>
         ) : (
           <p className="text-sm text-[var(--muted)]">
-            Job ID: <code>{state.active.jobId}</code>
+            {messages.status.jobIdLabel} <code>{state.active.jobId}</code>
           </p>
         )}
       </div>
       {status === null ? (
         <p role="status">
           {state.active.solverType === "nova"
-            ? "Submitting. Waiting for the first private remote-solve status update…"
-            : "Queued. Waiting for the first private status update…"}
+            ? messages.status.initialRemote
+            : messages.status.initialLocal}
         </p>
       ) : (
         <div className="space-y-3">
           <p role="status">
-            <strong>Status:</strong> {statusLabel(status.status, status.solver_type)}
+            <strong>{messages.status.labels.statusLabel}</strong>{" "}
+            {statusLabel(status.status, status.solver_type, messages.status.labels)}
           </p>
           {status.progress === null || status.progress === undefined ? null : (
             <p>
-              <strong>Progress:</strong> {Math.round(status.progress * 100)}%
+              <strong>{messages.status.labels.progressLabel}</strong>{" "}
+              {formatLocaleNumber(status.progress, locale, {
+                maximumFractionDigits: 0,
+                style: "percent",
+              })}
             </p>
           )}
           {status.solver_type === "nova" && status.remote_condition === "provider_unavailable" ? (
             <p role="status">
-              Astrometry.net is temporarily unavailable. Lumina will retry within this solve&apos;s
-              bounded timeout; no new upload or consent is required.
+              {formatMessageTemplate(messages.status.remoteConditions.unavailable, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+              })}
             </p>
           ) : null}
           {status.solver_type === "nova" &&
           status.remote_condition === "provider_busy" &&
           status.status !== "failed" ? (
             <p role="status">
-              Astrometry.net is currently at capacity. Lumina will retry within this solve&apos;s
-              bounded timeout; no new upload or consent is required.
+              {formatMessageTemplate(messages.status.remoteConditions.busyRetry, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+              })}
             </p>
           ) : null}
           {status.solver_type === "nova" &&
           status.remote_condition === "provider_busy" &&
           status.status === "failed" ? (
             <p role="alert">
-              Astrometry.net returned a capacity response after Lumina&apos;s single upload attempt.
-              Lumina did not automatically resubmit because the remote outcome cannot be safely
-              assumed; try again later if you want another solve.
+              {formatMessageTemplate(messages.status.remoteConditions.busyFailed, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+              })}
             </p>
           ) : null}
           {status.status === "succeeded" ? (
             status.solver_type === "nova" ? (
               <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="font-semibold">Astrometric solution available.</p>
+                <p className="font-semibold">{messages.status.results.remoteSuccessTitle}</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  Lumina stored a normalized plate calibration, WCS, and bounded annotations. The
-                  WCS-backed result and browser-local image overlay load below; provider credentials
-                  and provider identifiers remain private.
+                  {messages.status.results.remoteSuccessDescription}
                 </p>
               </div>
             ) : (
               <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="font-semibold">Infrastructure check completed.</p>
+                <p className="font-semibold">{messages.status.results.fakeSuccessTitle}</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  The deterministic fake solver completed the private workflow. This is not an
-                  astrometric solution and contains no RA/Dec, WCS, orientation, scale, or detected
-                  objects.
+                  {messages.status.results.fakeSuccessDescription}
                 </p>
               </div>
             )
           ) : null}
           {status.status === "unsolved" ? (
             <p role="status">
-              Astrometry.net completed processing without finding a plate solution. This is not the
-              same as a processing failure.
+              {formatMessageTemplate(messages.status.results.unsolved, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+              })}
             </p>
           ) : null}
           {status.status === "expired" ? (
-            <p role="alert">
-              The remote solve did not finish within Lumina&apos;s configured timeout.
-            </p>
+            <p role="alert">{messages.status.results.expired}</p>
           ) : null}
           {(status.status === "failed" || status.status === "dead_letter") &&
           status.remote_condition !== "provider_busy" ? (
             <p role="alert">
               {status.solver_type === "nova"
-                ? "The remote plate-solving workflow could not complete safely."
-                : "The fake identification job could not complete safely."}
+                ? messages.status.results.remoteFailure
+                : messages.status.results.fakeFailure}
             </p>
           ) : null}
         </div>
       )}
       {state.pollingWarning ? (
         <p role="alert" className="text-sm">
-          The latest status or deletion request was temporarily unavailable. No private data was
-          shown.
+          {messages.status.pollingWarning}
         </p>
       ) : null}
       <div className="space-y-3 border-t border-[var(--border)] pt-5">
         <p className="text-sm leading-6 text-[var(--muted)]">
           {state.active.solverType === "nova"
-            ? "Local deletion is available before or after the remote solve finishes; it does not promise deletion from Astrometry.net."
-            : "Deletion is available before or after the fake job finishes."}
+            ? formatMessageTemplate(messages.status.deletion.remoteDescription, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+              })
+            : messages.status.deletion.localDescription}
         </p>
         {deleteConfirm ? (
           <div
             className="flex flex-wrap gap-3"
             role="group"
-            aria-label="Confirm temporary submission deletion"
+            aria-label={messages.status.deletion.confirmGroupLabel}
           >
             <button
               className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
               onClick={onConfirmDelete}
               type="button"
             >
-              Confirm delete
+              {messages.status.deletion.confirmDelete}
             </button>
             <button
               className="min-h-11 px-4 font-semibold text-[var(--link)] underline"
               onClick={onCancelDelete}
               type="button"
             >
-              Keep submission
+              {messages.status.deletion.keepSubmission}
             </button>
           </div>
         ) : (
@@ -645,7 +674,7 @@ function StatusPanel({
             onClick={onRequestDelete}
             type="button"
           >
-            Delete temporary upload
+            {messages.status.deletion.deleteUpload}
           </button>
         )}
       </div>
@@ -670,41 +699,43 @@ function StatusMessage({
   );
 }
 
-function uploadFailureMessage(
+function uploadFailureReason(
   result: Awaited<ReturnType<typeof createIdentificationSubmission>>,
-): string {
+): UploadErrorReason {
   if (result.kind === "http-error") {
-    if (result.status === 413) return "That image exceeds the current private-upload size limit.";
-    if (result.status === 415) return "The server accepted only a verified JPEG or PNG image.";
-    if (result.status === 422)
-      return "The image could not pass the private upload validation checks.";
+    if (result.status === 413) return "sizeLimit";
+    if (result.status === 415) return "serverMediaOnly";
+    if (result.status === 422) return "validationFailed";
   }
-  if (result.kind === "unavailable" && result.reason === "timeout")
-    return "The private upload timed out before Lumina could confirm it.";
-  return "Image identification is temporarily unavailable. No successful upload was confirmed.";
+  if (result.kind === "unavailable" && result.reason === "timeout") return "timeout";
+  return "unavailable";
 }
 
 function statusLabel(
   value: IdentificationStatusResponse["status"],
   solverType: IdentificationStatusResponse["solver_type"],
+  labels: IdentifyMessages["status"]["labels"],
 ): string {
   if (value === "succeeded")
-    return solverType === "fake" ? "Fake solver completed" : "Remote solver completed";
-  const labels: Record<Exclude<IdentificationStatusResponse["status"], "succeeded">, string> = {
-    created: "Created",
-    queued: "Queued",
-    running: "Running fake solver",
-    submitting: "Submitting to remote solver",
-    waiting_for_solver: "Waiting for remote solver",
-    solving: "Remote solver running",
-    fetching_results: "Fetching normalized results",
-    unsolved: "No astrometric solution",
-    failed: "Failed",
-    dead_letter: "Stopped after bounded retries",
-    expired: "Remote solve expired",
-    deleted: "Deleted",
+    return solverType === "fake" ? labels.fakeSucceeded : labels.remoteSucceeded;
+  const mappedLabels: Record<
+    Exclude<IdentificationStatusResponse["status"], "succeeded">,
+    string
+  > = {
+    created: labels.stateCreated,
+    queued: labels.stateQueued,
+    running: labels.stateRunningFake,
+    submitting: labels.stateSubmittingRemote,
+    waiting_for_solver: labels.stateWaitingRemote,
+    solving: labels.stateRemoteRunning,
+    fetching_results: labels.stateFetchingResults,
+    unsolved: labels.stateUnsolved,
+    failed: labels.stateFailed,
+    dead_letter: labels.stateDeadLetter,
+    expired: labels.stateExpired,
+    deleted: labels.stateDeleted,
   };
-  return labels[value];
+  return mappedLabels[value];
 }
 
 function sameSolutionIdentity(
@@ -732,12 +763,10 @@ function sameSolutionIdentity(
   );
 }
 
-function formatBytes(value: number): string {
+function formatBytes(value: number, locale: PublishedLocale): string {
   if (value >= 1024 * 1024)
-    return `${(value / (1024 * 1024)).toLocaleString("en-US", { maximumFractionDigits: 1 })} MiB`;
-  return `${Math.ceil(value / 1024).toLocaleString("en-US")} KiB`;
-}
-
-function formatInteger(value: number): string {
-  return value.toLocaleString("en-US");
+    return `${formatLocaleNumber(value / (1024 * 1024), locale, {
+      maximumFractionDigits: 1,
+    })} MiB`;
+  return `${formatLocaleNumber(Math.ceil(value / 1024), locale)} KiB`;
 }

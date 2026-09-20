@@ -136,6 +136,35 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.object.routeError.title).toBe("This page could not be loaded");
   });
 
+  it("keeps Identify core privacy/status templates explicit and placeholder-complete", () => {
+    expect(enMessages.identify.metadata.title).toBe("Identify an astronomical image");
+    expect(enMessages.identify.header.remoteDescription).toContain("{service}");
+    expect(enMessages.identify.upload.bound).toContain("{maxBytes}");
+    expect(enMessages.identify.upload.bound).toContain("{maxPixels}");
+    expect(enMessages.identify.upload.bound).toContain("{minDimension}");
+    expect(enMessages.identify.upload.consentRemote).toContain("{service}");
+    expect(enMessages.identify.upload.consentRemote).toContain("{provider}");
+    expect(enMessages.identify.privacy.remote.sentToProvider).toContain("{service}");
+    expect(enMessages.identify.privacy.remote.deletion).toContain("{provider}");
+    expect(enMessages.identify.status.remoteConditions.busyFailed).toContain("{provider}");
+    expect(enMessages.identify.status.deletion.remoteDescription).toContain("{provider}");
+    expect(enMessages.identify.solutionOverlay.description).toContain("{provider}");
+    expect(enMessages.identify.solutionOverlay.comparison.visibleAnnotations.one).toContain(
+      "{count}",
+    );
+    expect(enMessages.identify.solutionOverlay.comparison.visibleAnnotations.other).toContain(
+      "{count}",
+    );
+    expect(enMessages.identify.solutionOverlay.comparison.zoomLabel).toContain("{zoom}");
+    expect(enMessages.identify.solutionOverlay.metrics.pixelScaleValue).toContain("{value}");
+    expect(enMessages.identify.captureChecks.description).toContain("{provider}");
+    expect(enMessages.identify.captureChecks.boundedSample).toContain("{count}");
+    expect(enMessages.identify.captureChecks.metrics.sourceDimensionsValue).toContain("{width}");
+    expect(enMessages.identify.captureChecks.metrics.sourceDimensionsValue).toContain("{height}");
+    expect(enMessages.identify.captureChecks.nonOpaque.one).toContain("{count}");
+    expect(enMessages.identify.captureChecks.nonOpaque.other).toContain("{count}");
+  });
+
   it("keeps Deep Sky atlas templates placeholder-complete", () => {
     expect(enMessages.deepSky.atlas.activation.readyForTarget).toContain("{objectName}");
     expect(enMessages.deepSky.atlas.status.checkingSurvey).toContain("{layerLabel}");

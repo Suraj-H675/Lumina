@@ -881,6 +881,227 @@ export type LabIndexMessages = Readonly<{
   title: string;
 }>;
 
+export type IdentifyMessages = Readonly<{
+  captureChecks: Readonly<{
+    actions: Readonly<{
+      retry: string;
+      run: string;
+    }>;
+    analyzing: string;
+    boundedSample: string;
+    description: string;
+    endpointDisclosure: string;
+    eyebrow: string;
+    failures: Readonly<{
+      decodeFailed: string;
+      invalidPixels: string;
+      noOpaquePixels: string;
+      unknown: string;
+    }>;
+    histogram: Readonly<{
+      ariaLabel: string;
+      description: string;
+      title: string;
+    }>;
+    metrics: Readonly<{
+      diagnosticSample: string;
+      diagnosticSampleValue: string;
+      maximumCode: string;
+      minimumCode: string;
+      sourceDimensions: string;
+      sourceDimensionsValue: string;
+    }>;
+    nonOpaque: CountMessageTemplates;
+    proxyCaveat: string;
+    title: string;
+  }>;
+  header: Readonly<{
+    localDescription: string;
+    localEyebrow: string;
+    remoteDescription: string;
+    remoteEyebrow: string;
+    title: string;
+  }>;
+  metadata: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  privacy: Readonly<{
+    local: Readonly<{
+      deletion: string;
+      fakeSolver: string;
+      noRemote: string;
+      title: string;
+    }>;
+    remote: Readonly<{
+      deletion: string;
+      privateMode: string;
+      sentToProvider: string;
+      title: string;
+      unsolved: string;
+    }>;
+    retentionLocal: string;
+    retentionRemote: string;
+  }>;
+  solutionOverlay: Readonly<{
+    annotations: Readonly<{
+      allLoaded: string;
+      categoriesLegend: string;
+      empty: string;
+      loadMore: string;
+      loadedCount: string;
+      loadingMore: string;
+      warning: string;
+      visibleCount: string;
+    }>;
+    comparison: Readonly<{
+      annotated: string;
+      legend: string;
+      original: string;
+      originalDescription: string;
+      scrollRegionLabel: string;
+      solvedImageLabel: string;
+      visibleAnnotations: CountMessageTemplates;
+      zoomHelp: string;
+      zoomLabel: string;
+    }>;
+    description: string;
+    eyebrow: string;
+    metrics: Readonly<{
+      centerDec: string;
+      centerRa: string;
+      coordinateFrame: string;
+      fieldRadius: string;
+      orientation: string;
+      parity: string;
+      pixelScale: string;
+      pixelScaleValue: string;
+      solutionTimestamp: string;
+      solvedImage: string;
+      solvedImageValue: string;
+    }>;
+    provenance: Readonly<{
+      annotationDescription: string;
+      fingerprintLabel: string;
+      solverDescription: string;
+      solverLabel: string;
+      title: string;
+    }>;
+    table: Readonly<{
+      caption: string;
+      category: string;
+      dec: string;
+      label: string;
+      pixelX: string;
+      pixelY: string;
+      ra: string;
+    }>;
+    title: string;
+  }>;
+  status: Readonly<{
+    deleted: Readonly<{
+      description: string;
+      title: string;
+    }>;
+    deletion: Readonly<{
+      confirmDelete: string;
+      confirmGroupLabel: string;
+      deleteUpload: string;
+      keepSubmission: string;
+      localDescription: string;
+      remoteDescription: string;
+    }>;
+    errorTitle: string;
+    eyebrow: string;
+    heading: string;
+    initialLocal: string;
+    initialRemote: string;
+    jobIdLabel: string;
+    labels: Readonly<{
+      progressLabel: string;
+      fakeSucceeded: string;
+      remoteSucceeded: string;
+      stateCreated: string;
+      stateDeadLetter: string;
+      stateDeleted: string;
+      stateExpired: string;
+      stateFailed: string;
+      stateFetchingResults: string;
+      stateQueued: string;
+      stateRemoteRunning: string;
+      stateRunningFake: string;
+      stateSubmittingRemote: string;
+      stateUnsolved: string;
+      stateWaitingRemote: string;
+      statusLabel: string;
+    }>;
+    pollingWarning: string;
+    providerIdentifiersPrivate: string;
+    remoteConditions: Readonly<{
+      busyFailed: string;
+      busyRetry: string;
+      unavailable: string;
+    }>;
+    results: Readonly<{
+      expired: string;
+      fakeFailure: string;
+      fakeSuccessDescription: string;
+      fakeSuccessTitle: string;
+      remoteFailure: string;
+      remoteSuccessDescription: string;
+      remoteSuccessTitle: string;
+      unsolved: string;
+    }>;
+    solution: Readonly<{
+      loadingDescription: string;
+      loadingTitle: string;
+      unavailableDescription: string;
+      unavailableTitle: string;
+    }>;
+    uploading: Readonly<{
+      localDescription: string;
+      localTitle: string;
+      remoteDescription: string;
+      remoteTitle: string;
+    }>;
+  }>;
+  unavailable: Readonly<{
+    description: string;
+    eyebrow: string;
+    heading: string;
+    reasons: Readonly<{
+      apiOrigin: string;
+      policy: string;
+    }>;
+    title: string;
+  }>;
+  upload: Readonly<{
+    actions: Readonly<{
+      startLocal: string;
+      startRemote: string;
+      uploadingLocal: string;
+      uploadingRemote: string;
+    }>;
+    bound: string;
+    consentLocal: string;
+    consentRemote: string;
+    description: string;
+    errors: Readonly<{
+      consentRequired: string;
+      fileRequired: string;
+      serverMediaOnly: string;
+      sizeLimit: string;
+      timeout: string;
+      unavailable: string;
+      unsupportedMedia: string;
+      validationFailed: string;
+    }>;
+    fileLabel: string;
+    heading: string;
+    noScript: string;
+  }>;
+}>;
+
 export type JournalEntryMessages = Readonly<{
   addAction: string;
   cancelAction: string;
@@ -1993,6 +2214,7 @@ export type LuminaMessages = Readonly<{
   discoveries: DiscoveriesMessages;
   entityTypes: EntityTypeMessages;
   explore: ExploreMessages;
+  identify: IdentifyMessages;
   journal: JournalMessages;
   labIndex: LabIndexMessages;
   learn: LearnMessages;

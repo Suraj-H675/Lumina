@@ -784,6 +784,275 @@ export const enMessages = {
       windLabel: "Wind at 10 m",
     },
   },
+  identify: {
+    captureChecks: {
+      actions: {
+        retry: "Retry local capture checks",
+        run: "Run local capture checks",
+      },
+      analyzing: "Analyzing a bounded local pixel sample…",
+      boundedSample:
+        "The browser decodes the selected JPEG/PNG to display RGB and samples at most {count} pixels with nearest-neighbour scaling.",
+      description:
+        "Run a bounded diagnostic sample of the image already held in this browser. This action makes no additional upload and does not contact {provider} or another survey service.",
+      endpointDisclosure:
+        "Minimum/maximum-code proxies count opaque sample pixels where at least one RGB channel is exactly 0 or 255 after browser decoding. Endpoint occupancy can be consistent with clipping, but it can also come from legitimate image content or processing; Lumina does not diagnose exposure from these percentages.",
+      eyebrow: "Browser-local diagnostics",
+      failures: {
+        decodeFailed:
+          "This browser could not decode the selected image for local capture checks. The solved result remains available.",
+        invalidPixels: "The decoded pixel sample failed Lumina's bounded validation checks.",
+        noOpaquePixels:
+          "The bounded sample contains no fully opaque pixels, so these RGB diagnostics are not meaningful.",
+        unknown:
+          "The browser could not complete the local capture check. No additional upload occurred.",
+      },
+      histogram: {
+        ariaLabel: "Display-RGB luma histogram",
+        description:
+          "Distribution across opaque sampled pixels only. This is not isolated sky-background measurement and is not calibrated luminance.",
+        title: "Display-RGB luma histogram",
+      },
+      metrics: {
+        diagnosticSample: "Diagnostic sample",
+        diagnosticSampleValue: "{width} × {height}",
+        maximumCode: "Maximum-code proxy",
+        minimumCode: "Minimum-code proxy",
+        sourceDimensions: "Source dimensions",
+        sourceDimensionsValue: "{width} × {height} pixels",
+      },
+      nonOpaque: {
+        one: "{count} non-opaque sampled pixel was excluded from the histogram and endpoint percentages.",
+        other:
+          "{count} non-opaque sampled pixels were excluded from the histogram and endpoint percentages.",
+      },
+      proxyCaveat:
+        "These are code-value proxies, not sensor/raw measurements or universal photography advice. Compression, transparency, black borders, processing, colour management, and intentional saturation can all affect the numbers.",
+      title: "Capture checks",
+    },
+    header: {
+      localDescription:
+        "This phase validates Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic fake fixture: it does not identify the sky and does not return astrometric coordinates.",
+      localEyebrow: "Identify · Phase 6A infrastructure",
+      remoteDescription:
+        "Lumina can send one explicitly consented image to {service} for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations.",
+      remoteEyebrow: "Identify · Phase 6B remote plate solving",
+      title: "Identify an astronomical image",
+    },
+    metadata: {
+      description:
+        "Upload an astronomical image for Lumina's private identification workflow. Remote plate solving is used only when explicitly enabled and consented to.",
+      title: "Identify an astronomical image",
+    },
+    privacy: {
+      local: {
+        deletion:
+          "Deletion removes the private object and scrubs filename/hash metadata from the temporary record.",
+        fakeSolver:
+          "The fake solver verifies workflow integrity only; a success state is not a sky identification.",
+        noRemote: "No remote plate-solving service is contacted; remote processing is disabled.",
+        title: "Private by design in this phase",
+      },
+      remote: {
+        deletion:
+          "Deleting here removes Lumina's local temporary object and scrubs identifying local metadata. {provider} controls any provider-side retention or deletion limitations.",
+        privateMode:
+          "Lumina requests {service}'s private visibility mode and disallows provider-side modification and commercial use for the submitted image.",
+        sentToProvider:
+          "The image is sent to {service} only after explicit consent. Lumina keeps the provider API key and provider-side identifiers server-private.",
+        title: "Remote processing requires your consent",
+        unsolved:
+          "A remote solve can finish without finding an astrometric solution; Lumina reports that separately from processing failure.",
+      },
+      retentionLocal:
+        "The configured retention period is {hours} hours. Terminal jobs are eligible for cleanup after the retention policy; abandoned uploads are also bounded.",
+      retentionRemote:
+        "The configured local retention period is {hours} hours. Terminal jobs are eligible for cleanup after the retention policy; abandoned uploads are also bounded.",
+    },
+    solutionOverlay: {
+      annotations: {
+        allLoaded: "All available annotation pages are loaded.",
+        categoriesLegend: "Annotation categories",
+        empty: "No named annotations were returned.",
+        loadMore: "Load more annotations",
+        loadedCount: "Annotations loaded: {count}",
+        loadingMore: "Loading annotations…",
+        warning:
+          "More annotations are temporarily unavailable. The loaded solution remains usable.",
+        visibleCount: "Visible with current filters: {count}",
+      },
+      comparison: {
+        annotated: "Annotated",
+        legend: "Image comparison",
+        original: "Original",
+        originalDescription: "The original browser-local image is shown without annotations.",
+        scrollRegionLabel: "Scrollable solved astronomical image",
+        solvedImageLabel: "Solved astronomical image",
+        visibleAnnotations: {
+          one: "{count} WCS-derived annotation is visible over the local image.",
+          other: "{count} WCS-derived annotations are visible over the local image.",
+        },
+        zoomHelp:
+          "At zoom levels above 1×, pan across the solved image by scrolling the image region.",
+        zoomLabel: "Zoom: {zoom}×",
+      },
+      description:
+        "Annotation positions below are the stored image-pixel coordinates produced from the validated WCS solution. The browser does not estimate positions from percentages or contact {provider} directly.",
+      eyebrow: "Normalized astrometric result",
+      metrics: {
+        centerDec: "Center Dec",
+        centerRa: "Center RA",
+        coordinateFrame: "Coordinate frame",
+        fieldRadius: "Field radius",
+        orientation: "Orientation",
+        parity: "Parity",
+        pixelScale: "Pixel scale",
+        pixelScaleValue: "{value} arcsec/pixel",
+        solutionTimestamp: "Solution timestamp",
+        solvedImage: "Solved image",
+        solvedImageValue: "{width} × {height}px",
+      },
+      provenance: {
+        annotationDescription:
+          "Annotation names are provider-derived labels associated with the solved WCS; they are not object-recognition or generative-AI detections and may not enumerate every object in the field.",
+        fingerprintLabel: "WCS source fingerprint:",
+        solverDescription:
+          "Lumina validates and normalizes the returned calibration and WCS before storing it.",
+        solverLabel: "Solver:",
+        title: "Solution provenance and limitations",
+      },
+      table: {
+        caption: "Loaded WCS-derived annotations",
+        category: "Category",
+        dec: "Dec",
+        label: "Label",
+        pixelX: "Pixel x",
+        pixelY: "Pixel y",
+        ra: "RA",
+      },
+      title: "Solved field and WCS-backed annotations",
+    },
+    status: {
+      deleted: {
+        description: "The private object was removed and identifying metadata was scrubbed.",
+        title: "Temporary submission deleted",
+      },
+      deletion: {
+        confirmDelete: "Confirm delete",
+        confirmGroupLabel: "Confirm temporary submission deletion",
+        deleteUpload: "Delete temporary upload",
+        keepSubmission: "Keep submission",
+        localDescription: "Deletion is available before or after the fake job finishes.",
+        remoteDescription:
+          "Local deletion is available before or after the remote solve finishes; it does not promise deletion from {provider}.",
+      },
+      errorTitle: "Upload not started",
+      eyebrow: "Temporary job",
+      heading: "Identification infrastructure status",
+      initialLocal: "Queued. Waiting for the first private status update…",
+      initialRemote: "Submitting. Waiting for the first private remote-solve status update…",
+      jobIdLabel: "Job ID:",
+      labels: {
+        fakeSucceeded: "Fake solver completed",
+        progressLabel: "Progress:",
+        remoteSucceeded: "Remote solver completed",
+        stateCreated: "Created",
+        stateDeadLetter: "Stopped after bounded retries",
+        stateDeleted: "Deleted",
+        stateExpired: "Remote solve expired",
+        stateFailed: "Failed",
+        stateFetchingResults: "Fetching normalized results",
+        stateQueued: "Queued",
+        stateRemoteRunning: "Remote solver running",
+        stateRunningFake: "Running fake solver",
+        stateSubmittingRemote: "Submitting to remote solver",
+        stateUnsolved: "No astrometric solution",
+        stateWaitingRemote: "Waiting for remote solver",
+        statusLabel: "Status:",
+      },
+      pollingWarning:
+        "The latest status or deletion request was temporarily unavailable. No private data was shown.",
+      providerIdentifiersPrivate:
+        "Remote provider identifiers are kept private and are not exposed in this interface.",
+      remoteConditions: {
+        busyFailed:
+          "{provider} returned a capacity response after Lumina's single upload attempt. Lumina did not automatically resubmit because the remote outcome cannot be safely assumed; try again later if you want another solve.",
+        busyRetry:
+          "{provider} is currently at capacity. Lumina will retry within this solve's bounded timeout; no new upload or consent is required.",
+        unavailable:
+          "{provider} is temporarily unavailable. Lumina will retry within this solve's bounded timeout; no new upload or consent is required.",
+      },
+      results: {
+        expired: "The remote solve did not finish within Lumina's configured timeout.",
+        fakeFailure: "The fake identification job could not complete safely.",
+        fakeSuccessDescription:
+          "The deterministic fake solver completed the private workflow. This is not an astrometric solution and contains no RA/Dec, WCS, orientation, scale, or detected objects.",
+        fakeSuccessTitle: "Infrastructure check completed.",
+        remoteFailure: "The remote plate-solving workflow could not complete safely.",
+        remoteSuccessDescription:
+          "Lumina stored a normalized plate calibration, WCS, and bounded annotations. The WCS-backed result and browser-local image overlay load below; provider credentials and provider identifiers remain private.",
+        remoteSuccessTitle: "Astrometric solution available.",
+        unsolved:
+          "{provider} completed processing without finding a plate solution. This is not the same as a processing failure.",
+      },
+      solution: {
+        loadingDescription: "Loading Lumina's stored calibration, WCS, and annotations.",
+        loadingTitle: "Loading normalized solution",
+        unavailableDescription:
+          "The solve completed, but the normalized solution could not be loaded safely.",
+        unavailableTitle: "Solution temporarily unavailable",
+      },
+      uploading: {
+        localDescription: "Validating and storing the bounded image before the fake job is queued.",
+        localTitle: "Uploading privately",
+        remoteDescription:
+          "Validating the bounded image and creating a consented remote solve before provider processing begins.",
+        remoteTitle: "Preparing remote plate solve",
+      },
+    },
+    unavailable: {
+      description:
+        "Upload infrastructure is private and optional. Core Lumina remains available when this feature is offline.",
+      eyebrow: "Identify · Private image processing",
+      heading: "Identification unavailable",
+      reasons: {
+        apiOrigin: "No safe API origin is configured for private uploads.",
+        policy: "Identification policy is temporarily unavailable.",
+      },
+      title: "Identify an astronomical image",
+    },
+    upload: {
+      actions: {
+        startLocal: "Start private infrastructure check",
+        startRemote: "Start remote plate solve",
+        uploadingLocal: "Uploading privately…",
+        uploadingRemote: "Uploading for remote solve…",
+      },
+      bound:
+        "Current bound: {maxBytes} and {maxPixels} pixels; each dimension must be at least {minDimension}px.",
+      consentLocal:
+        "I understand that Lumina will temporarily store and process this image on the server for this identification job. No remote {provider} service is contacted in this mode, and I can delete the temporary submission below.",
+      consentRemote:
+        "I explicitly consent to Lumina temporarily storing this image and sending its bytes to the third-party {service} service for private plate solving. Deleting the submission below removes Lumina's local temporary copy and identifying metadata; remote deletion and retention remain subject to {provider}'s service limitations.",
+      description:
+        "Filename and original bytes are temporary server-private data. They are never published in the status response.",
+      errors: {
+        consentRequired: "Confirm the temporary private processing notice first.",
+        fileRequired: "Choose one JPEG or PNG image first.",
+        serverMediaOnly: "The server accepted only a verified JPEG or PNG image.",
+        sizeLimit: "That image exceeds the current private-upload size limit.",
+        timeout: "The private upload timed out before Lumina could confirm it.",
+        unavailable:
+          "Image identification is temporarily unavailable. No successful upload was confirmed.",
+        unsupportedMedia: "Choose a JPEG or PNG image.",
+        validationFailed: "The image could not pass the private upload validation checks.",
+      },
+      fileLabel: "JPEG or PNG image",
+      heading: "Upload one private image",
+      noScript:
+        "JavaScript is required to upload, poll this temporary job, and request deletion. The privacy and retention policy above remains authoritative.",
+    },
+  },
   journal: {
     entry: {
       addAction: "Add to journal",

@@ -3,11 +3,27 @@
 import type { IdentificationSolutionResponse } from "@lumina/api-client";
 import { useMemo, useState } from "react";
 
+import {
+  formatCountMessage,
+  formatLocaleDateTime,
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../lib/i18n/format";
+import type { PublishedLocale } from "../../lib/i18n/locales";
+import type { IdentifyMessages } from "../../lib/i18n/messages/types";
+import {
+  ASTROMETRY_PROVIDER_NAME,
+  NOVA_SERVICE_NAME,
+} from "../../lib/identification/provider-display";
+
 type SolutionOverlayProps = Readonly<{
   completedAt: string | null;
   imageUrl: string;
+  locale: PublishedLocale;
   loadingMore: boolean;
   loadMoreWarning: boolean;
+  messages: IdentifyMessages["solutionOverlay"];
   onLoadMore: () => void;
   solution: IdentificationSolutionResponse;
 }>;
@@ -17,8 +33,10 @@ type ComparisonMode = "annotated" | "original";
 export function SolutionOverlay({
   completedAt,
   imageUrl,
+  locale,
   loadingMore,
   loadMoreWarning,
+  messages,
   onLoadMore,
   solution,
 }: SolutionOverlayProps) {
@@ -55,24 +73,29 @@ export function SolutionOverlay({
     >
       <div className="max-w-4xl space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Normalized astrometric result
+          {messages.eyebrow}
         </p>
         <h2 className="text-2xl font-semibold" id="identify-solution-heading">
-          Solved field and WCS-backed annotations
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          Annotation positions below are the stored image-pixel coordinates produced from the
-          validated WCS solution. The browser does not estimate positions from percentages or
-          contact Astrometry.net directly.
+          {formatMessageTemplate(messages.description, {
+            provider: ASTROMETRY_PROVIDER_NAME,
+          })}
         </p>
       </div>
 
-      <CalibrationSummary completedAt={completedAt} solution={solution} />
+      <CalibrationSummary
+        completedAt={completedAt}
+        locale={locale}
+        messages={messages.metrics}
+        solution={solution}
+      />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="min-w-0 space-y-4">
           <fieldset className="flex flex-wrap gap-3">
-            <legend className="mb-2 font-semibold">Image comparison</legend>
+            <legend className="mb-2 font-semibold">{messages.comparison.legend}</legend>
             <label className="inline-flex min-h-11 items-center gap-2 border border-[var(--border)] px-3">
               <input
                 checked={comparisonMode === "annotated"}
@@ -80,7 +103,7 @@ export function SolutionOverlay({
                 onChange={() => setComparisonMode("annotated")}
                 type="radio"
               />
-              Annotated
+              {messages.comparison.annotated}
             </label>
             <label className="inline-flex min-h-11 items-center gap-2 border border-[var(--border)] px-3">
               <input
@@ -89,12 +112,16 @@ export function SolutionOverlay({
                 onChange={() => setComparisonMode("original")}
                 type="radio"
               />
-              Original
+              {messages.comparison.original}
             </label>
           </fieldset>
 
           <label className="block max-w-md space-y-2 font-semibold" htmlFor="identify-overlay-zoom">
-            <span>Zoom: {zoom.toFixed(1)}×</span>
+            <span>
+              {formatMessageTemplate(messages.comparison.zoomLabel, {
+                zoom: formatLocaleFixedNumber(zoom, 1, locale),
+              })}
+            </span>
             <input
               className="block min-h-11 w-full"
               id="identify-overlay-zoom"
@@ -106,28 +133,30 @@ export function SolutionOverlay({
               value={zoom}
             />
           </label>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            At zoom levels above 1×, pan across the solved image by scrolling the image region.
-          </p>
+          <p className="text-sm leading-6 text-[var(--muted)]">{messages.comparison.zoomHelp}</p>
 
           <div
-            aria-label="Scrollable solved astronomical image"
+            aria-label={messages.comparison.scrollRegionLabel}
             className="max-h-[70vh] overflow-auto border border-[var(--border)] bg-[var(--surface)]"
             tabIndex={0}
           >
             <div style={{ minWidth: "100%", width: `${zoom * 100}%` }}>
               <svg
-                aria-label="Solved astronomical image"
+                aria-label={messages.comparison.solvedImageLabel}
                 className="block h-auto w-full text-[var(--accent)]"
                 preserveAspectRatio="xMidYMid meet"
                 role="img"
                 viewBox={`0 0 ${width} ${height}`}
               >
-                <title id="identify-overlay-title">Solved astronomical image</title>
+                <title id="identify-overlay-title">{messages.comparison.solvedImageLabel}</title>
                 <desc id="identify-overlay-description">
                   {comparisonMode === "annotated"
-                    ? `${visibleAnnotations.length} WCS-derived annotations are visible over the local image.`
-                    : "The original browser-local image is shown without annotations."}
+                    ? formatCountMessage(
+                        messages.comparison.visibleAnnotations,
+                        visibleAnnotations.length,
+                        locale,
+                      )
+                    : messages.comparison.originalDescription}
                 </desc>
                 <image
                   height={height}
@@ -174,9 +203,9 @@ export function SolutionOverlay({
 
         <div className="space-y-5">
           <fieldset className="space-y-3">
-            <legend className="font-semibold">Annotation categories</legend>
+            <legend className="font-semibold">{messages.annotations.categoriesLegend}</legend>
             {categories.length === 0 ? (
-              <p className="text-sm text-[var(--muted)]">No named annotations were returned.</p>
+              <p className="text-sm text-[var(--muted)]">{messages.annotations.empty}</p>
             ) : (
               categories.map((category) => (
                 <label className="flex min-h-11 items-center gap-3" key={category}>
@@ -192,9 +221,15 @@ export function SolutionOverlay({
           </fieldset>
 
           <div className="space-y-2 border-t border-[var(--border)] pt-4">
-            <p className="font-semibold">Annotations loaded: {solution.annotations.length}</p>
+            <p className="font-semibold">
+              {formatMessageTemplate(messages.annotations.loadedCount, {
+                count: formatLocaleNumber(solution.annotations.length, locale),
+              })}
+            </p>
             <p className="text-sm text-[var(--muted)]">
-              Visible with current filters: {visibleAnnotations.length}
+              {formatMessageTemplate(messages.annotations.visibleCount, {
+                count: formatLocaleNumber(visibleAnnotations.length, locale),
+              })}
             </p>
             {solution.has_more ? (
               <button
@@ -203,41 +238,33 @@ export function SolutionOverlay({
                 onClick={onLoadMore}
                 type="button"
               >
-                {loadingMore ? "Loading annotations…" : "Load more annotations"}
+                {loadingMore ? messages.annotations.loadingMore : messages.annotations.loadMore}
               </button>
             ) : (
-              <p className="text-sm text-[var(--muted)]">
-                All available annotation pages are loaded.
-              </p>
+              <p className="text-sm text-[var(--muted)]">{messages.annotations.allLoaded}</p>
             )}
             {loadMoreWarning ? (
               <p className="text-sm" role="alert">
-                More annotations are temporarily unavailable. The loaded solution remains usable.
+                {messages.annotations.warning}
               </p>
             ) : null}
           </div>
         </div>
       </div>
 
-      <AnnotationTable solution={solution} />
+      <AnnotationTable locale={locale} messages={messages.table} solution={solution} />
 
       <details className="border border-[var(--border)] p-4">
-        <summary className="cursor-pointer font-semibold">
-          Solution provenance and limitations
-        </summary>
+        <summary className="cursor-pointer font-semibold">{messages.provenance.title}</summary>
         <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--muted)]">
           <p>
-            Solver: Astrometry.net Nova
-            {solution.solver_version ? ` (${solution.solver_version})` : ""}. Lumina validates and
-            normalizes the returned calibration and WCS before storing it.
+            {messages.provenance.solverLabel} {NOVA_SERVICE_NAME}
+            {solution.solver_version ? <> ({solution.solver_version})</> : null}.{" "}
+            {messages.provenance.solverDescription}
           </p>
+          <p>{messages.provenance.annotationDescription}</p>
           <p>
-            Annotation names are provider-derived labels associated with the solved WCS; they are
-            not object-recognition or generative-AI detections and may not enumerate every object in
-            the field.
-          </p>
-          <p>
-            WCS source fingerprint: <code>{solution.wcs.source_sha256}</code>
+            {messages.provenance.fingerprintLabel} <code>{solution.wcs.source_sha256}</code>
           </p>
         </div>
       </details>
@@ -247,28 +274,52 @@ export function SolutionOverlay({
 
 function CalibrationSummary({
   completedAt,
+  locale,
+  messages,
   solution,
-}: Readonly<{ completedAt: string | null; solution: IdentificationSolutionResponse }>) {
+}: Readonly<{
+  completedAt: string | null;
+  locale: PublishedLocale;
+  messages: IdentifyMessages["solutionOverlay"]["metrics"];
+  solution: IdentificationSolutionResponse;
+}>) {
   const calibration = solution.calibration;
   const frame = solution.wcs.coordinate_frame === "icrs" ? "ICRS" : "FK5 J2000";
   return (
     <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Metric label="Center RA" value={`${calibration.center_ra_deg.toFixed(6)}°`} />
-      <Metric label="Center Dec" value={`${calibration.center_dec_deg.toFixed(6)}°`} />
-      <Metric label="Coordinate frame" value={frame} />
       <Metric
-        label="Pixel scale"
-        value={`${calibration.pixel_scale_arcsec_per_pixel.toFixed(3)} arcsec/pixel`}
+        label={messages.centerRa}
+        value={`${formatLocaleFixedNumber(calibration.center_ra_deg, 6, locale)}°`}
       />
-      <Metric label="Orientation" value={`${calibration.orientation_deg.toFixed(3)}°`} />
-      <Metric label="Parity" value={calibration.parity === 1 ? "+1" : "−1"} />
-      <Metric label="Field radius" value={`${calibration.radius_deg.toFixed(4)}°`} />
       <Metric
-        label="Solved image"
-        value={`${solution.wcs.image_width} × ${solution.wcs.image_height}px`}
+        label={messages.centerDec}
+        value={`${formatLocaleFixedNumber(calibration.center_dec_deg, 6, locale)}°`}
+      />
+      <Metric label={messages.coordinateFrame} value={frame} />
+      <Metric
+        label={messages.pixelScale}
+        value={formatMessageTemplate(messages.pixelScaleValue, {
+          value: formatLocaleFixedNumber(calibration.pixel_scale_arcsec_per_pixel, 3, locale),
+        })}
+      />
+      <Metric
+        label={messages.orientation}
+        value={`${formatLocaleFixedNumber(calibration.orientation_deg, 3, locale)}°`}
+      />
+      <Metric label={messages.parity} value={calibration.parity === 1 ? "+1" : "−1"} />
+      <Metric
+        label={messages.fieldRadius}
+        value={`${formatLocaleFixedNumber(calibration.radius_deg, 4, locale)}°`}
+      />
+      <Metric
+        label={messages.solvedImage}
+        value={formatMessageTemplate(messages.solvedImageValue, {
+          height: formatLocaleNumber(solution.wcs.image_height, locale),
+          width: formatLocaleNumber(solution.wcs.image_width, locale),
+        })}
       />
       {completedAt === null ? null : (
-        <Metric label="Solution timestamp" value={formatTimestamp(completedAt)} />
+        <Metric label={messages.solutionTimestamp} value={formatTimestamp(completedAt, locale)} />
       )}
     </dl>
   );
@@ -283,31 +334,39 @@ function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
   );
 }
 
-function AnnotationTable({ solution }: Readonly<{ solution: IdentificationSolutionResponse }>) {
+function AnnotationTable({
+  locale,
+  messages,
+  solution,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: IdentifyMessages["solutionOverlay"]["table"];
+  solution: IdentificationSolutionResponse;
+}>) {
   if (solution.annotations.length === 0) return null;
   return (
     <div className="overflow-x-auto border border-[var(--border)]">
       <table className="w-full min-w-[44rem] border-collapse text-left text-sm">
-        <caption className="p-4 text-left font-semibold">Loaded WCS-derived annotations</caption>
+        <caption className="p-4 text-left font-semibold">{messages.caption}</caption>
         <thead>
           <tr className="border-t border-[var(--border)] bg-[var(--surface)]">
             <th className="p-3" scope="col">
-              Label
+              {messages.label}
             </th>
             <th className="p-3" scope="col">
-              Category
+              {messages.category}
             </th>
             <th className="p-3" scope="col">
-              Pixel x
+              {messages.pixelX}
             </th>
             <th className="p-3" scope="col">
-              Pixel y
+              {messages.pixelY}
             </th>
             <th className="p-3" scope="col">
-              RA
+              {messages.ra}
             </th>
             <th className="p-3" scope="col">
-              Dec
+              {messages.dec}
             </th>
           </tr>
         </thead>
@@ -319,10 +378,18 @@ function AnnotationTable({ solution }: Readonly<{ solution: IdentificationSoluti
             >
               <td className="p-3">{annotation.names.join(" · ")}</td>
               <td className="p-3">{formatCategory(annotation.category)}</td>
-              <td className="p-3 tabular-nums">{annotation.pixel_x.toFixed(2)}</td>
-              <td className="p-3 tabular-nums">{annotation.pixel_y.toFixed(2)}</td>
-              <td className="p-3 tabular-nums">{annotation.ra_deg.toFixed(6)}°</td>
-              <td className="p-3 tabular-nums">{annotation.dec_deg.toFixed(6)}°</td>
+              <td className="p-3 tabular-nums">
+                {formatLocaleFixedNumber(annotation.pixel_x, 2, locale)}
+              </td>
+              <td className="p-3 tabular-nums">
+                {formatLocaleFixedNumber(annotation.pixel_y, 2, locale)}
+              </td>
+              <td className="p-3 tabular-nums">
+                {formatLocaleFixedNumber(annotation.ra_deg, 6, locale)}°
+              </td>
+              <td className="p-3 tabular-nums">
+                {formatLocaleFixedNumber(annotation.dec_deg, 6, locale)}°
+              </td>
             </tr>
           ))}
         </tbody>
@@ -335,9 +402,20 @@ function formatCategory(value: string): string {
   return value.replaceAll(/[._-]+/gu, " ").replaceAll(/\b\w/gu, (letter) => letter.toUpperCase());
 }
 
-function formatTimestamp(value: string): string {
+function formatTimestamp(value: string, locale: PublishedLocale): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toISOString().replace("T", " ").replace(".000Z", " UTC");
+  if (Number.isNaN(date.getTime())) return value;
+  const options: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    hour: "2-digit",
+    hourCycle: "h23",
+    minute: "2-digit",
+    month: "short",
+    second: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+    year: "numeric",
+  };
+  if (date.getUTCMilliseconds() !== 0) options.fractionalSecondDigits = 3;
+  return formatLocaleDateTime(date, locale, options);
 }

@@ -2096,6 +2096,130 @@ export const enMessages = {
     eyebrow: "Space Now",
     intro:
       "One carefully sourced Daily Visual from NASA Astronomy Picture of the Day, with its content date, credit, and Lumina retrieval state kept distinct.",
+    launches: {
+      common: {
+        backToLaunchCenter: "Back to Launch Center",
+        cacheStates: {
+          expired: "expired",
+          fresh: "fresh",
+          missing: "missing",
+          stale: "stale",
+        },
+        noneRecorded: "None recorded",
+        notProvided: "Not provided",
+        notProvidedBySource: "Not provided by source",
+        notRecorded: "Not recorded",
+        spaceNowLaunchCenter: "Space Now · Launch Center",
+        unavailableReasons: {
+          cachedContentExpired: "The last validated launch snapshot has expired.",
+          noValidatedSnapshot: "No validated launch snapshot is available yet.",
+          providerDisabled: "The launch provider is disabled.",
+        },
+      },
+      countdown: {
+        label: "Exact countdown:",
+        loading: "loading…",
+        reachedOrPassed: "Launch time reached or passed",
+        units: {
+          day: "{value}d",
+          hour: "{value}h",
+          minute: "{value}m",
+          second: "{value}s",
+        },
+      },
+      detail: {
+        addToCalendar: "Add to calendar",
+        calendarWithheld:
+          "Calendar export is withheld because the provider schedule is coarser than hour precision.",
+        factsTitle: "Launch facts",
+        labels: {
+          cacheState: "Cache state",
+          country: "Country",
+          destinationBody: "Destination / body",
+          lastRefreshFailure: "Last refresh failure",
+          launchPad: "Launch pad",
+          launchProvider: "Launch provider",
+          ll2RecordUpdated: "LL2 record updated",
+          location: "Location",
+          luminaRetrieved: "Lumina retrieved",
+          missionAgencies: "Mission agencies",
+          missionType: "Mission type",
+          orbit: "Orbit",
+          vehicle: "Vehicle",
+          vehicleVariant: "Vehicle variant",
+        },
+        metadataDescription:
+          "{name}: source status, schedule precision, mission, vehicle, site, freshness, and official launch links.",
+        metadataNotFoundTitle: "Launch not found",
+        metadataUnavailableTitle: "Launch temporarily unavailable",
+        notFoundDescription:
+          "Lumina keeps a bounded upcoming-launch snapshot. This identifier is not present in that current validated cache.",
+        notFoundTitle: "Launch not found in the current snapshot",
+        officialLaunchPage: "Official launch page",
+        officialLiveWebcast: "Official live webcast",
+        officialWebcast: "Official webcast",
+        provenanceTitle: "Freshness and provenance",
+        sourceActionsTitle: "Source actions",
+        sourceDocumentation: "Launch Library 2 source",
+        transportDescription:
+          "Lumina could not read its API safely, so it is showing no launch claims.",
+        transportTitle: "Launch detail is temporarily unavailable",
+        unavailableTitle: "Launch detail is currently unavailable",
+      },
+      list: {
+        backToSpaceNow: "Back to Space Now",
+        currentSnapshotTitle: "Current bounded snapshot",
+        eyebrow: "Space Now · Launch Center",
+        facts: {
+          launchProvider: "Launch provider",
+          mission: "Mission",
+          site: "Site",
+          vehicle: "Vehicle",
+        },
+        freshSnapshot: "Fresh launch snapshot",
+        intro:
+          "A bounded Launch Library 2 snapshot. Status, NET precision, launch window, source update time, and Lumina retrieval freshness stay separate so placeholder schedules never look more exact than the source says they are.",
+        lastSafeRefreshFailure: "Last safe refresh failure: {code}",
+        latestRecordUpdate: "The newest LL2 record update represented is {updatedAt}.",
+        metadataDescription:
+          "Upcoming space launches from Launch Library 2 with explicit source status, schedule precision, windows, freshness, and official links.",
+        metadataTitle: "Launch Center",
+        noBrowserProviderRequest: "No live provider request is made from this page.",
+        providerInformation: "Provider information",
+        providerRecordUpdatedLabel: "Provider record updated",
+        retrievedCache: "Lumina retrieved this cache at {retrievedAt}.",
+        snapshotCount: {
+          one: "Showing {count} of {total} normalized launch record retained by this Lumina projection.",
+          other:
+            "Showing {count} of {total} normalized launch records retained by this Lumina projection.",
+        },
+        sourceDocumentation: "Launch Library 2",
+        sourceTitle: "Source and limitations",
+        staleSnapshot: "Stale launch snapshot",
+        title: "Upcoming launches",
+        transportDescription:
+          "Lumina could not read its API within the bounded request window, so it is showing no launch claims.",
+        transportTitle: "Launch Center is temporarily unavailable",
+        unavailableTitle: "Launch Center is currently unavailable",
+        latestRecordNotRecorded: "not recorded",
+        unrecordedTime: "an unrecorded time",
+      },
+      schedule: {
+        countdownEligibleDetail:
+          "The source currently marks this Go timing precise enough for Lumina's exact countdown.",
+        countdownEligibleList: "This Go record is precise enough for an exact countdown.",
+        countdownIneligibleDetail:
+          "No exact countdown is shown for this status/precision combination.",
+        countdownIneligibleList:
+          "Lumina does not show an exact countdown for this status/precision combination.",
+        launchWindow: "Launch window: {start} → {end}",
+        providerPrecision: "Provider precision: {precision} ({abbreviation}). {countdown}",
+        scheduleReference: "Schedule reference",
+        scheduledNet: "Scheduled NET",
+        sourcePrecision: "Source precision: {precision} ({abbreviation}). {countdown}",
+        window: "Window: {start} → {end}",
+      },
+    },
     metadataDescription:
       "A source-backed Daily Visual from NASA Astronomy Picture of the Day, with clear dates, credit, and retrieval state.",
     metadataTitle: "Space Now",

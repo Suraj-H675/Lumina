@@ -509,6 +509,37 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.unavailable.cachedContentExpired).toMatch(/expired/i);
   });
 
+  it("keeps Launch Center templates placeholder-complete and provider values external", () => {
+    const messages = enMessages.spaceNow.launches;
+
+    expect(messages.detail.metadataDescription).toContain("{name}");
+    expect(messages.list.lastSafeRefreshFailure).toContain("{code}");
+    expect(messages.list.latestRecordUpdate).toContain("{updatedAt}");
+    expect(messages.list.providerRecordUpdatedLabel).toBe("Provider record updated");
+    expect(messages.list.retrievedCache).toContain("{retrievedAt}");
+    expect(messages.list.snapshotCount.one).toContain("{count}");
+    expect(messages.list.snapshotCount.one).toContain("{total}");
+    expect(messages.schedule.providerPrecision).toContain("{precision}");
+    expect(messages.schedule.providerPrecision).toContain("{abbreviation}");
+    expect(messages.schedule.providerPrecision).toContain("{countdown}");
+    expect(messages.schedule.sourcePrecision).toContain("{precision}");
+    expect(messages.schedule.sourcePrecision).toContain("{abbreviation}");
+    expect(messages.schedule.sourcePrecision).toContain("{countdown}");
+    expect(messages.schedule.window).toContain("{start}");
+    expect(messages.schedule.window).toContain("{end}");
+    expect(messages.countdown.units.day).toContain("{value}");
+    expect(messages.countdown.units.hour).toContain("{value}");
+    expect(messages.countdown.units.minute).toContain("{value}");
+    expect(messages.countdown.units.second).toContain("{value}");
+
+    expect(formatCountMessage(messages.list.snapshotCount, 1, "en", { total: 2 })).toBe(
+      "Showing 1 of 2 normalized launch record retained by this Lumina projection.",
+    );
+    expect(formatCountMessage(messages.list.snapshotCount, 2, "en", { total: 2 })).toBe(
+      "Showing 2 of 2 normalized launch records retained by this Lumina projection.",
+    );
+  });
+
   it("keeps Journal interface copy separate from personal observation and import data", () => {
     const messages = enMessages.journal;
     expect(messages.metadataTitle).toBe("Journal · Lumina");

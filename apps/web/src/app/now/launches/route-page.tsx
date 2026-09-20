@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { LaunchCenterMessages } from "../../../lib/i18n/messages/types";
 import { loadNowLaunches } from "../../../lib/server/space-now";
 import { LaunchesView } from "./launches-view";
 
-export const metadata: Metadata = {
-  title: "Launch Center",
-  description:
-    "Upcoming space launches from Launch Library 2 with explicit source status, schedule precision, windows, freshness, and official links.",
-};
+export function createLaunchesMetadata(messages: LaunchCenterMessages): Metadata {
+  return {
+    title: messages.list.metadataTitle,
+    description: messages.list.metadataDescription,
+  };
+}
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function LaunchesPage() {
-  return <LaunchesView outcome={await loadNowLaunches()} />;
+export default async function LaunchesPage({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: LaunchCenterMessages }>) {
+  return <LaunchesView locale={locale} messages={messages} outcome={await loadNowLaunches()} />;
 }

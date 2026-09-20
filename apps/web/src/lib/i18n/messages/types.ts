@@ -1513,6 +1513,117 @@ export type MissionControlMessages = Readonly<{
   title: string;
 }>;
 
+export type LaunchCenterMessages = Readonly<{
+  common: Readonly<{
+    backToLaunchCenter: string;
+    cacheStates: Readonly<{
+      expired: string;
+      fresh: string;
+      missing: string;
+      stale: string;
+    }>;
+    noneRecorded: string;
+    notProvided: string;
+    notProvidedBySource: string;
+    notRecorded: string;
+    spaceNowLaunchCenter: string;
+    unavailableReasons: Readonly<{
+      cachedContentExpired: string;
+      noValidatedSnapshot: string;
+      providerDisabled: string;
+    }>;
+  }>;
+  countdown: Readonly<{
+    label: string;
+    loading: string;
+    reachedOrPassed: string;
+    units: Readonly<{
+      day: string;
+      hour: string;
+      minute: string;
+      second: string;
+    }>;
+  }>;
+  detail: Readonly<{
+    addToCalendar: string;
+    calendarWithheld: string;
+    factsTitle: string;
+    labels: Readonly<{
+      cacheState: string;
+      country: string;
+      destinationBody: string;
+      lastRefreshFailure: string;
+      launchPad: string;
+      launchProvider: string;
+      ll2RecordUpdated: string;
+      location: string;
+      luminaRetrieved: string;
+      missionAgencies: string;
+      missionType: string;
+      orbit: string;
+      vehicle: string;
+      vehicleVariant: string;
+    }>;
+    metadataDescription: string;
+    metadataNotFoundTitle: string;
+    metadataUnavailableTitle: string;
+    notFoundDescription: string;
+    notFoundTitle: string;
+    officialLaunchPage: string;
+    officialLiveWebcast: string;
+    officialWebcast: string;
+    provenanceTitle: string;
+    sourceActionsTitle: string;
+    sourceDocumentation: string;
+    transportDescription: string;
+    transportTitle: string;
+    unavailableTitle: string;
+  }>;
+  list: Readonly<{
+    backToSpaceNow: string;
+    currentSnapshotTitle: string;
+    eyebrow: string;
+    facts: Readonly<{
+      launchProvider: string;
+      mission: string;
+      site: string;
+      vehicle: string;
+    }>;
+    freshSnapshot: string;
+    intro: string;
+    lastSafeRefreshFailure: string;
+    latestRecordUpdate: string;
+    metadataDescription: string;
+    metadataTitle: string;
+    noBrowserProviderRequest: string;
+    providerInformation: string;
+    providerRecordUpdatedLabel: string;
+    retrievedCache: string;
+    snapshotCount: CountMessageTemplates;
+    sourceDocumentation: string;
+    sourceTitle: string;
+    staleSnapshot: string;
+    title: string;
+    transportDescription: string;
+    transportTitle: string;
+    unavailableTitle: string;
+    latestRecordNotRecorded: string;
+    unrecordedTime: string;
+  }>;
+  schedule: Readonly<{
+    countdownEligibleDetail: string;
+    countdownEligibleList: string;
+    countdownIneligibleDetail: string;
+    countdownIneligibleList: string;
+    launchWindow: string;
+    providerPrecision: string;
+    scheduleReference: string;
+    scheduledNet: string;
+    sourcePrecision: string;
+    window: string;
+  }>;
+}>;
+
 export type SpaceNowMessages = Readonly<{
   dailyVisual: Readonly<{
     aboutTitle: string;
@@ -1536,6 +1647,7 @@ export type SpaceNowMessages = Readonly<{
   }>;
   eyebrow: string;
   intro: string;
+  launches: LaunchCenterMessages;
   metadataDescription: string;
   metadataTitle: string;
   navigation: Readonly<{

@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
 
 import { TonightView } from "../../components/tonight-view";
+import type { PublishedLocale } from "../../lib/i18n/locales";
 import type {
   CollectionStateMessages,
   CoordinateDisclosureMessages,
+  EntityTypeMessages,
+  TonightMessages,
 } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 
-export const metadata: Metadata = {
-  title: "Tonight",
-  description:
-    "Compare the observing geometry of saved catalogue objects for one location and selected night.",
-};
+export function createTonightMetadata(messages: TonightMessages): Metadata {
+  return {
+    title: messages.metadataTitle,
+    description: messages.metadataDescription,
+  };
+}
 
 type TonightPageProps = Readonly<{
   collectionStateMessages: CollectionStateMessages;
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  entityTypeMessages: EntityTypeMessages;
+  locale: PublishedLocale;
+  messages: TonightMessages;
   searchParams: Promise<Readonly<{ date?: string | string[] }>>;
 }>;
 
@@ -27,6 +34,9 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 export default async function TonightPage({
   collectionStateMessages,
   coordinateDisclosureMessages,
+  entityTypeMessages,
+  locale,
+  messages,
   searchParams,
 }: TonightPageProps) {
   const params = await searchParams;
@@ -40,7 +50,10 @@ export default async function TonightPage({
       {...(apiOrigin === undefined ? {} : { apiOrigin })}
       collectionStateMessages={collectionStateMessages}
       coordinateDisclosureMessages={coordinateDisclosureMessages}
+      entityTypeMessages={entityTypeMessages}
       {...(initialDate === undefined ? {} : { initialDate })}
+      locale={locale}
+      messages={messages}
     />
   );
 }

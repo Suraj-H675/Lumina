@@ -334,6 +334,170 @@ export type CompareMessages = Readonly<{
   }>;
 }>;
 
+export type TonightMessages = Readonly<{
+  analysis: Readonly<{
+    catalogueFailure: string;
+    emptyOrdering: string;
+    loading: CountMessageTemplates;
+    orderingExplanation: string;
+    prompt: string;
+    retryCatalogue: string;
+  }>;
+  collection: Readonly<{
+    emptyDescription: string;
+    emptyTitle: string;
+    exploreObjects: string;
+    heading: string;
+    manageCollections: string;
+    noNonEmptyDescription: string;
+    noNonEmptyTitle: string;
+    openCollections: string;
+    optionSaved: CountMessageTemplates;
+    selectLabel: string;
+    summary: string;
+    usageNote: string;
+  }>;
+  emptyCollection: Readonly<{
+    description: string;
+    manageAction: string;
+    title: string;
+  }>;
+  events: Readonly<{
+    detailsSummary: string;
+    meridianTransit: string;
+    rise: string;
+    set: string;
+    sourceLine: string;
+    statusCircumpolar: string;
+    statusNeverRises: string;
+    statusNotDuringNight: string;
+    statusUnavailable: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidNight: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  location: Readonly<{
+    calculateAction: string;
+    coordinateHelp: string;
+    currentLocation: string;
+    geolocationDenied: string;
+    geolocationGeneric: string;
+    geolocationTimeout: string;
+    geolocationUnavailable: string;
+    heading: string;
+    invalidCoordinates: string;
+    latitudeLabel: string;
+    longitudeLabel: string;
+    lookingUp: string;
+    manualLegend: string;
+    privacyNote: string;
+    summary: string;
+    unsupported: string;
+    useMyLocation: string;
+  }>;
+  locationRequired: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  night: Readonly<{
+    dateHelp: string;
+    heading: string;
+    nightOf: string;
+    selectedNight: string;
+    timesShown: string;
+  }>;
+  lists: Readonly<{
+    aboveDescription: string;
+    aboveTitle: string;
+    acceptedPairs: CountMessageTemplates;
+    authoritativeNote: string;
+    belowDescription: string;
+    belowTitle: string;
+    inspectPlanner: string;
+    noDarknessDescription: string;
+    noDarknessTitle: string;
+    openPlanner: string;
+    unresolvedReasons: Readonly<{
+      catalogueNotFound: string;
+      catalogueUnavailable: string;
+      geometryUnavailable: string;
+      missingCoordinate: string;
+      multipleCoordinateSources: string;
+    }>;
+    unresolvedSummary: CountMessageTemplates;
+    unresolvedTitle: string;
+  }>;
+  resultsHeader: Readonly<{
+    heading: string;
+    orderBy: string;
+    sortHighestAltitude: string;
+    sortName: string;
+    sortPeakTime: string;
+    summary: string;
+  }>;
+  summary: Readonly<{
+    aboveHorizon: string;
+    astronomicalDawn: string;
+    astronomicalDusk: string;
+    calculating: string;
+    darkness: string;
+    heading: string;
+    nightAndCollection: string;
+    noDarkness: string;
+    savedTargets: string;
+    scientificallyAnalyzed: string;
+    sunBelowEighteen: string;
+    unavailable: string;
+    unavailableForNight: string;
+    unavailableUnresolved: string;
+    waiting: string;
+  }>;
+  target: Readonly<{
+    altitude: string;
+    azimuth: string;
+    azimuthAtPeak: string;
+    highestAltitude: string;
+    moonAbove: string;
+    moonBelow: string;
+    moonLine: string;
+    moonUnavailable: string;
+  }>;
+  weather: Readonly<{
+    consentDisclosure: string;
+    consentPrompt: string;
+    contextUnavailable: string;
+    dateUnavailable: string;
+    failure: string;
+    heading: string;
+    humidityLabel: string;
+    intro: string;
+    licenceLink: string;
+    loadAction: string;
+    loaded: string;
+    loading: string;
+    moreFacts: string;
+    peakSummary: string;
+    percentValue: string;
+    providerLink: string;
+    providerSummary: string;
+    providerSummaryWithRetrieved: string;
+    retry: string;
+    unavailableValue: string;
+    visibilityKilometres: string;
+    visibilityLabel: string;
+    windKmh: string;
+    windLabel: string;
+  }>;
+}>;
+
 export type ExploreMessages = Readonly<{
   browse: Readonly<{
     emptyDescription: string;
@@ -1722,4 +1886,5 @@ export type LuminaMessages = Readonly<{
   shell: SiteShellMessages;
   spaceNow: SpaceNowMessages;
   status: StatusMessages;
+  tonight: TonightMessages;
 }>;

@@ -576,6 +576,208 @@ export const enMessages = {
       title: "This object is temporarily unavailable",
     },
   },
+  tonight: {
+    analysis: {
+      catalogueFailure:
+        "Some saved objects could not be loaded from the current catalogue. Remaining objects stay usable; nothing was replaced with collection snapshot measurements.",
+      emptyOrdering: "No target geometry was available to order for this selected night.",
+      loading: {
+        one: "Loading {count} saved object… {completed} of {count} catalogue details loaded.",
+        other: "Loading {count} saved objects… {completed} of {count} catalogue details loaded.",
+      },
+      orderingExplanation:
+        "Ordered by highest sampled altitude during astronomical darkness. This is not an observability score. Ties use peak instant, then canonical name.",
+      prompt: "Choose a valid night and observer location to calculate Tonight's geometry.",
+      retryCatalogue: "Retry catalogue loading",
+    },
+    collection: {
+      emptyDescription:
+        "Save objects to a Collection first, then Tonight can compare their observing geometry for one location and night.",
+      emptyTitle: "Save objects to use Tonight",
+      exploreObjects: "Explore objects",
+      heading: "Collection scope",
+      manageCollections: "Manage Collections",
+      noNonEmptyDescription:
+        "The selected collection was deleted and no other saved objects remain available for this comparison.",
+      noNonEmptyTitle: "No non-empty collection is available",
+      openCollections: "Open Collections",
+      optionSaved: {
+        one: "{name} · {count} saved",
+        other: "{name} · {count} saved",
+      },
+      selectLabel: "Collection to analyze",
+      summary: "One collection at a time",
+      usageNote:
+        "Tonight reads this browser-local collection. It does not combine every collection or change saved data.",
+    },
+    emptyCollection: {
+      description:
+        "Save objects in Collections first, then return here to compare their selected-night geometry.",
+      manageAction: "Manage collection",
+      title: "This collection has no saved objects",
+    },
+    events: {
+      detailsSummary: "Rise, transit, set, and source",
+      meridianTransit: "Meridian transit",
+      rise: "Rise",
+      set: "Set",
+      sourceLine: "{provider} · {dataset} ({release}) · source record {recordId}. {disclosure}",
+      statusCircumpolar: "Circumpolar from this latitude",
+      statusNeverRises: "Never rises from this latitude",
+      statusNotDuringNight: "No event during this observing night",
+      statusUnavailable: "Unavailable",
+    },
+    header: {
+      eyebrow: "Selected-night comparison",
+      intro:
+        "Compare the saved objects in one Collection for one observer location and selected night. Lumina exposes the geometry behind the order; it does not calculate a composite observing score or choose a target for you.",
+      title: "Tonight",
+    },
+    invalidNight: {
+      description: "Use the date control above to select the local evening to analyze.",
+      title: "Choose a valid night",
+    },
+    location: {
+      calculateAction: "Calculate with these coordinates",
+      coordinateHelp: "Latitude −90° to 90° · longitude −180° to 180°. No city lookup is used.",
+      currentLocation: "Current location {latitude}°, {longitude}°",
+      geolocationDenied: "Location permission was denied. You can enter coordinates manually.",
+      geolocationGeneric: "Location lookup was unavailable. Enter coordinates manually instead.",
+      geolocationTimeout: "Location lookup timed out. Try again or enter coordinates manually.",
+      geolocationUnavailable:
+        "Your browser could not determine a location. Try manual coordinates.",
+      heading: "Observer location",
+      invalidCoordinates: "Enter a latitude from −90 to 90 and a longitude from −180 to 180.",
+      latitudeLabel: "Latitude",
+      longitudeLabel: "Longitude",
+      lookingUp: "Looking up location…",
+      manualLegend: "Enter coordinates manually",
+      privacyNote:
+        "Your precise location stays in this browser. It is not sent to Lumina's catalogue API.",
+      summary: "Used locally for astronomy",
+      unsupported: "This browser does not support location access. Enter coordinates manually.",
+      useMyLocation: "Use my location",
+    },
+    locationRequired: {
+      description:
+        "Choose Use my location or enter latitude and longitude. No astronomical calculation begins until a valid observer location is available.",
+      title: "Add a location to calculate Tonight's geometry",
+    },
+    metadataDescription:
+      "Compare the observing geometry of saved catalogue objects for one location and selected night.",
+    metadataTitle: "Tonight",
+    night: {
+      dateHelp: "The evening beginning on this local date, continuing into the next morning.",
+      heading: "Night settings",
+      nightOf: "Night of",
+      selectedNight: "Selected night: {date}",
+      timesShown: "Times shown in {timeZone}",
+    },
+    lists: {
+      aboveDescription:
+        "A target is in this section when its sampled maximum during astronomical darkness is above 0° geometric altitude.",
+      aboveTitle: "Above the geometric horizon during astronomical darkness",
+      acceptedPairs: {
+        one: "({count} accepted pair)",
+        other: "({count} accepted pairs)",
+      },
+      authoritativeNote:
+        "Current catalogue detail is authoritative; the saved collection snapshot is used only to identify an object while it loads or when the current object is unavailable.",
+      belowDescription:
+        "These targets have a sampled darkness maximum at or below 0°. Signed altitude is preserved.",
+      belowTitle: "Below the geometric horizon throughout the sampled astronomical-darkness window",
+      inspectPlanner: "Inspect in planner",
+      noDarknessDescription:
+        "These objects have current catalogue details, but no sampled astronomical-darkness maximum exists for this selected night. Open the detailed planner to inspect the night boundaries.",
+      noDarknessTitle: "Saved targets",
+      openPlanner: "Open planner",
+      unresolvedReasons: {
+        catalogueNotFound: "Current catalogue object unavailable.",
+        catalogueUnavailable: "Catalogue detail unavailable.",
+        geometryUnavailable: "Night geometry unavailable.",
+        missingCoordinate: "Planning coordinates unavailable.",
+        multipleCoordinateSources: "Multiple accepted coordinate sources.",
+      },
+      unresolvedSummary: {
+        one: "{count} saved object is not in the factual order. The reason is shown for each object.",
+        other:
+          "{count} saved objects are not in the factual order. The reason is shown for each object.",
+      },
+      unresolvedTitle: "Not included in the ordering",
+    },
+    resultsHeader: {
+      heading: "Night geometry",
+      orderBy: "Order by",
+      sortHighestAltitude: "Highest altitude",
+      sortName: "Name",
+      sortPeakTime: "Peak time",
+      summary:
+        "Current catalogue details are loaded by saved object slug; collection snapshots are not scientific data.",
+    },
+    summary: {
+      aboveHorizon: "Above horizon",
+      astronomicalDawn: "Astronomical dawn",
+      astronomicalDusk: "Astronomical dusk",
+      calculating: "Calculating",
+      darkness: "Darkness",
+      heading: "Night summary",
+      nightAndCollection: "Night of {date} · collection {collectionName}",
+      noDarkness:
+        "No astronomical darkness for this selected night. Tonight does not rank targets using a different twilight definition.",
+      savedTargets: "Saved targets",
+      scientificallyAnalyzed: "Scientifically analyzed",
+      sunBelowEighteen: "Sun below −18°",
+      unavailable: "Unavailable",
+      unavailableForNight: "Unavailable for this night",
+      unavailableUnresolved: "Unavailable / unresolved",
+      waiting: "Waiting",
+    },
+    target: {
+      altitude: "{value}°",
+      azimuth: "{value}° · {compass}",
+      azimuthAtPeak: "Azimuth at peak: {azimuth}",
+      highestAltitude: "Highest sampled altitude during astronomical darkness {altitude} at {time}",
+      moonAbove: "above",
+      moonBelow: "below",
+      moonLine:
+        "Moon at peak: {illumination}% illuminated · {altitude} {horizon} the geometric horizon · {separation}° target–Moon separation",
+      moonUnavailable: "Moon context unavailable for this peak instant.",
+    },
+    weather: {
+      consentDisclosure:
+        "Weather requests use coordinates rounded to {digits} decimal places and are sent directly from your browser to {provider}. Lumina does not store observer location.",
+      consentPrompt:
+        "Loading weather sends one forecast request with a location rounded to {digits} decimal places directly to {provider}. You choose whether to make this separate provider request.",
+      contextUnavailable: "Forecast context unavailable for this peak.",
+      dateUnavailable:
+        "Weather forecast unavailable for this date. Past dates and dates beyond the provider's forecast horizon are not replaced with historical data.",
+      failure:
+        "Could not load the weather forecast. Geometry, Moon context, and factual ordering remain available.",
+      heading: "Optional weather context",
+      humidityLabel: "Relative humidity",
+      intro:
+        "Weather is a separate hourly forecast for this observer location. It provides factual context at each primary target's peak time; it does not change the geometric order and is not a measure of sky quality.",
+      licenceLink: "CC BY 4.0 licence",
+      loadAction: "Load weather forecast",
+      loaded:
+        "Forecast context loaded for the selected night. Primary target rows show the nearest UTC forecast hour at each sampled peak; the default geometric order is unchanged.",
+      loading: "Loading weather forecast…",
+      moreFacts: "More forecast facts",
+      peakSummary:
+        "Forecast near peak ({time}): {cloudCover} total cloud cover · {precipitation} precipitation probability",
+      percentValue: "{value}%",
+      providerLink: "Weather data by {provider}",
+      providerSummary: "Forecast provider: {provider}. Data are forecasts, not measurements.",
+      providerSummaryWithRetrieved:
+        "Forecast provider: {provider}. Retrieved {retrievedAt}. Data are forecasts, not measurements.",
+      retry: "Retry forecast",
+      unavailableValue: "Unavailable",
+      visibilityKilometres: "{value} km",
+      visibilityLabel: "Meteorological visibility",
+      windKmh: "{value} km/h",
+      windLabel: "Wind at 10 m",
+    },
+  },
   journal: {
     entry: {
       addAction: "Add to journal",

@@ -61,3 +61,16 @@ export function formatLocaleNumber(
 ): string {
   return new Intl.NumberFormat(localeDefinition(locale).intlTag, options).format(value);
 }
+
+export function formatLocaleFixedNumber(
+  value: number,
+  fractionDigits: number,
+  locale: Locale,
+): string {
+  const rounded = Number(value.toFixed(fractionDigits));
+  return formatLocaleNumber(rounded, locale, {
+    maximumFractionDigits: fractionDigits,
+    minimumFractionDigits: fractionDigits,
+    useGrouping: false,
+  });
+}

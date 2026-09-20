@@ -1,7 +1,8 @@
+import { DEFAULT_LOCALE } from "../../../lib/i18n/locales";
 import { enMessages } from "../../../lib/i18n/messages/en";
-import TonightPage, { metadata } from "../../tonight/route-page";
+import TonightPage, { createTonightMetadata } from "../../tonight/route-page";
 
-export { metadata };
+export const metadata = createTonightMetadata(enMessages.tonight);
 
 export default function EnglishTonightPage({
   searchParams,
@@ -13,6 +14,9 @@ export default function EnglishTonightPage({
         shared: enMessages.collections.shared,
       }}
       coordinateDisclosureMessages={enMessages.coordinateDisclosure}
+      entityTypeMessages={enMessages.entityTypes}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.tonight}
       searchParams={searchParams}
     />
   );

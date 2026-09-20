@@ -12,6 +12,7 @@ import {
 import {
   formatCountMessage,
   formatLocaleDateTime,
+  formatLocaleFixedNumber,
   formatLocaleList,
   formatLocaleNumber,
   formatMessageTemplate,
@@ -61,6 +62,12 @@ describe("Phase 8C localization foundation", () => {
     ).toBe("19 de septiembre de 2026");
     expect(formatLocaleNumber(1234.5, "en", { maximumFractionDigits: 1 })).toBe("1,234.5");
     expect(formatLocaleNumber(1234.5, "es", { maximumFractionDigits: 1 })).toBe("1234,5");
+  });
+
+  it("preserves fixed-decimal rounding before applying locale presentation", () => {
+    expect(formatLocaleFixedNumber(1.15, 1, "en")).toBe("1.1");
+    expect(formatLocaleFixedNumber(9.95, 1, "en")).toBe("9.9");
+    expect(formatLocaleFixedNumber(12.97155, 3, "en")).toBe("12.972");
   });
 
   it("formats semantic message templates without concatenating authored values into message keys", () => {
@@ -210,6 +217,76 @@ describe("Phase 8C localization foundation", () => {
         sourceLabel: "Fixture source",
       }),
     ).toBe("2 measurements recorded — canonical selection shown · source: Fixture source");
+  });
+
+  it("keeps Tonight setup templates placeholder-complete and plural-safe", () => {
+    expect(enMessages.tonight.collection.optionSaved.one).toContain("{name}");
+    expect(enMessages.tonight.collection.optionSaved.one).toContain("{count}");
+    expect(enMessages.tonight.analysis.loading.one).toContain("{count}");
+    expect(enMessages.tonight.analysis.loading.one).toContain("{completed}");
+    expect(enMessages.tonight.events.sourceLine).toContain("{provider}");
+    expect(enMessages.tonight.events.sourceLine).toContain("{dataset}");
+    expect(enMessages.tonight.events.sourceLine).toContain("{release}");
+    expect(enMessages.tonight.events.sourceLine).toContain("{recordId}");
+    expect(enMessages.tonight.events.sourceLine).toContain("{disclosure}");
+    expect(enMessages.tonight.lists.acceptedPairs.one).toContain("{count}");
+    expect(enMessages.tonight.lists.unresolvedSummary.one).toContain("{count}");
+    expect(enMessages.tonight.location.currentLocation).toContain("{latitude}");
+    expect(enMessages.tonight.location.currentLocation).toContain("{longitude}");
+    expect(enMessages.tonight.night.selectedNight).toContain("{date}");
+    expect(enMessages.tonight.night.timesShown).toContain("{timeZone}");
+    expect(enMessages.tonight.summary.nightAndCollection).toContain("{date}");
+    expect(enMessages.tonight.summary.nightAndCollection).toContain("{collectionName}");
+    expect(enMessages.tonight.target.altitude).toContain("{value}");
+    expect(enMessages.tonight.target.azimuth).toContain("{value}");
+    expect(enMessages.tonight.target.azimuth).toContain("{compass}");
+    expect(enMessages.tonight.target.highestAltitude).toContain("{altitude}");
+    expect(enMessages.tonight.target.highestAltitude).toContain("{time}");
+    expect(enMessages.tonight.target.moonLine).toContain("{illumination}");
+    expect(enMessages.tonight.target.moonLine).toContain("{altitude}");
+    expect(enMessages.tonight.target.moonLine).toContain("{horizon}");
+    expect(enMessages.tonight.target.moonLine).toContain("{separation}");
+    expect(enMessages.tonight.weather.peakSummary).toContain("{time}");
+    expect(enMessages.tonight.weather.peakSummary).toContain("{cloudCover}");
+    expect(enMessages.tonight.weather.peakSummary).toContain("{precipitation}");
+    expect(enMessages.tonight.weather.consentDisclosure).toContain("{digits}");
+    expect(enMessages.tonight.weather.consentDisclosure).toContain("{provider}");
+    expect(enMessages.tonight.weather.consentPrompt).toContain("{digits}");
+    expect(enMessages.tonight.weather.consentPrompt).toContain("{provider}");
+    expect(enMessages.tonight.weather.providerLink).toContain("{provider}");
+    expect(enMessages.tonight.weather.providerSummary).toContain("{provider}");
+    expect(enMessages.tonight.weather.providerSummaryWithRetrieved).toContain("{retrievedAt}");
+    expect(enMessages.tonight.weather.percentValue).toContain("{value}");
+    expect(enMessages.tonight.weather.visibilityKilometres).toContain("{value}");
+    expect(enMessages.tonight.weather.windKmh).toContain("{value}");
+
+    expect(
+      formatCountMessage(enMessages.tonight.collection.optionSaved, 1, "en", {
+        name: "Interesting Worlds",
+      }),
+    ).toBe("Interesting Worlds · 1 saved");
+    expect(
+      formatCountMessage(enMessages.tonight.collection.optionSaved, 2, "en", {
+        name: "Interesting Worlds",
+      }),
+    ).toBe("Interesting Worlds · 2 saved");
+    expect(
+      formatMessageTemplate(enMessages.tonight.location.currentLocation, {
+        latitude: "12.972",
+        longitude: "77.594",
+      }),
+    ).toBe("Current location 12.972°, 77.594°");
+    expect(
+      formatMessageTemplate(enMessages.tonight.night.timesShown, {
+        timeZone: "Asia/Kolkata",
+      }),
+    ).toBe("Times shown in Asia/Kolkata");
+    expect(formatCountMessage(enMessages.tonight.analysis.loading, 2, "en", { completed: 1 })).toBe(
+      "Loading 2 saved objects… 1 of 2 catalogue details loaded.",
+    );
+    expect(formatCountMessage(enMessages.tonight.lists.unresolvedSummary, 1, "en")).toBe(
+      "1 saved object is not in the factual order. The reason is shown for each object.",
+    );
   });
 
   it("keeps the Mission Control page shell in the typed English dictionary", () => {

@@ -12,6 +12,7 @@ import type { EntityDetailResponse, EntitySummaryResponse } from "@lumina/api-cl
 
 import { TonightView } from "../src/components/tonight-view";
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import { localDateString } from "../src/lib/observation/domain";
 import { clearTonightCatalogueDetailCache } from "../src/lib/tonight/catalogue-loader";
@@ -25,6 +26,13 @@ const COLLECTION_STATE_MESSAGES = {
   failures: enMessages.collections.failures,
   shared: enMessages.collections.shared,
 };
+const DEFAULT_TONIGHT_PROPS = {
+  collectionStateMessages: COLLECTION_STATE_MESSAGES,
+  coordinateDisclosureMessages: enMessages.coordinateDisclosure,
+  entityTypeMessages: enMessages.entityTypes,
+  locale: DEFAULT_LOCALE,
+  messages: enMessages.tonight,
+} as const;
 
 const source = {
   dataset: {
@@ -206,45 +214,116 @@ describe("TonightView", () => {
       ...enMessages.coordinateDisclosure,
       gaiaDr3: "Fixture Tonight Gaia provenance at {referenceEpoch}.",
     };
+    const messages = {
+      ...enMessages.tonight,
+      analysis: {
+        ...enMessages.tonight.analysis,
+        orderingExplanation: "Fixture ordering",
+      },
+      collection: {
+        ...enMessages.tonight.collection,
+        heading: "Fixture collection scope",
+        optionSaved: {
+          one: "{name} fixture {count}",
+          other: "{name} fixture {count}",
+        },
+      },
+      header: {
+        ...enMessages.tonight.header,
+        title: "Fixture Tonight",
+      },
+      events: {
+        ...enMessages.tonight.events,
+        detailsSummary: "Fixture events and source",
+        sourceLine: "Fixture source {provider} · {dataset} ({release}) · {recordId}. {disclosure}",
+      },
+      lists: {
+        ...enMessages.tonight.lists,
+        aboveTitle: "Fixture above horizon",
+        belowTitle: "Fixture below horizon",
+        openPlanner: "Fixture planner",
+      },
+      location: {
+        ...enMessages.tonight.location,
+        currentLocation: "Fixture coordinates {latitude}/{longitude}",
+      },
+      night: {
+        ...enMessages.tonight.night,
+        heading: "Fixture night settings",
+      },
+      resultsHeader: {
+        ...enMessages.tonight.resultsHeader,
+        heading: "Fixture night geometry",
+      },
+      summary: {
+        ...enMessages.tonight.summary,
+        heading: "Fixture night summary",
+        scientificallyAnalyzed: "Fixture analyzed",
+      },
+      target: {
+        ...enMessages.tonight.target,
+        azimuthAtPeak: "Fixture azimuth {azimuth}",
+        highestAltitude: "Fixture altitude {altitude} at {time}",
+        moonLine: "Fixture moon {illumination} {altitude} {horizon} {separation}",
+      },
+    };
+    const entityTypeMessages = {
+      ...enMessages.entityTypes,
+      star: "Fixture star",
+    };
     render(
       <TonightView
+        {...DEFAULT_TONIGHT_PROPS}
         apiOrigin={ORIGIN}
-        collectionStateMessages={COLLECTION_STATE_MESSAGES}
         coordinateDisclosureMessages={coordinateDisclosureMessages}
+        entityTypeMessages={entityTypeMessages}
         initialDate={NIGHT}
+        messages={messages}
       />,
     );
 
-    expect(await screen.findByRole("heading", { name: "Tonight" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Fixture Tonight" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture collection scope" })).toBeVisible();
     expect(await screen.findByRole("combobox", { name: /collection to analyze/i })).toHaveValue(
       COLLECTION_ID,
     );
+    expect(screen.getByRole("option", { name: "Interesting Worlds fixture 2" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture night settings" })).toBeVisible();
     await user.clear(screen.getByLabelText("Latitude"));
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.clear(screen.getByLabelText("Longitude"));
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
 
+    expect(screen.getByText("Fixture coordinates 12.972/77.594")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture night geometry" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture night summary" })).toBeVisible();
     const primaryList = await screen.findByTestId("tonight-primary-list");
     const belowList = await screen.findByTestId("tonight-below-list");
-    await expect(
-      screen.findByText(/Ordered by highest sampled altitude during astronomical darkness/i),
-    ).resolves.toBeVisible();
-    expect(within(primaryList).getAllByText(/Moon at peak:/i)).toHaveLength(1);
-    expect(within(belowList).getAllByText(/Moon at peak:/i)).toHaveLength(1);
+    await expect(screen.findByText("Fixture ordering")).resolves.toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture above horizon" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture below horizon" })).toBeVisible();
+    expect(within(primaryList).getAllByText(/Fixture moon/i)).toHaveLength(1);
+    expect(within(belowList).getAllByText(/Fixture moon/i)).toHaveLength(1);
     expect(within(primaryList).getAllByTestId("tonight-target-row")).toHaveLength(1);
     expect(within(belowList).getAllByTestId("tonight-target-row")).toHaveLength(1);
-    expect(screen.getByText(/Scientifically analyzed/i)).toBeVisible();
-    expect(within(belowList).getByRole("link", { name: "Open planner" })).toHaveAttribute(
+    expect(screen.getByText("Fixture analyzed")).toBeVisible();
+    expect(screen.getAllByText("Fixture star").length).toBeGreaterThan(0);
+    expect(within(belowList).getByRole("link", { name: "Fixture planner" })).toHaveAttribute(
       "href",
       expect.stringContaining(`/observe?object=k2-18&date=${NIGHT}`),
     );
-    const sourceSummary = screen.getAllByText("Rise, transit, set, and source", {
+    expect(screen.getAllByText("K2-18").length).toBeGreaterThan(0);
+    const sourceSummary = screen.getAllByText("Fixture events and source", {
       exact: true,
     })[0]!;
     const sourceDetails = sourceSummary.parentElement;
     expect(sourceDetails).not.toBeNull();
     await user.click(sourceSummary);
+    expect(sourceDetails).toHaveTextContent("ESA Gaia Archive");
+    expect(sourceDetails).toHaveTextContent("Gaia Data Release 3 main source catalogue");
+    expect(sourceDetails).toHaveTextContent("(dr3)");
+    expect(sourceDetails).toHaveTextContent("90000000-0000-5000-8000-391074753181");
     expect(sourceDetails).toHaveTextContent("Fixture Tonight Gaia provenance at J2016.0.");
     expect(sourceDetails).not.toHaveTextContent(
       "Gaia DR3 catalogue position at reference epoch J2016.0",
@@ -273,14 +352,7 @@ describe("TonightView", () => {
     const fetchImplementation = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", fetchImplementation);
 
-    render(
-      <TonightView
-        apiOrigin={ORIGIN}
-        collectionStateMessages={COLLECTION_STATE_MESSAGES}
-        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
-        initialDate={NIGHT}
-      />,
-    );
+    render(<TonightView {...DEFAULT_TONIGHT_PROPS} apiOrigin={ORIGIN} initialDate={NIGHT} />);
 
     expect(await screen.findByText(/Save objects to use Tonight/i)).toBeVisible();
     expect(screen.getByRole("link", { name: "Open Collections" })).toHaveAttribute(
@@ -294,13 +366,7 @@ describe("TonightView", () => {
     window.localStorage.setItem(COLLECTIONS_STORAGE_KEY, "{corrupt");
     window.dispatchEvent(new StorageEvent("storage", { key: COLLECTIONS_STORAGE_KEY }));
 
-    render(
-      <TonightView
-        collectionStateMessages={COLLECTION_STATE_MESSAGES}
-        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
-        initialDate={NIGHT}
-      />,
-    );
+    render(<TonightView {...DEFAULT_TONIGHT_PROPS} initialDate={NIGHT} />);
 
     expect(
       await screen.findByRole("heading", { name: /your saved collections could not be read/i }),
@@ -340,14 +406,7 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
-    render(
-      <TonightView
-        apiOrigin={ORIGIN}
-        collectionStateMessages={COLLECTION_STATE_MESSAGES}
-        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
-        initialDate={today}
-      />,
-    );
+    render(<TonightView {...DEFAULT_TONIGHT_PROPS} apiOrigin={ORIGIN} initialDate={today} />);
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -358,6 +417,10 @@ describe("TonightView", () => {
         ([input]) => new URL(String(input)).origin === "https://api.open-meteo.com",
       );
     expect(weatherRequests()).toHaveLength(0);
+    expect(screen.getByRole("link", { name: "Weather data by Open-Meteo" })).toHaveAttribute(
+      "href",
+      "https://open-meteo.com/",
+    );
     const firstTargetName = within(screen.getByTestId("tonight-primary-list"))
       .getAllByTestId("tonight-target-row")[0]
       ?.querySelector("h3")?.textContent;
@@ -411,20 +474,30 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
+    const messages = {
+      ...enMessages.tonight,
+      weather: {
+        ...enMessages.tonight.weather,
+        heading: "Fixture weather",
+        loadAction: "Fixture load weather",
+        loaded: "Fixture weather loaded",
+      },
+    };
     render(
       <TonightView
+        {...DEFAULT_TONIGHT_PROPS}
         apiOrigin={ORIGIN}
-        collectionStateMessages={COLLECTION_STATE_MESSAGES}
-        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         initialDate={today}
+        messages={messages}
       />,
     );
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
     await screen.findByRole("button", { name: "Retry catalogue loading" });
-    await user.click(screen.getByRole("button", { name: "Load weather forecast" }));
-    await screen.findByText(/Forecast context loaded for the selected night/i);
+    expect(screen.getByRole("heading", { name: "Fixture weather" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Fixture load weather" }));
+    await screen.findByText("Fixture weather loaded");
     const weatherRequestCount = () =>
       fetchImplementation.mock.calls.filter(
         ([input]) => new URL(String(input)).origin === "https://api.open-meteo.com",
@@ -445,7 +518,7 @@ describe("TonightView", () => {
       SECOND_COLLECTION_ID,
     );
     await screen.findByText("Second Shelf · 1 saved");
-    await screen.findByText(/Forecast context loaded for the selected night/i);
+    await screen.findByText("Fixture weather loaded");
     expect(weatherRequestCount()).toBe(1);
   });
 
@@ -502,14 +575,7 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
-    render(
-      <TonightView
-        apiOrigin={ORIGIN}
-        collectionStateMessages={COLLECTION_STATE_MESSAGES}
-        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
-        initialDate={NIGHT}
-      />,
-    );
+    render(<TonightView {...DEFAULT_TONIGHT_PROPS} apiOrigin={ORIGIN} initialDate={NIGHT} />);
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));

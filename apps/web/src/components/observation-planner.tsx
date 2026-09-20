@@ -86,42 +86,58 @@ function formatDateLabel(nightDate: string, timeZone: string, locale: PublishedL
   });
 }
 
-function formatTime(instant: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(instant, locale, {
     hour: "numeric",
     minute: "2-digit",
     timeZone,
     timeZoneName: "short",
-  }).format(instant);
+  });
 }
 
-function formatShortTime(instant: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatShortTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(instant, locale, {
     hour: "numeric",
     minute: "2-digit",
     timeZone,
-  }).format(instant);
+  });
 }
 
-function formatAltitude(altitude: number): string {
-  return `${altitude.toFixed(1)}°`;
+function formatAltitude(altitude: number, locale: PublishedLocale): string {
+  return `${formatLocaleNumber(altitude, locale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })}°`;
 }
 
-function formatAzimuth(azimuth: number): string {
-  return `${azimuth.toFixed(1)}° · ${formatCompassDirection(azimuth)}`;
+function formatAzimuth(azimuth: number, locale: PublishedLocale): string {
+  return `${formatLocaleNumber(azimuth, locale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })}° · ${formatCompassDirection(azimuth)}`;
 }
 
-function formatNightEvent(event: NightEvent, timeZone: string): string {
-  return event.kind === "time" ? formatTime(event.instant, timeZone) : "Unavailable";
+function formatNightEvent(
+  event: NightEvent,
+  timeZone: string,
+  locale: PublishedLocale,
+  unavailableMessage: string,
+): string {
+  return event.kind === "time" ? formatTime(event.instant, timeZone, locale) : unavailableMessage;
 }
 
-function formatTargetEvent(event: TargetEvent, timeZone: string): string {
+function formatTargetEvent(
+  event: TargetEvent,
+  timeZone: string,
+  locale: PublishedLocale,
+  messages: ObservationPlannerMessages["results"]["events"],
+): string {
   if (event.kind === "time" && event.instant !== undefined)
-    return formatTime(event.instant, timeZone);
-  if (event.kind === "circumpolar") return "Circumpolar from this latitude";
-  if (event.kind === "never-rises") return "Never rises from this latitude";
-  if (event.kind === "not-during-night") return "No event during this observing night";
-  return "Unavailable";
+    return formatTime(event.instant, timeZone, locale);
+  if (event.kind === "circumpolar") return messages.circumpolar;
+  if (event.kind === "never-rises") return messages.neverRises;
+  if (event.kind === "not-during-night") return messages.notDuringNight;
+  return messages.unavailable;
 }
 
 function formatLocationValue(value: number, locale: PublishedLocale): string {
@@ -141,10 +157,6 @@ function geolocationFailureMessage(
   return messages.unknown;
 }
 
-function eventTimeOrFallback(event: NightEvent, timeZone: string): string {
-  return formatNightEvent(event, timeZone);
-}
-
 function eventCard(label: string, value: string) {
   return (
     <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
@@ -156,7 +168,13 @@ function eventCard(label: string, value: string) {
   );
 }
 
-function CoordinateSource({ plan }: Readonly<{ plan: ObservationPlan }>) {
+function CoordinateSource({
+  messages,
+  plan,
+}: Readonly<{
+  messages: ObservationPlannerMessages["results"]["source"];
+  plan: ObservationPlan;
+}>) {
   const { coordinate } = plan;
   const profile = coordinateProfileForSource(coordinate.source);
   return (
@@ -165,23 +183,32 @@ function CoordinateSource({ plan }: Readonly<{ plan: ObservationPlan }>) {
       className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4"
     >
       <h3 className="text-sm font-semibold text-[var(--foreground)]" id="position-source-heading">
-        Position source
+        {messages.title}
       </h3>
       <p className="mt-1 text-sm text-[var(--muted)]">
         {coordinate.source.provider.name} · {coordinate.source.dataset.name} (
         {coordinate.source.dataset.release_version})
       </p>
       <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
-        Source record <span className="font-mono">{coordinate.source.source_record_id}</span> ·{" "}
-        {profile === null
-          ? "Reviewed catalogue position. No epoch propagation is applied."
-          : getCoordinateDisclosure(profile)}
+        {messages.sourceRecordLabel}{" "}
+        <span className="font-mono">{coordinate.source.source_record_id}</span> ·{" "}
+        {profile === null ? messages.reviewedPosition : getCoordinateDisclosure(profile)}
       </p>
     </section>
   );
 }
 
-function AltitudeChart({ plan, timeZone }: Readonly<{ plan: ObservationPlan; timeZone: string }>) {
+function AltitudeChart({
+  locale,
+  messages,
+  plan,
+  timeZone,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationPlannerMessages["chart"];
+  plan: ObservationPlan;
+  timeZone: string;
+}>) {
   const chartId = useId().replaceAll(":", "");
   const width = 720;
   const height = 300;
@@ -209,16 +236,20 @@ function AltitudeChart({ plan, timeZone }: Readonly<{ plan: ObservationPlan; tim
     plan.selected.instant.getTime() >= plan.plotStart.getTime() &&
     plan.selected.instant.getTime() <= plan.plotEnd.getTime();
   const maxSample = plan.maxDuringDarkness;
-  const firstLabel = formatShortTime(plan.plotStart, timeZone);
+  const firstLabel = formatShortTime(plan.plotStart, timeZone, locale);
   const middleLabel = formatShortTime(
     new Date((plan.plotStart.getTime() + plan.plotEnd.getTime()) / 2),
     timeZone,
+    locale,
   );
-  const lastLabel = formatShortTime(plan.plotEnd, timeZone);
+  const lastLabel = formatShortTime(plan.plotEnd, timeZone, locale);
   const accessibleSummary =
     maxSample === null
-      ? "Astronomical darkness is not available for this night."
-      : `Highest altitude during astronomical darkness is ${formatAltitude(maxSample.altitude)} at ${formatTime(maxSample.instant, timeZone)}.`;
+      ? messages.accessibleNoDarkness
+      : formatMessageTemplate(messages.accessibleHighest, {
+          altitude: formatAltitude(maxSample.altitude, locale),
+          time: formatTime(maxSample.instant, timeZone, locale),
+        });
 
   return (
     <figure aria-labelledby={`${chartId}-caption`} className="space-y-3">
@@ -337,9 +368,8 @@ function AltitudeChart({ plan, timeZone }: Readonly<{ plan: ObservationPlan; tim
         </svg>
       </div>
       <figcaption className="text-sm leading-6 text-[var(--muted)]" id={`${chartId}-caption`}>
-        <span className="font-medium text-[var(--foreground)]">Altitude through the night.</span>{" "}
-        The dashed line is the geometric horizon; the shaded interval is astronomical darkness.
-        {selectedInPlot ? " The gold marker is the selected time." : ""}
+        <span className="font-medium text-[var(--foreground)]">{messages.title}</span>{" "}
+        {selectedInPlot ? messages.descriptionWithSelectedTime : messages.description}
       </figcaption>
       <p className="sr-only">{accessibleSummary}</p>
     </figure>
@@ -347,6 +377,8 @@ function AltitudeChart({ plan, timeZone }: Readonly<{ plan: ObservationPlan; tim
 }
 
 function PlannerResults({
+  locale,
+  messages,
   nightDate,
   plan,
   targetEntityId,
@@ -355,6 +387,8 @@ function PlannerResults({
   targetSlug,
   timeZone,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationPlannerMessages;
   nightDate: string;
   plan: ObservationPlan;
   targetEntityId: string;
@@ -368,16 +402,20 @@ function PlannerResults({
     <section aria-labelledby="planner-results-heading" className="space-y-8">
       <div className="space-y-3">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Observation geometry
+          {messages.results.eyebrow}
         </p>
         <h2 className="text-2xl font-semibold tracking-tight" id="planner-results-heading">
           {highest !== null && highest.altitude > 0
-            ? `Highest during astronomical darkness: ${formatTime(highest.instant, timeZone)}`
-            : "The target stays below the horizon during astronomical darkness"}
+            ? formatMessageTemplate(messages.results.highestHeading, {
+                time: formatTime(highest.instant, timeZone, locale),
+              })
+            : messages.results.belowHorizonHeading}
         </h2>
         {highest !== null && highest.altitude > 0 ? (
           <p className="text-[var(--muted)]">
-            Altitude {formatAltitude(highest.altitude)} at the sampled maximum.
+            {formatMessageTemplate(messages.results.highestAltitude, {
+              altitude: formatAltitude(highest.altitude, locale),
+            })}
           </p>
         ) : null}
         <JournalEntryButton
@@ -405,61 +443,97 @@ function PlannerResults({
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
           <p className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            Selected time
+            {messages.results.selectedTime}
           </p>
           <p className="mt-2 font-mono text-2xl text-[var(--foreground)]">
-            {formatAltitude(plan.selected.position.altitude)}
+            {formatAltitude(plan.selected.position.altitude, locale)}
           </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">Altitude · geometric</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">{messages.results.altitudeGeometric}</p>
           <p className="mt-3 text-lg font-medium text-[var(--foreground)]">
-            {formatAzimuth(plan.selected.position.azimuth)}
+            {formatAzimuth(plan.selected.position.azimuth, locale)}
           </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">Azimuth · 0° north, eastward</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">{messages.results.azimuthConvention}</p>
         </div>
         <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:col-span-2">
           <p className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            Night boundaries
+            {messages.results.nightBoundaries}
           </p>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-            {eventCard("Sunset · geometric", eventTimeOrFallback(plan.night.sunset, timeZone))}
             {eventCard(
-              "Astronomical dusk",
-              eventTimeOrFallback(plan.night.astronomicalDusk, timeZone),
+              messages.results.events.sunsetGeometric,
+              formatNightEvent(
+                plan.night.sunset,
+                timeZone,
+                locale,
+                messages.results.events.unavailable,
+              ),
             )}
             {eventCard(
-              "Astronomical dawn",
-              eventTimeOrFallback(plan.night.astronomicalDawn, timeZone),
+              messages.results.events.astronomicalDusk,
+              formatNightEvent(
+                plan.night.astronomicalDusk,
+                timeZone,
+                locale,
+                messages.results.events.unavailable,
+              ),
             )}
-            {eventCard("Sunrise · geometric", eventTimeOrFallback(plan.night.sunrise, timeZone))}
+            {eventCard(
+              messages.results.events.astronomicalDawn,
+              formatNightEvent(
+                plan.night.astronomicalDawn,
+                timeZone,
+                locale,
+                messages.results.events.unavailable,
+              ),
+            )}
+            {eventCard(
+              messages.results.events.sunriseGeometric,
+              formatNightEvent(
+                plan.night.sunrise,
+                timeZone,
+                locale,
+                messages.results.events.unavailable,
+              ),
+            )}
           </dl>
           {plan.night.astronomicalDarkness === null ? (
             <p className="mt-3 text-sm text-[var(--muted)]">
-              No astronomical darkness on this night.
+              {messages.results.darknessUnavailable}
             </p>
           ) : null}
           <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-            Solar boundaries use geometric center crossings; astronomical darkness means the Sun is
-            below −18°.
+            {messages.results.solarBoundaryDescription}
           </p>
         </div>
       </div>
 
       <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">Rise, transit, set</h3>
+        <h3 className="text-lg font-semibold text-[var(--foreground)]">
+          {messages.results.targetEvents.title}
+        </h3>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Times are calculated for the selected night and shown in {timeZone}.
+          {formatMessageTemplate(messages.results.targetEvents.description, { timeZone })}
         </p>
         <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-          {eventCard("Rise", formatTargetEvent(plan.targetEvents.rise, timeZone))}
-          {eventCard("Meridian transit", formatTargetEvent(plan.targetEvents.transit, timeZone))}
-          {eventCard("Set", formatTargetEvent(plan.targetEvents.set, timeZone))}
+          {eventCard(
+            messages.results.events.rise,
+            formatTargetEvent(plan.targetEvents.rise, timeZone, locale, messages.results.events),
+          )}
+          {eventCard(
+            messages.results.events.meridianTransit,
+            formatTargetEvent(plan.targetEvents.transit, timeZone, locale, messages.results.events),
+          )}
+          {eventCard(
+            messages.results.events.set,
+            formatTargetEvent(plan.targetEvents.set, timeZone, locale, messages.results.events),
+          )}
         </dl>
       </div>
 
       <SkyFinder plan={plan} targetName={targetName} targetSlug={targetSlug} />
-      <AltitudeChart plan={plan} timeZone={timeZone} />
+      <AltitudeChart locale={locale} messages={messages.chart} plan={plan} timeZone={timeZone} />
       <ObservationConditions nightDate={nightDate} plan={plan} timeZone={timeZone} />
-      <CoordinateSource plan={plan} />
+      <CoordinateSource messages={messages.results.source} plan={plan} />
     </section>
   );
 }
@@ -834,6 +908,8 @@ export function ObservationPlanner({
             </section>
           ) : plan !== null ? (
             <PlannerResults
+              locale={locale}
+              messages={messages}
               plan={plan}
               targetEntityId={detail.id}
               targetEntityType={detail.entity_type}

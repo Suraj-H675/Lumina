@@ -167,6 +167,39 @@ describe("ObservationPlanner", () => {
     expect(screen.getByText(/Fixture zone/)).toBeVisible();
   });
 
+  it("renders the result surface from the injected planner message group", async () => {
+    const user = userEvent.setup();
+    const messages: ObservationPlannerMessages = {
+      ...enMessages.observationPlanner,
+      chart: {
+        ...enMessages.observationPlanner.chart,
+        title: "Fixture altitude chart.",
+      },
+      results: {
+        ...enMessages.observationPlanner.results,
+        eyebrow: "Fixture observation geometry",
+        source: {
+          ...enMessages.observationPlanner.results.source,
+          title: "Fixture position source",
+        },
+        targetEvents: {
+          ...enMessages.observationPlanner.results.targetEvents,
+          title: "Fixture target events",
+        },
+      },
+    };
+
+    renderPlanner(plannerDetail(), "2026-08-27", messages);
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    expect(await screen.findByText("Fixture observation geometry")).toBeVisible();
+    expect(screen.getByText("Fixture altitude chart.")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture target events" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Fixture position source" })).toBeVisible();
+  });
+
   it("starts with a target, night controls, and an intentional location request", () => {
     renderPlanner();
 

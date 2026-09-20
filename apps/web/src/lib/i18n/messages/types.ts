@@ -551,6 +551,13 @@ export type SavedObservationPlanMessages = Readonly<{
 }>;
 
 export type ObservationPlannerMessages = Readonly<{
+  chart: Readonly<{
+    accessibleHighest: string;
+    accessibleNoDarkness: string;
+    description: string;
+    descriptionWithSelectedTime: string;
+    title: string;
+  }>;
   coordinateSource: Readonly<{
     description: string;
     heading: string;
@@ -601,6 +608,40 @@ export type ObservationPlannerMessages = Readonly<{
     summary: string;
     timeZoneSummary: string;
     title: string;
+  }>;
+  results: Readonly<{
+    altitudeGeometric: string;
+    azimuthConvention: string;
+    belowHorizonHeading: string;
+    darknessUnavailable: string;
+    eyebrow: string;
+    highestAltitude: string;
+    highestHeading: string;
+    nightBoundaries: string;
+    solarBoundaryDescription: string;
+    selectedTime: string;
+    events: Readonly<{
+      astronomicalDawn: string;
+      astronomicalDusk: string;
+      circumpolar: string;
+      meridianTransit: string;
+      neverRises: string;
+      notDuringNight: string;
+      rise: string;
+      set: string;
+      sunriseGeometric: string;
+      sunsetGeometric: string;
+      unavailable: string;
+    }>;
+    targetEvents: Readonly<{
+      description: string;
+      title: string;
+    }>;
+    source: Readonly<{
+      reviewedPosition: string;
+      sourceRecordLabel: string;
+      title: string;
+    }>;
   }>;
   states: Readonly<{
     invalidTime: Readonly<{

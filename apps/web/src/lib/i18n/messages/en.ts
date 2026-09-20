@@ -314,6 +314,15 @@ export const enMessages = {
     },
   },
   observationPlanner: {
+    chart: {
+      accessibleHighest: "Highest altitude during astronomical darkness is {altitude} at {time}.",
+      accessibleNoDarkness: "Astronomical darkness is not available for this night.",
+      description:
+        "The dashed line is the geometric horizon; the shaded interval is astronomical darkness.",
+      descriptionWithSelectedTime:
+        "The dashed line is the geometric horizon; the shaded interval is astronomical darkness. The gold marker is the selected time.",
+      title: "Altitude through the night.",
+    },
     coordinateSource: {
       description:
         "Multiple accepted positions are available; choose which paired source to calculate.",
@@ -371,6 +380,41 @@ export const enMessages = {
       summary: "Night of {date}",
       timeZoneSummary: "Times shown in {timeZone}",
       title: "Observing night",
+    },
+    results: {
+      altitudeGeometric: "Altitude · geometric",
+      azimuthConvention: "Azimuth · 0° north, eastward",
+      belowHorizonHeading: "The target stays below the horizon during astronomical darkness",
+      darknessUnavailable: "No astronomical darkness on this night.",
+      eyebrow: "Observation geometry",
+      highestAltitude: "Altitude {altitude} at the sampled maximum.",
+      highestHeading: "Highest during astronomical darkness: {time}",
+      nightBoundaries: "Night boundaries",
+      solarBoundaryDescription:
+        "Solar boundaries use geometric center crossings; astronomical darkness means the Sun is below −18°.",
+      selectedTime: "Selected time",
+      events: {
+        astronomicalDawn: "Astronomical dawn",
+        astronomicalDusk: "Astronomical dusk",
+        circumpolar: "Circumpolar from this latitude",
+        meridianTransit: "Meridian transit",
+        neverRises: "Never rises from this latitude",
+        notDuringNight: "No event during this observing night",
+        rise: "Rise",
+        set: "Set",
+        sunriseGeometric: "Sunrise · geometric",
+        sunsetGeometric: "Sunset · geometric",
+        unavailable: "Unavailable",
+      },
+      targetEvents: {
+        description: "Times are calculated for the selected night and shown in {timeZone}.",
+        title: "Rise, transit, set",
+      },
+      source: {
+        reviewedPosition: "Reviewed catalogue position. No epoch propagation is applied.",
+        sourceRecordLabel: "Source record",
+        title: "Position source",
+      },
     },
     states: {
       invalidTime: {

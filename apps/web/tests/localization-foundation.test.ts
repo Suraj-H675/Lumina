@@ -363,4 +363,15 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.coordinateSource.option).toContain("{sourceRecordId}");
     expect(messages.states.locationRequired.title).toMatch(/add a location/i);
   });
+
+  it("keeps live observation result presentation in the planner message group", () => {
+    const messages = enMessages.observationPlanner;
+    expect(messages.results.highestHeading).toContain("{time}");
+    expect(messages.results.highestAltitude).toContain("{altitude}");
+    expect(messages.results.targetEvents.description).toContain("{timeZone}");
+    expect(messages.results.source.sourceRecordLabel).toBe("Source record");
+    expect(messages.chart.accessibleHighest).toContain("{altitude}");
+    expect(messages.chart.accessibleHighest).toContain("{time}");
+    expect(messages.results.events.circumpolar).toMatch(/latitude/i);
+  });
 });

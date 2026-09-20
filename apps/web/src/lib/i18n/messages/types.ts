@@ -264,6 +264,53 @@ export type CoordinateDisclosureMessages = Readonly<{
   reviewedWithoutEpoch: string;
 }>;
 
+export type DeepSkyMessages = Readonly<{
+  browse: Readonly<{
+    ariaLabel: string;
+    boundedSlice: string;
+    empty: string;
+    summary: string;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+    unavailableTypes: string;
+  }>;
+  header: Readonly<{
+    backToExplore: string;
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidLayer: string;
+  layers: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  selection: Readonly<{
+    coordinateAmbiguousDescription: string;
+    coordinateAmbiguousTitle: string;
+    coordinateSourceLabel: string;
+    coordinateUnavailableDescription: string;
+    coordinateUnavailableTitle: string;
+    datasetLabel: string;
+    declinationLabel: string;
+    invalidDescription: string;
+    invalidTitle: string;
+    openObject: string;
+    openPlanner: string;
+    referenceEpochLabel: string;
+    rightAscensionLabel: string;
+    selectedEyebrow: string;
+    selectDescription: string;
+    selectTitle: string;
+    sourceRecordLabel: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+}>;
+
 export type LearningProgressControlsMessages = Readonly<{
   cancelImportAction: string;
   confirmImportAction: string;
@@ -1397,6 +1444,7 @@ export type StatusMessages = Readonly<{
 export type LuminaMessages = Readonly<{
   collections: CollectionsMessages;
   coordinateDisclosure: CoordinateDisclosureMessages;
+  deepSky: DeepSkyMessages;
   discoveries: DiscoveriesMessages;
   journal: JournalMessages;
   labIndex: LabIndexMessages;

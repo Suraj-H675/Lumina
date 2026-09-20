@@ -3,7 +3,11 @@ import Link from "next/link";
 
 import { entityTypeLabel } from "../../../lib/catalog-display";
 import { formatCoordinateDisclosure } from "../../../lib/i18n/coordinate-disclosure";
-import type { CoordinateDisclosureMessages } from "../../../lib/i18n/messages/types";
+import { formatMessageTemplate } from "../../../lib/i18n/format";
+import type {
+  CoordinateDisclosureMessages,
+  DeepSkyMessages,
+} from "../../../lib/i18n/messages/types";
 import {
   loadDeepSkyBrowse,
   loadDeepSkySelection,
@@ -12,14 +16,16 @@ import {
 import { ATLAS_LAYERS, atlasLayerById, type AtlasLayerId } from "../../../lib/wwt/atlas";
 import { DeepSkyAtlas } from "./deep-sky-atlas";
 
-export const metadata: Metadata = {
-  title: "Deep-sky atlas",
-  description:
-    "Browse Lumina's reviewed galaxies, nebulae, and clusters, then optionally view them with credited WorldWide Telescope survey imagery.",
-};
+export function createDeepSkyMetadata(messages: DeepSkyMessages): Metadata {
+  return {
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type DeepSkyPageProps = Readonly<{
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  messages: DeepSkyMessages;
   searchParams: Promise<Readonly<{ layer?: string | string[]; object?: string | string[] }>>;
 }>;
 
@@ -44,6 +50,7 @@ function selectionForInvalidQuery(): DeepSkySelectionOutcome {
 
 export default async function DeepSkyPage({
   coordinateDisclosureMessages,
+  messages,
   searchParams,
 }: DeepSkyPageProps) {
   const params = await searchParams;
@@ -80,36 +87,34 @@ export default async function DeepSkyPage({
           className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--muted)] underline underline-offset-4"
           href="/explore"
         >
-          ← Explore catalogue
+          {messages.header.backToExplore}
         </Link>
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Advanced atlas · Phase 5A
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Deep-sky atlas</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Browse reviewed galaxies, nebulae, and clusters from Lumina&apos;s catalogue. The optional
-          WorldWide Telescope view is a renderer only: object identity, coordinates, epoch, and
-          provenance continue to come from Lumina&apos;s reviewed data.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidLayer ? (
         <p className="border border-[var(--border)] p-4" role="alert">
-          The requested survey layer is not part of Lumina&apos;s reviewed atlas inventory. Visible
-          DSS2 is shown instead.
+          {messages.invalidLayer}
         </p>
       ) : null}
 
       <section aria-labelledby="deep-sky-browse-heading" className="space-y-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
           <h2 className="text-2xl font-semibold" id="deep-sky-browse-heading">
-            Reviewed deep-sky catalogue
+            {messages.browse.title}
           </h2>
-          <span className="text-sm text-[var(--muted)]">Galaxies · nebulae · clusters</span>
+          <span className="text-sm text-[var(--muted)]">{messages.browse.summary}</span>
         </div>
         <DeepSkyBrowse
           browse={browse}
           layerId={activeLayer.id}
+          messages={messages.browse}
           selectedSlug={
             selection.kind === "none" ? null : "slug" in selection ? selection.slug : null
           }
@@ -118,6 +123,7 @@ export default async function DeepSkyPage({
 
       <SelectedObject
         coordinateDisclosureMessages={coordinateDisclosureMessages}
+        messages={messages.selection}
         selection={selection}
       />
 
@@ -125,13 +131,9 @@ export default async function DeepSkyPage({
 
       <section aria-labelledby="survey-links-heading" className="space-y-4">
         <h2 className="text-2xl font-semibold" id="survey-links-heading">
-          Reviewed survey layers
+          {messages.layers.title}
         </h2>
-        <p className="max-w-3xl leading-7 text-[var(--muted)]">
-          These links are safe shareable atlas state. They contain only a closed layer identifier
-          and, when selected, the catalogue object slug — never observer coordinates or viewing
-          time.
-        </p>
+        <p className="max-w-3xl leading-7 text-[var(--muted)]">{messages.layers.description}</p>
         <ul className="grid list-none gap-3 p-0 sm:grid-cols-2">
           {ATLAS_LAYERS.map((layer) => {
             const selectedSlug = "slug" in selection ? selection.slug : undefined;
@@ -155,45 +157,44 @@ export default async function DeepSkyPage({
 function DeepSkyBrowse({
   browse,
   layerId,
+  messages,
   selectedSlug,
 }: Readonly<{
   browse: Awaited<ReturnType<typeof loadDeepSkyBrowse>>;
   layerId: AtlasLayerId;
+  messages: DeepSkyMessages["browse"];
   selectedSlug: string | null;
 }>) {
   if (browse.kind === "unavailable") {
     return (
       <div className="border border-[var(--border)] p-5" role="status">
-        <h3 className="text-xl font-semibold">Deep-sky catalogue temporarily unavailable</h3>
-        <p className="mt-2 text-[var(--muted)]">
-          Lumina could not load any of the bounded galaxy, nebula, or cluster slices. No substitute
-          objects are shown.
-        </p>
+        <h3 className="text-xl font-semibold">{messages.unavailableTitle}</h3>
+        <p className="mt-2 text-[var(--muted)]">{messages.unavailableDescription}</p>
       </div>
     );
   }
   if (browse.items.length === 0) {
-    return (
-      <p className="text-[var(--muted)]">No reviewed deep-sky objects are currently published.</p>
-    );
+    return <p className="text-[var(--muted)]">{messages.empty}</p>;
   }
 
   return (
     <>
       {browse.unavailableTypes.length > 0 ? (
         <p className="text-sm text-[var(--muted)]" role="status">
-          Partial catalogue: {browse.unavailableTypes.map(entityTypeLabel).join(", ")} could not be
-          loaded, while the available types remain usable.
+          {formatMessageTemplate(messages.unavailableTypes, {
+            types: browse.unavailableTypes.map(entityTypeLabel).join(", "),
+          })}
         </p>
       ) : null}
       {browse.truncatedTypes.length > 0 ? (
         <p className="text-sm text-[var(--muted)]">
-          Bounded atlas slice: additional {browse.truncatedTypes.map(entityTypeLabel).join(", ")}{" "}
-          are available through the main catalogue.
+          {formatMessageTemplate(messages.boundedSlice, {
+            types: browse.truncatedTypes.map(entityTypeLabel).join(", "),
+          })}
         </p>
       ) : null}
       <ul
-        aria-label="Deep-sky objects"
+        aria-label={messages.ariaLabel}
         className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
       >
         {browse.items.map((item) => {
@@ -222,9 +223,11 @@ function DeepSkyBrowse({
 
 function SelectedObject({
   coordinateDisclosureMessages,
+  messages,
   selection,
 }: Readonly<{
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  messages: DeepSkyMessages["selection"];
   selection: DeepSkySelectionOutcome;
 }>) {
   if (selection.kind === "none") {
@@ -234,47 +237,45 @@ function SelectedObject({
         className="border border-[var(--border)] p-5 sm:p-7"
       >
         <h2 className="text-2xl font-semibold" id="selected-object-heading">
-          Select an object
+          {messages.selectTitle}
         </h2>
-        <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">
-          Choose a reviewed deep-sky object above to expose its accepted catalogue coordinates and
-          provenance before using the optional atlas renderer.
-        </p>
+        <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">{messages.selectDescription}</p>
       </section>
     );
   }
   if (selection.kind === "invalid-object") {
     return (
-      <SelectionProblem title="That atlas object is not valid">
-        Choose a galaxy, nebula, or cluster from the reviewed list above.
+      <SelectionProblem title={messages.invalidTitle}>
+        {messages.invalidDescription}
       </SelectionProblem>
     );
   }
   if (selection.kind === "unavailable") {
     return (
-      <SelectionProblem title="Selected object unavailable">
-        Lumina could not reload the selected catalogue object, so the atlas will not invent
-        coordinates.
+      <SelectionProblem title={messages.unavailableTitle}>
+        {messages.unavailableDescription}
       </SelectionProblem>
     );
   }
   if (selection.kind === "coordinate-unavailable") {
     return (
       <SelectionProblem
-        title={`${selection.detail.canonical_name} has no accepted atlas coordinate`}
+        title={formatMessageTemplate(messages.coordinateUnavailableTitle, {
+          objectName: selection.detail.canonical_name,
+        })}
       >
-        The canonical object remains valid, but Lumina does not currently have one complete reviewed
-        coordinate pair that this renderer may use.
+        {messages.coordinateUnavailableDescription}
       </SelectionProblem>
     );
   }
   if (selection.kind === "coordinate-ambiguous") {
     return (
       <SelectionProblem
-        title={`${selection.detail.canonical_name} has multiple accepted coordinate pairs`}
+        title={formatMessageTemplate(messages.coordinateAmbiguousTitle, {
+          objectName: selection.detail.canonical_name,
+        })}
       >
-        The atlas will not choose between scientifically distinct coordinate sources automatically.
-        Use the observation planner for the detailed source choice.
+        {messages.coordinateAmbiguousDescription}
       </SelectionProblem>
     );
   }
@@ -287,7 +288,7 @@ function SelectedObject({
     >
       <div className="space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Selected catalogue object
+          {messages.selectedEyebrow}
         </p>
         <h2 className="text-3xl font-semibold" id="selected-object-heading">
           {detail.canonical_name}
@@ -295,16 +296,29 @@ function SelectedObject({
         <p className="text-[var(--muted)]">{entityTypeLabel(detail.entity_type)}</p>
       </div>
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CoordinateFact label="Right ascension" value={`${coordinate.originalRightAscension}°`} />
-        <CoordinateFact label="Declination" value={`${coordinate.originalDeclination}°`} />
-        <CoordinateFact label="Reference epoch" value={`J${coordinate.epoch.toFixed(1)}`} />
-        <CoordinateFact label="Coordinate source" value={coordinate.source.provider.name} />
+        <CoordinateFact
+          label={messages.rightAscensionLabel}
+          value={`${coordinate.originalRightAscension}°`}
+        />
+        <CoordinateFact
+          label={messages.declinationLabel}
+          value={`${coordinate.originalDeclination}°`}
+        />
+        <CoordinateFact
+          label={messages.referenceEpochLabel}
+          value={`J${coordinate.epoch.toFixed(1)}`}
+        />
+        <CoordinateFact
+          label={messages.coordinateSourceLabel}
+          value={coordinate.source.provider.name}
+        />
       </dl>
       <div className="space-y-2 text-sm leading-6 text-[var(--muted)]">
         <p>{formatCoordinateDisclosure(coordinateDisclosure, coordinateDisclosureMessages)}</p>
         <p>
-          Dataset: {coordinate.source.dataset.name} ({coordinate.source.dataset.release_version}) ·
-          source record <span className="font-mono">{coordinate.source.source_record_id}</span>.
+          {messages.datasetLabel}: {coordinate.source.dataset.name} (
+          {coordinate.source.dataset.release_version}) · {messages.sourceRecordLabel}{" "}
+          <span className="font-mono">{coordinate.source.source_record_id}</span>.
         </p>
       </div>
       <div className="flex flex-wrap gap-3">
@@ -312,13 +326,13 @@ function SelectedObject({
           className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
           href={`/objects/${encodeURIComponent(slug)}`}
         >
-          Open canonical object page
+          {messages.openObject}
         </Link>
         <Link
           className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
           href={`/observe?object=${encodeURIComponent(slug)}`}
         >
-          Open observation planner
+          {messages.openPlanner}
         </Link>
       </div>
     </section>

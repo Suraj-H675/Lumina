@@ -199,6 +199,63 @@ export const enMessages = {
       "Reviewed catalogue position at reference epoch {referenceEpoch}. No epoch propagation is applied.",
     reviewedWithoutEpoch: "Reviewed catalogue position. No epoch propagation is applied.",
   },
+  deepSky: {
+    browse: {
+      ariaLabel: "Deep-sky objects",
+      boundedSlice:
+        "Bounded atlas slice: additional {types} are available through the main catalogue.",
+      empty: "No reviewed deep-sky objects are currently published.",
+      summary: "Galaxies · nebulae · clusters",
+      title: "Reviewed deep-sky catalogue",
+      unavailableDescription:
+        "Lumina could not load any of the bounded galaxy, nebula, or cluster slices. No substitute objects are shown.",
+      unavailableTitle: "Deep-sky catalogue temporarily unavailable",
+      unavailableTypes:
+        "Partial catalogue: {types} could not be loaded, while the available types remain usable.",
+    },
+    header: {
+      backToExplore: "← Explore catalogue",
+      eyebrow: "Advanced atlas · Phase 5A",
+      intro:
+        "Browse reviewed galaxies, nebulae, and clusters from Lumina's catalogue. The optional WorldWide Telescope view is a renderer only: object identity, coordinates, epoch, and provenance continue to come from Lumina's reviewed data.",
+      title: "Deep-sky atlas",
+    },
+    invalidLayer:
+      "The requested survey layer is not part of Lumina's reviewed atlas inventory. Visible DSS2 is shown instead.",
+    layers: {
+      description:
+        "These links are safe shareable atlas state. They contain only a closed layer identifier and, when selected, the catalogue object slug — never observer coordinates or viewing time.",
+      title: "Reviewed survey layers",
+    },
+    metadataDescription:
+      "Browse Lumina's reviewed galaxies, nebulae, and clusters, then optionally view them with credited WorldWide Telescope survey imagery.",
+    metadataTitle: "Deep-sky atlas",
+    selection: {
+      coordinateAmbiguousDescription:
+        "The atlas will not choose between scientifically distinct coordinate sources automatically. Use the observation planner for the detailed source choice.",
+      coordinateAmbiguousTitle: "{objectName} has multiple accepted coordinate pairs",
+      coordinateSourceLabel: "Coordinate source",
+      coordinateUnavailableDescription:
+        "The canonical object remains valid, but Lumina does not currently have one complete reviewed coordinate pair that this renderer may use.",
+      coordinateUnavailableTitle: "{objectName} has no accepted atlas coordinate",
+      datasetLabel: "Dataset",
+      declinationLabel: "Declination",
+      invalidDescription: "Choose a galaxy, nebula, or cluster from the reviewed list above.",
+      invalidTitle: "That atlas object is not valid",
+      openObject: "Open canonical object page",
+      openPlanner: "Open observation planner",
+      referenceEpochLabel: "Reference epoch",
+      rightAscensionLabel: "Right ascension",
+      selectedEyebrow: "Selected catalogue object",
+      selectDescription:
+        "Choose a reviewed deep-sky object above to expose its accepted catalogue coordinates and provenance before using the optional atlas renderer.",
+      selectTitle: "Select an object",
+      sourceRecordLabel: "source record",
+      unavailableDescription:
+        "Lumina could not reload the selected catalogue object, so the atlas will not invent coordinates.",
+      unavailableTitle: "Selected object unavailable",
+    },
+  },
   discoveries: {
     backToMissionControl: "Back to Mission Control",
     bundleReviewed: "Bundle reviewed {reviewedAt}.",

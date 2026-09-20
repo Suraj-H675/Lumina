@@ -1,7 +1,7 @@
 import { enMessages } from "../../../../lib/i18n/messages/en";
-import DeepSkyPage, { metadata } from "../../../explore/deep-sky/route-page";
+import DeepSkyPage, { createDeepSkyMetadata } from "../../../explore/deep-sky/route-page";
 
-export { metadata };
+export const metadata = createDeepSkyMetadata(enMessages.deepSky);
 
 export default function EnglishDeepSkyPage({
   searchParams,
@@ -11,6 +11,7 @@ export default function EnglishDeepSkyPage({
   return (
     <DeepSkyPage
       coordinateDisclosureMessages={enMessages.coordinateDisclosure}
+      messages={enMessages.deepSky}
       searchParams={searchParams}
     />
   );

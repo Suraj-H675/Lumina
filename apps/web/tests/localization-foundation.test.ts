@@ -307,6 +307,43 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.explorer.valueWithUnit).toContain("{unit}");
   });
 
+  it("keeps Exoplanet System Layout data placeholders explicit", () => {
+    const messages = enMessages.explore.exoplanetSystems;
+    expect(messages.metadataDescription).toContain("{provider}");
+    expect(messages.continue.description).toContain("{unit}");
+    expect(messages.provenance.description).toContain("{provider}");
+    expect(messages.provenance.tapDocumentation).toContain("{provider}");
+    expect(messages.provenance.tapDocumentation).toContain("{tap}");
+    expect(messages.provenance.columnDocumentation).toContain("{columnSet}");
+    expect(messages.provenance.querySummary).toContain("{tap}");
+    expect(messages.explorer.description).toContain("{provider}");
+    expect(messages.explorer.description).toContain("{table}");
+    expect(messages.explorer.modelEyebrow).toContain("{modelVersion}");
+    expect(messages.explorer.title).toContain("{unit}");
+    expect(messages.explorer.host.ariaLabel).toContain("{name}");
+    expect(messages.explorer.host.ariaLabel).toContain("{countLabel}");
+    expect(messages.explorer.host.confirmedPlanets.one).toContain("{count}");
+    expect(messages.explorer.host.hostname).toContain("{hostname}");
+    expect(messages.explorer.host.originDisclosure).toContain("{unit}");
+    expect(messages.explorer.logDescription).toContain("{minimum}");
+    expect(messages.explorer.logDescription).toContain("{maximum}");
+    expect(messages.explorer.logDescription).toContain("{unit}");
+    expect(messages.explorer.linearDescription).toContain("{maximum}");
+    expect(messages.explorer.systemLayoutAriaLabel).toContain("{system}");
+    expect(messages.explorer.trackSummary).toContain("{distance}");
+    expect(messages.explorer.trackSummary).toContain("{position}");
+    expect(messages.explorer.trackSummary).toContain("{mode}");
+    expect(messages.explorer.planet.discoverySummary).toContain("{host}");
+    expect(messages.explorer.planet.discoverySummary).toContain("{year}");
+    expect(messages.explorer.planet.discoverySummary).toContain("{method}");
+    expect(messages.explorer.planet.disclosure).toContain("{table}");
+    expect(messages.explorer.parameter.valueWithUnit).toContain("{value}");
+    expect(messages.explorer.parameter.valueWithUnit).toContain("{unit}");
+    expect(messages.explorer.parameter.uncertainty).toContain("{plus}");
+    expect(messages.explorer.parameter.uncertainty).toContain("{minus}");
+    expect(messages.explorer.parameter.reference).toContain("{reference}");
+  });
+
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {
     expect(enMessages.entityTypes.star).toBe("Star");
     expect(enMessages.entityTypes.dwarf_planet).toBe("Dwarf planet");

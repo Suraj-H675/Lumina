@@ -565,6 +565,86 @@ export type SolarSystemDistanceMessages = Readonly<{
   title: string;
 }>;
 
+export type ExoplanetSystemsMessages = Readonly<{
+  backToExplore: string;
+  continue: Readonly<{
+    action: string;
+    description: string;
+    title: string;
+  }>;
+  eyebrow: string;
+  explorer: Readonly<{
+    dataAlternative: Readonly<{
+      description: string;
+      headers: Readonly<{
+        discovery: string;
+        host: string;
+        orbitalPeriod: string;
+        planet: string;
+        semimajorAxis: string;
+      }>;
+      title: string;
+    }>;
+    description: string;
+    host: Readonly<{
+      ariaLabel: string;
+      confirmedPlanets: CountMessageTemplates;
+      groupAriaLabel: string;
+      hostname: string;
+      openCanonical: string;
+      originDisclosure: string;
+    }>;
+    linearDescription: string;
+    logDescription: string;
+    modelEyebrow: string;
+    parameter: Readonly<{
+      noUncertainty: string;
+      orbitalPeriodLabel: string;
+      reference: string;
+      semimajorAxisLabel: string;
+      uncertainty: string;
+      valueWithUnit: string;
+    }>;
+    planet: Readonly<{
+      discoverySummary: string;
+      disclosure: string;
+      eyebrow: string;
+    }>;
+    scaleAriaLabel: string;
+    scaleModes: Readonly<{
+      linearAction: string;
+      linearTrackName: string;
+      logAction: string;
+      logTrackName: string;
+    }>;
+    systemLayoutAriaLabel: string;
+    title: string;
+    trackSummary: string;
+  }>;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptionsTitle: string;
+    description: string;
+    limitationsTitle: string;
+    title: string;
+  }>;
+  provenance: Readonly<{
+    archiveTableLabel: string;
+    bytesLabel: string;
+    columnDocumentation: string;
+    description: string;
+    providerLabel: string;
+    querySummary: string;
+    retrievedLabel: string;
+    shaLabel: string;
+    tapDocumentation: string;
+    title: string;
+  }>;
+  title: string;
+}>;
+
 export type ExploreMessages = Readonly<{
   browse: Readonly<{
     emptyDescription: string;
@@ -589,6 +669,7 @@ export type ExploreMessages = Readonly<{
   }>;
   metadataDescription: string;
   metadataTitle: string;
+  exoplanetSystems: ExoplanetSystemsMessages;
   solarSystemDistance: SolarSystemDistanceMessages;
   search: Readonly<{
     heading: string;

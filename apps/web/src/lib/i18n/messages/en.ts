@@ -506,6 +506,99 @@ export const enMessages = {
     metadataDescription:
       "Search and browse Lumina's reviewed astronomical catalogue. Every published value keeps its source and provenance.",
     metadataTitle: "Explore the catalogue",
+    exoplanetSystems: {
+      backToExplore: "← Explore catalogue",
+      continue: {
+        action: "Open Solar System distance reference →",
+        description:
+          "The Solar System explorer uses a different reviewed source and a wider 0–30.05 {unit} range. Comparing the two makes the chosen display scale explicit instead of visually mixing the data sets.",
+        title: "Compare the reference system",
+      },
+      eyebrow: "System explorer · Phase 5B",
+      explorer: {
+        dataAlternative: {
+          description:
+            "All ten pinned planets remain available as numbers independent of the visual track.",
+          headers: {
+            discovery: "Discovery",
+            host: "Host",
+            orbitalPeriod: "Orbital period",
+            planet: "Planet",
+            semimajorAxis: "Semi-major axis",
+          },
+          title: "Data alternative",
+        },
+        description:
+          "Each marker is placed by a cited orbit semi-major axis from {provider} {table}. It is not the planet's current distance, orbital phase, or sky position.",
+        host: {
+          ariaLabel: "{name}, {countLabel}",
+          confirmedPlanets: {
+            one: "{count} confirmed planet",
+            other: "{count} confirmed planets",
+          },
+          groupAriaLabel: "Host system",
+          hostname: "Archive hostname: {hostname}",
+          openCanonical: "Open canonical host star →",
+          originDisclosure:
+            "Host star is the 0 {unit} origin conceptually; it is not plotted on the logarithmic transform. Planet markers are uniform-size interface controls, not radius encodings.",
+        },
+        linearDescription:
+          "Linear view uses the same shared 0–{maximum} {unit} reference, exposing how compressed close-in systems are.",
+        logDescription:
+          "Log view normalizes the shared {minimum}–{maximum} {unit} domain so close-in and wider planets remain comparable.",
+        modelEyebrow: "Reviewed reference model · {modelVersion}",
+        parameter: {
+          noUncertainty: "Archive composite value has no reported uncertainty in this field.",
+          orbitalPeriodLabel: "Orbital period",
+          reference: "Parameter reference: {reference} ↗",
+          semimajorAxisLabel: "Orbit semi-major axis",
+          uncertainty: "Archive uncertainty: +{plus} / {minus} {unit}.",
+          valueWithUnit: "{value} {unit}",
+        },
+        planet: {
+          discoverySummary: "Host: {host} · discovered {year} · {method}",
+          disclosure:
+            "These two parameters may come from different publications because {table} is a composite table. Lumina therefore keeps each parameter's reference attached to that value.",
+          eyebrow: "Selected confirmed planet",
+        },
+        scaleAriaLabel: "Orbital reference scale",
+        scaleModes: {
+          linearAction: "Linear semi-major axis",
+          linearTrackName: "linear",
+          logAction: "Log semi-major axis",
+          logTrackName: "log",
+        },
+        systemLayoutAriaLabel: "{system} orbital reference layout",
+        title: "Five known host systems on one shared {unit} scale",
+        trackSummary: "{distance} {unit} · {position}% of shared {mode} track",
+      },
+      intro:
+        "Compare confirmed planets around the five host stars already reviewed by Lumina. The layout uses cited orbit semi-major axes—not current positions, not generated orbits, and not an artist's impression.",
+      metadataDescription:
+        "Compare pinned {provider} semi-major-axis layouts for Lumina's five reviewed host-star systems without implying current planet positions.",
+      metadataTitle: "Exoplanet System Layouts",
+      model: {
+        assumptionsTitle: "Assumptions",
+        description:
+          "The Python astronomy domain validates the pinned archive snapshot and computes both display coordinates. The browser selects among those reviewed outputs; it does not estimate missing planets, orbit phases, or orbital elements.",
+        limitationsTitle: "Limitations",
+        title: "Model and limitations",
+      },
+      provenance: {
+        archiveTableLabel: "Archive table",
+        bytesLabel: "Raw snapshot bytes",
+        columnDocumentation: "{columnSet} column definitions ↗",
+        description:
+          "Lumina does not query {provider} when you open this page. It uses this checksum-pinned, reviewed snapshot so the visual remains reproducible.",
+        providerLabel: "Provider",
+        querySummary: "Exact pinned {tap} query",
+        retrievedLabel: "Retrieved",
+        shaLabel: "SHA-256",
+        tapDocumentation: "{provider} {tap} documentation ↗",
+        title: "Snapshot provenance",
+      },
+      title: "Exoplanet System Layouts",
+    },
     solarSystemDistance: {
       backToExplore: "← Explore catalogue",
       continue: {

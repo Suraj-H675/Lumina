@@ -3,6 +3,11 @@ import exoplanetArtifact from "../../../../../data/seed/exoplanet-system-layout-
 export const EXOPLANET_SYSTEM_MODEL_VERSION = "exoplanet-system-layout-v1" as const;
 export const EXOPLANET_SYSTEM_SCHEMA_VERSION = 1 as const;
 export const EXOPLANET_SYSTEM_ARTIFACT_VERSION = 1 as const;
+export const EXOPLANET_ARCHIVE_TAP_NAME = "TAP" as const;
+export const EXOPLANET_ARCHIVE_COLUMN_SET_NAME = "PS / PSCompPars" as const;
+export const EXOPLANET_COMPOSITE_TABLE_NAME = "PSCompPars" as const;
+export const EXOPLANET_DISTANCE_UNIT = "AU" as const;
+export const EXOPLANET_PERIOD_UNIT = "days" as const;
 
 export type ExoplanetScaleMode = "log" | "linear";
 

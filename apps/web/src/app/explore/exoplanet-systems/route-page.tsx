@@ -1,20 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { formatLocaleNumber, formatMessageTemplate } from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { ExoplanetSystemsMessages } from "../../../lib/i18n/messages/types";
 import {
+  EXOPLANET_ARCHIVE_COLUMN_SET_NAME,
+  EXOPLANET_ARCHIVE_TAP_NAME,
+  EXOPLANET_DISTANCE_UNIT,
   EXOPLANET_RAW_SNAPSHOT,
   EXOPLANET_SYSTEM_DEFINITION,
 } from "../../../lib/visualizations/exoplanet-systems";
 import { ExoplanetSystemExplorer } from "./exoplanet-system-explorer";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/explore/exoplanet-systems" },
-  title: "Exoplanet System Layouts",
-  description:
-    "Compare pinned NASA Exoplanet Archive semi-major-axis layouts for Lumina's five reviewed host-star systems without implying current planet positions.",
-};
+export function createExoplanetSystemsMetadata(messages: ExoplanetSystemsMessages): Metadata {
+  return {
+    alternates: { canonical: "/explore/exoplanet-systems" },
+    title: messages.metadataTitle,
+    description: formatMessageTemplate(messages.metadataDescription, {
+      provider: EXOPLANET_RAW_SNAPSHOT.provider,
+    }),
+  };
+}
 
-export default function ExoplanetSystemsPage() {
+export default function ExoplanetSystemsPage({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: ExoplanetSystemsMessages }>) {
   return (
     <div className="space-y-10">
       <header className="max-w-4xl space-y-4">
@@ -22,22 +34,16 @@ export default function ExoplanetSystemsPage() {
           className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--muted)] underline underline-offset-4"
           href="/explore"
         >
-          ← Explore catalogue
+          {messages.backToExplore}
         </Link>
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          System explorer · Phase 5B
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Exoplanet System Layouts
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Compare confirmed planets around the five host stars already reviewed by Lumina. The
-          layout uses cited orbit semi-major axes—not current positions, not generated orbits, and
-          not an artist&apos;s impression.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
       </header>
 
-      <ExoplanetSystemExplorer />
+      <ExoplanetSystemExplorer locale={locale} messages={messages.explorer} />
 
       <section
         aria-labelledby="exoplanet-model-heading"
@@ -45,40 +51,52 @@ export default function ExoplanetSystemsPage() {
       >
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="exoplanet-model-heading">
-            Model and limitations
+            {messages.model.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            The Python astronomy domain validates the pinned archive snapshot and computes both
-            display coordinates. The browser selects among those reviewed outputs; it does not
-            estimate missing planets, orbit phases, or orbital elements.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.model.description}</p>
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
-          <ModelList title="Assumptions" values={EXOPLANET_SYSTEM_DEFINITION.assumptions} />
-          <ModelList title="Limitations" values={EXOPLANET_SYSTEM_DEFINITION.limitations} />
+          <ModelList
+            title={messages.model.assumptionsTitle}
+            values={EXOPLANET_SYSTEM_DEFINITION.assumptions}
+          />
+          <ModelList
+            title={messages.model.limitationsTitle}
+            values={EXOPLANET_SYSTEM_DEFINITION.limitations}
+          />
         </div>
       </section>
 
       <section aria-labelledby="exoplanet-provenance-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="exoplanet-provenance-heading">
-            Snapshot provenance
+            {messages.provenance.title}
           </h2>
           <p className="leading-7 text-[var(--muted)]">
-            Lumina does not query NASA when you open this page. It uses this checksum-pinned,
-            reviewed snapshot so the visual remains reproducible.
+            {formatMessageTemplate(messages.provenance.description, {
+              provider: EXOPLANET_RAW_SNAPSHOT.provider,
+            })}
           </p>
         </div>
         <dl className="grid gap-4 md:grid-cols-2">
-          <ProvenanceFact label="Provider" value={EXOPLANET_RAW_SNAPSHOT.provider} />
-          <ProvenanceFact label="Archive table" value={EXOPLANET_RAW_SNAPSHOT.table} />
-          <ProvenanceFact label="Retrieved" value={EXOPLANET_RAW_SNAPSHOT.retrieved_at} />
           <ProvenanceFact
-            label="Raw snapshot bytes"
-            value={EXOPLANET_RAW_SNAPSHOT.bytes.toString()}
+            label={messages.provenance.providerLabel}
+            value={EXOPLANET_RAW_SNAPSHOT.provider}
+          />
+          <ProvenanceFact
+            label={messages.provenance.archiveTableLabel}
+            value={EXOPLANET_RAW_SNAPSHOT.table}
+          />
+          <ProvenanceFact
+            label={messages.provenance.retrievedLabel}
+            value={EXOPLANET_RAW_SNAPSHOT.retrieved_at}
+          />
+          <ProvenanceFact
+            label={messages.provenance.bytesLabel}
+            value={formatLocaleNumber(EXOPLANET_RAW_SNAPSHOT.bytes, locale, { useGrouping: false })}
           />
           <div className="border border-[var(--border)] bg-[var(--surface)] p-4 md:col-span-2">
-            <dt className="text-sm text-[var(--muted)]">SHA-256</dt>
+            <dt className="text-sm text-[var(--muted)]">{messages.provenance.shaLabel}</dt>
             <dd className="mt-1 break-all font-mono text-sm">{EXOPLANET_RAW_SNAPSHOT.sha256}</dd>
           </div>
         </dl>
@@ -88,18 +106,27 @@ export default function ExoplanetSystemsPage() {
             href={EXOPLANET_RAW_SNAPSHOT.documentation_url}
             rel="noreferrer"
           >
-            NASA Exoplanet Archive TAP documentation ↗
+            {formatMessageTemplate(messages.provenance.tapDocumentation, {
+              provider: EXOPLANET_RAW_SNAPSHOT.provider,
+              tap: EXOPLANET_ARCHIVE_TAP_NAME,
+            })}
           </a>
           <a
             className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
             href={EXOPLANET_RAW_SNAPSHOT.column_documentation_url}
             rel="noreferrer"
           >
-            PS / PSCompPars column definitions ↗
+            {formatMessageTemplate(messages.provenance.columnDocumentation, {
+              columnSet: EXOPLANET_ARCHIVE_COLUMN_SET_NAME,
+            })}
           </a>
         </div>
         <details className="border border-[var(--border)] p-4">
-          <summary className="cursor-pointer font-semibold">Exact pinned TAP query</summary>
+          <summary className="cursor-pointer font-semibold">
+            {formatMessageTemplate(messages.provenance.querySummary, {
+              tap: EXOPLANET_ARCHIVE_TAP_NAME,
+            })}
+          </summary>
           <p className="mt-3 overflow-x-auto whitespace-pre font-mono text-xs leading-5 text-[var(--muted)]">
             {EXOPLANET_RAW_SNAPSHOT.query}
           </p>
@@ -111,18 +138,18 @@ export default function ExoplanetSystemsPage() {
         className="space-y-4 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="exoplanet-next-heading">
-          Compare the reference system
+          {messages.continue.title}
         </h2>
         <p className="max-w-3xl leading-7 text-[var(--muted)]">
-          The Solar System explorer uses a different reviewed source and a wider 0–30.05 AU range.
-          Comparing the two makes the chosen display scale explicit instead of visually mixing the
-          data sets.
+          {formatMessageTemplate(messages.continue.description, {
+            unit: EXOPLANET_DISTANCE_UNIT,
+          })}
         </p>
         <Link
           className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
           href="/explore/solar-system"
         >
-          Open Solar System distance reference →
+          {messages.continue.action}
         </Link>
       </section>
     </div>

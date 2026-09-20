@@ -379,6 +379,30 @@ export const enMessages = {
     title: "Reviewed discoveries",
     whyItMattersTitle: "Why it matters",
   },
+  entityTypes: {
+    asteroid: "Asteroid",
+    black_hole: "Black hole",
+    cluster: "Cluster",
+    comet: "Comet",
+    compact_object: "Compact object",
+    concept: "Concept",
+    constellation: "Constellation",
+    dwarf_planet: "Dwarf planet",
+    event: "Event",
+    exoplanet: "Exoplanet",
+    galaxy: "Galaxy",
+    launch_vehicle: "Launch vehicle",
+    mission: "Mission",
+    moon: "Moon",
+    nebula: "Nebula",
+    observatory: "Observatory",
+    person: "Person",
+    planet: "Planet",
+    sky_region: "Sky region",
+    spacecraft: "Spacecraft",
+    star: "Star",
+    system: "System",
+  },
   explore: {
     browse: {
       emptyDescription:
@@ -431,6 +455,55 @@ export const enMessages = {
       description:
         "Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
       searchTitle: "Search is unavailable right now",
+    },
+  },
+  object: {
+    footerBackToExplore: "← Back to Explore",
+    header: {
+      backToExplore: "← Explore",
+      compare: "Compare this object",
+      eyebrow: "Catalogue object",
+      measuredQuantities: {
+        one: "{entityType} · {count} measured quantity",
+        other: "{entityType} · {count} measured quantities",
+      },
+      observe: "Observe",
+    },
+    metadata: {
+      description:
+        "{name} in the Lumina catalogue: {entityType} with published measurements and full source provenance.",
+      notFoundTitle: "Object not found",
+      unavailableTitle: "Object temporarily unavailable",
+    },
+    notFound: {
+      browseCatalogue: "Browse the catalogue",
+      description:
+        "Lumina has no catalogue object at {path}. It may be added later as reviewed data grows — try searching instead.",
+      title: "Object not found",
+    },
+    provenance: {
+      covers: "Covers: {quantities}",
+      empty: "No source records back this object yet.",
+      heading: "Provenance",
+      sourceRecord: "Source record {recordId}",
+      summary: "Where every value above comes from.",
+    },
+    science: {
+      empty:
+        "No measurements are published through Lumina for this object yet. This page will grow as reviewed data is added — nothing is estimated or filled in on your behalf.",
+      heading: "Scientific data",
+      measurementDetails: {
+        one: "{count} measurement recorded · original value {originalValue} {originalUnit}",
+        other: "{count} measurements recorded · original value {originalValue} {originalUnit}",
+      },
+      summary: "Values are shown exactly as selected by Lumina's reviewed pipeline.",
+      unselected: "Also tracked, awaiting a canonical selection: {quantities}.",
+    },
+    unavailable: {
+      browseCatalogue: "Browse the catalogue",
+      description:
+        "Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
+      title: "This object is temporarily unavailable",
     },
   },
   journal: {

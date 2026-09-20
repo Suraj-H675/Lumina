@@ -149,6 +149,36 @@ describe("Phase 8C localization foundation", () => {
     ).toBe("2 results for Kepler, ranked by the catalogue search engine.");
   });
 
+  it("keeps Object templates and shared entity-type labels placeholder-complete", () => {
+    expect(enMessages.entityTypes.star).toBe("Star");
+    expect(enMessages.entityTypes.dwarf_planet).toBe("Dwarf planet");
+    expect(enMessages.entityTypes.black_hole).toBe("Black hole");
+    expect(enMessages.entityTypes.sky_region).toBe("Sky region");
+
+    expect(enMessages.object.metadata.description).toContain("{name}");
+    expect(enMessages.object.metadata.description).toContain("{entityType}");
+    expect(enMessages.object.notFound.description).toContain("{path}");
+    expect(enMessages.object.header.measuredQuantities.one).toContain("{entityType}");
+    expect(enMessages.object.header.measuredQuantities.one).toContain("{count}");
+    expect(enMessages.object.science.measurementDetails.one).toContain("{count}");
+    expect(enMessages.object.science.measurementDetails.one).toContain("{originalValue}");
+    expect(enMessages.object.science.measurementDetails.one).toContain("{originalUnit}");
+    expect(enMessages.object.science.unselected).toContain("{quantities}");
+    expect(enMessages.object.provenance.sourceRecord).toContain("{recordId}");
+    expect(enMessages.object.provenance.covers).toContain("{quantities}");
+
+    expect(
+      formatCountMessage(enMessages.object.header.measuredQuantities, 1, "en", {
+        entityType: enMessages.entityTypes.star,
+      }),
+    ).toBe("Star · 1 measured quantity");
+    expect(
+      formatCountMessage(enMessages.object.header.measuredQuantities, 2, "en", {
+        entityType: enMessages.entityTypes.star,
+      }),
+    ).toBe("Star · 2 measured quantities");
+  });
+
   it("keeps the Mission Control page shell in the typed English dictionary", () => {
     expect(enMessages.missionControl.metadataTitle).toBe("Mission Control");
     expect(enMessages.missionControl.eyebrow).toBe("Mission Control");

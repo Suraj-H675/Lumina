@@ -220,8 +220,10 @@ describe("ObjectView", () => {
       <ObjectView
         collectionSaveMessages={SAVE_MESSAGES}
         detail={detail()}
+        entityTypeMessages={enMessages.entityTypes}
         journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
+        messages={enMessages.object}
         slug="51-pegasi"
       />,
     );
@@ -246,8 +248,10 @@ describe("ObjectView", () => {
       <ObjectView
         collectionSaveMessages={SAVE_MESSAGES}
         detail={{ canonical_name: "HD 209458", entity_type: "star", id: K2_18_ID, quantities: [] }}
+        entityTypeMessages={enMessages.entityTypes}
         journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
+        messages={enMessages.object}
         slug="hd-209458"
       />,
     );
@@ -259,13 +263,85 @@ describe("ObjectView", () => {
     expect(document.body.textContent).not.toContain("undefined");
   });
 
+  it("localizes Object chrome without rewriting catalogue science or provenance data", () => {
+    const messages = {
+      ...enMessages.object,
+      footerBackToExplore: "Fixture back",
+      header: {
+        ...enMessages.object.header,
+        compare: "Fixture compare",
+        eyebrow: "Fixture object eyebrow",
+        measuredQuantities: {
+          one: "{entityType} / fixture {count} quantity",
+          other: "{entityType} / fixture {count} quantities",
+        },
+        observe: "Fixture observe",
+      },
+      provenance: {
+        ...enMessages.object.provenance,
+        covers: "Fixture covers {quantities}",
+        heading: "Fixture provenance",
+        sourceRecord: "Fixture record {recordId}",
+      },
+      science: {
+        ...enMessages.object.science,
+        heading: "Fixture science",
+        measurementDetails: {
+          one: "Fixture {count} measurement / {originalValue} {originalUnit}",
+          other: "Fixture {count} measurements / {originalValue} {originalUnit}",
+        },
+      },
+    };
+    const entityTypes = {
+      ...enMessages.entityTypes,
+      star: "Fixture star",
+    };
+
+    render(
+      <ObjectView
+        collectionSaveMessages={SAVE_MESSAGES}
+        detail={detail()}
+        entityTypeMessages={entityTypes}
+        journalEntryMessages={enMessages.journal.entry}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+        slug="51-pegasi"
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "51 Pegasi" })).toBeVisible();
+    expect(screen.getByText("Fixture star / fixture 1 quantity")).toBeVisible();
+    expect(screen.getByRole("link", { name: /fixture observe/i })).toHaveAttribute(
+      "href",
+      "/observe?object=51-pegasi",
+    );
+    expect(screen.getByRole("link", { name: /fixture compare/i })).toHaveAttribute(
+      "href",
+      "/compare?object=51-pegasi",
+    );
+    expect(screen.getByRole("heading", { name: "Fixture science" })).toBeVisible();
+    expect(screen.getByText("Gaia G-band mean magnitude (Vega scale)")).toBeVisible();
+    expect(screen.getByText("5.2832")).toBeVisible();
+    expect(screen.getByText("mag")).toBeVisible();
+    expect(screen.getByText("Fixture 1 measurement / 5.2832120 mag")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture provenance" })).toBeVisible();
+    expect(screen.getByText("ESA Gaia Archive")).toBeVisible();
+    expect(screen.getByText("Gaia Data Release 3 main source catalogue (dr3)")).toBeVisible();
+    expect(screen.getByText("Fixture record 2835207319109249920")).toBeVisible();
+    expect(
+      screen.getByText("Fixture covers Gaia G-band mean magnitude (Vega scale)"),
+    ).toBeVisible();
+  });
+
   it("passes an axe accessibility scan with data present", async () => {
     const { container } = render(
       <ObjectView
         collectionSaveMessages={SAVE_MESSAGES}
         detail={detail()}
+        entityTypeMessages={enMessages.entityTypes}
         journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
+        messages={enMessages.object}
         slug="51-pegasi"
       />,
     );
@@ -275,11 +351,29 @@ describe("ObjectView", () => {
 
 describe("ObjectNotFoundView", () => {
   it("offers discovery instead of raw API errors", () => {
-    render(<ObjectNotFoundView slug="not-a-real-object" />);
+    render(<ObjectNotFoundView messages={enMessages.object.notFound} slug="not-a-real-object" />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Object not found" })).toBeVisible();
     expect(screen.queryByText(/catalog.entity_not_found/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /browse the catalogue/i })).toHaveAttribute(
+      "href",
+      "/explore",
+    );
+  });
+
+  it("localizes the not-found wrapper while preserving the requested object path", () => {
+    const messages = {
+      ...enMessages.object.notFound,
+      browseCatalogue: "Fixture browse",
+      description: "Fixture missing object at {path}.",
+      title: "Fixture missing",
+    };
+
+    render(<ObjectNotFoundView messages={messages} slug="not-a-real-object" />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Fixture missing" })).toBeVisible();
+    expect(screen.getByText("Fixture missing object at /objects/not-a-real-object.")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Fixture browse" })).toHaveAttribute(
       "href",
       "/explore",
     );

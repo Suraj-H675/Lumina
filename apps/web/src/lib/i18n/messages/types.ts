@@ -247,6 +247,31 @@ export type CatalogueSearchMessages = Readonly<{
   suggestionsAvailable: CountMessageTemplates;
 }>;
 
+export type EntityTypeMessages = Readonly<{
+  asteroid: string;
+  black_hole: string;
+  cluster: string;
+  comet: string;
+  compact_object: string;
+  concept: string;
+  constellation: string;
+  dwarf_planet: string;
+  event: string;
+  exoplanet: string;
+  galaxy: string;
+  launch_vehicle: string;
+  mission: string;
+  moon: string;
+  nebula: string;
+  observatory: string;
+  person: string;
+  planet: string;
+  sky_region: string;
+  spacecraft: string;
+  star: string;
+  system: string;
+}>;
+
 export type ExploreMessages = Readonly<{
   browse: Readonly<{
     emptyDescription: string;
@@ -285,6 +310,46 @@ export type ExploreMessages = Readonly<{
     catalogueTitle: string;
     description: string;
     searchTitle: string;
+  }>;
+}>;
+
+export type ObjectMessages = Readonly<{
+  footerBackToExplore: string;
+  header: Readonly<{
+    backToExplore: string;
+    compare: string;
+    eyebrow: string;
+    measuredQuantities: CountMessageTemplates;
+    observe: string;
+  }>;
+  metadata: Readonly<{
+    description: string;
+    notFoundTitle: string;
+    unavailableTitle: string;
+  }>;
+  notFound: Readonly<{
+    browseCatalogue: string;
+    description: string;
+    title: string;
+  }>;
+  provenance: Readonly<{
+    covers: string;
+    empty: string;
+    heading: string;
+    sourceRecord: string;
+    summary: string;
+  }>;
+  science: Readonly<{
+    empty: string;
+    heading: string;
+    measurementDetails: CountMessageTemplates;
+    summary: string;
+    unselected: string;
+  }>;
+  unavailable: Readonly<{
+    browseCatalogue: string;
+    description: string;
+    title: string;
   }>;
 }>;
 
@@ -1578,11 +1643,13 @@ export type LuminaMessages = Readonly<{
   coordinateDisclosure: CoordinateDisclosureMessages;
   deepSky: DeepSkyMessages;
   discoveries: DiscoveriesMessages;
+  entityTypes: EntityTypeMessages;
   explore: ExploreMessages;
   journal: JournalMessages;
   labIndex: LabIndexMessages;
   learn: LearnMessages;
   missionControl: MissionControlMessages;
+  object: ObjectMessages;
   observationPlanner: ObservationPlannerMessages;
   offline: OfflineMessages;
   participate: ParticipateMessages;

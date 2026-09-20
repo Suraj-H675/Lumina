@@ -3,12 +3,38 @@
 import { useMemo, useState } from "react";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../../lib/i18n/locales";
+import type { VoyagerMessages } from "../../../../lib/i18n/messages/types";
+import {
+  VOYAGER_DISTANCE_UNIT,
+  VOYAGER_HORIZONS_NAME,
+  VOYAGER_HORIZONS_SHORT_NAME,
+  VOYAGER_MISSION_NAME,
+  VOYAGER_RADIUS_FORMULA,
+  VOYAGER_REFERENCE_FRAME_LABEL,
   VOYAGER_SAMPLES,
+  VOYAGER_TIME_SCALE,
+  VOYAGER_X_AXIS_LABEL,
+  VOYAGER_XY_AXES_LABEL,
+  VOYAGER_Y_AXIS_LABEL,
+  VOYAGER_Z_AXIS_LABEL,
   voyagerSampleYear,
   type VoyagerTrajectorySample,
 } from "../../../../lib/visualizations/voyager-1";
 
-export function VoyagerTrajectoryExplorer() {
+export function VoyagerTrajectoryExplorer({
+  centerBodyName,
+  locale,
+  messages,
+}: Readonly<{
+  centerBodyName: string;
+  locale: PublishedLocale;
+  messages: VoyagerMessages["trajectory"];
+}>) {
   const [sampleIndex, setSampleIndex] = useState(VOYAGER_SAMPLES.length - 1);
   const sample = VOYAGER_SAMPLES[sampleIndex]!;
 
@@ -19,26 +45,34 @@ export function VoyagerTrajectoryExplorer() {
     >
       <div className="max-w-4xl space-y-3">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          JPL Horizons · pinned annual vectors
+          {formatMessageTemplate(messages.eyebrow, { provider: VOYAGER_HORIZONS_NAME })}
         </p>
         <h2 className="text-2xl font-semibold" id="voyager-trajectory-heading">
-          Voyager 1 trajectory reference
+          {formatMessageTemplate(messages.title, { mission: VOYAGER_MISSION_NAME })}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          The path below is an XY projection of Sun-centered geometric positions in the J2000
-          ecliptic frame. Z is not drawn in the projection and remains visible numerically. Annual
-          points are connected only as a visual guide; Lumina does not interpolate a continuous
-          flight solution.
+          {formatMessageTemplate(messages.description, {
+            center: centerBodyName,
+            frame: VOYAGER_REFERENCE_FRAME_LABEL,
+            xyAxes: VOYAGER_XY_AXES_LABEL,
+            zAxis: VOYAGER_Z_AXIS_LABEL,
+          })}
         </p>
       </div>
 
       <label className="block max-w-3xl space-y-2 font-semibold">
         <span>
-          Selected annual sample: {voyagerSampleYear(sample)} · {sample.radius_au.toFixed(2)} AU
-          from the Sun
+          {formatMessageTemplate(messages.sampleLabel, {
+            center: centerBodyName,
+            distance: formatLocaleFixedNumber(sample.radius_au, 2, locale),
+            unit: VOYAGER_DISTANCE_UNIT,
+            year: formatLocaleNumber(voyagerSampleYear(sample), locale, { useGrouping: false }),
+          })}
         </span>
         <input
-          aria-label="Voyager annual trajectory sample"
+          aria-label={formatMessageTemplate(messages.sliderAriaLabel, {
+            mission: VOYAGER_MISSION_NAME,
+          })}
           className="min-h-11 w-full"
           max={VOYAGER_SAMPLES.length - 1}
           min={0}
@@ -50,16 +84,33 @@ export function VoyagerTrajectoryExplorer() {
       </label>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <TrajectoryProjection selectedIndex={sampleIndex} />
-        <DistanceHistory selectedIndex={sampleIndex} />
+        <TrajectoryProjection
+          centerBodyName={centerBodyName}
+          messages={messages.projection}
+          selectedIndex={sampleIndex}
+        />
+        <DistanceHistory
+          locale={locale}
+          messages={messages.distanceHistory}
+          selectedIndex={sampleIndex}
+          valueWithUnit={messages.valueWithUnit}
+        />
       </div>
 
-      <SelectedVector sample={sample} />
+      <SelectedVector locale={locale} messages={messages} sample={sample} />
     </section>
   );
 }
 
-function TrajectoryProjection({ selectedIndex }: Readonly<{ selectedIndex: number }>) {
+function TrajectoryProjection({
+  centerBodyName,
+  messages,
+  selectedIndex,
+}: Readonly<{
+  centerBodyName: string;
+  messages: VoyagerMessages["trajectory"]["projection"];
+  selectedIndex: number;
+}>) {
   const plot = useMemo(() => {
     const maxAbs = Math.max(
       ...VOYAGER_SAMPLES.flatMap((sample) => [Math.abs(sample.x_au), Math.abs(sample.y_au)]),
@@ -78,13 +129,26 @@ function TrajectoryProjection({ selectedIndex }: Readonly<{ selectedIndex: numbe
   return (
     <figure className="space-y-3 border border-[var(--border)] bg-[var(--surface)] p-4">
       <figcaption className="space-y-1">
-        <span className="block font-semibold">J2000 ecliptic XY projection</span>
+        <span className="block font-semibold">
+          {formatMessageTemplate(messages.title, {
+            frame: VOYAGER_REFERENCE_FRAME_LABEL,
+            xyAxes: VOYAGER_XY_AXES_LABEL,
+          })}
+        </span>
         <span className="block text-xs leading-5 text-[var(--muted)]">
-          Equal X/Y scale in AU. This is a projection, not a full 3D path; Z is omitted here.
+          {formatMessageTemplate(messages.description, {
+            unit: VOYAGER_DISTANCE_UNIT,
+            xAxis: VOYAGER_X_AXIS_LABEL,
+            yAxis: VOYAGER_Y_AXIS_LABEL,
+            zAxis: VOYAGER_Z_AXIS_LABEL,
+          })}
         </span>
       </figcaption>
       <svg
-        aria-label="Voyager 1 heliocentric ecliptic XY trajectory projection"
+        aria-label={formatMessageTemplate(messages.ariaLabel, {
+          mission: VOYAGER_MISSION_NAME,
+          xyAxes: VOYAGER_XY_AXES_LABEL,
+        })}
         className="h-auto w-full"
         role="img"
         viewBox="0 0 520 520"
@@ -121,20 +185,30 @@ function TrajectoryProjection({ selectedIndex }: Readonly<{ selectedIndex: numbe
           strokeWidth="3"
         />
         <text fill="currentColor" fontSize="12" x={plot.center + 9} y={plot.center - 9}>
-          Sun
+          {centerBodyName}
         </text>
         <text fill="currentColor" fontSize="12" x="430" y={plot.center - 8}>
-          +X
+          +{VOYAGER_X_AXIS_LABEL}
         </text>
         <text fill="currentColor" fontSize="12" x={plot.center + 8} y="28">
-          +Y
+          +{VOYAGER_Y_AXIS_LABEL}
         </text>
       </svg>
     </figure>
   );
 }
 
-function DistanceHistory({ selectedIndex }: Readonly<{ selectedIndex: number }>) {
+function DistanceHistory({
+  locale,
+  messages,
+  selectedIndex,
+  valueWithUnit,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: VoyagerMessages["trajectory"]["distanceHistory"];
+  selectedIndex: number;
+  valueWithUnit: string;
+}>) {
   const plot = useMemo(() => {
     const width = 520;
     const height = 260;
@@ -151,14 +225,18 @@ function DistanceHistory({ selectedIndex }: Readonly<{ selectedIndex: number }>)
   return (
     <figure className="space-y-3 border border-[var(--border)] bg-[var(--surface)] p-4">
       <figcaption className="space-y-1">
-        <span className="block font-semibold">Heliocentric distance history</span>
+        <span className="block font-semibold">{messages.title}</span>
         <span className="block text-xs leading-5 text-[var(--muted)]">
-          Distance is the reviewed Python-derived √(X² + Y² + Z²) value for each annual Horizons
-          sample.
+          {formatMessageTemplate(messages.description, {
+            formula: VOYAGER_RADIUS_FORMULA,
+            provider: VOYAGER_HORIZONS_SHORT_NAME,
+          })}
         </span>
       </figcaption>
       <svg
-        aria-label="Voyager 1 heliocentric distance by annual sample"
+        aria-label={formatMessageTemplate(messages.ariaLabel, {
+          mission: VOYAGER_MISSION_NAME,
+        })}
         className="h-auto w-full"
         role="img"
         viewBox={`0 0 ${plot.width} ${plot.height}`}
@@ -194,31 +272,66 @@ function DistanceHistory({ selectedIndex }: Readonly<{ selectedIndex: number }>)
           strokeWidth="3"
         />
         <text fill="currentColor" fontSize="11" x={plot.margin + 4} y={plot.margin + 12}>
-          {plot.maxRadius.toFixed(0)} AU
+          {formatMessageTemplate(valueWithUnit, {
+            unit: VOYAGER_DISTANCE_UNIT,
+            value: formatLocaleFixedNumber(plot.maxRadius, 0, locale),
+          })}
         </text>
         <text fill="currentColor" fontSize="11" x={plot.margin} y={plot.height - 6}>
-          1977
+          {formatLocaleNumber(voyagerSampleYear(VOYAGER_SAMPLES[0]!), locale, {
+            useGrouping: false,
+          })}
         </text>
         <text fill="currentColor" fontSize="11" x={plot.width - 56} y={plot.height - 6}>
-          2026
+          {formatLocaleNumber(voyagerSampleYear(VOYAGER_SAMPLES.at(-1)!), locale, {
+            useGrouping: false,
+          })}
         </text>
       </svg>
     </figure>
   );
 }
 
-function SelectedVector({ sample }: Readonly<{ sample: VoyagerTrajectorySample }>) {
+function SelectedVector({
+  locale,
+  messages,
+  sample,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: VoyagerMessages["trajectory"];
+  sample: VoyagerTrajectorySample;
+}>) {
   return (
     <section aria-labelledby="selected-voyager-vector-heading" className="space-y-4">
       <h3 className="text-xl font-semibold" id="selected-voyager-vector-heading">
-        Selected Horizons vector · {voyagerSampleYear(sample)}
+        {formatMessageTemplate(messages.selectedVectorTitle, {
+          provider: VOYAGER_HORIZONS_SHORT_NAME,
+          year: formatLocaleNumber(voyagerSampleYear(sample), locale, { useGrouping: false }),
+        })}
       </h3>
       <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <VectorFact label="Epoch (TDB)" value={sample.epoch_tdb.replace("A.D. ", "")} />
-        <VectorFact label="X" value={`${sample.x_au.toFixed(6)} AU`} />
-        <VectorFact label="Y" value={`${sample.y_au.toFixed(6)} AU`} />
-        <VectorFact label="Z" value={`${sample.z_au.toFixed(6)} AU`} />
-        <VectorFact label="Distance" value={`${sample.radius_au.toFixed(6)} AU`} />
+        <VectorFact
+          label={formatMessageTemplate(messages.vectorLabels.epoch, {
+            timeScale: VOYAGER_TIME_SCALE,
+          })}
+          value={sample.epoch_tdb.replace("A.D. ", "")}
+        />
+        <VectorFact
+          label={VOYAGER_X_AXIS_LABEL}
+          value={formatVectorValue(sample.x_au, locale, messages.valueWithUnit)}
+        />
+        <VectorFact
+          label={VOYAGER_Y_AXIS_LABEL}
+          value={formatVectorValue(sample.y_au, locale, messages.valueWithUnit)}
+        />
+        <VectorFact
+          label={VOYAGER_Z_AXIS_LABEL}
+          value={formatVectorValue(sample.z_au, locale, messages.valueWithUnit)}
+        />
+        <VectorFact
+          label={messages.vectorLabels.distance}
+          value={formatVectorValue(sample.radius_au, locale, messages.valueWithUnit)}
+        />
       </dl>
     </section>
   );
@@ -231,4 +344,11 @@ function VectorFact({ label, value }: Readonly<{ label: string; value: string }>
       <dd className="mt-1 break-words font-mono text-sm">{value}</dd>
     </div>
   );
+}
+
+function formatVectorValue(value: number, locale: PublishedLocale, template: string): string {
+  return formatMessageTemplate(template, {
+    unit: VOYAGER_DISTANCE_UNIT,
+    value: formatLocaleFixedNumber(value, 6, locale),
+  });
 }

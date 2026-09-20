@@ -645,6 +645,144 @@ export type ExoplanetSystemsMessages = Readonly<{
   title: string;
 }>;
 
+export type VoyagerMessages = Readonly<{
+  backToExplore: string;
+  centerBodyName: string;
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptionsTitle: string;
+    description: string;
+    limitationsTitle: string;
+    title: string;
+  }>;
+  provenance: Readonly<{
+    bytesLabel: string;
+    centerLabel: string;
+    description: string;
+    documentation: string;
+    firstEpochLabel: string;
+    lastSampleLabel: string;
+    outputLabel: string;
+    outputValue: string;
+    providerLabel: string;
+    referenceFrameLabel: string;
+    samplingLabel: string;
+    shaLabel: string;
+    targetLabel: string;
+    targetValue: string;
+    timeScaleValue: string;
+    title: string;
+  }>;
+  sourcesTitle: string;
+  table: Readonly<{
+    axisHeader: string;
+    description: string;
+    distanceHeader: string;
+    epochHeader: string;
+    title: string;
+    yearHeader: string;
+  }>;
+  timeline: Readonly<{
+    description: string;
+    source: string;
+    title: string;
+  }>;
+  title: string;
+  trajectory: Readonly<{
+    description: string;
+    distanceHistory: Readonly<{
+      ariaLabel: string;
+      description: string;
+      title: string;
+    }>;
+    eyebrow: string;
+    projection: Readonly<{
+      ariaLabel: string;
+      description: string;
+      title: string;
+    }>;
+    sampleLabel: string;
+    selectedVectorTitle: string;
+    sliderAriaLabel: string;
+    title: string;
+    valueWithUnit: string;
+    vectorLabels: Readonly<{
+      distance: string;
+      epoch: string;
+    }>;
+  }>;
+}>;
+
+export type SystemScaleCompareMessages = Readonly<{
+  backToExplore: string;
+  defaultComparison: Readonly<{
+    description: string;
+    headers: Readonly<{
+      earthMultiple: string;
+      reference: string;
+      scientificQuantity: string;
+      value: string;
+    }>;
+    title: string;
+  }>;
+  eyebrow: string;
+  explorer: Readonly<{
+    card: Readonly<{
+      openSourceExplorer: string;
+      quantityLabel: string;
+      reviewedValueLabel: string;
+      sampleEpochLabel: string;
+      source: string;
+    }>;
+    description: string;
+    laneAriaLabel: string;
+    laneSummary: string;
+    modelEyebrow: string;
+    referenceSelect: Readonly<{
+      exoplanetLabel: string;
+      optionValue: string;
+      solarLabel: string;
+      voyagerLabel: string;
+    }>;
+    scaleAriaLabel: string;
+    scaleModes: Readonly<{
+      linearAction: string;
+      linearDescription: string;
+      linearName: string;
+      logAction: string;
+      logDescription: string;
+      logName: string;
+    }>;
+    selectedDefinitionsTitle: string;
+    title: string;
+  }>;
+  intro: string;
+  inventory: Readonly<{
+    description: string;
+    headers: Readonly<{
+      group: string;
+      quantity: string;
+      reference: string;
+      source: string;
+      value: string;
+    }>;
+    summary: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptionsTitle: string;
+    description: string;
+    limitationsTitle: string;
+    title: string;
+  }>;
+  title: string;
+}>;
+
 export type ExploreMessages = Readonly<{
   browse: Readonly<{
     emptyDescription: string;
@@ -671,6 +809,8 @@ export type ExploreMessages = Readonly<{
   metadataTitle: string;
   exoplanetSystems: ExoplanetSystemsMessages;
   solarSystemDistance: SolarSystemDistanceMessages;
+  systemScaleCompare: SystemScaleCompareMessages;
+  voyager: VoyagerMessages;
   search: Readonly<{
     heading: string;
     invalidQuery: string;

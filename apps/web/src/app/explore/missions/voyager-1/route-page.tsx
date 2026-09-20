@@ -2,24 +2,51 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
+  formatLocaleDateTime,
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../../lib/i18n/locales";
+import type { VoyagerMessages } from "../../../../lib/i18n/messages/types";
+import {
   VOYAGER_DEFINITION,
+  VOYAGER_DISTANCE_UNIT,
+  VOYAGER_HORIZONS_NAME,
+  VOYAGER_HORIZONS_SHORT_NAME,
   VOYAGER_MILESTONES,
+  VOYAGER_MISSION_NAME,
+  VOYAGER_NASA_NAME,
   VOYAGER_RAW_SNAPSHOT,
+  VOYAGER_REFERENCE_FRAME_LABEL,
   VOYAGER_SAMPLES,
   VOYAGER_SOURCES,
+  VOYAGER_TIME_SCALE,
+  VOYAGER_X_AXIS_LABEL,
+  VOYAGER_Y_AXIS_LABEL,
+  VOYAGER_Z_AXIS_LABEL,
   voyagerSampleYear,
   voyagerSourceById,
 } from "../../../../lib/visualizations/voyager-1";
 import { VoyagerTrajectoryExplorer } from "./voyager-trajectory-explorer";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/explore/missions/voyager-1" },
-  title: "Voyager 1 Mission Timeline and Trajectory",
-  description:
-    "Explore a source-labelled Voyager 1 mission timeline and a pinned JPL Horizons heliocentric trajectory without implying interpolated or live spacecraft positions.",
-};
+export function createVoyagerMetadata(messages: VoyagerMessages): Metadata {
+  return {
+    alternates: { canonical: "/explore/missions/voyager-1" },
+    title: formatMessageTemplate(messages.metadataTitle, { mission: VOYAGER_MISSION_NAME }),
+    description: formatMessageTemplate(messages.metadataDescription, {
+      mission: VOYAGER_MISSION_NAME,
+      provider: VOYAGER_HORIZONS_NAME,
+    }),
+  };
+}
 
-export default function VoyagerOnePage() {
+export default function VoyagerOnePage({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: VoyagerMessages }>) {
+  const launchDate = VOYAGER_MILESTONES[0]?.date ?? "1977-09-05";
+  const vectorStartDate = VOYAGER_RAW_SNAPSHOT.start_tdb.slice(0, 10);
   return (
     <div className="space-y-10">
       <header className="max-w-4xl space-y-4">
@@ -27,41 +54,55 @@ export default function VoyagerOnePage() {
           className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--muted)] underline underline-offset-4"
           href="/explore"
         >
-          ← Explore catalogue
+          {messages.backToExplore}
         </Link>
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Mission timeline · Phase 5B
+          {messages.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Voyager 1 Mission Timeline and Trajectory
+          {formatMessageTemplate(messages.title, { mission: VOYAGER_MISSION_NAME })}
         </h1>
         <p className="text-lg leading-8 text-[var(--muted)]">
-          Follow documented mission milestones and a checksum-pinned JPL Horizons trajectory.
-          Mission history and trajectory samples remain separate source contracts: NASA records the
-          launch on September 5, 1977, while the pinned Horizons vector series begins September 6.
+          {formatMessageTemplate(messages.intro, {
+            historyProvider: VOYAGER_NASA_NAME,
+            launchDate: formatMissionDate(launchDate, locale),
+            mission: VOYAGER_MISSION_NAME,
+            trajectoryProvider: VOYAGER_HORIZONS_NAME,
+            vectorStartDate: formatMissionDate(vectorStartDate, locale),
+          })}
         </p>
       </header>
 
-      <MissionTimeline />
-      <VoyagerTrajectoryExplorer />
-      <ModelDisclosure />
-      <SnapshotProvenance />
-      <TrajectoryTable />
-      <Sources />
+      <MissionTimeline messages={messages.timeline} />
+      <VoyagerTrajectoryExplorer
+        centerBodyName={messages.centerBodyName}
+        locale={locale}
+        messages={messages.trajectory}
+      />
+      <ModelDisclosure messages={messages.model} />
+      <SnapshotProvenance locale={locale} messages={messages.provenance} />
+      <TrajectoryTable
+        centerBodyName={messages.centerBodyName}
+        locale={locale}
+        messages={messages.table}
+      />
+      <Sources title={messages.sourcesTitle} />
     </div>
   );
 }
 
-function MissionTimeline() {
+function MissionTimeline({ messages }: Readonly<{ messages: VoyagerMessages["timeline"] }>) {
   return (
     <section aria-labelledby="voyager-timeline-heading" className="space-y-5">
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="voyager-timeline-heading">
-          Mission milestones
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          These dates come from NASA mission history. They are not inferred from the annual Horizons
-          vector samples.
+          {formatMessageTemplate(messages.description, {
+            historyProvider: VOYAGER_NASA_NAME,
+            trajectoryProvider: VOYAGER_HORIZONS_SHORT_NAME,
+          })}
         </p>
       </div>
       <ol className="m-0 grid list-none gap-4 p-0 lg:grid-cols-2">
@@ -83,7 +124,7 @@ function MissionTimeline() {
                   href={source.url}
                   rel="noreferrer"
                 >
-                  Source: {source.title} ↗
+                  {formatMessageTemplate(messages.source, { source: source.title })}
                 </a>
               )}
             </li>
@@ -94,7 +135,7 @@ function MissionTimeline() {
   );
 }
 
-function ModelDisclosure() {
+function ModelDisclosure({ messages }: Readonly<{ messages: VoyagerMessages["model"] }>) {
   return (
     <section
       aria-labelledby="voyager-model-heading"
@@ -102,49 +143,75 @@ function ModelDisclosure() {
     >
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="voyager-model-heading">
-          Model and limitations
+          {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          Lumina does not propagate a spacecraft orbit in the browser. It renders a reviewed static
-          artifact whose annual XYZ vectors were parsed and validated by the Python astronomy
-          domain.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
-        <DisclosureList title="Assumptions" values={VOYAGER_DEFINITION.assumptions} />
-        <DisclosureList title="Limitations" values={VOYAGER_DEFINITION.limitations} />
+        <DisclosureList title={messages.assumptionsTitle} values={VOYAGER_DEFINITION.assumptions} />
+        <DisclosureList title={messages.limitationsTitle} values={VOYAGER_DEFINITION.limitations} />
       </div>
     </section>
   );
 }
 
-function SnapshotProvenance() {
+function SnapshotProvenance({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: VoyagerMessages["provenance"] }>) {
   return (
     <section aria-labelledby="voyager-provenance-heading" className="space-y-5">
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="voyager-provenance-heading">
-          Horizons snapshot provenance
+          {formatMessageTemplate(messages.title, {
+            provider: VOYAGER_HORIZONS_SHORT_NAME,
+          })}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          This route makes no live Horizons request. The pinned text response is validated by
-          SHA-256 before the reviewed JSON artifact can be regenerated.
+          {formatMessageTemplate(messages.description, {
+            provider: VOYAGER_HORIZONS_SHORT_NAME,
+          })}
         </p>
       </div>
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Fact label="Provider" value={VOYAGER_RAW_SNAPSHOT.provider} />
-        <Fact label="Target" value={`Voyager 1 (${VOYAGER_RAW_SNAPSHOT.target_id})`} />
-        <Fact label="Center" value={VOYAGER_RAW_SNAPSHOT.center} />
-        <Fact label="Reference frame" value={VOYAGER_RAW_SNAPSHOT.reference_frame} />
+        <Fact label={messages.providerLabel} value={VOYAGER_RAW_SNAPSHOT.provider} />
         <Fact
-          label="Output"
-          value={`${VOYAGER_RAW_SNAPSHOT.output_type} · ${VOYAGER_RAW_SNAPSHOT.output_units}`}
+          label={messages.targetLabel}
+          value={formatMessageTemplate(messages.targetValue, {
+            mission: VOYAGER_MISSION_NAME,
+            targetId: VOYAGER_RAW_SNAPSHOT.target_id,
+          })}
         />
-        <Fact label="Sampling" value={VOYAGER_RAW_SNAPSHOT.sample_step} />
-        <Fact label="First vector epoch" value={`${VOYAGER_RAW_SNAPSHOT.start_tdb} TDB`} />
-        <Fact label="Last pinned sample" value={`${VOYAGER_RAW_SNAPSHOT.last_sample_tdb} TDB`} />
-        <Fact label="Raw response bytes" value={VOYAGER_RAW_SNAPSHOT.bytes.toString()} />
+        <Fact label={messages.centerLabel} value={VOYAGER_RAW_SNAPSHOT.center} />
+        <Fact label={messages.referenceFrameLabel} value={VOYAGER_RAW_SNAPSHOT.reference_frame} />
+        <Fact
+          label={messages.outputLabel}
+          value={formatMessageTemplate(messages.outputValue, {
+            outputType: VOYAGER_RAW_SNAPSHOT.output_type,
+            outputUnits: VOYAGER_RAW_SNAPSHOT.output_units,
+          })}
+        />
+        <Fact label={messages.samplingLabel} value={VOYAGER_RAW_SNAPSHOT.sample_step} />
+        <Fact
+          label={messages.firstEpochLabel}
+          value={formatMessageTemplate(messages.timeScaleValue, {
+            timeScale: VOYAGER_TIME_SCALE,
+            value: VOYAGER_RAW_SNAPSHOT.start_tdb,
+          })}
+        />
+        <Fact
+          label={messages.lastSampleLabel}
+          value={formatMessageTemplate(messages.timeScaleValue, {
+            timeScale: VOYAGER_TIME_SCALE,
+            value: VOYAGER_RAW_SNAPSHOT.last_sample_tdb,
+          })}
+        />
+        <Fact
+          label={messages.bytesLabel}
+          value={formatLocaleNumber(VOYAGER_RAW_SNAPSHOT.bytes, locale, { useGrouping: false })}
+        />
         <div className="border border-[var(--border)] bg-[var(--surface)] p-4 sm:col-span-2 lg:col-span-3">
-          <dt className="text-sm text-[var(--muted)]">SHA-256</dt>
+          <dt className="text-sm text-[var(--muted)]">{messages.shaLabel}</dt>
           <dd className="mt-1 break-all font-mono text-sm">{VOYAGER_RAW_SNAPSHOT.sha256}</dd>
         </div>
       </dl>
@@ -153,45 +220,94 @@ function SnapshotProvenance() {
         href={VOYAGER_RAW_SNAPSHOT.api_documentation_url}
         rel="noreferrer"
       >
-        JPL Horizons API documentation ↗
+        {formatMessageTemplate(messages.documentation, {
+          provider: VOYAGER_HORIZONS_NAME,
+        })}
       </a>
     </section>
   );
 }
 
-function TrajectoryTable() {
+function TrajectoryTable({
+  centerBodyName,
+  locale,
+  messages,
+}: Readonly<{
+  centerBodyName: string;
+  locale: PublishedLocale;
+  messages: VoyagerMessages["table"];
+}>) {
   return (
     <section aria-labelledby="voyager-table-heading" className="space-y-4">
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="voyager-table-heading">
-          Complete annual vector table
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          The table is the accessible numeric alternative to both charts. X, Y, and Z are
-          Sun-centered J2000-ecliptic coordinates in AU; distance is derived from all three axes.
+          {formatMessageTemplate(messages.description, {
+            center: centerBodyName,
+            frame: VOYAGER_REFERENCE_FRAME_LABEL,
+            unit: VOYAGER_DISTANCE_UNIT,
+            xAxis: VOYAGER_X_AXIS_LABEL,
+            yAxis: VOYAGER_Y_AXIS_LABEL,
+            zAxis: VOYAGER_Z_AXIS_LABEL,
+          })}
         </p>
       </div>
       <div className="overflow-x-auto border border-[var(--border)]">
         <table className="w-full min-w-[62rem] border-collapse text-left">
           <thead>
             <tr className="border-b border-[var(--border)]">
-              <th className="p-3">Year</th>
-              <th className="p-3">Epoch (TDB)</th>
-              <th className="p-3">X (AU)</th>
-              <th className="p-3">Y (AU)</th>
-              <th className="p-3">Z (AU)</th>
-              <th className="p-3">Heliocentric distance (AU)</th>
+              <th className="p-3">{messages.yearHeader}</th>
+              <th className="p-3">
+                {formatMessageTemplate(messages.epochHeader, {
+                  timeScale: VOYAGER_TIME_SCALE,
+                })}
+              </th>
+              <th className="p-3">
+                {formatMessageTemplate(messages.axisHeader, {
+                  axis: VOYAGER_X_AXIS_LABEL,
+                  unit: VOYAGER_DISTANCE_UNIT,
+                })}
+              </th>
+              <th className="p-3">
+                {formatMessageTemplate(messages.axisHeader, {
+                  axis: VOYAGER_Y_AXIS_LABEL,
+                  unit: VOYAGER_DISTANCE_UNIT,
+                })}
+              </th>
+              <th className="p-3">
+                {formatMessageTemplate(messages.axisHeader, {
+                  axis: VOYAGER_Z_AXIS_LABEL,
+                  unit: VOYAGER_DISTANCE_UNIT,
+                })}
+              </th>
+              <th className="p-3">
+                {formatMessageTemplate(messages.distanceHeader, {
+                  unit: VOYAGER_DISTANCE_UNIT,
+                })}
+              </th>
             </tr>
           </thead>
           <tbody>
             {VOYAGER_SAMPLES.map((sample) => (
               <tr className="border-b border-[var(--border)] last:border-0" key={sample.jd_tdb}>
-                <th className="p-3 font-semibold">{voyagerSampleYear(sample)}</th>
+                <th className="p-3 font-semibold">
+                  {formatLocaleNumber(voyagerSampleYear(sample), locale, { useGrouping: false })}
+                </th>
                 <td className="p-3 font-mono text-sm">{sample.epoch_tdb.replace("A.D. ", "")}</td>
-                <td className="p-3 font-mono text-sm">{sample.x_au.toFixed(6)}</td>
-                <td className="p-3 font-mono text-sm">{sample.y_au.toFixed(6)}</td>
-                <td className="p-3 font-mono text-sm">{sample.z_au.toFixed(6)}</td>
-                <td className="p-3 font-mono text-sm">{sample.radius_au.toFixed(6)}</td>
+                <td className="p-3 font-mono text-sm">
+                  {formatLocaleFixedNumber(sample.x_au, 6, locale)}
+                </td>
+                <td className="p-3 font-mono text-sm">
+                  {formatLocaleFixedNumber(sample.y_au, 6, locale)}
+                </td>
+                <td className="p-3 font-mono text-sm">
+                  {formatLocaleFixedNumber(sample.z_au, 6, locale)}
+                </td>
+                <td className="p-3 font-mono text-sm">
+                  {formatLocaleFixedNumber(sample.radius_au, 6, locale)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -201,11 +317,11 @@ function TrajectoryTable() {
   );
 }
 
-function Sources() {
+function Sources({ title }: Readonly<{ title: string }>) {
   return (
     <section aria-labelledby="voyager-sources-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="voyager-sources-heading">
-        Sources
+        {title}
       </h2>
       <ul className="grid list-none gap-4 p-0 lg:grid-cols-2">
         {VOYAGER_SOURCES.map((source) => (
@@ -249,4 +365,13 @@ function Fact({ label, value }: Readonly<{ label: string; value: string }>) {
       <dd className="mt-1 break-words font-mono text-sm">{value}</dd>
     </div>
   );
+}
+
+function formatMissionDate(value: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(new Date(value + "T00:00:00Z"), locale, {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    year: "numeric",
+  });
 }

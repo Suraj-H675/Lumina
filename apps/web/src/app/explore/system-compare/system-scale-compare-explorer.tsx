@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { formatLocaleFixedNumber, formatMessageTemplate } from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SystemScaleCompareMessages } from "../../../lib/i18n/messages/types";
 import {
   SYSTEM_COMPARE_DEFINITION,
+  SYSTEM_COMPARE_DISTANCE_UNIT,
   SYSTEM_COMPARE_EXOPLANET_ITEMS,
   SYSTEM_COMPARE_SOLAR_ITEMS,
+  SYSTEM_COMPARE_TIME_SCALE,
   SYSTEM_COMPARE_VOYAGER_ITEMS,
   systemCompareItemById,
   systemComparePosition,
@@ -14,7 +19,10 @@ import {
   type SystemCompareScaleMode,
 } from "../../../lib/visualizations/system-scale-compare";
 
-export function SystemScaleCompareExplorer() {
+export function SystemScaleCompareExplorer({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: SystemScaleCompareMessages["explorer"] }>) {
   const [mode, setMode] = useState<SystemCompareScaleMode>("log");
   const [solarId, setSolarId] = useState("solar:earth");
   const [exoplanetId, setExoplanetId] = useState("exoplanet:kepler-452-b");
@@ -29,68 +37,95 @@ export function SystemScaleCompareExplorer() {
       >
         <div className="max-w-4xl space-y-3">
           <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-            Cross-model comparison · {SYSTEM_COMPARE_DEFINITION.model_version}
+            {formatMessageTemplate(messages.modelEyebrow, {
+              modelVersion: SYSTEM_COMPARE_DEFINITION.model_version,
+            })}
           </p>
           <h2 className="text-2xl font-semibold" id="system-scale-compare-heading">
-            Three AU-valued references, three different scientific meanings
+            {formatMessageTemplate(messages.title, { unit: SYSTEM_COMPARE_DISTANCE_UNIT })}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            A shared unit makes numeric scale comparison possible. It does not make mean Sun
-            distance, orbit semi-major axis, and heliocentric vector magnitude interchangeable.
-            Lumina keeps each definition and source attached.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
           <ItemSelect
             items={SYSTEM_COMPARE_SOLAR_ITEMS}
-            label="Solar System reference"
+            label={messages.referenceSelect.solarLabel}
+            locale={locale}
+            optionTemplate={messages.referenceSelect.optionValue}
             onChange={setSolarId}
             value={solarId}
           />
           <ItemSelect
             items={SYSTEM_COMPARE_EXOPLANET_ITEMS}
-            label="Exoplanet orbital reference"
+            label={messages.referenceSelect.exoplanetLabel}
+            locale={locale}
+            optionTemplate={messages.referenceSelect.optionValue}
             onChange={setExoplanetId}
             value={exoplanetId}
           />
           <ItemSelect
             items={SYSTEM_COMPARE_VOYAGER_ITEMS}
-            label="Voyager annual reference"
+            label={messages.referenceSelect.voyagerLabel}
+            locale={locale}
+            optionTemplate={messages.referenceSelect.optionValue}
             onChange={setVoyagerId}
             value={voyagerId}
           />
         </div>
 
-        <div aria-label="Shared comparison scale" className="flex flex-wrap gap-2" role="group">
+        <div aria-label={messages.scaleAriaLabel} className="flex flex-wrap gap-2" role="group">
           <ScaleButton active={mode === "log"} onClick={() => setMode("log")}>
-            Log AU scale
+            {formatMessageTemplate(messages.scaleModes.logAction, {
+              unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+            })}
           </ScaleButton>
           <ScaleButton active={mode === "linear"} onClick={() => setMode("linear")}>
-            Linear AU scale
+            {formatMessageTemplate(messages.scaleModes.linearAction, {
+              unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+            })}
           </ScaleButton>
         </div>
 
         <div className="border border-[var(--border)] bg-[var(--surface)] p-4 text-sm leading-6 text-[var(--muted)]">
           {mode === "log"
-            ? `Log display maps the complete reviewed ${SYSTEM_COMPARE_DEFINITION.shared_domain_au.minimum.toFixed(4)}–${SYSTEM_COMPARE_DEFINITION.shared_domain_au.maximum.toFixed(2)} AU domain. Spacing is a visualization transform, not physical placement between systems.`
-            : `Linear display maps every numeric length against the same ${SYSTEM_COMPARE_DEFINITION.shared_domain_au.maximum.toFixed(2)} AU maximum. Small orbital references will cluster near zero by design.`}
+            ? formatMessageTemplate(messages.scaleModes.logDescription, {
+                maximum: formatLocaleFixedNumber(
+                  SYSTEM_COMPARE_DEFINITION.shared_domain_au.maximum,
+                  2,
+                  locale,
+                ),
+                minimum: formatLocaleFixedNumber(
+                  SYSTEM_COMPARE_DEFINITION.shared_domain_au.minimum,
+                  4,
+                  locale,
+                ),
+                unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+              })
+            : formatMessageTemplate(messages.scaleModes.linearDescription, {
+                maximum: formatLocaleFixedNumber(
+                  SYSTEM_COMPARE_DEFINITION.shared_domain_au.maximum,
+                  2,
+                  locale,
+                ),
+                unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+              })}
         </div>
 
         <div className="space-y-5">
           {selected.map((item) => (
-            <ScaleLane item={item} key={item.id} mode={mode} />
+            <ScaleLane item={item} key={item.id} locale={locale} messages={messages} mode={mode} />
           ))}
         </div>
       </section>
 
       <section aria-labelledby="selected-reference-details" className="space-y-4">
         <h2 className="text-2xl font-semibold" id="selected-reference-details">
-          Selected reference definitions
+          {messages.selectedDefinitionsTitle}
         </h2>
         <div className="grid gap-5 xl:grid-cols-3">
           {selected.map((item) => (
-            <ReferenceCard item={item} key={item.id} />
+            <ReferenceCard item={item} key={item.id} locale={locale} messages={messages.card} />
           ))}
         </div>
       </section>
@@ -101,11 +136,15 @@ export function SystemScaleCompareExplorer() {
 function ItemSelect({
   items,
   label,
+  locale,
+  optionTemplate,
   onChange,
   value,
 }: Readonly<{
   items: ReadonlyArray<SystemCompareItem>;
   label: string;
+  locale: PublishedLocale;
+  optionTemplate: string;
   onChange: (value: string) => void;
   value: string;
 }>) {
@@ -119,7 +158,11 @@ function ItemSelect({
       >
         {items.map((item) => (
           <option key={item.id} value={item.id}>
-            {item.name} · {item.value_au.toFixed(item.value_au >= 10 ? 2 : 4)} AU
+            {formatMessageTemplate(optionTemplate, {
+              name: item.name,
+              unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+              value: formatLocaleFixedNumber(item.value_au, item.value_au >= 10 ? 2 : 4, locale),
+            })}
           </option>
         ))}
       </select>
@@ -146,12 +189,23 @@ function ScaleButton({
 
 function ScaleLane({
   item,
+  locale,
+  messages,
   mode,
-}: Readonly<{ item: SystemCompareItem; mode: SystemCompareScaleMode }>) {
+}: Readonly<{
+  item: SystemCompareItem;
+  locale: PublishedLocale;
+  messages: SystemScaleCompareMessages["explorer"];
+  mode: SystemCompareScaleMode;
+}>) {
   const position = systemComparePosition(item, mode);
   const width = `${Math.max(0, Math.min(100, position))}%`;
+  const modeLabel = mode === "log" ? messages.scaleModes.logName : messages.scaleModes.linearName;
   return (
-    <section aria-label={`${item.name} shared scale reference`} className="space-y-2">
+    <section
+      aria-label={formatMessageTemplate(messages.laneAriaLabel, { name: item.name })}
+      className="space-y-2"
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-semibold">{item.name}</h3>
         <span className="text-sm text-[var(--muted)]">{item.quantity_label}</span>
@@ -167,14 +221,27 @@ function ScaleLane({
         />
       </div>
       <p className="text-xs text-[var(--muted)]">
-        {item.value_au.toFixed(6)} AU · {position.toFixed(2)}% of shared {mode} display · numeric
-        length is {item.earth_reference_ratio.toFixed(3)}× the 1 AU arithmetic reference
+        {formatMessageTemplate(messages.laneSummary, {
+          mode: modeLabel,
+          position: formatLocaleFixedNumber(position, 2, locale),
+          ratio: formatLocaleFixedNumber(item.earth_reference_ratio, 3, locale),
+          unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+          value: formatLocaleFixedNumber(item.value_au, 6, locale),
+        })}
       </p>
     </section>
   );
 }
 
-function ReferenceCard({ item }: Readonly<{ item: SystemCompareItem }>) {
+function ReferenceCard({
+  item,
+  locale,
+  messages,
+}: Readonly<{
+  item: SystemCompareItem;
+  locale: PublishedLocale;
+  messages: SystemScaleCompareMessages["explorer"]["card"];
+}>) {
   return (
     <article aria-label={item.name} className="space-y-4 border border-[var(--border)] p-5">
       <div>
@@ -185,17 +252,21 @@ function ReferenceCard({ item }: Readonly<{ item: SystemCompareItem }>) {
       </div>
       <dl className="space-y-3">
         <div>
-          <dt className="text-sm text-[var(--muted)]">Quantity</dt>
+          <dt className="text-sm text-[var(--muted)]">{messages.quantityLabel}</dt>
           <dd className="font-semibold">{item.quantity_label}</dd>
         </div>
         <div>
-          <dt className="text-sm text-[var(--muted)]">Reviewed numeric value</dt>
-          <dd className="font-mono">{item.value_au.toFixed(6)} AU</dd>
+          <dt className="text-sm text-[var(--muted)]">{messages.reviewedValueLabel}</dt>
+          <dd className="font-mono">
+            {formatLocaleFixedNumber(item.value_au, 6, locale)} {SYSTEM_COMPARE_DISTANCE_UNIT}
+          </dd>
         </div>
         {item.epoch_tdb === undefined ? null : (
           <div>
-            <dt className="text-sm text-[var(--muted)]">Sample epoch</dt>
-            <dd className="font-mono text-sm">{item.epoch_tdb.replace("A.D. ", "")} TDB</dd>
+            <dt className="text-sm text-[var(--muted)]">{messages.sampleEpochLabel}</dt>
+            <dd className="font-mono text-sm">
+              {item.epoch_tdb.replace("A.D. ", "")} {SYSTEM_COMPARE_TIME_SCALE}
+            </dd>
           </div>
         )}
       </dl>
@@ -206,13 +277,13 @@ function ReferenceCard({ item }: Readonly<{ item: SystemCompareItem }>) {
           href={item.source.url}
           rel="noreferrer"
         >
-          Source ↗
+          {messages.source}
         </a>
         <Link
           className="text-sm font-semibold text-[var(--link)] underline underline-offset-4"
           href={item.detail_href}
         >
-          Open source explorer →
+          {messages.openSourceExplorer}
         </Link>
       </div>
     </article>

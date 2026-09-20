@@ -3,6 +3,18 @@ import voyagerArtifact from "../../../../../data/seed/voyager-1-trajectory-v1.js
 export const VOYAGER_MODEL_VERSION = "voyager-1-trajectory-v1" as const;
 export const VOYAGER_SCHEMA_VERSION = 1 as const;
 export const VOYAGER_ARTIFACT_VERSION = 1 as const;
+export const VOYAGER_MISSION_NAME = "Voyager 1" as const;
+export const VOYAGER_HORIZONS_NAME = "JPL Horizons" as const;
+export const VOYAGER_HORIZONS_SHORT_NAME = "Horizons" as const;
+export const VOYAGER_NASA_NAME = "NASA" as const;
+export const VOYAGER_DISTANCE_UNIT = "AU" as const;
+export const VOYAGER_TIME_SCALE = "TDB" as const;
+export const VOYAGER_REFERENCE_FRAME_LABEL = "J2000" as const;
+export const VOYAGER_X_AXIS_LABEL = "X" as const;
+export const VOYAGER_Y_AXIS_LABEL = "Y" as const;
+export const VOYAGER_Z_AXIS_LABEL = "Z" as const;
+export const VOYAGER_XY_AXES_LABEL = "XY" as const;
+export const VOYAGER_RADIUS_FORMULA = "√(X² + Y² + Z²)" as const;
 
 export type VoyagerSource = Readonly<{
   id: string;

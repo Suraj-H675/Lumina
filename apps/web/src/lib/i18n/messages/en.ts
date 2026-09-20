@@ -599,6 +599,85 @@ export const enMessages = {
       },
       title: "Exoplanet System Layouts",
     },
+    voyager: {
+      backToExplore: "← Explore catalogue",
+      centerBodyName: "Sun",
+      eyebrow: "Mission timeline · Phase 5B",
+      intro:
+        "Follow documented {mission} mission milestones and a checksum-pinned {trajectoryProvider} trajectory. Mission history and trajectory samples remain separate source contracts: {historyProvider} records the launch on {launchDate}, while the pinned {trajectoryProvider} vector series begins {vectorStartDate}.",
+      metadataDescription:
+        "Explore a source-labelled {mission} mission timeline and a pinned {provider} heliocentric trajectory without implying interpolated or live spacecraft positions.",
+      metadataTitle: "{mission} Mission Timeline and Trajectory",
+      model: {
+        assumptionsTitle: "Assumptions",
+        description:
+          "Lumina does not propagate a spacecraft orbit in the browser. It renders a reviewed static artifact whose annual XYZ vectors were parsed and validated by the Python astronomy domain.",
+        limitationsTitle: "Limitations",
+        title: "Model and limitations",
+      },
+      provenance: {
+        bytesLabel: "Raw response bytes",
+        centerLabel: "Center",
+        description:
+          "This route makes no live {provider} request. The pinned text response is validated by SHA-256 before the reviewed JSON artifact can be regenerated.",
+        documentation: "{provider} API documentation ↗",
+        firstEpochLabel: "First vector epoch",
+        lastSampleLabel: "Last pinned sample",
+        outputLabel: "Output",
+        outputValue: "{outputType} · {outputUnits}",
+        providerLabel: "Provider",
+        referenceFrameLabel: "Reference frame",
+        samplingLabel: "Sampling",
+        shaLabel: "SHA-256",
+        targetLabel: "Target",
+        targetValue: "{mission} ({targetId})",
+        timeScaleValue: "{value} {timeScale}",
+        title: "{provider} snapshot provenance",
+      },
+      sourcesTitle: "Sources",
+      table: {
+        axisHeader: "{axis} ({unit})",
+        description:
+          "The table is the accessible numeric alternative to both charts. {xAxis}, {yAxis}, and {zAxis} are {center}-centered {frame}-ecliptic coordinates in {unit}; distance is derived from all three axes.",
+        distanceHeader: "Heliocentric distance ({unit})",
+        epochHeader: "Epoch ({timeScale})",
+        title: "Complete annual vector table",
+        yearHeader: "Year",
+      },
+      timeline: {
+        description:
+          "These dates come from {historyProvider} mission history. They are not inferred from the annual {trajectoryProvider} vector samples.",
+        source: "Source: {source} ↗",
+        title: "Mission milestones",
+      },
+      title: "{mission} Mission Timeline and Trajectory",
+      trajectory: {
+        description:
+          "The path below is an {xyAxes} projection of {center}-centered geometric positions in the {frame} ecliptic frame. {zAxis} is not drawn in the projection and remains visible numerically. Annual points are connected only as a visual guide; Lumina does not interpolate a continuous flight solution.",
+        distanceHistory: {
+          ariaLabel: "{mission} heliocentric distance by annual sample",
+          description:
+            "Distance is the reviewed Python-derived {formula} value for each annual {provider} sample.",
+          title: "Heliocentric distance history",
+        },
+        eyebrow: "{provider} · pinned annual vectors",
+        projection: {
+          ariaLabel: "{mission} heliocentric ecliptic {xyAxes} trajectory projection",
+          description:
+            "Equal {xAxis}/{yAxis} scale in {unit}. This is a projection, not a full 3D path; {zAxis} is omitted here.",
+          title: "{frame} ecliptic {xyAxes} projection",
+        },
+        sampleLabel: "Selected annual sample: {year} · {distance} {unit} from the {center}",
+        selectedVectorTitle: "Selected {provider} vector · {year}",
+        sliderAriaLabel: "{mission} annual trajectory sample",
+        title: "{mission} trajectory reference",
+        valueWithUnit: "{value} {unit}",
+        vectorLabels: {
+          distance: "Distance",
+          epoch: "Epoch ({timeScale})",
+        },
+      },
+    },
     solarSystemDistance: {
       backToExplore: "← Explore catalogue",
       continue: {
@@ -670,6 +749,81 @@ export const enMessages = {
         title: "Sources",
       },
       title: "Solar System Distance Explorer",
+    },
+    systemScaleCompare: {
+      backToExplore: "← Explore catalogue",
+      defaultComparison: {
+        description:
+          "This table is the no-JavaScript numeric baseline for {solar}, {exoplanet}, and {voyager}. Each row keeps its reviewed scientific quantity attached to the value.",
+        headers: {
+          earthMultiple: "1 {unit} arithmetic multiple",
+          reference: "Reference",
+          scientificQuantity: "Scientific quantity",
+          value: "Value",
+        },
+        title: "Default comparison data",
+      },
+      eyebrow: "Advanced compare · Phase 5B",
+      explorer: {
+        card: {
+          openSourceExplorer: "Open source explorer →",
+          quantityLabel: "Quantity",
+          reviewedValueLabel: "Reviewed numeric value",
+          sampleEpochLabel: "Sample epoch",
+          source: "Source ↗",
+        },
+        description:
+          "A shared unit makes numeric scale comparison possible. It does not make mean Sun distance, orbit semi-major axis, and heliocentric vector magnitude interchangeable. Lumina keeps each definition and source attached.",
+        laneAriaLabel: "{name} shared scale reference",
+        laneSummary:
+          "{value} {unit} · {position}% of shared {mode} display · numeric length is {ratio}× the {unit} arithmetic reference",
+        modelEyebrow: "Cross-model comparison · {modelVersion}",
+        referenceSelect: {
+          exoplanetLabel: "Exoplanet orbital reference",
+          optionValue: "{name} · {value} {unit}",
+          solarLabel: "Solar System reference",
+          voyagerLabel: "Voyager annual reference",
+        },
+        scaleAriaLabel: "Shared comparison scale",
+        scaleModes: {
+          linearAction: "Linear {unit} scale",
+          linearDescription:
+            "Linear display maps every numeric length against the same {maximum} {unit} maximum. Small orbital references will cluster near zero by design.",
+          linearName: "linear",
+          logAction: "Log {unit} scale",
+          logDescription:
+            "Log display maps the complete reviewed {minimum}–{maximum} {unit} domain. Spacing is a visualization transform, not physical placement between systems.",
+          logName: "log",
+        },
+        selectedDefinitionsTitle: "Selected reference definitions",
+        title: "Three {unit}-valued references, three different scientific meanings",
+      },
+      intro:
+        "Put three reviewed AU-valued references on one scale without erasing what each number means. Shared units support arithmetic comparison; they do not turn different scientific quantities into the same measurement.",
+      inventory: {
+        description:
+          "All {count} selectable references are listed here so the interactive controls never become the only way to inspect the underlying values.",
+        headers: {
+          group: "Group",
+          quantity: "Quantity",
+          reference: "Reference",
+          source: "Source",
+          value: "{unit} value",
+        },
+        summary: "Show all {count} {unit} references",
+        title: "Complete reviewed reference inventory",
+      },
+      metadataDescription:
+        "Compare reviewed Solar System mean distances, exoplanet semi-major axes, and Voyager heliocentric vector magnitudes on a labelled shared AU scale.",
+      metadataTitle: "System Scale Compare",
+      model: {
+        assumptionsTitle: "Assumptions",
+        description:
+          "Python composes only positive AU-valued outputs from the three already-reviewed Phase 5B artifacts. React selects among those precomputed outputs; it does not reinterpret source science or derive cross-model similarity.",
+        limitationsTitle: "Limitations",
+        title: "Composition model and limits",
+      },
+      title: "System Scale Compare",
     },
     search: {
       heading: "Search results",

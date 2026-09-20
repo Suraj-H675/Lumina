@@ -3,6 +3,8 @@ import compareArtifact from "../../../../../data/seed/system-scale-compare-v1.js
 export const SYSTEM_COMPARE_MODEL_VERSION = "system-scale-compare-v1" as const;
 export const SYSTEM_COMPARE_SCHEMA_VERSION = 1 as const;
 export const SYSTEM_COMPARE_ARTIFACT_VERSION = 1 as const;
+export const SYSTEM_COMPARE_DISTANCE_UNIT = "AU" as const;
+export const SYSTEM_COMPARE_TIME_SCALE = "TDB" as const;
 
 export type SystemCompareKind =
   "solar-mean-distance" | "exoplanet-semimajor-axis" | "voyager-radius";

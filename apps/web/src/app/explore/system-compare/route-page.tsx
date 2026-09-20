@@ -2,20 +2,32 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SystemScaleCompareMessages } from "../../../lib/i18n/messages/types";
+import {
   SYSTEM_COMPARE_DEFINITION,
+  SYSTEM_COMPARE_DISTANCE_UNIT,
   SYSTEM_COMPARE_ITEMS,
   systemCompareItemById,
 } from "../../../lib/visualizations/system-scale-compare";
 import { SystemScaleCompareExplorer } from "./system-scale-compare-explorer";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/explore/system-compare" },
-  title: "System Scale Compare",
-  description:
-    "Compare reviewed Solar System mean distances, exoplanet semi-major axes, and Voyager heliocentric vector magnitudes on a labelled shared AU scale.",
-};
+export function createSystemScaleCompareMetadata(messages: SystemScaleCompareMessages): Metadata {
+  return {
+    alternates: { canonical: "/explore/system-compare" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
-export default function SystemScaleComparePage() {
+export default function SystemScaleComparePage({
+  locale,
+  messages,
+}: Readonly<{ locale: PublishedLocale; messages: SystemScaleCompareMessages }>) {
   const defaults = SYSTEM_COMPARE_DEFINITION.default_item_ids.map((id) =>
     systemCompareItemById(id)!,
   );
@@ -27,50 +39,63 @@ export default function SystemScaleComparePage() {
           className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--muted)] underline underline-offset-4"
           href="/explore"
         >
-          ← Explore catalogue
+          {messages.backToExplore}
         </Link>
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Advanced compare · Phase 5B
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">System Scale Compare</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Put three reviewed AU-valued references on one scale without erasing what each number
-          means. Shared units support arithmetic comparison; they do not turn different scientific
-          quantities into the same measurement.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
       </header>
 
-      <SystemScaleCompareExplorer />
-      <DefaultComparison defaults={defaults} />
-      <ModelDisclosure />
-      <ReferenceInventory />
+      <SystemScaleCompareExplorer locale={locale} messages={messages.explorer} />
+      <DefaultComparison
+        defaults={defaults}
+        locale={locale}
+        messages={messages.defaultComparison}
+      />
+      <ModelDisclosure messages={messages.model} />
+      <ReferenceInventory locale={locale} messages={messages.inventory} />
     </div>
   );
 }
 
 function DefaultComparison({
   defaults,
-}: Readonly<{ defaults: NonNullable<ReturnType<typeof systemCompareItemById>>[] }>) {
+  locale,
+  messages,
+}: Readonly<{
+  defaults: NonNullable<ReturnType<typeof systemCompareItemById>>[];
+  locale: PublishedLocale;
+  messages: SystemScaleCompareMessages["defaultComparison"];
+}>) {
+  const [solar, exoplanet, voyager] = defaults;
   return (
     <section aria-labelledby="default-system-compare-heading" className="space-y-4">
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="default-system-compare-heading">
-          Default comparison data
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          This table is the no-JavaScript numeric baseline: Earth&apos;s mean Sun distance,
-          Kepler-452 b&apos;s semi-major axis, and Voyager 1&apos;s 2026 heliocentric vector
-          magnitude.
+          {formatMessageTemplate(messages.description, {
+            exoplanet: exoplanet!.name,
+            solar: solar!.name,
+            voyager: voyager!.name,
+          })}
         </p>
       </div>
       <div className="overflow-x-auto border border-[var(--border)]">
         <table className="w-full min-w-[52rem] border-collapse text-left">
           <thead>
             <tr className="border-b border-[var(--border)]">
-              <th className="p-3">Reference</th>
-              <th className="p-3">Scientific quantity</th>
-              <th className="p-3">Value</th>
-              <th className="p-3">1 AU arithmetic multiple</th>
+              <th className="p-3">{messages.headers.reference}</th>
+              <th className="p-3">{messages.headers.scientificQuantity}</th>
+              <th className="p-3">{messages.headers.value}</th>
+              <th className="p-3">
+                {formatMessageTemplate(messages.headers.earthMultiple, {
+                  unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+                })}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -78,8 +103,12 @@ function DefaultComparison({
               <tr className="border-b border-[var(--border)] last:border-0" key={item.id}>
                 <th className="p-3 font-semibold">{item.name}</th>
                 <td className="p-3">{item.quantity_label}</td>
-                <td className="p-3 font-mono">{item.value_au.toFixed(6)} AU</td>
-                <td className="p-3 font-mono">{item.earth_reference_ratio.toFixed(3)}×</td>
+                <td className="p-3 font-mono">
+                  {formatLocaleFixedNumber(item.value_au, 6, locale)} {SYSTEM_COMPARE_DISTANCE_UNIT}
+                </td>
+                <td className="p-3 font-mono">
+                  {formatLocaleFixedNumber(item.earth_reference_ratio, 3, locale)}×
+                </td>
               </tr>
             ))}
           </tbody>
@@ -89,7 +118,9 @@ function DefaultComparison({
   );
 }
 
-function ModelDisclosure() {
+function ModelDisclosure({
+  messages,
+}: Readonly<{ messages: SystemScaleCompareMessages["model"] }>) {
   return (
     <section
       aria-labelledby="system-compare-model-heading"
@@ -97,45 +128,62 @@ function ModelDisclosure() {
     >
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="system-compare-model-heading">
-          Composition model and limits
+          {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          Python composes only positive AU-valued outputs from the three already-reviewed Phase 5B
-          artifacts. React selects among those precomputed outputs; it does not reinterpret source
-          science or derive cross-model similarity.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
-        <DisclosureList title="Assumptions" values={SYSTEM_COMPARE_DEFINITION.assumptions} />
-        <DisclosureList title="Limitations" values={SYSTEM_COMPARE_DEFINITION.limitations} />
+        <DisclosureList
+          title={messages.assumptionsTitle}
+          values={SYSTEM_COMPARE_DEFINITION.assumptions}
+        />
+        <DisclosureList
+          title={messages.limitationsTitle}
+          values={SYSTEM_COMPARE_DEFINITION.limitations}
+        />
       </div>
     </section>
   );
 }
 
-function ReferenceInventory() {
+function ReferenceInventory({
+  locale,
+  messages,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SystemScaleCompareMessages["inventory"];
+}>) {
+  const formattedCount = formatLocaleNumber(SYSTEM_COMPARE_ITEMS.length, locale);
   return (
     <section aria-labelledby="reference-inventory-heading" className="space-y-4">
       <div className="max-w-4xl space-y-2">
         <h2 className="text-2xl font-semibold" id="reference-inventory-heading">
-          Complete reviewed reference inventory
+          {messages.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          All 68 selectable references are listed here so the interactive controls never become the
-          only way to inspect the underlying values.
+          {formatMessageTemplate(messages.description, { count: formattedCount })}
         </p>
       </div>
       <details className="border border-[var(--border)] p-4">
-        <summary className="cursor-pointer font-semibold">Show all 68 AU references</summary>
+        <summary className="cursor-pointer font-semibold">
+          {formatMessageTemplate(messages.summary, {
+            count: formattedCount,
+            unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+          })}
+        </summary>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[58rem] border-collapse text-left">
             <thead>
               <tr className="border-b border-[var(--border)]">
-                <th className="p-3">Group</th>
-                <th className="p-3">Reference</th>
-                <th className="p-3">Quantity</th>
-                <th className="p-3">AU value</th>
-                <th className="p-3">Source</th>
+                <th className="p-3">{messages.headers.group}</th>
+                <th className="p-3">{messages.headers.reference}</th>
+                <th className="p-3">{messages.headers.quantity}</th>
+                <th className="p-3">
+                  {formatMessageTemplate(messages.headers.value, {
+                    unit: SYSTEM_COMPARE_DISTANCE_UNIT,
+                  })}
+                </th>
+                <th className="p-3">{messages.headers.source}</th>
               </tr>
             </thead>
             <tbody>
@@ -144,7 +192,9 @@ function ReferenceInventory() {
                   <td className="p-3">{item.group_label}</td>
                   <th className="p-3 font-semibold">{item.name}</th>
                   <td className="p-3">{item.quantity_label}</td>
-                  <td className="p-3 font-mono">{item.value_au.toFixed(6)}</td>
+                  <td className="p-3 font-mono">
+                    {formatLocaleFixedNumber(item.value_au, 6, locale)}
+                  </td>
                   <td className="p-3">
                     <a
                       className="text-[var(--link)] underline underline-offset-4"

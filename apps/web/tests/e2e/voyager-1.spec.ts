@@ -26,7 +26,7 @@ test.describe("Phase 5B — Voyager 1 mission and trajectory", () => {
     page,
   }) => {
     await page.goto("/explore/missions/voyager-1");
-    const slider = page.getByRole("slider", { name: "Voyager annual trajectory sample" });
+    const slider = page.getByRole("slider", { name: "Voyager 1 annual trajectory sample" });
     await slider.focus();
     await slider.press("Home");
     await expect(page.getByText(/Selected annual sample: 1977/i)).toBeVisible();
@@ -68,7 +68,7 @@ test.describe("Phase 5B — Voyager 1 mission and trajectory", () => {
         () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
       ),
     ).toBe(true);
-    const slider = page.getByRole("slider", { name: "Voyager annual trajectory sample" });
+    const slider = page.getByRole("slider", { name: "Voyager 1 annual trajectory sample" });
     expect((await slider.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     await expect(
       page.getByRole("img", { name: /ecliptic XY trajectory projection/i }),

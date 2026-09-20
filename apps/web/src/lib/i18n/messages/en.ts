@@ -200,6 +200,97 @@ export const enMessages = {
     reviewedWithoutEpoch: "Reviewed catalogue position. No epoch propagation is applied.",
   },
   deepSky: {
+    atlas: {
+      activation: {
+        checking: "Checking survey…",
+        missingTarget:
+          "Select a deep-sky object with one accepted coordinate before focusing the atlas.",
+        open: "Open interactive atlas",
+        opening: "Opening atlas…",
+        readyForTarget: "Ready to open the atlas around {objectName}.",
+      },
+      canvasAriaLabel: "Interactive sky atlas canvas",
+      header: {
+        eyebrow: "Optional interactive renderer",
+        intro:
+          "The catalogue above is Lumina's canonical science. Opening this supplemental atlas loads the WorldWide Telescope engine and imagery from the credited survey hosts. No external WWT or imagery request is made before you activate it.",
+        title: "WorldWide Telescope atlas",
+      },
+      observer: {
+        apply: "Apply observer context",
+        elevationLabel: "Elevation m",
+        latitudeLabel: "Latitude °",
+        legend: "Observer context — optional",
+        localHorizon: "Show local-horizon context",
+        longitudeLabel: "Longitude °",
+        privacy:
+          "Coordinates remain only in this component's memory. They are not placed in the URL, stored, logged, sent to Lumina APIs, or sent to imagery providers.",
+        useLocation: "Use my location",
+      },
+      rendererDisclosure:
+        "Renderer: WorldWide Telescope web engine {engineVersion} / helpers {helpersVersion}, MIT licensed. Survey images are separate datasets with the per-layer credits shown above. Survey composites and false-colour maps are display representations; changing wavelength does not change the physical object.",
+      status: {
+        activationFailed:
+          "The interactive atlas could not start. The catalogue, coordinates, sources, and survey information below remain available.",
+        checkingSurvey: "Checking {layerLabel} imagery availability from its reviewed survey host…",
+        contextLost:
+          "The graphics context was lost. Rendering is paused; the non-canvas catalogue content remains available.",
+        currentTimeApplied: "Viewing context synchronized to the system clock.",
+        currentTimeFailed: "The atlas could not synchronize to the current time.",
+        focusFailed: "The atlas could not focus that reviewed coordinate.",
+        focused: "Focused on {objectName}.",
+        geolocationDenied: "Location permission was unavailable or declined.",
+        geolocationUnavailable: "Geolocation is not available in this browser.",
+        graphicsRestored: "Graphics context restored.",
+        horizonDisabled: "Equatorial sky context restored.",
+        horizonEnabled: "Local-horizon observer context enabled.",
+        horizonFailed: "The atlas could not change horizon context.",
+        initialLayerUnavailable:
+          "{layerLabel} imagery is unavailable right now. Lumina did not start the interactive renderer; the canonical catalogue and source information remain available.",
+        invalidLayer: "That survey layer is not part of the reviewed inventory.",
+        layerChanged: "Survey layer changed to {layerLabel}.",
+        layerDisplayFailed: "That survey layer could not be displayed.",
+        loading: "Loading the opt-in WWT renderer and reviewed survey inventory…",
+        locationCopied:
+          "Location copied into the local fields. Press Apply observer context to use it.",
+        observerApplied:
+          "Observer context applied in this browser tab only. Coordinates were not saved.",
+        observerFailed: "The atlas could not apply that observer context.",
+        observerInvalid: "Enter valid finite latitude, longitude, and elevation.",
+        panFailed: "The atlas could not move the view.",
+        ready: "Interactive atlas ready.",
+        switchLayerUnavailable:
+          "{layerLabel} imagery is unavailable right now. The current atlas layer remains active.",
+        utcApplied: "Viewing context set to {instant}.",
+        utcApplyFailed: "The atlas could not apply that UTC instant.",
+        utcInvalid: "Enter an ISO 8601 UTC instant such as 2026-09-15T18:30:00Z.",
+        zoomFailed: "The atlas could not change the field of view.",
+      },
+      survey: {
+        creditLabel: "Credit",
+        legend: "Survey layer",
+        sourceDetails: "Source details",
+        wavelengthLabel: "Wavelength context",
+      },
+      time: {
+        apply: "Apply UTC time",
+        help: "Time changes viewing context only. It does not change Lumina's canonical catalogue coordinates.",
+        inputLabel: "ISO 8601 UTC instant",
+        legend: "UTC viewing context",
+        useCurrent: "Use current time",
+      },
+      view: {
+        focus: "Focus selected object",
+        legend: "View controls",
+        panAriaLabel: "Pan atlas",
+        panDown: "Pan down",
+        panLeft: "Pan left",
+        panRight: "Pan right",
+        panUp: "Pan up",
+        zoomIn: "Zoom in",
+        zoomOut: "Zoom out",
+      },
+    },
     browse: {
       ariaLabel: "Deep-sky objects",
       boundedSlice:

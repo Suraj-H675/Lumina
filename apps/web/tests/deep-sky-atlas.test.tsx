@@ -3,6 +3,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { DeepSkyAtlasMessages } from "../src/lib/i18n/messages/types";
+
 const fake = vi.hoisted(() => {
   const session = {
     detach: vi.fn(),
@@ -35,6 +38,15 @@ const target = {
   rightAscensionDegrees: 10.684708333333334,
 };
 
+function renderAtlas(
+  messages: DeepSkyAtlasMessages = enMessages.deepSky.atlas,
+  atlasTarget: typeof target | null = target,
+) {
+  return render(
+    <DeepSkyAtlas initialLayerId="visible-dss2" messages={messages} target={atlasTarget} />,
+  );
+}
+
 function resetFake(): void {
   fake.attach.mockClear();
   fake.probe.mockReset();
@@ -59,7 +71,7 @@ afterEach(() => {
 
 describe("Phase 5A deep-sky atlas activation boundary", () => {
   it("renders useful credited content without loading WWT until explicit activation", async () => {
-    const { container } = render(<DeepSkyAtlas initialLayerId="visible-dss2" target={target} />);
+    const { container } = renderAtlas();
 
     expect(fake.attach).not.toHaveBeenCalled();
     expect(fake.probe).not.toHaveBeenCalled();
@@ -92,7 +104,7 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
       } as GeolocationPosition),
     );
     vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
-    render(<DeepSkyAtlas initialLayerId="visible-dss2" target={target} />);
+    renderAtlas();
 
     expect(getCurrentPosition).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
@@ -117,7 +129,7 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
   });
 
   it("applies only closed survey layers and transient UTC/view controls", async () => {
-    render(<DeepSkyAtlas initialLayerId="visible-dss2" target={target} />);
+    renderAtlas();
     await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
     await screen.findByText("Interactive atlas ready.");
 
@@ -144,7 +156,7 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
 
   it("refuses unavailable survey imagery before WWT starts and preserves the current layer on switch failure", async () => {
     fake.probe.mockResolvedValueOnce(false);
-    render(<DeepSkyAtlas initialLayerId="visible-dss2" target={target} />);
+    renderAtlas();
 
     await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
     await screen.findByText(/Visible · DSS2 imagery is unavailable right now/i);
@@ -164,11 +176,62 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
   });
 
   it("detaches the Lumina-owned atlas lifecycle when the component unmounts", async () => {
-    const view = render(<DeepSkyAtlas initialLayerId="visible-dss2" target={target} />);
+    const view = renderAtlas();
     await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
     await screen.findByText("Interactive atlas ready.");
 
     view.unmount();
     expect(fake.session.detach).toHaveBeenCalledOnce();
+  });
+
+  it("localizes interactive chrome and status without rewriting reviewed survey data", async () => {
+    const messages: DeepSkyAtlasMessages = {
+      ...enMessages.deepSky.atlas,
+      activation: {
+        ...enMessages.deepSky.atlas.activation,
+        open: "Fixture atlas action",
+      },
+      header: {
+        ...enMessages.deepSky.atlas.header,
+        title: "Fixture WWT heading",
+      },
+      status: {
+        ...enMessages.deepSky.atlas.status,
+        focused: "Fixture focus {objectName}.",
+        ready: "Fixture atlas ready.",
+      },
+      survey: {
+        ...enMessages.deepSky.atlas.survey,
+        creditLabel: "Fixture credit",
+        wavelengthLabel: "Fixture wavelength",
+      },
+      view: {
+        ...enMessages.deepSky.atlas.view,
+        focus: "Fixture focus action",
+      },
+    };
+
+    renderAtlas(messages);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Fixture WWT heading" })).toBeVisible();
+    expect(screen.getByLabelText("Fixture wavelength")).toHaveValue("visible-dss2");
+    expect(screen.getByText("Visible · DSS2", { exact: true })).toBeVisible();
+    expect(
+      screen.getByText(
+        "A photographic optical survey composite. Display colours are a survey rendering, not a direct naked-eye view.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    expect(screen.getByText(/Fixture credit: Copyright DSS Consortium/)).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Fixture atlas action" }));
+    await screen.findByText("Fixture atlas ready.");
+    await userEvent.click(screen.getByRole("button", { name: "Fixture focus action" }));
+    expect(screen.getByText("Fixture focus Messier 31.")).toBeVisible();
+    expect(fake.session.focus).toHaveBeenCalledWith({
+      declinationDegrees: target.declinationDegrees,
+      reducedMotion: false,
+      rightAscensionDegrees: target.rightAscensionDegrees,
+    });
   });
 });

@@ -127,7 +127,7 @@ export default async function DeepSkyPage({
         selection={selection}
       />
 
-      <DeepSkyAtlas initialLayerId={activeLayer.id} target={target} />
+      <DeepSkyAtlas initialLayerId={activeLayer.id} messages={messages.atlas} target={target} />
 
       <section aria-labelledby="survey-links-heading" className="space-y-4">
         <h2 className="text-2xl font-semibold" id="survey-links-heading">

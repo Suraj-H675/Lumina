@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { formatMessageTemplate } from "../../../lib/i18n/format";
+import type { DeepSkyAtlasMessages } from "../../../lib/i18n/messages/types";
 import {
   ATLAS_LAYERS,
   parseAtlasUtcInstant,
@@ -18,6 +20,7 @@ type AtlasTarget = Readonly<{
 
 type Props = Readonly<{
   initialLayerId: AtlasLayerId;
+  messages: DeepSkyAtlasMessages;
   target: AtlasTarget | null;
 }>;
 
@@ -29,7 +32,10 @@ type AtlasStatus =
   | Readonly<{ kind: "error"; message: string }>
   | Readonly<{ kind: "context-lost" }>;
 
-export function DeepSkyAtlas({ initialLayerId, target }: Props) {
+const WWT_ENGINE_VERSION = "7.40.0";
+const WWT_HELPERS_VERSION = "0.18.0";
+
+export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef<WwtAtlasSession | null>(null);
   const [status, setStatus] = useState<AtlasStatus>({ kind: "idle" });
@@ -69,7 +75,9 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
       if (!available) {
         setStatus({
           kind: "error",
-          message: `${activeLayer.label} imagery is unavailable right now. Lumina did not start the interactive renderer; the canonical catalogue and source information remain available.`,
+          message: formatMessageTemplate(messages.status.initialLayerUnavailable, {
+            layerLabel: activeLayer.label,
+          }),
         });
         return;
       }
@@ -77,7 +85,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
       const session = await attachWwtAtlas(containerRef.current, {
         onContextLost: () => setStatus({ kind: "context-lost" }),
         onContextRestored: () =>
-          setStatus({ kind: "ready", message: "Graphics context restored." }),
+          setStatus({ kind: "ready", message: messages.status.graphicsRestored }),
       });
       sessionRef.current = session;
       setAtlasOpen(true);
@@ -90,8 +98,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
       setAtlasOpen(false);
       setStatus({
         kind: "error",
-        message:
-          "The interactive atlas could not start. The catalogue, coordinates, sources, and survey information below remain available.",
+        message: messages.status.activationFailed,
       });
     }
   }
@@ -104,9 +111,12 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         rightAscensionDegrees: target.rightAscensionDegrees,
       });
-      setStatus({ kind: "ready", message: `Focused on ${target.name}.` });
+      setStatus({
+        kind: "ready",
+        message: formatMessageTemplate(messages.status.focused, { objectName: target.name }),
+      });
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not focus that reviewed coordinate." });
+      setStatus({ kind: "error", message: messages.status.focusFailed });
     }
   }
 
@@ -115,7 +125,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     if (nextLayer === undefined) {
       setStatus({
         kind: "error",
-        message: "That survey layer is not part of the reviewed inventory.",
+        message: messages.status.invalidLayer,
       });
       return;
     }
@@ -132,15 +142,22 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
       if (!available) {
         setStatus({
           kind: "error",
-          message: `${nextLayer.label} imagery is unavailable right now. The current atlas layer remains active.`,
+          message: formatMessageTemplate(messages.status.switchLayerUnavailable, {
+            layerLabel: nextLayer.label,
+          }),
         });
         return;
       }
       sessionRef.current.setLayer(nextLayerId);
       setLayerId(nextLayerId);
-      setStatus({ kind: "ready", message: `Survey layer changed to ${nextLayer.label}.` });
+      setStatus({
+        kind: "ready",
+        message: formatMessageTemplate(messages.status.layerChanged, {
+          layerLabel: nextLayer.label,
+        }),
+      });
     } catch {
-      setStatus({ kind: "error", message: "That survey layer could not be displayed." });
+      setStatus({ kind: "error", message: messages.status.layerDisplayFailed });
     }
   }
 
@@ -148,7 +165,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     try {
       sessionRef.current?.pan(horizontalPixels, verticalPixels);
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not move the view." });
+      setStatus({ kind: "error", message: messages.status.panFailed });
     }
   }
 
@@ -156,7 +173,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     try {
       sessionRef.current?.zoom(factor);
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not change the field of view." });
+      setStatus({ kind: "error", message: messages.status.zoomFailed });
     }
   }
 
@@ -165,15 +182,20 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     if (instant === null) {
       setStatus({
         kind: "error",
-        message: "Enter an ISO 8601 UTC instant such as 2026-09-15T18:30:00Z.",
+        message: messages.status.utcInvalid,
       });
       return;
     }
     try {
       sessionRef.current?.setTime(instant);
-      setStatus({ kind: "ready", message: `Viewing context set to ${instant.toISOString()}.` });
+      setStatus({
+        kind: "ready",
+        message: formatMessageTemplate(messages.status.utcApplied, {
+          instant: instant.toISOString(),
+        }),
+      });
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not apply that UTC instant." });
+      setStatus({ kind: "error", message: messages.status.utcApplyFailed });
     }
   }
 
@@ -181,9 +203,9 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     try {
       sessionRef.current?.syncTimeNow();
       setUtcInput("");
-      setStatus({ kind: "ready", message: "Viewing context synchronized to the system clock." });
+      setStatus({ kind: "ready", message: messages.status.currentTimeApplied });
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not synchronize to the current time." });
+      setStatus({ kind: "error", message: messages.status.currentTimeFailed });
     }
   }
 
@@ -196,7 +218,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     if (observer === null || latitude.trim() === "" || longitude.trim() === "") {
       setStatus({
         kind: "error",
-        message: "Enter valid finite latitude, longitude, and elevation.",
+        message: messages.status.observerInvalid,
       });
       return;
     }
@@ -204,16 +226,16 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
       sessionRef.current?.setObserver(observer);
       setStatus({
         kind: "ready",
-        message: "Observer context applied in this browser tab only. Coordinates were not saved.",
+        message: messages.status.observerApplied,
       });
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not apply that observer context." });
+      setStatus({ kind: "error", message: messages.status.observerFailed });
     }
   }
 
   function useLocation() {
     if (!("geolocation" in navigator)) {
-      setStatus({ kind: "error", message: "Geolocation is not available in this browser." });
+      setStatus({ kind: "error", message: messages.status.geolocationUnavailable });
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -225,11 +247,10 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
         }
         setStatus({
           kind: "ready",
-          message: "Location copied into the local fields. Press Apply observer context to use it.",
+          message: messages.status.locationCopied,
         });
       },
-      () =>
-        setStatus({ kind: "error", message: "Location permission was unavailable or declined." }),
+      () => setStatus({ kind: "error", message: messages.status.geolocationDenied }),
       { enableHighAccuracy: false, maximumAge: 300_000, timeout: 10_000 },
     );
   }
@@ -240,12 +261,10 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
       sessionRef.current?.setLocalHorizon(enabled);
       setStatus({
         kind: "ready",
-        message: enabled
-          ? "Local-horizon observer context enabled."
-          : "Equatorial sky context restored.",
+        message: enabled ? messages.status.horizonEnabled : messages.status.horizonDisabled,
       });
     } catch {
-      setStatus({ kind: "error", message: "The atlas could not change horizon context." });
+      setStatus({ kind: "error", message: messages.status.horizonFailed });
     }
   }
 
@@ -256,20 +275,16 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
     >
       <div className="max-w-3xl space-y-2">
         <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          Optional interactive renderer
+          {messages.header.eyebrow}
         </p>
         <h2 className="text-2xl font-semibold" id="atlas-heading">
-          WorldWide Telescope atlas
+          {messages.header.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          The catalogue above is Lumina&apos;s canonical science. Opening this supplemental atlas
-          loads the WorldWide Telescope engine and imagery from the credited survey hosts. No
-          external WWT or imagery request is made before you activate it.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.header.intro}</p>
       </div>
 
       <div
-        aria-label="Interactive sky atlas canvas"
+        aria-label={messages.canvasAriaLabel}
         className="relative min-h-72 overflow-hidden border border-[var(--border)] bg-black sm:min-h-96"
         id="lumina-wwt-atlas"
         ref={containerRef}
@@ -279,8 +294,10 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
             <div className="max-w-xl space-y-4">
               <p className="text-[var(--muted)]">
                 {target === null
-                  ? "Select a deep-sky object with one accepted coordinate before focusing the atlas."
-                  : `Ready to open the atlas around ${target.name}.`}
+                  ? messages.activation.missingTarget
+                  : formatMessageTemplate(messages.activation.readyForTarget, {
+                      objectName: target.name,
+                    })}
               </p>
               <button
                 className="min-h-11 border border-[var(--accent)] px-5 font-semibold text-[var(--link)] disabled:cursor-not-allowed disabled:opacity-60"
@@ -289,23 +306,23 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
                 type="button"
               >
                 {status.kind === "checking-survey"
-                  ? "Checking survey…"
+                  ? messages.activation.checking
                   : status.kind === "loading"
-                    ? "Opening atlas…"
-                    : "Open interactive atlas"}
+                    ? messages.activation.opening
+                    : messages.activation.open}
               </button>
             </div>
           </div>
         ) : null}
       </div>
 
-      <AtlasStatusMessage status={status} />
+      <AtlasStatusMessage messages={messages.status} status={status} />
 
       <div className="grid gap-5 lg:grid-cols-2">
         <fieldset className="space-y-3 border border-[var(--border)] p-4">
-          <legend className="px-1 font-semibold">Survey layer</legend>
+          <legend className="px-1 font-semibold">{messages.survey.legend}</legend>
           <label className="block space-y-2">
-            <span className="text-sm text-[var(--muted)]">Wavelength context</span>
+            <span className="text-sm text-[var(--muted)]">{messages.survey.wavelengthLabel}</span>
             <select
               className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3"
               disabled={status.kind === "checking-survey" || status.kind === "loading"}
@@ -321,46 +338,46 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
           </label>
           <p className="text-sm leading-6 text-[var(--muted)]">{activeLayer.interpretation}</p>
           <p className="text-sm">
-            Credit: {activeLayer.creditText}{" "}
+            {messages.survey.creditLabel}: {activeLayer.creditText}{" "}
             <a
               className="text-[var(--link)] underline"
               href={activeLayer.creditUrl}
               rel="noreferrer"
             >
-              Source details
+              {messages.survey.sourceDetails}
             </a>
           </p>
         </fieldset>
 
         <fieldset className="space-y-3 border border-[var(--border)] p-4" disabled={!active}>
-          <legend className="px-1 font-semibold">View controls</legend>
+          <legend className="px-1 font-semibold">{messages.view.legend}</legend>
           <div className="flex flex-wrap gap-2">
             <button
               className="min-h-11 border border-[var(--border-strong)] px-3"
               onClick={() => void focusTarget()}
               type="button"
             >
-              Focus selected object
+              {messages.view.focus}
             </button>
             <button
               className="min-h-11 border border-[var(--border-strong)] px-3"
               onClick={() => zoom(0.8)}
               type="button"
             >
-              Zoom in
+              {messages.view.zoomIn}
             </button>
             <button
               className="min-h-11 border border-[var(--border-strong)] px-3"
               onClick={() => zoom(1.25)}
               type="button"
             >
-              Zoom out
+              {messages.view.zoomOut}
             </button>
           </div>
-          <div aria-label="Pan atlas" className="grid max-w-48 grid-cols-3 gap-2">
+          <div aria-label={messages.view.panAriaLabel} className="grid max-w-48 grid-cols-3 gap-2">
             <span />
             <button
-              aria-label="Pan up"
+              aria-label={messages.view.panUp}
               className="min-h-11 border border-[var(--border)]"
               onClick={() => pan(0, -40)}
               type="button"
@@ -369,7 +386,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
             </button>
             <span />
             <button
-              aria-label="Pan left"
+              aria-label={messages.view.panLeft}
               className="min-h-11 border border-[var(--border)]"
               onClick={() => pan(-40, 0)}
               type="button"
@@ -377,7 +394,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
               ←
             </button>
             <button
-              aria-label="Pan down"
+              aria-label={messages.view.panDown}
               className="min-h-11 border border-[var(--border)]"
               onClick={() => pan(0, 40)}
               type="button"
@@ -385,7 +402,7 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
               ↓
             </button>
             <button
-              aria-label="Pan right"
+              aria-label={messages.view.panRight}
               className="min-h-11 border border-[var(--border)]"
               onClick={() => pan(40, 0)}
               type="button"
@@ -396,9 +413,9 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
         </fieldset>
 
         <fieldset className="space-y-3 border border-[var(--border)] p-4" disabled={!active}>
-          <legend className="px-1 font-semibold">UTC viewing context</legend>
+          <legend className="px-1 font-semibold">{messages.time.legend}</legend>
           <label className="block space-y-2">
-            <span className="text-sm text-[var(--muted)]">ISO 8601 UTC instant</span>
+            <span className="text-sm text-[var(--muted)]">{messages.time.inputLabel}</span>
             <input
               className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3 font-mono"
               onChange={(event) => setUtcInput(event.target.value)}
@@ -413,45 +430,39 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
               onClick={applyUtcTime}
               type="button"
             >
-              Apply UTC time
+              {messages.time.apply}
             </button>
             <button
               className="min-h-11 border border-[var(--border-strong)] px-3"
               onClick={useCurrentTime}
               type="button"
             >
-              Use current time
+              {messages.time.useCurrent}
             </button>
           </div>
-          <p className="text-sm text-[var(--muted)]">
-            Time changes viewing context only. It does not change Lumina&apos;s canonical catalogue
-            coordinates.
-          </p>
+          <p className="text-sm text-[var(--muted)]">{messages.time.help}</p>
         </fieldset>
 
         <fieldset className="space-y-3 border border-[var(--border)] p-4" disabled={!active}>
-          <legend className="px-1 font-semibold">Observer context — optional</legend>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            Coordinates remain only in this component&apos;s memory. They are not placed in the URL,
-            stored, logged, sent to Lumina APIs, or sent to imagery providers.
-          </p>
+          <legend className="px-1 font-semibold">{messages.observer.legend}</legend>
+          <p className="text-sm leading-6 text-[var(--muted)]">{messages.observer.privacy}</p>
           <div className="grid gap-3 sm:grid-cols-3">
             <ObserverField
-              label="Latitude °"
+              label={messages.observer.latitudeLabel}
               max="90"
               min="-90"
               onChange={setLatitude}
               value={latitude}
             />
             <ObserverField
-              label="Longitude °"
+              label={messages.observer.longitudeLabel}
               max="180"
               min="-180"
               onChange={setLongitude}
               value={longitude}
             />
             <ObserverField
-              label="Elevation m"
+              label={messages.observer.elevationLabel}
               max="10000"
               min="-500"
               onChange={setElevation}
@@ -464,14 +475,14 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
               onClick={useLocation}
               type="button"
             >
-              Use my location
+              {messages.observer.useLocation}
             </button>
             <button
               className="min-h-11 border border-[var(--border-strong)] px-3"
               onClick={applyObserver}
               type="button"
             >
-              Apply observer context
+              {messages.observer.apply}
             </button>
           </div>
           <label className="flex min-h-11 items-center gap-3">
@@ -480,16 +491,16 @@ export function DeepSkyAtlas({ initialLayerId, target }: Props) {
               onChange={(event) => toggleHorizon(event.target.checked)}
               type="checkbox"
             />
-            <span>Show local-horizon context</span>
+            <span>{messages.observer.localHorizon}</span>
           </label>
         </fieldset>
       </div>
 
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Renderer: WorldWide Telescope web engine 7.40.0 / helpers 0.18.0, MIT licensed. Survey
-        images are separate datasets with the per-layer credits shown above. Survey composites and
-        false-colour maps are display representations; changing wavelength does not change the
-        physical object.
+        {formatMessageTemplate(messages.rendererDisclosure, {
+          engineVersion: WWT_ENGINE_VERSION,
+          helpersVersion: WWT_HELPERS_VERSION,
+        })}
       </p>
     </section>
   );
@@ -525,25 +536,27 @@ function ObserverField({
   );
 }
 
-function AtlasStatusMessage({ status }: Readonly<{ status: AtlasStatus }>) {
+function AtlasStatusMessage({
+  messages,
+  status,
+}: Readonly<{ messages: DeepSkyAtlasMessages["status"]; status: AtlasStatus }>) {
   if (status.kind === "idle") return null;
   if (status.kind === "checking-survey")
     return (
       <p aria-live="polite" role="status">
-        Checking {status.layerLabel} imagery availability from its reviewed survey host…
+        {formatMessageTemplate(messages.checkingSurvey, { layerLabel: status.layerLabel })}
       </p>
     );
   if (status.kind === "loading")
     return (
       <p aria-live="polite" role="status">
-        Loading the opt-in WWT renderer and reviewed survey inventory…
+        {messages.loading}
       </p>
     );
   if (status.kind === "context-lost")
     return (
       <p aria-live="polite" role="alert">
-        The graphics context was lost. Rendering is paused; the non-canvas catalogue content remains
-        available.
+        {messages.contextLost}
       </p>
     );
   if (status.kind === "error")
@@ -554,7 +567,7 @@ function AtlasStatusMessage({ status }: Readonly<{ status: AtlasStatus }>) {
     );
   return status.message === undefined ? (
     <p aria-live="polite" role="status">
-      Interactive atlas ready.
+      {messages.ready}
     </p>
   ) : (
     <p aria-live="polite" role="status">

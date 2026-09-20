@@ -109,6 +109,18 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.routeBoundaries.globalError.retry).toBe("Try again");
   });
 
+  it("keeps Deep Sky atlas templates placeholder-complete", () => {
+    expect(enMessages.deepSky.atlas.activation.readyForTarget).toContain("{objectName}");
+    expect(enMessages.deepSky.atlas.status.checkingSurvey).toContain("{layerLabel}");
+    expect(enMessages.deepSky.atlas.status.focused).toContain("{objectName}");
+    expect(enMessages.deepSky.atlas.status.initialLayerUnavailable).toContain("{layerLabel}");
+    expect(enMessages.deepSky.atlas.status.layerChanged).toContain("{layerLabel}");
+    expect(enMessages.deepSky.atlas.status.switchLayerUnavailable).toContain("{layerLabel}");
+    expect(enMessages.deepSky.atlas.status.utcApplied).toContain("{instant}");
+    expect(enMessages.deepSky.atlas.rendererDisclosure).toContain("{engineVersion}");
+    expect(enMessages.deepSky.atlas.rendererDisclosure).toContain("{helpersVersion}");
+  });
+
   it("keeps the Mission Control page shell in the typed English dictionary", () => {
     expect(enMessages.missionControl.metadataTitle).toBe("Mission Control");
     expect(enMessages.missionControl.eyebrow).toBe("Mission Control");

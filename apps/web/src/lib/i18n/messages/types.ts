@@ -264,7 +264,90 @@ export type CoordinateDisclosureMessages = Readonly<{
   reviewedWithoutEpoch: string;
 }>;
 
+export type DeepSkyAtlasMessages = Readonly<{
+  activation: Readonly<{
+    checking: string;
+    missingTarget: string;
+    open: string;
+    opening: string;
+    readyForTarget: string;
+  }>;
+  canvasAriaLabel: string;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  observer: Readonly<{
+    apply: string;
+    elevationLabel: string;
+    latitudeLabel: string;
+    legend: string;
+    localHorizon: string;
+    longitudeLabel: string;
+    privacy: string;
+    useLocation: string;
+  }>;
+  rendererDisclosure: string;
+  status: Readonly<{
+    activationFailed: string;
+    checkingSurvey: string;
+    contextLost: string;
+    currentTimeApplied: string;
+    currentTimeFailed: string;
+    focusFailed: string;
+    focused: string;
+    geolocationDenied: string;
+    geolocationUnavailable: string;
+    graphicsRestored: string;
+    horizonDisabled: string;
+    horizonEnabled: string;
+    horizonFailed: string;
+    initialLayerUnavailable: string;
+    invalidLayer: string;
+    layerChanged: string;
+    layerDisplayFailed: string;
+    loading: string;
+    locationCopied: string;
+    observerApplied: string;
+    observerFailed: string;
+    observerInvalid: string;
+    panFailed: string;
+    ready: string;
+    switchLayerUnavailable: string;
+    utcApplied: string;
+    utcApplyFailed: string;
+    utcInvalid: string;
+    zoomFailed: string;
+  }>;
+  survey: Readonly<{
+    creditLabel: string;
+    legend: string;
+    sourceDetails: string;
+    wavelengthLabel: string;
+  }>;
+  time: Readonly<{
+    apply: string;
+    help: string;
+    inputLabel: string;
+    legend: string;
+    useCurrent: string;
+  }>;
+  view: Readonly<{
+    focus: string;
+    legend: string;
+    panAriaLabel: string;
+    panDown: string;
+    panLeft: string;
+    panRight: string;
+    panUp: string;
+    zoomIn: string;
+    zoomOut: string;
+  }>;
+}>;
+
 export type DeepSkyMessages = Readonly<{
+  atlas: DeepSkyAtlasMessages;
   browse: Readonly<{
     ariaLabel: string;
     boundedSlice: string;

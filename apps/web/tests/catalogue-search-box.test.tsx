@@ -14,6 +14,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { CatalogueSearchBox } from "../src/components/catalogue-search-box";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+
+const DEFAULT_SEARCH_PROPS = {
+  locale: DEFAULT_LOCALE,
+  messages: enMessages.catalogueSearch,
+} as const;
 
 function jsonOk(body: unknown): { json: () => Promise<unknown>; ok: boolean; status: number } {
   return { json: () => Promise.resolve(body), ok: true, status: 200 };
@@ -56,7 +63,13 @@ afterEach(() => {
 describe("CatalogueSearchBox", () => {
   it("coalesces rapid typing into one suggestion request", async () => {
     fetchMock.mockResolvedValue(jsonOk(okSuggestions([])));
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
 
     const user = userEvent.setup({ delay: 10 });
     await user.type(screen.getByRole("combobox", COMBOBOX), "kepler");
@@ -74,7 +87,13 @@ describe("CatalogueSearchBox", () => {
         }),
     );
 
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
     const input = screen.getByRole("combobox", COMBOBOX);
     const user = userEvent.setup();
 
@@ -103,7 +122,13 @@ describe("CatalogueSearchBox", () => {
 
   it("does not request suggestions below the public minimum query length", async () => {
     fetchMock.mockResolvedValue(jsonOk(okSuggestions([])));
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
 
     await typeQuery("k");
     await sleep(DEBOUNCE_MS);
@@ -126,7 +151,13 @@ describe("CatalogueSearchBox", () => {
         unexpected: true,
       }),
     );
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
 
     await typeQuery("k2");
     await sleep(DEBOUNCE_MS);
@@ -142,7 +173,13 @@ describe("CatalogueSearchBox", () => {
         });
       });
     });
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
 
     const user = userEvent.setup();
     const input = screen.getByRole("combobox", COMBOBOX);
@@ -166,7 +203,13 @@ describe("CatalogueSearchBox", () => {
       )
       .mockResolvedValue(jsonOk(okSuggestions([])));
 
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="k2" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery="k2"
+      />,
+    );
     const input = screen.getByRole("combobox", COMBOBOX);
     const user = userEvent.setup();
 
@@ -204,7 +247,13 @@ describe("CatalogueSearchBox", () => {
       jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
 
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
     const input = screen.getByRole("combobox", COMBOBOX);
     const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -235,6 +284,7 @@ describe("CatalogueSearchBox", () => {
 
     render(
       <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
         apiOrigin="http://127.0.0.1:8765"
         initialQuery=""
         suggestionDestination="observe"
@@ -250,7 +300,13 @@ describe("CatalogueSearchBox", () => {
   });
 
   it("keeps a working native GET form when client navigation is unavailable", () => {
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="k2" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery="k2"
+      />,
+    );
 
     const form = document.querySelector("form");
     expect(form?.getAttribute("action")).toBe("/explore");
@@ -264,11 +320,52 @@ describe("CatalogueSearchBox", () => {
     fetchMock.mockResolvedValue(
       jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
-    render(<CatalogueSearchBox apiOrigin="http://127.0.0.1:8765" initialQuery="" />);
+    render(
+      <CatalogueSearchBox
+        {...DEFAULT_SEARCH_PROPS}
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+      />,
+    );
 
     expect(screen.getByRole("status")).toBeInTheDocument();
     await typeQuery("18");
     await screen.findByRole("option", { name: /K2-18/ });
     expect(screen.getByRole("status").textContent).toMatch(/1 suggestion available/);
+  });
+
+  it("localizes search chrome and count announcements without rewriting suggestion data", async () => {
+    fetchMock.mockResolvedValue(
+      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+    );
+    const messages = {
+      ...enMessages.catalogueSearch,
+      clearAction: "Fixture clear",
+      inputLabel: "Fixture catalogue search",
+      placeholder: "Fixture placeholder",
+      suggestionsAvailable: {
+        one: "Fixture {count} suggestion",
+        other: "Fixture {count} suggestions",
+      },
+    };
+    render(
+      <CatalogueSearchBox
+        apiOrigin="http://127.0.0.1:8765"
+        initialQuery=""
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    const input = screen.getByRole("combobox", { name: "Fixture catalogue search" });
+    expect(input).toHaveAttribute("placeholder", "Fixture placeholder");
+    const user = userEvent.setup();
+    await user.type(input, "18");
+
+    const option = await screen.findByRole("option", { name: /K2-18/ });
+    expect(option).toHaveTextContent("K2-18");
+    expect(option).toHaveTextContent("star");
+    expect(screen.getByRole("status")).toHaveTextContent("Fixture 1 suggestion");
+    expect(screen.getByRole("button", { name: "Fixture clear" })).toBeVisible();
   });
 });

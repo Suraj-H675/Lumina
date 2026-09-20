@@ -11,6 +11,7 @@ export default function EnglishObservePage({
 }>) {
   return (
     <ObservePage
+      catalogueSearchMessages={enMessages.catalogueSearch}
       coordinateDisclosureMessages={enMessages.coordinateDisclosure}
       journalEntryMessages={enMessages.journal.entry}
       plannerLocale={DEFAULT_LOCALE}

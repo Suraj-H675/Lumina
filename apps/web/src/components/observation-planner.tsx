@@ -28,6 +28,7 @@ import {
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type {
+  CatalogueSearchMessages,
   CoordinateDisclosureMessages,
   JournalEntryMessages,
   ObservationPlannerMessages,
@@ -50,6 +51,7 @@ import {
 
 export type ObservationPlannerProps = Readonly<{
   apiOrigin?: string;
+  catalogueSearchMessages: CatalogueSearchMessages;
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
   detail: EntityDetailResponse | null;
   initialDate?: string;
@@ -574,6 +576,7 @@ function PlannerResults({
 
 export function ObservationPlanner({
   apiOrigin,
+  catalogueSearchMessages,
   coordinateDisclosureMessages,
   detail,
   initialDate,
@@ -721,6 +724,8 @@ export function ObservationPlanner({
           <CatalogueSearchBox
             {...(apiOrigin === undefined ? {} : { apiOrigin })}
             initialQuery=""
+            locale={locale}
+            messages={catalogueSearchMessages}
             suggestionDestination="observe"
           />
         </div>

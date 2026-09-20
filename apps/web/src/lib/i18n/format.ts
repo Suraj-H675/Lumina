@@ -28,10 +28,12 @@ export function formatCountMessage(
   templates: CountMessageTemplates,
   count: number,
   locale: Locale,
+  values: Readonly<Record<string, string | number>> = {},
 ): string {
   const category = new Intl.PluralRules(localeDefinition(locale).intlTag).select(count);
   const template = category === "one" ? templates.one : templates.other;
   return formatMessageTemplate(template, {
+    ...values,
     count: formatLocaleNumber(count, locale),
   });
 }

@@ -14,10 +14,15 @@ import {
 
 import type { EntitySummaryResponse } from "@lumina/api-client";
 
+import { formatCountMessage } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { CatalogueSearchMessages } from "../lib/i18n/messages/types";
 import { useSuggestCatalogue } from "./use-suggest-catalogue";
 
 type CatalogueSearchBoxProps = Readonly<{
   initialQuery: string;
+  locale: PublishedLocale;
+  messages: CatalogueSearchMessages;
   /** Public API origin resolved on the server; suggestions stay off without it. */
   apiOrigin?: string;
   /** Where an activated suggestion should take the user. */
@@ -33,6 +38,8 @@ type CatalogueSearchBoxProps = Readonly<{
 export function CatalogueSearchBox({
   apiOrigin,
   initialQuery,
+  locale,
+  messages,
   suggestionDestination = "object",
 }: CatalogueSearchBoxProps) {
   const router = useRouter();
@@ -151,7 +158,7 @@ export function CatalogueSearchBox({
     <div onBlur={dismissOnBlur} ref={containerRef}>
       <form action="/explore" method="get" onSubmit={handleFormSubmit} role="search">
         <label className="sr-only" htmlFor={inputId}>
-          Search the catalogue
+          {messages.inputLabel}
         </label>
         <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 focus-within:border-[var(--border-strong)]">
           <span aria-hidden="true" className="text-[var(--muted)]">
@@ -168,7 +175,7 @@ export function CatalogueSearchBox({
             name="q"
             onChange={(event) => handleInputChange(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder='Try "Kepler" or "HD 209458"'
+            placeholder={messages.placeholder}
             role="combobox"
             type="search"
             value={query}
@@ -180,13 +187,13 @@ export function CatalogueSearchBox({
               type="button"
             >
               <span aria-hidden="true">✕</span>
-              <span className="sr-only">Clear search</span>
+              <span className="sr-only">{messages.clearAction}</span>
             </button>
           ) : null}
         </div>
         <p aria-live="polite" className="sr-only" role="status">
           {open && suggestions.length > 0
-            ? `${suggestions.length} suggestion${suggestions.length === 1 ? "" : "s"} available`
+            ? formatCountMessage(messages.suggestionsAvailable, suggestions.length, locale)
             : ""}
         </p>
         {open && suggestions.length > 0 ? (

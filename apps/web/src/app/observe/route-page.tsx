@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ObserveExperience } from "../../components/observe-experience";
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type {
+  CatalogueSearchMessages,
   CoordinateDisclosureMessages,
   JournalEntryMessages,
   ObservationPlannerMessages,
@@ -20,6 +21,7 @@ export function createObserveMetadata(messages: ObservationPlannerMessages["meta
 }
 
 type ObservePageProps = Readonly<{
+  catalogueSearchMessages: CatalogueSearchMessages;
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
   journalEntryMessages: JournalEntryMessages;
   plannerLocale: PublishedLocale;
@@ -34,6 +36,7 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function ObservePage({
+  catalogueSearchMessages,
   coordinateDisclosureMessages,
   journalEntryMessages,
   plannerLocale,
@@ -59,6 +62,7 @@ export default async function ObservePage({
       detail={outcome?.kind === "ok" ? outcome.detail : null}
       {...(initialDate === undefined ? {} : { initialDate })}
       {...(initialSavedId === undefined ? {} : { initialSavedId })}
+      catalogueSearchMessages={catalogueSearchMessages}
       coordinateDisclosureMessages={coordinateDisclosureMessages}
       journalEntryMessages={journalEntryMessages}
       locale={plannerLocale}

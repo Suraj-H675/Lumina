@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CatalogSearchResponse } from "@lumina/api-client";
 
 import { entityTypeLabel } from "../lib/catalog-display";
+import { formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
 import { SaveToCollectionsButton } from "./save-to-collections";
@@ -10,6 +11,7 @@ import { SaveToCollectionsButton } from "./save-to-collections";
 type ResultCardProps = Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
   locale: PublishedLocale;
+  matchedAliasMessage: string;
   result: CatalogSearchResponse["items"][number];
 }>;
 
@@ -19,7 +21,12 @@ type ResultCardProps = Readonly<{
  * The card remains primary navigation with a distinct, separately named Save
  * control beside it.
  */
-export function ResultCard({ collectionSaveMessages, locale, result }: ResultCardProps) {
+export function ResultCard({
+  collectionSaveMessages,
+  locale,
+  matchedAliasMessage,
+  result,
+}: ResultCardProps) {
   const { entity, matched_alias: matchedAlias } = result;
   return (
     <li className="list-none">
@@ -36,7 +43,9 @@ export function ResultCard({ collectionSaveMessages, locale, result }: ResultCar
               {entityTypeLabel(entity.entity_type)}
             </span>
             {matchedAlias !== null && matchedAlias !== "" ? (
-              <span className="truncate">Matched “{matchedAlias}”</span>
+              <span className="truncate">
+                {formatMessageTemplate(matchedAliasMessage, { alias: matchedAlias })}
+              </span>
             ) : null}
           </span>
         </Link>

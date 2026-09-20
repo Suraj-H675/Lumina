@@ -4,7 +4,7 @@ import type { EntitySummaryResponse } from "@lumina/api-client";
 
 import { entityTypeLabel } from "../lib/catalog-display";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
+import type { CollectionSaveMessages, ExploreMessages } from "../lib/i18n/messages/types";
 import { SaveToCollectionsButton } from "./save-to-collections";
 
 /** Browse grid for the discovery state; order is the backend's canonical order. */
@@ -12,13 +12,18 @@ export function EntityCardGrid({
   collectionSaveMessages,
   items,
   locale,
+  messages,
 }: Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
   items: Array<EntitySummaryResponse>;
   locale: PublishedLocale;
+  messages: ExploreMessages["browse"];
 }>) {
   return (
-    <ul aria-label="Catalogue objects" className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+    <ul
+      aria-label={messages.objectsAriaLabel}
+      className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
+    >
       {items.map((entity) => (
         <li className="flex list-none" key={entity.id}>
           <div className="flex h-full w-full items-stretch rounded-md border border-[var(--border)] bg-[var(--surface)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]">
@@ -54,14 +59,11 @@ export function EntityCardGrid({
 }
 
 /** Honest empty state for an intentionally small reviewed slice. */
-export function ExploreEmptyState() {
+export function ExploreEmptyState({ messages }: Readonly<{ messages: ExploreMessages["browse"] }>) {
   return (
     <div className="max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8">
-      <h3 className="text-xl font-semibold">The catalogue is being curated</h3>
-      <p className="mt-2 leading-7 text-[var(--muted)]">
-        No reviewed objects are published yet. Lumina adds objects deliberately, with full
-        provenance, rather than importing catalogues wholesale.
-      </p>
+      <h3 className="text-xl font-semibold">{messages.emptyTitle}</h3>
+      <p className="mt-2 leading-7 text-[var(--muted)]">{messages.emptyDescription}</p>
     </div>
   );
 }
@@ -69,21 +71,20 @@ export function ExploreEmptyState() {
 /** Bounded failure state; never substitutes unrelated content. */
 export function ExploreUnavailableState({
   context,
-}: Readonly<{ context: "catalogue" | "search" }>) {
+  messages,
+}: Readonly<{
+  context: "catalogue" | "search";
+  messages: ExploreMessages["unavailable"];
+}>) {
   return (
     <div
       className="max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8"
       role="status"
     >
       <h3 className="text-xl font-semibold">
-        {context === "search"
-          ? "Search is unavailable right now"
-          : "The catalogue is unavailable right now"}
+        {context === "search" ? messages.searchTitle : messages.catalogueTitle}
       </h3>
-      <p className="mt-2 leading-7 text-[var(--muted)]">
-        Lumina could not reach the catalogue service within its bounded request window. Nothing is
-        shown rather than showing something wrong — please retry in a moment.
-      </p>
+      <p className="mt-2 leading-7 text-[var(--muted)]">{messages.description}</p>
     </div>
   );
 }

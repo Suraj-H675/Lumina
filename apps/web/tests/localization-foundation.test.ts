@@ -85,6 +85,17 @@ describe("Phase 8C localization foundation", () => {
 
     expect(formatCountMessage(templates, 1, "en")).toBe("Stored locally: 1 learning path.");
     expect(formatCountMessage(templates, 2, "en")).toBe("Stored locally: 2 learning paths.");
+    expect(
+      formatCountMessage(
+        {
+          one: "{count} result for {query}.",
+          other: "{count} results for {query}.",
+        },
+        2,
+        "en",
+        { query: "Kepler" },
+      ),
+    ).toBe("2 results for Kepler.");
   });
 
   it("formats reviewer lists with the explicit content locale", () => {
@@ -119,6 +130,23 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.deepSky.atlas.status.utcApplied).toContain("{instant}");
     expect(enMessages.deepSky.atlas.rendererDisclosure).toContain("{engineVersion}");
     expect(enMessages.deepSky.atlas.rendererDisclosure).toContain("{helpersVersion}");
+  });
+
+  it("keeps Explore search templates placeholder-complete", () => {
+    expect(enMessages.catalogueSearch.suggestionsAvailable.one).toContain("{count}");
+    expect(enMessages.explore.search.matchedAlias).toContain("{alias}");
+    expect(enMessages.explore.search.noResultsDescription).toContain("{example}");
+    expect(enMessages.explore.search.noResultsTitle).toContain("{query}");
+    expect(enMessages.explore.search.summary.one).toContain("{count}");
+    expect(enMessages.explore.search.summary.one).toContain("{query}");
+    expect(enMessages.explore.search.summary.other).toContain("{count}");
+    expect(enMessages.explore.search.summary.other).toContain("{query}");
+    expect(
+      formatCountMessage(enMessages.explore.search.summary, 1, "en", { query: "Kepler" }),
+    ).toBe("1 result for Kepler, ranked by the catalogue search engine.");
+    expect(
+      formatCountMessage(enMessages.explore.search.summary, 2, "en", { query: "Kepler" }),
+    ).toBe("2 results for Kepler, ranked by the catalogue search engine.");
   });
 
   it("keeps the Mission Control page shell in the typed English dictionary", () => {

@@ -8,20 +8,28 @@ import {
   ExploreUnavailableState,
 } from "../../components/explore-catalogue-view";
 import { ExploreResultsView } from "../../components/search-results-view";
+import { formatCountMessage } from "../../lib/i18n/format";
 import type { PublishedLocale } from "../../lib/i18n/locales";
-import type { CollectionSaveMessages } from "../../lib/i18n/messages/types";
+import type {
+  CatalogueSearchMessages,
+  CollectionSaveMessages,
+  ExploreMessages,
+} from "../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { loadExploreCatalogue, searchCatalogue } from "../../lib/server/catalog";
 
-export const metadata: Metadata = {
-  title: "Explore the catalogue",
-  description:
-    "Search and browse Lumina's reviewed astronomical catalogue. Every published value keeps its source and provenance.",
-};
+export function createExploreMetadata(messages: ExploreMessages): Metadata {
+  return {
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type ExplorePageProps = Readonly<{
+  catalogueSearchMessages: CatalogueSearchMessages;
   collectionSaveMessages: CollectionSaveMessages;
   locale: PublishedLocale;
+  messages: ExploreMessages;
   searchParams: Promise<Readonly<{ cursor?: string | string[]; q?: string | string[] }>>;
 }>;
 
@@ -30,8 +38,10 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function ExplorePage({
+  catalogueSearchMessages,
   collectionSaveMessages,
   locale,
+  messages,
   searchParams,
 }: ExplorePageProps) {
   const params = await searchParams;
@@ -51,45 +61,42 @@ export default async function ExplorePage({
     <div className="space-y-10">
       <header className="mx-auto max-w-2xl space-y-6 text-center">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          The catalogue
+          {messages.header.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Explore real objects, provenance included
+          {messages.header.title}
         </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          A small but honest slice of the universe: every value Lumina publishes is traceable to its
-          source. Start with a name — or browse below.
-        </p>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
         <div className="flex flex-wrap justify-center gap-3 pt-1">
           <Link
             className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
             href="/explore/deep-sky"
           >
-            Open the deep-sky atlas →
+            {messages.header.deepSkyAction}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
             href="/explore/solar-system"
           >
-            Compare Solar System distances →
+            {messages.header.solarSystemAction}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
             href="/explore/exoplanet-systems"
           >
-            Compare exoplanet systems →
+            {messages.header.exoplanetSystemsAction}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
             href="/explore/missions/voyager-1"
           >
-            Follow Voyager 1 mission →
+            {messages.header.voyagerAction}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
             href="/explore/system-compare"
           >
-            Compare system scales →
+            {messages.header.systemCompareAction}
           </Link>
         </div>
       </header>
@@ -98,6 +105,8 @@ export default async function ExplorePage({
         <CatalogueSearchBox
           {...(apiOrigin === undefined ? {} : { apiOrigin })}
           initialQuery={query}
+          locale={locale}
+          messages={catalogueSearchMessages}
         />
       </div>
 
@@ -105,13 +114,17 @@ export default async function ExplorePage({
         <ExploreSearchSection
           collectionSaveMessages={collectionSaveMessages}
           locale={locale}
+          messages={messages.search}
           query={query}
+          unavailableMessages={messages.unavailable}
         />
       ) : (
         <ExploreBrowseSection
           {...(cursor === undefined ? {} : { cursor })}
           collectionSaveMessages={collectionSaveMessages}
           locale={locale}
+          messages={messages.browse}
+          unavailableMessages={messages.unavailable}
         />
       )}
     </div>
@@ -122,11 +135,15 @@ export default async function ExplorePage({
 async function ExploreSearchSection({
   collectionSaveMessages,
   locale,
+  messages,
   query,
+  unavailableMessages,
 }: Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
   locale: PublishedLocale;
+  messages: ExploreMessages["search"];
   query: string;
+  unavailableMessages: ExploreMessages["unavailable"];
 }>) {
   const outcome = await searchCatalogue(query);
 
@@ -134,17 +151,16 @@ async function ExploreSearchSection({
     return (
       <section aria-labelledby="results-heading" className="space-y-4">
         <h2 className="sr-only" id="results-heading">
-          Search results
+          {messages.heading}
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          {outcome.items.length} {outcome.items.length === 1 ? "result" : "results"} for{" "}
-          <span className="font-mono text-[var(--foreground)]">{query}</span>, ranked by the
-          catalogue search engine.
+          {formatCountMessage(messages.summary, outcome.items.length, locale, { query })}
         </p>
         <ExploreResultsView
           collectionSaveMessages={collectionSaveMessages}
           items={outcome.items}
           locale={locale}
+          messages={messages}
           query={query}
         />
       </section>
@@ -153,18 +169,14 @@ async function ExploreSearchSection({
   return (
     <section aria-labelledby="results-heading" className="space-y-4">
       <h2 className="sr-only" id="results-heading">
-        Search results
+        {messages.heading}
       </h2>
       {outcome.kind === "empty-query" ? (
-        <p className="leading-7 text-[var(--muted)]">
-          Type at least two characters to search the catalogue.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.minimumQuery}</p>
       ) : outcome.kind === "invalid-query" ? (
-        <p className="leading-7 text-[var(--muted)]">
-          That search could not be validated. Try a shorter or simpler query.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.invalidQuery}</p>
       ) : (
-        <ExploreUnavailableState context="search" />
+        <ExploreUnavailableState context="search" messages={unavailableMessages} />
       )}
     </section>
   );
@@ -175,52 +187,55 @@ async function ExploreBrowseSection({
   collectionSaveMessages,
   cursor,
   locale,
+  messages,
+  unavailableMessages,
 }: Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
   cursor?: string;
   locale: PublishedLocale;
+  messages: ExploreMessages["browse"];
+  unavailableMessages: ExploreMessages["unavailable"];
 }>) {
   const outcome = await loadExploreCatalogue(cursor === undefined ? {} : { cursor });
 
   return (
     <section aria-labelledby="browse-heading" className="space-y-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 id="browse-heading">In the catalogue now</h2>
-        <span className="text-sm text-[var(--muted)]">
-          Reviewed objects only — the catalogue grows deliberately.
-        </span>
+        <h2 id="browse-heading">{messages.heading}</h2>
+        <span className="text-sm text-[var(--muted)]">{messages.summary}</span>
       </div>
       {outcome.kind === "ok" ? (
         outcome.items.length === 0 ? (
-          <ExploreEmptyState />
+          <ExploreEmptyState messages={messages} />
         ) : (
           <>
             {!outcome.completeSlice ? (
               <p className="text-sm text-[var(--muted)]">
                 {cursor === undefined
-                  ? `Showing the first ${outcome.items.length} objects.`
-                  : `Showing the next ${outcome.items.length} objects.`}
+                  ? formatCountMessage(messages.showingFirst, outcome.items.length, locale)
+                  : formatCountMessage(messages.showingNext, outcome.items.length, locale)}
               </p>
             ) : null}
             <EntityCardGrid
               collectionSaveMessages={collectionSaveMessages}
               items={outcome.items}
               locale={locale}
+              messages={messages}
             />
             {outcome.nextCursor !== null ? (
-              <nav aria-label="Catalogue pagination" className="flex justify-end">
+              <nav aria-label={messages.paginationAriaLabel} className="flex justify-end">
                 <Link
                   className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 text-sm font-semibold text-[var(--foreground)] no-underline hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
                   href={`/explore?cursor=${encodeURIComponent(outcome.nextCursor)}`}
                 >
-                  Next page
+                  {messages.nextPage}
                 </Link>
               </nav>
             ) : null}
           </>
         )
       ) : (
-        <ExploreUnavailableState context="catalogue" />
+        <ExploreUnavailableState context="catalogue" messages={unavailableMessages} />
       )}
     </section>
   );

@@ -1,6 +1,15 @@
 import type { LuminaMessages } from "./types";
 
 export const enMessages = {
+  catalogueSearch: {
+    clearAction: "Clear search",
+    inputLabel: "Search the catalogue",
+    placeholder: 'Try "Kepler" or "HD 209458"',
+    suggestionsAvailable: {
+      one: "{count} suggestion available",
+      other: "{count} suggestions available",
+    },
+  },
   collections: {
     addObject: {
       inputLabel: "Find an object to save in this collection",
@@ -369,6 +378,60 @@ export const enMessages = {
     reviewedSourcesTitle: "Reviewed sources",
     title: "Reviewed discoveries",
     whyItMattersTitle: "Why it matters",
+  },
+  explore: {
+    browse: {
+      emptyDescription:
+        "No reviewed objects are published yet. Lumina adds objects deliberately, with full provenance, rather than importing catalogues wholesale.",
+      emptyTitle: "The catalogue is being curated",
+      heading: "In the catalogue now",
+      nextPage: "Next page",
+      objectsAriaLabel: "Catalogue objects",
+      paginationAriaLabel: "Catalogue pagination",
+      showingFirst: {
+        one: "Showing the first {count} object.",
+        other: "Showing the first {count} objects.",
+      },
+      showingNext: {
+        one: "Showing the next {count} object.",
+        other: "Showing the next {count} objects.",
+      },
+      summary: "Reviewed objects only — the catalogue grows deliberately.",
+    },
+    header: {
+      deepSkyAction: "Open the deep-sky atlas →",
+      exoplanetSystemsAction: "Compare exoplanet systems →",
+      eyebrow: "The catalogue",
+      intro:
+        "A small but honest slice of the universe: every value Lumina publishes is traceable to its source. Start with a name — or browse below.",
+      solarSystemAction: "Compare Solar System distances →",
+      systemCompareAction: "Compare system scales →",
+      title: "Explore real objects, provenance included",
+      voyagerAction: "Follow Voyager 1 mission →",
+    },
+    metadataDescription:
+      "Search and browse Lumina's reviewed astronomical catalogue. Every published value keeps its source and provenance.",
+    metadataTitle: "Explore the catalogue",
+    search: {
+      heading: "Search results",
+      invalidQuery: "That search could not be validated. Try a shorter or simpler query.",
+      matchedAlias: "Matched “{alias}”",
+      minimumQuery: "Type at least two characters to search the catalogue.",
+      noResultsDescription:
+        "Try a shorter fragment, a different spelling, or a catalogue designation such as {example}.",
+      noResultsTitle: "No objects matched “{query}”",
+      resultsAriaLabel: "Search results",
+      summary: {
+        one: "{count} result for {query}, ranked by the catalogue search engine.",
+        other: "{count} results for {query}, ranked by the catalogue search engine.",
+      },
+    },
+    unavailable: {
+      catalogueTitle: "The catalogue is unavailable right now",
+      description:
+        "Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
+      searchTitle: "Search is unavailable right now",
+    },
   },
   journal: {
     entry: {

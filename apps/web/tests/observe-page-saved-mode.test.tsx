@@ -50,6 +50,7 @@ describe("observe server route saved mode", () => {
     window.history.replaceState({}, "", `/observe?saved=${saved.id}`);
 
     const page = await ObservePage({
+      catalogueSearchMessages: enMessages.catalogueSearch,
       coordinateDisclosureMessages: enMessages.coordinateDisclosure,
       journalEntryMessages: enMessages.journal.entry,
       plannerLocale: DEFAULT_LOCALE,
@@ -72,6 +73,7 @@ describe("observe server route saved mode", () => {
     window.history.replaceState({}, "", "/observe?saved=not-a-uuid&object=k2-18");
 
     const page = await ObservePage({
+      catalogueSearchMessages: enMessages.catalogueSearch,
       coordinateDisclosureMessages: enMessages.coordinateDisclosure,
       journalEntryMessages: enMessages.journal.entry,
       plannerLocale: DEFAULT_LOCALE,

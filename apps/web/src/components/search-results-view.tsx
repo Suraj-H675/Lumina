@@ -1,13 +1,17 @@
 import type { CatalogSearchResponse } from "@lumina/api-client";
 
+import { formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
+import type { CollectionSaveMessages, ExploreMessages } from "../lib/i18n/messages/types";
 import { ResultCard } from "./result-card";
+
+const SEARCH_EXAMPLE = "HD 209458";
 
 type ExploreResultsViewProps = Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
   items: CatalogSearchResponse["items"];
   locale: PublishedLocale;
+  messages: ExploreMessages["search"];
   query: string;
 }>;
 
@@ -19,6 +23,7 @@ export function ExploreResultsView({
   collectionSaveMessages,
   items,
   locale,
+  messages,
   query,
 }: ExploreResultsViewProps) {
   if (items.length === 0) {
@@ -31,23 +36,26 @@ export function ExploreResultsView({
           className="text-xl font-semibold text-[var(--foreground)]"
           id="explore-no-results-heading"
         >
-          No objects matched “{query}”
+          {formatMessageTemplate(messages.noResultsTitle, { query })}
         </h2>
         <p className="mt-2 leading-7 text-[var(--muted)]">
-          Try a shorter fragment, a different spelling, or a catalogue designation such as{" "}
-          <span className="font-mono text-sm">HD 209458</span>.
+          {formatMessageTemplate(messages.noResultsDescription, { example: SEARCH_EXAMPLE })}
         </p>
       </section>
     );
   }
 
   return (
-    <ul aria-label="Search results" className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+    <ul
+      aria-label={messages.resultsAriaLabel}
+      className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
+    >
       {items.map((item) => (
         <ResultCard
           collectionSaveMessages={collectionSaveMessages}
           key={item.entity.id}
           locale={locale}
+          matchedAliasMessage={messages.matchedAlias}
           result={item}
         />
       ))}

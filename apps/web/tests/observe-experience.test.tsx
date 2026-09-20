@@ -43,6 +43,7 @@ describe("observe route client mode", () => {
 
     render(
       <ObserveExperience
+        catalogueSearchMessages={enMessages.catalogueSearch}
         coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         detail={null}
         journalEntryMessages={enMessages.journal.entry}
@@ -68,6 +69,7 @@ describe("observe route client mode", () => {
 
     render(
       <ObserveExperience
+        catalogueSearchMessages={enMessages.catalogueSearch}
         coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         detail={null}
         initialSavedId={saved.id}

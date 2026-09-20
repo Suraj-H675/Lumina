@@ -240,6 +240,54 @@ export type CollectionsMessages = Readonly<{
 export type CollectionStateMessages = Pick<CollectionsMessages, "failures" | "shared">;
 export type CollectionSaveMessages = Pick<CollectionsMessages, "failures" | "save" | "validation">;
 
+export type CatalogueSearchMessages = Readonly<{
+  clearAction: string;
+  inputLabel: string;
+  placeholder: string;
+  suggestionsAvailable: CountMessageTemplates;
+}>;
+
+export type ExploreMessages = Readonly<{
+  browse: Readonly<{
+    emptyDescription: string;
+    emptyTitle: string;
+    heading: string;
+    nextPage: string;
+    objectsAriaLabel: string;
+    paginationAriaLabel: string;
+    showingFirst: CountMessageTemplates;
+    showingNext: CountMessageTemplates;
+    summary: string;
+  }>;
+  header: Readonly<{
+    deepSkyAction: string;
+    exoplanetSystemsAction: string;
+    eyebrow: string;
+    intro: string;
+    solarSystemAction: string;
+    systemCompareAction: string;
+    title: string;
+    voyagerAction: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  search: Readonly<{
+    heading: string;
+    invalidQuery: string;
+    matchedAlias: string;
+    minimumQuery: string;
+    noResultsDescription: string;
+    noResultsTitle: string;
+    resultsAriaLabel: string;
+    summary: CountMessageTemplates;
+  }>;
+  unavailable: Readonly<{
+    catalogueTitle: string;
+    description: string;
+    searchTitle: string;
+  }>;
+}>;
+
 export type LearnLandingMessages = Readonly<{
   eyebrow: string;
   intro: string;
@@ -1525,10 +1573,12 @@ export type StatusMessages = Readonly<{
 }>;
 
 export type LuminaMessages = Readonly<{
+  catalogueSearch: CatalogueSearchMessages;
   collections: CollectionsMessages;
   coordinateDisclosure: CoordinateDisclosureMessages;
   deepSky: DeepSkyMessages;
   discoveries: DiscoveriesMessages;
+  explore: ExploreMessages;
   journal: JournalMessages;
   labIndex: LabIndexMessages;
   learn: LearnMessages;

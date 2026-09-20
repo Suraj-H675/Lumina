@@ -115,6 +115,7 @@ function renderPlanner(
 ) {
   return render(
     <ObservationPlanner
+      catalogueSearchMessages={enMessages.catalogueSearch}
       coordinateDisclosureMessages={coordinateDisclosureMessages}
       detail={detail}
       initialDate={date}

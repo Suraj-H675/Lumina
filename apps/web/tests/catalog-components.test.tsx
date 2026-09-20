@@ -12,6 +12,11 @@ import { ObjectNotFoundView } from "../src/components/object-not-found-view";
 import { ObjectView } from "../src/components/object-view";
 import { ResultCard } from "../src/components/result-card";
 import { ExploreResultsView } from "../src/components/search-results-view";
+import {
+  EntityCardGrid,
+  ExploreEmptyState,
+  ExploreUnavailableState,
+} from "../src/components/explore-catalogue-view";
 import { collectionSaveMessageSlice } from "../src/lib/collections-messages";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
@@ -43,6 +48,7 @@ describe("ResultCard", () => {
       <ResultCard
         collectionSaveMessages={SAVE_MESSAGES}
         locale={DEFAULT_LOCALE}
+        matchedAliasMessage={enMessages.explore.search.matchedAlias}
         result={searchItem()}
       />,
     );
@@ -57,10 +63,25 @@ describe("ResultCard", () => {
       <ResultCard
         collectionSaveMessages={SAVE_MESSAGES}
         locale={DEFAULT_LOCALE}
+        matchedAliasMessage={enMessages.explore.search.matchedAlias}
         result={searchItem({ match_reason: "exact_alias", matched_alias: "K2-18 b host" })}
       />,
     );
     expect(screen.getByText(/K2-18 b host/)).toBeVisible();
+  });
+
+  it("localizes the alias wrapper without rewriting the backend alias or identity", () => {
+    render(
+      <ResultCard
+        collectionSaveMessages={SAVE_MESSAGES}
+        locale={DEFAULT_LOCALE}
+        matchedAliasMessage="Fixture match {alias}"
+        result={searchItem({ match_reason: "exact_alias", matched_alias: "K2-18 b host" })}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: /K2-18/ })).toHaveAttribute("href", "/objects/k2-18");
+    expect(screen.getByText("Fixture match K2-18 b host")).toBeVisible();
   });
 });
 
@@ -71,6 +92,7 @@ describe("ExploreResultsView", () => {
         collectionSaveMessages={SAVE_MESSAGES}
         items={[searchItem(), searchItem({ entity: { ...k2_18, canonical_name: "Kepler-186" } })]}
         locale={DEFAULT_LOCALE}
+        messages={enMessages.explore.search}
         query="ke"
       />,
     );
@@ -88,11 +110,66 @@ describe("ExploreResultsView", () => {
         collectionSaveMessages={SAVE_MESSAGES}
         items={[]}
         locale={DEFAULT_LOCALE}
+        messages={enMessages.explore.search}
         query="zzzz"
       />,
     );
 
     expect(screen.getByRole("heading", { name: /no objects matched/i })).toBeVisible();
+  });
+
+  it("localizes result-state chrome without rewriting the submitted query", () => {
+    const messages = {
+      ...enMessages.explore.search,
+      noResultsDescription: "Fixture retry with {example}.",
+      noResultsTitle: "Fixture no match for {query}",
+      resultsAriaLabel: "Fixture results",
+    };
+    render(
+      <ExploreResultsView
+        collectionSaveMessages={SAVE_MESSAGES}
+        items={[]}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+        query="zzzz"
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Fixture no match for zzzz" })).toBeVisible();
+    expect(screen.getByText("Fixture retry with HD 209458.")).toBeVisible();
+  });
+});
+
+describe("Explore catalogue localization boundary", () => {
+  it("localizes browse states while preserving catalogue identities and object URLs", () => {
+    const browseMessages = {
+      ...enMessages.explore.browse,
+      emptyDescription: "Fixture empty description",
+      emptyTitle: "Fixture empty title",
+      objectsAriaLabel: "Fixture catalogue objects",
+    };
+    const unavailableMessages = {
+      ...enMessages.explore.unavailable,
+      searchTitle: "Fixture search unavailable",
+    };
+
+    const { rerender } = render(
+      <EntityCardGrid
+        collectionSaveMessages={SAVE_MESSAGES}
+        items={[k2_18]}
+        locale={DEFAULT_LOCALE}
+        messages={browseMessages}
+      />,
+    );
+    expect(screen.getByRole("list", { name: "Fixture catalogue objects" })).toBeVisible();
+    expect(screen.getByRole("link", { name: /K2-18/ })).toHaveAttribute("href", "/objects/k2-18");
+
+    rerender(<ExploreEmptyState messages={browseMessages} />);
+    expect(screen.getByRole("heading", { name: "Fixture empty title" })).toBeVisible();
+    expect(screen.getByText("Fixture empty description")).toBeVisible();
+
+    rerender(<ExploreUnavailableState context="search" messages={unavailableMessages} />);
+    expect(screen.getByRole("heading", { name: "Fixture search unavailable" })).toBeVisible();
   });
 });
 

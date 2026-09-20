@@ -371,6 +371,157 @@ export const enMessages = {
         "The dashed line is the geometric horizon; the shaded interval is astronomical darkness. The gold marker is the selected time.",
       title: "Altitude through the night.",
     },
+    conditions: {
+      lunar: {
+        closest: {
+          description:
+            "Minimum angular distance found among the planner’s bounded samples in astronomical darkness.",
+          notApplicable: "Not applicable",
+          unavailableDescription:
+            "No astronomical-darkness interval or valid sample was available for this night.",
+          title: "Closest target–Moon separation during astronomical darkness",
+        },
+        description:
+          "Calculated for the same observer and selected instant as the target position. Illumination is the fraction of the Moon's visible disk lit by the Sun; it is not a sky-brightness estimate.",
+        horizonPosition: {
+          above: "above",
+          below: "below",
+        },
+        metrics: {
+          aboveHorizon: "Above geometric horizon",
+          altitude: "Moon altitude",
+          azimuth: "Moon azimuth",
+          azimuthConvention: "0° north, eastward",
+          belowHorizon: "Below geometric horizon",
+          illumination: "Illumination",
+          separation: "Target separation",
+          separationDetail: "Angular distance from the target",
+        },
+        model:
+          "Model: Astronomy Engine 2.1.19. Moon position is topocentric for this observer; altitude is geometric with no atmospheric refraction.",
+        phases: {
+          firstQuarter: "First quarter",
+          full: "Full",
+          new: "New",
+          thirdQuarter: "Third quarter",
+          waningCrescent: "Waning crescent",
+          waningGibbous: "Waning gibbous",
+          waxingCrescent: "Waxing crescent",
+          waxingGibbous: "Waxing gibbous",
+        },
+        selectedSummary:
+          "At {time}, the Moon is {altitude} {horizonPosition} the geometric horizon and {separation} from the target.",
+        selectedTitle: "Moon at selected time",
+        title: "Lunar conditions",
+        unavailable:
+          "Lunar calculation unavailable for this selected instant. The target geometry remains available.",
+      },
+      overview: {
+        description:
+          "Astronomy and weather are shown as separate evidence layers. There is no combined observability score.",
+        title: "Observing conditions",
+      },
+      unavailableValue: "Unavailable",
+      weather: {
+        attribution: {
+          dataLink: "Weather data by {provider}",
+          licenceLink: "CC BY 4.0 licence",
+          privacy:
+            "Weather requests use coordinates rounded to {digits} decimal places and are sent directly from your browser to {provider}. Lumina does not store observer location.",
+          provider: "Forecast provider: {provider}. Data are forecasts, not measurements.",
+          providerRetrieved:
+            "Forecast provider: {provider}. Retrieved {time}. Data are forecasts, not measurements.",
+        },
+        cloudLayers: {
+          high: "High cloud",
+          low: "Low cloud",
+          mid: "Mid cloud",
+          title: "Cloud layer detail",
+        },
+        conditions: {
+          clearSky: "Clear sky",
+          denseDrizzle: "Dense drizzle",
+          denseFreezingDrizzle: "Dense freezing drizzle",
+          depositingRimeFog: "Depositing rime fog",
+          fog: "Fog",
+          heavyFreezingRain: "Heavy freezing rain",
+          heavyRain: "Heavy rain",
+          heavySnowFall: "Heavy snow fall",
+          heavySnowShowers: "Heavy snow showers",
+          lightDrizzle: "Light drizzle",
+          lightFreezingDrizzle: "Light freezing drizzle",
+          lightFreezingRain: "Light freezing rain",
+          mainlyClear: "Mainly clear",
+          moderateDrizzle: "Moderate drizzle",
+          moderateRain: "Moderate rain",
+          moderateRainShowers: "Moderate rain showers",
+          moderateSnowFall: "Moderate snow fall",
+          overcast: "Overcast",
+          partlyCloudy: "Partly cloudy",
+          slightRain: "Slight rain",
+          slightRainShowers: "Slight rain showers",
+          slightSnowFall: "Slight snow fall",
+          slightSnowShowers: "Slight snow showers",
+          snowGrains: "Snow grains",
+          thunderstorm: "Thunderstorm",
+          thunderstormHeavyHail: "Thunderstorm with heavy hail",
+          thunderstormSlightHail: "Thunderstorm with slight hail",
+          unavailable: "Unavailable",
+          unknown: "Unknown forecast condition",
+          violentRainShowers: "Violent rain showers",
+        },
+        dateUnavailable:
+          "Weather forecast unavailable for this date. Past dates and dates beyond the provider's forecast horizon are not replaced with historical data.",
+        description:
+          "Weather is optional context around the astronomical calculation. Values come from an hourly forecast and are not a measurement of the sky or a guarantee of observing quality.",
+        errorUnavailable:
+          "Could not load the weather forecast. The target geometry and lunar conditions remain available.",
+        loadAction: "Load weather forecast",
+        loading: "Loading weather forecast…",
+        metrics: {
+          cloudCover: "Cloud cover",
+          cloudCoverDetail: "Total",
+          humidity: "Relative humidity",
+          humidityDetail: "At {height}",
+          precipitation: "Precipitation probability",
+          precipitationDetail: "Forecast chance",
+          visibility: "Meteorological visibility",
+          visibilityDetail: "Viewing distance",
+          wind: "Wind speed",
+          windDetail: "At {height}",
+        },
+        optInDescription:
+          "Loading weather sends a rounded location directly to {provider}. Lumina does not store it. You choose whether to make this separate provider request.",
+        retryAction: "Retry forecast",
+        selectedDescription: "{condition} · hourly forecast point",
+        selectedTitle: "Forecast nearest {time}",
+        selectedUnavailable: "Forecast not available for this selected date and time.",
+        summary: {
+          cloudCoverDetail: "Total cloud cover",
+          cloudCoverRange: "Cloud cover range",
+          cloudCoverRangeValue: "{minimum}–{maximum}%",
+          empty: "No forecast points were available in this observing window.",
+          precipitationDetail: "Forecast probability",
+          precipitationMaximum: "Maximum precipitation probability",
+          points: {
+            one: "Based on {count} hourly forecast point(s).",
+            other: "Based on {count} hourly forecast point(s).",
+          },
+          title: "Night forecast summary",
+          visibilityDetail: "Viewing distance, not astronomical transparency",
+          visibilityMinimum: "Minimum meteorological visibility",
+          windDetail: "Forecast surface wind",
+          windMaximum: "Maximum wind speed at {height}",
+        },
+        timeline: {
+          description:
+            "Each bar is one forecast hour; taller bars represent a higher total cloud-cover percentage.",
+          point: "{time}: {cloudCover} total cloud cover",
+          title: "Cloud cover through the observing window.",
+        },
+        title: "Weather forecast conditions",
+      },
+    },
     coordinateSource: {
       description:
         "Multiple accepted positions are available; choose which paired source to calculate.",

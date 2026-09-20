@@ -15,9 +15,8 @@ import {
   calculateAngularSeparation,
   calculateMoonHorizontalPosition,
   computeLunarConditions,
-  formatIlluminationPercentage,
   minimumTargetMoonSeparationDuringDarkness,
-  moonPhaseLabel,
+  moonPhase,
 } from "../src/lib/observation/lunar";
 
 const source = {
@@ -68,26 +67,22 @@ const selectedInstant = new Date("2026-08-27T00:00:00Z");
 afterEach(() => vi.restoreAllMocks());
 
 describe("lunar observation domain", () => {
-  it("uses Astronomy Engine illumination fractions and sensible display precision", () => {
+  it("uses Astronomy Engine illumination fractions within the physical 0..1 domain", () => {
     const fractions = [new Date("2026-08-27T00:00:00Z"), new Date("2026-08-28T00:00:00Z")].map(
       (instant) => Astronomy.Illumination(Astronomy.Body.Moon, instant).phase_fraction,
     );
 
     expect(fractions.every((fraction) => fraction >= 0 && fraction <= 1)).toBe(true);
-    expect(formatIlluminationPercentage(0)).toBe("0%");
-    expect(formatIlluminationPercentage(0.63482914)).toBe("63%");
-    expect(formatIlluminationPercentage(1)).toBe("100%");
-    expect(formatIlluminationPercentage(Number.NaN)).toBe("Unavailable");
   });
 
   it("maps Moon phase angles through deterministic waxing and waning boundaries", () => {
-    expect(moonPhaseLabel(0)).toBe("New");
-    expect(moonPhaseLabel(22.5)).toBe("Waxing crescent");
-    expect(moonPhaseLabel(90)).toBe("First quarter");
-    expect(moonPhaseLabel(180)).toBe("Full");
-    expect(moonPhaseLabel(270)).toBe("Third quarter");
-    expect(moonPhaseLabel(337.5)).toBe("New");
-    expect(moonPhaseLabel(Number.NaN)).toBeNull();
+    expect(moonPhase(0)).toBe("new");
+    expect(moonPhase(22.5)).toBe("waxingCrescent");
+    expect(moonPhase(90)).toBe("firstQuarter");
+    expect(moonPhase(180)).toBe("full");
+    expect(moonPhase(270)).toBe("thirdQuarter");
+    expect(moonPhase(337.5)).toBe("new");
+    expect(moonPhase(Number.NaN)).toBeNull();
   });
 
   it("returns valid topocentric Moon horizontal coordinates, including below-horizon states", () => {

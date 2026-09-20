@@ -611,6 +611,141 @@ export type SaveObservationPlanMessages = Readonly<{
   title: string;
 }>;
 
+export type ObservationConditionsMessages = Readonly<{
+  lunar: Readonly<{
+    closest: Readonly<{
+      description: string;
+      notApplicable: string;
+      unavailableDescription: string;
+      title: string;
+    }>;
+    description: string;
+    horizonPosition: Readonly<{
+      above: string;
+      below: string;
+    }>;
+    metrics: Readonly<{
+      aboveHorizon: string;
+      altitude: string;
+      azimuth: string;
+      azimuthConvention: string;
+      belowHorizon: string;
+      illumination: string;
+      separation: string;
+      separationDetail: string;
+    }>;
+    model: string;
+    phases: Readonly<{
+      firstQuarter: string;
+      full: string;
+      new: string;
+      thirdQuarter: string;
+      waningCrescent: string;
+      waningGibbous: string;
+      waxingCrescent: string;
+      waxingGibbous: string;
+    }>;
+    selectedSummary: string;
+    selectedTitle: string;
+    title: string;
+    unavailable: string;
+  }>;
+  overview: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  unavailableValue: string;
+  weather: Readonly<{
+    attribution: Readonly<{
+      dataLink: string;
+      licenceLink: string;
+      privacy: string;
+      provider: string;
+      providerRetrieved: string;
+    }>;
+    cloudLayers: Readonly<{
+      high: string;
+      low: string;
+      mid: string;
+      title: string;
+    }>;
+    conditions: Readonly<{
+      clearSky: string;
+      denseDrizzle: string;
+      denseFreezingDrizzle: string;
+      depositingRimeFog: string;
+      fog: string;
+      heavyFreezingRain: string;
+      heavyRain: string;
+      heavySnowFall: string;
+      heavySnowShowers: string;
+      lightDrizzle: string;
+      lightFreezingDrizzle: string;
+      lightFreezingRain: string;
+      mainlyClear: string;
+      moderateDrizzle: string;
+      moderateRain: string;
+      moderateRainShowers: string;
+      moderateSnowFall: string;
+      overcast: string;
+      partlyCloudy: string;
+      slightRain: string;
+      slightRainShowers: string;
+      slightSnowFall: string;
+      slightSnowShowers: string;
+      snowGrains: string;
+      thunderstorm: string;
+      thunderstormHeavyHail: string;
+      thunderstormSlightHail: string;
+      unavailable: string;
+      unknown: string;
+      violentRainShowers: string;
+    }>;
+    dateUnavailable: string;
+    description: string;
+    errorUnavailable: string;
+    loadAction: string;
+    loading: string;
+    metrics: Readonly<{
+      cloudCover: string;
+      cloudCoverDetail: string;
+      humidity: string;
+      humidityDetail: string;
+      precipitation: string;
+      precipitationDetail: string;
+      visibility: string;
+      visibilityDetail: string;
+      wind: string;
+      windDetail: string;
+    }>;
+    optInDescription: string;
+    retryAction: string;
+    selectedDescription: string;
+    selectedTitle: string;
+    selectedUnavailable: string;
+    summary: Readonly<{
+      cloudCoverDetail: string;
+      cloudCoverRange: string;
+      cloudCoverRangeValue: string;
+      empty: string;
+      precipitationDetail: string;
+      precipitationMaximum: string;
+      points: CountMessageTemplates;
+      title: string;
+      visibilityDetail: string;
+      visibilityMinimum: string;
+      windDetail: string;
+      windMaximum: string;
+    }>;
+    timeline: Readonly<{
+      description: string;
+      point: string;
+      title: string;
+    }>;
+    title: string;
+  }>;
+}>;
+
 export type ObservationPlannerMessages = Readonly<{
   chart: Readonly<{
     accessibleHighest: string;
@@ -624,6 +759,7 @@ export type ObservationPlannerMessages = Readonly<{
     heading: string;
     option: string;
   }>;
+  conditions: ObservationConditionsMessages;
   coordinatesUnavailable: Readonly<{
     description: string;
     title: string;

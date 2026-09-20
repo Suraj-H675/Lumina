@@ -20,20 +20,20 @@ export type LunarConditions = Readonly<{
 export type LunarInstantConditions = Readonly<{
   illuminationFraction: number;
   phaseAngle: number;
-  phaseLabel: LunarPhaseLabel;
+  phase: LunarPhase;
   position: HorizontalPosition;
   targetSeparationDegrees: number;
 }>;
 
-export type LunarPhaseLabel =
-  | "New"
-  | "Waxing crescent"
-  | "First quarter"
-  | "Waxing gibbous"
-  | "Full"
-  | "Waning gibbous"
-  | "Third quarter"
-  | "Waning crescent";
+export type LunarPhase =
+  | "firstQuarter"
+  | "full"
+  | "new"
+  | "thirdQuarter"
+  | "waningCrescent"
+  | "waningGibbous"
+  | "waxingCrescent"
+  | "waxingGibbous";
 
 function validAltitude(altitude: number): boolean {
   return Number.isFinite(altitude) && altitude >= -90 && altitude <= 90;
@@ -105,30 +105,18 @@ export function calculateMoonHorizontalPosition(
   }
 }
 
-/** Maps Astronomy Engine's 0..360° Moon phase angle to a factual label. */
-export function moonPhaseLabel(phaseAngle: number): LunarPhaseLabel | null {
+/** Maps Astronomy Engine's 0..360° Moon phase angle to a stable presentation key. */
+export function moonPhase(phaseAngle: number): LunarPhase | null {
   if (!Number.isFinite(phaseAngle)) return null;
   const normalized = normalizeDegrees(phaseAngle);
-  if (normalized < 22.5 || normalized >= 337.5) return "New";
-  if (normalized < 67.5) return "Waxing crescent";
-  if (normalized < 112.5) return "First quarter";
-  if (normalized < 157.5) return "Waxing gibbous";
-  if (normalized < 202.5) return "Full";
-  if (normalized < 247.5) return "Waning gibbous";
-  if (normalized < 292.5) return "Third quarter";
-  return "Waning crescent";
-}
-
-/** Returns a deliberately rounded percentage for the illuminated visible disk. */
-export function formatIlluminationPercentage(illuminationFraction: number): string {
-  if (
-    !Number.isFinite(illuminationFraction) ||
-    illuminationFraction < 0 ||
-    illuminationFraction > 1
-  ) {
-    return "Unavailable";
-  }
-  return `${Math.round(illuminationFraction * 100)}%`;
+  if (normalized < 22.5 || normalized >= 337.5) return "new";
+  if (normalized < 67.5) return "waxingCrescent";
+  if (normalized < 112.5) return "firstQuarter";
+  if (normalized < 157.5) return "waxingGibbous";
+  if (normalized < 202.5) return "full";
+  if (normalized < 247.5) return "waningGibbous";
+  if (normalized < 292.5) return "thirdQuarter";
+  return "waningCrescent";
 }
 
 function targetMoonSeparation(
@@ -178,20 +166,20 @@ export function computeLunarConditionsAtInstant(
   try {
     const illumination = Astronomy.Illumination(Astronomy.Body.Moon, instant);
     const phaseAngle = Astronomy.MoonPhase(instant);
-    const phaseLabel = moonPhaseLabel(phaseAngle);
+    const phase = moonPhase(phaseAngle);
     if (
       !Number.isFinite(illumination.phase_fraction) ||
       illumination.phase_fraction < 0 ||
       illumination.phase_fraction > 1 ||
       !Number.isFinite(phaseAngle) ||
-      phaseLabel === null
+      phase === null
     ) {
       return null;
     }
     return {
       illuminationFraction: illumination.phase_fraction,
       phaseAngle: normalizeDegrees(phaseAngle),
-      phaseLabel,
+      phase,
       position,
       targetSeparationDegrees: targetSeparation,
     };

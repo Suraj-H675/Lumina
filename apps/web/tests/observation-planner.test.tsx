@@ -290,6 +290,53 @@ describe("ObservationPlanner", () => {
     expect(fetchSpy.mock.calls[0]?.[0]).toBe(BRIGHT_STAR_CONTEXT_URL);
   });
 
+  it("renders observing-condition chrome and lunar phase labels from injected messages", async () => {
+    const user = userEvent.setup();
+    const fixturePhases = {
+      firstQuarter: "Fixture lunar phase",
+      full: "Fixture lunar phase",
+      new: "Fixture lunar phase",
+      thirdQuarter: "Fixture lunar phase",
+      waningCrescent: "Fixture lunar phase",
+      waningGibbous: "Fixture lunar phase",
+      waxingCrescent: "Fixture lunar phase",
+      waxingGibbous: "Fixture lunar phase",
+    } as const;
+    const messages: ObservationPlannerMessages = {
+      ...enMessages.observationPlanner,
+      conditions: {
+        ...enMessages.observationPlanner.conditions,
+        lunar: {
+          ...enMessages.observationPlanner.conditions.lunar,
+          phases: fixturePhases,
+          title: "Fixture lunar conditions",
+        },
+        overview: {
+          ...enMessages.observationPlanner.conditions.overview,
+          title: "Fixture observing conditions",
+        },
+        weather: {
+          ...enMessages.observationPlanner.conditions.weather,
+          loadAction: "Load fixture weather",
+          title: "Fixture weather conditions",
+        },
+      },
+    };
+
+    renderPlanner(plannerDetail(), localDateString(new Date()), messages);
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Fixture observing conditions" }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture lunar conditions" })).toBeVisible();
+    expect(screen.getByText("Fixture lunar phase")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture weather conditions" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Load fixture weather" })).toBeVisible();
+  });
+
   it("shows the selected-time finder and updates its guidance with the planner time", async () => {
     const user = userEvent.setup();
     renderPlanner();

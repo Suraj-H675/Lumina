@@ -3,12 +3,21 @@
 import { useId, useMemo } from "react";
 
 import {
+  formatCountMessage,
+  formatLocaleDateTime,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ObservationConditionsMessages } from "../lib/i18n/messages/types";
+import type { ObservationPlan } from "../lib/observation/domain";
+import {
   WEATHER_PROVIDER_LICENSE_URL,
   WEATHER_PROVIDER_NAME,
   WEATHER_PROVIDER_URL,
   nearestWeatherHour,
   summarizeWeatherHours,
-  weatherCodeDescription,
+  weatherCondition,
   type WeatherForecast,
   type WeatherHour,
   type WeatherSummary,
@@ -17,40 +26,77 @@ import {
   useObservationWeather,
   type ObservationWeatherState,
 } from "../lib/weather/use-observation-weather";
-import type { ObservationPlan } from "../lib/observation/domain";
 
 import { LunarConditionsSection } from "./lunar-conditions";
 
-function formatTime(instant: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(instant, locale, {
     hour: "numeric",
     minute: "2-digit",
     timeZone,
     timeZoneName: "short",
-  }).format(instant);
+  });
 }
 
-function formatShortTime(instant: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatShortTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(instant, locale, {
     hour: "numeric",
     minute: "2-digit",
     timeZone,
-  }).format(instant);
+  });
 }
 
-function formatPercent(value: number | null): string {
-  return value === null ? "Unavailable" : `${Math.round(value)}%`;
+function formatPercent(
+  value: number | null,
+  locale: PublishedLocale,
+  unavailableValue: string,
+): string {
+  return value === null
+    ? unavailableValue
+    : formatLocaleNumber(value / 100, locale, {
+        maximumFractionDigits: 0,
+        style: "percent",
+      });
 }
 
-function formatKilometres(meters: number | null): string {
-  if (meters === null) return "Unavailable";
+function formatKilometres(
+  meters: number | null,
+  locale: PublishedLocale,
+  unavailableValue: string,
+): string {
+  if (meters === null) return unavailableValue;
   const kilometres = meters / 1_000;
   const precision = kilometres >= 10 ? 0 : 1;
-  return `${kilometres.toFixed(precision)} km`;
+  return formatLocaleNumber(kilometres, locale, {
+    maximumFractionDigits: precision,
+    style: "unit",
+    unit: "kilometer",
+    unitDisplay: "short",
+  });
 }
 
-function formatKmh(value: number | null): string {
-  return value === null ? "Unavailable" : `${Math.round(value)} km/h`;
+function formatKmh(
+  value: number | null,
+  locale: PublishedLocale,
+  unavailableValue: string,
+): string {
+  return value === null
+    ? unavailableValue
+    : formatLocaleNumber(value, locale, {
+        maximumFractionDigits: 0,
+        style: "unit",
+        unit: "kilometer-per-hour",
+        unitDisplay: "short",
+      });
+}
+
+function formatMeters(value: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(value, locale, {
+    maximumFractionDigits: 0,
+    style: "unit",
+    unit: "meter",
+    unitDisplay: "short",
+  });
 }
 
 function metricCard(label: string, value: string, detail?: string) {
@@ -67,11 +113,17 @@ function metricCard(label: string, value: string, detail?: string) {
 
 function CloudCoverTimeline({
   hours,
+  locale,
+  messages,
   timeZone,
+  unavailableValue,
   window,
 }: Readonly<{
   hours: ReadonlyArray<WeatherHour>;
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages["weather"]["timeline"];
   timeZone: string;
+  unavailableValue: string;
   window: Readonly<{ end: Date; start: Date }>;
 }>) {
   const timelineId = useId().replaceAll(":", "");
@@ -91,12 +143,14 @@ function CloudCoverTimeline({
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
   const barWidth = plotWidth / points.length;
-  const firstLabel = formatShortTime(points[0]!.instant, timeZone);
-  const lastLabel = formatShortTime(points.at(-1)!.instant, timeZone);
+  const firstLabel = formatShortTime(points[0]!.instant, timeZone, locale);
+  const lastLabel = formatShortTime(points.at(-1)!.instant, timeZone, locale);
   const summary = points
-    .map(
-      (point) =>
-        `${formatShortTime(point.instant, timeZone)}: ${formatPercent(point.cloudCover)} total cloud cover`,
+    .map((point) =>
+      formatMessageTemplate(messages.point, {
+        cloudCover: formatPercent(point.cloudCover, locale, unavailableValue),
+        time: formatShortTime(point.instant, timeZone, locale),
+      }),
     )
     .join("; ");
 
@@ -146,7 +200,7 @@ function CloudCoverTimeline({
             {lastLabel}
           </text>
           <text fill="var(--muted)" fontSize="12" textAnchor="end" x={width - right} y={top + 4}>
-            100%
+            {formatPercent(100, locale, unavailableValue)}
           </text>
           <text
             fill="var(--muted)"
@@ -155,58 +209,72 @@ function CloudCoverTimeline({
             x={width - right}
             y={top + plotHeight + 4}
           >
-            0%
+            {formatPercent(0, locale, unavailableValue)}
           </text>
         </svg>
       </div>
       <figcaption className="text-sm leading-6 text-[var(--muted)]" id={`${timelineId}-caption`}>
-        <span className="font-medium text-[var(--foreground)]">
-          Cloud cover through the observing window.
-        </span>{" "}
-        Each bar is one forecast hour; taller bars represent a higher total cloud-cover percentage.
+        <span className="font-medium text-[var(--foreground)]">{messages.title}</span>{" "}
+        {messages.description}
       </figcaption>
       <p className="sr-only">{summary}</p>
     </figure>
   );
 }
 
-function WeatherSummarySection({ summary }: Readonly<{ summary: WeatherSummary | null }>) {
+function WeatherSummarySection({
+  locale,
+  messages,
+  summary,
+  unavailableValue,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages["weather"]["summary"];
+  summary: WeatherSummary | null;
+  unavailableValue: string;
+}>) {
   if (summary === null) {
-    return (
-      <p className="text-sm text-[var(--muted)]">
-        No forecast points were available in this observing window.
-      </p>
-    );
+    return <p className="text-sm text-[var(--muted)]">{messages.empty}</p>;
   }
+
   return (
     <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4">
-      <h4 className="text-base font-semibold text-[var(--foreground)]">Night forecast summary</h4>
+      <h4 className="text-base font-semibold text-[var(--foreground)]">{messages.title}</h4>
       <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {metricCard(
-          "Cloud cover range",
+          messages.cloudCoverRange,
           summary.cloudCover === null
-            ? "Unavailable"
-            : `${Math.round(summary.cloudCover.min)}–${Math.round(summary.cloudCover.max)}%`,
-          "Total cloud cover",
+            ? unavailableValue
+            : formatMessageTemplate(messages.cloudCoverRangeValue, {
+                maximum: formatLocaleNumber(summary.cloudCover.max, locale, {
+                  maximumFractionDigits: 0,
+                }),
+                minimum: formatLocaleNumber(summary.cloudCover.min, locale, {
+                  maximumFractionDigits: 0,
+                }),
+              }),
+          messages.cloudCoverDetail,
         )}
         {metricCard(
-          "Maximum precipitation probability",
-          formatPercent(summary.maximumPrecipitationProbability),
-          "Forecast probability",
+          messages.precipitationMaximum,
+          formatPercent(summary.maximumPrecipitationProbability, locale, unavailableValue),
+          messages.precipitationDetail,
         )}
         {metricCard(
-          "Minimum meteorological visibility",
-          formatKilometres(summary.minimumVisibilityMeters),
-          "Viewing distance, not astronomical transparency",
+          messages.visibilityMinimum,
+          formatKilometres(summary.minimumVisibilityMeters, locale, unavailableValue),
+          messages.visibilityDetail,
         )}
         {metricCard(
-          "Maximum wind speed at 10 m",
-          formatKmh(summary.maximumWindSpeedKmh),
-          "Forecast surface wind",
+          formatMessageTemplate(messages.windMaximum, {
+            height: formatMeters(10, locale),
+          }),
+          formatKmh(summary.maximumWindSpeedKmh, locale, unavailableValue),
+          messages.windDetail,
         )}
       </dl>
       <p className="mt-3 text-xs text-[var(--muted)]">
-        Based on {summary.pointCount} hourly forecast point(s).
+        {formatCountMessage(messages.points, summary.pointCount, locale)}
       </p>
     </div>
   );
@@ -215,27 +283,42 @@ function WeatherSummarySection({ summary }: Readonly<{ summary: WeatherSummary |
 function WeatherAttribution({
   enabled,
   fetchedAt,
+  locale,
+  messages,
   timeZone,
-}: Readonly<{ enabled: boolean; fetchedAt?: Date | undefined; timeZone: string }>) {
+}: Readonly<{
+  enabled: boolean;
+  fetchedAt?: Date | undefined;
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages["weather"]["attribution"];
+  timeZone: string;
+}>) {
+  const providerSummary =
+    fetchedAt === undefined
+      ? formatMessageTemplate(messages.provider, { provider: WEATHER_PROVIDER_NAME })
+      : formatMessageTemplate(messages.providerRetrieved, {
+          provider: WEATHER_PROVIDER_NAME,
+          time: formatTime(fetchedAt, timeZone, locale),
+        });
   return (
     <div className="space-y-2 text-xs leading-5 text-[var(--muted)]">
       {enabled ? (
         <p>
-          Weather requests use coordinates rounded to 2 decimal places and are sent directly from
-          your browser to Open-Meteo. Lumina does not store observer location.
+          {formatMessageTemplate(messages.privacy, {
+            digits: formatLocaleNumber(2, locale),
+            provider: WEATHER_PROVIDER_NAME,
+          })}
         </p>
       ) : null}
       <p>
-        Forecast provider: {WEATHER_PROVIDER_NAME}.
-        {fetchedAt !== undefined ? ` Retrieved ${formatTime(fetchedAt, timeZone)}.` : ""} Data are
-        forecasts, not measurements.{" "}
+        {providerSummary}{" "}
         <a
           className="font-medium text-[var(--link)] underline decoration-[var(--border-strong)] underline-offset-2 hover:text-[var(--foreground)]"
           href={WEATHER_PROVIDER_URL}
           rel="noreferrer"
           target="_blank"
         >
-          Weather data by Open-Meteo
+          {formatMessageTemplate(messages.dataLink, { provider: WEATHER_PROVIDER_NAME })}
         </a>{" "}
         ·{" "}
         <a
@@ -244,34 +327,38 @@ function WeatherAttribution({
           rel="noreferrer"
           target="_blank"
         >
-          CC BY 4.0 licence
+          {messages.licenceLink}
         </a>
       </p>
     </div>
   );
 }
 
-function WeatherUnavailable({ weather }: Readonly<{ weather: ObservationWeatherState }>) {
+function WeatherUnavailable({
+  messages,
+  weather,
+}: Readonly<{
+  messages: ObservationConditionsMessages["weather"];
+  weather: ObservationWeatherState;
+}>) {
   if (weather.unavailableReason === "date") {
     return (
       <p className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]">
-        Weather forecast unavailable for this date. Past dates and dates beyond the provider&apos;s
-        forecast horizon are not replaced with historical data.
+        {messages.dateUnavailable}
       </p>
     );
   }
   return (
     <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4">
       <p className="text-sm text-[var(--muted)]" role="alert">
-        Could not load the weather forecast. The target geometry and lunar conditions remain
-        available.
+        {messages.errorUnavailable}
       </p>
       <button
         className="mt-3 inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
         onClick={weather.retry}
         type="button"
       >
-        Retry forecast
+        {messages.retryAction}
       </button>
     </div>
   );
@@ -279,9 +366,19 @@ function WeatherUnavailable({ weather }: Readonly<{ weather: ObservationWeatherS
 
 function LoadedWeather({
   forecast,
+  locale,
+  messages,
   plan,
   timeZone,
-}: Readonly<{ forecast: WeatherForecast; plan: ObservationPlan; timeZone: string }>) {
+  unavailableValue,
+}: Readonly<{
+  forecast: WeatherForecast;
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages["weather"];
+  plan: ObservationPlan;
+  timeZone: string;
+  unavailableValue: string;
+}>) {
   const selectedHour = useMemo(
     () => nearestWeatherHour(forecast.hours, plan.selected.instant),
     [forecast.hours, plan.selected.instant],
@@ -298,66 +395,110 @@ function LoadedWeather({
     () => summarizeWeatherHours(forecast.hours, weatherWindow),
     [forecast.hours, weatherWindow],
   );
-  const selectedCloudLayers = selectedHour === null ? null : selectedHour;
 
   return (
     <div className="space-y-4">
       {selectedHour === null ? (
         <p className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]">
-          Forecast not available for this selected date and time.
+          {messages.selectedUnavailable}
         </p>
       ) : (
         <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
           <h4 className="text-base font-semibold text-[var(--foreground)]">
-            Forecast nearest {formatTime(selectedHour.instant, timeZone)}
+            {formatMessageTemplate(messages.selectedTitle, {
+              time: formatTime(selectedHour.instant, timeZone, locale),
+            })}
           </h4>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            {weatherCodeDescription(selectedHour.weatherCode)} · hourly forecast point
+            {formatMessageTemplate(messages.selectedDescription, {
+              condition: messages.conditions[weatherCondition(selectedHour.weatherCode)],
+            })}
           </p>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {metricCard("Cloud cover", formatPercent(selectedHour.cloudCover), "Total")}
             {metricCard(
-              "Meteorological visibility",
-              formatKilometres(selectedHour.visibilityMeters),
-              "Viewing distance",
+              messages.metrics.cloudCover,
+              formatPercent(selectedHour.cloudCover, locale, unavailableValue),
+              messages.metrics.cloudCoverDetail,
             )}
             {metricCard(
-              "Relative humidity",
-              formatPercent(selectedHour.relativeHumidity),
-              "At 2 m",
+              messages.metrics.visibility,
+              formatKilometres(selectedHour.visibilityMeters, locale, unavailableValue),
+              messages.metrics.visibilityDetail,
             )}
             {metricCard(
-              "Precipitation probability",
-              formatPercent(selectedHour.precipitationProbability),
-              "Forecast chance",
+              messages.metrics.humidity,
+              formatPercent(selectedHour.relativeHumidity, locale, unavailableValue),
+              formatMessageTemplate(messages.metrics.humidityDetail, {
+                height: formatMeters(2, locale),
+              }),
             )}
-            {metricCard("Wind speed", formatKmh(selectedHour.windSpeedKmh), "At 10 m")}
+            {metricCard(
+              messages.metrics.precipitation,
+              formatPercent(selectedHour.precipitationProbability, locale, unavailableValue),
+              messages.metrics.precipitationDetail,
+            )}
+            {metricCard(
+              messages.metrics.wind,
+              formatKmh(selectedHour.windSpeedKmh, locale, unavailableValue),
+              formatMessageTemplate(messages.metrics.windDetail, {
+                height: formatMeters(10, locale),
+              }),
+            )}
           </dl>
-          {selectedCloudLayers !== null ? (
-            <details className="mt-4 rounded-md border border-[var(--border)] px-3 py-2">
-              <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-[var(--foreground)]">
-                Cloud layer detail
-              </summary>
-              <dl className="grid gap-3 pb-2 pt-2 sm:grid-cols-3">
-                {metricCard("Low cloud", formatPercent(selectedCloudLayers.cloudCoverLow))}
-                {metricCard("Mid cloud", formatPercent(selectedCloudLayers.cloudCoverMid))}
-                {metricCard("High cloud", formatPercent(selectedCloudLayers.cloudCoverHigh))}
-              </dl>
-            </details>
-          ) : null}
+          <details className="mt-4 rounded-md border border-[var(--border)] px-3 py-2">
+            <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-[var(--foreground)]">
+              {messages.cloudLayers.title}
+            </summary>
+            <dl className="grid gap-3 pb-2 pt-2 sm:grid-cols-3">
+              {metricCard(
+                messages.cloudLayers.low,
+                formatPercent(selectedHour.cloudCoverLow, locale, unavailableValue),
+              )}
+              {metricCard(
+                messages.cloudLayers.mid,
+                formatPercent(selectedHour.cloudCoverMid, locale, unavailableValue),
+              )}
+              {metricCard(
+                messages.cloudLayers.high,
+                formatPercent(selectedHour.cloudCoverHigh, locale, unavailableValue),
+              )}
+            </dl>
+          </details>
         </div>
       )}
-      <WeatherSummarySection summary={summary} />
-      <CloudCoverTimeline hours={forecast.hours} timeZone={timeZone} window={weatherWindow} />
+      <WeatherSummarySection
+        locale={locale}
+        messages={messages.summary}
+        summary={summary}
+        unavailableValue={unavailableValue}
+      />
+      <CloudCoverTimeline
+        hours={forecast.hours}
+        locale={locale}
+        messages={messages.timeline}
+        timeZone={timeZone}
+        unavailableValue={unavailableValue}
+        window={weatherWindow}
+      />
     </div>
   );
 }
 
 function WeatherConditionsSection({
-  plan,
+  locale,
+  messages,
   nightDate,
+  plan,
   timeZone,
-}: Readonly<{ nightDate: string; plan: ObservationPlan; timeZone: string }>) {
+  unavailableValue,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages["weather"];
+  nightDate: string;
+  plan: ObservationPlan;
+  timeZone: string;
+  unavailableValue: string;
+}>) {
   const weather = useObservationWeather({ location: plan.location, nightDate });
   const enabled = weather.status !== "idle";
 
@@ -365,30 +506,31 @@ function WeatherConditionsSection({
     <section aria-labelledby="weather-conditions-heading" className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold" id="weather-conditions-heading">
-          Weather forecast conditions
+          {messages.title}
         </h3>
         <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-          Weather is optional context around the astronomical calculation. Values come from an
-          hourly forecast and are not a measurement of the sky or a guarantee of observing quality.
+          {messages.description}
         </p>
       </div>
       {!enabled ? (
         weather.availability === "allowed" ? (
           <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Loading weather sends a rounded location directly to Open-Meteo. Lumina does not store
-              it. You choose whether to make this separate provider request.
+              {formatMessageTemplate(messages.optInDescription, {
+                provider: WEATHER_PROVIDER_NAME,
+              })}
             </p>
             <button
               className="mt-4 inline-flex min-h-11 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-strong)]"
               onClick={weather.enable}
               type="button"
             >
-              Load weather forecast
+              {messages.loadAction}
             </button>
           </div>
         ) : (
           <WeatherUnavailable
+            messages={messages}
             weather={{ ...weather, unavailableReason: "date", status: "unavailable" }}
           />
         )
@@ -398,16 +540,25 @@ function WeatherConditionsSection({
           className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]"
           role="status"
         >
-          Loading weather forecast…
+          {messages.loading}
         </p>
       ) : weather.status === "unavailable" ? (
-        <WeatherUnavailable weather={weather} />
+        <WeatherUnavailable messages={messages} weather={weather} />
       ) : weather.forecast !== undefined ? (
-        <LoadedWeather forecast={weather.forecast} plan={plan} timeZone={timeZone} />
+        <LoadedWeather
+          forecast={weather.forecast}
+          locale={locale}
+          messages={messages}
+          plan={plan}
+          timeZone={timeZone}
+          unavailableValue={unavailableValue}
+        />
       ) : null}
       <WeatherAttribution
         enabled={enabled}
         fetchedAt={weather.forecast?.fetchedAt}
+        locale={locale}
+        messages={messages.attribution}
         timeZone={timeZone}
       />
     </section>
@@ -415,23 +566,43 @@ function WeatherConditionsSection({
 }
 
 export function ObservationConditions({
+  locale,
+  messages,
   nightDate,
   plan,
   timeZone,
-}: Readonly<{ nightDate: string; plan: ObservationPlan; timeZone: string }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages;
+  nightDate: string;
+  plan: ObservationPlan;
+  timeZone: string;
+}>) {
   return (
     <section aria-labelledby="observing-conditions-heading" className="space-y-8">
       <div className="border-b border-[var(--border)] pb-2">
         <h2 className="text-2xl font-semibold" id="observing-conditions-heading">
-          Observing conditions
+          {messages.overview.title}
         </h2>
         <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-          Astronomy and weather are shown as separate evidence layers. There is no combined
-          observability score.
+          {messages.overview.description}
         </p>
       </div>
-      <LunarConditionsSection plan={plan} timeZone={timeZone} />
-      <WeatherConditionsSection nightDate={nightDate} plan={plan} timeZone={timeZone} />
+      <LunarConditionsSection
+        locale={locale}
+        messages={messages.lunar}
+        plan={plan}
+        timeZone={timeZone}
+        unavailableValue={messages.unavailableValue}
+      />
+      <WeatherConditionsSection
+        locale={locale}
+        messages={messages.weather}
+        nightDate={nightDate}
+        plan={plan}
+        timeZone={timeZone}
+        unavailableValue={messages.unavailableValue}
+      />
     </section>
   );
 }

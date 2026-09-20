@@ -375,6 +375,21 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.results.events.circumpolar).toMatch(/latitude/i);
   });
 
+  it("keeps lunar and weather condition presentation in the planner message group", () => {
+    const messages = enMessages.observationPlanner.conditions;
+    expect(messages.lunar.selectedSummary).toContain("{time}");
+    expect(messages.lunar.selectedSummary).toContain("{altitude}");
+    expect(messages.lunar.selectedSummary).toContain("{separation}");
+    expect(messages.weather.selectedTitle).toContain("{time}");
+    expect(messages.weather.selectedDescription).toContain("{condition}");
+    expect(messages.weather.metrics.humidityDetail).toContain("{height}");
+    expect(messages.weather.summary.windMaximum).toContain("{height}");
+    expect(messages.weather.summary.cloudCoverRangeValue).toContain("{minimum}");
+    expect(messages.weather.summary.cloudCoverRangeValue).toContain("{maximum}");
+    expect(messages.weather.attribution.privacy).toContain("{provider}");
+    expect(messages.weather.timeline.point).toContain("{cloudCover}");
+  });
+
   it("keeps the local saved-plan action in the planner message group", () => {
     const messages = enMessages.observationPlanner.savePlan;
     expect(messages.description).toMatch(/only in this browser/i);

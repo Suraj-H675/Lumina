@@ -8,7 +8,7 @@ import {
   forecastDateAvailability,
   nearestWeatherHour,
   summarizeWeatherHours,
-  weatherCodeDescription,
+  weatherCondition,
   type WeatherHour,
 } from "../src/lib/weather/domain";
 import {
@@ -169,10 +169,10 @@ describe("Open-Meteo response boundary", () => {
     ).toBe(42);
   });
 
-  it("maps unknown WMO codes without turning them into an error", () => {
-    expect(weatherCodeDescription(0)).toBe("Clear sky");
-    expect(weatherCodeDescription(42)).toBe("Unknown forecast condition");
-    expect(weatherCodeDescription(null)).toBe("Unavailable");
+  it("maps WMO codes to stable presentation keys without turning unknown codes into an error", () => {
+    expect(weatherCondition(0)).toBe("clearSky");
+    expect(weatherCondition(42)).toBe("unknown");
+    expect(weatherCondition(null)).toBe("unavailable");
   });
 });
 

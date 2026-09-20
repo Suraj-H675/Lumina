@@ -3,27 +3,51 @@
 import { useMemo } from "react";
 
 import {
-  computeLunarConditions,
-  formatIlluminationPercentage,
-  type LunarConditions,
-} from "../lib/observation/lunar";
+  formatLocaleDateTime,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ObservationConditionsMessages } from "../lib/i18n/messages/types";
 import type { ObservationPlan } from "../lib/observation/domain";
+import { computeLunarConditions, type LunarConditions } from "../lib/observation/lunar";
 
-function formatTime(instant: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
+  return formatLocaleDateTime(instant, locale, {
     hour: "numeric",
     minute: "2-digit",
     timeZone,
     timeZoneName: "short",
-  }).format(instant);
+  });
 }
 
-function formatAltitude(altitude: number): string {
-  return `${altitude.toFixed(1)}°`;
+function formatAngle(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleNumber(value, locale, {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })}°`;
 }
 
-function formatAzimuth(azimuth: number, compass: string): string {
-  return `${azimuth.toFixed(1)}° · ${compass}`;
+function formatIllumination(
+  illuminationFraction: number,
+  locale: PublishedLocale,
+  unavailableValue: string,
+): string {
+  if (
+    !Number.isFinite(illuminationFraction) ||
+    illuminationFraction < 0 ||
+    illuminationFraction > 1
+  ) {
+    return unavailableValue;
+  }
+  return formatLocaleNumber(illuminationFraction, locale, {
+    maximumFractionDigits: 0,
+    style: "percent",
+  });
+}
+
+function formatAzimuth(azimuth: number, compass: string, locale: PublishedLocale): string {
+  return `${formatAngle(azimuth, locale)} · ${compass}`;
 }
 
 function metricCard(label: string, value: string, detail?: string) {
@@ -39,9 +63,18 @@ function metricCard(label: string, value: string, detail?: string) {
 }
 
 export function LunarConditionsSection({
+  locale,
+  messages,
   plan,
   timeZone,
-}: Readonly<{ plan: ObservationPlan; timeZone: string }>) {
+  unavailableValue,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages["lunar"];
+  plan: ObservationPlan;
+  timeZone: string;
+  unavailableValue: string;
+}>) {
   const lunar = useMemo<LunarConditions | null>(
     () =>
       computeLunarConditions(
@@ -58,75 +91,78 @@ export function LunarConditionsSection({
     <section aria-labelledby="lunar-conditions-heading" className="space-y-4">
       <div>
         <h3 className="text-xl font-semibold" id="lunar-conditions-heading">
-          Lunar conditions
+          {messages.title}
         </h3>
         <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">
-          Calculated for the same observer and selected instant as the target position. Illumination
-          is the fraction of the Moon&apos;s visible disk lit by the Sun; it is not a sky-brightness
-          estimate.
+          {messages.description}
         </p>
       </div>
       {lunar === null ? (
         <p className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]">
-          Lunar calculation unavailable for this selected instant. The target geometry remains
-          available.
+          {messages.unavailable}
         </p>
       ) : (
         <>
           <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
             <h4 className="text-base font-semibold text-[var(--foreground)]">
-              Moon at selected time
+              {messages.selectedTitle}
             </h4>
             <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {metricCard(
-                "Illumination",
-                formatIlluminationPercentage(lunar.selected.illuminationFraction),
-                lunar.selected.phaseLabel,
+                messages.metrics.illumination,
+                formatIllumination(lunar.selected.illuminationFraction, locale, unavailableValue),
+                messages.phases[lunar.selected.phase],
               )}
               {metricCard(
-                "Moon altitude",
-                formatAltitude(lunar.selected.position.altitude),
+                messages.metrics.altitude,
+                formatAngle(lunar.selected.position.altitude, locale),
                 lunar.selected.position.altitude < 0
-                  ? "Below geometric horizon"
-                  : "Above geometric horizon",
+                  ? messages.metrics.belowHorizon
+                  : messages.metrics.aboveHorizon,
               )}
               {metricCard(
-                "Moon azimuth",
-                formatAzimuth(lunar.selected.position.azimuth, lunar.selected.position.compass),
-                "0° north, eastward",
+                messages.metrics.azimuth,
+                formatAzimuth(
+                  lunar.selected.position.azimuth,
+                  lunar.selected.position.compass,
+                  locale,
+                ),
+                messages.metrics.azimuthConvention,
               )}
               {metricCard(
-                "Target separation",
-                `${lunar.selected.targetSeparationDegrees.toFixed(1)}°`,
-                "Angular distance from the target",
+                messages.metrics.separation,
+                formatAngle(lunar.selected.targetSeparationDegrees, locale),
+                messages.metrics.separationDetail,
               )}
             </dl>
             <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-              At {formatTime(plan.selected.instant, timeZone)}, the Moon is{" "}
-              {formatAltitude(Math.abs(lunar.selected.position.altitude))}{" "}
-              {lunar.selected.position.altitude < 0 ? "below" : "above"} the geometric horizon and{" "}
-              {lunar.selected.targetSeparationDegrees.toFixed(1)}° from the target.
+              {formatMessageTemplate(messages.selectedSummary, {
+                altitude: formatAngle(Math.abs(lunar.selected.position.altitude), locale),
+                horizonPosition:
+                  lunar.selected.position.altitude < 0
+                    ? messages.horizonPosition.below
+                    : messages.horizonPosition.above,
+                separation: formatAngle(lunar.selected.targetSeparationDegrees, locale),
+                time: formatTime(plan.selected.instant, timeZone, locale),
+              })}
             </p>
           </div>
           <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4">
             <h4 className="text-base font-semibold text-[var(--foreground)]">
-              Closest target–Moon separation during astronomical darkness
+              {messages.closest.title}
             </h4>
             <p className="mt-2 text-xl font-medium text-[var(--foreground)]">
               {lunar.minimumSeparationDuringDarkness === null
-                ? "Not applicable"
-                : `${lunar.minimumSeparationDuringDarkness.toFixed(1)}°`}
+                ? messages.closest.notApplicable
+                : formatAngle(lunar.minimumSeparationDuringDarkness, locale)}
             </p>
             <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
               {lunar.minimumSeparationDuringDarkness === null
-                ? "No astronomical-darkness interval or valid sample was available for this night."
-                : "Minimum angular distance found among the planner’s bounded samples in astronomical darkness."}
+                ? messages.closest.unavailableDescription
+                : messages.closest.description}
             </p>
           </div>
-          <p className="text-xs leading-5 text-[var(--muted)]">
-            Model: Astronomy Engine 2.1.19. Moon position is topocentric for this observer; altitude
-            is geometric with no atmospheric refraction.
-          </p>
+          <p className="text-xs leading-5 text-[var(--muted)]">{messages.model}</p>
         </>
       )}
     </section>
@@ -134,21 +170,33 @@ export function LunarConditionsSection({
 }
 
 export function LunarConditions({
+  locale,
+  messages,
   plan,
   timeZone,
-}: Readonly<{ plan: ObservationPlan; timeZone: string }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ObservationConditionsMessages;
+  plan: ObservationPlan;
+  timeZone: string;
+}>) {
   return (
     <section aria-labelledby="observing-conditions-heading" className="space-y-8">
       <div className="border-b border-[var(--border)] pb-2">
         <h2 className="text-2xl font-semibold" id="observing-conditions-heading">
-          Observing conditions
+          {messages.overview.title}
         </h2>
         <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-          Astronomy and weather are shown as separate evidence layers. There is no combined
-          observability score.
+          {messages.overview.description}
         </p>
       </div>
-      <LunarConditionsSection plan={plan} timeZone={timeZone} />
+      <LunarConditionsSection
+        locale={locale}
+        messages={messages.lunar}
+        plan={plan}
+        timeZone={timeZone}
+        unavailableValue={messages.unavailableValue}
+      />
     </section>
   );
 }

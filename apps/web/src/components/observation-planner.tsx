@@ -538,7 +538,13 @@ function PlannerResults({
 
       <SkyFinder plan={plan} targetName={targetName} targetSlug={targetSlug} />
       <AltitudeChart locale={locale} messages={messages.chart} plan={plan} timeZone={timeZone} />
-      <ObservationConditions nightDate={nightDate} plan={plan} timeZone={timeZone} />
+      <ObservationConditions
+        locale={locale}
+        messages={messages.conditions}
+        nightDate={nightDate}
+        plan={plan}
+        timeZone={timeZone}
+      />
       <CoordinateSource messages={messages.results.source} plan={plan} />
     </section>
   );

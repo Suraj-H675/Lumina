@@ -9,15 +9,41 @@ import {
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
-type Props = Readonly<{ satellites: Array<SatelliteItemResponse> }>;
+import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SatelliteMessages } from "../../../lib/i18n/messages/types";
+import { CELESTRAK_NAME } from "../../../lib/space-now/provider-display";
+
+type Props = Readonly<{
+  locale: PublishedLocale;
+  messages: SatelliteMessages["passFinder"];
+  satellites: Array<SatelliteItemResponse>;
+}>;
+
+type ErrorReason =
+  | "finiteValues"
+  | "geolocationUnavailable"
+  | "locationPermission"
+  | "noLongerAvailable"
+  | "requestInvalid"
+  | "responseInvalid"
+  | "temporarilyUnavailable"
+  | "unknown";
 
 type State =
   | Readonly<{ kind: "idle" }>
   | Readonly<{ kind: "loading" }>
-  | Readonly<{ kind: "error"; message: string }>
+  | Readonly<{ kind: "error"; reason: ErrorReason }>
   | Readonly<{ kind: "result"; response: SatellitePassResponse }>;
 
-export function SatellitePassFinder({ satellites }: Props) {
+const ELEMENT_WARNING_HOURS = 24;
+const PREDICTION_WINDOW_HOURS = 24;
+
+export function SatellitePassFinder({ locale, messages, satellites }: Props) {
   const selectable = useMemo(
     () => satellites.filter((item) => item.pass_prediction_runtime_supported),
     [satellites],
@@ -35,7 +61,7 @@ export function SatellitePassFinder({ satellites }: Props) {
     const longitudeDeg = Number(longitude);
     const elevationM = Number(elevation);
     if (![catalogNumber, latitudeDeg, longitudeDeg, elevationM].every(Number.isFinite)) {
-      setState({ kind: "error", message: "Enter valid finite numeric values." });
+      setState({ kind: "error", reason: "finiteValues" });
       return;
     }
     setState({ kind: "loading" });
@@ -55,24 +81,24 @@ export function SatellitePassFinder({ satellites }: Props) {
         method: "POST",
       });
       if (!response.ok) {
-        setState({ kind: "error", message: messageForStatus(response.status) });
+        setState({ kind: "error", reason: reasonForStatus(response.status) });
         return;
       }
       const raw: unknown = await response.json();
       const parsed = validateExactGenerated(satellitePassEndpoint.validator, raw);
       if (!parsed.valid) {
-        setState({ kind: "error", message: "Lumina returned an unexpected pass response." });
+        setState({ kind: "error", reason: "responseInvalid" });
         return;
       }
       setState({ kind: "result", response: parsed.data });
     } catch {
-      setState({ kind: "error", message: "Pass calculation is temporarily unavailable." });
+      setState({ kind: "error", reason: "unknown" });
     }
   }
 
   function useLocation() {
     if (!("geolocation" in navigator)) {
-      setState({ kind: "error", message: "Geolocation is not available in this browser." });
+      setState({ kind: "error", reason: "geolocationUnavailable" });
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -84,8 +110,7 @@ export function SatellitePassFinder({ satellites }: Props) {
         }
         setState({ kind: "idle" });
       },
-      () =>
-        setState({ kind: "error", message: "Location permission was unavailable or declined." }),
+      () => setState({ kind: "error", reason: "locationPermission" }),
       { enableHighAccuracy: false, maximumAge: 300_000, timeout: 10_000 },
     );
   }
@@ -97,17 +122,15 @@ export function SatellitePassFinder({ satellites }: Props) {
     >
       <div className="max-w-3xl space-y-2">
         <h2 className="text-2xl font-semibold" id="pass-finder-heading">
-          Find passes for your location
+          {messages.heading}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          Coordinates are used only for this calculation. They are not placed in the URL, sent to
-          CelesTrak, stored by Lumina, or echoed in the result. Browser geolocation runs only when
-          you press the button below.
+          {formatMessageTemplate(messages.privacy, { provider: CELESTRAK_NAME })}
         </p>
       </div>
       <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
         <label className="space-y-2 sm:col-span-2">
-          <span className="font-medium">Satellite</span>
+          <span className="font-medium">{messages.fields.satellite}</span>
           <select
             className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3"
             onChange={(event) => setCatalog(event.target.value)}
@@ -116,27 +139,30 @@ export function SatellitePassFinder({ satellites }: Props) {
           >
             {selectable.map((satellite) => (
               <option key={satellite.catalog_number} value={satellite.catalog_number}>
-                {satellite.name} · NORAD {satellite.catalog_number}
+                {formatMessageTemplate(messages.option, {
+                  catalogNumber: satellite.catalog_number,
+                  name: satellite.name,
+                })}
               </option>
             ))}
           </select>
         </label>
         <NumberField
-          label="Latitude (degrees)"
+          label={messages.fields.latitude}
           max="90"
           min="-90"
           onChange={setLatitude}
           value={latitude}
         />
         <NumberField
-          label="Longitude (degrees)"
+          label={messages.fields.longitude}
           max="180"
           min="-180"
           onChange={setLongitude}
           value={longitude}
         />
         <NumberField
-          label="Elevation (metres)"
+          label={messages.fields.elevation}
           max="10000"
           min="-500"
           onChange={setElevation}
@@ -148,18 +174,22 @@ export function SatellitePassFinder({ satellites }: Props) {
             onClick={useLocation}
             type="button"
           >
-            Use my location
+            {messages.actions.useLocation}
           </button>
           <button
             className="min-h-11 border border-[var(--accent)] px-4 font-semibold text-[var(--link)]"
             disabled={state.kind === "loading" || selectable.length === 0}
             type="submit"
           >
-            {state.kind === "loading" ? "Calculating…" : "Calculate next 24 hours"}
+            {state.kind === "loading"
+              ? messages.actions.calculating
+              : formatMessageTemplate(messages.actions.calculate, {
+                  hours: formatLocaleNumber(PREDICTION_WINDOW_HOURS, locale),
+                })}
           </button>
         </div>
       </form>
-      <PassState state={state} />
+      <PassState locale={locale} messages={messages} state={state} />
     </section>
   );
 }
@@ -195,32 +225,36 @@ function NumberField({
   );
 }
 
-function PassState({ state }: Readonly<{ state: State }>) {
-  if (state.kind === "idle")
-    return (
-      <p className="text-sm text-[var(--muted)]">
-        Predictions start from the current UTC time when you submit.
-      </p>
-    );
+function PassState({
+  locale,
+  messages,
+  state,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SatelliteMessages["passFinder"];
+  state: State;
+}>) {
+  if (state.kind === "idle") return <p className="text-sm text-[var(--muted)]">{messages.idle}</p>;
   if (state.kind === "loading")
     return (
       <p aria-live="polite" role="status">
-        Calculating from the cached element set…
+        {messages.loading}
       </p>
     );
   if (state.kind === "error")
     return (
       <p aria-live="polite" className="text-[var(--muted)]" role="alert">
-        {state.message}
+        {messages.errors[state.reason]}
       </p>
     );
   const { prediction, satellite } = state.response;
   if (prediction.state === "refused") {
     return (
       <div className="space-y-2" role="status">
-        <p className="font-semibold">Prediction safely refused</p>
+        <p className="font-semibold">{messages.result.refusedTitle}</p>
         <p className="text-[var(--muted)]">
-          Reason: {prediction.refusal_reason?.replaceAll("_", " ") ?? "unsupported state"}.
+          {messages.result.reasonLabel}{" "}
+          {refusalReasonMessage(prediction.refusal_reason, messages.result)}.
         </p>
       </div>
     );
@@ -228,24 +262,36 @@ function PassState({ state }: Readonly<{ state: State }>) {
   if (prediction.state === "no_passes") {
     return (
       <p role="status">
-        No complete passes above {prediction.algorithm.altitude_threshold_deg}° were found in the
-        next {prediction.algorithm.window_hours} hours.
+        {formatMessageTemplate(messages.result.noPasses, {
+          altitudeThreshold: formatLocaleNumber(
+            prediction.algorithm.altitude_threshold_deg,
+            locale,
+            { maximumFractionDigits: 20, useGrouping: false },
+          ),
+          windowHours: formatLocaleNumber(prediction.algorithm.window_hours, locale),
+        })}
       </p>
     );
   }
   return (
     <div className="space-y-5" role="status">
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">{satellite.name} predicted passes</h3>
+        <h3 className="text-xl font-semibold">
+          {formatMessageTemplate(messages.result.heading, { satellite: satellite.name })}
+        </h3>
         <p className="text-sm text-[var(--muted)]">
-          SGP4 · {prediction.algorithm.gravity_model} · observer{" "}
-          {prediction.algorithm.observer_ellipsoid} · element offset{" "}
-          {prediction.element_age_hours_at_start.toFixed(1)} h
+          {formatMessageTemplate(messages.result.algorithmSummary, {
+            gravityModel: prediction.algorithm.gravity_model,
+            hours: formatLocaleFixedNumber(prediction.element_age_hours_at_start, 1, locale),
+            observerEllipsoid: prediction.algorithm.observer_ellipsoid,
+            propagationModel: prediction.algorithm.propagation_model,
+          })}
         </p>
         {prediction.stale_element_warning ? (
           <p className="font-medium">
-            Element-age warning: prediction uses elements beyond Lumina&apos;s 24-hour warning
-            threshold.
+            {formatMessageTemplate(messages.result.staleWarning, {
+              hours: formatLocaleNumber(ELEMENT_WARNING_HOURS, locale),
+            })}
           </p>
         ) : null}
       </div>
@@ -253,32 +299,68 @@ function PassState({ state }: Readonly<{ state: State }>) {
         {prediction.passes.map((passItem) => (
           <li className="space-y-2 border border-[var(--border)] p-4" key={passItem.peak.time_utc}>
             <p className="font-semibold">
-              Peak <time dateTime={passItem.peak.time_utc}>{passItem.peak.time_utc}</time> ·{" "}
-              {passItem.peak_altitude_deg.toFixed(1)}° {passItem.peak.direction}
+              {messages.result.passPeakLabel}{" "}
+              <time dateTime={passItem.peak.time_utc}>{passItem.peak.time_utc}</time>{" "}
+              {formatMessageTemplate(messages.result.passPeakAfterTime, {
+                altitude: formatLocaleFixedNumber(passItem.peak_altitude_deg, 1, locale),
+                direction: passItem.peak.direction,
+              })}
             </p>
             <p className="text-sm text-[var(--muted)]">
-              Rise {passItem.rise.time_utc} ({passItem.rise.direction}) · Set{" "}
-              {passItem.set.time_utc} ({passItem.set.direction})
+              {formatMessageTemplate(messages.result.passRiseSet, {
+                riseDirection: passItem.rise.direction,
+                riseTime: passItem.rise.time_utc,
+                setDirection: passItem.set.direction,
+                setTime: passItem.set.time_utc,
+              })}
             </p>
             <p className="text-sm text-[var(--muted)]">
-              Satellite sunlit at peak: {passItem.satellite_sunlit_at_peak ? "yes" : "no"}. Observer
-              sky: {passItem.observer_sky_state_at_peak.replaceAll("_", " ")} (Sun{" "}
-              {passItem.observer_sun_altitude_deg_at_peak.toFixed(1)}°).
+              {formatMessageTemplate(messages.result.illumination, {
+                skyState: skyStateLabel(passItem.observer_sky_state_at_peak, messages.result),
+                sunAltitude: formatLocaleFixedNumber(
+                  passItem.observer_sun_altitude_deg_at_peak,
+                  1,
+                  locale,
+                ),
+                sunlit: passItem.satellite_sunlit_at_peak
+                  ? messages.result.yes
+                  : messages.result.no,
+              })}
             </p>
           </li>
         ))}
       </ol>
-      <p className="text-sm leading-6 text-[var(--muted)]">
-        Sunlit status and observer sky state are model context only. Lumina has no optical-magnitude
-        model here and does not claim that a pass will be visible.
-      </p>
+      <p className="text-sm leading-6 text-[var(--muted)]">{messages.result.limitation}</p>
     </div>
   );
 }
 
-function messageForStatus(status: number): string {
-  if (status === 404) return "That satellite is no longer present in the current snapshot.";
-  if (status === 422) return "The pass request could not be validated.";
-  if (status === 503) return "Satellite data is temporarily unavailable.";
-  return "Pass calculation could not be completed.";
+function refusalReasonMessage(
+  reason: SatellitePassResponse["prediction"]["refusal_reason"],
+  messages: SatelliteMessages["passFinder"]["result"],
+): string {
+  if (reason === "elements_outside_supported_age") return messages.refusalElementAge;
+  if (reason === "catalog_number_unsupported_by_sgp4") return messages.refusalCatalogUnsupported;
+  if (reason === "unsupported_sgp4_state") return messages.refusalSgp4State;
+  if (reason === "unsupported_event_sequence") return messages.refusalEventSequence;
+  return messages.refusalFallback;
+}
+
+function skyStateLabel(
+  state: SatellitePassResponse["prediction"]["passes"][number]["observer_sky_state_at_peak"],
+  messages: SatelliteMessages["passFinder"]["result"],
+): string {
+  if (state === "daylight") return messages.skyDaylight;
+  if (state === "civil_twilight") return messages.skyCivilTwilight;
+  if (state === "nautical_twilight") return messages.skyNauticalTwilight;
+  if (state === "astronomical_twilight") return messages.skyAstronomicalTwilight;
+  if (state === "night") return messages.skyNight;
+  return messages.skyUnknown;
+}
+
+function reasonForStatus(status: number): ErrorReason {
+  if (status === 404) return "noLongerAvailable";
+  if (status === 422) return "requestInvalid";
+  if (status === 503) return "temporarilyUnavailable";
+  return "unknown";
 }

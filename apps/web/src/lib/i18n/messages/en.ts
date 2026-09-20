@@ -2678,6 +2678,122 @@ export const enMessages = {
         title: "Feed window",
       },
     },
+    satellites: {
+      backToSpaceNow: "Back to Space Now",
+      eyebrow: "Space Now · Satellites",
+      intro:
+        "Selected {provider} {stationsGroup} and {visualGroup} general-perturbations elements, propagated locally with {propagationModel}. These are model predictions, not real-time tracking or guaranteed optical visibility.",
+      metadataDescription:
+        "Selected {provider} satellite elements and local {propagationModel} pass predictions with explicit freshness, element-age, daylight, and illumination context.",
+      metadataTitle: "Satellite Passes",
+      passFinder: {
+        actions: {
+          calculate: "Calculate next {hours} hours",
+          calculating: "Calculating…",
+          useLocation: "Use my location",
+        },
+        errors: {
+          finiteValues: "Enter valid finite numeric values.",
+          geolocationUnavailable: "Geolocation is not available in this browser.",
+          locationPermission: "Location permission was unavailable or declined.",
+          noLongerAvailable: "That satellite is no longer present in the current snapshot.",
+          requestInvalid: "The pass request could not be validated.",
+          responseInvalid: "Lumina returned an unexpected pass response.",
+          temporarilyUnavailable: "Satellite data is temporarily unavailable.",
+          unknown: "Pass calculation could not be completed.",
+        },
+        fields: {
+          elevation: "Elevation (metres)",
+          latitude: "Latitude (degrees)",
+          longitude: "Longitude (degrees)",
+          satellite: "Satellite",
+        },
+        heading: "Find passes for your location",
+        idle: "Predictions start from the current UTC time when you submit.",
+        loading: "Calculating from the cached element set…",
+        option: "{name} · NORAD {catalogNumber}",
+        privacy:
+          "Coordinates are used only for this calculation. They are not placed in the URL, sent to {provider}, stored by Lumina, or echoed in the result. Browser geolocation runs only when you press the button below.",
+        result: {
+          algorithmSummary:
+            "{propagationModel} · {gravityModel} · observer {observerEllipsoid} · element offset {hours} h",
+          heading: "{satellite} predicted passes",
+          illumination:
+            "Satellite sunlit at peak: {sunlit}. Observer sky: {skyState} (Sun {sunAltitude}°).",
+          limitation:
+            "Sunlit status and observer sky state are model context only. Lumina has no optical-magnitude model here and does not claim that a pass will be visible.",
+          no: "no",
+          noPasses:
+            "No complete passes above {altitudeThreshold}° were found in the next {windowHours} hours.",
+          passPeakAfterTime: "· {altitude}° {direction}",
+          passPeakLabel: "Peak",
+          passRiseSet: "Rise {riseTime} ({riseDirection}) · Set {setTime} ({setDirection})",
+          reasonLabel: "Reason:",
+          refusedTitle: "Prediction safely refused",
+          refusalCatalogUnsupported:
+            "This catalog number is outside the runtime range supported by Lumina's current SGP4 implementation",
+          refusalElementAge:
+            "The requested prediction window extends beyond Lumina's supported element-age bound",
+          refusalEventSequence:
+            "The propagated event sequence could not be used safely for a complete pass",
+          refusalFallback: "unsupported state",
+          refusalSgp4State: "The element state is not supported safely by the current SGP4 runtime",
+          skyAstronomicalTwilight: "astronomical twilight",
+          skyCivilTwilight: "civil twilight",
+          skyDaylight: "daylight",
+          skyNauticalTwilight: "nautical twilight",
+          skyNight: "night",
+          skyUnknown: "unknown sky state",
+          staleWarning:
+            "Element-age warning: prediction uses elements beyond Lumina's {hours}-hour warning threshold.",
+          yes: "yes",
+        },
+      },
+      satellites: {
+        count:
+          "Showing {returned} of {total} normalized records from the fixed {stationsGroup} and {visualGroup} groups.",
+        elementAgeValue: "{hours} h",
+        heading: "Selected satellites",
+        labels: {
+          elementAge: "Element age",
+          elementEpoch: "Element epoch",
+          groups: "Groups",
+          passRuntime: "Pass runtime",
+        },
+        noradReference: "NORAD {catalogNumber}",
+        runtimeNotSupported: "Not supported",
+        runtimeSupported: "Supported",
+        staleWarning: "Element age exceeds Lumina's {hours}-hour warning threshold.",
+      },
+      snapshot: {
+        freshTitle: "Fresh element snapshot",
+        lastFailure: "Last safe refresh failure: {code}",
+        latestEpochNotRecorded: "not recorded",
+        summary:
+          "Lumina retrieved this selected-group cache at {retrievedAt}. The newest element epoch represented is {latestEpoch}.",
+        staleTitle: "Stale element snapshot",
+        unrecordedTime: "an unrecorded time",
+      },
+      source: {
+        documentation: "{provider} GP documentation",
+        limitations:
+          "Lumina warns when elements are more than {warningHours} hours from the requested start and refuses pass calculations when the {windowHours}-hour prediction window would extend more than {maximumOffsetHours} hours from the element epoch. These are conservative Lumina product limits, not universal {propagationModel} validity claims.",
+        title: "Source, model, and limitations",
+        usagePolicy: "{provider} usage policy",
+      },
+      title: "Satellite passes",
+      transport: {
+        description: "Lumina could not safely read its API, so it is showing no satellite claims.",
+        title: "Satellite data is temporarily unavailable",
+      },
+      unavailable: {
+        cachedContentExpired: "The last validated element snapshot has expired.",
+        noBrowserProviderRequest: "This page never fetches {provider} from the browser.",
+        noCachedContent: "No validated selected-group element snapshot is available yet.",
+        providerDisabled: "The {provider} provider is disabled.",
+        title: "Satellite data is currently unavailable",
+      },
+    },
     metadataDescription:
       "A source-backed Daily Visual from NASA Astronomy Picture of the Day, with clear dates, credit, and retrieval state.",
     metadataTitle: "Space Now",

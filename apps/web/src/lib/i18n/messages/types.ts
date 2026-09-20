@@ -1987,6 +1987,109 @@ export type NearEarthMessages = Readonly<{
   }>;
 }>;
 
+export type SatelliteMessages = Readonly<{
+  backToSpaceNow: string;
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  passFinder: Readonly<{
+    actions: Readonly<{
+      calculate: string;
+      calculating: string;
+      useLocation: string;
+    }>;
+    errors: Readonly<{
+      finiteValues: string;
+      geolocationUnavailable: string;
+      locationPermission: string;
+      noLongerAvailable: string;
+      requestInvalid: string;
+      responseInvalid: string;
+      temporarilyUnavailable: string;
+      unknown: string;
+    }>;
+    fields: Readonly<{
+      elevation: string;
+      latitude: string;
+      longitude: string;
+      satellite: string;
+    }>;
+    heading: string;
+    idle: string;
+    loading: string;
+    option: string;
+    privacy: string;
+    result: Readonly<{
+      algorithmSummary: string;
+      heading: string;
+      illumination: string;
+      limitation: string;
+      no: string;
+      noPasses: string;
+      passPeakAfterTime: string;
+      passPeakLabel: string;
+      passRiseSet: string;
+      reasonLabel: string;
+      refusedTitle: string;
+      refusalCatalogUnsupported: string;
+      refusalElementAge: string;
+      refusalEventSequence: string;
+      refusalFallback: string;
+      refusalSgp4State: string;
+      skyAstronomicalTwilight: string;
+      skyCivilTwilight: string;
+      skyDaylight: string;
+      skyNauticalTwilight: string;
+      skyNight: string;
+      skyUnknown: string;
+      staleWarning: string;
+      yes: string;
+    }>;
+  }>;
+  satellites: Readonly<{
+    count: string;
+    elementAgeValue: string;
+    heading: string;
+    labels: Readonly<{
+      elementAge: string;
+      elementEpoch: string;
+      groups: string;
+      passRuntime: string;
+    }>;
+    noradReference: string;
+    runtimeNotSupported: string;
+    runtimeSupported: string;
+    staleWarning: string;
+  }>;
+  snapshot: Readonly<{
+    freshTitle: string;
+    lastFailure: string;
+    latestEpochNotRecorded: string;
+    summary: string;
+    staleTitle: string;
+    unrecordedTime: string;
+  }>;
+  source: Readonly<{
+    documentation: string;
+    limitations: string;
+    title: string;
+    usagePolicy: string;
+  }>;
+  title: string;
+  transport: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  unavailable: Readonly<{
+    cachedContentExpired: string;
+    noBrowserProviderRequest: string;
+    noCachedContent: string;
+    providerDisabled: string;
+    title: string;
+  }>;
+}>;
+
 export type SpaceNowMessages = Readonly<{
   dailyVisual: Readonly<{
     aboutTitle: string;
@@ -2012,6 +2115,7 @@ export type SpaceNowMessages = Readonly<{
   intro: string;
   launches: LaunchCenterMessages;
   nearEarth: NearEarthMessages;
+  satellites: SatelliteMessages;
   metadataDescription: string;
   metadataTitle: string;
   navigation: Readonly<{

@@ -9,7 +9,11 @@ vi.mock("server-only", () => ({}));
 
 import { POST } from "../src/app/api/satellite-passes/route";
 import { SatellitePassFinder } from "../src/app/now/satellites/satellite-pass-finder";
+import { createSatellitesMetadata } from "../src/app/now/satellites/route-page";
 import { SatellitesView } from "../src/app/now/satellites/satellites-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { SatelliteMessages } from "../src/lib/i18n/messages/types";
 import { loadNowSatellites } from "../src/lib/server/space-now";
 
 const source = {
@@ -99,9 +103,30 @@ afterEach(() => {
   delete process.env.LUMINA_WEB_API_ORIGIN;
 });
 
+function renderSatellites(
+  response: SatelliteListResponse = listResponse,
+  messages: SatelliteMessages = enMessages.spaceNow.satellites,
+) {
+  return render(
+    <SatellitesView
+      locale={DEFAULT_LOCALE}
+      messages={messages}
+      outcome={{ data: response, kind: "ok" }}
+    />,
+  );
+}
+
+function renderFinder(
+  messages: SatelliteMessages["passFinder"] = enMessages.spaceNow.satellites.passFinder,
+) {
+  return render(
+    <SatellitePassFinder locale={DEFAULT_LOCALE} messages={messages} satellites={satellites} />,
+  );
+}
+
 describe("Satellite Passes page", () => {
   it("renders selected-group data, provenance, and privacy/model limitations accessibly", async () => {
-    const { container } = render(<SatellitesView outcome={{ data: listResponse, kind: "ok" }} />);
+    const { container } = renderSatellites();
 
     expect(screen.getByRole("heading", { level: 1, name: "Satellite passes" })).toBeVisible();
     expect(screen.getByText("ISS (ZARYA)")).toBeVisible();
@@ -117,23 +142,57 @@ describe("Satellite Passes page", () => {
     expect((await axe(container)).violations).toHaveLength(0);
   });
 
-  it("keeps an unavailable cache explicit and does not show a pass form", () => {
-    render(
-      <SatellitesView
-        outcome={{
-          data: {
-            ...listResponse,
-            availability: "unavailable",
-            freshness: { ...listResponse.freshness, cache_state: "expired" },
-            returned_satellite_count: 0,
-            satellites: [],
-            total_satellite_count: 0,
-            unavailable_reason: "cached_content_expired",
-          },
-          kind: "ok",
-        }}
-      />,
+  it("localizes page chrome without rewriting provider, satellite, group, or model data", () => {
+    const messages: SatelliteMessages = {
+      ...enMessages.spaceNow.satellites,
+      intro:
+        "Fixture catalogue from {provider}: {stationsGroup}, {visualGroup}; propagated with {propagationModel}.",
+      metadataDescription: "Fixture metadata for {provider} using {propagationModel}.",
+      metadataTitle: "Fixture satellite metadata",
+      satellites: {
+        ...enMessages.spaceNow.satellites.satellites,
+        heading: "Fixture satellite list",
+      },
+      source: {
+        ...enMessages.spaceNow.satellites.source,
+        documentation: "Fixture docs for {provider}",
+      },
+      title: "Fixture satellite title",
+    };
+
+    renderSatellites(listResponse, messages);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Fixture satellite title" }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fixture satellite list" })).toBeVisible();
+    expect(
+      screen.getByText("Fixture catalogue from CelesTrak: STATIONS, VISUAL; propagated with SGP4."),
+    ).toBeVisible();
+    expect(screen.getByText("ISS (ZARYA)")).toBeVisible();
+    expect(screen.getByText("NORAD 25544")).toBeVisible();
+    expect(screen.getByText("2026-09-15T03:00:00.000000Z")).toBeVisible();
+    expect(screen.getByText("STATIONS, VISUAL")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Fixture docs for CelesTrak" })).toHaveAttribute(
+      "href",
+      source.official_documentation_url,
     );
+    expect(createSatellitesMetadata(messages)).toEqual({
+      description: "Fixture metadata for CelesTrak using SGP4.",
+      title: "Fixture satellite metadata",
+    });
+  });
+
+  it("keeps an unavailable cache explicit and does not show a pass form", () => {
+    renderSatellites({
+      ...listResponse,
+      availability: "unavailable",
+      freshness: { ...listResponse.freshness, cache_state: "expired" },
+      returned_satellite_count: 0,
+      satellites: [],
+      total_satellite_count: 0,
+      unavailable_reason: "cached_content_expired",
+    });
     expect(screen.getByRole("status")).toHaveTextContent(
       "last validated element snapshot has expired",
     );
@@ -149,7 +208,7 @@ describe("Satellite Passes page", () => {
       } as GeolocationPosition),
     );
     vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
-    render(<SatellitePassFinder satellites={satellites} />);
+    renderFinder();
     expect(getCurrentPosition).not.toHaveBeenCalled();
 
     await userEvent.click(screen.getByRole("button", { name: "Use my location" }));
@@ -167,7 +226,7 @@ describe("Satellite Passes page", () => {
       }),
     );
     vi.stubGlobal("fetch", fetchImplementation);
-    render(<SatellitePassFinder satellites={satellites} />);
+    renderFinder();
     fireEvent.change(screen.getByLabelText("Latitude (degrees)"), { target: { value: "35.1234" } });
     fireEvent.change(screen.getByLabelText("Longitude (degrees)"), {
       target: { value: "-105.5678" },
@@ -184,6 +243,164 @@ describe("Satellite Passes page", () => {
     expect(String(init?.body)).toContain('"latitude_deg":35.1234');
     expect(String(init?.body)).toContain('"longitude_deg":-105.5678');
     expect(screen.getByText(/does not claim that a pass will be visible/i)).toBeVisible();
+  });
+
+  it("localizes pass-result enums without changing the private request or model output", async () => {
+    const localizedResponse: SatellitePassResponse = {
+      ...passResponse,
+      prediction: {
+        ...passResponse.prediction,
+        passes: [
+          {
+            ...passResponse.prediction.passes[0]!,
+            observer_sky_state_at_peak: "civil_twilight",
+          },
+        ],
+      },
+    };
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify(localizedResponse), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchImplementation);
+    const messages: SatelliteMessages["passFinder"] = {
+      ...enMessages.spaceNow.satellites.passFinder,
+      heading: "Fixture private pass finder",
+      result: {
+        ...enMessages.spaceNow.satellites.passFinder.result,
+        heading: "Fixture passes for {satellite}",
+        skyCivilTwilight: "Fixture civil twilight",
+      },
+    };
+    renderFinder(messages);
+
+    fireEvent.change(screen.getByLabelText("Latitude (degrees)"), {
+      target: { value: "35.1234" },
+    });
+    fireEvent.change(screen.getByLabelText("Longitude (degrees)"), {
+      target: { value: "-105.5678" },
+    });
+    fireEvent.change(screen.getByLabelText("Elevation (metres)"), { target: { value: "920" } });
+    await userEvent.click(screen.getByRole("button", { name: "Calculate next 24 hours" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Fixture passes for ISS (ZARYA)" }),
+    ).toBeVisible();
+    expect(screen.getByText(/Fixture civil twilight/)).toBeVisible();
+    expect(screen.getByText(/SGP4 · WGS72 · observer WGS84 · element offset 3.0 h/)).toBeVisible();
+    expect(screen.getByText(/2026-09-15T20:03:47Z/)).toBeVisible();
+    const [input, init] = fetchImplementation.mock.calls[0] ?? [];
+    expect(String(input)).toBe("/api/satellite-passes");
+    expect(String(init?.body)).toContain('"latitude_deg":35.1234');
+    expect(String(init?.body)).toContain('"longitude_deg":-105.5678');
+  });
+
+  it("maps night explicitly instead of falling through to the defensive sky-state fallback", async () => {
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify(passResponse), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchImplementation);
+    const messages: SatelliteMessages["passFinder"] = {
+      ...enMessages.spaceNow.satellites.passFinder,
+      result: {
+        ...enMessages.spaceNow.satellites.passFinder.result,
+        skyNight: "Fixture night",
+        skyUnknown: "Fixture unknown sky state",
+      },
+    };
+    renderFinder(messages);
+
+    fireEvent.change(screen.getByLabelText("Latitude (degrees)"), { target: { value: "35" } });
+    fireEvent.change(screen.getByLabelText("Longitude (degrees)"), { target: { value: "-105" } });
+    await userEvent.click(screen.getByRole("button", { name: "Calculate next 24 hours" }));
+
+    expect(await screen.findByText(/Fixture night/)).toBeVisible();
+    expect(screen.queryByText(/Fixture unknown sky state/)).not.toBeInTheDocument();
+  });
+
+  it("preserves a high-precision no-pass altitude threshold in display formatting", async () => {
+    const response: SatellitePassResponse = {
+      ...passResponse,
+      prediction: {
+        ...passResponse.prediction,
+        algorithm: {
+          ...passResponse.prediction.algorithm,
+          altitude_threshold_deg: 10.123456789,
+        },
+        passes: [],
+        state: "no_passes",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify(response), {
+          headers: { "content-type": "application/json" },
+          status: 200,
+        }),
+      ),
+    );
+    renderFinder();
+
+    fireEvent.change(screen.getByLabelText("Latitude (degrees)"), { target: { value: "35" } });
+    fireEvent.change(screen.getByLabelText("Longitude (degrees)"), { target: { value: "-105" } });
+    await userEvent.click(screen.getByRole("button", { name: "Calculate next 24 hours" }));
+
+    expect(
+      await screen.findByText(
+        "No complete passes above 10.123456789° were found in the next 24 hours.",
+      ),
+    ).toBeVisible();
+  });
+
+  it.each([
+    [
+      "elements_outside_supported_age",
+      "The requested prediction window extends beyond Lumina's supported element-age bound",
+    ],
+    [
+      "catalog_number_unsupported_by_sgp4",
+      "This catalog number is outside the runtime range supported by Lumina's current SGP4 implementation",
+    ],
+    [
+      "unsupported_sgp4_state",
+      "The element state is not supported safely by the current SGP4 runtime",
+    ],
+    [
+      "unsupported_event_sequence",
+      "The propagated event sequence could not be used safely for a complete pass",
+    ],
+  ] as const)("maps refusal reason %s explicitly", async (refusalReason, expectedMessage) => {
+    const refused: SatellitePassResponse = {
+      ...passResponse,
+      prediction: {
+        ...passResponse.prediction,
+        passes: [],
+        refusal_reason: refusalReason,
+        state: "refused",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify(refused), {
+          headers: { "content-type": "application/json" },
+          status: 200,
+        }),
+      ),
+    );
+    renderFinder();
+
+    fireEvent.change(screen.getByLabelText("Latitude (degrees)"), { target: { value: "35" } });
+    fireEvent.change(screen.getByLabelText("Longitude (degrees)"), { target: { value: "-105" } });
+    await userEvent.click(screen.getByRole("button", { name: "Calculate next 24 hours" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(expectedMessage);
   });
 });
 

@@ -198,6 +198,39 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.spaceNow.nearEarth.window.range).toContain("{endDate}");
   });
 
+  it("keeps Satellites wrapper/pass templates explicit and placeholder-complete", () => {
+    const messages = enMessages.spaceNow.satellites;
+    expect(messages.intro).toContain("{provider}");
+    expect(messages.intro).toContain("{stationsGroup}");
+    expect(messages.intro).toContain("{visualGroup}");
+    expect(messages.intro).toContain("{propagationModel}");
+    expect(messages.metadataDescription).toContain("{provider}");
+    expect(messages.metadataDescription).toContain("{propagationModel}");
+    expect(messages.snapshot.summary).toContain("{retrievedAt}");
+    expect(messages.snapshot.summary).toContain("{latestEpoch}");
+    expect(messages.snapshot.lastFailure).toContain("{code}");
+    expect(messages.satellites.count).toContain("{returned}");
+    expect(messages.satellites.count).toContain("{total}");
+    expect(messages.satellites.noradReference).toContain("{catalogNumber}");
+    expect(messages.satellites.elementAgeValue).toContain("{hours}");
+    expect(messages.source.limitations).toContain("{warningHours}");
+    expect(messages.source.limitations).toContain("{windowHours}");
+    expect(messages.source.limitations).toContain("{maximumOffsetHours}");
+    expect(messages.passFinder.actions.calculate).toContain("{hours}");
+    expect(messages.passFinder.option).toContain("{name}");
+    expect(messages.passFinder.option).toContain("{catalogNumber}");
+    expect(messages.passFinder.privacy).toContain("{provider}");
+    expect(messages.passFinder.result.heading).toContain("{satellite}");
+    expect(messages.passFinder.result.algorithmSummary).toContain("{propagationModel}");
+    expect(messages.passFinder.result.noPasses).toContain("{altitudeThreshold}");
+    expect(messages.passFinder.result.noPasses).toContain("{windowHours}");
+    expect(messages.passFinder.result.passPeakAfterTime).toContain("{altitude}");
+    expect(messages.passFinder.result.passRiseSet).toContain("{riseTime}");
+    expect(messages.passFinder.result.passRiseSet).toContain("{setTime}");
+    expect(messages.passFinder.result.illumination).toContain("{skyState}");
+    expect(messages.passFinder.result.illumination).toContain("{sunAltitude}");
+  });
+
   it("keeps Deep Sky atlas templates placeholder-complete", () => {
     expect(enMessages.deepSky.atlas.activation.readyForTarget).toContain("{objectName}");
     expect(enMessages.deepSky.atlas.status.checkingSurvey).toContain("{layerLabel}");

@@ -43,6 +43,7 @@ describe("observe route client mode", () => {
 
     render(
       <ObserveExperience
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         detail={null}
         journalEntryMessages={enMessages.journal.entry}
         locale={DEFAULT_LOCALE}
@@ -67,6 +68,7 @@ describe("observe route client mode", () => {
 
     render(
       <ObserveExperience
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         detail={null}
         initialSavedId={saved.id}
         journalEntryMessages={enMessages.journal.entry}

@@ -202,10 +202,15 @@ describe("TonightView", () => {
     vi.stubGlobal("fetch", fetchImplementation);
 
     const user = userEvent.setup();
+    const coordinateDisclosureMessages = {
+      ...enMessages.coordinateDisclosure,
+      gaiaDr3: "Fixture Tonight Gaia provenance at {referenceEpoch}.",
+    };
     render(
       <TonightView
         apiOrigin={ORIGIN}
         collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        coordinateDisclosureMessages={coordinateDisclosureMessages}
         initialDate={NIGHT}
       />,
     );
@@ -233,6 +238,16 @@ describe("TonightView", () => {
     expect(within(belowList).getByRole("link", { name: "Open planner" })).toHaveAttribute(
       "href",
       expect.stringContaining(`/observe?object=k2-18&date=${NIGHT}`),
+    );
+    const sourceSummary = screen.getAllByText("Rise, transit, set, and source", {
+      exact: true,
+    })[0]!;
+    const sourceDetails = sourceSummary.parentElement;
+    expect(sourceDetails).not.toBeNull();
+    await user.click(sourceSummary);
+    expect(sourceDetails).toHaveTextContent("Fixture Tonight Gaia provenance at J2016.0.");
+    expect(sourceDetails).not.toHaveTextContent(
+      "Gaia DR3 catalogue position at reference epoch J2016.0",
     );
     await waitFor(() => expect(fetchImplementation).toHaveBeenCalledTimes(4));
 
@@ -262,6 +277,7 @@ describe("TonightView", () => {
       <TonightView
         apiOrigin={ORIGIN}
         collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         initialDate={NIGHT}
       />,
     );
@@ -278,7 +294,13 @@ describe("TonightView", () => {
     window.localStorage.setItem(COLLECTIONS_STORAGE_KEY, "{corrupt");
     window.dispatchEvent(new StorageEvent("storage", { key: COLLECTIONS_STORAGE_KEY }));
 
-    render(<TonightView collectionStateMessages={COLLECTION_STATE_MESSAGES} initialDate={NIGHT} />);
+    render(
+      <TonightView
+        collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
+        initialDate={NIGHT}
+      />,
+    );
 
     expect(
       await screen.findByRole("heading", { name: /your saved collections could not be read/i }),
@@ -322,6 +344,7 @@ describe("TonightView", () => {
       <TonightView
         apiOrigin={ORIGIN}
         collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         initialDate={today}
       />,
     );
@@ -392,6 +415,7 @@ describe("TonightView", () => {
       <TonightView
         apiOrigin={ORIGIN}
         collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         initialDate={today}
       />,
     );
@@ -482,6 +506,7 @@ describe("TonightView", () => {
       <TonightView
         apiOrigin={ORIGIN}
         collectionStateMessages={COLLECTION_STATE_MESSAGES}
+        coordinateDisclosureMessages={enMessages.coordinateDisclosure}
         initialDate={NIGHT}
       />,
     );

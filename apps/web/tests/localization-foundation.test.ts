@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { formatCoordinateDisclosure } from "../src/lib/i18n/coordinate-disclosure";
 import {
   DEFAULT_LOCALE,
   KNOWN_LOCALES,
@@ -373,6 +374,25 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.chart.accessibleHighest).toContain("{altitude}");
     expect(messages.chart.accessibleHighest).toContain("{time}");
     expect(messages.results.events.circumpolar).toMatch(/latitude/i);
+  });
+
+  it("formats shared coordinate provenance from semantic descriptors", () => {
+    const messages = enMessages.coordinateDisclosure;
+    expect(messages.gaiaDr3).toContain("{referenceEpoch}");
+    expect(messages.messierJ2000).toContain("{referenceEpoch}");
+    expect(messages.messierResolverJ2000).toContain("{referenceEpoch}");
+    expect(messages.reviewed).toContain("{referenceEpoch}");
+    expect(
+      formatCoordinateDisclosure({ kind: "gaia-dr3", referenceEpoch: "J2016.0" }, messages),
+    ).toBe(
+      "Gaia DR3 catalogue position at reference epoch J2016.0. Proper motion is not propagated.",
+    );
+    expect(
+      formatCoordinateDisclosure(
+        { kind: "messier-resolver-j2000", referenceEpoch: "J2000.0" },
+        messages,
+      ),
+    ).toContain("SIMBAD Messier ICRS J2000 resolver-record catalogue anchor");
   });
 
   it("keeps lunar and weather condition presentation in the planner message group", () => {

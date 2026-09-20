@@ -190,6 +190,11 @@ export type CoordinateProfile = Readonly<{
   epoch: number;
 }>;
 
+export type CoordinateDisclosure = Readonly<{
+  kind: "gaia-dr3" | "messier-j2000" | "messier-resolver-j2000" | "reviewed";
+  referenceEpoch: string;
+}>;
+
 const ACCEPTED_COORDINATE_PROFILES: ReadonlyArray<CoordinateProfile> = [
   {
     provider: ASTROMETRY_PROVIDER_CODE,
@@ -230,13 +235,9 @@ export function coordinateProfileForSource(
   );
 }
 
-/**
- * Returns the public-safe epoch disclosure for an accepted coordinate profile.
- * The wording is kept here so all observing surfaces describe the same
- * catalogue semantics.
- */
-export function getCoordinateDisclosure(profile: CoordinateProfile): string {
-  const epoch = `J${profile.epoch.toFixed(1)}`;
+/** Returns language-neutral public disclosure semantics for one coordinate profile. */
+export function coordinateDisclosureForProfile(profile: CoordinateProfile): CoordinateDisclosure {
+  const referenceEpoch = `J${profile.epoch.toFixed(1)}`;
   if (
     profile.provider === ASTROMETRY_PROVIDER_CODE &&
     profile.dataset === ASTROMETRY_DATASET_CODE &&
@@ -244,7 +245,7 @@ export function getCoordinateDisclosure(profile: CoordinateProfile): string {
     profile.rightAscension === RIGHT_ASCENSION_QUANTITY_CODE &&
     profile.declination === DECLINATION_QUANTITY_CODE
   ) {
-    return `Gaia DR3 catalogue position at reference epoch ${epoch}. Proper motion is not propagated.`;
+    return { kind: "gaia-dr3", referenceEpoch };
   }
   if (
     profile.provider === MESSIER_PROVIDER_CODE &&
@@ -254,11 +255,11 @@ export function getCoordinateDisclosure(profile: CoordinateProfile): string {
     profile.declination === MESSIER_DECLINATION_QUANTITY_CODE
   ) {
     if (profile.release === MESSIER_V2_RELEASE) {
-      return `SIMBAD Messier ICRS J2000 resolver-record catalogue anchor at reference epoch ${epoch}. It is not asserted to be a geometric target centre; no epoch propagation is applied.`;
+      return { kind: "messier-resolver-j2000", referenceEpoch };
     }
-    return `SIMBAD Messier J2000 catalogue position at reference epoch ${epoch}. No epoch propagation is applied.`;
+    return { kind: "messier-j2000", referenceEpoch };
   }
-  return `Reviewed catalogue position at reference epoch ${epoch}. No epoch propagation is applied.`;
+  return { kind: "reviewed", referenceEpoch };
 }
 
 /**

@@ -10,7 +10,10 @@ import type { EntityDetailResponse } from "@lumina/api-client";
 
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
-import type { ObservationPlannerMessages } from "../src/lib/i18n/messages/types";
+import type {
+  CoordinateDisclosureMessages,
+  ObservationPlannerMessages,
+} from "../src/lib/i18n/messages/types";
 import { localDateString } from "../src/lib/observation/domain";
 import {
   BRIGHT_STAR_CONTEXT_URL,
@@ -108,9 +111,11 @@ function renderPlanner(
   detail: EntityDetailResponse | null = plannerDetail(),
   date = "2026-08-27",
   messages: ObservationPlannerMessages = enMessages.observationPlanner,
+  coordinateDisclosureMessages: CoordinateDisclosureMessages = enMessages.coordinateDisclosure,
 ) {
   return render(
     <ObservationPlanner
+      coordinateDisclosureMessages={coordinateDisclosureMessages}
       detail={detail}
       initialDate={date}
       journalEntryMessages={enMessages.journal.entry}
@@ -199,6 +204,25 @@ describe("ObservationPlanner", () => {
     expect(screen.getByText("Fixture altitude chart.")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Fixture target events" })).toBeVisible();
     expect(screen.getByRole("region", { name: "Fixture position source" })).toBeVisible();
+  });
+
+  it("renders shared coordinate provenance from the injected disclosure messages", async () => {
+    const user = userEvent.setup();
+    const disclosureMessages: CoordinateDisclosureMessages = {
+      ...enMessages.coordinateDisclosure,
+      gaiaDr3: "Fixture Gaia coordinate provenance at {referenceEpoch}.",
+    };
+
+    renderPlanner(plannerDetail(), "2026-08-27", enMessages.observationPlanner, disclosureMessages);
+    await user.type(screen.getByLabelText("Latitude"), "12.972");
+    await user.type(screen.getByLabelText("Longitude"), "77.594");
+    await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
+
+    const sourceRegion = await screen.findByRole("region", { name: "Position source" });
+    expect(sourceRegion).toHaveTextContent("Fixture Gaia coordinate provenance at J2016.0.");
+    expect(sourceRegion).not.toHaveTextContent(
+      "Gaia DR3 catalogue position at reference epoch J2016.0",
+    );
   });
 
   it("starts with a target, night controls, and an intentional location request", () => {

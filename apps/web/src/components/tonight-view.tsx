@@ -17,8 +17,13 @@ import {
   useCollectionsStatus,
   type CollectionsStatus,
 } from "../lib/collections-store";
-import type { CollectionStateMessages } from "../lib/i18n/messages/types";
+import { formatCoordinateDisclosure } from "../lib/i18n/coordinate-disclosure";
+import type {
+  CollectionStateMessages,
+  CoordinateDisclosureMessages,
+} from "../lib/i18n/messages/types";
 import {
+  coordinateDisclosureForProfile,
   isValidNightDate,
   localDateString,
   localInstantForNightTime,
@@ -30,7 +35,6 @@ import {
   type NightBoundaries,
   type ObserverLocation,
   type TargetEvent,
-  getCoordinateDisclosure,
 } from "../lib/observation/domain";
 import {
   analyzeTonightCollection,
@@ -67,6 +71,7 @@ import {
 type TonightViewProps = Readonly<{
   apiOrigin?: string;
   collectionStateMessages: CollectionStateMessages;
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   initialDate?: string;
 }>;
 
@@ -565,9 +570,14 @@ function NightSummary({
 }
 
 function EventDetails({
+  coordinateDisclosureMessages,
   target,
   timeZone,
-}: Readonly<{ target: TonightAnalysis["aboveHorizon"][number]; timeZone: string }>) {
+}: Readonly<{
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  target: TonightAnalysis["aboveHorizon"][number];
+  timeZone: string;
+}>) {
   const profile = coordinateProfileForSource(target.coordinate.source);
   return (
     <details className="mt-3 rounded-md border border-[var(--border)] px-3 py-2">
@@ -605,8 +615,11 @@ function EventDetails({
         {target.coordinate.source.dataset.release_version}) · source record{" "}
         <span className="font-mono">{target.coordinate.source.source_record_id}</span>.{" "}
         {profile === null
-          ? "Reviewed catalogue position. No epoch propagation is applied."
-          : getCoordinateDisclosure(profile)}
+          ? coordinateDisclosureMessages.reviewedWithoutEpoch
+          : formatCoordinateDisclosure(
+              coordinateDisclosureForProfile(profile),
+              coordinateDisclosureMessages,
+            )}
       </p>
     </details>
   );
@@ -685,11 +698,13 @@ function WeatherLine({
 }
 
 function TargetRow({
+  coordinateDisclosureMessages,
   forecast,
   nightDate,
   target,
   timeZone,
 }: Readonly<{
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   forecast?: WeatherForecast;
   nightDate: string;
   target: TonightAnalysis["aboveHorizon"][number];
@@ -729,7 +744,11 @@ function TargetRow({
           {forecast !== undefined ? (
             <WeatherLine forecast={forecast} target={target} timeZone={timeZone} />
           ) : null}
-          <EventDetails target={target} timeZone={timeZone} />
+          <EventDetails
+            coordinateDisclosureMessages={coordinateDisclosureMessages}
+            target={target}
+            timeZone={timeZone}
+          />
         </div>
         <Link
           className={`${SECONDARY_BUTTON_CLASS} shrink-0 no-underline`}
@@ -743,6 +762,7 @@ function TargetRow({
 }
 
 function TargetList({
+  coordinateDisclosureMessages,
   forecast,
   nightDate,
   targets,
@@ -751,6 +771,7 @@ function TargetList({
   description,
   secondary = false,
 }: Readonly<{
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   description: string;
   forecast?: WeatherForecast;
   nightDate: string;
@@ -779,6 +800,7 @@ function TargetList({
       >
         {targets.map((target) => (
           <TargetRow
+            coordinateDisclosureMessages={coordinateDisclosureMessages}
             {...(forecast === undefined ? {} : { forecast })}
             key={target.item.slug}
             nightDate={nightDate}
@@ -1014,6 +1036,7 @@ function TonightWeatherPanel({
 
 function AnalysisResults({
   analysis,
+  coordinateDisclosureMessages,
   detailLoad,
   location,
   nightDate,
@@ -1022,6 +1045,7 @@ function AnalysisResults({
   timeZone,
 }: Readonly<{
   analysis: TonightAnalysis | null;
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   detailLoad: DetailLoadState;
   location: ObserverLocation;
   nightDate: string;
@@ -1088,6 +1112,7 @@ function AnalysisResults({
       <TonightWeatherPanel timeZone={timeZone} weather={weather} />
       {analysis.night.astronomicalDarkness !== null && primary.length > 0 ? (
         <TargetList
+          coordinateDisclosureMessages={coordinateDisclosureMessages}
           description="A target is in this section when its sampled maximum during astronomical darkness is above 0° geometric altitude."
           {...(weather.forecast === undefined ? {} : { forecast: weather.forecast })}
           nightDate={nightDate}
@@ -1098,6 +1123,7 @@ function AnalysisResults({
       ) : null}
       {analysis.night.astronomicalDarkness !== null && below.length > 0 ? (
         <TargetList
+          coordinateDisclosureMessages={coordinateDisclosureMessages}
           description="These targets have a sampled darkness maximum at or below 0°. Signed altitude is preserved."
           nightDate={nightDate}
           secondary
@@ -1122,7 +1148,12 @@ function AnalysisResults({
   );
 }
 
-export function TonightView({ apiOrigin, collectionStateMessages, initialDate }: TonightViewProps) {
+export function TonightView({
+  apiOrigin,
+  collectionStateMessages,
+  coordinateDisclosureMessages,
+  initialDate,
+}: TonightViewProps) {
   const router = useRouter();
   const collectionsStatus = useCollectionsStatus();
   const collectionsData = useCollectionsData();
@@ -1374,6 +1405,7 @@ export function TonightView({ apiOrigin, collectionStateMessages, initialDate }:
               </div>
               <AnalysisResults
                 analysis={analysis}
+                coordinateDisclosureMessages={coordinateDisclosureMessages}
                 detailLoad={detailLoad}
                 nightDate={activeNightDate}
                 location={location}

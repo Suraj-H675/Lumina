@@ -3,9 +3,10 @@ import "server-only";
 import type { EntityDetailResponse, EntitySummaryResponse } from "@lumina/api-client";
 
 import {
+  coordinateDisclosureForProfile,
   coordinateProfileForSource,
   extractCoordinatePairs,
-  getCoordinateDisclosure,
+  type CoordinateDisclosure,
   type CoordinatePair,
 } from "../observation/domain";
 import { loadExploreCatalogue, loadObjectBySlug, type CatalogueLoaderOptions } from "./catalog";
@@ -30,7 +31,7 @@ export type DeepSkySelectionOutcome =
   | Readonly<{ detail: EntityDetailResponse; kind: "coordinate-ambiguous"; slug: string }>
   | Readonly<{
       coordinate: CoordinatePair;
-      coordinateDisclosure: string;
+      coordinateDisclosure: CoordinateDisclosure;
       detail: EntityDetailResponse;
       kind: "ready";
       slug: string;
@@ -110,7 +111,7 @@ export async function loadDeepSkySelection(
   }
   return {
     coordinate,
-    coordinateDisclosure: getCoordinateDisclosure(profile),
+    coordinateDisclosure: coordinateDisclosureForProfile(profile),
     detail: outcome.detail,
     kind: "ready",
     slug,

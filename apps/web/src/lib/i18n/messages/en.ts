@@ -188,6 +188,17 @@ export const enMessages = {
       tooLongName: "Keep the name within {max} characters.",
     },
   },
+  coordinateDisclosure: {
+    gaiaDr3:
+      "Gaia DR3 catalogue position at reference epoch {referenceEpoch}. Proper motion is not propagated.",
+    messierJ2000:
+      "SIMBAD Messier J2000 catalogue position at reference epoch {referenceEpoch}. No epoch propagation is applied.",
+    messierResolverJ2000:
+      "SIMBAD Messier ICRS J2000 resolver-record catalogue anchor at reference epoch {referenceEpoch}. It is not asserted to be a geometric target centre; no epoch propagation is applied.",
+    reviewed:
+      "Reviewed catalogue position at reference epoch {referenceEpoch}. No epoch propagation is applied.",
+    reviewedWithoutEpoch: "Reviewed catalogue position. No epoch propagation is applied.",
+  },
   discoveries: {
     backToMissionControl: "Back to Mission Control",
     bundleReviewed: "Bundle reviewed {reviewedAt}.",
@@ -610,7 +621,6 @@ export const enMessages = {
         title: "Rise, transit, set",
       },
       source: {
-        reviewedPosition: "Reviewed catalogue position. No epoch propagation is applied.",
         sourceRecordLabel: "Source record",
         title: "Position source",
       },

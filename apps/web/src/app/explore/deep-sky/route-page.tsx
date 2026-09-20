@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { entityTypeLabel } from "../../../lib/catalog-display";
+import { formatCoordinateDisclosure } from "../../../lib/i18n/coordinate-disclosure";
+import type { CoordinateDisclosureMessages } from "../../../lib/i18n/messages/types";
 import {
   loadDeepSkyBrowse,
   loadDeepSkySelection,
@@ -17,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 type DeepSkyPageProps = Readonly<{
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   searchParams: Promise<Readonly<{ layer?: string | string[]; object?: string | string[] }>>;
 }>;
 
@@ -39,7 +42,10 @@ function selectionForInvalidQuery(): DeepSkySelectionOutcome {
   return { kind: "invalid-object" };
 }
 
-export default async function DeepSkyPage({ searchParams }: DeepSkyPageProps) {
+export default async function DeepSkyPage({
+  coordinateDisclosureMessages,
+  searchParams,
+}: DeepSkyPageProps) {
   const params = await searchParams;
   const objectParam = singleParam(params.object);
   const layerParam = singleParam(params.layer);
@@ -110,7 +116,10 @@ export default async function DeepSkyPage({ searchParams }: DeepSkyPageProps) {
         />
       </section>
 
-      <SelectedObject selection={selection} />
+      <SelectedObject
+        coordinateDisclosureMessages={coordinateDisclosureMessages}
+        selection={selection}
+      />
 
       <DeepSkyAtlas initialLayerId={activeLayer.id} target={target} />
 
@@ -211,7 +220,13 @@ function DeepSkyBrowse({
   );
 }
 
-function SelectedObject({ selection }: Readonly<{ selection: DeepSkySelectionOutcome }>) {
+function SelectedObject({
+  coordinateDisclosureMessages,
+  selection,
+}: Readonly<{
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
+  selection: DeepSkySelectionOutcome;
+}>) {
   if (selection.kind === "none") {
     return (
       <section
@@ -286,7 +301,7 @@ function SelectedObject({ selection }: Readonly<{ selection: DeepSkySelectionOut
         <CoordinateFact label="Coordinate source" value={coordinate.source.provider.name} />
       </dl>
       <div className="space-y-2 text-sm leading-6 text-[var(--muted)]">
-        <p>{coordinateDisclosure}</p>
+        <p>{formatCoordinateDisclosure(coordinateDisclosure, coordinateDisclosureMessages)}</p>
         <p>
           Dataset: {coordinate.source.dataset.name} ({coordinate.source.dataset.release_version}) ·
           source record <span className="font-mono">{coordinate.source.source_record_id}</span>.

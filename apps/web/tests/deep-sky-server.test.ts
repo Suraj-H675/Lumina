@@ -182,7 +182,10 @@ describe("Phase 5A deep-sky server projection", () => {
       epoch: 2000,
       rightAscensionDegrees: 10.684708333333334,
     });
-    expect(result.coordinateDisclosure).toContain("SIMBAD Messier ICRS J2000 resolver-record");
+    expect(result.coordinateDisclosure).toEqual({
+      kind: "messier-resolver-j2000",
+      referenceEpoch: "J2000.0",
+    });
     expect(requests).toEqual([
       "/api/v1/catalog/entities/by-slug/messier-31",
       `/api/v1/catalog/entities/${M31.id}`,

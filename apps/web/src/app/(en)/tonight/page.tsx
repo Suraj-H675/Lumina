@@ -12,6 +12,7 @@ export default function EnglishTonightPage({
         failures: enMessages.collections.failures,
         shared: enMessages.collections.shared,
       }}
+      coordinateDisclosureMessages={enMessages.coordinateDisclosure}
       searchParams={searchParams}
     />
   );

@@ -20,19 +20,24 @@ import { ObservationConditions } from "./observation-conditions";
 import { SaveObservationPlanButton } from "./save-observation-plan-button";
 import { SkyFinder } from "./sky-finder";
 import { entityTypeLabel } from "../lib/catalog-display";
+import { formatCoordinateDisclosure } from "../lib/i18n/coordinate-disclosure";
 import {
   formatLocaleDateTime,
   formatLocaleNumber,
   formatMessageTemplate,
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
-import type { JournalEntryMessages, ObservationPlannerMessages } from "../lib/i18n/messages/types";
+import type {
+  CoordinateDisclosureMessages,
+  JournalEntryMessages,
+  ObservationPlannerMessages,
+} from "../lib/i18n/messages/types";
 import {
   computeObservationPlan,
+  coordinateDisclosureForProfile,
   coordinateProfileForSource,
   extractCoordinatePairs,
   formatCompassDirection,
-  getCoordinateDisclosure,
   isValidNightDate,
   localDateString,
   localInstantForNightTime,
@@ -45,6 +50,7 @@ import {
 
 export type ObservationPlannerProps = Readonly<{
   apiOrigin?: string;
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   detail: EntityDetailResponse | null;
   initialDate?: string;
   journalEntryMessages: JournalEntryMessages;
@@ -170,9 +176,11 @@ function eventCard(label: string, value: string) {
 }
 
 function CoordinateSource({
+  disclosureMessages,
   messages,
   plan,
 }: Readonly<{
+  disclosureMessages: CoordinateDisclosureMessages;
   messages: ObservationPlannerMessages["results"]["source"];
   plan: ObservationPlan;
 }>) {
@@ -193,7 +201,9 @@ function CoordinateSource({
       <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
         {messages.sourceRecordLabel}{" "}
         <span className="font-mono">{coordinate.source.source_record_id}</span> ·{" "}
-        {profile === null ? messages.reviewedPosition : getCoordinateDisclosure(profile)}
+        {profile === null
+          ? disclosureMessages.reviewedWithoutEpoch
+          : formatCoordinateDisclosure(coordinateDisclosureForProfile(profile), disclosureMessages)}
       </p>
     </section>
   );
@@ -378,6 +388,7 @@ function AltitudeChart({
 }
 
 function PlannerResults({
+  coordinateDisclosureMessages,
   journalEntryMessages,
   locale,
   messages,
@@ -389,6 +400,7 @@ function PlannerResults({
   targetSlug,
   timeZone,
 }: Readonly<{
+  coordinateDisclosureMessages: CoordinateDisclosureMessages;
   journalEntryMessages: JournalEntryMessages;
   locale: PublishedLocale;
   messages: ObservationPlannerMessages;
@@ -551,13 +563,18 @@ function PlannerResults({
         plan={plan}
         timeZone={timeZone}
       />
-      <CoordinateSource messages={messages.results.source} plan={plan} />
+      <CoordinateSource
+        disclosureMessages={coordinateDisclosureMessages}
+        messages={messages.results.source}
+        plan={plan}
+      />
     </section>
   );
 }
 
 export function ObservationPlanner({
   apiOrigin,
+  coordinateDisclosureMessages,
   detail,
   initialDate,
   journalEntryMessages,
@@ -927,6 +944,7 @@ export function ObservationPlanner({
             </section>
           ) : plan !== null ? (
             <PlannerResults
+              coordinateDisclosureMessages={coordinateDisclosureMessages}
               journalEntryMessages={journalEntryMessages}
               locale={locale}
               messages={messages}

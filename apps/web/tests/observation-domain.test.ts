@@ -17,7 +17,7 @@ import {
   RIGHT_ASCENSION_QUANTITY_CODE,
   calculateHorizontalPosition,
   computeObservationPlan,
-  getCoordinateDisclosure,
+  coordinateDisclosureForProfile,
   extractCoordinatePairs,
   formatCompassDirection,
   isValidNightDate,
@@ -195,7 +195,7 @@ describe("observation domain", () => {
 
   it("keeps coordinate-source disclosures profile-aware", () => {
     expect(
-      getCoordinateDisclosure({
+      coordinateDisclosureForProfile({
         provider: "esa-gaia",
         dataset: ASTROMETRY_DATASET_CODE,
         release: "dr3",
@@ -203,10 +203,10 @@ describe("observation domain", () => {
         declination: DECLINATION_QUANTITY_CODE,
         epoch: GAIA_REFERENCE_EPOCH,
       }),
-    ).toContain("Gaia DR3 catalogue position at reference epoch J2016.0");
+    ).toEqual({ kind: "gaia-dr3", referenceEpoch: "J2016.0" });
 
     expect(
-      getCoordinateDisclosure({
+      coordinateDisclosureForProfile({
         provider: MESSIER_PROVIDER_CODE,
         dataset: MESSIER_DATASET_CODE,
         release: MESSIER_RELEASE,
@@ -214,9 +214,9 @@ describe("observation domain", () => {
         declination: MESSIER_DECLINATION_QUANTITY_CODE,
         epoch: MESSIER_REFERENCE_EPOCH,
       }),
-    ).toContain("SIMBAD Messier J2000 catalogue position at reference epoch J2000.0");
+    ).toEqual({ kind: "messier-j2000", referenceEpoch: "J2000.0" });
     expect(
-      getCoordinateDisclosure({
+      coordinateDisclosureForProfile({
         provider: MESSIER_PROVIDER_CODE,
         dataset: MESSIER_DATASET_CODE,
         release: MESSIER_RELEASE,
@@ -224,10 +224,10 @@ describe("observation domain", () => {
         declination: MESSIER_DECLINATION_QUANTITY_CODE,
         epoch: MESSIER_REFERENCE_EPOCH,
       }),
-    ).not.toMatch(/Gaia DR3|J2016\.0/);
+    ).not.toEqual({ kind: "gaia-dr3", referenceEpoch: "J2016.0" });
 
     expect(
-      getCoordinateDisclosure({
+      coordinateDisclosureForProfile({
         provider: MESSIER_PROVIDER_CODE,
         dataset: MESSIER_DATASET_CODE,
         release: MESSIER_V2_RELEASE,
@@ -235,11 +235,11 @@ describe("observation domain", () => {
         declination: MESSIER_DECLINATION_QUANTITY_CODE,
         epoch: MESSIER_REFERENCE_EPOCH,
       }),
-    ).toContain("SIMBAD Messier ICRS J2000 resolver-record catalogue anchor");
+    ).toEqual({ kind: "messier-resolver-j2000", referenceEpoch: "J2000.0" });
   });
 
-  it("handles a partial custom profile without leaking undefined metadata", () => {
-    const disclosure = getCoordinateDisclosure({
+  it("handles a partial custom profile without leaking presentation copy", () => {
+    const disclosure = coordinateDisclosureForProfile({
       provider: "custom-provider",
       dataset: "custom-dataset",
       release: "",
@@ -247,10 +247,7 @@ describe("observation domain", () => {
       declination: "",
       epoch: 1999,
     });
-    expect(disclosure).toBe(
-      "Reviewed catalogue position at reference epoch J1999.0. No epoch propagation is applied.",
-    );
-    expect(disclosure).not.toContain("undefined");
+    expect(disclosure).toEqual({ kind: "reviewed", referenceEpoch: "J1999.0" });
   });
 
   it("accepts a SIMBAD J2000 pair and validates RA with the active profile", () => {

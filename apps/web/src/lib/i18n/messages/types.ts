@@ -256,6 +256,14 @@ export type CountMessageTemplates = Readonly<{
   other: string;
 }>;
 
+export type CoordinateDisclosureMessages = Readonly<{
+  gaiaDr3: string;
+  messierJ2000: string;
+  messierResolverJ2000: string;
+  reviewed: string;
+  reviewedWithoutEpoch: string;
+}>;
+
 export type LearningProgressControlsMessages = Readonly<{
   cancelImportAction: string;
   confirmImportAction: string;
@@ -953,7 +961,6 @@ export type ObservationPlannerMessages = Readonly<{
       title: string;
     }>;
     source: Readonly<{
-      reviewedPosition: string;
       sourceRecordLabel: string;
       title: string;
     }>;
@@ -1389,6 +1396,7 @@ export type StatusMessages = Readonly<{
 
 export type LuminaMessages = Readonly<{
   collections: CollectionsMessages;
+  coordinateDisclosure: CoordinateDisclosureMessages;
   discoveries: DiscoveriesMessages;
   journal: JournalMessages;
   labIndex: LabIndexMessages;

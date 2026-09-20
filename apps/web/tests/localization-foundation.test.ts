@@ -176,6 +176,28 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.identify.surveyComparison.states.showingLayer).toContain("{layer}");
   });
 
+  it("keeps Near-Earth wrapper templates explicit and placeholder-complete", () => {
+    expect(enMessages.spaceNow.nearEarth.intro).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.metadataDescription).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.prediction.classification).toContain("{authority}");
+    expect(enMessages.spaceNow.nearEarth.prediction.uncertainty).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.prediction.updates).toContain("{authority}");
+    expect(enMessages.spaceNow.nearEarth.snapshot.freshDescription).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.snapshot.staleDescription).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.source.officialDocumentation).toContain("{sourceName}");
+    expect(enMessages.spaceNow.nearEarth.table.approachTime).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.table.caption).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.table.hazardousLabel).toContain("{value}");
+    expect(enMessages.spaceNow.nearEarth.table.objectReference).toContain("{id}");
+    expect(enMessages.spaceNow.nearEarth.window.capped).toContain("{returned}");
+    expect(enMessages.spaceNow.nearEarth.window.capped).toContain("{total}");
+    expect(enMessages.spaceNow.nearEarth.window.empty).toContain("{provider}");
+    expect(enMessages.spaceNow.nearEarth.window.listed.one).toContain("{count}");
+    expect(enMessages.spaceNow.nearEarth.window.listed.other).toContain("{count}");
+    expect(enMessages.spaceNow.nearEarth.window.range).toContain("{startDate}");
+    expect(enMessages.spaceNow.nearEarth.window.range).toContain("{endDate}");
+  });
+
   it("keeps Deep Sky atlas templates placeholder-complete", () => {
     expect(enMessages.deepSky.atlas.activation.readyForTarget).toContain("{objectName}");
     expect(enMessages.deepSky.atlas.status.checkingSurvey).toContain("{layerLabel}");

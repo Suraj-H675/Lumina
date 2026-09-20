@@ -7,8 +7,12 @@ import type { NearEarthResponse } from "@lumina/api-client";
 vi.mock("server-only", () => ({}));
 
 import { NearEarthView } from "../src/app/now/near-earth/near-earth-view";
+import { createNearEarthMetadata } from "../src/app/now/near-earth/route-page";
 import { SiteShell } from "../src/components/site-shell";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
+import type { NearEarthMessages } from "../src/lib/i18n/messages/types";
 import { loadNowNearEarth } from "../src/lib/server/space-now";
 
 const source = {
@@ -72,11 +76,30 @@ const response: NearEarthResponse = {
   source,
 };
 
-function renderPage(value: NearEarthResponse) {
+function renderPage(
+  value: NearEarthResponse,
+  messages: NearEarthMessages = enMessages.spaceNow.nearEarth,
+) {
   return render(
     <SiteShell {...EN_SHELL_PROPS}>
-      <NearEarthView outcome={{ data: value, kind: "ok" }} />
+      <NearEarthView
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+        outcome={{ data: value, kind: "ok" }}
+        retrievalMessages={enMessages.spaceNow.retrieval}
+      />
     </SiteShell>,
+  );
+}
+
+function renderUnavailable() {
+  return (
+    <NearEarthView
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.spaceNow.nearEarth}
+      outcome={{ kind: "unavailable" }}
+      retrievalMessages={enMessages.spaceNow.retrieval}
+    />
   );
 }
 
@@ -85,8 +108,9 @@ describe("Space Now Near-Earth Objects", () => {
     const { container } = renderPage(response);
 
     expect(screen.getByRole("heading", { level: 1, name: "Near-Earth Objects" })).toBeVisible();
-    expect(screen.getByText("2026-09-12")).toBeVisible();
-    expect(screen.getByText("2026-09-18")).toBeVisible();
+    expect(
+      screen.getByText("Earth close approaches from 2026-09-12 through 2026-09-18."),
+    ).toBeVisible();
     expect(screen.getByRole("table")).toBeVisible();
     expect(screen.getByRole("columnheader", { name: "Nominal miss distance (km)" })).toBeVisible();
     expect(screen.getByText("Potentially hazardous asteroid: Yes")).toBeVisible();
@@ -116,7 +140,9 @@ describe("Space Now Near-Earth Objects", () => {
     expect(screen.getByText("Retrieved at (UTC)")).toBeVisible();
     expect(screen.getByText("2026-09-12T12:00:00Z")).toBeVisible();
     expect(screen.getByText("provider.timeout")).toBeVisible();
-    expect(screen.getByText("2026-09-12")).toBeVisible();
+    expect(
+      screen.getByText("Earth close approaches from 2026-09-12 through 2026-09-18."),
+    ).toBeVisible();
   });
 
   it("reports the full feed count when the public table is capped", () => {
@@ -131,26 +157,63 @@ describe("Space Now Near-Earth Objects", () => {
     ).toBeVisible();
   });
 
+  it("localizes route chrome without rewriting NeoWs source or encounter data", () => {
+    const messages: NearEarthMessages = {
+      ...enMessages.spaceNow.nearEarth,
+      metadataDescription: "Fixture metadata for {provider}.",
+      metadataTitle: "Fixture Near-Earth metadata",
+      snapshot: {
+        ...enMessages.spaceNow.nearEarth.snapshot,
+        freshTitle: "Fixture fresh snapshot",
+      },
+      source: {
+        ...enMessages.spaceNow.nearEarth.source,
+        officialDocumentation: "Fixture documentation for {sourceName}",
+      },
+      table: {
+        ...enMessages.spaceNow.nearEarth.table,
+        hazardousLabel: "Fixture hazard: {value}",
+        nominalMissDistance: "Fixture nominal distance",
+        yes: "Fixture yes",
+      },
+      title: "Fixture Near-Earth title",
+    };
+
+    renderPage(response, messages);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Fixture Near-Earth title" }),
+    ).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("Fixture fresh snapshot");
+    expect(screen.getByRole("columnheader", { name: "Fixture nominal distance" })).toBeVisible();
+    expect(screen.getByText("Fixture hazard: Fixture yes")).toBeVisible();
+    expect(screen.getByText("<script>alert('fixture')</script>")).toBeVisible();
+    expect(screen.getByText("2026-Sep-14 08:05")).toBeVisible();
+    expect(
+      screen.getByText("Earth close approaches from 2026-09-12 through 2026-09-18."),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Fixture documentation for NASA Asteroids NeoWs" }),
+    ).toHaveAttribute("href", "https://api.nasa.gov/");
+    expect(createNearEarthMetadata(messages)).toEqual({
+      description: "Fixture metadata for NASA NeoWs.",
+      title: "Fixture Near-Earth metadata",
+    });
+  });
+
   it("renders empty and unavailable states without scientific data", () => {
-    const { rerender } = render(
-      <NearEarthView
-        outcome={{
-          data: {
-            ...response,
-            total_encounter_count: 0,
-            returned_encounter_count: 0,
-            encounters: [],
-          },
-          kind: "ok",
-        }}
-      />,
-    );
+    const { rerender } = renderPage({
+      ...response,
+      total_encounter_count: 0,
+      returned_encounter_count: 0,
+      encounters: [],
+    });
     expect(
       screen.getByText("No Earth close approaches are listed in the current NeoWs feed window."),
     ).toBeVisible();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
 
-    rerender(<NearEarthView outcome={{ kind: "unavailable" }} />);
+    rerender(<SiteShell {...EN_SHELL_PROPS}>{renderUnavailable()}</SiteShell>);
     expect(screen.getByRole("status")).toHaveTextContent(
       "Near-Earth approach data is currently unavailable.",
     );

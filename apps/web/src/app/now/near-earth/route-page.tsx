@@ -1,18 +1,37 @@
 import type { Metadata } from "next";
 
+import { formatMessageTemplate } from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { NearEarthMessages, SpaceNowMessages } from "../../../lib/i18n/messages/types";
+import { NASA_NEOWS_NAME } from "../../../lib/space-now/provider-display";
 import { loadNowNearEarth } from "../../../lib/server/space-now";
 import { NearEarthView } from "./near-earth-view";
 
-export const metadata: Metadata = {
-  title: "Near-Earth Objects",
-  description:
-    "A source-backed NASA NeoWs view of predicted Earth close approaches, with nominal distances, speeds, estimated diameter ranges, and classification context.",
-};
+export function createNearEarthMetadata(messages: NearEarthMessages): Metadata {
+  return {
+    title: messages.metadataTitle,
+    description: formatMessageTemplate(messages.metadataDescription, {
+      provider: NASA_NEOWS_NAME,
+    }),
+  };
+}
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-export default async function NearEarthPage() {
+export default async function NearEarthPage({
+  locale,
+  messages,
+  retrievalMessages,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: NearEarthMessages;
+  retrievalMessages: SpaceNowMessages["retrieval"];
+}>) {
   const outcome = await loadNowNearEarth();
-  return <NearEarthView outcome={outcome} />;
+  return (
+    <NearEarthView
+      locale={locale}
+      messages={messages}
+      outcome={outcome}
+      retrievalMessages={retrievalMessages}
+    />
+  );
 }

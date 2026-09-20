@@ -1931,6 +1931,62 @@ export type LaunchCenterMessages = Readonly<{
   }>;
 }>;
 
+export type NearEarthMessages = Readonly<{
+  eyebrow: string;
+  intro: string;
+  metadataDescription: string;
+  metadataTitle: string;
+  prediction: Readonly<{
+    classification: string;
+    title: string;
+    uncertainty: string;
+    updates: string;
+  }>;
+  snapshot: Readonly<{
+    freshDescription: string;
+    freshTitle: string;
+    staleDescription: string;
+    staleTitle: string;
+  }>;
+  source: Readonly<{
+    officialDocumentation: string;
+    title: string;
+  }>;
+  table: Readonly<{
+    absoluteMagnitude: string;
+    approachTime: string;
+    caption: string;
+    classification: string;
+    diameterRange: string;
+    hazardousLabel: string;
+    heading: string;
+    nominalLunarDistance: string;
+    nominalMissDistance: string;
+    object: string;
+    objectReference: string;
+    relativeVelocity: string;
+    yes: string;
+    no: string;
+    context: string;
+  }>;
+  title: string;
+  unavailable: Readonly<{
+    cachedContentExpired: string;
+    generic: string;
+    noCachedContent: string;
+    providerDisabled: string;
+    returnToSpaceNow: string;
+    title: string;
+  }>;
+  window: Readonly<{
+    capped: string;
+    empty: string;
+    listed: CountMessageTemplates;
+    range: string;
+    title: string;
+  }>;
+}>;
+
 export type SpaceNowMessages = Readonly<{
   dailyVisual: Readonly<{
     aboutTitle: string;
@@ -1955,6 +2011,7 @@ export type SpaceNowMessages = Readonly<{
   eyebrow: string;
   intro: string;
   launches: LaunchCenterMessages;
+  nearEarth: NearEarthMessages;
   metadataDescription: string;
   metadataTitle: string;
   navigation: Readonly<{

@@ -1,39 +1,92 @@
 import type { NearEarthResponse } from "@lumina/api-client";
 import Link from "next/link";
 
+import {
+  formatCountMessage,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../../../lib/i18n/format";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { NearEarthMessages, SpaceNowMessages } from "../../../lib/i18n/messages/types";
 import type { NowNearEarthOutcome } from "../../../lib/server/space-now";
+import {
+  NASA_ASTEROIDS_NEOWS_NAME,
+  NASA_JPL_NAME,
+  NASA_NEOWS_NAME,
+  NEOWS_NAME,
+} from "../../../lib/space-now/provider-display";
 
-const PHA_EXPLANATION =
-  "Potentially hazardous is a technical NASA/JPL classification based on orbital proximity and brightness that identifies objects with potential for close approaches. It does not mean an impact is predicted.";
-const UNCERTAINTY_EXPLANATION =
-  "Close-approach uncertainty is not provided by the NeoWs feed used in this version.";
+type NearEarthViewProps = Readonly<{
+  locale: PublishedLocale;
+  messages: NearEarthMessages;
+  outcome: NowNearEarthOutcome;
+  retrievalMessages: SpaceNowMessages["retrieval"];
+}>;
 
-export function NearEarthView({ outcome }: Readonly<{ outcome: NowNearEarthOutcome }>) {
+export function NearEarthView({
+  locale,
+  messages,
+  outcome,
+  retrievalMessages,
+}: NearEarthViewProps) {
   return (
     <article className="max-w-6xl space-y-10">
       <header className="max-w-3xl space-y-5">
         <p className="text-sm font-semibold tracking-[0.14em] text-[var(--accent)] uppercase">
-          Space Now
+          {messages.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Near-Earth Objects</h1>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
         <p className="text-lg leading-8 text-[var(--muted)]">
-          A bounded view of predicted Earth close approaches from NASA Asteroids NeoWs. A close
-          approach is a distance-and-time prediction, not an impact warning.
+          {formatMessageTemplate(messages.intro, {
+            provider: NASA_ASTEROIDS_NEOWS_NAME,
+          })}
         </p>
       </header>
 
-      {outcome.kind === "ok" ? <NearEarthData response={outcome.data} /> : <UnavailableNearEarth />}
+      {outcome.kind === "ok" ? (
+        <NearEarthData
+          locale={locale}
+          messages={messages}
+          response={outcome.data}
+          retrievalMessages={retrievalMessages}
+        />
+      ) : (
+        <UnavailableNearEarth messages={messages} retrievalMessages={retrievalMessages} />
+      )}
     </article>
   );
 }
 
-function NearEarthData({ response }: Readonly<{ response: NearEarthResponse }>) {
+function NearEarthData({
+  locale,
+  messages,
+  response,
+  retrievalMessages,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: NearEarthMessages;
+  response: NearEarthResponse;
+  retrievalMessages: SpaceNowMessages["retrieval"];
+}>) {
   if (response.availability === "unavailable") {
-    return <UnavailableNearEarth response={response} />;
+    return (
+      <UnavailableNearEarth
+        messages={messages}
+        response={response}
+        retrievalMessages={retrievalMessages}
+      />
+    );
   }
 
   const window = response.window;
-  if (window === null) return <UnavailableNearEarth response={response} />;
+  if (window === null)
+    return (
+      <UnavailableNearEarth
+        messages={messages}
+        response={response}
+        retrievalMessages={retrievalMessages}
+      />
+    );
   const showingMore = response.total_encounter_count > response.returned_encounter_count;
 
   return (
@@ -45,36 +98,47 @@ function NearEarthData({ response }: Readonly<{ response: NearEarthResponse }>) 
       >
         <h2 className="text-xl font-semibold">
           {response.availability === "stale"
-            ? "Stale near-Earth approach snapshot"
-            : "Fresh near-Earth approach snapshot"}
+            ? messages.snapshot.staleTitle
+            : messages.snapshot.freshTitle}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          {response.availability === "stale"
-            ? "This page is showing the last successfully retrieved NeoWs feed window; its retrieval time is listed below."
-            : "This page shows the current seven-day NeoWs feed window; its retrieval time is listed below."}
+          {formatMessageTemplate(
+            response.availability === "stale"
+              ? messages.snapshot.staleDescription
+              : messages.snapshot.freshDescription,
+            { provider: NEOWS_NAME },
+          )}
         </p>
       </section>
 
       <section aria-labelledby="near-earth-window-heading" className="space-y-3">
         <h2 className="text-2xl font-semibold" id="near-earth-window-heading">
-          Feed window
+          {messages.window.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
-          Earth close approaches from{" "}
-          <span className="font-medium text-[var(--foreground)]">{window.start_date}</span> through{" "}
-          <span className="font-medium text-[var(--foreground)]">{window.end_date}</span>.
+          {formatMessageTemplate(messages.window.range, {
+            endDate: window.end_date,
+            startDate: window.start_date,
+          })}
         </p>
         <p className="text-sm leading-7 text-[var(--muted)]">
           {response.total_encounter_count === 0
-            ? "No Earth close approaches are listed in the current NeoWs feed window."
+            ? formatMessageTemplate(messages.window.empty, { provider: NEOWS_NAME })
             : showingMore
-              ? `Showing the next ${response.returned_encounter_count} of ${response.total_encounter_count} approaches in this feed window.`
-              : `${response.total_encounter_count} approach${response.total_encounter_count === 1 ? "" : "es"} listed in this feed window.`}
+              ? formatMessageTemplate(messages.window.capped, {
+                  returned: formatLocaleNumber(response.returned_encounter_count, locale),
+                  total: formatLocaleNumber(response.total_encounter_count, locale),
+                })
+              : formatCountMessage(messages.window.listed, response.total_encounter_count, locale)}
         </p>
       </section>
 
       {response.encounters.length === 0 ? null : (
-        <EncounterTable encounters={response.encounters} />
+        <EncounterTable
+          encounters={response.encounters}
+          locale={locale}
+          messages={messages.table}
+        />
       )}
 
       <section
@@ -82,58 +146,71 @@ function NearEarthData({ response }: Readonly<{ response: NearEarthResponse }>) 
         className="space-y-4 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="near-earth-uncertainty-heading">
-          Prediction context
+          {messages.prediction.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">{UNCERTAINTY_EXPLANATION}</p>
-        <p className="leading-7 text-[var(--muted)]">{PHA_EXPLANATION}</p>
         <p className="leading-7 text-[var(--muted)]">
-          NASA/JPL updates orbit solutions as new observations become available, so predicted
-          approach statistics can change.
+          {formatMessageTemplate(messages.prediction.uncertainty, { provider: NEOWS_NAME })}
+        </p>
+        <p className="leading-7 text-[var(--muted)]">
+          {formatMessageTemplate(messages.prediction.classification, {
+            authority: NASA_JPL_NAME,
+          })}
+        </p>
+        <p className="leading-7 text-[var(--muted)]">
+          {formatMessageTemplate(messages.prediction.updates, { authority: NASA_JPL_NAME })}
         </p>
       </section>
 
-      <FreshnessDetails response={response} />
-      <SourceDetails response={response} />
+      <FreshnessDetails messages={retrievalMessages} response={response} />
+      <SourceDetails messages={messages.source} response={response} />
     </div>
   );
 }
 
-function EncounterTable({ encounters }: Readonly<{ encounters: NearEarthResponse["encounters"] }>) {
+function EncounterTable({
+  encounters,
+  locale,
+  messages,
+}: Readonly<{
+  encounters: NearEarthResponse["encounters"];
+  locale: PublishedLocale;
+  messages: NearEarthMessages["table"];
+}>) {
   return (
     <section aria-labelledby="near-earth-encounters-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="near-earth-encounters-heading">
-        Predicted closest approaches
+        {messages.heading}
       </h2>
       <div className="overflow-x-auto border border-[var(--border)]" tabIndex={0}>
         <table className="min-w-[60rem] w-full border-collapse text-left text-sm">
           <caption className="sr-only">
-            NASA NeoWs Earth close approaches, ordered by provider approach epoch
+            {formatMessageTemplate(messages.caption, { provider: NASA_NEOWS_NAME })}
           </caption>
           <thead className="bg-[var(--surface)]">
             <tr>
               <th className="min-w-44 px-4 py-3 font-semibold" scope="col">
-                Object
+                {messages.object}
               </th>
               <th className="min-w-48 px-4 py-3 font-semibold" scope="col">
-                NASA NeoWs close-approach time
+                {formatMessageTemplate(messages.approachTime, { provider: NASA_NEOWS_NAME })}
               </th>
               <th className="min-w-44 px-4 py-3 font-semibold" scope="col">
-                Nominal miss distance (km)
+                {messages.nominalMissDistance}
               </th>
               <th className="min-w-40 px-4 py-3 font-semibold" scope="col">
-                Nominal distance (lunar distances)
+                {messages.nominalLunarDistance}
               </th>
               <th className="min-w-36 px-4 py-3 font-semibold" scope="col">
-                Relative velocity (km/s)
+                {messages.relativeVelocity}
               </th>
               <th className="min-w-48 px-4 py-3 font-semibold" scope="col">
-                Estimated diameter range (m)
+                {messages.diameterRange}
               </th>
               <th className="min-w-48 px-4 py-3 font-semibold" scope="col">
-                Classification
+                {messages.classification}
               </th>
               <th className="min-w-32 px-4 py-3 font-semibold" scope="col">
-                Absolute magnitude H
+                {messages.absoluteMagnitude}
               </th>
             </tr>
           </thead>
@@ -146,62 +223,80 @@ function EncounterTable({ encounters }: Readonly<{ encounters: NearEarthResponse
                 <th className="px-4 py-4 font-medium" scope="row">
                   <span className="block">{encounter.name}</span>
                   <span className="mt-1 block text-xs text-[var(--muted)]">
-                    NEO {encounter.neo_reference_id}
+                    {formatMessageTemplate(messages.objectReference, {
+                      id: encounter.neo_reference_id,
+                    })}
                   </span>
                 </th>
                 <td className="px-4 py-4 text-[var(--muted)]">{encounter.approach_time_text}</td>
                 <td className="px-4 py-4 text-[var(--muted)]">
-                  {formatNumber(encounter.nominal_distance_km)}
+                  {formatNearEarthNumber(encounter.nominal_distance_km, locale)}
                 </td>
                 <td className="px-4 py-4 text-[var(--muted)]">
-                  {formatNumber(encounter.nominal_distance_lunar)}
+                  {formatNearEarthNumber(encounter.nominal_distance_lunar, locale)}
                 </td>
                 <td className="px-4 py-4 text-[var(--muted)]">
-                  {formatNumber(encounter.relative_velocity_km_s)}
+                  {formatNearEarthNumber(encounter.relative_velocity_km_s, locale)}
                 </td>
                 <td className="px-4 py-4 text-[var(--muted)]">
-                  {formatNumber(encounter.estimated_diameter_min_m)}–
-                  {formatNumber(encounter.estimated_diameter_max_m)}
+                  {formatNearEarthNumber(encounter.estimated_diameter_min_m, locale)}–
+                  {formatNearEarthNumber(encounter.estimated_diameter_max_m, locale)}
                 </td>
                 <td className="px-4 py-4 text-[var(--muted)]">
-                  Potentially hazardous asteroid:{" "}
-                  {encounter.is_potentially_hazardous_asteroid ? "Yes" : "No"}
+                  {formatMessageTemplate(messages.hazardousLabel, {
+                    value: encounter.is_potentially_hazardous_asteroid ? messages.yes : messages.no,
+                  })}
                 </td>
                 <td className="px-4 py-4 text-[var(--muted)]">
-                  {formatNumber(encounter.absolute_magnitude_h)}
+                  {formatNearEarthNumber(encounter.absolute_magnitude_h, locale)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="text-sm leading-7 text-[var(--muted)]">
-        Nominal distance is the source-published close-approach distance. Relative velocity is
-        relative to Earth at the predicted approach; it is not an impact velocity.
-      </p>
+      <p className="text-sm leading-7 text-[var(--muted)]">{messages.context}</p>
     </section>
   );
 }
 
-function FreshnessDetails({ response }: Readonly<{ response: NearEarthResponse }>) {
+function FreshnessDetails({
+  messages,
+  response,
+}: Readonly<{
+  messages: SpaceNowMessages["retrieval"];
+  response: NearEarthResponse;
+}>) {
   const freshness = response.freshness;
   return (
     <section aria-labelledby="near-earth-freshness-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="near-earth-freshness-heading">
-        Lumina retrieval state
+        {messages.title}
       </h2>
       <dl className="grid gap-4 border border-[var(--border)] p-5 sm:grid-cols-2">
         <div>
-          <dt className="font-medium">Cache state</dt>
-          <dd className="text-[var(--muted)]">{freshness.cache_state}</dd>
+          <dt className="font-medium">{messages.cacheStateLabel}</dt>
+          <dd className="text-[var(--muted)]">{messages.cacheStates[freshness.cache_state]}</dd>
         </div>
-        <TimestampField label="Retrieved at (UTC)" value={freshness.retrieved_at} />
-        <TimestampField label="Fresh until (UTC)" value={freshness.fresh_until} />
-        <TimestampField label="Stale grace ends (UTC)" value={freshness.stale_until} />
+        <TimestampField
+          label={messages.retrievedAtLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.retrieved_at}
+        />
+        <TimestampField
+          label={messages.freshUntilLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.fresh_until}
+        />
+        <TimestampField
+          label={messages.staleUntilLabel}
+          notRecorded={messages.notRecorded}
+          value={freshness.stale_until}
+        />
         <div>
-          <dt className="font-medium">Last safe refresh failure</dt>
+          <dt className="font-medium">{messages.lastFailureLabel}</dt>
           <dd className="text-[var(--muted)]">
-            {freshness.last_refresh_failure_code ?? "None recorded"}
+            {freshness.last_refresh_failure_code ?? messages.noneRecorded}
           </dd>
         </div>
       </dl>
@@ -209,12 +304,15 @@ function FreshnessDetails({ response }: Readonly<{ response: NearEarthResponse }
   );
 }
 
-function SourceDetails({ response }: Readonly<{ response: NearEarthResponse }>) {
+function SourceDetails({
+  messages,
+  response,
+}: Readonly<{ messages: NearEarthMessages["source"]; response: NearEarthResponse }>) {
   const source = response.source;
   return (
     <section aria-labelledby="near-earth-source-heading" className="space-y-4">
       <h2 className="text-2xl font-semibold" id="near-earth-source-heading">
-        Source and attribution
+        {messages.title}
       </h2>
       <div className="space-y-4 border border-[var(--border)] p-5">
         <p className="leading-7 text-[var(--muted)]">{source.attribution_text}</p>
@@ -225,7 +323,9 @@ function SourceDetails({ response }: Readonly<{ response: NearEarthResponse }>) 
             rel="noopener noreferrer"
             target="_blank"
           >
-            {source.name} official documentation
+            {formatMessageTemplate(messages.officialDocumentation, {
+              sourceName: source.name,
+            })}
           </a>
         </p>
       </div>
@@ -233,16 +333,16 @@ function SourceDetails({ response }: Readonly<{ response: NearEarthResponse }>) 
   );
 }
 
-function UnavailableNearEarth({ response }: Readonly<{ response?: NearEarthResponse }>) {
-  const reason = response?.unavailable_reason;
-  const detail =
-    reason === "provider_disabled"
-      ? "The Near-Earth Objects provider is disabled."
-      : reason === "no_cached_content"
-        ? "No validated Near-Earth Objects snapshot is available yet."
-        : reason === "cached_content_expired"
-          ? "The cached Near-Earth Objects snapshot has expired."
-          : "Near-Earth approach data could not be loaded from Lumina right now.";
+function UnavailableNearEarth({
+  messages,
+  response,
+  retrievalMessages,
+}: Readonly<{
+  messages: NearEarthMessages;
+  response?: NearEarthResponse;
+  retrievalMessages: SpaceNowMessages["retrieval"];
+}>) {
+  const detail = unavailableMessage(response?.unavailable_reason, messages.unavailable);
 
   return (
     <section aria-labelledby="near-earth-unavailable-heading" className="space-y-6">
@@ -252,34 +352,48 @@ function UnavailableNearEarth({ response }: Readonly<{ response?: NearEarthRespo
         role="status"
       >
         <h2 className="text-2xl font-semibold" id="near-earth-unavailable-heading">
-          Near-Earth approach data is currently unavailable.
+          {messages.unavailable.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{detail}</p>
       </div>
       {response === undefined ? null : (
         <>
-          <FreshnessDetails response={response} />
-          <SourceDetails response={response} />
+          <FreshnessDetails messages={retrievalMessages} response={response} />
+          <SourceDetails messages={messages.source} response={response} />
         </>
       )}
       <Link className="inline-flex min-h-11 items-center text-[var(--link)] underline" href="/now">
-        Return to Space Now
+        {messages.unavailable.returnToSpaceNow}
       </Link>
     </section>
   );
 }
 
-function TimestampField({ label, value }: Readonly<{ label: string; value: string | null }>) {
+function TimestampField({
+  label,
+  notRecorded,
+  value,
+}: Readonly<{ label: string; notRecorded: string; value: string | null }>) {
   return (
     <div>
       <dt className="font-medium">{label}</dt>
       <dd className="text-[var(--muted)]">
-        {value === null ? "Not recorded" : <time dateTime={value}>{value}</time>}
+        {value === null ? notRecorded : <time dateTime={value}>{value}</time>}
       </dd>
     </div>
   );
 }
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }).format(value);
+function unavailableMessage(
+  reason: NearEarthResponse["unavailable_reason"] | undefined,
+  messages: NearEarthMessages["unavailable"],
+): string {
+  if (reason === "provider_disabled") return messages.providerDisabled;
+  if (reason === "no_cached_content") return messages.noCachedContent;
+  if (reason === "cached_content_expired") return messages.cachedContentExpired;
+  return messages.generic;
+}
+
+function formatNearEarthNumber(value: number, locale: PublishedLocale): string {
+  return formatLocaleNumber(value, locale, { maximumFractionDigits: 6 });
 }

@@ -90,8 +90,9 @@ test.describe("Space Now Near-Earth Objects", () => {
 
     await expect(page).toHaveTitle(/Near-Earth Objects — Lumina/);
     await expect(page.getByRole("heading", { level: 1, name: "Near-Earth Objects" })).toBeVisible();
-    await expect(page.getByText("2026-09-12", { exact: true })).toBeVisible();
-    await expect(page.getByText("2026-09-18", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Earth close approaches from 2026-09-12 through 2026-09-18."),
+    ).toBeVisible();
     await expect(page.getByText("Fixture NEO 1")).toBeVisible();
     await expect(page.getByText("Potentially hazardous asteroid: Yes")).toBeVisible();
     await expect(

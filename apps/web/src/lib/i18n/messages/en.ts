@@ -2612,6 +2612,72 @@ export const enMessages = {
         window: "Window: {start} → {end}",
       },
     },
+    nearEarth: {
+      eyebrow: "Space Now",
+      intro:
+        "A bounded view of predicted Earth close approaches from {provider}. A close approach is a distance-and-time prediction, not an impact warning.",
+      metadataDescription:
+        "A source-backed {provider} view of predicted Earth close approaches, with nominal distances, speeds, estimated diameter ranges, and classification context.",
+      metadataTitle: "Near-Earth Objects",
+      prediction: {
+        classification:
+          "Potentially hazardous is a technical {authority} classification based on orbital proximity and brightness that identifies objects with potential for close approaches. It does not mean an impact is predicted.",
+        title: "Prediction context",
+        uncertainty:
+          "Close-approach uncertainty is not provided by the {provider} feed used in this version.",
+        updates:
+          "{authority} updates orbit solutions as new observations become available, so predicted approach statistics can change.",
+      },
+      snapshot: {
+        freshDescription:
+          "This page shows the current seven-day {provider} feed window; its retrieval time is listed below.",
+        freshTitle: "Fresh near-Earth approach snapshot",
+        staleDescription:
+          "This page is showing the last successfully retrieved {provider} feed window; its retrieval time is listed below.",
+        staleTitle: "Stale near-Earth approach snapshot",
+      },
+      source: {
+        officialDocumentation: "{sourceName} official documentation",
+        title: "Source and attribution",
+      },
+      table: {
+        absoluteMagnitude: "Absolute magnitude H",
+        approachTime: "{provider} close-approach time",
+        caption: "{provider} Earth close approaches, ordered by provider approach epoch",
+        classification: "Classification",
+        context:
+          "Nominal distance is the source-published close-approach distance. Relative velocity is relative to Earth at the predicted approach; it is not an impact velocity.",
+        diameterRange: "Estimated diameter range (m)",
+        hazardousLabel: "Potentially hazardous asteroid: {value}",
+        heading: "Predicted closest approaches",
+        nominalLunarDistance: "Nominal distance (lunar distances)",
+        nominalMissDistance: "Nominal miss distance (km)",
+        no: "No",
+        object: "Object",
+        objectReference: "NEO {id}",
+        relativeVelocity: "Relative velocity (km/s)",
+        yes: "Yes",
+      },
+      title: "Near-Earth Objects",
+      unavailable: {
+        cachedContentExpired: "The cached Near-Earth Objects snapshot has expired.",
+        generic: "Near-Earth approach data could not be loaded from Lumina right now.",
+        noCachedContent: "No validated Near-Earth Objects snapshot is available yet.",
+        providerDisabled: "The Near-Earth Objects provider is disabled.",
+        returnToSpaceNow: "Return to Space Now",
+        title: "Near-Earth approach data is currently unavailable.",
+      },
+      window: {
+        capped: "Showing the next {returned} of {total} approaches in this feed window.",
+        empty: "No Earth close approaches are listed in the current {provider} feed window.",
+        listed: {
+          one: "{count} approach listed in this feed window.",
+          other: "{count} approaches listed in this feed window.",
+        },
+        range: "Earth close approaches from {startDate} through {endDate}.",
+        title: "Feed window",
+      },
+    },
     metadataDescription:
       "A source-backed Daily Visual from NASA Astronomy Picture of the Day, with clear dates, credit, and retrieval state.",
     metadataTitle: "Space Now",

@@ -1,5 +1,5 @@
 import { axe } from "jest-axe";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +7,7 @@ import { enMessages } from "../src/lib/i18n/messages/en";
 import type { DeepSkyAtlasMessages } from "../src/lib/i18n/messages/types";
 
 const fake = vi.hoisted(() => {
+  let callbacks: { onRenderFailed?: () => void } = {};
   const session = {
     detach: vi.fn(),
     focus: vi.fn(() => Promise.resolve()),
@@ -19,8 +20,17 @@ const fake = vi.hoisted(() => {
     zoom: vi.fn(),
   };
   return {
-    attach: vi.fn(() => Promise.resolve(session)),
+    attach: vi.fn(
+      (_container: HTMLElement, nextCallbacks: { onRenderFailed?: () => void } = {}) => {
+        callbacks = nextCallbacks;
+        return Promise.resolve(session);
+      },
+    ),
+    callbacks: () => callbacks,
     probe: vi.fn(() => Promise.resolve(true)),
+    resetCallbacks: () => {
+      callbacks = {};
+    },
     session,
   };
 });
@@ -49,6 +59,7 @@ function renderAtlas(
 
 function resetFake(): void {
   fake.attach.mockClear();
+  fake.resetCallbacks();
   fake.probe.mockReset();
   fake.probe.mockResolvedValue(true);
   for (const method of Object.values(fake.session)) method.mockClear();
@@ -126,6 +137,47 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
     expect(window.location.href).not.toContain("12.971599");
     expect(window.location.href).not.toContain("77.594566");
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("passes the browser reduced-motion preference into atlas focus", async () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({ matches: true })) as unknown as typeof window.matchMedia,
+    );
+    renderAtlas();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
+    await screen.findByText("Interactive atlas ready.");
+    expect(fake.session.focus).toHaveBeenCalledWith({
+      declinationDegrees: target.declinationDegrees,
+      reducedMotion: true,
+      rightAscensionDegrees: target.rightAscensionDegrees,
+    });
+  });
+
+  it("keeps renderer failure visible when rendering dies while initial focus is pending", async () => {
+    let resolveFocus: (() => void) | null = null;
+    fake.session.focus.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveFocus = resolve;
+        }),
+    );
+    renderAtlas();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
+    await waitFor(() => expect(fake.session.focus).toHaveBeenCalledOnce());
+    await act(async () => {
+      fake.callbacks().onRenderFailed?.();
+      resolveFocus?.();
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      enMessages.deepSky.atlas.status.activationFailed,
+    );
+    expect(screen.queryByText("Interactive atlas ready.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open interactive atlas" })).toBeVisible();
   });
 
   it("applies only closed survey layers and transient UTC/view controls", async () => {

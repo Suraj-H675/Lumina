@@ -75,6 +75,48 @@ describe("WWT render-loop lifecycle", () => {
     expect(render).toHaveBeenCalledTimes(1);
   });
 
+  it("pauses while the visual is offscreen and resumes without creating a duplicate loop", () => {
+    const fake = fakeScheduler();
+    const render = vi.fn();
+    const loop = createAtlasRenderLoop(render, fake.scheduler);
+    loop.start();
+    const first = fake.frameIds()[0]!;
+
+    loop.setVisualVisible(false);
+    expect(fake.cancelled).toContain(first);
+    expect(fake.frameIds()).toEqual([]);
+
+    loop.setVisualVisible(false);
+    loop.setVisualVisible(true);
+    loop.setVisualVisible(true);
+    expect(fake.frameIds()).toHaveLength(1);
+    fake.fireFrame(fake.frameIds()[0]!);
+    expect(render).toHaveBeenCalledTimes(1);
+
+    loop.setVisualVisible(false);
+    expect(fake.frameIds()).toEqual([]);
+  });
+
+  it("stops cleanly after a render error and can be restarted deliberately", () => {
+    const fake = fakeScheduler();
+    const render = vi.fn().mockImplementationOnce(() => {
+      throw new Error("render failed");
+    });
+    const onRenderError = vi.fn();
+    const loop = createAtlasRenderLoop(render, fake.scheduler, onRenderError);
+    loop.start();
+
+    fake.fireFrame(fake.frameIds()[0]!);
+    expect(onRenderError).toHaveBeenCalledOnce();
+    expect(fake.frameIds()).toEqual([]);
+
+    loop.start();
+    expect(fake.frameIds()).toHaveLength(1);
+    fake.fireFrame(fake.frameIds()[0]!);
+    expect(render).toHaveBeenCalledTimes(2);
+    expect(fake.frameIds()).toHaveLength(1);
+  });
+
   it("stop and dispose leave no scheduled frame or visibility listener", () => {
     const fake = fakeScheduler();
     const render = vi.fn();
@@ -88,6 +130,7 @@ describe("WWT render-loop lifecycle", () => {
     loop.dispose();
     expect(fake.frameIds()).toEqual([]);
     expect(fake.visibilityListenerAttached()).toBe(false);
+    loop.setVisualVisible(false);
     loop.start();
     expect(fake.frameIds()).toEqual([]);
   });

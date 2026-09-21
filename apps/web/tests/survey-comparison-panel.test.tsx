@@ -1,5 +1,5 @@
 import type { IdentificationSolutionResponse } from "@lumina/api-client";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,6 +10,7 @@ import type { IdentifyMessages } from "../src/lib/i18n/messages/types";
 
 const wwt = vi.hoisted(() => ({
   attach: vi.fn(),
+  callbacks: null as { onRenderFailed?: () => void } | null,
   detach: vi.fn(),
   focus: vi.fn(),
   probe: vi.fn(),
@@ -51,23 +52,29 @@ const solution: IdentificationSolutionResponse = {
 
 beforeEach(() => {
   wwt.attach.mockReset();
+  wwt.callbacks = null;
   wwt.detach.mockReset();
   wwt.focus.mockReset();
   wwt.probe.mockReset();
   wwt.setLayer.mockReset();
   wwt.probe.mockResolvedValue(true);
   wwt.focus.mockResolvedValue(undefined);
-  wwt.attach.mockResolvedValue({
-    detach: wwt.detach,
-    focus: wwt.focus,
-    pan: vi.fn(),
-    setLayer: wwt.setLayer,
-    setLocalHorizon: vi.fn(),
-    setObserver: vi.fn(),
-    setTime: vi.fn(),
-    syncTimeNow: vi.fn(),
-    zoom: vi.fn(),
-  });
+  wwt.attach.mockImplementation(
+    (_container: HTMLElement, callbacks: { onRenderFailed?: () => void } = {}) => {
+      wwt.callbacks = callbacks;
+      return Promise.resolve({
+        detach: wwt.detach,
+        focus: wwt.focus,
+        pan: vi.fn(),
+        setLayer: wwt.setLayer,
+        setLocalHorizon: vi.fn(),
+        setObserver: vi.fn(),
+        setTime: vi.fn(),
+        syncTimeNow: vi.fn(),
+        zoom: vi.fn(),
+      });
+    },
+  );
   vi.stubGlobal(
     "matchMedia",
     vi.fn(() => ({ matches: false })),
@@ -123,6 +130,72 @@ describe("SurveyComparisonPanel", () => {
     await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/unavailable right now/i);
     expect(wwt.attach).not.toHaveBeenCalled();
+  });
+
+  it("keeps renderer failure visible when rendering dies while initial focus is pending", async () => {
+    let resolveFocus: (() => void) | null = null;
+    wwt.focus.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveFocus = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderSurvey();
+
+    await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
+    await waitFor(() => expect(wwt.focus).toHaveBeenCalledOnce());
+    await act(async () => {
+      wwt.callbacks?.onRenderFailed?.();
+      resolveFocus?.();
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      enMessages.identify.surveyComparison.states.rendererFailed,
+    );
+    expect(
+      screen.queryByText(enMessages.identify.surveyComparison.states.comparisonReady),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /survey comparison/i })).toHaveAttribute(
+      "src",
+      "blob:local",
+    );
+  });
+
+  it("keeps renderer failure visible when rendering dies while a layer probe is pending", async () => {
+    let resolveLayerProbe: ((available: boolean) => void) | null = null;
+    wwt.probe.mockResolvedValueOnce(true).mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveLayerProbe = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderSurvey();
+
+    await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
+    await waitFor(() =>
+      expect(
+        screen.getByText(enMessages.identify.surveyComparison.states.comparisonReady),
+      ).toBeVisible(),
+    );
+    await user.selectOptions(screen.getByLabelText("Survey layer"), "infrared-wise");
+    await waitFor(() => expect(wwt.probe).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      wwt.callbacks?.onRenderFailed?.();
+      resolveLayerProbe?.(false);
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      enMessages.identify.surveyComparison.states.rendererFailed,
+    );
+    expect(screen.queryByText(/Infrared · WISE.*unavailable/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /survey comparison/i })).toHaveAttribute(
+      "src",
+      "blob:local",
+    );
   });
 
   it("switches only to an available reviewed layer and detaches on unmount", async () => {

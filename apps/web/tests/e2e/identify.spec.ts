@@ -255,6 +255,45 @@ test.describe("Phase 6 — private identification", () => {
     expect(wwtRequests.map((request) => request.url).join("\n")).not.toContain(image.name);
   });
 
+  test("keeps the local solved image available when WebGL survey rendering is unavailable", async ({
+    page,
+  }, testInfo) => {
+    await setIdentificationStubMode(testInfo, "nova");
+    await page.route("https://cdn.worldwidetelescope.org/**", async (route) => {
+      if (route.request().url() === DSS_ROOT_TILE) {
+        await route.fulfill({ body: ONE_PIXEL_PNG, contentType: "image/png", status: 200 });
+      } else {
+        await route.abort("failed");
+      }
+    });
+    await page.route("https://www.worldwidetelescope.org/**", (route) => route.abort("failed"));
+    await page.route("https://web.wwtassets.org/**", (route) => route.abort("failed"));
+    await page.addInitScript(() => {
+      HTMLCanvasElement.prototype.getContext = () => null;
+    });
+
+    await page.goto("/identify");
+    await page.getByLabel("JPEG or PNG image").setInputFiles(image);
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: "Start remote plate solve" }).click();
+    await expect(page.getByRole("heading", { name: "Compare with survey context" })).toBeVisible({
+      timeout: 4_000,
+    });
+    const localImage = page.getByRole("img", { name: /survey comparison/i });
+    await expect(localImage).toBeVisible();
+
+    await page.getByRole("button", { name: "Open survey comparison" }).click();
+    await expect(
+      page.getByRole("alert").filter({
+        hasText: "The survey renderer could not start. Your local solved image remains available.",
+      }),
+    ).toBeVisible();
+    await expect(localImage).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "WorldWide Telescope survey comparison" }).locator("canvas"),
+    ).toHaveCount(0);
+  });
+
   test("rejects an unsupported selected media type before upload", async ({ page }) => {
     const uploadRequests: string[] = [];
     page.on("request", (request) => {

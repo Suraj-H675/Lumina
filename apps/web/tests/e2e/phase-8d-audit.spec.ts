@@ -1,4 +1,17 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+
+const CORE_ROUTES: ReadonlyArray<Readonly<{ path: string; heading: RegExp }>> = [
+  { path: "/", heading: /Mission Control/i },
+  { path: "/explore", heading: /Explore real objects/i },
+  { path: "/learn", heading: /Understand the sky by looking up/i },
+  { path: "/lab", heading: /^Lab$/i },
+  { path: "/observe", heading: /Choose an object/i },
+  { path: "/identify", heading: /Identify an astronomical image/i },
+  { path: "/journal", heading: /Journal/i },
+  { path: "/participate", heading: /Participate/i },
+  { path: "/tonight", heading: /Tonight/i },
+];
 
 async function expectNoDocumentOverflow(page: Page): Promise<void> {
   expect(
@@ -18,19 +31,7 @@ test.describe("Phase 8D — accessibility and low-end audit", () => {
     });
     const page = await context.newPage();
 
-    const routes: ReadonlyArray<Readonly<{ path: string; heading: RegExp }>> = [
-      { path: "/", heading: /Mission Control/i },
-      { path: "/explore", heading: /Explore real objects/i },
-      { path: "/learn", heading: /Understand the sky by looking up/i },
-      { path: "/lab", heading: /^Lab$/i },
-      { path: "/observe", heading: /Choose an object/i },
-      { path: "/identify", heading: /Identify an astronomical image/i },
-      { path: "/journal", heading: /Journal/i },
-      { path: "/participate", heading: /Participate/i },
-      { path: "/tonight", heading: /Tonight/i },
-    ];
-
-    for (const route of routes) {
+    for (const route of CORE_ROUTES) {
       await page.goto(route.path);
       await page.evaluate(() => {
         document.documentElement.style.zoom = "2";
@@ -40,6 +41,19 @@ test.describe("Phase 8D — accessibility and low-end audit", () => {
     }
 
     await context.close();
+  });
+
+  test("core product surfaces expose stable landmarks and pass automated axe checks", async ({
+    page,
+  }) => {
+    for (const route of CORE_ROUTES) {
+      await page.goto(route.path);
+      await expect(page.getByRole("heading", { level: 1, name: route.heading })).toBeVisible();
+      await expect(page.getByRole("main")).toHaveCount(1);
+      await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(1);
+      const results = await new AxeBuilder({ page }).analyze();
+      expect(results.violations, `axe violations on ${route.path}`).toEqual([]);
+    }
   });
 
   test("core discovery stays usable under a constrained low-end browser profile", async ({

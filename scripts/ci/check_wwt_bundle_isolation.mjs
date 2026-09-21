@@ -1,9 +1,10 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 
 const appRoot = process.cwd();
 const nextRoot = resolve(appRoot, ".next");
 const MAX_DEEP_SKY_PAGE_BYTES = 64 * 1024;
+const MAX_WWT_LAZY_BYTES = 1664 * 1024;
 const WWT_SIGNATURES = ["ImageSets6", "WWTControlBuilder", "ConstellationNamePositions_v2_EN"];
 const ROUTE_GROUP = "(en)";
 
@@ -23,6 +24,11 @@ const ROUTES = [
     "deep-sky",
     `server/app/${ROUTE_GROUP}/explore/deep-sky/page_client-reference-manifest.js`,
     `/${ROUTE_GROUP}/explore/deep-sky/page`,
+  ],
+  [
+    "identify",
+    `server/app/${ROUTE_GROUP}/identify/page_client-reference-manifest.js`,
+    `/${ROUTE_GROUP}/identify/page`,
   ],
 ];
 
@@ -75,6 +81,31 @@ function walkJavascript(directory) {
   return files;
 }
 
+function walkPageManifests(directory) {
+  const files = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...walkPageManifests(path));
+    else if (entry.isFile() && entry.name === "page_client-reference-manifest.js") files.push(path);
+  }
+  return files;
+}
+
+function readAssignedManifest(path) {
+  const source = readFileSync(path, "utf8");
+  const marker = "globalThis.__RSC_MANIFEST[";
+  const assignmentStart = source.indexOf(marker);
+  if (assignmentStart < 0) throw new Error(`route manifest assignment missing: ${path}`);
+  const equals = source.indexOf(" = ", assignmentStart);
+  if (equals < 0) throw new Error(`route manifest payload missing: ${path}`);
+  return JSON.parse(
+    source
+      .slice(equals + 3)
+      .trim()
+      .replace(/;\s*$/u, ""),
+  );
+}
+
 try {
   const routeManifests = new Map();
   const allInitialChunks = new Set();
@@ -88,6 +119,25 @@ try {
       if (!existsSync(path)) fail(`${label} references missing initial chunk ${chunk}`);
       else if (containsWwtImplementation(path)) {
         fail(`${label} initial client graph contains WWT implementation bytes in ${chunk}`);
+      }
+    }
+  }
+
+  const canonicalRoot = join(nextRoot, "server/app", ROUTE_GROUP);
+  const canonicalManifests = walkPageManifests(canonicalRoot);
+  if (canonicalManifests.length === 0) fail("no canonical English page manifests were found");
+  for (const path of canonicalManifests) {
+    const manifest = readAssignedManifest(path);
+    const routeLabel = relative(canonicalRoot, path).replace(
+      /_client-reference-manifest\.js$/u,
+      "",
+    );
+    for (const chunk of initialChunks(manifest)) {
+      allInitialChunks.add(chunk);
+      const chunkPath = join(nextRoot, chunk);
+      if (!existsSync(chunkPath)) fail(`${routeLabel} references missing initial chunk ${chunk}`);
+      else if (containsWwtImplementation(chunkPath)) {
+        fail(`${routeLabel} initial client graph contains WWT implementation bytes in ${chunk}`);
       }
     }
   }
@@ -126,10 +176,13 @@ try {
     if (allInitialChunks.has(relative))
       fail(`WWT implementation chunk ${relative} is initial-route reachable`);
   }
+  const bytes = wwtChunks.reduce((total, path) => total + statSync(path).size, 0);
+  if (bytes > MAX_WWT_LAZY_BYTES) {
+    fail(`lazy WWT implementation is ${bytes} bytes, budget is ${MAX_WWT_LAZY_BYTES}`);
+  }
   if (process.exitCode === undefined) {
-    const bytes = wwtChunks.reduce((total, path) => total + statSync(path).size, 0);
     process.stdout.write(
-      `WWT bundle isolation passed: ${wwtChunks.length} lazy chunk(s), ${bytes} bytes, absent from home/explore/object/deep-sky initial graphs.\n`,
+      `WWT bundle isolation passed: ${wwtChunks.length} lazy chunk(s), ${bytes} bytes / ${MAX_WWT_LAZY_BYTES} budget, absent from all ${canonicalManifests.length} canonical English initial page graphs.\n`,
     );
   }
 } catch (error) {

@@ -17,6 +17,12 @@ const fake = vi.hoisted(() => ({
   zoom: vi.fn(),
 }));
 
+const intersection = vi.hoisted(() => ({
+  callback: null as IntersectionObserverCallback | null,
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+}));
+
 vi.mock("@wwtelescope/engine", () => ({
   WWTControl: { singleton: fake.freestandingControl },
 }));
@@ -75,6 +81,19 @@ function container(): HTMLDivElement {
   return element;
 }
 
+function intersectionEntry(target: Element, isIntersecting: boolean): IntersectionObserverEntry {
+  const rect = target.getBoundingClientRect();
+  return {
+    boundingClientRect: rect,
+    intersectionRatio: isIntersecting ? 1 : 0,
+    intersectionRect: isIntersecting ? rect : new DOMRectReadOnly(),
+    isIntersecting,
+    rootBounds: null,
+    target,
+    time: 0,
+  };
+}
+
 beforeEach(() => {
   vi.resetModules();
   resetFake();
@@ -84,6 +103,9 @@ beforeEach(() => {
     vi.fn(() => 17),
   );
   vi.stubGlobal("cancelAnimationFrame", vi.fn());
+  intersection.callback = null;
+  intersection.disconnect.mockClear();
+  intersection.observe.mockClear();
 });
 
 afterEach(() => {
@@ -151,6 +173,65 @@ describe("lazy WWT client adapter", () => {
     session.detach();
   });
 
+  it("observes atlas visibility and disconnects the observer on detach", async () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
+      {} as WebGLRenderingContext,
+    );
+    class FakeIntersectionObserver {
+      constructor(callback: IntersectionObserverCallback) {
+        intersection.callback = callback;
+      }
+      disconnect = intersection.disconnect;
+      observe = intersection.observe;
+      takeRecords = () => [];
+      unobserve = vi.fn();
+      root = null;
+      rootMargin = "0px";
+      thresholds = [0];
+    }
+    vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
+    const { attachWwtAtlas } = await import("../src/lib/wwt/client");
+    const host = container();
+    const session = await attachWwtAtlas(host);
+
+    expect(intersection.observe).toHaveBeenCalledWith(host);
+    expect(requestAnimationFrame).not.toHaveBeenCalled();
+    intersection.callback?.([intersectionEntry(host, true)], {} as IntersectionObserver);
+    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
+    intersection.callback?.([intersectionEntry(host, false)], {} as IntersectionObserver);
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(17);
+    session.detach();
+    expect(intersection.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it("caps a WWT canvas backing store to the 1x container performance bound", async () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
+      {} as WebGLRenderingContext,
+    );
+    const host = container();
+    Object.defineProperties(host, {
+      clientHeight: { configurable: true, value: 200 },
+      clientWidth: { configurable: true, value: 300 },
+    });
+    const originalAppend = host.append.bind(host);
+    vi.spyOn(host, "append").mockImplementation((...nodes: Array<Node | string>) => {
+      for (const node of nodes) {
+        if (node instanceof HTMLCanvasElement) {
+          node.width = 600;
+          node.height = 400;
+        }
+      }
+      originalAppend(...nodes);
+    });
+    const { attachWwtAtlas } = await import("../src/lib/wwt/client");
+
+    const session = await attachWwtAtlas(host);
+    const canvas = host.querySelector("canvas");
+    expect(canvas?.width).toBe(300);
+    expect(canvas?.height).toBe(200);
+    session.detach();
+  });
+
   it("converts focus degrees to radians and applies only reviewed layer/location/time settings", async () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
       {} as WebGLRenderingContext,
@@ -212,9 +293,15 @@ describe("lazy WWT client adapter", () => {
 
     firstHost.remove();
     const secondHost = container();
+    Object.defineProperties(secondHost, {
+      clientHeight: { configurable: true, value: 80 },
+      clientWidth: { configurable: true, value: 100 },
+    });
     const second = await attachWwtAtlas(secondHost);
     expect(fake.constructorOptions).toHaveLength(1);
     expect(secondHost.querySelector("canvas")).toBe(canvas);
+    expect(canvas?.width).toBe(100);
+    expect(canvas?.height).toBe(80);
     second.detach();
   });
 });

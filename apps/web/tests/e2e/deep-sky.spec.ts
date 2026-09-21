@@ -174,11 +174,44 @@ test.describe("Phase 5A — deep-sky atlas", () => {
     expect(stored).not.toContain("12.971599");
     expect(stored).not.toContain("77.594563");
 
+    const atlasRegion = page.locator("#lumina-wwt-atlas");
+    await atlasRegion.evaluate((element) => element.scrollIntoView({ block: "center" }));
     expect(
-      await page.evaluate(
-        () => (window as typeof window & { __luminaActiveRaf: Set<number> }).__luminaActiveRaf.size,
-      ),
-    ).toBeGreaterThan(0);
+      await atlasRegion.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.bottom > 0 && rect.top < window.innerHeight;
+      }),
+    ).toBe(true);
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as typeof window & { __luminaActiveRaf: Set<number> }).__luminaActiveRaf.size,
+        ),
+      )
+      .toBeGreaterThan(0);
+
+    await page
+      .getByRole("heading", { level: 1 })
+      .evaluate((element) => element.scrollIntoView({ block: "center" }));
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as typeof window & { __luminaActiveRaf: Set<number> }).__luminaActiveRaf.size,
+        ),
+      )
+      .toBe(0);
+
+    await atlasRegion.evaluate((element) => element.scrollIntoView({ block: "center" }));
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as typeof window & { __luminaActiveRaf: Set<number> }).__luminaActiveRaf.size,
+        ),
+      )
+      .toBeGreaterThan(0);
     await page.getByRole("link", { name: /Explore catalogue/i }).click();
     await expect(page).toHaveURL(/\/explore$/u);
     await expect
@@ -234,6 +267,7 @@ test.describe("Phase 5A — deep-sky atlas", () => {
   });
 
   test("stays usable at 320px with reduced motion and touch-sized controls", async ({ page }) => {
+    await stubApprovedWwtNetwork(page);
     await page.setViewportSize({ width: 320, height: 720 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/explore/deep-sky?object=messier-31");
@@ -245,6 +279,9 @@ test.describe("Phase 5A — deep-sky atlas", () => {
     ).toBe(true);
     const activation = page.getByRole("button", { name: "Open interactive atlas" });
     expect((await activation.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await activation.click();
+    await expect(page.getByText("Interactive atlas ready.")).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("#lumina-wwt-atlas canvas")).toBeVisible();
     await expect(page.getByRole("link", { name: "Open canonical object page" })).toBeVisible();
   });
 });

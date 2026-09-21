@@ -17,10 +17,12 @@ const ATLAS_ELEMENT_ID = "lumina-wwt-atlas";
 const INITIALIZATION_TIMEOUT_MS = 10_000;
 const CAMERA_MOVE_TIMEOUT_MS = 5_000;
 const SURVEY_PROBE_TIMEOUT_MS = 5_000;
+const ATLAS_MAX_BACKING_STORE_RATIO = 1;
 
 export type WwtAtlasStatusCallbacks = Readonly<{
   onContextLost?: () => void;
   onContextRestored?: () => void;
+  onRenderFailed?: () => void;
 }>;
 
 export type WwtAtlasFocus = Readonly<{
@@ -129,6 +131,48 @@ function enforcePinnedFreestandingControl(control: unknown): void {
   control.freestandingMode = true;
 }
 
+function capCanvasBackingStore(canvas: HTMLCanvasElement, container: HTMLElement): void {
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  if (width <= 0 || height <= 0) return;
+  const maximumWidth = Math.floor(width * ATLAS_MAX_BACKING_STORE_RATIO);
+  const maximumHeight = Math.floor(height * ATLAS_MAX_BACKING_STORE_RATIO);
+  if (canvas.width > maximumWidth) canvas.width = maximumWidth;
+  if (canvas.height > maximumHeight) canvas.height = maximumHeight;
+}
+
+function visualIntersectsViewport(container: HTMLElement): boolean {
+  const rect = container.getBoundingClientRect();
+  return (
+    rect.bottom > 0 &&
+    rect.right > 0 &&
+    rect.top < window.innerHeight &&
+    rect.left < window.innerWidth
+  );
+}
+
+function observeAtlasVisibility(container: HTMLElement, loop: AtlasRenderLoop): () => void {
+  loop.setVisualVisible(false);
+  if (typeof IntersectionObserver !== "function") {
+    const update = () => loop.setVisualVisible(visualIntersectsViewport(container));
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update);
+    };
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries.find((candidate) => candidate.target === container);
+    if (entry === undefined) return;
+    loop.setVisualVisible(entry.isIntersecting && entry.intersectionRatio > 0);
+  });
+  observer.observe(container);
+  return () => observer.disconnect();
+}
+
 async function createRuntime(container: HTMLElement): Promise<WwtRuntime> {
   const [{ WWTControl }, { WWTInstance }] = await Promise.all([
     import("@wwtelescope/engine"),
@@ -147,6 +191,7 @@ async function createRuntime(container: HTMLElement): Promise<WwtRuntime> {
   await withTimeout(instance.waitForReady(), INITIALIZATION_TIMEOUT_MS);
   const canvas = container.querySelector("canvas");
   if (!(canvas instanceof HTMLCanvasElement)) throw new Error("WWT did not create a canvas");
+  capCanvasBackingStore(canvas, container);
   const collectionUrl = new URL(WWT_LAYER_COLLECTION_PATH, window.location.origin).href;
   await withTimeout(instance.loadImageCollection(collectionUrl, false), INITIALIZATION_TIMEOUT_MS);
   return { canvas, instance };
@@ -162,6 +207,7 @@ async function runtimeFor(container: HTMLElement): Promise<WwtRuntime> {
   }
   const runtime = await runtimePromise;
   if (runtime.canvas.parentElement !== container) container.append(runtime.canvas);
+  capCanvasBackingStore(runtime.canvas, container);
   return runtime;
 }
 
@@ -192,34 +238,47 @@ export async function attachWwtAtlas(
 
   let contextLost = false;
   let detached = false;
-  const loop: AtlasRenderLoop = createAtlasRenderLoop(() => runtime.instance.ctl.renderOneFrame());
+  let loop: AtlasRenderLoop | null = null;
+  let stopObservingVisibility: () => void = () => undefined;
 
   const onContextLost = (event: Event) => {
     event.preventDefault();
     contextLost = true;
-    loop.stop();
+    loop?.stop();
     callbacks.onContextLost?.();
   };
   const onContextRestored = () => {
     if (detached) return;
     contextLost = false;
     callbacks.onContextRestored?.();
-    loop.start();
+    loop?.start();
   };
+  const detach = () => {
+    if (detached) return;
+    detached = true;
+    loop?.dispose();
+    stopObservingVisibility();
+    runtime.canvas.removeEventListener("webglcontextlost", onContextLost);
+    runtime.canvas.removeEventListener("webglcontextrestored", onContextRestored);
+    runtime.canvas.remove();
+    sessionActive = false;
+  };
+
+  loop = createAtlasRenderLoop(
+    () => runtime.instance.ctl.renderOneFrame(),
+    undefined,
+    () => {
+      callbacks.onRenderFailed?.();
+      detach();
+    },
+  );
+  stopObservingVisibility = observeAtlasVisibility(container, loop);
   runtime.canvas.addEventListener("webglcontextlost", onContextLost);
   runtime.canvas.addEventListener("webglcontextrestored", onContextRestored);
   loop.start();
 
   return {
-    detach: () => {
-      if (detached) return;
-      detached = true;
-      loop.dispose();
-      runtime.canvas.removeEventListener("webglcontextlost", onContextLost);
-      runtime.canvas.removeEventListener("webglcontextrestored", onContextRestored);
-      runtime.canvas.remove();
-      sessionActive = false;
-    },
+    detach,
     focus: async (target) => {
       if (detached || contextLost) throw new Error("WWT atlas is not active");
       const fieldOfView = validateFieldOfViewDeg(

@@ -19,6 +19,7 @@ function browserScheduler(): AtlasFrameScheduler {
 
 export type AtlasRenderLoop = Readonly<{
   dispose: () => void;
+  setVisualVisible: (visible: boolean) => void;
   start: () => void;
   stop: () => void;
 }>;
@@ -26,10 +27,14 @@ export type AtlasRenderLoop = Readonly<{
 export function createAtlasRenderLoop(
   renderOneFrame: () => void,
   scheduler: AtlasFrameScheduler = browserScheduler(),
+  onRenderError: (error: unknown) => void = () => undefined,
 ): AtlasRenderLoop {
   let disposed = false;
   let requested = false;
+  let visualVisible = true;
   let frameId: number | null = null;
+
+  const shouldRender = () => !scheduler.hidden() && visualVisible;
 
   const stop = () => {
     requested = false;
@@ -39,20 +44,26 @@ export function createAtlasRenderLoop(
 
   const tick: FrameRequestCallback = () => {
     frameId = null;
-    if (disposed || !requested || scheduler.hidden()) return;
-    renderOneFrame();
+    if (disposed || !requested || !shouldRender()) return;
+    try {
+      renderOneFrame();
+    } catch (error) {
+      requested = false;
+      onRenderError(error);
+      return;
+    }
     frameId = scheduler.requestFrame(tick);
   };
 
   const start = () => {
     if (disposed || requested) return;
     requested = true;
-    if (!scheduler.hidden()) frameId = scheduler.requestFrame(tick);
+    if (shouldRender()) frameId = scheduler.requestFrame(tick);
   };
 
   const removeVisibilityListener = scheduler.onVisibilityChange(() => {
     if (disposed || !requested) return;
-    if (scheduler.hidden()) {
+    if (!shouldRender()) {
       if (frameId !== null) scheduler.cancelFrame(frameId);
       frameId = null;
       return;
@@ -66,6 +77,17 @@ export function createAtlasRenderLoop(
       disposed = true;
       stop();
       removeVisibilityListener();
+    },
+    setVisualVisible: (visible) => {
+      if (disposed || visualVisible === visible) return;
+      visualVisible = visible;
+      if (!requested) return;
+      if (!shouldRender()) {
+        if (frameId !== null) scheduler.cancelFrame(frameId);
+        frameId = null;
+        return;
+      }
+      if (frameId === null) frameId = scheduler.requestFrame(tick);
     },
     start,
     stop,

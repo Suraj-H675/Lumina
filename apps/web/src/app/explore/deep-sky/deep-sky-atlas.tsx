@@ -86,11 +86,17 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
         onContextLost: () => setStatus({ kind: "context-lost" }),
         onContextRestored: () =>
           setStatus({ kind: "ready", message: messages.status.graphicsRestored }),
+        onRenderFailed: () => {
+          sessionRef.current = null;
+          setAtlasOpen(false);
+          setStatus({ kind: "error", message: messages.status.activationFailed });
+        },
       });
       sessionRef.current = session;
       setAtlasOpen(true);
       session.setLayer(layerId);
       if (target !== null) await focusTarget(session);
+      if (sessionRef.current !== session) return;
       setStatus({ kind: "ready" });
     } catch {
       sessionRef.current?.detach();
@@ -111,11 +117,13 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         rightAscensionDegrees: target.rightAscensionDegrees,
       });
+      if (sessionRef.current !== session) return;
       setStatus({
         kind: "ready",
         message: formatMessageTemplate(messages.status.focused, { objectName: target.name }),
       });
     } catch {
+      if (sessionRef.current !== session) return;
       setStatus({ kind: "error", message: messages.status.focusFailed });
     }
   }

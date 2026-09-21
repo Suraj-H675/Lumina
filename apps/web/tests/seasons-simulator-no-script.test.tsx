@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { SeasonsSimulatorNoScript } from "../src/components/seasons-simulator-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_SEASONS_STATE } from "../src/lib/simulations/seasons-simulator";
 import type { SeasonsCalculationResponse } from "@lumina/api-client";
 
@@ -44,6 +46,8 @@ describe("SeasonsSimulatorNoScript", () => {
         initialCalculation={RESULT}
         initialState={DEFAULT_SEASONS_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.seasonsSimulator}
       />,
     );
     const tableBody = markup.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";
@@ -63,6 +67,8 @@ describe("SeasonsSimulatorNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_SEASONS_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.seasonsSimulator}
       />,
     );
 

@@ -2686,6 +2686,199 @@ export type ScaleExplorerMessages = Readonly<{
   }>;
 }>;
 
+export type SeasonsSimulatorMessages = Readonly<{
+  actions: Readonly<{
+    reset: string;
+    resetDefault: string;
+    share: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    eccentricityDescription: string;
+    eccentricityLabel: string;
+    fields: Readonly<{
+      axialTilt: string;
+      latitude: string;
+      orbitalPosition: string;
+    }>;
+    helps: Readonly<{
+      axialTilt: string;
+      latitude: string;
+      orbitalPosition: string;
+    }>;
+    phasePresets: Readonly<{
+      ariaLabel: string;
+      december: string;
+      june: string;
+      march: string;
+      september: string;
+    }>;
+    presetLabels: Readonly<{
+      circular: string;
+      earth: string;
+      exaggerated: string;
+    }>;
+    range: string;
+    sliderAriaLabel: string;
+    sliderAriaValue: string;
+    title: string;
+    unitDegrees: string;
+  }>;
+  distance: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    initialUnavailable: string;
+    invalidFinite: string;
+    invalidRange: string;
+    noApiOrigin: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figures: Readonly<{
+    illumination: Readonly<{
+      axisTilt: string;
+      caption: string;
+      description: string;
+      parallelRays: string;
+      selectedLatitude: string;
+      title: string;
+    }>;
+    orbit: Readonly<{
+      caption: string;
+      december: string;
+      description: string;
+      earth: string;
+      june: string;
+      march: string;
+      september: string;
+      sunFocus: string;
+      title: string;
+    }>;
+    sectionDescription: string;
+    sectionTitle: string;
+  }>;
+  footer: Readonly<{
+    link: string;
+    prefix: string;
+  }>;
+  header: Readonly<{
+    breadcrumbAriaLabel: string;
+    eyebrow: string;
+    intro: string;
+    labBreadcrumb: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    equations: string;
+    futureMotion: string;
+    inputsAndValidity: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    supportingSourceNote: string;
+    title: string;
+    validityItems: Readonly<{
+      axialTilt: string;
+      eccentricity: string;
+      latitude: string;
+      orbitalPosition: string;
+      precision: string;
+    }>;
+  }>;
+  noScript: Readonly<{
+    currentState: Readonly<{
+      eccentricityPreset: string;
+      latitude: string;
+      orbitalPosition: string;
+      orbitalPositionValue: string;
+      phaseConvention: string;
+      tilt: string;
+      title: string;
+    }>;
+    eyebrow: string;
+    invalidDescription: string;
+    intro: string;
+    model: Readonly<{
+      dayLength: string;
+      frozenConstants: string;
+      localNoonGeometry: string;
+      modelSummary: string;
+      modelVersionLabel: string;
+      modelVersionSummary: string;
+      references: string;
+      solarDeclination: string;
+      title: string;
+    }>;
+    result: Readonly<{
+      comparisonSummary: string;
+      distanceSummary: string;
+      horizonAllDay: string;
+      tableCaption: string;
+      tableHeaders: Readonly<{
+        dayLength: string;
+        incidence: string;
+        latitude: string;
+        location: string;
+        noonAltitude: string;
+        polarState: string;
+      }>;
+      title: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  objective: Readonly<{
+    thinkAbout: string;
+    title: string;
+  }>;
+  result: Readonly<{
+    comparisonSummary: string;
+    description: string;
+    horizonAllDay: string;
+    labels: Readonly<{
+      dayLength: string;
+      relativeFlux: string;
+      solarDeclination: string;
+      sunAltitude: string;
+    }>;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  share: Readonly<{
+    copied: string;
+    ready: string;
+    reset: string;
+    urlLabel: string;
+  }>;
+  status: Readonly<{
+    calculating: string;
+  }>;
+  table: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    headers: Readonly<{
+      dayLength: string;
+      incidence: string;
+      latitude: string;
+      location: string;
+      noonAltitude: string;
+      polarState: string;
+    }>;
+    oppositeLatitude: string;
+    selectedLatitude: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
   eclipseSimulator: EclipseSimulatorMessages;
@@ -2696,6 +2889,7 @@ export type SimulationLabMessages = Readonly<{
   relativityVisualizations: RelativityVisualizationsMessages;
   rocketMissionDesigner: RocketMissionDesignerMessages;
   scaleExplorer: ScaleExplorerMessages;
+  seasonsSimulator: SeasonsSimulatorMessages;
   spectroscopyLab: SpectroscopyLabMessages;
   stellarLaboratory: StellarLaboratoryMessages;
   transitMethod: TransitMethodMessages;

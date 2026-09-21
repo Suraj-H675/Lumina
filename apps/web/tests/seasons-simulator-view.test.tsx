@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SeasonsSimulatorView } from "../src/components/seasons-simulator-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_SEASONS_STATE } from "../src/lib/simulations/seasons-simulator";
 import type { SeasonsCalculationResponse } from "@lumina/api-client";
 import { renderWithEnglishMessages as render } from "./i18n-render";
@@ -67,6 +69,8 @@ function renderView(initialStateInvalid = false) {
       initialCalculation={JUNE_RESULT}
       initialState={DEFAULT_SEASONS_STATE}
       initialStateInvalid={initialStateInvalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.seasonsSimulator}
     />,
   );
 }
@@ -168,5 +172,43 @@ describe("SeasonsSimulatorView", () => {
     expect(
       screen.getByText(/orbital position is a seasonal angle, not a calendar date/i),
     ).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting canonical seasons science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.seasonsSimulator,
+      header: {
+        ...enMessages.simulationLabs.seasonsSimulator.header,
+        title: "Localized Seasons Simulator",
+      },
+      result: {
+        ...enMessages.simulationLabs.seasonsSimulator.result,
+        labels: {
+          ...enMessages.simulationLabs.seasonsSimulator.result.labels,
+          solarDeclination: "Localized declination",
+        },
+      },
+    };
+
+    render(
+      <SeasonsSimulatorView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={JUNE_RESULT}
+        initialState={DEFAULT_SEASONS_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Seasons Simulator" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized declination")).toBeVisible();
+    expect(screen.getAllByText(JUNE_RESULT.selected.polar_state).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("link", { name: "What Causes the Seasons?" }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText(/NOAA's fractional-year declination polynomial is not/i)).toBeVisible();
   });
 });

@@ -4,7 +4,11 @@ import dynamic from "next/dynamic";
 
 import type { SeasonsCalculationResponse } from "@lumina/api-client";
 
-import type { PresentationModeMessages } from "../lib/i18n/messages/types";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type {
+  PresentationModeMessages,
+  SeasonsSimulatorMessages,
+} from "../lib/i18n/messages/types";
 import { PresentationModeMessagesProvider } from "../lib/i18n/presentation-mode-context";
 import type { SeasonsState } from "../lib/simulations/seasons-simulator";
 
@@ -21,6 +25,8 @@ type SeasonsSimulatorEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: SeasonsCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages;
   presentationModeMessages: PresentationModeMessages;
 }>;
 
@@ -30,6 +36,8 @@ export function SeasonsSimulatorEnhanced({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
   presentationModeMessages,
 }: SeasonsSimulatorEnhancedProps) {
   return (
@@ -39,6 +47,8 @@ export function SeasonsSimulatorEnhanced({
         initialCalculation={initialCalculation}
         initialState={initialState}
         initialStateInvalid={initialStateInvalid}
+        locale={locale}
+        messages={messages}
       />
     </PresentationModeMessagesProvider>
   );

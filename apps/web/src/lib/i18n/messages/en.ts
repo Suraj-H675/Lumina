@@ -3503,6 +3503,230 @@ export const enMessages = {
         validDomain: "Valid domain",
       },
     },
+    seasonsSimulator: {
+      actions: {
+        reset: "Reset",
+        resetDefault: "Reset to default state",
+        share: "Share state",
+      },
+      controls: {
+        description:
+          "Inputs use degrees except for the closed eccentricity preset. A valid update requests a fresh canonical result; while it is loading, the last valid output remains visible.",
+        eccentricityDescription:
+          "Eccentricity changes only normalized distance and inverse-square flux context at a fixed orbital position. It does not feed the declination, incidence, day-length, or hemisphere comparison calculation.",
+        eccentricityLabel: "Eccentricity context preset",
+        fields: {
+          axialTilt: "Axial tilt",
+          latitude: "Observer latitude",
+          orbitalPosition: "Orbital position",
+        },
+        helps: {
+          axialTilt:
+            "Increasing tilt increases the idealized solar-declination excursion; values above 90° are outside v1.",
+          latitude:
+            "North is positive and south is negative. The comparison is always the exact opposite latitude.",
+          orbitalPosition:
+            "0° March equinox; 90° June solstice; 180° September equinox; 270° December solstice. A displayed 360° endpoint canonicalizes to 0°.",
+        },
+        phasePresets: {
+          ariaLabel: "Seasonal phase presets",
+          december: "December solstice",
+          june: "June solstice",
+          march: "March equinox",
+          september: "September equinox",
+        },
+        presetLabels: {
+          circular: "Circular orbit (e = 0.0)",
+          earth: "Earth preset (e = 0.01671123)",
+          exaggerated: "Exaggerated hypothetical (e = 0.10)",
+        },
+        range: "{unit}; {minimum} to {maximum}",
+        sliderAriaLabel: "{label} slider",
+        sliderAriaValue: "{value} {unit}",
+        title: "Choose model inputs",
+        unitDegrees: "degrees",
+      },
+      distance: {
+        description:
+          "At this fixed orbital angle, changing the eccentricity preset changes the normalized Earth-Sun distance ({distance} a) and the inverse-square context ({flux}). The declination, noon geometry, day length, polar state, and opposite-hemisphere geometry remain tied to tilt, orbital position, and latitude. Set axial tilt to 0° to see the required teaching comparison: distance can vary while the geometric seasons disappear.",
+        title: "Distance context is separate",
+      },
+      failures: {
+        initialUnavailable: "Calculation unavailable; no fallback result was substituted.",
+        invalidFinite: "{field} must be a finite number.",
+        invalidRange: "{field} is outside the v1 valid range.",
+        noApiOrigin: "Calculation unavailable because no safe API origin is configured.",
+        resultMismatch: "The calculation response was not accepted as the requested model state.",
+        serviceUnavailable: "Calculation unavailable; the last valid result remains visible.",
+      },
+      figures: {
+        illumination: {
+          axisTilt: "axis tilt {angle} (normalized drawing)",
+          caption:
+            "Rays are drawn parallel and are not a physical Sun-Earth distance. The incidence result is {incidence} from the outward local surface normal at local solar noon; it is not a temperature or irradiance prediction.",
+          description:
+            "Parallel schematic rays arrive from the left at a spherical Earth. A normalized axis and selected latitude are labelled; the numerical incidence angle is in the text result.",
+          parallelRays: "parallel rays (schematic)",
+          selectedLatitude: "selected latitude",
+          title: "Schematic Earth illumination view",
+        },
+        orbit: {
+          caption:
+            "The orbit drawing is normalized and schematic. Earth's actual eccentricity stays nearly circular; the hypothetical exaggerated preset is shown with a more visibly compressed drawing as a disclosed visualization transform. It does not depict absolute distance or elapsed orbital time. Selected normalized distance: {distance} a.",
+          december: "270° Dec",
+          description:
+            "A schematic orbit with a labelled Sun focus, four seasonal phase markers, and the Earth position for {position}. The drawing is not to scale in kilometres.",
+          earth: "Earth",
+          june: "90° June",
+          march: "0° Mar",
+          september: "180° Sep",
+          sunFocus: "Sun focus",
+          title: "Normalized seasonal orbit diagram",
+        },
+        sectionDescription:
+          "These accessible SVGs are subordinate to the numeric result. Their normalized pixels, axis drawing, orbit compression, and parallel rays are visualization choices, not physical scale geometry.",
+        sectionTitle: "Schematic geometry views",
+      },
+      footer: {
+        link: "Open Scale Explorer",
+        prefix: "Want another reviewed scale model?",
+      },
+      header: {
+        breadcrumbAriaLabel: "Breadcrumb",
+        eyebrow: "Phase 3B / Vertical 2",
+        intro:
+          "See how axial tilt and seasonal orbital position change solar declination, local-noon Sun height, incidence, and geometric daylight between equal-and-opposite latitudes. Distance variation is shown separately as context, not as the cause of opposite-hemisphere seasons.",
+        labBreadcrumb: "Space Lab",
+        title: "Seasons Simulator",
+      },
+      invalidState: {
+        description:
+          "Lumina rejected the model version, exact field set, value range, or canonical serialized form. The separately labelled default state is shown until you choose a new valid state.",
+        title: "The shared Seasons Simulator state was not valid",
+      },
+      metadataDescription:
+        "Explore an idealized geometric seasons model: axial tilt, orbital phase, latitude, and a separate eccentricity distance context.",
+      metadataTitle: "Seasons Simulator",
+      model: {
+        assumptions: "Assumptions",
+        equations: "Equations and relationships",
+        futureMotion:
+          "No animation is required. If a future phase adds motion, it must be stoppable, honor reduced-motion preferences, and be labelled an orbital phase sweep rather than elapsed calendar time.",
+        inputsAndValidity: "Inputs and validity domain",
+        limitations: "Limitations and disclosures",
+        reviewedSources: "Reviewed scientific sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        supportingSourceNote:
+          "NOAA's fractional-year declination polynomial is not the Lumina v1 calculation. NOAA is included only as supporting comparison for general solar-position terminology and why real sunrise calculations include corrections excluded here.",
+        title: "Model, assumptions, validity, and provenance",
+        validityItems: {
+          axialTilt: "Axial tilt: 0° through 90° inclusive.",
+          eccentricity:
+            "Eccentricity: circular, Earth, or exaggerated preset only; no arbitrary eccentricity or perihelion orientation.",
+          latitude: "Latitude: −90° through +90° inclusive; north is positive.",
+          orbitalPosition:
+            "Orbital position: 0° inclusive through 360° exclusive; 360° is a UI endpoint that canonicalizes to 0°.",
+          precision:
+            "Python double precision; arithmetic tolerances do not claim observational accuracy.",
+        },
+      },
+      noScript: {
+        currentState: {
+          eccentricityPreset: "Eccentricity preset",
+          latitude: "Latitude",
+          orbitalPosition: "Orbital position",
+          orbitalPositionValue: "{angle} seasonal angle",
+          phaseConvention:
+            "Phase convention: 0° March equinox, 90° June solstice, 180° September equinox, 270° December solstice. Orbital position is not a calendar date or elapsed time.",
+          tilt: "Axial tilt",
+          title: "Current model state",
+        },
+        eyebrow: "Phase 3B / Vertical 2",
+        invalidDescription:
+          "The requested version, field set, value range, or serialized form was rejected. The displayed state is the separately labelled default reset state.",
+        intro:
+          "Explore an idealized geometric seasons model without JavaScript. The canonical model calculation is evaluated on the server through Lumina's read-only astronomy API.",
+        model: {
+          dayLength: "Day length:",
+          frozenConstants: "Frozen constants:",
+          localNoonGeometry: "Local-noon geometry:",
+          modelSummary:
+            "Axial tilt drives the opposite-hemisphere changes in Sun height, incidence, and daylight. Eccentricity changes only normalized distance and inverse-square flux context at a fixed orbital angle; it does not change the tilt geometry. The exaggerated preset is hypothetical. The model does not predict weather, climate, or temperature.",
+          modelVersionLabel: "Model version:",
+          modelVersionSummary:
+            "{modelVersion}; schema version {schemaVersion}. This is an idealized geometric seasons model, not a date-specific solar ephemeris.",
+          references: "References and provenance",
+          solarDeclination: "Solar declination:",
+          title: "Model, assumptions, and limitations",
+        },
+        result: {
+          comparisonSummary:
+            "Solar declination: {declination}. The comparison latitude is exactly {comparisonLatitude}.",
+          distanceSummary:
+            "Normalized Earth-Sun distance: {distance} a. Relative inverse-square solar flux: {flux}. This distance quantity is not surface irradiance, absorbed energy, temperature, climate, or weather.",
+          horizonAllDay: "not defined (horizon all day)",
+          tableCaption:
+            "Noon solar geometry and Geometric day-length approximation. Incidence is measured from the outward local surface normal.",
+          tableHeaders: {
+            dayLength: "Day length",
+            incidence: "Noon incidence angle from surface normal",
+            latitude: "Latitude",
+            location: "Location",
+            noonAltitude: "Noon Sun altitude",
+            polarState: "Polar state",
+          },
+          title: "Text and data result",
+        },
+        unavailableDescription:
+          "The Seasons calculation service was unavailable for this request. No unrelated or fabricated scientific result was substituted.",
+        unavailableTitle: "Calculation unavailable",
+      },
+      objective: {
+        thinkAbout: "Think about:",
+        title: "What this lab demonstrates",
+      },
+      result: {
+        comparisonSummary:
+          "The equal-and-opposite comparison is {latitude}. Noon incidence is measured from the outward surface normal; a value above 90° means the Sun's centre is below the geometric horizon even at local noon.",
+        description:
+          "The result is calculated by {modelVersion} in the Python astronomy domain. Angles are shown to one decimal place and day length to one decimal hour; the underlying response retains deterministic double-precision values.",
+        horizonAllDay: "horizon all day",
+        labels: {
+          dayLength: "Selected day length",
+          relativeFlux: "Relative distance flux",
+          solarDeclination: "Solar declination",
+          sunAltitude: "Selected noon altitude",
+        },
+        title: "Canonical model result",
+        unavailableDescription:
+          "No scientific fallback was substituted. Check the connection and change an input to try the read-only calculation boundary again.",
+        unavailableTitle: "Calculation unavailable",
+      },
+      share: {
+        copied: "Share link copied. It contains only the versioned simulator inputs.",
+        ready: "Share link ready below. Copy it manually; no personal data is included.",
+        reset: "Seasons Simulator reset to its June-solstice default.",
+        urlLabel: "Share URL:",
+      },
+      status: {
+        calculating: "Calculating the canonical model result…",
+      },
+      table: {
+        ariaLabel: "Seasons solar geometry comparison table",
+        caption:
+          "Selected and equal-and-opposite latitude solar geometry. Values are also written in the surrounding text and do not depend on colour or the SVG diagrams.",
+        headers: {
+          dayLength: "Geometric day length",
+          incidence: "Noon incidence angle from surface normal",
+          latitude: "Latitude",
+          location: "Location",
+          noonAltitude: "Noon altitude",
+          polarState: "Polar state",
+        },
+        oppositeLatitude: "Equal-and-opposite latitude",
+        selectedLatitude: "Selected latitude",
+      },
+    },
     spectroscopyLab: {
       actions: {
         calculate: "Calculate spectrum",

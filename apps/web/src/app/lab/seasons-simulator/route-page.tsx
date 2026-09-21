@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 
 import { SeasonsSimulatorEnhanced } from "../../../components/seasons-simulator-enhanced";
 import { SeasonsSimulatorNoScript } from "../../../components/seasons-simulator-no-script";
-import type { PresentationModeMessages } from "../../../lib/i18n/messages/types";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type {
+  PresentationModeMessages,
+  SeasonsSimulatorMessages,
+} from "../../../lib/i18n/messages/types";
 import {
   DEFAULT_SEASONS_STATE,
   decodeSeasonsState,
@@ -13,16 +17,19 @@ import { loadSeasonsCalculation } from "../../../lib/server/seasons-simulator";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  alternates: {
-    canonical: "/lab/seasons-simulator",
-  },
-  title: "Seasons Simulator",
-  description:
-    "Explore an idealized geometric seasons model: axial tilt, orbital phase, latitude, and a separate eccentricity distance context.",
-};
+export function createSeasonsSimulatorMetadata(messages: SeasonsSimulatorMessages): Metadata {
+  return {
+    alternates: {
+      canonical: "/lab/seasons-simulator",
+    },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type SeasonsSimulatorPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
   presentationModeMessages: PresentationModeMessages;
 }>;
@@ -43,6 +50,8 @@ function stateFromSearchParams(
 }
 
 export default async function SeasonsSimulatorPage({
+  locale,
+  messages,
   presentationModeMessages,
   searchParams,
 }: SeasonsSimulatorPageProps) {
@@ -59,12 +68,16 @@ export default async function SeasonsSimulatorPage({
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <SeasonsSimulatorEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
         presentationModeMessages={presentationModeMessages}
       />
     </>

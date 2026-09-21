@@ -10,6 +10,13 @@ import {
 } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SeasonsSimulatorMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_SEASONS_STATE,
   SEASONS_DEFINITION,
   SEASONS_PRESETS,
@@ -32,24 +39,29 @@ type SeasonsSimulatorViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: SeasonsCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages;
 }>;
 
 type NumericField = "axial_tilt_deg" | "orbital_position_deg" | "latitude_deg";
 type RequestState = "idle" | "loading" | "unavailable";
 
-const numericFieldLabels: Record<NumericField, string> = {
-  axial_tilt_deg: "Axial tilt",
-  orbital_position_deg: "Orbital position",
-  latitude_deg: "Observer latitude",
+const numericFieldMessageKeys: Record<
+  NumericField,
+  keyof SeasonsSimulatorMessages["controls"]["fields"]
+> = {
+  axial_tilt_deg: "axialTilt",
+  orbital_position_deg: "orbitalPosition",
+  latitude_deg: "latitude",
 };
 
 const numericFieldRanges: Record<
   NumericField,
-  Readonly<{ min: number; max: number; step: string; unit: string }>
+  Readonly<{ min: number; max: number; step: string }>
 > = {
-  axial_tilt_deg: { min: 0, max: 90, step: "0.01", unit: "degrees" },
-  orbital_position_deg: { min: 0, max: 360, step: "1", unit: "degrees" },
-  latitude_deg: { min: -90, max: 90, step: "1", unit: "degrees" },
+  axial_tilt_deg: { min: 0, max: 90, step: "0.01" },
+  orbital_position_deg: { min: 0, max: 360, step: "1" },
+  latitude_deg: { min: -90, max: 90, step: "1" },
 };
 
 const modeCopy: Record<
@@ -80,17 +92,30 @@ const modeCopy: Record<
   },
 };
 
-function formatAngle(value: number): string {
-  return `${value.toFixed(1)}°`;
+function numericFieldLabel(
+  field: NumericField,
+  messages: SeasonsSimulatorMessages["controls"],
+): string {
+  return messages.fields[numericFieldMessageKeys[field]];
 }
 
-function formatDayLength(value: number | null): string {
-  return value === null ? "horizon all day" : `${value.toFixed(1)} h`;
+function formatAngle(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(value, 1, locale)}°`;
 }
 
-function formatFlux(value: number): string {
+function formatDayLength(
+  value: number | null,
+  locale: PublishedLocale,
+  messages: SeasonsSimulatorMessages,
+): string {
+  return value === null
+    ? messages.result.horizonAllDay
+    : `${formatLocaleFixedNumber(value, 1, locale)} h`;
+}
+
+function formatFlux(value: number, locale: PublishedLocale): string {
   const difference = (value - 1) * 100;
-  return `${value.toFixed(4)}× (${difference >= 0 ? "+" : ""}${difference.toFixed(1)}%)`;
+  return `${formatLocaleFixedNumber(value, 4, locale)}× (${difference >= 0 ? "+" : ""}${formatLocaleFixedNumber(difference, 1, locale)}%)`;
 }
 
 function endpointForState(state: SeasonsState) {
@@ -111,7 +136,13 @@ function draftsForState(state: SeasonsState): Record<NumericField, string> {
   };
 }
 
-function SourceList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }>) {
+function SourceList({
+  messages,
+  sourceIds,
+}: Readonly<{
+  messages: SeasonsSimulatorMessages["model"];
+  sourceIds: ReadonlyArray<string>;
+}>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {sourceIds.map((sourceId) => {
@@ -119,7 +150,7 @@ function SourceList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -155,10 +186,14 @@ function stateFromBrowser(
 }
 
 function OrbitFigure({
+  locale,
+  messages,
   state,
   result,
   visual,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages["figures"]["orbit"];
   state: SeasonsState;
   result: SeasonsCalculationResponse;
   visual: SeasonsVisualTransform;
@@ -172,11 +207,11 @@ function OrbitFigure({
         role="img"
         viewBox="0 0 200 150"
       >
-        <title id="seasons-orbit-title">Normalized seasonal orbit diagram</title>
+        <title id="seasons-orbit-title">{messages.title}</title>
         <desc id="seasons-orbit-desc">
-          A schematic orbit with a labelled Sun focus, four seasonal phase markers, and the Earth
-          position for {formatAngle(state.orbital_position_deg)}. The drawing is not to scale in
-          kilometres.
+          {formatMessageTemplate(messages.description, {
+            position: formatAngle(state.orbital_position_deg, locale),
+          })}
         </desc>
         <ellipse
           cx="100"
@@ -199,7 +234,7 @@ function OrbitFigure({
           x={orbit.sun_x_percent * 2 - 12}
           y={orbit.sun_y_percent * 1.5 - 9}
         >
-          Sun focus
+          {messages.sunFocus}
         </text>
         <circle
           cx={orbit.earth_x_percent * 2}
@@ -213,37 +248,39 @@ function OrbitFigure({
           x={orbit.earth_x_percent * 2 + 6}
           y={orbit.earth_y_percent * 1.5 + 3}
         >
-          Earth
+          {messages.earth}
         </text>
         <text fill="var(--muted)" fontSize="7" x="96" y="12">
-          90° June
+          {messages.june}
         </text>
         <text fill="var(--muted)" fontSize="7" x="154" y="78">
-          180° Sep
+          {messages.september}
         </text>
         <text fill="var(--muted)" fontSize="7" x="91" y="143">
-          270° Dec
+          {messages.december}
         </text>
         <text fill="var(--muted)" fontSize="7" x="8" y="78">
-          0° Mar
+          {messages.march}
         </text>
       </svg>
       <figcaption className="text-sm leading-6 text-[var(--muted)]">
-        The orbit drawing is normalized and schematic. Earth&apos;s actual eccentricity stays nearly
-        circular; the hypothetical exaggerated preset is shown with a more visibly compressed
-        drawing as a disclosed visualization transform. It does not depict absolute distance or
-        elapsed orbital time. Selected normalized distance:{" "}
-        {result.distance_over_semimajor_axis.toFixed(4)} a.
+        {formatMessageTemplate(messages.caption, {
+          distance: formatLocaleFixedNumber(result.distance_over_semimajor_axis, 4, locale),
+        })}
       </figcaption>
     </figure>
   );
 }
 
 function IlluminationFigure({
+  locale,
+  messages,
   state,
   result,
   visual,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages["figures"]["illumination"];
   state: SeasonsState;
   result: SeasonsCalculationResponse;
   visual: SeasonsVisualTransform;
@@ -257,11 +294,8 @@ function IlluminationFigure({
         role="img"
         viewBox="0 0 200 150"
       >
-        <title id="seasons-illumination-title">Schematic Earth illumination view</title>
-        <desc id="seasons-illumination-desc">
-          Parallel schematic rays arrive from the left at a spherical Earth. A normalized axis and
-          selected latitude are labelled; the numerical incidence angle is in the text result.
-        </desc>
+        <title id="seasons-illumination-title">{messages.title}</title>
+        <desc id="seasons-illumination-desc">{messages.description}</desc>
         <line
           stroke="var(--accent)"
           strokeDasharray="5 4"
@@ -317,28 +351,38 @@ function IlluminationFigure({
         <line stroke="var(--foreground)" strokeWidth="1.5" x1="100" x2="141" y1="75" y2="75" />
         <circle cx="141" cy="75" fill="var(--accent)" r="3" />
         <text fill="var(--foreground)" fontSize="7" x="105" y="70">
-          selected latitude
+          {messages.selectedLatitude}
         </text>
         <text fill="var(--foreground)" fontSize="7" x="8" y="112">
-          parallel rays (schematic)
+          {messages.parallelRays}
         </text>
         <text fill="var(--focus)" fontSize="7" x="8" y="125">
-          axis tilt {formatAngle(state.axial_tilt_deg)} (normalized drawing)
+          {formatMessageTemplate(messages.axisTilt, {
+            angle: formatAngle(state.axial_tilt_deg, locale),
+          })}
         </text>
       </svg>
       <figcaption className="text-sm leading-6 text-[var(--muted)]">
-        Rays are drawn parallel and are not a physical Sun-Earth distance. The incidence result is{" "}
-        {formatAngle(result.selected.illumination_incidence_deg)} from the outward local surface
-        normal at local solar noon; it is not a temperature or irradiance prediction.
+        {formatMessageTemplate(messages.caption, {
+          incidence: formatAngle(result.selected.illumination_incidence_deg, locale),
+        })}
       </figcaption>
     </figure>
   );
 }
 
-function GeometryTable({ result }: Readonly<{ result: SeasonsCalculationResponse }>) {
+function GeometryTable({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages;
+  result: SeasonsCalculationResponse;
+}>) {
   return (
     <div
-      aria-label="Seasons solar geometry comparison table"
+      aria-label={messages.table.ariaLabel}
       className="max-w-full overflow-x-auto rounded-md border border-[var(--border)]"
       role="region"
       tabIndex={0}
@@ -347,56 +391,61 @@ function GeometryTable({ result }: Readonly<{ result: SeasonsCalculationResponse
         className="min-w-[48rem] w-full border-collapse text-left text-sm"
         data-testid="seasons-geometry-table"
       >
-        <caption className="sr-only">
-          Selected and equal-and-opposite latitude solar geometry. Values are also written in the
-          surrounding text and do not depend on colour or the SVG diagrams.
-        </caption>
+        <caption className="sr-only">{messages.table.caption}</caption>
         <thead className="bg-[var(--surface)] text-[var(--muted)]">
           <tr>
             <th className="px-4 py-3" scope="col">
-              Location
+              {messages.table.headers.location}
             </th>
             <th className="px-4 py-3" scope="col">
-              Latitude
+              {messages.table.headers.latitude}
             </th>
             <th className="px-4 py-3" scope="col">
-              Noon altitude
+              {messages.table.headers.noonAltitude}
             </th>
             <th className="px-4 py-3" scope="col">
-              Noon incidence angle from surface normal
+              {messages.table.headers.incidence}
             </th>
             <th className="px-4 py-3" scope="col">
-              Geometric day length
+              {messages.table.headers.dayLength}
             </th>
             <th className="px-4 py-3" scope="col">
-              Polar state
+              {messages.table.headers.polarState}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr className="border-t border-[var(--border)]">
             <th className="px-4 py-3" scope="row">
-              Selected latitude
+              {messages.table.selectedLatitude}
             </th>
-            <td className="px-4 py-3">{formatAngle(result.selected.latitude_deg)}</td>
-            <td className="px-4 py-3">{formatAngle(result.selected.noon_sun_altitude_deg)}</td>
-            <td className="px-4 py-3">{formatAngle(result.selected.illumination_incidence_deg)}</td>
-            <td className="px-4 py-3">{formatDayLength(result.selected.day_length_hours)}</td>
+            <td className="px-4 py-3">{formatAngle(result.selected.latitude_deg, locale)}</td>
+            <td className="px-4 py-3">
+              {formatAngle(result.selected.noon_sun_altitude_deg, locale)}
+            </td>
+            <td className="px-4 py-3">
+              {formatAngle(result.selected.illumination_incidence_deg, locale)}
+            </td>
+            <td className="px-4 py-3">
+              {formatDayLength(result.selected.day_length_hours, locale, messages)}
+            </td>
             <td className="px-4 py-3">{result.selected.polar_state}</td>
           </tr>
           <tr className="border-t border-[var(--border)]">
             <th className="px-4 py-3" scope="row">
-              Equal-and-opposite latitude
+              {messages.table.oppositeLatitude}
             </th>
-            <td className="px-4 py-3">{formatAngle(result.opposite_hemisphere.latitude_deg)}</td>
             <td className="px-4 py-3">
-              {formatAngle(result.opposite_hemisphere.noon_sun_altitude_deg)}
+              {formatAngle(result.opposite_hemisphere.latitude_deg, locale)}
             </td>
             <td className="px-4 py-3">
-              {formatAngle(result.opposite_hemisphere.illumination_incidence_deg)}
+              {formatAngle(result.opposite_hemisphere.noon_sun_altitude_deg, locale)}
             </td>
             <td className="px-4 py-3">
-              {formatDayLength(result.opposite_hemisphere.day_length_hours)}
+              {formatAngle(result.opposite_hemisphere.illumination_incidence_deg, locale)}
+            </td>
+            <td className="px-4 py-3">
+              {formatDayLength(result.opposite_hemisphere.day_length_hours, locale, messages)}
             </td>
             <td className="px-4 py-3">{result.opposite_hemisphere.polar_state}</td>
           </tr>
@@ -408,17 +457,21 @@ function GeometryTable({ result }: Readonly<{ result: SeasonsCalculationResponse
 
 function NumericControl({
   field,
+  locale,
+  messages,
   value,
   error,
   onChange,
 }: Readonly<{
   field: NumericField;
+  locale: PublishedLocale;
+  messages: SeasonsSimulatorMessages["controls"];
   value: string;
   error: string | null;
   onChange: (value: string) => void;
 }>) {
   const range = numericFieldRanges[field];
-  const label = numericFieldLabels[field];
+  const label = numericFieldLabel(field, messages);
   const inputId = `seasons-${field}`;
   const rangeId = `seasons-${field}-range`;
   const helpId = `${inputId}-help`;
@@ -430,7 +483,11 @@ function NumericControl({
           {label}
         </label>
         <span className="text-sm text-[var(--muted)]">
-          {range.unit}; {range.min} to {range.max}
+          {formatMessageTemplate(messages.range, {
+            maximum: formatLocaleNumber(range.max, locale),
+            minimum: formatLocaleNumber(range.min, locale),
+            unit: messages.unitDegrees,
+          })}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -448,8 +505,11 @@ function NumericControl({
           value={value}
         />
         <input
-          aria-label={`${label} slider`}
-          aria-valuetext={`${value} ${range.unit}`}
+          aria-label={formatMessageTemplate(messages.sliderAriaLabel, { label })}
+          aria-valuetext={formatMessageTemplate(messages.sliderAriaValue, {
+            unit: messages.unitDegrees,
+            value,
+          })}
           className="min-h-11 min-w-[12rem] flex-1 accent-[var(--accent)]"
           id={rangeId}
           max={range.max}
@@ -462,10 +522,10 @@ function NumericControl({
       </div>
       <p className="text-sm text-[var(--muted)]" id={helpId}>
         {field === "orbital_position_deg"
-          ? "0° March equinox; 90° June solstice; 180° September equinox; 270° December solstice. A displayed 360° endpoint canonicalizes to 0°."
+          ? messages.helps.orbitalPosition
           : field === "latitude_deg"
-            ? "North is positive and south is negative. The comparison is always the exact opposite latitude."
-            : "Increasing tilt increases the idealized solar-declination excursion; values above 90° are outside v1."}
+            ? messages.helps.latitude
+            : messages.helps.axialTilt}
       </p>
       {error === null ? null : (
         <p className="text-sm font-semibold text-[var(--focus)]" id={errorId} role="alert">
@@ -481,6 +541,8 @@ export function SeasonsSimulatorView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: SeasonsSimulatorViewProps) {
   const initialResult = useMemo(
     () => validateSeasonsCalculationResult(initialState, initialCalculation),
@@ -493,7 +555,7 @@ export function SeasonsSimulatorView({
     initialResult === null ? "unavailable" : "idle",
   );
   const [requestMessage, setRequestMessage] = useState(
-    initialResult === null ? "Calculation unavailable; no fallback result was substituted." : "",
+    initialResult === null ? messages.failures.initialUnavailable : "",
   );
   const [drafts, setDrafts] = useState<Record<NumericField, string>>({
     axial_tilt_deg: String(initialState.axial_tilt_deg),
@@ -521,7 +583,7 @@ export function SeasonsSimulatorView({
       setRequestMessage("");
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setRequestMessage("Calculation unavailable because no safe API origin is configured.");
+        setRequestMessage(messages.failures.noApiOrigin);
         return;
       }
       void (async () => {
@@ -532,15 +594,13 @@ export function SeasonsSimulatorView({
           if (generation !== generationRef.current) return;
           if (response.kind !== "ok") {
             setRequestState("unavailable");
-            setRequestMessage("Calculation unavailable; the last valid result remains visible.");
+            setRequestMessage(messages.failures.serviceUnavailable);
             return;
           }
           const validated = validateSeasonsCalculationResult(nextState, response.data);
           if (validated === null) {
             setRequestState("unavailable");
-            setRequestMessage(
-              "The calculation response was not accepted as the requested model state.",
-            );
+            setRequestMessage(messages.failures.resultMismatch);
             return;
           }
           setCalculation(validated);
@@ -549,13 +609,13 @@ export function SeasonsSimulatorView({
         } catch {
           if (generation !== generationRef.current) return;
           setRequestState("unavailable");
-          setRequestMessage("Calculation unavailable; the last valid result remains visible.");
+          setRequestMessage(messages.failures.serviceUnavailable);
         } finally {
           if (requestRef.current === controller) requestRef.current = null;
         }
       })();
     },
-    [apiOrigin],
+    [apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -592,13 +652,20 @@ export function SeasonsSimulatorView({
   const updateNumericField = useCallback(
     (field: NumericField, rawValue: string) => {
       setDrafts((current) => ({ ...current, [field]: rawValue }));
+      const label = numericFieldLabel(field, messages.controls);
       if (rawValue.trim() === "") {
-        setFieldError({ field, message: `${numericFieldLabels[field]} must be a finite number.` });
+        setFieldError({
+          field,
+          message: formatMessageTemplate(messages.failures.invalidFinite, { field: label }),
+        });
         return;
       }
       const numericValue = Number(rawValue);
       if (!Number.isFinite(numericValue)) {
-        setFieldError({ field, message: `${numericFieldLabels[field]} must be a finite number.` });
+        setFieldError({
+          field,
+          message: formatMessageTemplate(messages.failures.invalidFinite, { field: label }),
+        });
         return;
       }
       const normalizedValue =
@@ -608,7 +675,7 @@ export function SeasonsSimulatorView({
       if (normalizedValue === null) {
         setFieldError({
           field,
-          message: `${numericFieldLabels[field]} is outside the v1 valid range.`,
+          message: formatMessageTemplate(messages.failures.invalidRange, { field: label }),
         });
         return;
       }
@@ -616,13 +683,13 @@ export function SeasonsSimulatorView({
       if (nextState === null) {
         setFieldError({
           field,
-          message: `${numericFieldLabels[field]} is outside the v1 valid range.`,
+          message: formatMessageTemplate(messages.failures.invalidRange, { field: label }),
         });
         return;
       }
       applyState(nextState);
     },
-    [applyState, state],
+    [applyState, messages.controls, messages.failures, state],
   );
 
   const updatePreset = useCallback(
@@ -641,9 +708,9 @@ export function SeasonsSimulatorView({
     setInvalidNotice(false);
     setFieldError(null);
     setShareUrl(null);
-    setShareMessage("Seasons Simulator reset to its June-solstice default.");
+    setShareMessage(messages.share.reset);
     recalculate(DEFAULT_SEASONS_STATE);
-  }, [recalculate]);
+  }, [messages.share.reset, recalculate]);
 
   const handleShare = useCallback(async () => {
     const url = new URL(window.location.href);
@@ -654,38 +721,36 @@ export function SeasonsSimulatorView({
     try {
       if (typeof navigator.clipboard !== "undefined") {
         await navigator.clipboard.writeText(serialized);
-        setShareMessage("Share link copied. It contains only the versioned simulator inputs.");
+        setShareMessage(messages.share.copied);
         return;
       }
     } catch {
       // The visible link remains available for manual copying.
     }
-    setShareMessage("Share link ready below. Copy it manually; no personal data is included.");
-  }, [state]);
+    setShareMessage(messages.share.ready);
+  }, [messages.share.copied, messages.share.ready, state]);
 
   const visual = calculation === null ? null : buildSeasonsVisualTransform(state, calculation);
   const copy = modeCopy[mode];
 
   return (
     <article className="space-y-12">
-      <nav aria-label="Breadcrumb">
+      <nav aria-label={messages.header.breadcrumbAriaLabel}>
         <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
-          <li>Space Lab</li>
+          <li>{messages.header.labBreadcrumb}</li>
           <li aria-hidden="true">/</li>
-          <li aria-current="page">Seasons Simulator</li>
+          <li aria-current="page">{messages.header.title}</li>
         </ol>
       </nav>
 
       <header className="max-w-4xl space-y-5">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 3B / Vertical 2
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Seasons Simulator</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          See how axial tilt and seasonal orbital position change solar declination, local-noon Sun
-          height, incidence, and geometric daylight between equal-and-opposite latitudes. Distance
-          variation is shown separately as context, not as the cause of opposite-hemisphere seasons.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       <LearningModeSelector onChange={setMode} />
@@ -696,28 +761,23 @@ export function SeasonsSimulatorView({
           className="max-w-4xl space-y-3 rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
           role="alert"
         >
-          <h2 id="invalid-seasons-state-heading">
-            The shared Seasons Simulator state was not valid
-          </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Lumina rejected the model version, exact field set, value range, or canonical serialized
-            form. The separately labelled default state is shown until you choose a new valid state.
-          </p>
+          <h2 id="invalid-seasons-state-heading">{messages.invalidState.title}</h2>
+          <p className="leading-7 text-[var(--muted)]">{messages.invalidState.description}</p>
           <button
             className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
             onClick={handleReset}
             type="button"
           >
-            Reset to default state
+            {messages.actions.resetDefault}
           </button>
         </aside>
       ) : null}
 
       <section aria-labelledby="seasons-objective-heading" className="max-w-4xl space-y-4">
-        <h2 id="seasons-objective-heading">What this lab demonstrates</h2>
+        <h2 id="seasons-objective-heading">{messages.objective.title}</h2>
         <p className="leading-7 text-[var(--muted)]">{copy.introduction}</p>
         <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 leading-7 text-[var(--foreground)]">
-          <strong>Think about:</strong> {copy.prompt}
+          <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
         </p>
         <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
           {SEASONS_DEFINITION.learning_objectives.map((objective) => (
@@ -729,18 +789,17 @@ export function SeasonsSimulatorView({
 
       <section aria-labelledby="seasons-controls-heading" className="max-w-4xl space-y-6">
         <div className="space-y-2">
-          <h2 id="seasons-controls-heading">Choose model inputs</h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Inputs use degrees except for the closed eccentricity preset. A valid update requests a
-            fresh canonical result; while it is loading, the last valid output remains visible.
-          </p>
+          <h2 id="seasons-controls-heading">{messages.controls.title}</h2>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
-          {(Object.keys(numericFieldLabels) as NumericField[]).map((field) => (
+          {(Object.keys(numericFieldMessageKeys) as NumericField[]).map((field) => (
             <NumericControl
               error={fieldError?.field === field ? fieldError.message : null}
               field={field}
               key={field}
+              locale={locale}
+              messages={messages.controls}
               onChange={(value) => updateNumericField(field, value)}
               value={drafts[field]}
             />
@@ -748,7 +807,7 @@ export function SeasonsSimulatorView({
         </div>
         <div className="space-y-2">
           <label className="font-semibold" htmlFor="seasons-eccentricity-preset">
-            Eccentricity context preset
+            {messages.controls.eccentricityLabel}
           </label>
           <select
             className="min-h-11 w-full max-w-md rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
@@ -756,17 +815,19 @@ export function SeasonsSimulatorView({
             onChange={(event) => updatePreset(event.target.value)}
             value={state.eccentricity_preset}
           >
-            <option value="circular">Circular orbit (e = 0.0)</option>
-            <option value="earth">Earth preset (e = 0.01671123)</option>
-            <option value="exaggerated">Exaggerated hypothetical (e = 0.10)</option>
+            <option value="circular">{messages.controls.presetLabels.circular}</option>
+            <option value="earth">{messages.controls.presetLabels.earth}</option>
+            <option value="exaggerated">{messages.controls.presetLabels.exaggerated}</option>
           </select>
           <p className="text-sm leading-6 text-[var(--muted)]">
-            Eccentricity changes only normalized distance and inverse-square flux context at a fixed
-            orbital position. It does not feed the declination, incidence, day-length, or hemisphere
-            comparison calculation.
+            {messages.controls.eccentricityDescription}
           </p>
         </div>
-        <div className="flex flex-wrap gap-3" role="group" aria-label="Seasonal phase presets">
+        <div
+          className="flex flex-wrap gap-3"
+          role="group"
+          aria-label={messages.controls.phasePresets.ariaLabel}
+        >
           {[0, 90, 180, 270].map((position) => (
             <button
               className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold hover:bg-[var(--surface-hover)]"
@@ -775,12 +836,12 @@ export function SeasonsSimulatorView({
               type="button"
             >
               {position === 0
-                ? "March equinox"
+                ? messages.controls.phasePresets.march
                 : position === 90
-                  ? "June solstice"
+                  ? messages.controls.phasePresets.june
                   : position === 180
-                    ? "September equinox"
-                    : "December solstice"}
+                    ? messages.controls.phasePresets.september
+                    : messages.controls.phasePresets.december}
             </button>
           ))}
         </div>
@@ -790,24 +851,24 @@ export function SeasonsSimulatorView({
             onClick={handleReset}
             type="button"
           >
-            Reset
+            {messages.actions.reset}
           </button>
           <button
             className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
             onClick={() => void handleShare()}
             type="button"
           >
-            Share state
+            {messages.actions.share}
           </button>
           <span aria-live="polite" className="text-sm text-[var(--muted)]" role="status">
             {requestState === "loading"
-              ? "Calculating the canonical model result…"
+              ? messages.status.calculating
               : requestMessage || shareMessage}
           </span>
         </div>
         {shareUrl === null ? null : (
           <p className="max-w-4xl break-all rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-            Share URL:{" "}
+            {messages.share.urlLabel}{" "}
             <a className="text-[var(--link)] underline" href={shareUrl}>
               {shareUrl}
             </a>
@@ -817,12 +878,11 @@ export function SeasonsSimulatorView({
 
       <section aria-labelledby="seasons-results-heading" className="max-w-5xl space-y-6">
         <div className="space-y-2">
-          <h2 id="seasons-results-heading">Canonical model result</h2>
+          <h2 id="seasons-results-heading">{messages.result.title}</h2>
           <p className="leading-7 text-[var(--muted)]">
-            The result is calculated by{" "}
-            <code>{calculation?.model_version ?? "seasons-simulator-v1"}</code> in the Python
-            astronomy domain. Angles are shown to one decimal place and day length to one decimal
-            hour; the underlying response retains deterministic double-precision values.
+            {formatMessageTemplate(messages.result.description, {
+              modelVersion: calculation?.model_version ?? "seasons-simulator-v1",
+            })}
           </p>
         </div>
         {calculation === null ? (
@@ -830,47 +890,51 @@ export function SeasonsSimulatorView({
             className="rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
             role="alert"
           >
-            <h3>Calculation unavailable</h3>
+            <h3>{messages.result.unavailableTitle}</h3>
             <p className="mt-2 leading-7 text-[var(--muted)]">
-              No scientific fallback was substituted. Check the connection and change an input to
-              try the read-only calculation boundary again.
+              {messages.result.unavailableDescription}
             </p>
           </div>
         ) : (
           <>
             <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">Solar declination</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.result.labels.solarDeclination}
+                </dt>
                 <dd className="mt-2 text-2xl font-semibold">
-                  {formatAngle(calculation.solar_declination_deg)}
+                  {formatAngle(calculation.solar_declination_deg, locale)}
                 </dd>
               </div>
               <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">Selected noon altitude</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.result.labels.sunAltitude}
+                </dt>
                 <dd className="mt-2 text-2xl font-semibold">
-                  {formatAngle(calculation.selected.noon_sun_altitude_deg)}
+                  {formatAngle(calculation.selected.noon_sun_altitude_deg, locale)}
                 </dd>
               </div>
               <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">Selected day length</dt>
+                <dt className="text-sm text-[var(--muted)]">{messages.result.labels.dayLength}</dt>
                 <dd className="mt-2 text-2xl font-semibold">
-                  {formatDayLength(calculation.selected.day_length_hours)}
+                  {formatDayLength(calculation.selected.day_length_hours, locale, messages)}
                 </dd>
               </div>
               <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">Relative distance flux</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.result.labels.relativeFlux}
+                </dt>
                 <dd className="mt-2 text-2xl font-semibold">
-                  {formatFlux(calculation.relative_solar_flux)}
+                  {formatFlux(calculation.relative_solar_flux, locale)}
                 </dd>
               </div>
             </dl>
             <p className="leading-7 text-[var(--muted)]">
-              The equal-and-opposite comparison is{" "}
-              {formatAngle(calculation.comparison_latitude_deg)}. Noon incidence is measured from
-              the outward surface normal; a value above 90° means the Sun&apos;s centre is below the
-              geometric horizon even at local noon.
+              {formatMessageTemplate(messages.result.comparisonSummary, {
+                latitude: formatAngle(calculation.comparison_latitude_deg, locale),
+              })}
             </p>
-            <GeometryTable result={calculation} />
+            <GeometryTable locale={locale} messages={messages} result={calculation} />
           </>
         )}
       </section>
@@ -878,39 +942,49 @@ export function SeasonsSimulatorView({
       {calculation !== null && visual !== null ? (
         <section aria-labelledby="seasons-visualization-heading" className="max-w-5xl space-y-6">
           <div className="space-y-2">
-            <h2 id="seasons-visualization-heading">Schematic geometry views</h2>
-            <p className="leading-7 text-[var(--muted)]">
-              These accessible SVGs are subordinate to the numeric result. Their normalized pixels,
-              axis drawing, orbit compression, and parallel rays are visualization choices, not
-              physical scale geometry.
-            </p>
+            <h2 id="seasons-visualization-heading">{messages.figures.sectionTitle}</h2>
+            <p className="leading-7 text-[var(--muted)]">{messages.figures.sectionDescription}</p>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
-            <OrbitFigure result={calculation} state={state} visual={visual} />
-            <IlluminationFigure result={calculation} state={state} visual={visual} />
+            <OrbitFigure
+              locale={locale}
+              messages={messages.figures.orbit}
+              result={calculation}
+              state={state}
+              visual={visual}
+            />
+            <IlluminationFigure
+              locale={locale}
+              messages={messages.figures.illumination}
+              result={calculation}
+              state={state}
+              visual={visual}
+            />
           </div>
         </section>
       ) : null}
 
       {calculation !== null ? (
         <section aria-labelledby="seasons-distance-heading" className="max-w-4xl space-y-5">
-          <h2 id="seasons-distance-heading">Distance context is separate</h2>
+          <h2 id="seasons-distance-heading">{messages.distance.title}</h2>
           <p className="leading-7 text-[var(--muted)]">
-            At this fixed orbital angle, changing the eccentricity preset changes the normalized
-            Earth-Sun distance ({calculation.distance_over_semimajor_axis.toFixed(4)} a) and the
-            inverse-square context ({formatFlux(calculation.relative_solar_flux)}). The declination,
-            noon geometry, day length, polar state, and opposite-hemisphere geometry remain tied to
-            tilt, orbital position, and latitude. Set axial tilt to 0° to see the required teaching
-            comparison: distance can vary while the geometric seasons disappear.
+            {formatMessageTemplate(messages.distance.description, {
+              distance: formatLocaleFixedNumber(
+                calculation.distance_over_semimajor_axis,
+                4,
+                locale,
+              ),
+              flux: formatFlux(calculation.relative_solar_flux, locale),
+            })}
           </p>
         </section>
       ) : null}
 
       <section aria-labelledby="seasons-model-heading" className="max-w-5xl space-y-6">
-        <h2 id="seasons-model-heading">Model, assumptions, validity, and provenance</h2>
+        <h2 id="seasons-model-heading">{messages.model.title}</h2>
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
-            <h3>Equations and relationships</h3>
+            <h3>{messages.model.equations}</h3>
             <dl className="space-y-3 text-sm leading-6 text-[var(--muted)]">
               {Object.entries(SEASONS_DEFINITION.calculation_module.equations).map(
                 ([name, equation]) => (
@@ -925,23 +999,15 @@ export function SeasonsSimulatorView({
             </dl>
           </div>
           <div className="space-y-4">
-            <h3>Inputs and validity domain</h3>
+            <h3>{messages.model.inputsAndValidity}</h3>
             <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-              <li>Axial tilt: 0° through 90° inclusive.</li>
-              <li>
-                Orbital position: 0° inclusive through 360° exclusive; 360° is a UI endpoint that
-                canonicalizes to 0°.
-              </li>
-              <li>Latitude: −90° through +90° inclusive; north is positive.</li>
-              <li>
-                Eccentricity: circular, Earth, or exaggerated preset only; no arbitrary eccentricity
-                or perihelion orientation.
-              </li>
-              <li>
-                Python double precision; arithmetic tolerances do not claim observational accuracy.
-              </li>
+              <li>{messages.model.validityItems.axialTilt}</li>
+              <li>{messages.model.validityItems.orbitalPosition}</li>
+              <li>{messages.model.validityItems.latitude}</li>
+              <li>{messages.model.validityItems.eccentricity}</li>
+              <li>{messages.model.validityItems.precision}</li>
             </ul>
-            <h3>Assumptions</h3>
+            <h3>{messages.model.assumptions}</h3>
             <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
               {SEASONS_DEFINITION.assumptions.map((assumption) => (
                 <li key={assumption}>{assumption}</li>
@@ -950,33 +1016,27 @@ export function SeasonsSimulatorView({
           </div>
         </div>
         <div className="space-y-3">
-          <h3>Limitations and disclosures</h3>
+          <h3>{messages.model.limitations}</h3>
           <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
             {SEASONS_DEFINITION.limitations.map((limitation) => (
               <li key={limitation}>{limitation}</li>
             ))}
           </ul>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            No animation is required. If a future phase adds motion, it must be stoppable, honor
-            reduced-motion preferences, and be labelled an orbital phase sweep rather than elapsed
-            calendar time.
-          </p>
+          <p className="text-sm leading-6 text-[var(--muted)]">{messages.model.futureMotion}</p>
         </div>
         <div className="space-y-3">
-          <h3>Reviewed scientific sources</h3>
-          <SourceList sourceIds={SEASONS_DEFINITION.references} />
+          <h3>{messages.model.reviewedSources}</h3>
+          <SourceList messages={messages.model} sourceIds={SEASONS_DEFINITION.references} />
           <p className="text-sm leading-6 text-[var(--muted)]">
-            NOAA&apos;s fractional-year declination polynomial is not the Lumina v1 calculation.
-            NOAA is included only as supporting comparison for general solar-position terminology
-            and why real sunrise calculations include corrections excluded here.
+            {messages.model.supportingSourceNote}
           </p>
         </div>
       </section>
 
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Want another reviewed scale model?{" "}
+        {messages.footer.prefix}{" "}
         <Link className="text-[var(--link)] underline" href="/lab/scale-explorer">
-          Open Scale Explorer
+          {messages.footer.link}
         </Link>
         .
       </p>

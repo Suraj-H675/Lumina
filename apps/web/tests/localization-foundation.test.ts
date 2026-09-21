@@ -599,6 +599,32 @@ describe("Phase 8C localization foundation", () => {
     expect(scale.track.markerSummary).toContain("{node}");
     expect(scale.transitionContract.unitsValue).toContain("{input}");
     expect(scale.transitionContract.unitsValue).toContain("{output}");
+
+    const seasons = enMessages.simulationLabs.seasonsSimulator;
+    expect(seasons.controls.range).toContain("{unit}");
+    expect(seasons.controls.range).toContain("{minimum}");
+    expect(seasons.controls.range).toContain("{maximum}");
+    expect(seasons.controls.sliderAriaLabel).toContain("{label}");
+    expect(seasons.controls.sliderAriaValue).toContain("{value}");
+    expect(seasons.controls.sliderAriaValue).toContain("{unit}");
+    expect(seasons.distance.description).toContain("{distance}");
+    expect(seasons.distance.description).toContain("{flux}");
+    expect(seasons.failures.invalidFinite).toContain("{field}");
+    expect(seasons.failures.invalidRange).toContain("{field}");
+    expect(seasons.figures.illumination.axisTilt).toContain("{angle}");
+    expect(seasons.figures.illumination.caption).toContain("{incidence}");
+    expect(seasons.figures.orbit.caption).toContain("{distance}");
+    expect(seasons.figures.orbit.description).toContain("{position}");
+    expect(seasons.model.sourceUnavailable).toContain("{sourceId}");
+    expect(seasons.noScript.currentState.orbitalPositionValue).toContain("{angle}");
+    expect(seasons.noScript.model.modelVersionSummary).toContain("{modelVersion}");
+    expect(seasons.noScript.model.modelVersionSummary).toContain("{schemaVersion}");
+    expect(seasons.noScript.result.comparisonSummary).toContain("{declination}");
+    expect(seasons.noScript.result.comparisonSummary).toContain("{comparisonLatitude}");
+    expect(seasons.noScript.result.distanceSummary).toContain("{distance}");
+    expect(seasons.noScript.result.distanceSummary).toContain("{flux}");
+    expect(seasons.result.comparisonSummary).toContain("{latitude}");
+    expect(seasons.result.description).toContain("{modelVersion}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

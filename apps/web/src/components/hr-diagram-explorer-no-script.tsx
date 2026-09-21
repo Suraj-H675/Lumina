@@ -8,10 +8,19 @@ import {
   type HRDiagramState,
   type HRDiagramView,
 } from "../lib/simulations/hr-diagram-explorer";
+import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { HRDiagramExplorerMessages } from "../lib/i18n/messages/types";
 
 type HRDiagramExplorerNoScriptProps = Readonly<{
   initialState: HRDiagramState;
   initialStateInvalid: boolean;
+  locale: PublishedLocale;
+  messages: HRDiagramExplorerMessages;
 }>;
 
 const CLUSTER_LABELS = {
@@ -27,31 +36,31 @@ const STAGE_LABELS = {
   red_giant_branch: "Red giant branch",
 } as const;
 
-function formatTemperature(value: number): string {
-  return `${value.toFixed(0)} K`;
+function formatTemperature(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(value, 0, locale)} K`;
 }
 
-function formatLuminosity(value: number): string {
-  return `${value.toFixed(3)} L☉`;
+function formatLuminosity(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(value, 3, locale)} L☉`;
 }
 
-function formatMagnitude(value: number): string {
-  return `${value.toFixed(3)} mag`;
+function formatMagnitude(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(value, 3, locale)} mag`;
 }
 
-function formatColour(value: number): string {
-  return `${value.toFixed(3)} mag`;
+function formatColour(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(value, 3, locale)} mag`;
 }
 
-function formatParallax(value: number): string {
-  return `${value.toFixed(3)} mas`;
+function formatParallax(value: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(value, 3, locale)} mas`;
 }
 
 function sourceForId(id: string) {
   return HR_DIAGRAM_SOURCES.find((source) => source.id === id);
 }
 
-function SourceReferences() {
+function SourceReferences({ messages }: Readonly<{ messages: HRDiagramExplorerMessages }>) {
   return (
     <ul>
       {HR_DIAGRAM_DEFINITION.references.map((sourceId) => {
@@ -59,7 +68,7 @@ function SourceReferences() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.model.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a href={source.url} rel="noreferrer">
@@ -75,76 +84,94 @@ function SourceReferences() {
   );
 }
 
-function ViewDescription({ view }: Readonly<{ view: HRDiagramView }>) {
-  return view === "physical_hr" ? (
+function ViewDescription({
+  messages,
+  view,
+}: Readonly<{
+  messages: HRDiagramExplorerMessages["noScript"];
+  view: HRDiagramView;
+}>) {
+  return (
     <p>
-      Physical H-R view: effective temperature is logarithmic and hotter stars are on the left;
-      luminosity is logarithmic and increases upward. The values are Gaia source-published
-      quantities, not conversions made by Lumina.
-    </p>
-  ) : (
-    <p>
-      Gaia colour–magnitude view: published BP−RP colour increases from left to right, while
-      absolute G magnitude is vertically reversed so smaller, more-negative magnitudes appear
-      higher. This is an alternate source-variable view, not a conversion from the physical H-R
-      values.
+      {view === "physical_hr"
+        ? messages.viewDescriptions.physicalHr
+        : messages.viewDescriptions.gaiaCmd}
     </p>
   );
 }
 
-function StateSummary({ state }: Readonly<{ state: HRDiagramState }>) {
+function StateSummary({
+  messages,
+  state,
+}: Readonly<{
+  messages: HRDiagramExplorerMessages["noScript"];
+  state: HRDiagramState;
+}>) {
   return (
     <dl>
       <div>
-        <dt>View</dt>
-        <dd>{state.view === "physical_hr" ? "Physical H-R" : "Gaia colour–magnitude"}</dd>
+        <dt>{messages.state.view}</dt>
+        <dd>{state.view === "physical_hr" ? messages.views.physicalHr : messages.views.gaiaCmd}</dd>
       </div>
       <div>
-        <dt>Selected star</dt>
+        <dt>{messages.state.selectedStar}</dt>
         <dd>{state.selected_star_id}</dd>
       </div>
       <div>
-        <dt>Active spectral classes</dt>
-        <dd>{state.spectral_classes.join(", ") || "none"}</dd>
+        <dt>{messages.state.activeSpectralClasses}</dt>
+        <dd>{state.spectral_classes.join(", ") || messages.state.none}</dd>
       </div>
       <div>
-        <dt>Active stage groups</dt>
-        <dd>{state.stage_groups.map((stage) => STAGE_LABELS[stage]).join(", ") || "none"}</dd>
+        <dt>{messages.state.activeStageGroups}</dt>
+        <dd>
+          {state.stage_groups.map((stage) => STAGE_LABELS[stage]).join(", ") || messages.state.none}
+        </dd>
       </div>
       <div>
-        <dt>Active clusters</dt>
-        <dd>{state.clusters.map((cluster) => CLUSTER_LABELS[cluster]).join(", ") || "none"}</dd>
+        <dt>{messages.state.activeClusters}</dt>
+        <dd>
+          {state.clusters.map((cluster) => CLUSTER_LABELS[cluster]).join(", ") ||
+            messages.state.none}
+        </dd>
       </div>
     </dl>
   );
 }
 
 function RecordTable({
+  locale,
+  messages,
   records,
   selectedStarId,
-}: Readonly<{ records: ReadonlyArray<HRDiagramRecord>; selectedStarId: string }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: HRDiagramExplorerMessages;
+  records: ReadonlyArray<HRDiagramRecord>;
+  selectedStarId: string;
+}>) {
   return (
     <div
-      aria-label="Filtered Gaia stellar records"
+      aria-label={messages.table.ariaLabel}
       role="region"
       style={{ overflowX: "auto" }}
       tabIndex={0}
     >
       <table>
         <caption>
-          {records.length} filtered curated Gaia DR3 records. Values are source-published; stage
-          group is Lumina&apos;s frozen grouping of the raw FLAME stage index.
+          {formatMessageTemplate(messages.noScript.tableCaption, {
+            count: formatLocaleNumber(records.length, locale),
+          })}
         </caption>
         <thead>
           <tr>
-            <th scope="col">Gaia designation</th>
-            <th scope="col">Cluster</th>
-            <th scope="col">Spectral class</th>
-            <th scope="col">Stage group</th>
-            <th scope="col">T_eff (K)</th>
-            <th scope="col">Luminosity (L☉)</th>
-            <th scope="col">BP−RP (mag)</th>
-            <th scope="col">M_G (mag)</th>
+            <th scope="col">{messages.table.headers.designation}</th>
+            <th scope="col">{messages.table.headers.cluster}</th>
+            <th scope="col">{messages.table.headers.spectralClass}</th>
+            <th scope="col">{messages.table.headers.stageGroup}</th>
+            <th scope="col">{messages.table.headers.temperature}</th>
+            <th scope="col">{messages.table.headers.luminosity}</th>
+            <th scope="col">{messages.table.headers.colour}</th>
+            <th scope="col">{messages.table.headers.magnitude}</th>
           </tr>
         </thead>
         <tbody>
@@ -152,15 +179,15 @@ function RecordTable({
             <tr key={record.star_id} aria-selected={record.star_id === selectedStarId}>
               <th scope="row">
                 {record.designation}
-                {record.star_id === selectedStarId ? " (selected)" : ""}
+                {record.star_id === selectedStarId ? messages.table.selectedSuffix : ""}
               </th>
               <td>{record.cluster_label}</td>
               <td>{record.spectral_class}</td>
               <td>{STAGE_LABELS[record.stage_group]}</td>
-              <td>{formatTemperature(record.teff_k_p50)}</td>
-              <td>{formatLuminosity(record.luminosity_lsun_p50)}</td>
-              <td>{formatColour(record.bp_rp_mag)}</td>
-              <td>{formatMagnitude(record.mg_gspphot_mag_p50)}</td>
+              <td>{formatTemperature(record.teff_k_p50, locale)}</td>
+              <td>{formatLuminosity(record.luminosity_lsun_p50, locale)}</td>
+              <td>{formatColour(record.bp_rp_mag, locale)}</td>
+              <td>{formatMagnitude(record.mg_gspphot_mag_p50, locale)}</td>
             </tr>
           ))}
         </tbody>
@@ -169,87 +196,114 @@ function RecordTable({
   );
 }
 
-function SelectedStarDetail({ record }: Readonly<{ record: HRDiagramRecord }>) {
+function SelectedStarDetail({
+  locale,
+  messages,
+  record,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: HRDiagramExplorerMessages["noScript"]["detail"];
+  record: HRDiagramRecord;
+}>) {
   return (
     <section aria-labelledby="hr-no-script-selected-heading">
-      <h2 id="hr-no-script-selected-heading">Selected star detail</h2>
-      <p>
-        {record.designation} is selected. Its values remain available even when the active filters
-        exclude it.
-      </p>
+      <h2 id="hr-no-script-selected-heading">{messages.title}</h2>
+      <p>{formatMessageTemplate(messages.summary, { designation: record.designation })}</p>
       <dl>
         <div>
-          <dt>Gaia DR3 source ID</dt>
+          <dt>{messages.labels.sourceId}</dt>
           <dd>{record.gaia_source_id}</dd>
         </div>
         <div>
-          <dt>Cluster catalogue record</dt>
+          <dt>{messages.labels.clusterRecord}</dt>
           <dd>
-            {record.cluster_label}; Hunt &amp; Reffert 2024 catalogue ID{" "}
-            {record.membership.catalogue_id}; source Prob{" "}
-            {record.membership.membership_probability.toFixed(4)}; inrj={record.membership.inrj};
-            inrt={record.membership.inrt}
+            {formatMessageTemplate(messages.membershipSummary, {
+              catalogueId: record.membership.catalogue_id,
+              cluster: record.cluster_label,
+              inrj: String(record.membership.inrj),
+              inrt: String(record.membership.inrt),
+              probability: formatLocaleFixedNumber(
+                record.membership.membership_probability,
+                4,
+                locale,
+              ),
+            })}
           </dd>
         </div>
         <div>
-          <dt>Spectral class / Gaia flags_esphs</dt>
+          <dt>{messages.labels.spectralFlags}</dt>
           <dd>
             {record.spectral_class} / {record.flags_esphs}
           </dd>
         </div>
         <div>
-          <dt>Stage group / raw Gaia evolstage_flame</dt>
+          <dt>{messages.labels.stageRaw}</dt>
           <dd>
             {STAGE_LABELS[record.stage_group]} / {record.evolstage_flame}
           </dd>
         </div>
         <div>
-          <dt>Gaia flags_flame</dt>
+          <dt>{messages.labels.flagsFlame}</dt>
           <dd>{record.flags_flame}</dd>
         </div>
         <div>
-          <dt>Effective temperature, T_eff</dt>
+          <dt>{messages.labels.temperature}</dt>
           <dd>
-            {formatTemperature(record.teff_k_p50)}; source p16–p84{" "}
-            {formatTemperature(record.teff_k_p16)} to {formatTemperature(record.teff_k_p84)}
+            {formatMessageTemplate(messages.percentileInterval, {
+              lower: formatTemperature(record.teff_k_p16, locale),
+              median: formatTemperature(record.teff_k_p50, locale),
+              upper: formatTemperature(record.teff_k_p84, locale),
+            })}
           </dd>
         </div>
         <div>
-          <dt>Luminosity</dt>
+          <dt>{messages.labels.luminosity}</dt>
           <dd>
-            {formatLuminosity(record.luminosity_lsun_p50)}; source p16–p84{" "}
-            {formatLuminosity(record.luminosity_lsun_p16)} to{" "}
-            {formatLuminosity(record.luminosity_lsun_p84)}
+            {formatMessageTemplate(messages.percentileInterval, {
+              lower: formatLuminosity(record.luminosity_lsun_p16, locale),
+              median: formatLuminosity(record.luminosity_lsun_p50, locale),
+              upper: formatLuminosity(record.luminosity_lsun_p84, locale),
+            })}
           </dd>
         </div>
         <div>
-          <dt>Gaia BP−RP</dt>
-          <dd>{formatColour(record.bp_rp_mag)}; no Lumina colour uncertainty is synthesized</dd>
-        </div>
-        <div>
-          <dt>Gaia absolute G magnitude, M_G</dt>
+          <dt>{messages.labels.colour}</dt>
           <dd>
-            {formatMagnitude(record.mg_gspphot_mag_p50)}; source p16–p84{" "}
-            {formatMagnitude(record.mg_gspphot_mag_p16)} to{" "}
-            {formatMagnitude(record.mg_gspphot_mag_p84)}
+            {formatMessageTemplate(messages.colourNoInterval, {
+              value: formatColour(record.bp_rp_mag, locale),
+            })}
           </dd>
         </div>
         <div>
-          <dt>Apparent Gaia G magnitude</dt>
-          <dd>{formatMagnitude(record.phot_g_mean_mag)}</dd>
+          <dt>{messages.labels.magnitude}</dt>
+          <dd>
+            {formatMessageTemplate(messages.percentileInterval, {
+              lower: formatMagnitude(record.mg_gspphot_mag_p16, locale),
+              median: formatMagnitude(record.mg_gspphot_mag_p50, locale),
+              upper: formatMagnitude(record.mg_gspphot_mag_p84, locale),
+            })}
+          </dd>
         </div>
         <div>
-          <dt>Parallax / parallax uncertainty</dt>
+          <dt>{messages.labels.apparentMagnitude}</dt>
+          <dd>{formatMagnitude(record.phot_g_mean_mag, locale)}</dd>
+        </div>
+        <div>
+          <dt>{messages.labels.parallax}</dt>
           <dd>
-            {formatParallax(record.parallax_mas)} / {formatParallax(record.parallax_error_mas)}
+            {formatParallax(record.parallax_mas, locale)} /{" "}
+            {formatParallax(record.parallax_error_mas, locale)}
           </dd>
         </div>
         {record.ag_gspphot_mag === null ? null : (
           <div>
-            <dt>A_G / E(BP−RP)</dt>
+            <dt>{messages.labels.agExtinction}</dt>
             <dd>
-              {record.ag_gspphot_mag.toFixed(3)} mag /{" "}
-              {record.ebpminrp_gspphot_mag?.toFixed(3) ?? "not supplied"} mag
+              {formatLocaleFixedNumber(record.ag_gspphot_mag, 3, locale)} mag /{" "}
+              {record.ebpminrp_gspphot_mag === null
+                ? messages.notSupplied
+                : formatLocaleFixedNumber(record.ebpminrp_gspphot_mag, 3, locale)}{" "}
+              mag
             </dd>
           </div>
         )}
@@ -262,6 +316,8 @@ function SelectedStarDetail({ record }: Readonly<{ record: HRDiagramRecord }>) {
 export function HRDiagramExplorerNoScript({
   initialState,
   initialStateInvalid,
+  locale,
+  messages,
 }: HRDiagramExplorerNoScriptProps) {
   const records = filterHRDiagramRecords(initialState);
   const selected = selectedHRDiagramRecord(initialState);
@@ -271,64 +327,56 @@ export function HRDiagramExplorerNoScript({
     <noscript>
       <article>
         <header>
-          <p>Phase 3B / Vertical 4</p>
-          <h1>H-R Diagram Explorer</h1>
-          <p>
-            Explore a curated Gaia DR3 stellar sample in two alternate views: physical H-R
-            quantities and Gaia colour–magnitude quantities. This complete text and table result
-            remains available without JavaScript.
-          </p>
+          <p>{messages.noScript.eyebrow}</p>
+          <h1>{messages.header.title}</h1>
+          <p>{messages.noScript.intro}</p>
         </header>
 
         {initialStateInvalid ? (
-          <aside aria-label="The shared H-R Diagram Explorer state was not valid" role="alert">
-            <h2 id="hr-no-script-invalid-state-heading">
-              The shared H-R Diagram Explorer state was not valid
-            </h2>
+          <aside aria-label={messages.invalidState.title} role="alert">
+            <h2 id="hr-no-script-invalid-state-heading">{messages.invalidState.title}</h2>
+            <p>{messages.noScript.invalidDescription}</p>
             <p>
-              The requested version, view, selected star, filter values, exact field set, or
-              serialized form was rejected. The displayed state is the separately labelled default
-              reset state.
-            </p>
-            <p>
-              <a href="/lab/hr-diagram-explorer">Reset to the default explorer state</a>
+              <a href="/lab/hr-diagram-explorer">{messages.noScript.resetLink}</a>
             </p>
           </aside>
         ) : null}
 
         <section aria-labelledby="hr-no-script-state-heading">
-          <h2 id="hr-no-script-state-heading">Current explorer state</h2>
-          <StateSummary state={initialState} />
-          <ViewDescription view={initialState.view} />
+          <h2 id="hr-no-script-state-heading">{messages.noScript.state.title}</h2>
+          <StateSummary messages={messages.noScript} state={initialState} />
+          <ViewDescription messages={messages.noScript} view={initialState.view} />
           <p>
-            {records.length} of {HR_DIAGRAM_RECORDS.length} curated stars match the active filters.
-            Within each filter dimension values are ORed; dimensions are ANDed. An empty filter
-            dimension shows zero records.
+            {formatMessageTemplate(messages.noScript.state.countSummary, {
+              count: formatLocaleNumber(records.length, locale),
+              total: formatLocaleNumber(HR_DIAGRAM_RECORDS.length, locale),
+            })}
           </p>
-          {!selectedIsVisible ? (
-            <p role="note">
-              The selected star is outside the active filters. Its detail remains below and it is
-              not included in the filtered table.
-            </p>
-          ) : null}
+          {!selectedIsVisible ? <p role="note">{messages.noScript.state.outsideFilters}</p> : null}
         </section>
 
-        <SelectedStarDetail record={selected} />
+        <SelectedStarDetail locale={locale} messages={messages.noScript.detail} record={selected} />
 
         <section aria-labelledby="hr-no-script-data-heading">
-          <h2 id="hr-no-script-data-heading">Text and data result</h2>
-          <RecordTable records={records} selectedStarId={selected.star_id} />
+          <h2 id="hr-no-script-data-heading">{messages.noScript.dataTitle}</h2>
+          <RecordTable
+            locale={locale}
+            messages={messages}
+            records={records}
+            selectedStarId={selected.star_id}
+          />
         </section>
 
         <section aria-labelledby="hr-no-script-model-heading">
-          <h2 id="hr-no-script-model-heading">Model, assumptions, limitations, and sources</h2>
+          <h2 id="hr-no-script-model-heading">{messages.noScript.model.title}</h2>
           <p>
-            <strong>Model:</strong> {HR_DIAGRAM_DEFINITION.model_version}; dataset{" "}
-            {HR_DIAGRAM_DEFINITION.dataset_id}; Gaia DR3. This is a fixed, curated sample of 128
-            source records, not a complete or population-representative survey.
+            <strong>{messages.noScript.model.modelLabel}</strong>{" "}
+            {HR_DIAGRAM_DEFINITION.model_version}; dataset {HR_DIAGRAM_DEFINITION.dataset_id}; Gaia
+            DR3. This is a fixed, curated sample of 128 source records, not a complete or
+            population-representative survey.
           </p>
           <p>{HR_DIAGRAM_DEFINITION.uncertainty_semantics}</p>
-          <h3>What this explorer does not derive</h3>
+          <h3>{messages.noScript.model.underivedTitle}</h3>
           <p>
             Lumina does not convert BP−RP to temperature, M_G to luminosity, or plot position to
             spectral class, evolutionary stage, age, mass, radius, lifetime, or future evolution.
@@ -339,7 +387,7 @@ export function HRDiagramExplorerNoScript({
             detail preserves the source row&apos;s membership probability and inrj/inrt flags; a
             catalogue association is not a Lumina-recomputed membership claim.
           </p>
-          <h3>Assumptions and limitations</h3>
+          <h3>{messages.noScript.model.assumptionsAndLimitations}</h3>
           <ul>
             {HR_DIAGRAM_DEFINITION.assumptions.map((assumption) => (
               <li key={assumption}>{assumption}</li>
@@ -348,8 +396,8 @@ export function HRDiagramExplorerNoScript({
               <li key={limitation}>{limitation}</li>
             ))}
           </ul>
-          <h3>References and provenance</h3>
-          <SourceReferences />
+          <h3>{messages.noScript.model.references}</h3>
+          <SourceReferences messages={messages} />
         </section>
       </article>
     </noscript>

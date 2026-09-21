@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 
 import { HRDiagramExplorerEnhancedLoader } from "../../../components/hr-diagram-explorer-enhanced-loader";
 import { HRDiagramExplorerNoScript } from "../../../components/hr-diagram-explorer-no-script";
-import type { PresentationModeMessages } from "../../../lib/i18n/messages/types";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type {
+  HRDiagramExplorerMessages,
+  PresentationModeMessages,
+} from "../../../lib/i18n/messages/types";
 import {
   DEFAULT_HR_DIAGRAM_STATE,
   decodeHRDiagramState,
@@ -11,16 +15,19 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  alternates: {
-    canonical: "/lab/hr-diagram-explorer",
-  },
-  title: "H-R Diagram Explorer",
-  description:
-    "Explore a curated Gaia DR3 stellar sample across physical H-R and Gaia colour–magnitude views.",
-};
+export function createHRDiagramExplorerMetadata(messages: HRDiagramExplorerMessages): Metadata {
+  return {
+    alternates: {
+      canonical: "/lab/hr-diagram-explorer",
+    },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type HRDiagramExplorerPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: HRDiagramExplorerMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
   presentationModeMessages: PresentationModeMessages;
 }>;
@@ -41,6 +48,8 @@ function stateFromSearchParams(
 }
 
 export default async function HRDiagramExplorerPage({
+  locale,
+  messages,
   presentationModeMessages,
   searchParams,
 }: HRDiagramExplorerPageProps) {
@@ -51,10 +60,14 @@ export default async function HRDiagramExplorerPage({
       <HRDiagramExplorerNoScript
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <HRDiagramExplorerEnhancedLoader
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
         presentationModeMessages={presentationModeMessages}
       />
     </>

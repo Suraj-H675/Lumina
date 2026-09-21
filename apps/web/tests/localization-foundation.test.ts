@@ -651,6 +651,36 @@ describe("Phase 8C localization foundation", () => {
     expect(telescope.result.targetFitFits).toContain("{targetFit}");
     expect(telescope.result.targetFitDoesNotFit).toContain("{targetFit}");
     expect(telescope.result.typeSummary).toContain("{telescopeType}");
+
+    const hrDiagram = enMessages.simulationLabs.hrDiagramExplorer;
+    expect(hrDiagram.controls.countSummary).toContain("{count}");
+    expect(hrDiagram.controls.countSummary).toContain("{total}");
+    expect(hrDiagram.detail.colourNoInterval).toContain("{value}");
+    expect(hrDiagram.detail.membershipSummary).toContain("{catalogueId}");
+    expect(hrDiagram.detail.membershipSummary).toContain("{probability}");
+    expect(hrDiagram.detail.percentileInterval).toContain("{median}");
+    expect(hrDiagram.detail.percentileInterval).toContain("{lower}");
+    expect(hrDiagram.detail.percentileInterval).toContain("{upper}");
+    expect(hrDiagram.detail.summary).toContain("{designation}");
+    expect(hrDiagram.detail.summary).toContain("{spectralClass}");
+    expect(hrDiagram.model.sourceUnavailable).toContain("{sourceId}");
+    expect(hrDiagram.noScript.detail.colourNoInterval).toContain("{value}");
+    expect(hrDiagram.noScript.detail.membershipSummary).toContain("{catalogueId}");
+    expect(hrDiagram.noScript.detail.percentileInterval).toContain("{median}");
+    expect(hrDiagram.noScript.detail.summary).toContain("{designation}");
+    expect(hrDiagram.noScript.state.countSummary).toContain("{count}");
+    expect(hrDiagram.noScript.state.countSummary).toContain("{total}");
+    expect(hrDiagram.noScript.tableCaption).toContain("{count}");
+    expect(hrDiagram.plot.caption).toContain("{xDirection}");
+    expect(hrDiagram.plot.caption).toContain("{yDirection}");
+    expect(hrDiagram.plot.description).toContain("{count}");
+    expect(hrDiagram.plot.markerSelectSuffix).toContain("{star}");
+    expect(hrDiagram.selectedStarLabel).toContain("{designation}");
+    expect(hrDiagram.selectedStarLabel).toContain("{spectralClass}");
+    expect(hrDiagram.share.modelSummary).toContain("{modelVersion}");
+    expect(hrDiagram.share.modelSummary).toContain("{schemaVersion}");
+    expect(hrDiagram.table.caption).toContain("{count}");
+    expect(hrDiagram.table.selectAria).toContain("{star}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

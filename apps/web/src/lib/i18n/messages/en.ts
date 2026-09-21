@@ -2425,6 +2425,208 @@ export const enMessages = {
         title: "Solar-viewing safety",
       },
     },
+    hrDiagramExplorer: {
+      actions: {
+        reset: "Reset",
+        resetDefault: "Reset to default state",
+      },
+      artifactIntegrity: {
+        description:
+          "The static stellar artifact did not match its reviewed integrity record. Scientific results are withheld until the reviewed artifact is restored.",
+        title: "The reviewed H-R Diagram data could not be verified",
+      },
+      axes: {
+        gaiaCmd: {
+          x: "Gaia BP−RP colour (mag)",
+          xDirection: "bluer / smaller BP−RP ← left; redder / larger BP−RP → right",
+          y: "Gaia absolute G magnitude, M_G (mag)",
+          yDirection: "smaller, more-negative magnitude ↑; larger magnitude ↓",
+        },
+        physicalHr: {
+          x: "Effective temperature, T_eff (K)",
+          xDirection: "hotter / higher temperature ← left; cooler / lower temperature → right",
+          y: "Luminosity (L☉)",
+          yDirection: "higher luminosity ↑; lower luminosity ↓",
+        },
+      },
+      controls: {
+        clusterLegend: "Cluster (OR)",
+        countSummary: "{count} of {total} stars match the active filters.",
+        keyboardHelp:
+          "This control provides keyboard access to every currently plotted record without requiring 128 separate SVG tab stops.",
+        keyboardLabel: "Keyboard star selector",
+        outsideFiltersSuffix: " (outside filters)",
+        spectralLegend: "Spectral class (OR)",
+        stageLegend: "Stage group (OR)",
+        title: "Explore the curated sample",
+        viewLabel: "Diagram view",
+      },
+      detail: {
+        colourNoInterval: "{value}; no synthetic colour interval",
+        labels: {
+          apparentMagnitude: "Apparent Gaia G magnitude",
+          clusterRecord: "Cluster catalogue record",
+          colour: "Gaia BP−RP",
+          designation: "Gaia designation",
+          flagsFlame: "flags_flame",
+          luminosity: "Luminosity",
+          magnitude: "Gaia absolute G magnitude, M_G",
+          parallax: "Parallax / uncertainty",
+          sourceId: "Gaia DR3 source ID",
+          spectralFlags: "Spectral class / flags_esphs",
+          stageRaw: "Stage group / raw evolstage_flame",
+          temperature: "Effective temperature, T_eff",
+        },
+        membershipSummary:
+          "{cluster}; Hunt & Reffert 2024 catalogue ID {catalogueId}; source Prob {probability}; inrj={inrj}; inrt={inrt}",
+        outsideFilters:
+          "This selected star is outside the active filters. Its detail is retained; it is not shown as a normal filtered point.",
+        percentileInterval: "{median}; p16–p84 {lower} to {upper}",
+        summary: "{designation} · {cluster} · spectral class {spectralClass} · {stage}",
+        title: "Selected star",
+      },
+      footer: {
+        description:
+          "JavaScript enhances filtering and selection. The route also includes a complete semantic table, selected-star detail, assumptions, limitations, and provenance for no-JavaScript use.",
+        link: "Return to Lab index",
+      },
+      header: {
+        eyebrow: "Phase 3B / Vertical 4",
+        learningPrompt: "Learning prompt:",
+        title: "H-R Diagram Explorer",
+      },
+      invalidState: {
+        description:
+          "The exact field set, version, filter values, view, or selected star was rejected. No partially accepted scientific state was used.",
+        title: "The shared H-R Diagram Explorer state was not valid",
+      },
+      legend: {
+        items: {
+          density: "Point density has no population-demographic meaning.",
+          point: "Each point is one curated Gaia DR3 source record.",
+          selected: "Selected points are also named in the table and detail panel.",
+          sourceBacked:
+            "Stage and spectral class are source-backed labels, not plot-position regions.",
+        },
+        title: "Reading the plot",
+      },
+      metadataDescription:
+        "Explore a curated Gaia DR3 stellar sample across physical H-R and Gaia colour–magnitude views.",
+      metadataTitle: "H-R Diagram Explorer",
+      model: {
+        assumptionsAndLimitations: "Assumptions and limitations",
+        displayRelationships: "Display relationships",
+        modelLabel: "Model version:",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        sources: "Sources",
+        title: "Model, assumptions, and provenance",
+      },
+      noScript: {
+        dataTitle: "Text and data result",
+        detail: {
+          colourNoInterval: "{value}; no Lumina colour uncertainty is synthesized",
+          labels: {
+            agExtinction: "A_G / E(BP−RP)",
+            apparentMagnitude: "Apparent Gaia G magnitude",
+            clusterRecord: "Cluster catalogue record",
+            colour: "Gaia BP−RP",
+            flagsFlame: "Gaia flags_flame",
+            luminosity: "Luminosity",
+            magnitude: "Gaia absolute G magnitude, M_G",
+            parallax: "Parallax / parallax uncertainty",
+            sourceId: "Gaia DR3 source ID",
+            spectralFlags: "Spectral class / Gaia flags_esphs",
+            stageRaw: "Stage group / raw Gaia evolstage_flame",
+            temperature: "Effective temperature, T_eff",
+          },
+          membershipSummary:
+            "{cluster}; Hunt & Reffert 2024 catalogue ID {catalogueId}; source Prob {probability}; inrj={inrj}; inrt={inrt}",
+          notSupplied: "not supplied",
+          percentileInterval: "{median}; source p16–p84 {lower} to {upper}",
+          summary:
+            "{designation} is selected. Its values remain available even when the active filters exclude it.",
+          title: "Selected star detail",
+        },
+        eyebrow: "Phase 3B / Vertical 4",
+        intro:
+          "Explore a curated Gaia DR3 stellar sample in two alternate views: physical H-R quantities and Gaia colour–magnitude quantities. This complete text and table result remains available without JavaScript.",
+        invalidDescription:
+          "The requested version, view, selected star, filter values, exact field set, or serialized form was rejected. The displayed state is the separately labelled default reset state.",
+        model: {
+          assumptionsAndLimitations: "Assumptions and limitations",
+          modelLabel: "Model:",
+          references: "References and provenance",
+          title: "Model, assumptions, limitations, and sources",
+          underivedTitle: "What this explorer does not derive",
+        },
+        resetLink: "Reset to the default explorer state",
+        state: {
+          activeClusters: "Active clusters",
+          activeSpectralClasses: "Active spectral classes",
+          activeStageGroups: "Active stage groups",
+          countSummary:
+            "{count} of {total} curated stars match the active filters. Within each filter dimension values are ORed; dimensions are ANDed. An empty filter dimension shows zero records.",
+          none: "none",
+          outsideFilters:
+            "The selected star is outside the active filters. Its detail remains below and it is not included in the filtered table.",
+          selectedStar: "Selected star",
+          title: "Current explorer state",
+          view: "View",
+        },
+        tableCaption:
+          "{count} filtered curated Gaia DR3 records. Values are source-published; stage group is Lumina's frozen grouping of the raw FLAME stage index.",
+        viewDescriptions: {
+          gaiaCmd:
+            "Gaia colour–magnitude view: published BP−RP colour increases from left to right, while absolute G magnitude is vertically reversed so smaller, more-negative magnitudes appear higher. This is an alternate source-variable view, not a conversion from the physical H-R values.",
+          physicalHr:
+            "Physical H-R view: effective temperature is logarithmic and hotter stars are on the left; luminosity is logarithmic and increases upward. The values are Gaia source-published quantities, not conversions made by Lumina.",
+        },
+        views: {
+          gaiaCmd: "Gaia colour–magnitude",
+          physicalHr: "Physical H-R",
+        },
+      },
+      plot: {
+        caption:
+          "{xDirection}. {yDirection}. The selected star's source-published asymmetric percentile intervals are shown on the plot when it is inside the active filters and remain in the detail panel otherwise. Marker position is a disclosed display transform; marker density is not population density.",
+        description:
+          "{count} curated Gaia DR3 stars. {xDirection}. {yDirection}. The keyboard-accessible table below is the complete semantic alternative and selects the same records represented by these markers.",
+        markerSelectSuffix:
+          "{star}. Select the corresponding row in the accessible data table below.",
+      },
+      selectedStarLabel: "{designation}, {cluster}, spectral class {spectralClass}, {stage}",
+      share: {
+        description:
+          "The URL stores only the versioned view, selected source ID, and filter arrays. Derived values, presentation mode, hover, and focus are not serialized.",
+        link: "Open this exact view state",
+        modelSummary: "Model: {modelVersion}; share schema: {schemaVersion}.",
+        title: "Serializable view state",
+      },
+      table: {
+        ariaLabel: "Filtered Gaia stellar records",
+        caption:
+          "{count} filtered records. The selected row is identified in text; source values are not encoded by colour alone.",
+        description:
+          "The table is the complete non-visual alternative to the SVG. Select any row to update the selected star without changing filters.",
+        headers: {
+          cluster: "Cluster",
+          colour: "BP−RP (mag)",
+          designation: "Gaia designation",
+          luminosity: "Luminosity (L☉)",
+          magnitude: "M_G (mag)",
+          spectralClass: "Spectral class",
+          stageGroup: "Stage group",
+          temperature: "T_eff (K)",
+        },
+        selectAria: "Select {star}",
+        selectedSuffix: " (selected)",
+        title: "Accessible data table",
+      },
+      views: {
+        gaiaCmd: "Gaia colour–magnitude view",
+        physicalHr: "Physical H-R view",
+      },
+    },
     impactSimulator: {
       actions: {
         calculate: "Calculate teaching model",

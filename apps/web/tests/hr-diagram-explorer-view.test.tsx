@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { HRDiagramExplorerEnhanced } from "../src/components/hr-diagram-explorer-enhanced";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_HR_DIAGRAM_STATE } from "../src/lib/simulations/hr-diagram-explorer";
 import { renderWithEnglishMessages as render } from "./i18n-render";
 
@@ -18,6 +20,8 @@ describe("HRDiagramExplorerEnhanced", () => {
       <HRDiagramExplorerEnhanced
         initialState={DEFAULT_HR_DIAGRAM_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.hrDiagramExplorer}
       />,
     );
 
@@ -36,6 +40,8 @@ describe("HRDiagramExplorerEnhanced", () => {
       <HRDiagramExplorerEnhanced
         initialState={{ ...DEFAULT_HR_DIAGRAM_STATE, spectral_classes: ["O"] }}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.hrDiagramExplorer}
       />,
     );
 
@@ -57,7 +63,12 @@ describe("HRDiagramExplorerEnhanced", () => {
   it("supports keyboard selection through the complete table and reports invalid state recovery", async () => {
     const user = userEvent.setup();
     render(
-      <HRDiagramExplorerEnhanced initialState={DEFAULT_HR_DIAGRAM_STATE} initialStateInvalid />,
+      <HRDiagramExplorerEnhanced
+        initialState={DEFAULT_HR_DIAGRAM_STATE}
+        initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.hrDiagramExplorer}
+      />,
     );
 
     expect(screen.getByRole("alert")).toHaveTextContent(
@@ -72,5 +83,36 @@ describe("HRDiagramExplorerEnhanced", () => {
     await user.keyboard("{Enter}");
     expect(screen.getByText(/Selected star/)).toBeVisible();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("localizes interface chrome without rewriting reviewed Gaia science or source identity", () => {
+    const messages = {
+      ...enMessages.simulationLabs.hrDiagramExplorer,
+      header: {
+        ...enMessages.simulationLabs.hrDiagramExplorer.header,
+        title: "Localized H-R Explorer",
+      },
+      table: {
+        ...enMessages.simulationLabs.hrDiagramExplorer.table,
+        title: "Localized stellar table",
+      },
+    };
+
+    render(
+      <HRDiagramExplorerEnhanced
+        initialState={DEFAULT_HR_DIAGRAM_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Localized H-R Explorer" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Localized stellar table" }),
+    ).toBeVisible();
+    expect(screen.getByText(/does not convert BP−RP to temperature/i)).toBeVisible();
+    expect(screen.getAllByText("Main sequence", { exact: true })[0]).toBeVisible();
+    expect(screen.getByRole("link", { name: "20.1.1 gaia_source" })).toBeVisible();
   });
 });

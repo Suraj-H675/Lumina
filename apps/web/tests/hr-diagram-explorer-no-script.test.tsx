@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { HRDiagramExplorerNoScript } from "../src/components/hr-diagram-explorer-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import {
   DEFAULT_HR_DIAGRAM_STATE,
   type HRDiagramState,
@@ -13,6 +15,8 @@ describe("HRDiagramExplorerNoScript", () => {
       <HRDiagramExplorerNoScript
         initialState={DEFAULT_HR_DIAGRAM_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.hrDiagramExplorer}
       />,
     );
     const tableBody = markup.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";
@@ -35,7 +39,12 @@ describe("HRDiagramExplorerNoScript", () => {
       stage_groups: ["main_sequence"],
     };
     const markup = renderToStaticMarkup(
-      <HRDiagramExplorerNoScript initialState={state} initialStateInvalid={false} />,
+      <HRDiagramExplorerNoScript
+        initialState={state}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.hrDiagramExplorer}
+      />,
     );
     const tableBody = markup.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";
 
@@ -48,11 +57,44 @@ describe("HRDiagramExplorerNoScript", () => {
 
   it("reports invalid shared state without pretending it decoded successfully", () => {
     const markup = renderToStaticMarkup(
-      <HRDiagramExplorerNoScript initialState={DEFAULT_HR_DIAGRAM_STATE} initialStateInvalid />,
+      <HRDiagramExplorerNoScript
+        initialState={DEFAULT_HR_DIAGRAM_STATE}
+        initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.hrDiagramExplorer}
+      />,
     );
 
     expect(markup).toContain("The shared H-R Diagram Explorer state was not valid");
     expect(markup).toContain("Reset to the default explorer state");
     expect(markup).toContain("128 of 128 curated stars");
+  });
+
+  it("localizes no-JavaScript chrome without rewriting reviewed Gaia science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.hrDiagramExplorer,
+      header: {
+        ...enMessages.simulationLabs.hrDiagramExplorer.header,
+        title: "Localized no-JS H-R Explorer",
+      },
+      noScript: {
+        ...enMessages.simulationLabs.hrDiagramExplorer.noScript,
+        dataTitle: "Localized no-JS stellar data",
+      },
+    };
+    const markup = renderToStaticMarkup(
+      <HRDiagramExplorerNoScript
+        initialState={DEFAULT_HR_DIAGRAM_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(markup).toContain("Localized no-JS H-R Explorer");
+    expect(markup).toContain("Localized no-JS stellar data");
+    expect(markup).toContain("does not convert BP−RP to temperature");
+    expect(markup).toContain("Main sequence");
+    expect(markup).toContain("20.1.1 gaia_source");
   });
 });

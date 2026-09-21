@@ -3091,9 +3091,190 @@ export type TelescopeBuilderMessages = Readonly<{
   }>;
 }>;
 
+export type HRDiagramExplorerMessages = Readonly<{
+  actions: Readonly<{
+    reset: string;
+    resetDefault: string;
+  }>;
+  artifactIntegrity: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  axes: Readonly<{
+    gaiaCmd: Readonly<{
+      x: string;
+      xDirection: string;
+      y: string;
+      yDirection: string;
+    }>;
+    physicalHr: Readonly<{
+      x: string;
+      xDirection: string;
+      y: string;
+      yDirection: string;
+    }>;
+  }>;
+  controls: Readonly<{
+    clusterLegend: string;
+    countSummary: string;
+    keyboardHelp: string;
+    keyboardLabel: string;
+    outsideFiltersSuffix: string;
+    spectralLegend: string;
+    stageLegend: string;
+    title: string;
+    viewLabel: string;
+  }>;
+  detail: Readonly<{
+    colourNoInterval: string;
+    labels: Readonly<{
+      apparentMagnitude: string;
+      clusterRecord: string;
+      colour: string;
+      designation: string;
+      flagsFlame: string;
+      luminosity: string;
+      magnitude: string;
+      parallax: string;
+      sourceId: string;
+      spectralFlags: string;
+      stageRaw: string;
+      temperature: string;
+    }>;
+    membershipSummary: string;
+    outsideFilters: string;
+    percentileInterval: string;
+    summary: string;
+    title: string;
+  }>;
+  footer: Readonly<{
+    description: string;
+    link: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    learningPrompt: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  legend: Readonly<{
+    items: Readonly<{
+      density: string;
+      point: string;
+      selected: string;
+      sourceBacked: string;
+    }>;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptionsAndLimitations: string;
+    displayRelationships: string;
+    modelLabel: string;
+    sourceUnavailable: string;
+    sources: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    dataTitle: string;
+    detail: Readonly<{
+      colourNoInterval: string;
+      labels: Readonly<{
+        agExtinction: string;
+        apparentMagnitude: string;
+        clusterRecord: string;
+        colour: string;
+        flagsFlame: string;
+        luminosity: string;
+        magnitude: string;
+        parallax: string;
+        sourceId: string;
+        spectralFlags: string;
+        stageRaw: string;
+        temperature: string;
+      }>;
+      membershipSummary: string;
+      notSupplied: string;
+      percentileInterval: string;
+      summary: string;
+      title: string;
+    }>;
+    eyebrow: string;
+    intro: string;
+    invalidDescription: string;
+    model: Readonly<{
+      assumptionsAndLimitations: string;
+      modelLabel: string;
+      references: string;
+      title: string;
+      underivedTitle: string;
+    }>;
+    resetLink: string;
+    state: Readonly<{
+      activeClusters: string;
+      activeSpectralClasses: string;
+      activeStageGroups: string;
+      countSummary: string;
+      none: string;
+      outsideFilters: string;
+      selectedStar: string;
+      title: string;
+      view: string;
+    }>;
+    tableCaption: string;
+    viewDescriptions: Readonly<{
+      gaiaCmd: string;
+      physicalHr: string;
+    }>;
+    views: Readonly<{
+      gaiaCmd: string;
+      physicalHr: string;
+    }>;
+  }>;
+  plot: Readonly<{
+    caption: string;
+    description: string;
+    markerSelectSuffix: string;
+  }>;
+  selectedStarLabel: string;
+  share: Readonly<{
+    description: string;
+    link: string;
+    modelSummary: string;
+    title: string;
+  }>;
+  table: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    description: string;
+    headers: Readonly<{
+      cluster: string;
+      colour: string;
+      designation: string;
+      luminosity: string;
+      magnitude: string;
+      spectralClass: string;
+      stageGroup: string;
+      temperature: string;
+    }>;
+    selectAria: string;
+    selectedSuffix: string;
+    title: string;
+  }>;
+  views: Readonly<{
+    gaiaCmd: string;
+    physicalHr: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
   eclipseSimulator: EclipseSimulatorMessages;
+  hrDiagramExplorer: HRDiagramExplorerMessages;
   impactSimulator: ImpactSimulatorMessages;
   orbitSandbox: OrbitSandboxMessages;
   planetarySystemBuilder: PlanetarySystemBuilderMessages;

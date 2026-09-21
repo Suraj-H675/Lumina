@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { EclipseSimulatorNoScript } from "../src/components/eclipse-simulator-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_ECLIPSE_SIMULATOR_STATE } from "../src/lib/simulations/eclipse-simulator";
 import { ECLIPSE_DALLAS_TOTAL_RESULT } from "./eclipse-simulator-fixture";
 
@@ -12,6 +14,8 @@ describe("EclipseSimulatorNoScript", () => {
         initialCalculation={ECLIPSE_DALLAS_TOTAL_RESULT}
         initialState={DEFAULT_ECLIPSE_SIMULATOR_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.eclipseSimulator}
       />,
     );
     expect(markup).toContain("Solar-viewing safety");
@@ -29,6 +33,8 @@ describe("EclipseSimulatorNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_ECLIPSE_SIMULATOR_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.eclipseSimulator}
       />,
     );
     expect(markup).toContain("Solar-viewing safety");

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { EclipseSimulatorEnhanced } from "../../../components/eclipse-simulator-enhanced";
 import { EclipseSimulatorNoScript } from "../../../components/eclipse-simulator-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { EclipseSimulatorMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadEclipseSimulatorCalculation } from "../../../lib/server/eclipse-simulator";
 import {
@@ -10,16 +12,17 @@ import {
   type EclipseSimulatorState,
 } from "../../../lib/simulations/eclipse-simulator";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/eclipse-simulator" },
-  title: "Eclipse Simulator",
-  description:
-    "Explore source-backed offline topocentric solar-eclipse geometry, approximate local contacts, and NASA viewing-safety guidance.",
-};
+export function createEclipseSimulatorMetadata(messages: EclipseSimulatorMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/eclipse-simulator" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type EclipseSimulatorPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: EclipseSimulatorMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function EclipseSimulatorPage({ searchParams }: EclipseSimulatorPageProps) {
+export default async function EclipseSimulatorPage({
+  locale,
+  messages,
+  searchParams,
+}: EclipseSimulatorPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadEclipseSimulatorCalculation(requested.state, {
@@ -48,12 +55,16 @@ export default async function EclipseSimulatorPage({ searchParams }: EclipseSimu
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <EclipseSimulatorEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

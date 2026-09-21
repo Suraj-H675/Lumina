@@ -2295,6 +2295,136 @@ export const enMessages = {
         unavailableTitle: "No canonical result available",
       },
     },
+    eclipseSimulator: {
+      actions: {
+        calculate: "Calculate eclipse geometry",
+        calculating: "Calculating…",
+        reset: "Reset Dallas 2024 reference",
+      },
+      controls: {
+        description:
+          "Offline v1 supports {minimumUtc} through {maximumUtc}. The date bound prevents silent Earth-orientation extrapolation.",
+        fields: {
+          elevation: "Elevation",
+          latitude: "Latitude",
+          longitude: "Longitude",
+          utc: "UTC date and time",
+        },
+        fieldAriaLabels: {
+          elevation: "Elevation m",
+          latitude: "Latitude deg",
+          longitude: "Longitude deg",
+          utc: "UTC date and time",
+        },
+        title: "UTC instant and observer",
+      },
+      event: {
+        centralBegin: "Central phase begins",
+        centralEnd: "Central phase ends",
+        maximum: "Maximum alignment",
+        noEvent:
+          "No local eclipse event is returned because the requested instant is outside a local geometric eclipse.",
+        partialBegin: "Partial begins",
+        partialEnd: "Partial ends",
+        title: "Approximate local {classification} event",
+      },
+      failures: {
+        invalidInput:
+          "UTC time or observer location is empty, non-finite, or outside the reviewed v1 range.",
+        rejected:
+          "The canonical Eclipse Simulator rejected this state. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned eclipse state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      figure: {
+        caption:
+          "Presentation-only apparent-disk sketch normalized from the returned angular radii and center separation. The canonical classification and obscuration are computed by Python, not this SVG.",
+      },
+      header: {
+        eyebrow: "Phase 7 · offline topocentric solar geometry",
+        intro:
+          "Explore the apparent Sun–Moon geometry for one UTC instant and observer. V1 is an educational offline solar-eclipse model, not a precision eclipse-navigation service.",
+        title: "Eclipse Simulator",
+      },
+      horizon: {
+        above: "Sun above horizon",
+        below: "Sun below horizon",
+      },
+      invalidState: {
+        description: "The reviewed Dallas 2024 reference preset is shown instead.",
+        inline:
+          "Shared eclipse state rejected. The reviewed Dallas 2024 reference preset is shown instead.",
+        title: "Shared eclipse state rejected",
+      },
+      metadataDescription:
+        "Explore source-backed offline topocentric solar-eclipse geometry, approximate local contacts, and NASA viewing-safety guidance.",
+      metadataTitle: "Eclipse Simulator",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed browser state: {utc}; latitude {latitude}°, longitude {longitude}°.",
+        limitations: "Limitations",
+        monthlyQuestion: "Why is there not a solar eclipse every month?",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+      },
+      noScript: {
+        eventLabels: {
+          centralBegin: "Central phase begins",
+          centralEnd: "Central phase ends",
+          maximum: "Maximum",
+          partialBegin: "Partial begins",
+          partialEnd: "Partial ends",
+        },
+        eventTitle: "Approximate local contacts",
+        eyebrow: "Phase 7 / Eclipse Simulator",
+        intro:
+          "Explore offline topocentric solar-eclipse geometry. Lumina's Python astronomy domain owns the ephemeris, apparent disk sizes, overlap, classification, and approximate contact search.",
+        modelLimitations: "Model limitations",
+        modelVersion: "Model version",
+        monthlyQuestion: "Why eclipses are not monthly",
+        noEvent: "No local eclipse event is returned for this instant.",
+        observerLocation: "Latitude {latitude}°, longitude {longitude}°, elevation {elevation} m.",
+        observerTitle: "Observer state",
+        resultCaption: "Canonical Eclipse Simulator result from Lumina's astronomy API.",
+        resultLabels: {
+          centerSeparation: "Center separation",
+          moonRadius: "Moon angular radius",
+          obscuration: "Geometric Solar-disk obscuration",
+          phase: "Local phase",
+          shadow: "Shadow interpretation",
+          sunAltitude: "Geometric Sun altitude",
+          sunRadius: "Sun angular radius",
+        },
+        resultTitle: "Topocentric apparent geometry",
+        unavailableDescription: "No browser-generated eclipse geometry is substituted.",
+        unavailableTitle: "No canonical result available",
+        utcInstant: "UTC instant",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. Geometric obscuration is apparent Solar-disk area overlap; it is not irradiance, perceived brightness, or a safety state.",
+        labels: {
+          centerSeparation: "Center separation",
+          horizon: "Geometric horizon",
+          moonRadius: "Moon angular radius",
+          obscuration: "Geometric obscuration",
+          phase: "Local phase",
+          shadow: "Shadow interpretation",
+          sunAltitude: "Geometric Sun altitude",
+          sunRadius: "Sun angular radius",
+        },
+        title: "Topocentric apparent geometry",
+        unavailableDescription: "No browser-generated eclipse geometry or timing is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      safety: {
+        link: "Read NASA's eclipse viewing safety guidance.",
+        title: "Solar-viewing safety",
+      },
+    },
     impactSimulator: {
       actions: {
         calculate: "Calculate teaching model",

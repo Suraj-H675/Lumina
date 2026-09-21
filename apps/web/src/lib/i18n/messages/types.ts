@@ -2055,6 +2055,125 @@ export type ImpactSimulatorMessages = Readonly<{
   }>;
 }>;
 
+export type EclipseSimulatorMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fields: Readonly<{
+      elevation: string;
+      latitude: string;
+      longitude: string;
+      utc: string;
+    }>;
+    fieldAriaLabels: Readonly<{
+      elevation: string;
+      latitude: string;
+      longitude: string;
+      utc: string;
+    }>;
+    title: string;
+  }>;
+  event: Readonly<{
+    centralBegin: string;
+    centralEnd: string;
+    maximum: string;
+    noEvent: string;
+    partialBegin: string;
+    partialEnd: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figure: Readonly<{
+    caption: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  horizon: Readonly<{
+    above: string;
+    below: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    limitations: string;
+    monthlyQuestion: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+  }>;
+  noScript: Readonly<{
+    eventLabels: Readonly<{
+      centralBegin: string;
+      centralEnd: string;
+      maximum: string;
+      partialBegin: string;
+      partialEnd: string;
+    }>;
+    eventTitle: string;
+    eyebrow: string;
+    intro: string;
+    modelLimitations: string;
+    modelVersion: string;
+    monthlyQuestion: string;
+    noEvent: string;
+    observerLocation: string;
+    observerTitle: string;
+    resultCaption: string;
+    resultLabels: Readonly<{
+      centerSeparation: string;
+      moonRadius: string;
+      obscuration: string;
+      phase: string;
+      shadow: string;
+      sunAltitude: string;
+      sunRadius: string;
+    }>;
+    resultTitle: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+    utcInstant: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      centerSeparation: string;
+      horizon: string;
+      moonRadius: string;
+      obscuration: string;
+      phase: string;
+      shadow: string;
+      sunAltitude: string;
+      sunRadius: string;
+    }>;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  safety: Readonly<{
+    link: string;
+    title: string;
+  }>;
+}>;
+
 export type PlanetarySystemBuilderMessages = Readonly<{
   actions: Readonly<{
     addPlanet: string;
@@ -2364,6 +2483,7 @@ export type RocketMissionDesignerMessages = Readonly<{
 
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
+  eclipseSimulator: EclipseSimulatorMessages;
   impactSimulator: ImpactSimulatorMessages;
   orbitSandbox: OrbitSandboxMessages;
   planetarySystemBuilder: PlanetarySystemBuilderMessages;

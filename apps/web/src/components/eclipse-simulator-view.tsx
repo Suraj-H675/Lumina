@@ -5,6 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { requestEndpoint, type EclipseSimulatorCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { EclipseSimulatorMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_ECLIPSE_SIMULATOR_STATE,
   ECLIPSE_SIMULATOR_DEFINITION,
   ECLIPSE_SIMULATOR_LIMITS,
@@ -23,6 +30,8 @@ type EclipseSimulatorViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: EclipseSimulatorCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: EclipseSimulatorMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
@@ -43,17 +52,20 @@ function stateFromBrowser(): Readonly<{ state: EclipseSimulatorState; invalid: b
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
 function utcInputValue(value: string): string {
   return value.slice(0, 16);
 }
 
-function SafetyNotice() {
+function SafetyNotice({ messages }: Readonly<{ messages: EclipseSimulatorMessages["safety"] }>) {
   const source = ECLIPSE_SIMULATOR_SOURCES.find((item) => item.id === "nasa-eclipse-safety");
   return (
     <section
@@ -62,7 +74,7 @@ function SafetyNotice() {
       role="alert"
     >
       <h2 className="text-xl font-semibold" id="eclipse-safety-heading">
-        Solar-viewing safety
+        {messages.title}
       </h2>
       <p className="leading-7">
         Simulator output never determines whether direct Solar viewing is safe. Partial and annular
@@ -75,14 +87,20 @@ function SafetyNotice() {
           href={source.url}
           rel="noreferrer"
         >
-          Read NASA&apos;s eclipse viewing safety guidance.
+          {messages.link}
         </a>
       ) : null}
     </section>
   );
 }
 
-function DiskFigure({ result }: Readonly<{ result: EclipseSimulatorCalculationResponse }>) {
+function DiskFigure({
+  messages,
+  result,
+}: Readonly<{
+  messages: EclipseSimulatorMessages["figure"];
+  result: EclipseSimulatorCalculationResponse;
+}>) {
   // Presentation-only normalization of already-returned geometry. These
   // visual clamps do not alter the canonical phase or obscuration result.
   const sunRadius = 55;
@@ -115,26 +133,41 @@ function DiskFigure({ result }: Readonly<{ result: EclipseSimulatorCalculationRe
         />
       </svg>
       <figcaption className="max-w-xl text-sm leading-6 text-[var(--muted)]">
-        Presentation-only apparent-disk sketch normalized from the returned angular radii and center
-        separation. The canonical classification and obscuration are computed by Python, not this
-        SVG.
+        {messages.caption}
       </figcaption>
     </figure>
   );
 }
 
-function ResultSummary({ result }: Readonly<{ result: EclipseSimulatorCalculationResponse }>) {
+function ResultSummary({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: EclipseSimulatorMessages;
+  result: EclipseSimulatorCalculationResponse;
+}>) {
   const rows = [
-    ["Local phase", result.instant.phase],
-    ["Shadow interpretation", result.instant.shadow_region],
-    ["Sun angular radius", `${format(result.instant.sun_angular_radius_deg)}°`],
-    ["Moon angular radius", `${format(result.instant.moon_angular_radius_deg)}°`],
-    ["Center separation", `${format(result.instant.center_separation_deg)}°`],
-    ["Geometric obscuration", `${format(result.instant.obscuration_fraction * 100)}%`],
-    ["Geometric Sun altitude", `${format(result.instant.sun_altitude_deg)}°`],
+    [messages.result.labels.phase, result.instant.phase],
+    [messages.result.labels.shadow, result.instant.shadow_region],
+    [messages.result.labels.sunRadius, `${format(result.instant.sun_angular_radius_deg, locale)}°`],
     [
-      "Geometric horizon",
-      result.instant.sun_above_geometric_horizon ? "Sun above horizon" : "Sun below horizon",
+      messages.result.labels.moonRadius,
+      `${format(result.instant.moon_angular_radius_deg, locale)}°`,
+    ],
+    [
+      messages.result.labels.centerSeparation,
+      `${format(result.instant.center_separation_deg, locale)}°`,
+    ],
+    [
+      messages.result.labels.obscuration,
+      `${format(result.instant.obscuration_fraction * 100, locale)}%`,
+    ],
+    [messages.result.labels.sunAltitude, `${format(result.instant.sun_altitude_deg, locale)}°`],
+    [
+      messages.result.labels.horizon,
+      result.instant.sun_above_geometric_horizon ? messages.horizon.above : messages.horizon.below,
     ],
   ] as const;
   return (
@@ -152,31 +185,32 @@ function ResultSummary({ result }: Readonly<{ result: EclipseSimulatorCalculatio
   );
 }
 
-function EventTimeline({ result }: Readonly<{ result: EclipseSimulatorCalculationResponse }>) {
+function EventTimeline({
+  messages,
+  result,
+}: Readonly<{
+  messages: EclipseSimulatorMessages["event"];
+  result: EclipseSimulatorCalculationResponse;
+}>) {
   const event = result.local_event;
   if (event === null) {
-    return (
-      <p className="rounded-md border border-[var(--border)] p-4">
-        No local eclipse event is returned because the requested instant is outside a local
-        geometric eclipse.
-      </p>
-    );
+    return <p className="rounded-md border border-[var(--border)] p-4">{messages.noEvent}</p>;
   }
   const rows = [
-    ["Partial begins", event.partial_begin_utc],
+    [messages.partialBegin, event.partial_begin_utc],
     ...(event.central_begin_utc === null
       ? []
-      : [["Central phase begins", event.central_begin_utc] as const]),
-    ["Maximum alignment", event.maximum_utc],
+      : [[messages.centralBegin, event.central_begin_utc] as const]),
+    [messages.maximum, event.maximum_utc],
     ...(event.central_end_utc === null
       ? []
-      : [["Central phase ends", event.central_end_utc] as const]),
-    ["Partial ends", event.partial_end_utc],
+      : [[messages.centralEnd, event.central_end_utc] as const]),
+    [messages.partialEnd, event.partial_end_utc],
   ];
   return (
     <section aria-labelledby="eclipse-timeline-heading" className="space-y-4">
       <h3 className="text-xl font-semibold" id="eclipse-timeline-heading">
-        Approximate local {event.classification} event
+        {formatMessageTemplate(messages.title, { classification: event.classification })}
       </h3>
       <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {rows.map(([label, value]) => (
@@ -191,7 +225,7 @@ function EventTimeline({ result }: Readonly<{ result: EclipseSimulatorCalculatio
   );
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: EclipseSimulatorMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {ECLIPSE_SIMULATOR_DEFINITION.references.map((sourceId) => {
@@ -199,7 +233,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -220,6 +254,8 @@ export function EclipseSimulatorView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: EclipseSimulatorViewProps) {
   const [state, setState] = useState(initialState);
   const [draftUtc, setDraftUtc] = useState(utcInputValue(initialState.at_utc));
@@ -244,7 +280,7 @@ export function EclipseSimulatorView({
     async (nextState: EclipseSimulatorState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -264,20 +300,18 @@ export function EclipseSimulatorView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Eclipse Simulator rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateEclipseSimulatorCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned eclipse state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -291,12 +325,12 @@ export function EclipseSimulatorView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -330,9 +364,7 @@ export function EclipseSimulatorView({
       draftLongitude.trim().length === 0 ||
       draftElevation.trim().length === 0
     ) {
-      setMessage(
-        "UTC time or observer location is empty, non-finite, or outside the reviewed v1 range.",
-      );
+      setMessage(messages.failures.invalidInput);
       return;
     }
     void recalculate(next, true);
@@ -348,39 +380,39 @@ export function EclipseSimulatorView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · offline topocentric solar geometry
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Eclipse Simulator</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore the apparent Sun–Moon geometry for one UTC instant and observer. V1 is an
-          educational offline solar-eclipse model, not a precision eclipse-navigation service.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
-      <SafetyNotice />
+      <SafetyNotice messages={messages.safety} />
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared eclipse state rejected.</strong> The reviewed Dallas 2024 reference preset
-          is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="eclipse-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="eclipse-input-heading">
-            UTC instant and observer
+            {messages.controls.title}
           </h2>
           <p className="leading-7 text-[var(--muted)]">
-            Offline v1 supports {ECLIPSE_SIMULATOR_LIMITS.minUtc} through{" "}
-            {ECLIPSE_SIMULATOR_LIMITS.maxUtc}. The date bound prevents silent Earth-orientation
-            extrapolation.
+            {formatMessageTemplate(messages.controls.description, {
+              minimumUtc: ECLIPSE_SIMULATOR_LIMITS.minUtc,
+              maximumUtc: ECLIPSE_SIMULATOR_LIMITS.maxUtc,
+            })}
           </p>
         </div>
         <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
           <label className="space-y-2">
-            <span className="block font-semibold">UTC date and time</span>
+            <span className="block font-semibold">{messages.controls.fields.utc}</span>
             <input
+              aria-label={messages.controls.fieldAriaLabels.utc}
               className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
               disabled={requestState === "loading"}
               onChange={(event) => {
@@ -392,28 +424,52 @@ export function EclipseSimulatorView({
             />
           </label>
           {[
-            ["Latitude", "deg", draftLatitude, setDraftLatitude, -90, 90],
-            ["Longitude", "deg", draftLongitude, setDraftLongitude, -180, 180],
-            ["Elevation", "m", draftElevation, setDraftElevation, -500, 9000],
-          ].map(([label, unit, value, setter, min, max]) => (
-            <label className="space-y-2" key={String(label)}>
+            {
+              ariaLabel: messages.controls.fieldAriaLabels.latitude,
+              label: messages.controls.fields.latitude,
+              max: ECLIPSE_SIMULATOR_LIMITS.maxLatitudeDeg,
+              min: ECLIPSE_SIMULATOR_LIMITS.minLatitudeDeg,
+              setter: setDraftLatitude,
+              unit: "deg",
+              value: draftLatitude,
+            },
+            {
+              ariaLabel: messages.controls.fieldAriaLabels.longitude,
+              label: messages.controls.fields.longitude,
+              max: ECLIPSE_SIMULATOR_LIMITS.maxLongitudeDeg,
+              min: ECLIPSE_SIMULATOR_LIMITS.minLongitudeDeg,
+              setter: setDraftLongitude,
+              unit: "deg",
+              value: draftLongitude,
+            },
+            {
+              ariaLabel: messages.controls.fieldAriaLabels.elevation,
+              label: messages.controls.fields.elevation,
+              max: ECLIPSE_SIMULATOR_LIMITS.maxElevationM,
+              min: ECLIPSE_SIMULATOR_LIMITS.minElevationM,
+              setter: setDraftElevation,
+              unit: "m",
+              value: draftElevation,
+            },
+          ].map(({ ariaLabel, label, max, min, setter, unit, value }) => (
+            <label className="space-y-2" key={label}>
               <span className="flex justify-between gap-2 font-semibold">
-                <span>{String(label)}</span>
-                <span className="text-xs font-normal text-[var(--muted)]">{String(unit)}</span>
+                <span>{label}</span>
+                <span className="text-xs font-normal text-[var(--muted)]">{unit}</span>
               </span>
               <input
-                aria-label={`${String(label)} ${String(unit)}`}
+                aria-label={ariaLabel}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
-                max={Number(max)}
-                min={Number(min)}
+                max={max}
+                min={min}
                 onChange={(event) => {
-                  (setter as React.Dispatch<React.SetStateAction<string>>)(event.target.value);
+                  setter(event.target.value);
                   setMessage("");
                 }}
                 step="any"
                 type="number"
-                value={String(value)}
+                value={value}
               />
             </label>
           ))}
@@ -423,7 +479,9 @@ export function EclipseSimulatorView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate eclipse geometry"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -431,7 +489,7 @@ export function EclipseSimulatorView({
               onClick={resetDefault}
               type="button"
             >
-              Reset Dallas 2024 reference
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -442,25 +500,24 @@ export function EclipseSimulatorView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated eclipse geometry or timing is substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="eclipse-result-heading" className="space-y-7">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="eclipse-result-heading">
-              Topocentric apparent geometry
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. Geometric obscuration is apparent Solar-disk area
-              overlap; it is not irradiance, perceived brightness, or a safety state.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
-          <ResultSummary result={calculation} />
-          <DiskFigure result={calculation} />
-          <EventTimeline result={calculation} />
+          <ResultSummary locale={locale} messages={messages} result={calculation} />
+          <DiskFigure messages={messages.figure} result={calculation} />
+          <EventTimeline messages={messages.event} result={calculation} />
           <p className="text-sm leading-6 text-[var(--muted)]">{calculation.ephemeris_note}</p>
         </section>
       )}
@@ -470,7 +527,7 @@ export function EclipseSimulatorView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="eclipse-why-heading">
-          Why is there not a solar eclipse every month?
+          {messages.model.monthlyQuestion}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
           NASA explains that the Moon&apos;s orbit is inclined by roughly five degrees to the
@@ -478,10 +535,12 @@ export function EclipseSimulatorView({
           shadow misses Earth.
         </p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {ECLIPSE_SIMULATOR_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -489,7 +548,7 @@ export function EclipseSimulatorView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {ECLIPSE_SIMULATOR_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -499,14 +558,17 @@ export function EclipseSimulatorView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: {state.at_utc}; latitude {format(state.latitude_deg)}°,
-          longitude {format(state.longitude_deg)}°.
+          {formatMessageTemplate(messages.model.currentState, {
+            utc: state.at_utc,
+            latitude: format(state.latitude_deg, locale),
+            longitude: format(state.longitude_deg, locale),
+          })}
         </p>
       </section>
     </article>

@@ -550,6 +550,19 @@ describe("Phase 8C localization foundation", () => {
     expect(rocket.model.sourceUnavailable).toContain("{sourceId}");
     expect(rocket.result.description).toContain("{modelVersion}");
     expect(rocket.result.description).toContain("{gravity}");
+
+    const eclipse = enMessages.simulationLabs.eclipseSimulator;
+    expect(eclipse.controls.description).toContain("{minimumUtc}");
+    expect(eclipse.controls.description).toContain("{maximumUtc}");
+    expect(eclipse.event.title).toContain("{classification}");
+    expect(eclipse.model.currentState).toContain("{utc}");
+    expect(eclipse.model.currentState).toContain("{latitude}");
+    expect(eclipse.model.currentState).toContain("{longitude}");
+    expect(eclipse.model.sourceUnavailable).toContain("{sourceId}");
+    expect(eclipse.noScript.observerLocation).toContain("{latitude}");
+    expect(eclipse.noScript.observerLocation).toContain("{longitude}");
+    expect(eclipse.noScript.observerLocation).toContain("{elevation}");
+    expect(eclipse.result.description).toContain("{modelVersion}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

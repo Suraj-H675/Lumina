@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EclipseSimulatorView } from "../src/components/eclipse-simulator-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_ECLIPSE_SIMULATOR_STATE } from "../src/lib/simulations/eclipse-simulator";
 import {
   ECLIPSE_DALLAS_NONE_RESULT,
@@ -25,6 +27,8 @@ function renderView(initialCalculation = ECLIPSE_DALLAS_TOTAL_RESULT, invalid = 
       initialCalculation={initialCalculation}
       initialState={DEFAULT_ECLIPSE_SIMULATOR_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.eclipseSimulator}
     />,
   );
 }
@@ -97,5 +101,40 @@ describe("EclipseSimulatorView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/outside the reviewed v1 range/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned timing or safety provenance", () => {
+    const messages = {
+      ...enMessages.simulationLabs.eclipseSimulator,
+      header: {
+        ...enMessages.simulationLabs.eclipseSimulator.header,
+        title: "Localized Eclipse Simulator",
+      },
+      result: {
+        ...enMessages.simulationLabs.eclipseSimulator.result,
+        labels: {
+          ...enMessages.simulationLabs.eclipseSimulator.result.labels,
+          obscuration: "Localized obscuration",
+        },
+      },
+    };
+
+    render(
+      <EclipseSimulatorView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={ECLIPSE_DALLAS_TOTAL_RESULT}
+        initialState={DEFAULT_ECLIPSE_SIMULATOR_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Eclipse Simulator" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized obscuration")).toBeVisible();
+    expect(screen.getByText(ECLIPSE_DALLAS_TOTAL_RESULT.timing_note)).toBeVisible();
+    expect(screen.getByRole("link", { name: /NASA.*viewing safety/i })).toBeVisible();
   });
 });

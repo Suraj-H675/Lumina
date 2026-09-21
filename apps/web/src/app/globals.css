@@ -54,6 +54,7 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
+textarea:focus-visible,
 summary:focus-visible,
 [tabindex="-1"]:focus-visible,
 [role="option"]:focus-visible {

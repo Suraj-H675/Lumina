@@ -12,6 +12,21 @@ type ModalDialogProps = Readonly<{
   title: string;
 }>;
 
+const FOCUSABLE_CANDIDATE_SELECTOR = "a[href], button, input, select, textarea, [tabindex]";
+
+function tabbableElements(panel: HTMLElement): HTMLElement[] {
+  return Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_CANDIDATE_SELECTOR)).filter(
+    (element) => {
+      if (element.matches(":disabled")) return false;
+      if (element instanceof HTMLInputElement && element.type === "hidden") return false;
+      if (element.closest("[hidden], [inert]") !== null) return false;
+      const declaredTabIndex = element.getAttribute("tabindex");
+      if (declaredTabIndex !== null && Number.parseInt(declaredTabIndex, 10) < 0) return false;
+      return element.tabIndex >= 0;
+    },
+  );
+}
+
 /**
  * Minimal accessible modal dialog for Lumina's local-first flows.
  *
@@ -30,23 +45,29 @@ export function ModalDialog({ children, description, onClose, open, title }: Mod
   const descriptionId = useId();
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
+  const focusFirstInside = useCallback(() => {
+    const panel = panelRef.current;
+    if (panel === null) return;
+    (tabbableElements(panel)[0] ?? panel).focus();
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     previouslyFocused.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusTarget = panelRef.current?.querySelector<HTMLElement>(
-      "input:not([disabled]), button:not([disabled]), select, textarea",
-    );
-    (focusTarget ?? panelRef.current)?.focus();
+    const keepFocusInside = (event: FocusEvent) => {
+      const panel = panelRef.current;
+      if (panel !== null && event.target instanceof Node && !panel.contains(event.target)) {
+        focusFirstInside();
+      }
+    };
+    document.addEventListener("focusin", keepFocusInside);
+    focusFirstInside();
     return () => {
+      document.removeEventListener("focusin", keepFocusInside);
       previouslyFocused.current?.focus();
     };
-  }, [open]);
-
-  const focusFirstInside = useCallback(() => {
-    const target = panelRef.current?.querySelector<HTMLElement>("input, button");
-    target?.focus();
-  }, []);
+  }, [focusFirstInside, open]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -56,14 +77,16 @@ export function ModalDialog({ children, description, onClose, open, title }: Mod
         return;
       }
       if (event.key !== "Tab") return;
-      const focusables = Array.from(
-        panelRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      );
+      const panel = panelRef.current;
+      if (panel === null) return;
+      const focusables = tabbableElements(panel);
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      if (first === undefined || last === undefined) return;
+      if (first === undefined || last === undefined) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -91,10 +114,6 @@ export function ModalDialog({ children, description, onClose, open, title }: Mod
         aria-labelledby={titleId}
         aria-modal="true"
         className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] p-5 shadow-2xl"
-        onFocus={(event) => {
-          // Belt-and-braces containment for any edge case the Tab trap misses.
-          if (!panelRef.current?.contains(event.target as Node)) focusFirstInside();
-        }}
         ref={panelRef}
         role="dialog"
         tabIndex={-1}

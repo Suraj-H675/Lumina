@@ -56,6 +56,61 @@ test.describe("Phase 8D — accessibility and low-end audit", () => {
     }
   });
 
+  test("shared modal traps keyboard focus and restores the trigger", async ({ page }) => {
+    await page.goto("/collections");
+    await page.waitForLoadState("networkidle");
+    const trigger = page.getByRole("button", { name: "+ Create a collection" }).first();
+    const dialog = page.getByRole("dialog", { name: "Create a collection" });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+
+    const name = dialog.getByLabel("Name");
+    const cancel = dialog.getByRole("button", { name: "Cancel" });
+    const create = dialog.getByRole("button", { name: "Create collection" });
+    await expect(name).toBeFocused();
+
+    await page.keyboard.press("Shift+Tab");
+    await expect(cancel).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(name).toBeFocused();
+
+    await name.fill("Focus fixture");
+    await expect(create).toBeEnabled();
+    await page.keyboard.press("Shift+Tab");
+    await expect(create).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(name).toBeFocused();
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
+  test("keyboard-focused textareas receive the global visible focus indicator", async ({
+    page,
+  }) => {
+    await page.goto("/objects/k2-18");
+    await page.waitForLoadState("networkidle");
+    const trigger = page.getByRole("button", { name: "Add to journal" });
+    const dialog = page.getByRole("dialog", { name: "Create journal entry" });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+
+    const notes = dialog.getByLabel("Notes (optional)");
+    await notes.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expect(notes).toBeFocused();
+
+    expect(await notes.evaluate((element) => element.matches(":focus-visible"))).toBe(true);
+    const outline = await notes.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { style: style.outlineStyle, width: Number.parseFloat(style.outlineWidth) };
+    });
+    expect(outline.style).not.toBe("none");
+    expect(outline.width).toBeGreaterThanOrEqual(3);
+  });
+
   test("core discovery stays usable under a constrained low-end browser profile", async ({
     page,
   }) => {

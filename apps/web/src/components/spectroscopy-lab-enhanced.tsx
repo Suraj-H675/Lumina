@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import type { SpectroscopyCalculationResponse } from "@lumina/api-client";
 
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SpectroscopyLabMessages } from "../lib/i18n/messages/types";
 import type { SpectroscopyState } from "../lib/simulations/spectroscopy-lab";
 
 const InteractiveSpectroscopyLab = dynamic(
@@ -15,6 +17,8 @@ type SpectroscopyLabEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: SpectroscopyCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: SpectroscopyLabMessages;
 }>;
 
 export function SpectroscopyLabEnhanced(props: SpectroscopyLabEnhancedProps) {

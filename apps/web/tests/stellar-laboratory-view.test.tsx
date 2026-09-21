@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StellarLaboratoryView } from "../src/components/stellar-laboratory-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_STELLAR_LABORATORY_STATE } from "../src/lib/simulations/stellar-laboratory";
 import {
   STELLAR_LABORATORY_DEFAULT_RESULT,
@@ -25,6 +27,8 @@ function renderView(initialCalculation = STELLAR_LABORATORY_DEFAULT_RESULT, inva
       initialCalculation={initialCalculation}
       initialState={DEFAULT_STELLAR_LABORATORY_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.stellarLaboratory}
     />,
   );
 }
@@ -106,5 +110,44 @@ describe("StellarLaboratoryView", () => {
     await user.type(mass, "40");
     await user.click(screen.getByRole("button", { name: "Calculate stellar model" }));
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("localizes interface chrome without rewriting returned stellar science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.stellarLaboratory,
+      header: {
+        ...enMessages.simulationLabs.stellarLaboratory.header,
+        title: "Localized Stellar Laboratory",
+      },
+      result: {
+        ...enMessages.simulationLabs.stellarLaboratory.result,
+        labels: {
+          ...enMessages.simulationLabs.stellarLaboratory.result.labels,
+          typicalLuminosity: "Localized luminosity",
+        },
+      },
+    };
+
+    render(
+      <StellarLaboratoryView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={STELLAR_LABORATORY_DEFAULT_RESULT}
+        initialState={DEFAULT_STELLAR_LABORATORY_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Stellar Laboratory" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized luminosity")).toBeVisible();
+    expect(screen.getAllByText("carbon-oxygen white dwarf")).toHaveLength(2);
+    expect(
+      screen.getByRole("link", {
+        name: /Interrelated Main-Sequence Mass-Luminosity, Mass-Radius and Mass-Effective Temperature Relations/i,
+      }),
+    ).toBeVisible();
   });
 });

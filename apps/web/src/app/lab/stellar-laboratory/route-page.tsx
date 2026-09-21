@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { StellarLaboratoryEnhanced } from "../../../components/stellar-laboratory-enhanced";
 import { StellarLaboratoryNoScript } from "../../../components/stellar-laboratory-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { StellarLaboratoryMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadStellarLaboratoryCalculation } from "../../../lib/server/stellar-laboratory";
 import {
@@ -10,16 +12,17 @@ import {
   type StellarLaboratoryState,
 } from "../../../lib/simulations/stellar-laboratory";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/stellar-laboratory" },
-  title: "Stellar Laboratory",
-  description:
-    "Explore a source-backed approximate main-sequence mapping from stellar mass to typical luminosity, radius, temperature, lifetime, colour anchor, and broad remnant outcome.",
-};
+export function createStellarLaboratoryMetadata(messages: StellarLaboratoryMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/stellar-laboratory" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type StellarLaboratoryPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: StellarLaboratoryMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function StellarLaboratoryPage({ searchParams }: StellarLaboratoryPageProps) {
+export default async function StellarLaboratoryPage({
+  locale,
+  messages,
+  searchParams,
+}: StellarLaboratoryPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadStellarLaboratoryCalculation(requested.state, {
@@ -49,12 +56,16 @@ export default async function StellarLaboratoryPage({ searchParams }: StellarLab
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <StellarLaboratoryEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

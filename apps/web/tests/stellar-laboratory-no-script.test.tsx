@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { StellarLaboratoryNoScript } from "../src/components/stellar-laboratory-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_STELLAR_LABORATORY_STATE } from "../src/lib/simulations/stellar-laboratory";
 import { STELLAR_LABORATORY_DEFAULT_RESULT } from "./stellar-laboratory-fixture";
 
@@ -12,6 +14,8 @@ describe("StellarLaboratoryNoScript", () => {
         initialCalculation={STELLAR_LABORATORY_DEFAULT_RESULT}
         initialState={DEFAULT_STELLAR_LABORATORY_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.stellarLaboratory}
       />,
     );
     expect(markup).toContain("Stellar Laboratory");
@@ -29,6 +33,8 @@ describe("StellarLaboratoryNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_STELLAR_LABORATORY_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.stellarLaboratory}
       />,
     );
     expect(markup).toContain("Shared stellar-laboratory state rejected");

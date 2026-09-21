@@ -1,6 +1,13 @@
 import type { StellarLaboratoryCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { StellarLaboratoryMessages } from "../lib/i18n/messages/types";
+import {
   STELLAR_LABORATORY_DEFINITION,
   STELLAR_LABORATORY_SOURCES,
   type StellarLaboratoryState,
@@ -10,17 +17,24 @@ type StellarLaboratoryNoScriptProps = Readonly<{
   initialState: StellarLaboratoryState;
   initialStateInvalid: boolean;
   initialCalculation: StellarLaboratoryCalculationResponse | null;
+  locale: PublishedLocale;
+  messages: StellarLaboratoryMessages;
 }>;
 
-function numeric(value: number, unit = ""): string {
-  const formatted =
-    Math.abs(value) >= 1e6 || (Math.abs(value) > 0 && Math.abs(value) < 1e-3)
-      ? value.toExponential(5)
-      : value.toLocaleString("en", { maximumSignificantDigits: 7 });
+function numeric(value: number, locale: PublishedLocale, unit = ""): string {
+  let formatted: string;
+  if (value === 0) {
+    formatted = formatLocaleNumber(0, locale, { useGrouping: false });
+  } else if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(5).split("e");
+    formatted = `${formatLocaleFixedNumber(Number(mantissa), 5, locale)}e${exponent}`;
+  } else {
+    formatted = formatLocaleNumber(value, locale, { maximumSignificantDigits: 7 });
+  }
   return unit ? `${formatted} ${unit}` : formatted;
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: StellarLaboratoryMessages["model"] }>) {
   return (
     <ul>
       {STELLAR_LABORATORY_DEFINITION.references.map((sourceId) => {
@@ -28,7 +42,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <a href={source.url} rel="noreferrer">
                 {source.title} — {source.organization_or_authors}
@@ -41,24 +55,36 @@ function SourceList() {
   );
 }
 
-function ResultTable({ result }: Readonly<{ result: StellarLaboratoryCalculationResponse }>) {
+function ResultTable({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: StellarLaboratoryMessages["noScript"];
+  result: StellarLaboratoryCalculationResponse;
+}>) {
   const rows = [
-    ["Initial mass", numeric(result.inputs.initial_mass_msun, "M☉")],
-    ["Typical main-sequence luminosity", numeric(result.luminosity_lsun, "L☉")],
-    ["Typical main-sequence radius", numeric(result.radius_rsun, "R☉")],
-    ["Typical effective temperature", numeric(result.effective_temperature_k, "K")],
+    [messages.resultLabels.initialMass, numeric(result.inputs.initial_mass_msun, locale, "M☉")],
+    [messages.resultLabels.typicalLuminosity, numeric(result.luminosity_lsun, locale, "L☉")],
+    [messages.resultLabels.typicalRadius, numeric(result.radius_rsun, locale, "R☉")],
     [
-      "Nearest source colour anchor",
-      `${result.nearest_spectral_type_anchor}; B−V ${numeric(result.approximate_b_minus_v_mag)}`,
+      messages.resultLabels.typicalTemperature,
+      numeric(result.effective_temperature_k, locale, "K"),
     ],
-    ["Approximate main-sequence lifetime", numeric(result.main_sequence_lifetime_years, "years")],
-    ["Expected remnant", result.expected_remnant],
+    [
+      messages.resultLabels.nearestColourAnchor,
+      `${result.nearest_spectral_type_anchor}; B−V ${numeric(result.approximate_b_minus_v_mag, locale)}`,
+    ],
+    [
+      messages.resultLabels.approximateLifetime,
+      numeric(result.main_sequence_lifetime_years, locale, messages.resultLabels.yearsUnit),
+    ],
+    [messages.resultLabels.expectedRemnant, result.expected_remnant],
   ] as const;
   return (
     <table>
-      <caption>
-        Canonical approximate Stellar Laboratory result from Lumina&apos;s astronomy API.
-      </caption>
+      <caption>{messages.resultCaption}</caption>
       <tbody>
         {rows.map(([label, value]) => (
           <tr key={label}>
@@ -75,40 +101,40 @@ export function StellarLaboratoryNoScript({
   initialState,
   initialStateInvalid,
   initialCalculation,
+  locale,
+  messages,
 }: StellarLaboratoryNoScriptProps) {
   return (
     <noscript>
       <article>
         <header>
-          <p>Phase 7 / Stellar Laboratory</p>
-          <h1>Stellar Laboratory</h1>
-          <p>
-            Explore a source-backed approximate main-sequence mass mapping. Lumina&apos;s Python
-            astronomy domain owns the empirical relations, lifetime interpolation, and broad remnant
-            classification; this page does not recreate them in the browser.
-          </p>
+          <p>{messages.noScript.eyebrow}</p>
+          <h1>{messages.header.title}</h1>
+          <p>{messages.noScript.intro}</p>
         </header>
         {initialStateInvalid ? (
           <section aria-labelledby="stellar-nojs-invalid">
-            <h2 id="stellar-nojs-invalid">Shared stellar-laboratory state rejected</h2>
-            <p>The reviewed one-Solar-mass preset is shown instead.</p>
+            <h2 id="stellar-nojs-invalid">{messages.invalidState.title}</h2>
+            <p>{messages.invalidState.description}</p>
           </section>
         ) : null}
         <section aria-labelledby="stellar-nojs-input">
-          <h2 id="stellar-nojs-input">Requested mass</h2>
-          <p>{numeric(initialState.initial_mass_msun, "M☉")}</p>
+          <h2 id="stellar-nojs-input">{messages.noScript.requestedMassTitle}</h2>
+          <p>{numeric(initialState.initial_mass_msun, locale, "M☉")}</p>
         </section>
         {initialCalculation === null ? (
           <section aria-labelledby="stellar-nojs-unavailable">
-            <h2 id="stellar-nojs-unavailable">No canonical result available</h2>
-            <p>No browser-generated fallback stellar properties are substituted.</p>
+            <h2 id="stellar-nojs-unavailable">{messages.noScript.unavailableTitle}</h2>
+            <p>{messages.noScript.unavailableDescription}</p>
           </section>
         ) : (
           <section aria-labelledby="stellar-nojs-result">
-            <h2 id="stellar-nojs-result">Approximate main-sequence result</h2>
-            <p>Model version: {initialCalculation.model_version}</p>
-            <ResultTable result={initialCalculation} />
-            <h3>Broad educational lifecycle</h3>
+            <h2 id="stellar-nojs-result">{messages.noScript.resultTitle}</h2>
+            <p>
+              {messages.noScript.modelVersion}: {initialCalculation.model_version}
+            </p>
+            <ResultTable locale={locale} messages={messages.noScript} result={initialCalculation} />
+            <h3>{messages.noScript.lifecycleTitle}</h3>
             <ol>
               {initialCalculation.evolutionary_path.map((stage) => (
                 <li key={stage}>{stage}</li>
@@ -119,17 +145,17 @@ export function StellarLaboratoryNoScript({
           </section>
         )}
         <section aria-labelledby="stellar-nojs-model">
-          <h2 id="stellar-nojs-model">Model contract and provenance</h2>
+          <h2 id="stellar-nojs-model">{messages.model.title}</h2>
           <p>{STELLAR_LABORATORY_DEFINITION.default_preset}</p>
           <p>{STELLAR_LABORATORY_DEFINITION.sampling_policy}</p>
-          <h3>Limitations</h3>
+          <h3>{messages.model.limitations}</h3>
           <ul>
             {STELLAR_LABORATORY_DEFINITION.limitations.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <h3>Reviewed sources</h3>
-          <SourceList />
+          <h3>{messages.model.reviewedSources}</h3>
+          <SourceList messages={messages.model} />
         </section>
       </article>
     </noscript>

@@ -1725,11 +1725,213 @@ export type RelativityVisualizationsMessages = Readonly<{
   }>;
 }>;
 
+export type StellarLaboratoryMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fieldLabel: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    eyebrow: string;
+    intro: string;
+    requestedMassTitle: string;
+    resultCaption: string;
+    resultLabels: Readonly<{
+      approximateLifetime: string;
+      expectedRemnant: string;
+      initialMass: string;
+      nearestColourAnchor: string;
+      typicalLuminosity: string;
+      typicalRadius: string;
+      typicalTemperature: string;
+      yearsUnit: string;
+    }>;
+    resultTitle: string;
+    modelVersion: string;
+    lifecycleTitle: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      approximateLifetime: string;
+      colourAnchorMass: string;
+      expectedRemnant: string;
+      initialMass: string;
+      nearestColourAnchor: string;
+      typicalLuminosity: string;
+      typicalRadius: string;
+      typicalTemperature: string;
+    }>;
+    lifecycleDescription: string;
+    lifecycleTitle: string;
+    sourceTableAnchor: string;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+    yearsUnit: string;
+  }>;
+}>;
+
+export type SpectroscopyLabMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fields: Readonly<{
+      displayNoise: string;
+      mode: string;
+      noiseSeed: string;
+      radialVelocity: string;
+      representativeSpecies: string;
+      resolvingPower: string;
+      temperature: string;
+    }>;
+    fieldAriaLabels: Readonly<{
+      displayNoise: string;
+      noiseSeed: string;
+      radialVelocity: string;
+      resolvingPower: string;
+      temperature: string;
+    }>;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    outOfDomain: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figure: Readonly<{
+    caption: string;
+    normalizedFlux: string;
+    plotAriaLabel: string;
+    scrollAriaLabel: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  modes: Readonly<{
+    absorption: string;
+    continuum: string;
+    doppler: string;
+    elementMatch: string;
+    emission: string;
+  }>;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    displayNoiseTemplate: string;
+    eyebrow: string;
+    intro: string;
+    lineCaption: string;
+    requestedModelTitle: string;
+    stateLabels: Readonly<{
+      displayNoise: string;
+      mode: string;
+      radialVelocity: string;
+      resolvingPower: string;
+      selectedSpecies: string;
+      temperature: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  none: string;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      dopplerFactor: string;
+      mode: string;
+      radialVelocity: string;
+      resolvingPower: string;
+      returnedSamples: string;
+      selectedSpecies: string;
+      temperature: string;
+      wienPeak: string;
+    }>;
+    lines: Readonly<{
+      caption: string;
+      empty: string;
+      headers: Readonly<{
+        feature: string;
+        fwhm: string;
+        rest: string;
+        shifted: string;
+        species: string;
+      }>;
+      scrollAriaLabel: string;
+    }>;
+    modelVersion: string;
+    noScriptReturnedSamples: string;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+    wienPeak: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
   orbitSandbox: OrbitSandboxMessages;
   radialVelocity: RadialVelocityMessages;
   relativityVisualizations: RelativityVisualizationsMessages;
+  spectroscopyLab: SpectroscopyLabMessages;
+  stellarLaboratory: StellarLaboratoryMessages;
   transitMethod: TransitMethodMessages;
 }>;
 

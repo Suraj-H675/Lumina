@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { SpectroscopyLabNoScript } from "../src/components/spectroscopy-lab-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_SPECTROSCOPY_STATE } from "../src/lib/simulations/spectroscopy-lab";
 import { SPECTROSCOPY_DEFAULT_RESULT } from "./spectroscopy-lab-fixture";
 
@@ -12,6 +14,8 @@ describe("SpectroscopyLabNoScript", () => {
         initialCalculation={SPECTROSCOPY_DEFAULT_RESULT}
         initialState={DEFAULT_SPECTROSCOPY_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.spectroscopyLab}
       />,
     );
     expect(markup).toContain("Spectroscopy Lab");
@@ -29,6 +33,8 @@ describe("SpectroscopyLabNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_SPECTROSCOPY_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.spectroscopyLab}
       />,
     );
     expect(markup).toContain("Shared spectroscopy state rejected");

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { SpectroscopyLabEnhanced } from "../../../components/spectroscopy-lab-enhanced";
 import { SpectroscopyLabNoScript } from "../../../components/spectroscopy-lab-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { SpectroscopyLabMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadSpectroscopyCalculation } from "../../../lib/server/spectroscopy-lab";
 import {
@@ -10,16 +12,17 @@ import {
   type SpectroscopyState,
 } from "../../../lib/simulations/spectroscopy-lab";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/spectroscopy-lab" },
-  title: "Spectroscopy Lab",
-  description:
-    "Explore a source-backed normalized visible spectrum with blackbody continuum, representative atomic fingerprints, bounded Doppler shift, resolving power, and deterministic display noise.",
-};
+export function createSpectroscopyLabMetadata(messages: SpectroscopyLabMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/spectroscopy-lab" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type SpectroscopyLabPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: SpectroscopyLabMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function SpectroscopyLabPage({ searchParams }: SpectroscopyLabPageProps) {
+export default async function SpectroscopyLabPage({
+  locale,
+  messages,
+  searchParams,
+}: SpectroscopyLabPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadSpectroscopyCalculation(requested.state, {
@@ -49,12 +56,16 @@ export default async function SpectroscopyLabPage({ searchParams }: Spectroscopy
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <SpectroscopyLabEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

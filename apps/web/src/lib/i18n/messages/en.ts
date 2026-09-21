@@ -2666,6 +2666,228 @@ export const enMessages = {
         unavailableTitle: "No canonical result available",
       },
     },
+    spectroscopyLab: {
+      actions: {
+        calculate: "Calculate spectrum",
+        calculating: "Calculating…",
+        reset: "Reset Solar-like absorption preset",
+      },
+      controls: {
+        description:
+          "All atomic coordinates are reviewed NIST ASD observed-vacuum wavelengths. Line amplitudes/depths are illustrative and are not abundance predictions.",
+        fieldAriaLabels: {
+          displayNoise: "Display noise sigma normalized flux",
+          noiseSeed: "Noise seed uint32",
+          radialVelocity: "Radial velocity km/s",
+          resolvingPower: "Resolving power R",
+          temperature: "Temperature K",
+        },
+        fields: {
+          displayNoise: "Display noise sigma",
+          mode: "Mode",
+          noiseSeed: "Noise seed",
+          radialVelocity: "Radial velocity",
+          representativeSpecies: "Representative species",
+          resolvingPower: "Resolving power",
+          temperature: "Temperature",
+        },
+        title: "Teaching spectrum controls",
+      },
+      failures: {
+        invalidInput: "One or more controls are empty or outside the reviewed v1 domain.",
+        outOfDomain:
+          "The requested mode, species, temperature, velocity, resolution, or noise settings are outside the reviewed v1 domain.",
+        rejected:
+          "The canonical Spectroscopy Lab rejected this state. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned spectrum state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      figure: {
+        caption:
+          "Presentation-only plot of the returned vacuum-wavelength and normalized-flux arrays. Dashed markers use returned shifted line centers. The browser does not calculate continuum, Doppler shift, line width, or noise.",
+        normalizedFlux: "normalized flux",
+        plotAriaLabel: "Returned normalized spectrum from 380 to 750 nanometres vacuum wavelength",
+        scrollAriaLabel: "Scrollable normalized spectrum plot",
+      },
+      header: {
+        eyebrow: "Phase 7 · normalized visible-spectrum teaching model",
+        intro:
+          "Explore an ideal normalized blackbody continuum, a small source-backed atomic fingerprint set, bounded radial-velocity shifts, illustrative resolving power, and deterministic display noise. V1 is not a stellar-atmosphere or abundance-analysis code.",
+        title: "Spectroscopy Lab",
+      },
+      invalidState: {
+        description: "The reviewed Solar-like absorption preset is shown instead.",
+        inline:
+          "Shared spectroscopy state rejected. The reviewed Solar-like absorption preset is shown instead.",
+        title: "Shared spectroscopy state rejected",
+      },
+      metadataDescription:
+        "Explore a source-backed normalized visible spectrum with blackbody continuum, representative atomic fingerprints, bounded Doppler shift, resolving power, and deterministic display noise.",
+      metadataTitle: "Spectroscopy Lab",
+      modes: {
+        absorption: "Absorption lines",
+        continuum: "Blackbody continuum",
+        doppler: "Doppler shift",
+        elementMatch: "Element matching",
+        emission: "Emission lines",
+      },
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed browser state: {mode}, {temperature} K, radial velocity {velocity} km/s.",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        displayNoiseTemplate: "Display noise σ {sigma}; seed {seed}.",
+        eyebrow: "Phase 7 / Spectroscopy Lab",
+        intro:
+          "Explore a normalized visible teaching spectrum. Lumina's Python astronomy domain owns the continuum, Wien peak, wavelength shifts, representative line profiles, and deterministic noise.",
+        lineCaption: "Returned representative source-backed line metadata.",
+        requestedModelTitle: "Requested teaching model",
+        stateLabels: {
+          displayNoise: "Display noise σ",
+          mode: "Mode",
+          radialVelocity: "Radial velocity",
+          resolvingPower: "Resolving power",
+          selectedSpecies: "Selected species",
+          temperature: "Temperature",
+        },
+        unavailableDescription: "No browser-generated spectrum or line positions are substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      none: "none",
+      result: {
+        description:
+          "Model {modelVersion}. The returned spectrum is normalized teaching data, not flux-calibrated physical radiance.",
+        labels: {
+          dopplerFactor: "Doppler factor",
+          mode: "Mode",
+          radialVelocity: "Radial velocity",
+          resolvingPower: "Resolving power",
+          returnedSamples: "Returned samples",
+          selectedSpecies: "Selected species",
+          temperature: "Temperature",
+          wienPeak: "Wien peak",
+        },
+        lines: {
+          caption: "Source-backed representative line metadata returned by the canonical model.",
+          empty: "Continuum mode returns no atomic fingerprint lines.",
+          headers: {
+            feature: "Feature",
+            fwhm: "Illustrative FWHM nm",
+            rest: "Rest vacuum nm",
+            shifted: "Shifted vacuum nm",
+            species: "Species",
+          },
+          scrollAriaLabel: "Scrollable representative line table",
+        },
+        modelVersion: "Model version",
+        noScriptReturnedSamples:
+          "Returned samples: {count}; vacuum range {minimum} nm to {maximum} nm.",
+        title: "Canonical normalized spectrum",
+        unavailableDescription:
+          "No browser-generated fallback continuum, line positions, or noise are substituted.",
+        unavailableTitle: "No canonical result available",
+        wienPeak: "Wien peak",
+      },
+    },
+    stellarLaboratory: {
+      actions: {
+        calculate: "Calculate stellar model",
+        calculating: "Calculating…",
+        reset: "Reset one-Solar-mass preset",
+      },
+      controls: {
+        description:
+          "V1 accepts only {minimum}–{maximum} M☉. There is intentionally no metallicity slider because this model is not a metallicity-dependent evolution grid.",
+        fieldLabel: "Initial stellar mass",
+        title: "Initial mass",
+      },
+      failures: {
+        invalidInput: "Mass is empty, non-finite, or outside the reviewed 0.4–29.669 M☉ v1 range.",
+        rejected:
+          "The canonical Stellar Laboratory model rejected this mass. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned stellar state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      header: {
+        eyebrow: "Phase 7 · approximate source-backed model",
+        intro:
+          "Explore how initial mass maps to typical main-sequence luminosity, radius, effective temperature, an approximate lifetime, a nearest published colour anchor, and a broad expected remnant. This is not an age-resolved stellar-evolution grid.",
+        title: "Stellar Laboratory",
+      },
+      invalidState: {
+        description: "The reviewed one-Solar-mass preset is shown instead.",
+        inline:
+          "Shared stellar-laboratory state rejected. The reviewed one-Solar-mass preset is shown instead.",
+        title: "Shared stellar-laboratory state rejected",
+      },
+      metadataDescription:
+        "Explore a source-backed approximate main-sequence mapping from stellar mass to typical luminosity, radius, temperature, lifetime, colour anchor, and broad remnant outcome.",
+      metadataTitle: "Stellar Laboratory",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState: "Current committed browser state: initial mass {mass} M☉.",
+        equations: "Equations and mappings",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        eyebrow: "Phase 7 / Stellar Laboratory",
+        intro:
+          "Explore a source-backed approximate main-sequence mass mapping. Lumina's Python astronomy domain owns the empirical relations, lifetime interpolation, and broad remnant classification; this page does not recreate them in the browser.",
+        lifecycleTitle: "Broad educational lifecycle",
+        modelVersion: "Model version",
+        requestedMassTitle: "Requested mass",
+        resultCaption:
+          "Canonical approximate Stellar Laboratory result from Lumina's astronomy API.",
+        resultLabels: {
+          approximateLifetime: "Approximate main-sequence lifetime",
+          expectedRemnant: "Expected remnant",
+          initialMass: "Initial mass",
+          nearestColourAnchor: "Nearest source colour anchor",
+          typicalLuminosity: "Typical main-sequence luminosity",
+          typicalRadius: "Typical main-sequence radius",
+          typicalTemperature: "Typical effective temperature",
+          yearsUnit: "years",
+        },
+        resultTitle: "Approximate main-sequence result",
+        unavailableDescription: "No browser-generated fallback stellar properties are substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. Values are typical educational estimates within the reviewed source domain, not measurements or a prediction for an individual star.",
+        labels: {
+          approximateLifetime: "Approximate main-sequence lifetime",
+          colourAnchorMass: "Colour-anchor mass",
+          expectedRemnant: "Expected remnant",
+          initialMass: "Initial mass",
+          nearestColourAnchor: "Nearest source colour anchor",
+          typicalLuminosity: "Typical luminosity",
+          typicalRadius: "Typical radius",
+          typicalTemperature: "Typical effective temperature",
+        },
+        lifecycleDescription:
+          "These are returned categorical stages, not an age-resolved evolutionary track or H–R trajectory.",
+        lifecycleTitle: "Broad educational lifecycle",
+        sourceTableAnchor: "source table anchor",
+        title: "Approximate main-sequence result",
+        unavailableDescription:
+          "No browser-generated fallback stellar properties or lifecycle are substituted.",
+        unavailableTitle: "No canonical result available",
+        yearsUnit: "years",
+      },
+    },
     transitMethod: {
       actions: {
         calculate: "Calculate transit",

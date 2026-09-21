@@ -485,6 +485,25 @@ describe("Phase 8C localization foundation", () => {
     expect(relativity.model.currentState).toContain("{separation}");
     expect(relativity.model.sourceUnavailable).toContain("{sourceId}");
     expect(relativity.result.description).toContain("{modelVersion}");
+
+    const stellar = enMessages.simulationLabs.stellarLaboratory;
+    expect(stellar.controls.description).toContain("{minimum}");
+    expect(stellar.controls.description).toContain("{maximum}");
+    expect(stellar.model.currentState).toContain("{mass}");
+    expect(stellar.model.sourceUnavailable).toContain("{sourceId}");
+    expect(stellar.result.description).toContain("{modelVersion}");
+
+    const spectroscopy = enMessages.simulationLabs.spectroscopyLab;
+    expect(spectroscopy.model.currentState).toContain("{mode}");
+    expect(spectroscopy.model.currentState).toContain("{temperature}");
+    expect(spectroscopy.model.currentState).toContain("{velocity}");
+    expect(spectroscopy.model.sourceUnavailable).toContain("{sourceId}");
+    expect(spectroscopy.noScript.displayNoiseTemplate).toContain("{sigma}");
+    expect(spectroscopy.noScript.displayNoiseTemplate).toContain("{seed}");
+    expect(spectroscopy.result.description).toContain("{modelVersion}");
+    expect(spectroscopy.result.noScriptReturnedSamples).toContain("{count}");
+    expect(spectroscopy.result.noScriptReturnedSamples).toContain("{minimum}");
+    expect(spectroscopy.result.noScriptReturnedSamples).toContain("{maximum}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

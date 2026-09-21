@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SpectroscopyLabView } from "../src/components/spectroscopy-lab-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_SPECTROSCOPY_STATE } from "../src/lib/simulations/spectroscopy-lab";
 import {
   SPECTROSCOPY_CONTINUUM_RESULT,
@@ -25,6 +27,8 @@ function renderView(initialCalculation = SPECTROSCOPY_DEFAULT_RESULT, invalid = 
       initialCalculation={initialCalculation}
       initialState={DEFAULT_SPECTROSCOPY_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.spectroscopyLab}
     />,
   );
 }
@@ -97,5 +101,40 @@ describe("SpectroscopyLabView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/empty or outside the reviewed v1 domain/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned spectroscopy science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.spectroscopyLab,
+      header: {
+        ...enMessages.simulationLabs.spectroscopyLab.header,
+        title: "Localized Spectroscopy Lab",
+      },
+      result: {
+        ...enMessages.simulationLabs.spectroscopyLab.result,
+        labels: {
+          ...enMessages.simulationLabs.spectroscopyLab.result.labels,
+          wienPeak: "Localized Wien label",
+        },
+      },
+    };
+
+    render(
+      <SpectroscopyLabView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={SPECTROSCOPY_DEFAULT_RESULT}
+        initialState={DEFAULT_SPECTROSCOPY_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Spectroscopy Lab" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized Wien label")).toBeVisible();
+    expect(screen.getByText("H-alpha representative")).toBeVisible();
+    expect(screen.getByRole("link", { name: /NIST Atomic Spectra Database/i })).toBeVisible();
   });
 });

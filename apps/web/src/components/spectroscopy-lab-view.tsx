@@ -5,6 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { requestEndpoint, type SpectroscopyCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { SpectroscopyLabMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_SPECTROSCOPY_STATE,
   SPECTROSCOPY_DEFINITION,
   SPECTROSCOPY_ELEMENTS,
@@ -27,17 +34,26 @@ type SpectroscopyLabViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: SpectroscopyCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: SpectroscopyLabMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
 
-const MODE_LABELS: Record<SpectroscopyMode, string> = {
-  continuum: "Blackbody continuum",
-  emission: "Emission lines",
-  absorption: "Absorption lines",
-  doppler: "Doppler shift",
-  element_match: "Element matching",
-};
+function modeLabel(mode: SpectroscopyMode, messages: SpectroscopyLabMessages["modes"]): string {
+  switch (mode) {
+    case "continuum":
+      return messages.continuum;
+    case "emission":
+      return messages.emission;
+    case "absorption":
+      return messages.absorption;
+    case "doppler":
+      return messages.doppler;
+    case "element_match":
+      return messages.elementMatch;
+  }
+}
 
 function replaceBrowserState(state: SpectroscopyState): void {
   const url = new URL(window.location.href);
@@ -55,13 +71,16 @@ function stateFromBrowser(): Readonly<{ state: SpectroscopyState; invalid: boole
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: SpectroscopyLabMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {SPECTROSCOPY_DEFINITION.references.map((sourceId) => {
@@ -69,7 +88,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -85,7 +104,15 @@ function SourceList() {
   );
 }
 
-function SpectrumFigure({ result }: Readonly<{ result: SpectroscopyCalculationResponse }>) {
+function SpectrumFigure({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpectroscopyLabMessages["figure"];
+  result: SpectroscopyCalculationResponse;
+}>) {
   const width = 760;
   const height = 300;
   const left = 56;
@@ -115,13 +142,9 @@ function SpectrumFigure({ result }: Readonly<{ result: SpectroscopyCalculationRe
 
   return (
     <figure className="space-y-3">
-      <div
-        aria-label="Scrollable normalized spectrum plot"
-        className="overflow-x-auto"
-        tabIndex={0}
-      >
+      <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
         <svg
-          aria-label="Returned normalized spectrum from 380 to 750 nanometres vacuum wavelength"
+          aria-label={messages.plotAriaLabel}
           className="min-w-[640px] max-w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
           role="img"
           viewBox={`0 0 ${width} ${height}`}
@@ -152,38 +175,50 @@ function SpectrumFigure({ result }: Readonly<{ result: SpectroscopyCalculationRe
             );
           })}
           <text x={left} y={height - 12} fontSize="12">
-            {format(minimumWavelength)} nm
+            {format(minimumWavelength, locale)} nm
           </text>
           <text textAnchor="end" x={left + plotWidth} y={height - 12} fontSize="12">
-            {format(maximumWavelength)} nm
+            {format(maximumWavelength, locale)} nm
           </text>
           <text transform={`translate(16 ${top + plotHeight / 2}) rotate(-90)`} fontSize="12">
-            normalized flux
+            {messages.normalizedFlux}
           </text>
         </svg>
       </div>
       <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        Presentation-only plot of the returned vacuum-wavelength and normalized-flux arrays. Dashed
-        markers use returned shifted line centers. The browser does not calculate continuum, Doppler
-        shift, line width, or noise.
+        {messages.caption}
       </figcaption>
     </figure>
   );
 }
 
-function ResultSummary({ result }: Readonly<{ result: SpectroscopyCalculationResponse }>) {
+function ResultSummary({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpectroscopyLabMessages;
+  result: SpectroscopyCalculationResponse;
+}>) {
   const rows = [
-    ["Mode", MODE_LABELS[result.inputs.mode]],
-    ["Temperature", `${format(result.inputs.temperature_k)} K`],
-    ["Wien peak", `${format(result.wien_peak_nm)} nm`],
-    ["Radial velocity", `${format(result.inputs.radial_velocity_km_s)} km/s`],
-    ["Doppler factor", format(result.doppler_factor, 8)],
-    ["Resolving power", format(result.inputs.resolving_power)],
-    ["Returned samples", String(result.wavelength_nm.length)],
+    [messages.result.labels.mode, modeLabel(result.inputs.mode, messages.modes)],
+    [messages.result.labels.temperature, `${format(result.inputs.temperature_k, locale)} K`],
+    [messages.result.labels.wienPeak, `${format(result.wien_peak_nm, locale)} nm`],
     [
-      "Selected species",
+      messages.result.labels.radialVelocity,
+      `${format(result.inputs.radial_velocity_km_s, locale)} km/s`,
+    ],
+    [messages.result.labels.dopplerFactor, format(result.doppler_factor, locale, 8)],
+    [messages.result.labels.resolvingPower, format(result.inputs.resolving_power, locale)],
+    [
+      messages.result.labels.returnedSamples,
+      formatLocaleNumber(result.wavelength_nm.length, locale),
+    ],
+    [
+      messages.result.labels.selectedSpecies,
       result.inputs.selected_elements.length === 0
-        ? "none"
+        ? messages.none
         : result.inputs.selected_elements.join(", "),
     ],
   ] as const;
@@ -202,36 +237,38 @@ function ResultSummary({ result }: Readonly<{ result: SpectroscopyCalculationRes
   );
 }
 
-function ReturnedLines({ result }: Readonly<{ result: SpectroscopyCalculationResponse }>) {
+function ReturnedLines({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: SpectroscopyLabMessages["result"]["lines"];
+  result: SpectroscopyCalculationResponse;
+}>) {
   if (result.representative_lines.length === 0) {
-    return (
-      <p className="rounded-md border border-[var(--border)] p-4">
-        Continuum mode returns no atomic fingerprint lines.
-      </p>
-    );
+    return <p className="rounded-md border border-[var(--border)] p-4">{messages.empty}</p>;
   }
   return (
-    <div aria-label="Scrollable representative line table" className="overflow-x-auto" tabIndex={0}>
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[720px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Source-backed representative line metadata returned by the canonical model.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
             <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              Species
+              {messages.headers.species}
             </th>
             <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              Feature
+              {messages.headers.feature}
             </th>
             <th className="border-b border-[var(--border)] p-2 text-right" scope="col">
-              Rest vacuum nm
+              {messages.headers.rest}
             </th>
             <th className="border-b border-[var(--border)] p-2 text-right" scope="col">
-              Shifted vacuum nm
+              {messages.headers.shifted}
             </th>
             <th className="border-b border-[var(--border)] p-2 text-right" scope="col">
-              Illustrative FWHM nm
+              {messages.headers.fwhm}
             </th>
           </tr>
         </thead>
@@ -241,13 +278,13 @@ function ReturnedLines({ result }: Readonly<{ result: SpectroscopyCalculationRes
               <td className="border-b border-[var(--border)] p-2">{line.element}</td>
               <td className="border-b border-[var(--border)] p-2">{line.label}</td>
               <td className="border-b border-[var(--border)] p-2 text-right font-mono">
-                {format(line.rest_wavelength_vacuum_nm, 7)}
+                {format(line.rest_wavelength_vacuum_nm, locale, 7)}
               </td>
               <td className="border-b border-[var(--border)] p-2 text-right font-mono">
-                {format(line.shifted_wavelength_vacuum_nm, 7)}
+                {format(line.shifted_wavelength_vacuum_nm, locale, 7)}
               </td>
               <td className="border-b border-[var(--border)] p-2 text-right font-mono">
-                {format(line.illustrative_fwhm_nm, 7)}
+                {format(line.illustrative_fwhm_nm, locale, 7)}
               </td>
             </tr>
           ))}
@@ -262,6 +299,8 @@ export function SpectroscopyLabView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: SpectroscopyLabViewProps) {
   const [state, setState] = useState(initialState);
   const [draftMode, setDraftMode] = useState<SpectroscopyMode>(initialState.mode);
@@ -294,7 +333,7 @@ export function SpectroscopyLabView({
     async (nextState: SpectroscopyState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -310,20 +349,18 @@ export function SpectroscopyLabView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Spectroscopy Lab rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateSpectroscopyCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned spectrum state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -337,12 +374,12 @@ export function SpectroscopyLabView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -379,7 +416,7 @@ export function SpectroscopyLabView({
       draftNoiseSigma.trim().length === 0 ||
       draftNoiseSeed.trim().length === 0
     ) {
-      setMessage("One or more controls are empty or outside the reviewed v1 domain.");
+      setMessage(messages.failures.invalidInput);
       return;
     }
     const next = validateSpectroscopyState({
@@ -394,9 +431,7 @@ export function SpectroscopyLabView({
       noise_seed: Number(draftNoiseSeed),
     });
     if (next === null) {
-      setMessage(
-        "The requested mode, species, temperature, velocity, resolution, or noise settings are outside the reviewed v1 domain.",
-      );
+      setMessage(messages.failures.outOfDomain);
       return;
     }
     void recalculate(next, true);
@@ -412,36 +447,30 @@ export function SpectroscopyLabView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · normalized visible-spectrum teaching model
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Spectroscopy Lab</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore an ideal normalized blackbody continuum, a small source-backed atomic fingerprint
-          set, bounded radial-velocity shifts, illustrative resolving power, and deterministic
-          display noise. V1 is not a stellar-atmosphere or abundance-analysis code.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared spectroscopy state rejected.</strong> The reviewed Solar-like absorption
-          preset is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="spectroscopy-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="spectroscopy-input-heading">
-            Teaching spectrum controls
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            All atomic coordinates are reviewed NIST ASD observed-vacuum wavelengths. Line
-            amplitudes/depths are illustrative and are not abundance predictions.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
           <label className="space-y-2">
-            <span className="block font-semibold">Mode</span>
+            <span className="block font-semibold">{messages.controls.fields.mode}</span>
             <select
               className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
               disabled={requestState === "loading"}
@@ -459,7 +488,7 @@ export function SpectroscopyLabView({
             >
               {SPECTROSCOPY_MODES.map((mode) => (
                 <option key={mode} value={mode}>
-                  {MODE_LABELS[mode]}
+                  {modeLabel(mode, messages.modes)}
                 </option>
               ))}
             </select>
@@ -467,11 +496,11 @@ export function SpectroscopyLabView({
 
           <label className="space-y-2">
             <span className="flex justify-between gap-2 font-semibold">
-              <span>Temperature</span>
+              <span>{messages.controls.fields.temperature}</span>
               <span className="text-xs font-normal text-[var(--muted)]">K</span>
             </span>
             <input
-              aria-label="Temperature K"
+              aria-label={messages.controls.fieldAriaLabels.temperature}
               className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
               disabled={requestState === "loading"}
               max={SPECTROSCOPY_LIMITS.maxTemperatureK}
@@ -490,7 +519,9 @@ export function SpectroscopyLabView({
             className="space-y-2 rounded-md border border-[var(--border)] p-4 md:col-span-2"
             disabled={draftMode === "continuum" || requestState === "loading"}
           >
-            <legend className="px-1 font-semibold">Representative species</legend>
+            <legend className="px-1 font-semibold">
+              {messages.controls.fields.representativeSpecies}
+            </legend>
             <div className="flex flex-wrap gap-4">
               {SPECTROSCOPY_ELEMENTS.map((element) => (
                 <label className="flex min-h-11 items-center gap-2" key={element}>
@@ -506,60 +537,63 @@ export function SpectroscopyLabView({
           </fieldset>
 
           {[
-            [
-              "Radial velocity",
-              "km/s",
-              draftVelocity,
-              setDraftVelocity,
-              SPECTROSCOPY_LIMITS.minRadialVelocityKmS,
-              SPECTROSCOPY_LIMITS.maxRadialVelocityKmS,
-            ],
-            [
-              "Resolving power",
-              "R",
-              draftResolution,
-              setDraftResolution,
-              SPECTROSCOPY_LIMITS.minResolvingPower,
-              SPECTROSCOPY_LIMITS.maxResolvingPower,
-            ],
-            [
-              "Display noise sigma",
-              "normalized flux",
-              draftNoiseSigma,
-              setDraftNoiseSigma,
-              SPECTROSCOPY_LIMITS.minNoiseSigma,
-              SPECTROSCOPY_LIMITS.maxNoiseSigma,
-            ],
-          ].map(([label, unit, value, setter, minimum, maximum]) => (
-            <label className="space-y-2" key={String(label)}>
+            {
+              ariaLabel: messages.controls.fieldAriaLabels.radialVelocity,
+              label: messages.controls.fields.radialVelocity,
+              maximum: SPECTROSCOPY_LIMITS.maxRadialVelocityKmS,
+              minimum: SPECTROSCOPY_LIMITS.minRadialVelocityKmS,
+              setter: setDraftVelocity,
+              unit: "km/s",
+              value: draftVelocity,
+            },
+            {
+              ariaLabel: messages.controls.fieldAriaLabels.resolvingPower,
+              label: messages.controls.fields.resolvingPower,
+              maximum: SPECTROSCOPY_LIMITS.maxResolvingPower,
+              minimum: SPECTROSCOPY_LIMITS.minResolvingPower,
+              setter: setDraftResolution,
+              unit: "R",
+              value: draftResolution,
+            },
+            {
+              ariaLabel: messages.controls.fieldAriaLabels.displayNoise,
+              label: messages.controls.fields.displayNoise,
+              maximum: SPECTROSCOPY_LIMITS.maxNoiseSigma,
+              minimum: SPECTROSCOPY_LIMITS.minNoiseSigma,
+              setter: setDraftNoiseSigma,
+              unit: messages.figure.normalizedFlux,
+              value: draftNoiseSigma,
+            },
+          ].map(({ ariaLabel, label, maximum, minimum, setter, unit, value }) => (
+            <label className="space-y-2" key={label}>
               <span className="flex justify-between gap-2 font-semibold">
-                <span>{String(label)}</span>
-                <span className="text-xs font-normal text-[var(--muted)]">{String(unit)}</span>
+                <span>{label}</span>
+                <span className="text-xs font-normal text-[var(--muted)]">{unit}</span>
               </span>
               <input
-                aria-label={`${String(label)} ${String(unit)}`}
+                aria-label={ariaLabel}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
-                max={Number(maximum)}
-                min={Number(minimum)}
+                max={maximum}
+                min={minimum}
                 onChange={(event) => {
-                  (setter as React.Dispatch<React.SetStateAction<string>>)(event.target.value);
+                  setter(event.target.value);
                   setMessage("");
                 }}
                 step="any"
                 type="number"
-                value={String(value)}
+                value={value}
               />
             </label>
           ))}
 
           <label className="space-y-2">
             <span className="flex justify-between gap-2 font-semibold">
-              <span>Noise seed</span>
+              <span>{messages.controls.fields.noiseSeed}</span>
               <span className="text-xs font-normal text-[var(--muted)]">uint32</span>
             </span>
             <input
-              aria-label="Noise seed uint32"
+              aria-label={messages.controls.fieldAriaLabels.noiseSeed}
               className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
               disabled={requestState === "loading"}
               max={SPECTROSCOPY_LIMITS.maxNoiseSeed}
@@ -580,7 +614,9 @@ export function SpectroscopyLabView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate spectrum"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -588,7 +624,7 @@ export function SpectroscopyLabView({
               onClick={resetDefault}
               type="button"
             >
-              Reset Solar-like absorption preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -599,25 +635,24 @@ export function SpectroscopyLabView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated fallback continuum, line positions, or noise are substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="spectroscopy-result-heading" className="space-y-7">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="spectroscopy-result-heading">
-              Canonical normalized spectrum
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. The returned spectrum is normalized teaching data,
-              not flux-calibrated physical radiance.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
-          <ResultSummary result={calculation} />
-          <SpectrumFigure result={calculation} />
-          <ReturnedLines result={calculation} />
+          <ResultSummary locale={locale} messages={messages} result={calculation} />
+          <SpectrumFigure locale={locale} messages={messages.figure} result={calculation} />
+          <ReturnedLines locale={locale} messages={messages.result.lines} result={calculation} />
           <p className="leading-7 text-[var(--muted)]">{calculation.identification_explanation}</p>
           <div className="grid gap-3 md:grid-cols-2">
             {[
@@ -642,14 +677,16 @@ export function SpectroscopyLabView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="spectroscopy-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{SPECTROSCOPY_DEFINITION.sampling_policy}</p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {SPECTROSCOPY_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -657,7 +694,7 @@ export function SpectroscopyLabView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {SPECTROSCOPY_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -667,14 +704,17 @@ export function SpectroscopyLabView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: {MODE_LABELS[state.mode]}, {format(state.temperature_k)}{" "}
-          K, radial velocity {format(state.radial_velocity_km_s)} km/s.
+          {formatMessageTemplate(messages.model.currentState, {
+            mode: modeLabel(state.mode, messages.modes),
+            temperature: format(state.temperature_k, locale),
+            velocity: format(state.radial_velocity_km_s, locale),
+          })}
         </p>
       </section>
     </article>

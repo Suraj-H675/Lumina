@@ -41,6 +41,7 @@ export function SurveyComparisonPanel({
 }>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef<WwtAtlasSession | null>(null);
+  const mountedRef = useRef(true);
   const [layerId, setLayerId] = useState<AtlasLayerId>("visible-dss2");
   const [sessionActive, setSessionActive] = useState(false);
   const [state, setState] = useState<SurveyState>({ kind: "idle" });
@@ -48,13 +49,14 @@ export function SurveyComparisonPanel({
   const activeLayer = ATLAS_LAYERS.find((layer) => layer.id === layerId) ?? ATLAS_LAYERS[0]!;
   const canActivate = !sessionActive && (state.kind === "idle" || state.kind === "error");
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       sessionRef.current?.detach();
       sessionRef.current = null;
-    },
-    [],
-  );
+    };
+  }, []);
 
   async function focus(session: WwtAtlasSession) {
     await session.focus({
@@ -69,21 +71,35 @@ export function SurveyComparisonPanel({
     if (containerRef.current === null || sessionRef.current !== null) return;
     try {
       const { attachWwtAtlas, probeAtlasLayerAvailability } = await import("../../lib/wwt/client");
+      if (!mountedRef.current) return;
       setState({ kind: "checking", layerLabel: activeLayer.label });
-      if (!(await probeAtlasLayerAvailability(layerId))) {
+      const available = await probeAtlasLayerAvailability(layerId);
+      if (!mountedRef.current) return;
+      if (!available) {
         setState({ kind: "error", layerLabel: activeLayer.label, reason: "layerUnavailable" });
         return;
       }
       setState({ kind: "loading" });
-      const session = await attachWwtAtlas(containerRef.current, {
-        onContextLost: () => setState({ kind: "context-lost" }),
-        onContextRestored: () => setState({ kind: "ready", reason: "contextRestored" }),
+      const container = containerRef.current;
+      if (container === null) return;
+      const session = await attachWwtAtlas(container, {
+        onContextLost: () => {
+          if (mountedRef.current) setState({ kind: "context-lost" });
+        },
+        onContextRestored: () => {
+          if (mountedRef.current) setState({ kind: "ready", reason: "contextRestored" });
+        },
         onRenderFailed: () => {
           sessionRef.current = null;
+          if (!mountedRef.current) return;
           setSessionActive(false);
           setState({ kind: "error", reason: "rendererFailed" });
         },
       });
+      if (!mountedRef.current) {
+        session.detach();
+        return;
+      }
       sessionRef.current = session;
       setSessionActive(true);
       session.setLayer(layerId);
@@ -93,6 +109,7 @@ export function SurveyComparisonPanel({
     } catch {
       sessionRef.current?.detach();
       sessionRef.current = null;
+      if (!mountedRef.current) return;
       setSessionActive(false);
       setState({ kind: "error", reason: "rendererFailed" });
     }
@@ -110,7 +127,9 @@ export function SurveyComparisonPanel({
     const session = sessionRef.current;
     try {
       const { probeAtlasLayerAvailability } = await import("../../lib/wwt/client");
+      if (!mountedRef.current) return;
       const available = await probeAtlasLayerAvailability(nextLayerId);
+      if (!mountedRef.current) return;
       if (sessionRef.current !== session) return;
       if (!available) {
         setState({ kind: "error", layerLabel: nextLayer.label, reason: "layerUnavailable" });

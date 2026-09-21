@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { IdentifyMessages } from "../src/lib/i18n/messages/types";
+import type { WwtAtlasSession } from "../src/lib/wwt/client";
 
 const wwt = vi.hoisted(() => ({
   attach: vi.fn(),
@@ -211,6 +212,41 @@ describe("SurveyComparisonPanel", () => {
 
     view.unmount();
     expect(wwt.detach).toHaveBeenCalledOnce();
+  });
+
+  it("detaches a late survey session when the component unmounts during activation", async () => {
+    let resolveAttach: ((session: WwtAtlasSession) => void) | null = null;
+    const lateSession: WwtAtlasSession = {
+      detach: wwt.detach,
+      focus: wwt.focus,
+      pan: vi.fn(),
+      setLayer: wwt.setLayer,
+      setLocalHorizon: vi.fn(),
+      setObserver: vi.fn(),
+      setTime: vi.fn(),
+      syncTimeNow: vi.fn(),
+      zoom: vi.fn(),
+    };
+    wwt.attach.mockImplementationOnce(
+      () =>
+        new Promise<typeof lateSession>((resolve) => {
+          resolveAttach = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    const view = renderSurvey();
+
+    await user.click(screen.getByRole("button", { name: "Open survey comparison" }));
+    await waitFor(() => expect(wwt.attach).toHaveBeenCalledOnce());
+    view.unmount();
+    await act(async () => {
+      resolveAttach?.(lateSession);
+      await Promise.resolve();
+    });
+
+    expect(wwt.detach).toHaveBeenCalledOnce();
+    expect(wwt.setLayer).not.toHaveBeenCalled();
+    expect(wwt.focus).not.toHaveBeenCalled();
   });
 
   it("localizes wrapper and state copy without rewriting survey or solved-field data", async () => {

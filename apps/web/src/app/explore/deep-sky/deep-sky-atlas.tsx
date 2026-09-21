@@ -38,6 +38,7 @@ const WWT_HELPERS_VERSION = "0.18.0";
 export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sessionRef = useRef<WwtAtlasSession | null>(null);
+  const mountedRef = useRef(true);
   const [status, setStatus] = useState<AtlasStatus>({ kind: "idle" });
   const [atlasOpen, setAtlasOpen] = useState(false);
   const [layerId, setLayerId] = useState<AtlasLayerId>(initialLayerId);
@@ -47,13 +48,14 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
   const [elevation, setElevation] = useState("0");
   const [localHorizon, setLocalHorizon] = useState(false);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       sessionRef.current?.detach();
       sessionRef.current = null;
-    },
-    [],
-  );
+    };
+  }, []);
 
   const activeLayer = ATLAS_LAYERS.find((layer) => layer.id === layerId) ?? ATLAS_LAYERS[0]!;
   const active = atlasOpen;
@@ -70,8 +72,10 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
     try {
       const { attachWwtAtlas, probeAtlasLayerAvailability } =
         await import("../../../lib/wwt/client");
+      if (!mountedRef.current) return;
       setStatus({ kind: "checking-survey", layerLabel: activeLayer.label });
       const available = await probeAtlasLayerAvailability(layerId);
+      if (!mountedRef.current) return;
       if (!available) {
         setStatus({
           kind: "error",
@@ -82,16 +86,27 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
         return;
       }
       setStatus({ kind: "loading" });
-      const session = await attachWwtAtlas(containerRef.current, {
-        onContextLost: () => setStatus({ kind: "context-lost" }),
+      const container = containerRef.current;
+      if (container === null) return;
+      const session = await attachWwtAtlas(container, {
+        onContextLost: () => {
+          if (mountedRef.current) setStatus({ kind: "context-lost" });
+        },
         onContextRestored: () =>
-          setStatus({ kind: "ready", message: messages.status.graphicsRestored }),
+          mountedRef.current
+            ? setStatus({ kind: "ready", message: messages.status.graphicsRestored })
+            : undefined,
         onRenderFailed: () => {
           sessionRef.current = null;
+          if (!mountedRef.current) return;
           setAtlasOpen(false);
           setStatus({ kind: "error", message: messages.status.activationFailed });
         },
       });
+      if (!mountedRef.current) {
+        session.detach();
+        return;
+      }
       sessionRef.current = session;
       setAtlasOpen(true);
       session.setLayer(layerId);
@@ -101,6 +116,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
     } catch {
       sessionRef.current?.detach();
       sessionRef.current = null;
+      if (!mountedRef.current) return;
       setAtlasOpen(false);
       setStatus({
         kind: "error",
@@ -144,9 +160,12 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
     }
 
     setStatus({ kind: "checking-survey", layerLabel: nextLayer.label });
+    const session = sessionRef.current;
     try {
       const { probeAtlasLayerAvailability } = await import("../../../lib/wwt/client");
+      if (!mountedRef.current || sessionRef.current !== session) return;
       const available = await probeAtlasLayerAvailability(nextLayerId);
+      if (!mountedRef.current || sessionRef.current !== session) return;
       if (!available) {
         setStatus({
           kind: "error",
@@ -156,7 +175,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
         });
         return;
       }
-      sessionRef.current.setLayer(nextLayerId);
+      session.setLayer(nextLayerId);
       setLayerId(nextLayerId);
       setStatus({
         kind: "ready",
@@ -165,6 +184,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
         }),
       });
     } catch {
+      if (!mountedRef.current || sessionRef.current !== session) return;
       setStatus({ kind: "error", message: messages.status.layerDisplayFailed });
     }
   }

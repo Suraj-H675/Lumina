@@ -136,7 +136,11 @@ test.describe("Phase 3B — Scale Explorer", () => {
     browser,
   }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
-    const noScriptPage = await context.newPage();
+    const openNoScriptPage = async (path: string) => {
+      const page = await context.newPage();
+      await page.goto(path);
+      return page;
+    };
 
     const encodedSunState = encodeURIComponent(
       JSON.stringify({ model_version: "scale-explorer-v1", node_id: "sun", version: 1 }),
@@ -154,7 +158,7 @@ test.describe("Phase 3B — Scale Explorer", () => {
 
     for (let repetition = 0; repetition < 3; repetition += 1) {
       for (const route of noScriptRoutes) {
-        await noScriptPage.goto(route.path);
+        const noScriptPage = await openNoScriptPage(route.path);
 
         await expect(
           noScriptPage.getByRole("heading", { level: 1, name: "Scale Explorer" }),
@@ -171,53 +175,71 @@ test.describe("Phase 3B — Scale Explorer", () => {
         await expect(noScriptPage.getByRole("alert")).toHaveCount(route.malformed ? 1 : 0);
         await expect(noScriptPage.getByRole("status")).toHaveCount(0);
         await expect(noScriptPage.getByText("Loading interactive controls…")).toHaveCount(0);
+        await noScriptPage.close();
       }
     }
 
-    await expect(noScriptPage.getByText(/input unit: curated node identifier/i)).toBeVisible();
-    await expect(noScriptPage.getByRole("heading", { level: 3, name: "References" })).toBeVisible();
-    await expect(noScriptPage.getByRole("columnheader", { name: "Source status" })).toBeVisible();
-    await expect(noScriptPage.getByRole("columnheader", { name: "Evidence" })).toBeVisible();
+    {
+      const noScriptPage = await openNoScriptPage("/lab/scale-explorer");
+      await expect(noScriptPage.getByText(/input unit: curated node identifier/i)).toBeVisible();
+      await expect(
+        noScriptPage.getByRole("heading", { level: 3, name: "References" }),
+      ).toBeVisible();
+      await expect(noScriptPage.getByRole("columnheader", { name: "Source status" })).toBeVisible();
+      await expect(noScriptPage.getByRole("columnheader", { name: "Evidence" })).toBeVisible();
 
-    const noScriptTable = noScriptPage.getByRole("table");
-    const noScriptRows = noScriptTable.locator("tbody tr");
-    await expect(noScriptRows).toHaveCount(12);
-    for (const row of await noScriptRows.all()) {
-      await expect(row).toContainText(
-        /characteristic (diameter|width)|observable-universe extent/i,
-      );
-      await expect(row).toContainText(/source (radius|diameter|width|extent)/i);
-      await expect(row).toContainText(/normalized logarithmic display position: \d+\.\d+%/i);
+      const noScriptTable = noScriptPage.getByRole("table");
+      const noScriptRows = noScriptTable.locator("tbody tr");
+      await expect(noScriptRows).toHaveCount(12);
+      for (const row of await noScriptRows.all()) {
+        await expect(row).toContainText(
+          /characteristic (diameter|width)|observable-universe extent/i,
+        );
+        await expect(row).toContainText(/source (radius|diameter|width|extent)/i);
+        await expect(row).toContainText(/normalized logarithmic display position: \d+\.\d+%/i);
+      }
+      await noScriptPage.close();
     }
 
     const encodedSun = encodeURIComponent(
       JSON.stringify({ model_version: "scale-explorer-v1", node_id: "sun", version: 1 }),
     );
-    await noScriptPage.goto(`/lab/scale-explorer?state=${encodedSun}`);
-    await expect(noScriptPage.getByRole("heading", { level: 2, name: "Sun" })).toBeVisible();
-    await expect(
-      noScriptPage.getByText("about 1.4 million km characteristic diameter", { exact: true }),
-    ).toBeVisible();
+    {
+      const noScriptPage = await openNoScriptPage(`/lab/scale-explorer?state=${encodedSun}`);
+      await expect(noScriptPage.getByRole("heading", { level: 2, name: "Sun" })).toBeVisible();
+      await expect(
+        noScriptPage.getByText("about 1.4 million km characteristic diameter", { exact: true }),
+      ).toBeVisible();
+      await noScriptPage.close();
+    }
 
-    await noScriptPage.goto("/lab/scale-explorer?state=not-json");
-    await expect(
-      noScriptPage.getByRole("alert", { name: /the shared scale state was not valid/i }),
-    ).toBeVisible();
-    await expect(noScriptPage.getByRole("heading", { level: 2, name: "Earth" })).toBeVisible();
-    await expect(
-      noScriptPage.getByRole("heading", { level: 2, name: "Text and data alternative" }),
-    ).toBeVisible();
-    await expect(noScriptPage.getByRole("table")).toBeVisible();
-    await expect(
-      noScriptPage.getByRole("heading", { level: 2, name: "Model and assumptions" }),
-    ).toBeVisible();
-    await expect(noScriptPage.getByRole("heading", { level: 3, name: "References" })).toBeVisible();
+    {
+      const noScriptPage = await openNoScriptPage("/lab/scale-explorer?state=not-json");
+      await expect(
+        noScriptPage.getByRole("alert", { name: /the shared scale state was not valid/i }),
+      ).toBeVisible();
+      await expect(noScriptPage.getByRole("heading", { level: 2, name: "Earth" })).toBeVisible();
+      await expect(
+        noScriptPage.getByRole("heading", { level: 2, name: "Text and data alternative" }),
+      ).toBeVisible();
+      await expect(noScriptPage.getByRole("table")).toBeVisible();
+      await expect(
+        noScriptPage.getByRole("heading", { level: 2, name: "Model and assumptions" }),
+      ).toBeVisible();
+      await expect(
+        noScriptPage.getByRole("heading", { level: 3, name: "References" }),
+      ).toBeVisible();
+      await noScriptPage.close();
+    }
 
     const encodedEarth = encodeURIComponent(
       JSON.stringify({ model_version: "scale-explorer-v1", node_id: "earth", version: 1 }),
     );
-    await noScriptPage.goto(`/lab/scale-explorer/sun?state=${encodedEarth}`);
-    await expect(noScriptPage.getByRole("heading", { level: 2, name: "Sun" })).toBeVisible();
+    {
+      const noScriptPage = await openNoScriptPage(`/lab/scale-explorer/sun?state=${encodedEarth}`);
+      await expect(noScriptPage.getByRole("heading", { level: 2, name: "Sun" })).toBeVisible();
+      await noScriptPage.close();
+    }
 
     await context.close();
   });

@@ -234,6 +234,85 @@ test.describe("Phase 5A — deep-sky atlas", () => {
     await context.close();
   });
 
+  test("does not accumulate WWT DOM or listeners across repeated client-side route leaves", async ({
+    page,
+  }) => {
+    await stubApprovedWwtNetwork(page);
+    const cdp = await page.context().newCDPSession(page);
+
+    const measureCleanup = async () => {
+      await cdp.send("HeapProfiler.collectGarbage");
+      await page.waitForTimeout(75);
+      const counters = await cdp.send("Memory.getDOMCounters");
+      return {
+        ...counters,
+        canvases: await page.locator("#lumina-wwt-atlas canvas").count(),
+      };
+    };
+    const enterAtlas = async () => {
+      await page.locator('a[href="/explore/deep-sky"]').first().click();
+      await page.waitForURL(/\/explore\/deep-sky/u);
+      await page.getByRole("button", { name: "Open interactive atlas" }).click();
+      await expect(page.getByText("Interactive atlas ready.")).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator("#lumina-wwt-atlas canvas")).toHaveCount(1);
+    };
+    const leaveAtlas = async () => {
+      await page.getByRole("link", { name: /Explore catalogue/i }).click();
+      await expect(page).toHaveURL(/\/explore$/u);
+      await expect(
+        page.getByRole("heading", { level: 1, name: /Explore real objects/i }),
+      ).toBeVisible();
+    };
+
+    await page.goto("/explore");
+    await page.evaluate(() => {
+      (
+        globalThis as typeof globalThis & {
+          __luminaMemoryAuditDocument?: string;
+        }
+      ).__luminaMemoryAuditDocument = "same-document";
+    });
+
+    // Warm the lazy WWT singleton and the App Router caches before taking the
+    // baseline. App Router can alternate between a smaller and larger stable
+    // post-navigation tree, so use the maximum warmed envelope rather than a
+    // single snapshot. The accepted contract is no per-cycle growth beyond it.
+    const warmSamples = [];
+    for (let cycle = 0; cycle < 10; cycle += 1) {
+      await enterAtlas();
+      await leaveAtlas();
+      const sample = await measureCleanup();
+      expect(sample.documents).toBe(1);
+      expect(sample.canvases).toBe(0);
+      warmSamples.push(sample);
+    }
+    const baseline = {
+      jsEventListeners: Math.max(...warmSamples.map((sample) => sample.jsEventListeners)),
+      nodes: Math.max(...warmSamples.map((sample) => sample.nodes)),
+    };
+
+    for (let cycle = 0; cycle < 4; cycle += 1) {
+      await enterAtlas();
+      await leaveAtlas();
+      const sample = await measureCleanup();
+
+      expect(
+        await page.evaluate(
+          () =>
+            (
+              globalThis as typeof globalThis & {
+                __luminaMemoryAuditDocument?: string;
+              }
+            ).__luminaMemoryAuditDocument,
+        ),
+      ).toBe("same-document");
+      expect(sample.documents).toBe(1);
+      expect(sample.canvases).toBe(0);
+      expect(sample.nodes).toBeLessThanOrEqual(baseline.nodes + 16);
+      expect(sample.jsEventListeners).toBeLessThanOrEqual(baseline.jsEventListeners + 4);
+    }
+  });
+
   test("fails to the canonical text experience when WebGL is unavailable", async ({ page }) => {
     await stubApprovedWwtNetwork(page);
     await page.addInitScript(() => {

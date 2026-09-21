@@ -227,6 +227,35 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
     expect(fake.session.setLayer).not.toHaveBeenCalledWith("infrared-wise");
   });
 
+  it("keeps renderer failure visible when rendering dies while a layer probe is pending", async () => {
+    let resolveLayerProbe: ((available: boolean) => void) | null = null;
+    fake.probe.mockResolvedValueOnce(true).mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveLayerProbe = resolve;
+        }),
+    );
+    renderAtlas();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
+    await screen.findByText("Interactive atlas ready.");
+    await userEvent.selectOptions(screen.getByLabelText("Wavelength context"), "infrared-wise");
+    await waitFor(() => expect(fake.probe).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      fake.callbacks().onRenderFailed?.();
+      resolveLayerProbe?.(false);
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      enMessages.deepSky.atlas.status.activationFailed,
+    );
+    expect(
+      screen.queryByText(/Infrared · WISE imagery is unavailable right now/i),
+    ).not.toBeInTheDocument();
+    expect(fake.session.setLayer).not.toHaveBeenCalledWith("infrared-wise");
+  });
+
   it("detaches the Lumina-owned atlas lifecycle when the component unmounts", async () => {
     const view = renderAtlas();
     await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
@@ -234,6 +263,29 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
 
     view.unmount();
     expect(fake.session.detach).toHaveBeenCalledOnce();
+  });
+
+  it("detaches a late atlas session when the component unmounts during activation", async () => {
+    let resolveAttach: ((session: typeof fake.session) => void) | null = null;
+    fake.attach.mockImplementationOnce(
+      () =>
+        new Promise<typeof fake.session>((resolve) => {
+          resolveAttach = resolve;
+        }),
+    );
+    const view = renderAtlas();
+
+    await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
+    await waitFor(() => expect(fake.attach).toHaveBeenCalledOnce());
+    view.unmount();
+    await act(async () => {
+      resolveAttach?.(fake.session);
+      await Promise.resolve();
+    });
+
+    expect(fake.session.detach).toHaveBeenCalledOnce();
+    expect(fake.session.setLayer).not.toHaveBeenCalled();
+    expect(fake.session.focus).not.toHaveBeenCalled();
   });
 
   it("localizes interactive chrome and status without rewriting reviewed survey data", async () => {

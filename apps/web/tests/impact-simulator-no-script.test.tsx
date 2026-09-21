@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { ImpactSimulatorNoScript } from "../src/components/impact-simulator-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_IMPACT_SIMULATOR_STATE } from "../src/lib/simulations/impact-simulator";
 import { IMPACT_SIMULATOR_DEFAULT_RESULT } from "./impact-simulator-fixture";
 
@@ -12,6 +14,8 @@ describe("ImpactSimulatorNoScript", () => {
         initialCalculation={IMPACT_SIMULATOR_DEFAULT_RESULT}
         initialState={DEFAULT_IMPACT_SIMULATOR_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.impactSimulator}
       />,
     );
     expect(markup).toContain("Impact Simulator");
@@ -30,6 +34,8 @@ describe("ImpactSimulatorNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_IMPACT_SIMULATOR_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.impactSimulator}
       />,
     );
     expect(markup).toContain("Shared impact state rejected");

@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PlanetarySystemBuilderView } from "../src/components/planetary-system-builder-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE } from "../src/lib/simulations/planetary-system-builder";
 import {
   PLANETARY_SYSTEM_BUILDER_AXIS_08_RESULT,
@@ -25,6 +27,8 @@ function renderView(invalid = false) {
       initialCalculation={PLANETARY_SYSTEM_BUILDER_DEFAULT_RESULT}
       initialState={DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.planetarySystemBuilder}
     />,
   );
 }
@@ -108,5 +112,44 @@ describe("PlanetarySystemBuilderView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/Semimajor axes must already be strictly increasing/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned system science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.planetarySystemBuilder,
+      header: {
+        ...enMessages.simulationLabs.planetarySystemBuilder.header,
+        title: "Localized Planetary Builder",
+      },
+      result: {
+        ...enMessages.simulationLabs.planetarySystemBuilder.result,
+        labels: {
+          ...enMessages.simulationLabs.planetarySystemBuilder.result.labels,
+          hzInner: "Localized HZ inner",
+        },
+      },
+    };
+
+    render(
+      <PlanetarySystemBuilderView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={PLANETARY_SYSTEM_BUILDER_DEFAULT_RESULT}
+        initialState={DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Planetary Builder" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized HZ inner")).toBeVisible();
+    expect(
+      screen.getByText(PLANETARY_SYSTEM_BUILDER_DEFAULT_RESULT.habitable_zone.habitability_note),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: /Habitable Zones Around Main-Sequence Stars/i }),
+    ).toBeVisible();
   });
 });

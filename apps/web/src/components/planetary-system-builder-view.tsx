@@ -8,6 +8,13 @@ import {
 } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { PlanetarySystemBuilderMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE,
   PLANETARY_SYSTEM_BUILDER_DEFINITION,
   PLANETARY_SYSTEM_BUILDER_LIMITS,
@@ -26,21 +33,35 @@ type PlanetarySystemBuilderViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: PlanetarySystemBuilderCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: PlanetarySystemBuilderMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
 type DraftPlanet = Readonly<{ mass: string; axis: string }>;
 
-const HZ_RELATION_LABELS = {
-  interior_to_reference_hz: "Interior to reference HZ",
-  inside_reference_hz: "Inside modeled reference HZ",
-  exterior_to_reference_hz: "Exterior to reference HZ",
-} as const;
+function hzRelationLabel(
+  relation: PlanetarySystemBuilderCalculationResponse["planets"][number]["habitable_zone_relation"],
+  messages: PlanetarySystemBuilderMessages["classifications"],
+): string {
+  switch (relation) {
+    case "interior_to_reference_hz":
+      return messages.interiorReferenceHz;
+    case "inside_reference_hz":
+      return messages.insideReferenceHz;
+    case "exterior_to_reference_hz":
+      return messages.exteriorReferenceHz;
+  }
+}
 
-const PAIRWISE_LABELS = {
-  pairwise_close_warning: "Pairwise close warning",
-  no_pairwise_hill_warning: "No pairwise Hill warning",
-} as const;
+function pairwiseLabel(
+  assessment: PlanetarySystemBuilderCalculationResponse["adjacent_pairs"][number]["spacing_assessment"],
+  messages: PlanetarySystemBuilderMessages["classifications"],
+): string {
+  return assessment === "pairwise_close_warning"
+    ? messages.pairwiseCloseWarning
+    : messages.noPairwiseHillWarning;
+}
 
 function replaceBrowserState(state: PlanetarySystemBuilderState): void {
   const url = new URL(window.location.href);
@@ -58,13 +79,16 @@ function stateFromBrowser(): Readonly<{ state: PlanetarySystemBuilderState; inva
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: PlanetarySystemBuilderMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {PLANETARY_SYSTEM_BUILDER_DEFINITION.references.map((sourceId) => {
@@ -74,7 +98,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -91,8 +115,14 @@ function SourceList() {
 }
 
 function SystemPlacementFigure({
+  locale,
+  messages,
   result,
-}: Readonly<{ result: PlanetarySystemBuilderCalculationResponse }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: PlanetarySystemBuilderMessages["figure"];
+  result: PlanetarySystemBuilderCalculationResponse;
+}>) {
   const width = 820;
   const height = 250;
   const left = 68;
@@ -110,13 +140,9 @@ function SystemPlacementFigure({
 
   return (
     <figure className="space-y-3">
-      <div
-        aria-label="Scrollable returned planetary-system placement diagram"
-        className="overflow-x-auto"
-        tabIndex={0}
-      >
+      <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
         <svg
-          aria-label="Returned planetary-system placement diagram with modeled reference habitable-zone band"
+          aria-label={messages.ariaLabel}
           className="min-w-[680px] max-w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
           role="img"
           viewBox={`0 0 ${width} ${height}`}
@@ -132,11 +158,11 @@ function SystemPlacementFigure({
             y={axisY - 36}
           />
           <text fontSize="12" textAnchor="middle" x={(hzStart + hzEnd) / 2} y={axisY - 44}>
-            modeled reference HZ
+            {messages.hzLabel}
           </text>
           <circle cx={left} cy={axisY} fill="currentColor" r="9" />
           <text fontSize="12" textAnchor="middle" x={left} y={axisY + 30}>
-            star
+            {messages.starLabel}
           </text>
           {result.planets.map((planet) => {
             const markerX = x(planet.semi_major_axis_au);
@@ -147,7 +173,7 @@ function SystemPlacementFigure({
                   P{planet.index}
                 </text>
                 <text fontSize="11" textAnchor="middle" x={markerX} y={axisY + 48}>
-                  {format(planet.semi_major_axis_au)} AU
+                  {format(planet.semi_major_axis_au, locale)} AU
                 </text>
               </g>
             );
@@ -156,36 +182,42 @@ function SystemPlacementFigure({
             0 AU
           </text>
           <text fontSize="12" textAnchor="end" x={left + plotWidth} y={height - 20}>
-            {format(scaleMaximum)} AU display extent
+            {formatMessageTemplate(messages.displayExtent, {
+              extent: format(scaleMaximum, locale),
+            })}
           </text>
         </svg>
       </div>
       <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        Presentation-only placement of returned semimajor axes and returned HZ edges on a shared
-        screen axis. The browser does not calculate Keplerian periods, HZ boundaries, mutual-Hill
-        radii, separations, or pairwise assessments.
+        {messages.caption}
       </figcaption>
     </figure>
   );
 }
 
 function PlanetResults({
+  locale,
+  messages,
   result,
-}: Readonly<{ result: PlanetarySystemBuilderCalculationResponse }>) {
+  classifications,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: PlanetarySystemBuilderMessages["planets"];
+  result: PlanetarySystemBuilderCalculationResponse;
+  classifications: PlanetarySystemBuilderMessages["classifications"];
+}>) {
   return (
-    <div aria-label="Scrollable returned planet table" className="overflow-x-auto" tabIndex={0}>
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[760px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Canonical Python-owned planet periods and reference-HZ placement.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
             {[
-              "Planet",
-              "Mass M⊕",
-              "Semimajor axis AU",
-              "Period days",
-              "Reference-HZ placement",
+              messages.headers.planet,
+              messages.headers.mass,
+              messages.headers.axis,
+              messages.headers.period,
+              messages.headers.hzPlacement,
             ].map((heading) => (
               <th
                 className="border-b border-[var(--border)] p-2 text-left"
@@ -202,16 +234,16 @@ function PlanetResults({
             <tr key={planet.index}>
               <td className="border-b border-[var(--border)] p-2">{planet.index}</td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(planet.mass_mearth)}
+                {format(planet.mass_mearth, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(planet.semi_major_axis_au)}
+                {format(planet.semi_major_axis_au, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(planet.orbital_period_days, 7)}
+                {format(planet.orbital_period_days, locale, 7)}
               </td>
               <td className="border-b border-[var(--border)] p-2">
-                {HZ_RELATION_LABELS[planet.habitable_zone_relation]}
+                {hzRelationLabel(planet.habitable_zone_relation, classifications)}
               </td>
             </tr>
           ))}
@@ -222,33 +254,31 @@ function PlanetResults({
 }
 
 function PairwiseResults({
+  classifications,
+  locale,
+  messages,
   result,
-}: Readonly<{ result: PlanetarySystemBuilderCalculationResponse }>) {
+}: Readonly<{
+  classifications: PlanetarySystemBuilderMessages["classifications"];
+  locale: PublishedLocale;
+  messages: PlanetarySystemBuilderMessages["pairwise"];
+  result: PlanetarySystemBuilderCalculationResponse;
+}>) {
   if (result.adjacent_pairs.length === 0) {
-    return (
-      <p className="rounded-md border border-[var(--border)] p-4">
-        This single-planet system has no adjacent-pair mutual-Hill diagnostic.
-      </p>
-    );
+    return <p className="rounded-md border border-[var(--border)] p-4">{messages.singlePlanet}</p>;
   }
   return (
-    <div
-      aria-label="Scrollable pairwise mutual-Hill table"
-      className="overflow-x-auto"
-      tabIndex={0}
-    >
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[780px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Pairwise mutual-Hill spacing diagnostic only; not a whole-system stability result.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
             {[
-              "Pair",
-              "Mutual Hill radius AU",
-              "Separation Δ",
-              "Reference threshold",
-              "Assessment",
+              messages.headers.pair,
+              messages.headers.mutualHillRadius,
+              messages.headers.separation,
+              messages.headers.referenceThreshold,
+              messages.headers.assessment,
             ].map((heading) => (
               <th
                 className="border-b border-[var(--border)] p-2 text-left"
@@ -267,16 +297,16 @@ function PairwiseResults({
                 {pair.inner_index}–{pair.outer_index}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(pair.mutual_hill_radius_au, 7)}
+                {format(pair.mutual_hill_radius_au, locale, 7)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(pair.separation_mutual_hill, 7)}
+                {format(pair.separation_mutual_hill, locale, 7)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(pair.pairwise_reference_threshold, 7)}
+                {format(pair.pairwise_reference_threshold, locale, 7)}
               </td>
               <td className="border-b border-[var(--border)] p-2">
-                {PAIRWISE_LABELS[pair.spacing_assessment]}
+                {pairwiseLabel(pair.spacing_assessment, classifications)}
               </td>
             </tr>
           ))}
@@ -285,7 +315,11 @@ function PairwiseResults({
       <ul className="mt-3 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
         {result.adjacent_pairs.map((pair) => (
           <li key={`${pair.inner_index}-${pair.outer_index}-interpretation`}>
-            Pair {pair.inner_index}–{pair.outer_index}: {pair.interpretation}
+            {formatMessageTemplate(messages.interpretation, {
+              inner: pair.inner_index,
+              outer: pair.outer_index,
+              interpretation: pair.interpretation,
+            })}
           </li>
         ))}
       </ul>
@@ -298,6 +332,8 @@ export function PlanetarySystemBuilderView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: PlanetarySystemBuilderViewProps) {
   const [state, setState] = useState(initialState);
   const [draftStellarMass, setDraftStellarMass] = useState(String(initialState.stellar_mass_msun));
@@ -336,7 +372,7 @@ export function PlanetarySystemBuilderView({
     async (nextState: PlanetarySystemBuilderState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -354,20 +390,18 @@ export function PlanetarySystemBuilderView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Planetary System Builder rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validatePlanetarySystemBuilderCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned builder state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -381,12 +415,12 @@ export function PlanetarySystemBuilderView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -434,7 +468,7 @@ export function PlanetarySystemBuilderView({
         (planet) => planet.mass.trim().length === 0 || planet.axis.trim().length === 0,
       )
     ) {
-      setMessage("One or more controls are empty or outside the reviewed v1 domain.");
+      setMessage(messages.failures.invalidInput);
       return;
     }
     const next = validatePlanetarySystemBuilderState({
@@ -449,9 +483,7 @@ export function PlanetarySystemBuilderView({
       })),
     });
     if (next === null) {
-      setMessage(
-        "The requested star or ordered planet inputs are outside the reviewed v1 domain. Semimajor axes must already be strictly increasing.",
-      );
+      setMessage(messages.failures.outOfDomain);
       return;
     }
     void recalculate(next, true);
@@ -467,45 +499,36 @@ export function PlanetarySystemBuilderView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · deterministic multi-planet teaching model
+          {messages.header.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Planetary System Builder
+          {messages.header.title}
         </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Build one synthetic star with one to eight circular, coplanar, non-interacting planets.
-          Compare Python-owned Keplerian periods, a published conservative reference HZ band, and
-          limited adjacent-pair mutual-Hill context without making a long-term stability claim.
-        </p>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared planetary-system state rejected.</strong> The reviewed illustrative
-          three-planet preset is shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="builder-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="builder-input-heading">
-            Synthetic system controls
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Stellar mass, luminosity, and effective temperature are independent educational
-            controls. V1 does not claim every allowed combination is a self-consistent stellar
-            evolution model. Planet order is explicit; Lumina does not silently sort it.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-6" onSubmit={submit}>
           <div className="grid gap-5 md:grid-cols-3">
             <label className="space-y-2">
               <span className="flex justify-between gap-2 font-semibold">
-                <span>Stellar mass</span>
+                <span>{messages.controls.fields.stellarMass}</span>
                 <span className="text-xs font-normal text-[var(--muted)]">M☉</span>
               </span>
               <input
-                aria-label="Stellar mass Msun"
+                aria-label={messages.controls.fieldAriaLabels.stellarMass}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={PLANETARY_SYSTEM_BUILDER_LIMITS.maxStellarMassMsun}
@@ -521,11 +544,11 @@ export function PlanetarySystemBuilderView({
             </label>
             <label className="space-y-2">
               <span className="flex justify-between gap-2 font-semibold">
-                <span>Stellar luminosity</span>
+                <span>{messages.controls.fields.stellarLuminosity}</span>
                 <span className="text-xs font-normal text-[var(--muted)]">L☉</span>
               </span>
               <input
-                aria-label="Stellar luminosity Lsun"
+                aria-label={messages.controls.fieldAriaLabels.stellarLuminosity}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={PLANETARY_SYSTEM_BUILDER_LIMITS.maxStellarLuminosityLsun}
@@ -541,11 +564,11 @@ export function PlanetarySystemBuilderView({
             </label>
             <label className="space-y-2">
               <span className="flex justify-between gap-2 font-semibold">
-                <span>Effective temperature</span>
+                <span>{messages.controls.fields.effectiveTemperature}</span>
                 <span className="text-xs font-normal text-[var(--muted)]">K</span>
               </span>
               <input
-                aria-label="Stellar effective temperature K"
+                aria-label={messages.controls.fieldAriaLabels.effectiveTemperature}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={PLANETARY_SYSTEM_BUILDER_LIMITS.maxStellarEffectiveTemperatureK}
@@ -562,10 +585,9 @@ export function PlanetarySystemBuilderView({
           </div>
 
           <fieldset className="space-y-4 rounded-md border border-[var(--border)] p-4">
-            <legend className="px-1 font-semibold">Ordered planets</legend>
+            <legend className="px-1 font-semibold">{messages.controls.orderedPlanetsLegend}</legend>
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Enter planets from smallest to largest semimajor axis. Equal or descending axes are
-              rejected rather than reordered.
+              {messages.controls.orderedPlanetsDescription}
             </p>
             <div className="space-y-4">
               {draftPlanets.map((planet, index) => (
@@ -573,11 +595,20 @@ export function PlanetarySystemBuilderView({
                   className="grid gap-4 rounded-md border border-[var(--border)] p-4 md:grid-cols-[1fr_1fr_auto] md:items-end"
                   key={index}
                 >
-                  <legend className="px-1 font-semibold">Planet {index + 1}</legend>
+                  <legend className="px-1 font-semibold">
+                    {formatMessageTemplate(messages.controls.planetLegend, { index: index + 1 })}
+                  </legend>
                   <label className="space-y-2">
-                    <span className="block font-semibold">Mass M⊕</span>
+                    <span className="block font-semibold">
+                      {messages.controls.fields.planetMass}
+                    </span>
                     <input
-                      aria-label={`Planet ${index + 1} mass Mearth`}
+                      aria-label={formatMessageTemplate(
+                        messages.controls.fieldAriaLabels.planetMass,
+                        {
+                          index: index + 1,
+                        },
+                      )}
                       className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                       disabled={requestState === "loading"}
                       max={PLANETARY_SYSTEM_BUILDER_LIMITS.maxPlanetMassMearth}
@@ -589,9 +620,16 @@ export function PlanetarySystemBuilderView({
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="block font-semibold">Semimajor axis AU</span>
+                    <span className="block font-semibold">
+                      {messages.controls.fields.planetAxis}
+                    </span>
                     <input
-                      aria-label={`Planet ${index + 1} semimajor axis AU`}
+                      aria-label={formatMessageTemplate(
+                        messages.controls.fieldAriaLabels.planetAxis,
+                        {
+                          index: index + 1,
+                        },
+                      )}
                       className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                       disabled={requestState === "loading"}
                       max={PLANETARY_SYSTEM_BUILDER_LIMITS.maxSemiMajorAxisAu}
@@ -603,7 +641,10 @@ export function PlanetarySystemBuilderView({
                     />
                   </label>
                   <button
-                    aria-label={`Remove planet ${index + 1}`}
+                    aria-label={formatMessageTemplate(
+                      messages.controls.fieldAriaLabels.removePlanet,
+                      { index: index + 1 },
+                    )}
                     className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 font-semibold"
                     disabled={
                       requestState === "loading" ||
@@ -612,7 +653,7 @@ export function PlanetarySystemBuilderView({
                     onClick={() => removePlanet(index)}
                     type="button"
                   >
-                    Remove
+                    {messages.actions.remove}
                   </button>
                 </fieldset>
               ))}
@@ -626,7 +667,7 @@ export function PlanetarySystemBuilderView({
               onClick={addPlanet}
               type="button"
             >
-              Add planet
+              {messages.actions.addPlanet}
             </button>
           </fieldset>
 
@@ -636,7 +677,9 @@ export function PlanetarySystemBuilderView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate system"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -644,7 +687,7 @@ export function PlanetarySystemBuilderView({
               onClick={resetDefault}
               type="button"
             >
-              Reset illustrative preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -655,58 +698,73 @@ export function PlanetarySystemBuilderView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated fallback periods, HZ boundaries, or Hill diagnostics are
-            substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="builder-result-heading" className="space-y-7">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="builder-result-heading">
-              Canonical system result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. V1 returns one deterministic record per planet and
-              one pairwise diagnostic per adjacent pair; it performs no n-body integration.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+              })}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Reference HZ inner edge</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.labels.hzInner}</p>
               <p className="mt-1 font-semibold">
-                {format(calculation.habitable_zone.inner_edge_au, 7)} AU
+                {format(calculation.habitable_zone.inner_edge_au, locale, 7)} AU
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Reference HZ outer edge</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.labels.hzOuter}</p>
               <p className="mt-1 font-semibold">
-                {format(calculation.habitable_zone.outer_edge_au, 7)} AU
+                {format(calculation.habitable_zone.outer_edge_au, locale, 7)} AU
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Returned planets</p>
-              <p className="mt-1 font-semibold">{calculation.planets.length}</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.labels.returnedPlanets}
+              </p>
+              <p className="mt-1 font-semibold">
+                {formatLocaleNumber(calculation.planets.length, locale)}
+              </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Pairwise diagnostics</p>
-              <p className="mt-1 font-semibold">{calculation.adjacent_pairs.length}</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.labels.pairwiseDiagnostics}
+              </p>
+              <p className="mt-1 font-semibold">
+                {formatLocaleNumber(calculation.adjacent_pairs.length, locale)}
+              </p>
             </div>
           </div>
           <p className="rounded-md border border-[var(--border-strong)] p-4 leading-7">
             {calculation.habitable_zone.habitability_note}
           </p>
-          <SystemPlacementFigure result={calculation} />
-          <PlanetResults result={calculation} />
-          <PairwiseResults result={calculation} />
+          <SystemPlacementFigure locale={locale} messages={messages.figure} result={calculation} />
+          <PlanetResults
+            classifications={messages.classifications}
+            locale={locale}
+            messages={messages.planets}
+            result={calculation}
+          />
+          <PairwiseResults
+            classifications={messages.classifications}
+            locale={locale}
+            messages={messages.pairwise}
+            result={calculation}
+          />
           <div className="grid gap-3 md:grid-cols-2">
             <p className="rounded-md border border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted)]">
               {calculation.stellar_consistency_note}
             </p>
             <p className="rounded-md border border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted)]">
-              {calculation.stability_note} Further dynamical analysis is required for long-term
-              multi-planet behavior.
+              {calculation.stability_note} {messages.result.furtherStabilityAnalysis}
             </p>
           </div>
         </section>
@@ -717,16 +775,18 @@ export function PlanetarySystemBuilderView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="builder-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">
           {PLANETARY_SYSTEM_BUILDER_DEFINITION.sampling_policy}
         </p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {PLANETARY_SYSTEM_BUILDER_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -734,7 +794,7 @@ export function PlanetarySystemBuilderView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {PLANETARY_SYSTEM_BUILDER_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -744,19 +804,23 @@ export function PlanetarySystemBuilderView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: {state.planets.length} planet
-          {state.planets.length === 1 ? "" : "s"}; stellar controls{" "}
-          {format(state.stellar_mass_msun)}
-          {" M☉, "}
-          {format(state.stellar_luminosity_lsun)} L☉,{" "}
-          {format(state.stellar_effective_temperature_k)}
-          {" K"}.
+          {formatMessageTemplate(
+            state.planets.length === 1
+              ? messages.model.currentStateOne
+              : messages.model.currentStateMany,
+            {
+              count: formatLocaleNumber(state.planets.length, locale),
+              mass: format(state.stellar_mass_msun, locale),
+              luminosity: format(state.stellar_luminosity_lsun, locale),
+              temperature: format(state.stellar_effective_temperature_k, locale),
+            },
+          )}
         </p>
       </section>
     </article>

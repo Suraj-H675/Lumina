@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { ImpactSimulatorEnhanced } from "../../../components/impact-simulator-enhanced";
 import { ImpactSimulatorNoScript } from "../../../components/impact-simulator-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { ImpactSimulatorMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadImpactSimulatorCalculation } from "../../../lib/server/impact-simulator";
 import {
@@ -10,16 +12,17 @@ import {
   type ImpactSimulatorState,
 } from "../../../lib/simulations/impact-simulator";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/impact-simulator" },
-  title: "Impact Simulator",
-  description:
-    "Explore a deterministic large solid-rock Earth-impact teaching model with Python-owned kinetic energy, crater scaling sensitivity, and lower-bound ejecta thickness radii.",
-};
+export function createImpactSimulatorMetadata(messages: ImpactSimulatorMessages): Metadata {
+  return {
+    alternates: { canonical: "/lab/impact-simulator" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type ImpactSimulatorPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: ImpactSimulatorMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -35,7 +38,11 @@ function stateFromSearchParams(
     : { state: decoded, invalid: false };
 }
 
-export default async function ImpactSimulatorPage({ searchParams }: ImpactSimulatorPageProps) {
+export default async function ImpactSimulatorPage({
+  locale,
+  messages,
+  searchParams,
+}: ImpactSimulatorPageProps) {
   const requested = stateFromSearchParams(await searchParams);
   const apiConfiguration = resolveWebApiOrigin();
   const calculation = await loadImpactSimulatorCalculation(requested.state, {
@@ -49,12 +56,16 @@ export default async function ImpactSimulatorPage({ searchParams }: ImpactSimula
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <ImpactSimulatorEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

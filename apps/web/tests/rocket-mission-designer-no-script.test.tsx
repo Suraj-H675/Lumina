@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { RocketMissionDesignerNoScript } from "../src/components/rocket-mission-designer-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_ROCKET_MISSION_DESIGNER_STATE } from "../src/lib/simulations/rocket-mission-designer";
 import { ROCKET_MISSION_DESIGNER_DEFAULT_RESULT } from "./rocket-mission-designer-fixture";
 
@@ -12,6 +14,8 @@ describe("RocketMissionDesignerNoScript", () => {
         initialCalculation={ROCKET_MISSION_DESIGNER_DEFAULT_RESULT}
         initialState={DEFAULT_ROCKET_MISSION_DESIGNER_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.rocketMissionDesigner}
       />,
     );
     expect(markup).toContain("Rocket / Mission Designer");
@@ -29,6 +33,8 @@ describe("RocketMissionDesignerNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_ROCKET_MISSION_DESIGNER_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.rocketMissionDesigner}
       />,
     );
     expect(markup).toContain("Shared rocket state rejected");

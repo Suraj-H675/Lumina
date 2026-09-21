@@ -504,6 +504,52 @@ describe("Phase 8C localization foundation", () => {
     expect(spectroscopy.result.noScriptReturnedSamples).toContain("{count}");
     expect(spectroscopy.result.noScriptReturnedSamples).toContain("{minimum}");
     expect(spectroscopy.result.noScriptReturnedSamples).toContain("{maximum}");
+
+    const impact = enMessages.simulationLabs.impactSimulator;
+    expect(impact.figure.depositRadius).toContain("{thickness}");
+    expect(impact.model.currentState).toContain("{diameter}");
+    expect(impact.model.currentState).toContain("{density}");
+    expect(impact.model.currentState).toContain("{speed}");
+    expect(impact.model.currentState).toContain("{angle}");
+    expect(impact.model.currentState).toContain("{target}");
+    expect(impact.model.sourceUnavailable).toContain("{sourceId}");
+    expect(impact.result.description).toContain("{modelVersion}");
+    expect(impact.result.description).toContain("{targetDensity}");
+
+    const builder = enMessages.simulationLabs.planetarySystemBuilder;
+    expect(builder.controls.fieldAriaLabels.planetAxis).toContain("{index}");
+    expect(builder.controls.fieldAriaLabels.planetMass).toContain("{index}");
+    expect(builder.controls.fieldAriaLabels.removePlanet).toContain("{index}");
+    expect(builder.controls.planetLegend).toContain("{index}");
+    expect(builder.figure.displayExtent).toContain("{extent}");
+    expect(builder.model.currentStateMany).toContain("{count}");
+    expect(builder.model.currentStateMany).toContain("{mass}");
+    expect(builder.model.currentStateMany).toContain("{luminosity}");
+    expect(builder.model.currentStateMany).toContain("{temperature}");
+    expect(builder.model.sourceUnavailable).toContain("{sourceId}");
+    expect(builder.noScript.hzRange).toContain("{inner}");
+    expect(builder.noScript.hzRange).toContain("{outer}");
+    expect(builder.noScript.planetLine).toContain("{index}");
+    expect(builder.noScript.planetLine).toContain("{mass}");
+    expect(builder.noScript.planetLine).toContain("{axis}");
+    expect(builder.pairwise.interpretation).toContain("{inner}");
+    expect(builder.pairwise.interpretation).toContain("{outer}");
+    expect(builder.pairwise.interpretation).toContain("{interpretation}");
+    expect(builder.result.description).toContain("{modelVersion}");
+
+    const rocket = enMessages.simulationLabs.rocketMissionDesigner;
+    expect(rocket.controls.fieldAriaLabels.removeStage).toContain("{index}");
+    expect(rocket.controls.fieldAriaLabels.stageDryMass).toContain("{index}");
+    expect(rocket.controls.fieldAriaLabels.stagePropellantMass).toContain("{index}");
+    expect(rocket.controls.fieldAriaLabels.stageSpecificImpulse).toContain("{index}");
+    expect(rocket.controls.fieldAriaLabels.stageThrust).toContain("{index}");
+    expect(rocket.controls.stageLegend).toContain("{index}");
+    expect(rocket.model.currentStateMany).toContain("{count}");
+    expect(rocket.model.currentStateMany).toContain("{payload}");
+    expect(rocket.model.currentStateMany).toContain("{gravity}");
+    expect(rocket.model.sourceUnavailable).toContain("{sourceId}");
+    expect(rocket.result.description).toContain("{modelVersion}");
+    expect(rocket.result.description).toContain("{gravity}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

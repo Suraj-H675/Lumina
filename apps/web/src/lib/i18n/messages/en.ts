@@ -2295,6 +2295,492 @@ export const enMessages = {
         unavailableTitle: "No canonical result available",
       },
     },
+    impactSimulator: {
+      actions: {
+        calculate: "Calculate teaching model",
+        calculating: "Calculating…",
+        reset: "Reset synthetic preset",
+      },
+      controls: {
+        description:
+          "V1 deliberately starts at a 1.5 km diameter and covers only solid sedimentary or crystalline rock. Smaller atmospheric-entry and airburst cases are outside this model.",
+        fields: {
+          angle: "Angle degrees",
+          density: "Density kg/m³",
+          diameter: "Diameter m",
+          speed: "Speed km/s",
+          target: "Solid-rock target",
+        },
+        fieldAriaLabels: {
+          angle: "Impact angle degrees above local horizontal",
+          density: "Impactor density kg per cubic metre",
+          diameter: "Impactor diameter m",
+          speed: "Impact speed km per second",
+          target: "Target material",
+        },
+        title: "Synthetic impact controls",
+      },
+      ejecta: {
+        description:
+          "These returned radii are location-free lower-bound deposit estimates. They are not casualty, debris-lethality, infrastructure, evacuation, or property-damage zones.",
+        table: {
+          caption: "Returned location-free lower-bound deposit radii.",
+          headers: {
+            radius: "Radius m",
+            thickness: "Deposit thickness m",
+          },
+          scrollAriaLabel: "Scrollable ejecta thickness table",
+        },
+        title: "Lower-bound ejecta deposit radii",
+      },
+      failures: {
+        invalidInput: "One or more controls are empty or outside the reviewed v1 domain.",
+        outOfDomain:
+          "The requested values are outside the reviewed large solid-rock v1 domain. Lumina does not clamp or reinterpret them.",
+        rejected:
+          "The canonical Impact Simulator rejected this state. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned impact state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      figure: {
+        ariaLabel: "Returned crater and ejecta relative scale",
+        caption:
+          "Presentation-only relative scaling of returned radii. The browser does not calculate impact energy, crater dimensions, coefficient sensitivity, or ejecta thickness.",
+        depositRadius: "{thickness} m lower-bound deposit radius",
+        finalCraterRadius: "Final crater radius",
+      },
+      header: {
+        eyebrow: "Phase 7 · large solid-rock Earth-impact teaching model",
+        intro:
+          "Explore how a synthetic large impactor maps to source-backed kinetic energy, crater-size sensitivity, and lower-bound ejecta deposit radii. This lab has no map, target location, casualty model, emergency-planning output, or optimization.",
+        title: "Impact Simulator",
+      },
+      invalidState: {
+        description: "The reviewed synthetic large-impactor preset is shown instead.",
+        inline: "Shared impact state rejected. The reviewed synthetic preset is shown instead.",
+        title: "Shared impact state rejected",
+      },
+      metadataDescription:
+        "Explore a deterministic large solid-rock Earth-impact teaching model with Python-owned kinetic energy, crater scaling sensitivity, and lower-bound ejecta thickness radii.",
+      metadataTitle: "Impact Simulator",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentState:
+          "Current committed browser state: {diameter} m diameter, {density} kg/m³, {speed} km/s, {angle}°, {target}.",
+        equations: "Reviewed model equations",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        angleUnit: "degrees",
+        ejectaCaption: "Location-free Python-returned lower-bound deposit radii.",
+        ejectaTitle: "Lower-bound ejecta thickness radii",
+        eyebrow: "Phase 7 / Impact Simulator",
+        intro:
+          "Explore a source-backed large solid-rock Earth-impact teaching model. Lumina's Python astronomy domain owns all energy, crater-scaling, coefficient-sensitivity, and ejecta-thickness calculations.",
+        requestedTitle: "Requested synthetic impact",
+        result: {
+          bestFinalCrater: "Best final crater",
+          bestTransientCrater: "Best transient crater",
+          impactorMass: "Impactor mass",
+          kineticEnergy: "Kinetic energy",
+          modelVersion: "Model version",
+          title: "Canonical educational result",
+          tntContext: "TNT-equivalent energy context",
+          tntDescription:
+            "TNT equivalence is descriptive unit context only, not an equivalent blast-damage footprint.",
+        },
+        sensitivityCaption: "Python-returned low, best, and high coefficient sensitivity.",
+        sensitivityTitle: "Crater coefficient sensitivity",
+        stateLabels: {
+          angle: "Angle above local horizontal",
+          density: "Impactor density",
+          diameter: "Diameter",
+          speed: "Speed",
+          target: "Target material",
+        },
+        unavailableDescription:
+          "No browser-generated energy, crater diameter, coefficient sensitivity, or ejecta range is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. Target density: {targetDensity} kg/m³. All scientific values below were returned by the canonical Python model.",
+        labels: {
+          bestFinalCrater: "Best final crater diameter",
+          impactorMass: "Impactor mass",
+          kineticEnergy: "Kinetic energy",
+          tntContext: "TNT-equivalent energy context",
+        },
+        title: "Canonical educational result",
+        tntDescription:
+          "TNT equivalence is descriptive unit context only. It is not a blast-damage equivalence or a location-specific effect prediction.",
+        unavailableDescription:
+          "No browser-generated energy, crater dimensions, coefficient sensitivity, or ejecta ranges are substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      sensitivity: {
+        caption:
+          "Canonical low, best, and high scaling-coefficient sensitivity returned by Python.",
+        headers: {
+          classification: "Class",
+          finalDiameter: "Final diameter m",
+          scalingCoefficient: "Scaling coefficient",
+          transientDiameter: "Transient diameter m",
+        },
+        scrollAriaLabel: "Scrollable crater coefficient-sensitivity table",
+        title: "Crater scaling-coefficient sensitivity",
+      },
+      targets: {
+        crystallineRock: "Crystalline rock",
+        sedimentaryRock: "Sedimentary rock",
+      },
+    },
+    planetarySystemBuilder: {
+      actions: {
+        addPlanet: "Add planet",
+        calculate: "Calculate system",
+        calculating: "Calculating…",
+        remove: "Remove",
+        reset: "Reset illustrative preset",
+      },
+      classifications: {
+        exteriorReferenceHz: "Exterior to reference HZ",
+        insideReferenceHz: "Inside modeled reference HZ",
+        interiorReferenceHz: "Interior to reference HZ",
+        noPairwiseHillWarning: "No pairwise Hill warning",
+        pairwiseCloseWarning: "Pairwise close warning",
+      },
+      controls: {
+        description:
+          "Stellar mass, luminosity, and effective temperature are independent educational controls. V1 does not claim every allowed combination is a self-consistent stellar evolution model. Planet order is explicit; Lumina does not silently sort it.",
+        fields: {
+          effectiveTemperature: "Effective temperature",
+          planetAxis: "Semimajor axis AU",
+          planetMass: "Mass M⊕",
+          stellarLuminosity: "Stellar luminosity",
+          stellarMass: "Stellar mass",
+        },
+        fieldAriaLabels: {
+          effectiveTemperature: "Stellar effective temperature K",
+          planetAxis: "Planet {index} semimajor axis AU",
+          planetMass: "Planet {index} mass Mearth",
+          removePlanet: "Remove planet {index}",
+          stellarLuminosity: "Stellar luminosity Lsun",
+          stellarMass: "Stellar mass Msun",
+        },
+        orderedPlanetsDescription:
+          "Enter planets from smallest to largest semimajor axis. Equal or descending axes are rejected rather than reordered.",
+        orderedPlanetsLegend: "Ordered planets",
+        planetLegend: "Planet {index}",
+        title: "Synthetic system controls",
+      },
+      failures: {
+        invalidInput: "One or more controls are empty or outside the reviewed v1 domain.",
+        outOfDomain:
+          "The requested star or ordered planet inputs are outside the reviewed v1 domain. Semimajor axes must already be strictly increasing.",
+        rejected:
+          "The canonical Planetary System Builder rejected this state. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned builder state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      figure: {
+        ariaLabel:
+          "Returned planetary-system placement diagram with modeled reference habitable-zone band",
+        caption:
+          "Presentation-only placement of returned semimajor axes and returned HZ edges on a shared screen axis. The browser does not calculate Keplerian periods, HZ boundaries, mutual-Hill radii, separations, or pairwise assessments.",
+        displayExtent: "{extent} AU display extent",
+        hzLabel: "modeled reference HZ",
+        scrollAriaLabel: "Scrollable returned planetary-system placement diagram",
+        starLabel: "star",
+      },
+      header: {
+        eyebrow: "Phase 7 · deterministic multi-planet teaching model",
+        intro:
+          "Build one synthetic star with one to eight circular, coplanar, non-interacting planets. Compare Python-owned Keplerian periods, a published conservative reference HZ band, and limited adjacent-pair mutual-Hill context without making a long-term stability claim.",
+        title: "Planetary System Builder",
+      },
+      invalidState: {
+        description: "The reviewed illustrative three-planet preset is shown instead.",
+        inline:
+          "Shared planetary-system state rejected. The reviewed illustrative three-planet preset is shown instead.",
+        title: "Shared planetary-system state rejected",
+      },
+      metadataDescription:
+        "Build a deterministic circular non-interacting planetary system and inspect source-backed Keplerian periods, a conservative reference habitable-zone band, and limited pairwise mutual-Hill spacing diagnostics.",
+      metadataTitle: "Planetary System Builder",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentStateMany:
+          "Current committed browser state: {count} planets; stellar controls {mass} M☉, {luminosity} L☉, {temperature} K.",
+        currentStateOne:
+          "Current committed browser state: {count} planet; stellar controls {mass} M☉, {luminosity} L☉, {temperature} K.",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        hzRange: "Modeled reference HZ: {inner} AU to {outer} AU.",
+        intro:
+          "Build a circular, coplanar, non-interacting teaching system. Lumina's Python astronomy domain owns every Keplerian period, reference habitable-zone boundary, and pairwise mutual-Hill diagnostic.",
+        eyebrow: "Phase 7 / Planetary System Builder",
+        modelVersion: "Model version",
+        pairwiseCaption: "Returned adjacent-pair mutual-Hill spacing diagnostics.",
+        pairwiseHeaders: {
+          assessment: "Assessment",
+          interpretation: "Interpretation",
+          pair: "Pair",
+          separation: "Separation Δ",
+        },
+        planetLine: "Planet {index}: {mass} M⊕ at {axis} AU",
+        planetsCaption: "Returned planet periods and reference-HZ placement.",
+        requestedTitle: "Requested teaching system",
+        resultTitle: "Canonical system result",
+        singlePlanet: "A single-planet system has no adjacent-pair mutual-Hill diagnostic.",
+        stateLabels: {
+          effectiveTemperature: "Effective temperature",
+          stellarLuminosity: "Stellar luminosity",
+          stellarMass: "Stellar mass",
+        },
+        unavailableDescription:
+          "No browser-generated periods, HZ boundaries, or Hill diagnostics are substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      pairwise: {
+        caption:
+          "Pairwise mutual-Hill spacing diagnostic only; not a whole-system stability result.",
+        headers: {
+          assessment: "Assessment",
+          mutualHillRadius: "Mutual Hill radius AU",
+          pair: "Pair",
+          referenceThreshold: "Reference threshold",
+          separation: "Separation Δ",
+        },
+        interpretation: "Pair {inner}–{outer}: {interpretation}",
+        scrollAriaLabel: "Scrollable pairwise mutual-Hill table",
+        singlePlanet: "This single-planet system has no adjacent-pair mutual-Hill diagnostic.",
+      },
+      planets: {
+        caption: "Canonical Python-owned planet periods and reference-HZ placement.",
+        headers: {
+          axis: "Semimajor axis AU",
+          hzPlacement: "Reference-HZ placement",
+          mass: "Mass M⊕",
+          period: "Period days",
+          planet: "Planet",
+        },
+        scrollAriaLabel: "Scrollable returned planet table",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. V1 returns one deterministic record per planet and one pairwise diagnostic per adjacent pair; it performs no n-body integration.",
+        furtherStabilityAnalysis:
+          "Further dynamical analysis is required for long-term multi-planet behavior.",
+        labels: {
+          hzInner: "Reference HZ inner edge",
+          hzOuter: "Reference HZ outer edge",
+          pairwiseDiagnostics: "Pairwise diagnostics",
+          returnedPlanets: "Returned planets",
+        },
+        title: "Canonical system result",
+        unavailableDescription:
+          "No browser-generated fallback periods, HZ boundaries, or Hill diagnostics are substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+    },
+    rocketMissionDesigner: {
+      actions: {
+        addStage: "Add stage",
+        calculate: "Calculate ideal model",
+        calculating: "Calculating…",
+        remove: "Remove",
+        reset: "Reset synthetic preset",
+      },
+      controls: {
+        description:
+          "Stages are entered in ignition order, bottom/first through top/final. The selected body changes only the returned surface-gravity TWR teaching reference. It does not change the specific-impulse convention or turn this into a trajectory simulation.",
+        fields: {
+          gravityReference: "Surface-gravity reference",
+          payloadMass: "Payload mass",
+          reference: "Velocity reference",
+          stageDryMass: "Dry mass kg",
+          stagePropellantMass: "Propellant kg",
+          stageSpecificImpulse: "Specific impulse s",
+          stageThrust: "Thrust N",
+        },
+        fieldAriaLabels: {
+          gravityReference: "Surface-gravity reference body",
+          payloadMass: "Payload mass kg",
+          reference: "Educational velocity reference",
+          removeStage: "Remove stage {index}",
+          stageDryMass: "Stage {index} dry mass kg",
+          stagePropellantMass: "Stage {index} propellant mass kg",
+          stageSpecificImpulse: "Stage {index} specific impulse s",
+          stageThrust: "Stage {index} thrust N",
+        },
+        stagesDescription:
+          "Each stage has positive dry mass, propellant mass, thrust, and specific impulse. Stages are never silently reordered, merged, or optimized.",
+        stagesLegend: "Stages in ignition order",
+        stageLegend: "Stage {index}",
+        title: "Teaching vehicle controls",
+      },
+      failures: {
+        invalidInput: "One or more controls are empty or outside the reviewed v1 domain.",
+        outOfDomain:
+          "The requested payload or stage values are outside the reviewed v1 input bounds. Lumina does not clamp, reorder, or optimize them.",
+        rejected:
+          "The canonical Rocket / Mission Designer rejected this state. The last valid result remains visible.",
+        resultMismatch: "The returned result did not match the requested versioned rocket state.",
+        serviceUnavailable:
+          "Calculation service is unavailable; the last valid result remains visible.",
+      },
+      figure: {
+        ariaLabel: "Returned payload sensitivity plot",
+        caption:
+          "Presentation-only plot of the five returned payload-sensitivity points. The browser does not calculate payload delta-v, stage delta-v, TWR, mass ratios, or reference differences.",
+        payloadMultiplierAxis: "submitted payload multiplier",
+        scrollAriaLabel: "Scrollable returned payload-sensitivity plot",
+      },
+      gravityBodies: {
+        earth: "Earth",
+        mars: "Mars",
+        moon: "Moon",
+      },
+      header: {
+        eyebrow: "Phase 7 · deterministic ideal staged-rocket teaching model",
+        intro:
+          "Explore how stage masses, specific impulse, thrust, payload, and a selected surface-gravity reference relate inside one deliberately idealized model. This lab does not determine mission feasibility, real launch capability, or operational flight plans.",
+        title: "Rocket / Mission Designer",
+      },
+      invalidState: {
+        description: "The reviewed synthetic two-stage teaching preset is shown instead.",
+        inline:
+          "Shared rocket state rejected. The reviewed synthetic two-stage preset is shown instead.",
+        title: "Shared rocket state rejected",
+      },
+      metadataDescription:
+        "Explore a deterministic ideal staged-rocket teaching model with Python-owned delta-v, surface-gravity TWR references, payload sensitivity, mass fractions, and carefully bounded velocity-reference comparisons.",
+      metadataTitle: "Rocket / Mission Designer",
+      model: {
+        assumptions: "Assumptions",
+        assumptionsAndLimitations: "Assumptions and limitations",
+        currentStateMany:
+          "Current committed browser state: {count} stages, {payload} kg payload, {gravity} surface-gravity reference.",
+        currentStateOne:
+          "Current committed browser state: {count} stage, {payload} kg payload, {gravity} surface-gravity reference.",
+        description:
+          "V1 is an educational ideal staged-rocket model, not an engineering design, trajectory solver, mission planner, launch-capability assessment, or hazardous construction guide.",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model contract and provenance",
+      },
+      noScript: {
+        inputCaption: "Submitted stages in ignition order.",
+        inputHeaders: {
+          dryMass: "Dry mass kg",
+          isp: "Isp s",
+          propellant: "Propellant kg",
+          stage: "Stage",
+          thrust: "Thrust N",
+        },
+        intro:
+          "Explore a source-backed ideal staged-rocket teaching model. Lumina's Python astronomy domain owns stage bookkeeping, ideal delta-v, surface-gravity TWR references, payload sensitivity, and velocity-reference comparisons.",
+        eyebrow: "Phase 7 / Rocket / Mission Designer",
+        modelVersion: "Model version",
+        payloadCaption: "Python-returned payload trade-off points.",
+        payloadDescription:
+          "These returned points keep the submitted stages fixed. They are not an optimizer or design recommendation.",
+        payloadTitle: "Fixed payload sensitivity",
+        referenceDifference: "Ideal delta-v difference",
+        referenceTitle: "Educational velocity reference",
+        requestedTitle: "Requested teaching vehicle",
+        resultStageHeaders: {
+          burnoutMass: "Burnout mass kg",
+          idealDeltaV: "Ideal Δv m/s",
+          ignitionMass: "Ignition mass kg",
+          stage: "Stage",
+          twr: "Surface-reference TWR",
+        },
+        resultTitle: "Canonical ideal staged result",
+        resultLabels: {
+          launchMass: "Launch mass",
+          payloadFraction: "payload fraction",
+          propellantFraction: "propellant fraction",
+          selectedGravity: "Selected surface gravity",
+          totalIdealDeltaV: "Total ideal delta-v",
+        },
+        stageCaption: "Python-returned stage results.",
+        stateLabels: {
+          gravityBody: "Surface-gravity reference body",
+          payload: "Payload",
+          reference: "Velocity reference",
+        },
+        unavailableDescription:
+          "No browser-generated delta-v, staging, TWR, payload trade-off, or mission comparison is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      payload: {
+        caption: "Fixed returned payload multipliers with the submitted stages unchanged.",
+        description:
+          "The five returned points keep the submitted stages unchanged. They are an educational sensitivity view, not an optimizer or recommendation.",
+        headers: {
+          payload: "Payload kg",
+          multiplier: "Payload multiplier",
+          totalDeltaV: "Total ideal Δv m/s",
+        },
+        scrollAriaLabel: "Scrollable returned payload-sensitivity table",
+        title: "Fixed payload sensitivity",
+      },
+      references: {
+        earthOrbit: "NASA Glenn approximate 200-mile circular-orbit example",
+        earthEscape: "JPL Earth equatorial escape-speed reference",
+        marsEscape: "JPL Mars equatorial escape-speed reference",
+      },
+      referenceResult: {
+        labels: {
+          difference: "Ideal Δv difference",
+          ratio: "Ideal Δv/reference ratio",
+          value: "Reference value",
+        },
+        title: "Educational velocity reference",
+      },
+      result: {
+        description:
+          "Model {modelVersion}. The selected surface-gravity reference is {gravity} m/s². All values below are returned by the canonical Python model.",
+        labels: {
+          launchMass: "Launch mass",
+          payloadFraction: "Payload fraction",
+          propellantFraction: "Propellant fraction",
+          totalIdealDeltaV: "Total ideal delta-v",
+        },
+        title: "Canonical ideal staged result",
+        unavailableDescription:
+          "No browser-generated fallback delta-v, staging, TWR, payload sensitivity, or mission comparison is substituted.",
+        unavailableTitle: "No canonical result available",
+      },
+      stages: {
+        caption: "Canonical Python-owned ideal staged-rocket outputs in ignition order.",
+        headers: {
+          burnoutMass: "Burnout kg",
+          dryMass: "Dry kg",
+          idealDeltaV: "Ideal Δv m/s",
+          ignitionMass: "Ignition kg",
+          massRatio: "Mass ratio",
+          propellantMass: "Propellant kg",
+          stage: "Stage",
+          twr: "Surface-reference TWR",
+        },
+        scrollAriaLabel: "Scrollable returned stage table",
+      },
+    },
     orbitSandbox: {
       actions: {
         calculate: "Calculate orbit",

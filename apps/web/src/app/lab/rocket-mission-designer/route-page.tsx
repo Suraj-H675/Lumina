@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { RocketMissionDesignerEnhanced } from "../../../components/rocket-mission-designer-enhanced";
 import { RocketMissionDesignerNoScript } from "../../../components/rocket-mission-designer-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { RocketMissionDesignerMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadRocketMissionDesignerCalculation } from "../../../lib/server/rocket-mission-designer";
 import {
@@ -10,16 +12,19 @@ import {
   type RocketMissionDesignerState,
 } from "../../../lib/simulations/rocket-mission-designer";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/rocket-mission-designer" },
-  title: "Rocket / Mission Designer",
-  description:
-    "Explore a deterministic ideal staged-rocket teaching model with Python-owned delta-v, surface-gravity TWR references, payload sensitivity, mass fractions, and carefully bounded velocity-reference comparisons.",
-};
+export function createRocketMissionDesignerMetadata(
+  messages: RocketMissionDesignerMessages,
+): Metadata {
+  return {
+    alternates: { canonical: "/lab/rocket-mission-designer" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type RocketMissionDesignerPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -36,6 +41,8 @@ function stateFromSearchParams(
 }
 
 export default async function RocketMissionDesignerPage({
+  locale,
+  messages,
   searchParams,
 }: RocketMissionDesignerPageProps) {
   const requested = stateFromSearchParams(await searchParams);
@@ -51,12 +58,16 @@ export default async function RocketMissionDesignerPage({
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <RocketMissionDesignerEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

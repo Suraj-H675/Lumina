@@ -5,6 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { requestEndpoint, type ImpactSimulatorCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ImpactSimulatorMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_IMPACT_SIMULATOR_STATE,
   IMPACT_SIMULATOR_DEFINITION,
   IMPACT_SIMULATOR_LIMITS,
@@ -24,14 +31,18 @@ type ImpactSimulatorViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: ImpactSimulatorCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: ImpactSimulatorMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
 
-const TARGET_LABELS: Readonly<Record<ImpactSimulatorTargetMaterial, string>> = {
-  sedimentary_rock: "Sedimentary rock",
-  crystalline_rock: "Crystalline rock",
-};
+function targetLabel(
+  target: ImpactSimulatorTargetMaterial,
+  messages: ImpactSimulatorMessages["targets"],
+): string {
+  return target === "sedimentary_rock" ? messages.sedimentaryRock : messages.crystallineRock;
+}
 
 function replaceBrowserState(state: ImpactSimulatorState): void {
   const url = new URL(window.location.href);
@@ -49,13 +60,16 @@ function stateFromBrowser(): Readonly<{ state: ImpactSimulatorState; invalid: bo
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: ImpactSimulatorMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {IMPACT_SIMULATOR_DEFINITION.references.map((sourceId) => {
@@ -63,7 +77,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -80,44 +94,47 @@ function SourceList() {
 }
 
 function CraterSensitivityTable({
+  locale,
+  messages,
   result,
-}: Readonly<{ result: ImpactSimulatorCalculationResponse }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ImpactSimulatorMessages["sensitivity"];
+  result: ImpactSimulatorCalculationResponse;
+}>) {
   return (
-    <div
-      aria-label="Scrollable crater coefficient-sensitivity table"
-      className="overflow-x-auto"
-      tabIndex={0}
-    >
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[660px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Canonical low, best, and high scaling-coefficient sensitivity returned by Python.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
-            {["Scaling coefficient", "Transient diameter m", "Final diameter m", "Class"].map(
-              (heading) => (
-                <th
-                  className="border-b border-[var(--border)] p-2 text-left"
-                  key={heading}
-                  scope="col"
-                >
-                  {heading}
-                </th>
-              ),
-            )}
+            {[
+              messages.headers.scalingCoefficient,
+              messages.headers.transientDiameter,
+              messages.headers.finalDiameter,
+              messages.headers.classification,
+            ].map((heading) => (
+              <th
+                className="border-b border-[var(--border)] p-2 text-left"
+                key={heading}
+                scope="col"
+              >
+                {heading}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {result.coefficient_sensitivity.map((row) => (
             <tr key={row.scaling_coefficient}>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.scaling_coefficient)}
+                {format(row.scaling_coefficient, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.transient_diameter_m)}
+                {format(row.transient_diameter_m, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.final_diameter_m)}
+                {format(row.final_diameter_m, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2">{row.classification}</td>
             </tr>
@@ -128,20 +145,26 @@ function CraterSensitivityTable({
   );
 }
 
-function EjectaTable({ result }: Readonly<{ result: ImpactSimulatorCalculationResponse }>) {
+function EjectaTable({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ImpactSimulatorMessages["ejecta"]["table"];
+  result: ImpactSimulatorCalculationResponse;
+}>) {
   return (
-    <div aria-label="Scrollable ejecta thickness table" className="overflow-x-auto" tabIndex={0}>
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[520px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Returned location-free lower-bound deposit radii.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
             <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              Deposit thickness m
+              {messages.headers.thickness}
             </th>
             <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              Radius m
+              {messages.headers.radius}
             </th>
           </tr>
         </thead>
@@ -149,10 +172,10 @@ function EjectaTable({ result }: Readonly<{ result: ImpactSimulatorCalculationRe
           {result.ejecta_thickness_radii.map((row) => (
             <tr key={row.thickness_m}>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.thickness_m)}
+                {format(row.thickness_m, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.radius_m)}
+                {format(row.radius_m, locale)}
               </td>
             </tr>
           ))}
@@ -162,14 +185,24 @@ function EjectaTable({ result }: Readonly<{ result: ImpactSimulatorCalculationRe
   );
 }
 
-function ReturnedScaleFigure({ result }: Readonly<{ result: ImpactSimulatorCalculationResponse }>) {
+function ReturnedScaleFigure({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ImpactSimulatorMessages["figure"];
+  result: ImpactSimulatorCalculationResponse;
+}>) {
   const rows = [
     {
-      label: "Final crater radius",
+      label: messages.finalCraterRadius,
       value: result.best_estimate_crater.final_diameter_m / 2,
     },
     ...result.ejecta_thickness_radii.map((row) => ({
-      label: `${format(row.thickness_m)} m lower-bound deposit radius`,
+      label: formatMessageTemplate(messages.depositRadius, {
+        thickness: format(row.thickness_m, locale),
+      }),
       value: row.radius_m,
     })),
   ];
@@ -177,7 +210,7 @@ function ReturnedScaleFigure({ result }: Readonly<{ result: ImpactSimulatorCalcu
   return (
     <figure className="space-y-3">
       <div
-        aria-label="Returned crater and ejecta relative scale"
+        aria-label={messages.ariaLabel}
         className="space-y-3 rounded-md border border-[var(--border)] p-4"
         role="img"
       >
@@ -185,7 +218,7 @@ function ReturnedScaleFigure({ result }: Readonly<{ result: ImpactSimulatorCalcu
           <div className="space-y-1" key={row.label}>
             <div className="flex flex-wrap justify-between gap-2 text-sm">
               <span>{row.label}</span>
-              <span className="font-mono">{format(row.value)} m</span>
+              <span className="font-mono">{format(row.value, locale)} m</span>
             </div>
             <div className="h-3 w-full rounded-sm border border-[var(--border)]">
               <div
@@ -197,8 +230,7 @@ function ReturnedScaleFigure({ result }: Readonly<{ result: ImpactSimulatorCalcu
         ))}
       </div>
       <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        Presentation-only relative scaling of returned radii. The browser does not calculate impact
-        energy, crater dimensions, coefficient sensitivity, or ejecta thickness.
+        {messages.caption}
       </figcaption>
     </figure>
   );
@@ -209,6 +241,8 @@ export function ImpactSimulatorView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: ImpactSimulatorViewProps) {
   const [state, setState] = useState(initialState);
   const [draftDiameter, setDraftDiameter] = useState(String(initialState.diameter_m));
@@ -235,7 +269,7 @@ export function ImpactSimulatorView({
     async (nextState: ImpactSimulatorState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -255,20 +289,18 @@ export function ImpactSimulatorView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Impact Simulator rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateImpactSimulatorCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned impact state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -282,12 +314,12 @@ export function ImpactSimulatorView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -311,7 +343,7 @@ export function ImpactSimulatorView({
         (value) => value.trim().length === 0,
       )
     ) {
-      setMessage("One or more controls are empty or outside the reviewed v1 domain.");
+      setMessage(messages.failures.invalidInput);
       return;
     }
     const next = validateImpactSimulatorState({
@@ -324,9 +356,7 @@ export function ImpactSimulatorView({
       target_material: draftTarget,
     });
     if (next === null) {
-      setMessage(
-        "The requested values are outside the reviewed large solid-rock v1 domain. Lumina does not clamp or reinterpret them.",
-      );
+      setMessage(messages.failures.outOfDomain);
       return;
     }
     void recalculate(next, true);
@@ -342,39 +372,33 @@ export function ImpactSimulatorView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · large solid-rock Earth-impact teaching model
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Impact Simulator</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore how a synthetic large impactor maps to source-backed kinetic energy, crater-size
-          sensitivity, and lower-bound ejecta deposit radii. This lab has no map, target location,
-          casualty model, emergency-planning output, or optimization.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared impact state rejected.</strong> The reviewed synthetic preset is shown
-          instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="impact-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="impact-input-heading">
-            Synthetic impact controls
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            V1 deliberately starts at a 1.5 km diameter and covers only solid sedimentary or
-            crystalline rock. Smaller atmospheric-entry and airburst cases are outside this model.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-5" onSubmit={submit}>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
             <label className="space-y-2">
-              <span className="block font-semibold">Diameter m</span>
+              <span className="block font-semibold">{messages.controls.fields.diameter}</span>
               <input
-                aria-label="Impactor diameter m"
+                aria-label={messages.controls.fieldAriaLabels.diameter}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={IMPACT_SIMULATOR_LIMITS.maxDiameterM}
@@ -389,9 +413,9 @@ export function ImpactSimulatorView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Density kg/m³</span>
+              <span className="block font-semibold">{messages.controls.fields.density}</span>
               <input
-                aria-label="Impactor density kg per cubic metre"
+                aria-label={messages.controls.fieldAriaLabels.density}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={IMPACT_SIMULATOR_LIMITS.maxImpactorDensityKgM3}
@@ -406,9 +430,9 @@ export function ImpactSimulatorView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Speed km/s</span>
+              <span className="block font-semibold">{messages.controls.fields.speed}</span>
               <input
-                aria-label="Impact speed km per second"
+                aria-label={messages.controls.fieldAriaLabels.speed}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={IMPACT_SIMULATOR_LIMITS.maxSpeedKmS}
@@ -423,9 +447,9 @@ export function ImpactSimulatorView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Angle degrees</span>
+              <span className="block font-semibold">{messages.controls.fields.angle}</span>
               <input
-                aria-label="Impact angle degrees above local horizontal"
+                aria-label={messages.controls.fieldAriaLabels.angle}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={IMPACT_SIMULATOR_LIMITS.maxImpactAngleDeg}
@@ -440,9 +464,9 @@ export function ImpactSimulatorView({
               />
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Solid-rock target</span>
+              <span className="block font-semibold">{messages.controls.fields.target}</span>
               <select
-                aria-label="Target material"
+                aria-label={messages.controls.fieldAriaLabels.target}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
                 disabled={requestState === "loading"}
                 onChange={(event) => {
@@ -451,9 +475,9 @@ export function ImpactSimulatorView({
                 }}
                 value={draftTarget}
               >
-                {Object.entries(TARGET_LABELS).map(([value, label]) => (
+                {(["sedimentary_rock", "crystalline_rock"] as const).map((value) => (
                   <option key={value} value={value}>
-                    {label}
+                    {targetLabel(value, messages.targets)}
                   </option>
                 ))}
               </select>
@@ -465,7 +489,9 @@ export function ImpactSimulatorView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate teaching model"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -473,7 +499,7 @@ export function ImpactSimulatorView({
               onClick={resetDefault}
               type="button"
             >
-              Reset synthetic preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -484,73 +510,75 @@ export function ImpactSimulatorView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated energy, crater dimensions, coefficient sensitivity, or ejecta
-            ranges are substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="impact-result-heading" className="space-y-7">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="impact-result-heading">
-              Canonical educational result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. Target density:{" "}
-              {format(calculation.target_density_kg_m3)} kg/m³. All scientific values below were
-              returned by the canonical Python model.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+                targetDensity: format(calculation.target_density_kg_m3, locale),
+              })}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Impactor mass</p>
-              <p className="mt-1 font-semibold">{format(calculation.impactor_mass_kg)} kg</p>
-            </div>
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Kinetic energy</p>
-              <p className="mt-1 font-semibold">{format(calculation.kinetic_energy_j)} J</p>
-            </div>
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">TNT-equivalent energy context</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.labels.impactorMass}</p>
               <p className="mt-1 font-semibold">
-                {format(calculation.tnt_equivalent_megatons)} Mt TNT
+                {format(calculation.impactor_mass_kg, locale)} kg
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Best final crater diameter</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.labels.kineticEnergy}</p>
+              <p className="mt-1 font-semibold">{format(calculation.kinetic_energy_j, locale)} J</p>
+            </div>
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
+              <p className="text-sm text-[var(--muted)]">{messages.result.labels.tntContext}</p>
               <p className="mt-1 font-semibold">
-                {format(calculation.best_estimate_crater.final_diameter_m)} m
+                {format(calculation.tnt_equivalent_megatons, locale)} Mt TNT
+              </p>
+            </div>
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.labels.bestFinalCrater}
+              </p>
+              <p className="mt-1 font-semibold">
+                {format(calculation.best_estimate_crater.final_diameter_m, locale)} m
               </p>
             </div>
           </div>
           <p className="max-w-4xl rounded-md border border-[var(--border)] p-4 text-sm leading-6">
-            TNT equivalence is descriptive unit context only. It is not a blast-damage equivalence
-            or a location-specific effect prediction.
+            {messages.result.tntDescription}
           </p>
 
           <section aria-labelledby="impact-sensitivity-heading" className="space-y-4">
             <div className="max-w-4xl space-y-2">
               <h3 className="text-xl font-semibold" id="impact-sensitivity-heading">
-                Crater scaling-coefficient sensitivity
+                {messages.sensitivity.title}
               </h3>
               <p className="leading-7 text-[var(--muted)]">{calculation.uncertainty_note}</p>
             </div>
-            <CraterSensitivityTable result={calculation} />
+            <CraterSensitivityTable
+              locale={locale}
+              messages={messages.sensitivity}
+              result={calculation}
+            />
           </section>
 
           <section aria-labelledby="impact-ejecta-heading" className="space-y-4">
             <div className="max-w-4xl space-y-2">
               <h3 className="text-xl font-semibold" id="impact-ejecta-heading">
-                Lower-bound ejecta deposit radii
+                {messages.ejecta.title}
               </h3>
-              <p className="leading-7 text-[var(--muted)]">
-                These returned radii are location-free lower-bound deposit estimates. They are not
-                casualty, debris-lethality, infrastructure, evacuation, or property-damage zones.
-              </p>
+              <p className="leading-7 text-[var(--muted)]">{messages.ejecta.description}</p>
             </div>
-            <ReturnedScaleFigure result={calculation} />
-            <EjectaTable result={calculation} />
+            <ReturnedScaleFigure locale={locale} messages={messages.figure} result={calculation} />
+            <EjectaTable locale={locale} messages={messages.ejecta.table} result={calculation} />
           </section>
 
           <p className="max-w-4xl rounded-md border border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted)]">
@@ -564,14 +592,16 @@ export function ImpactSimulatorView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="impact-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
         <p className="leading-7 text-[var(--muted)]">{IMPACT_SIMULATOR_DEFINITION.summary}</p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {IMPACT_SIMULATOR_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -579,7 +609,7 @@ export function ImpactSimulatorView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {IMPACT_SIMULATOR_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -589,7 +619,7 @@ export function ImpactSimulatorView({
           </div>
         </details>
         <details>
-          <summary className="cursor-pointer font-semibold">Reviewed model equations</summary>
+          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
           <ul className="mt-3 list-disc space-y-3 pl-6 text-sm leading-6 text-[var(--muted)]">
             {IMPACT_SIMULATOR_DEFINITION.equations.map((equation) => (
               <li key={equation.id}>
@@ -601,15 +631,19 @@ export function ImpactSimulatorView({
           </ul>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: {format(state.diameter_m)} m diameter,{" "}
-          {format(state.impactor_density_kg_m3)} kg/m³, {format(state.speed_km_s)} km/s,{" "}
-          {format(state.impact_angle_deg)}°, {TARGET_LABELS[state.target_material]}.
+          {formatMessageTemplate(messages.model.currentState, {
+            diameter: format(state.diameter_m, locale),
+            density: format(state.impactor_density_kg_m3, locale),
+            speed: format(state.speed_km_s, locale),
+            angle: format(state.impact_angle_deg, locale),
+            target: targetLabel(state.target_material, messages.targets),
+          })}
         </p>
       </section>
     </article>

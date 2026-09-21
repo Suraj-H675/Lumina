@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { PlanetarySystemBuilderNoScript } from "../src/components/planetary-system-builder-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE } from "../src/lib/simulations/planetary-system-builder";
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESULT } from "./planetary-system-builder-fixture";
 
@@ -12,6 +14,8 @@ describe("PlanetarySystemBuilderNoScript", () => {
         initialCalculation={PLANETARY_SYSTEM_BUILDER_DEFAULT_RESULT}
         initialState={DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.planetarySystemBuilder}
       />,
     );
     expect(markup).toContain("Planetary System Builder");
@@ -28,6 +32,8 @@ describe("PlanetarySystemBuilderNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.planetarySystemBuilder}
       />,
     );
     expect(markup).toContain("Shared planetary-system state rejected");

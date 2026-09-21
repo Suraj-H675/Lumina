@@ -1925,11 +1925,451 @@ export type SpectroscopyLabMessages = Readonly<{
   }>;
 }>;
 
+export type ImpactSimulatorMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    calculating: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fields: Readonly<{
+      angle: string;
+      density: string;
+      diameter: string;
+      speed: string;
+      target: string;
+    }>;
+    fieldAriaLabels: Readonly<{
+      angle: string;
+      density: string;
+      diameter: string;
+      speed: string;
+      target: string;
+    }>;
+    title: string;
+  }>;
+  ejecta: Readonly<{
+    description: string;
+    table: Readonly<{
+      caption: string;
+      headers: Readonly<{
+        radius: string;
+        thickness: string;
+      }>;
+      scrollAriaLabel: string;
+    }>;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    outOfDomain: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figure: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    depositRadius: string;
+    finalCraterRadius: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentState: string;
+    equations: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    angleUnit: string;
+    ejectaCaption: string;
+    ejectaTitle: string;
+    eyebrow: string;
+    intro: string;
+    requestedTitle: string;
+    result: Readonly<{
+      bestFinalCrater: string;
+      bestTransientCrater: string;
+      impactorMass: string;
+      kineticEnergy: string;
+      modelVersion: string;
+      title: string;
+      tntContext: string;
+      tntDescription: string;
+    }>;
+    sensitivityCaption: string;
+    sensitivityTitle: string;
+    stateLabels: Readonly<{
+      angle: string;
+      density: string;
+      diameter: string;
+      speed: string;
+      target: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      bestFinalCrater: string;
+      impactorMass: string;
+      kineticEnergy: string;
+      tntContext: string;
+    }>;
+    title: string;
+    tntDescription: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  sensitivity: Readonly<{
+    caption: string;
+    headers: Readonly<{
+      classification: string;
+      finalDiameter: string;
+      scalingCoefficient: string;
+      transientDiameter: string;
+    }>;
+    scrollAriaLabel: string;
+    title: string;
+  }>;
+  targets: Readonly<{
+    crystallineRock: string;
+    sedimentaryRock: string;
+  }>;
+}>;
+
+export type PlanetarySystemBuilderMessages = Readonly<{
+  actions: Readonly<{
+    addPlanet: string;
+    calculate: string;
+    calculating: string;
+    remove: string;
+    reset: string;
+  }>;
+  classifications: Readonly<{
+    exteriorReferenceHz: string;
+    insideReferenceHz: string;
+    interiorReferenceHz: string;
+    noPairwiseHillWarning: string;
+    pairwiseCloseWarning: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fields: Readonly<{
+      effectiveTemperature: string;
+      planetAxis: string;
+      planetMass: string;
+      stellarLuminosity: string;
+      stellarMass: string;
+    }>;
+    fieldAriaLabels: Readonly<{
+      effectiveTemperature: string;
+      planetAxis: string;
+      planetMass: string;
+      removePlanet: string;
+      stellarLuminosity: string;
+      stellarMass: string;
+    }>;
+    orderedPlanetsDescription: string;
+    orderedPlanetsLegend: string;
+    planetLegend: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    outOfDomain: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figure: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    displayExtent: string;
+    hzLabel: string;
+    scrollAriaLabel: string;
+    starLabel: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentStateMany: string;
+    currentStateOne: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    hzRange: string;
+    intro: string;
+    eyebrow: string;
+    modelVersion: string;
+    pairwiseCaption: string;
+    pairwiseHeaders: Readonly<{
+      assessment: string;
+      interpretation: string;
+      pair: string;
+      separation: string;
+    }>;
+    planetLine: string;
+    planetsCaption: string;
+    requestedTitle: string;
+    resultTitle: string;
+    singlePlanet: string;
+    stateLabels: Readonly<{
+      effectiveTemperature: string;
+      stellarLuminosity: string;
+      stellarMass: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  pairwise: Readonly<{
+    caption: string;
+    headers: Readonly<{
+      assessment: string;
+      mutualHillRadius: string;
+      pair: string;
+      referenceThreshold: string;
+      separation: string;
+    }>;
+    interpretation: string;
+    scrollAriaLabel: string;
+    singlePlanet: string;
+  }>;
+  planets: Readonly<{
+    caption: string;
+    headers: Readonly<{
+      axis: string;
+      hzPlacement: string;
+      mass: string;
+      period: string;
+      planet: string;
+    }>;
+    scrollAriaLabel: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    furtherStabilityAnalysis: string;
+    labels: Readonly<{
+      hzInner: string;
+      hzOuter: string;
+      pairwiseDiagnostics: string;
+      returnedPlanets: string;
+    }>;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+}>;
+
+export type RocketMissionDesignerMessages = Readonly<{
+  actions: Readonly<{
+    addStage: string;
+    calculate: string;
+    calculating: string;
+    remove: string;
+    reset: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fields: Readonly<{
+      gravityReference: string;
+      payloadMass: string;
+      reference: string;
+      stageDryMass: string;
+      stagePropellantMass: string;
+      stageSpecificImpulse: string;
+      stageThrust: string;
+    }>;
+    fieldAriaLabels: Readonly<{
+      gravityReference: string;
+      payloadMass: string;
+      reference: string;
+      removeStage: string;
+      stageDryMass: string;
+      stagePropellantMass: string;
+      stageSpecificImpulse: string;
+      stageThrust: string;
+    }>;
+    stagesDescription: string;
+    stagesLegend: string;
+    stageLegend: string;
+    title: string;
+  }>;
+  failures: Readonly<{
+    invalidInput: string;
+    outOfDomain: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figure: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    payloadMultiplierAxis: string;
+    scrollAriaLabel: string;
+  }>;
+  gravityBodies: Readonly<{
+    earth: string;
+    mars: string;
+    moon: string;
+  }>;
+  header: Readonly<{
+    eyebrow: string;
+    intro: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    inline: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    assumptionsAndLimitations: string;
+    currentStateMany: string;
+    currentStateOne: string;
+    description: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    inputCaption: string;
+    inputHeaders: Readonly<{
+      dryMass: string;
+      isp: string;
+      propellant: string;
+      stage: string;
+      thrust: string;
+    }>;
+    intro: string;
+    eyebrow: string;
+    modelVersion: string;
+    payloadCaption: string;
+    payloadDescription: string;
+    payloadTitle: string;
+    referenceDifference: string;
+    referenceTitle: string;
+    requestedTitle: string;
+    resultStageHeaders: Readonly<{
+      burnoutMass: string;
+      idealDeltaV: string;
+      ignitionMass: string;
+      stage: string;
+      twr: string;
+    }>;
+    resultTitle: string;
+    resultLabels: Readonly<{
+      launchMass: string;
+      payloadFraction: string;
+      propellantFraction: string;
+      selectedGravity: string;
+      totalIdealDeltaV: string;
+    }>;
+    stageCaption: string;
+    stateLabels: Readonly<{
+      gravityBody: string;
+      payload: string;
+      reference: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  payload: Readonly<{
+    caption: string;
+    description: string;
+    headers: Readonly<{
+      payload: string;
+      multiplier: string;
+      totalDeltaV: string;
+    }>;
+    scrollAriaLabel: string;
+    title: string;
+  }>;
+  references: Readonly<{
+    earthOrbit: string;
+    earthEscape: string;
+    marsEscape: string;
+  }>;
+  referenceResult: Readonly<{
+    labels: Readonly<{
+      difference: string;
+      ratio: string;
+      value: string;
+    }>;
+    title: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      launchMass: string;
+      payloadFraction: string;
+      propellantFraction: string;
+      totalIdealDeltaV: string;
+    }>;
+    title: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  stages: Readonly<{
+    caption: string;
+    headers: Readonly<{
+      burnoutMass: string;
+      dryMass: string;
+      idealDeltaV: string;
+      ignitionMass: string;
+      massRatio: string;
+      propellantMass: string;
+      stage: string;
+      twr: string;
+    }>;
+    scrollAriaLabel: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
+  impactSimulator: ImpactSimulatorMessages;
   orbitSandbox: OrbitSandboxMessages;
+  planetarySystemBuilder: PlanetarySystemBuilderMessages;
   radialVelocity: RadialVelocityMessages;
   relativityVisualizations: RelativityVisualizationsMessages;
+  rocketMissionDesigner: RocketMissionDesignerMessages;
   spectroscopyLab: SpectroscopyLabMessages;
   stellarLaboratory: StellarLaboratoryMessages;
   transitMethod: TransitMethodMessages;

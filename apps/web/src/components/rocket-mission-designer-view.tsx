@@ -5,6 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { requestEndpoint, type RocketMissionDesignerCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RocketMissionDesignerMessages } from "../lib/i18n/messages/types";
+import {
   DEFAULT_ROCKET_MISSION_DESIGNER_STATE,
   ROCKET_MISSION_DESIGNER_DEFINITION,
   ROCKET_MISSION_DESIGNER_LIMITS,
@@ -25,6 +32,8 @@ type RocketMissionDesignerViewProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: RocketMissionDesignerCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages;
 }>;
 
 type RequestState = "idle" | "loading" | "unavailable";
@@ -35,17 +44,33 @@ type DraftStage = Readonly<{
   thrust: string;
 }>;
 
-const GRAVITY_LABELS: Readonly<Record<RocketMissionDesignerGravityBody, string>> = {
-  earth: "Earth",
-  moon: "Moon",
-  mars: "Mars",
-};
+function gravityLabel(
+  body: RocketMissionDesignerGravityBody,
+  messages: RocketMissionDesignerMessages["gravityBodies"],
+): string {
+  switch (body) {
+    case "earth":
+      return messages.earth;
+    case "moon":
+      return messages.moon;
+    case "mars":
+      return messages.mars;
+  }
+}
 
-const REFERENCE_LABELS: Readonly<Record<RocketMissionDesignerReferenceId, string>> = {
-  earth_200_mile_orbit_example: "NASA Glenn approximate 200-mile circular-orbit example",
-  earth_equatorial_escape_speed: "JPL Earth equatorial escape-speed reference",
-  mars_equatorial_escape_speed: "JPL Mars equatorial escape-speed reference",
-};
+function referenceLabel(
+  reference: RocketMissionDesignerReferenceId,
+  messages: RocketMissionDesignerMessages["references"],
+): string {
+  switch (reference) {
+    case "earth_200_mile_orbit_example":
+      return messages.earthOrbit;
+    case "earth_equatorial_escape_speed":
+      return messages.earthEscape;
+    case "mars_equatorial_escape_speed":
+      return messages.marsEscape;
+  }
+}
 
 function replaceBrowserState(state: RocketMissionDesignerState): void {
   const url = new URL(window.location.href);
@@ -63,13 +88,16 @@ function stateFromBrowser(): Readonly<{ state: RocketMissionDesignerState; inval
     : { state: decoded, invalid: false };
 }
 
-function format(value: number, digits = 6): string {
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) return value.toExponential(digits);
-  return value.toLocaleString("en", { maximumSignificantDigits: digits + 1 });
+function format(value: number, locale: PublishedLocale, digits = 6): string {
+  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(digits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: RocketMissionDesignerMessages["model"] }>) {
   return (
     <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
       {ROCKET_MISSION_DESIGNER_DEFINITION.references.map((sourceId) => {
@@ -79,7 +107,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
                 <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
@@ -95,24 +123,30 @@ function SourceList() {
   );
 }
 
-function StageResults({ result }: Readonly<{ result: RocketMissionDesignerCalculationResponse }>) {
+function StageResults({
+  locale,
+  messages,
+  result,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages["stages"];
+  result: RocketMissionDesignerCalculationResponse;
+}>) {
   return (
-    <div aria-label="Scrollable returned stage table" className="overflow-x-auto" tabIndex={0}>
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[980px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Canonical Python-owned ideal staged-rocket outputs in ignition order.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
             {[
-              "Stage",
-              "Dry kg",
-              "Propellant kg",
-              "Ignition kg",
-              "Burnout kg",
-              "Mass ratio",
-              "Ideal Δv m/s",
-              "Surface-reference TWR",
+              messages.headers.stage,
+              messages.headers.dryMass,
+              messages.headers.propellantMass,
+              messages.headers.ignitionMass,
+              messages.headers.burnoutMass,
+              messages.headers.massRatio,
+              messages.headers.idealDeltaV,
+              messages.headers.twr,
             ].map((heading) => (
               <th
                 className="border-b border-[var(--border)] p-2 text-left"
@@ -129,25 +163,25 @@ function StageResults({ result }: Readonly<{ result: RocketMissionDesignerCalcul
             <tr key={stage.index}>
               <td className="border-b border-[var(--border)] p-2">{stage.index}</td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.dry_mass_kg)}
+                {format(stage.dry_mass_kg, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.propellant_mass_kg)}
+                {format(stage.propellant_mass_kg, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.ignition_mass_kg)}
+                {format(stage.ignition_mass_kg, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.burnout_before_jettison_mass_kg)}
+                {format(stage.burnout_before_jettison_mass_kg, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.mass_ratio)}
+                {format(stage.mass_ratio, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.ideal_delta_v_m_s)}
+                {format(stage.ideal_delta_v_m_s, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(stage.surface_gravity_thrust_to_weight)}
+                {format(stage.surface_gravity_thrust_to_weight, locale)}
               </td>
             </tr>
           ))}
@@ -158,8 +192,14 @@ function StageResults({ result }: Readonly<{ result: RocketMissionDesignerCalcul
 }
 
 function PayloadTradeoffFigure({
+  locale,
+  messages,
   result,
-}: Readonly<{ result: RocketMissionDesignerCalculationResponse }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages["figure"];
+  result: RocketMissionDesignerCalculationResponse;
+}>) {
   const width = 760;
   const height = 260;
   const left = 72;
@@ -184,13 +224,9 @@ function PayloadTradeoffFigure({
 
   return (
     <figure className="space-y-3">
-      <div
-        aria-label="Scrollable returned payload-sensitivity plot"
-        className="overflow-x-auto"
-        tabIndex={0}
-      >
+      <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
         <svg
-          aria-label="Returned payload sensitivity plot"
+          aria-label={messages.ariaLabel}
           className="min-w-[620px] max-w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
           role="img"
           viewBox={`0 0 ${width} ${height}`}
@@ -213,45 +249,48 @@ function PayloadTradeoffFigure({
                 r="5"
               />
               <text fontSize="11" textAnchor="middle" x={x(index)} y={top + plotHeight + 22}>
-                {format(point.payload_multiplier)}×
+                {format(point.payload_multiplier, locale)}×
               </text>
             </g>
           ))}
           <text fontSize="11" x={left + 4} y={top + 12}>
-            {format(maximum)} m/s
+            {format(maximum, locale)} m/s
           </text>
           <text fontSize="11" x={left + 4} y={top + plotHeight - 8}>
-            {format(minimum)} m/s
+            {format(minimum, locale)} m/s
           </text>
           <text fontSize="12" textAnchor="middle" x={left + plotWidth / 2} y={height - 12}>
-            submitted payload multiplier
+            {messages.payloadMultiplierAxis}
           </text>
         </svg>
       </div>
       <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        Presentation-only plot of the five returned payload-sensitivity points. The browser does not
-        calculate payload delta-v, stage delta-v, TWR, mass ratios, or reference differences.
+        {messages.caption}
       </figcaption>
     </figure>
   );
 }
 
 function PayloadTradeoffTable({
+  locale,
+  messages,
   result,
-}: Readonly<{ result: RocketMissionDesignerCalculationResponse }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages["payload"];
+  result: RocketMissionDesignerCalculationResponse;
+}>) {
   return (
-    <div
-      aria-label="Scrollable returned payload-sensitivity table"
-      className="overflow-x-auto"
-      tabIndex={0}
-    >
+    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
       <table className="w-full min-w-[620px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">
-          Fixed returned payload multipliers with the submitted stages unchanged.
-        </caption>
+        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
         <thead>
           <tr>
-            {["Payload multiplier", "Payload kg", "Total ideal Δv m/s"].map((heading) => (
+            {[
+              messages.headers.multiplier,
+              messages.headers.payload,
+              messages.headers.totalDeltaV,
+            ].map((heading) => (
               <th
                 className="border-b border-[var(--border)] p-2 text-left"
                 key={heading}
@@ -266,13 +305,13 @@ function PayloadTradeoffTable({
           {result.payload_tradeoff.map((point) => (
             <tr key={point.payload_multiplier}>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(point.payload_multiplier)}
+                {format(point.payload_multiplier, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(point.payload_mass_kg)}
+                {format(point.payload_mass_kg, locale)}
               </td>
               <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(point.total_ideal_delta_v_m_s)}
+                {format(point.total_ideal_delta_v_m_s, locale)}
               </td>
             </tr>
           ))}
@@ -287,6 +326,8 @@ export function RocketMissionDesignerView({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
 }: RocketMissionDesignerViewProps) {
   const [state, setState] = useState(initialState);
   const [draftGravityBody, setDraftGravityBody] = useState(initialState.gravity_body);
@@ -325,7 +366,7 @@ export function RocketMissionDesignerView({
     async (nextState: RocketMissionDesignerState, commit: boolean) => {
       if (apiOrigin === null) {
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
         return;
       }
       requestRef.current?.abort();
@@ -343,20 +384,18 @@ export function RocketMissionDesignerView({
         if (generation !== generationRef.current) return;
         if (response.kind === "http-error" && response.status === 422) {
           setRequestState("idle");
-          setMessage(
-            "The canonical Rocket / Mission Designer rejected this state. The last valid result remains visible.",
-          );
+          setMessage(messages.failures.rejected);
           return;
         }
         if (response.kind !== "ok") {
           setRequestState("unavailable");
-          setMessage("Calculation service is unavailable; the last valid result remains visible.");
+          setMessage(messages.failures.serviceUnavailable);
           return;
         }
         const validated = validateRocketMissionDesignerCalculationResult(nextState, response.data);
         if (validated === null) {
           setRequestState("unavailable");
-          setMessage("The returned result did not match the requested versioned rocket state.");
+          setMessage(messages.failures.resultMismatch);
           return;
         }
         setCalculation(validated);
@@ -370,12 +409,12 @@ export function RocketMissionDesignerView({
       } catch {
         if (generation !== generationRef.current) return;
         setRequestState("unavailable");
-        setMessage("Calculation service is unavailable; the last valid result remains visible.");
+        setMessage(messages.failures.serviceUnavailable);
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
       }
     },
-    [adoptDraft, apiOrigin],
+    [adoptDraft, apiOrigin, messages.failures],
   );
 
   useEffect(() => {
@@ -428,7 +467,7 @@ export function RocketMissionDesignerView({
           stage.thrust.trim().length === 0,
       )
     ) {
-      setMessage("One or more controls are empty or outside the reviewed v1 domain.");
+      setMessage(messages.failures.invalidInput);
       return;
     }
     const next = validateRocketMissionDesignerState({
@@ -445,9 +484,7 @@ export function RocketMissionDesignerView({
       })),
     });
     if (next === null) {
-      setMessage(
-        "The requested payload or stage values are outside the reviewed v1 input bounds. Lumina does not clamp, reorder, or optimize them.",
-      );
+      setMessage(messages.failures.outOfDomain);
       return;
     }
     void recalculate(next, true);
@@ -463,42 +500,35 @@ export function RocketMissionDesignerView({
     <article className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          Phase 7 · deterministic ideal staged-rocket teaching model
+          {messages.header.eyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Rocket / Mission Designer
+          {messages.header.title}
         </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Explore how stage masses, specific impulse, thrust, payload, and a selected
-          surface-gravity reference relate inside one deliberately idealized model. This lab does
-          not determine mission feasibility, real launch capability, or operational flight plans.
-        </p>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
         <aside className="border border-[var(--border-strong)] p-4" role="alert">
-          <strong>Shared rocket state rejected.</strong> The reviewed synthetic two-stage preset is
-          shown instead.
+          {messages.invalidState.inline}
         </aside>
       ) : null}
 
       <section aria-labelledby="rocket-input-heading" className="space-y-5">
         <div className="max-w-4xl space-y-2">
           <h2 className="text-2xl font-semibold" id="rocket-input-heading">
-            Teaching vehicle controls
+            {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Stages are entered in ignition order, bottom/first through top/final. The selected body
-            changes only the returned surface-gravity TWR teaching reference. It does not change the
-            specific-impulse convention or turn this into a trajectory simulation.
-          </p>
+          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
         </div>
         <form className="space-y-6" onSubmit={submit}>
           <div className="grid gap-5 md:grid-cols-3">
             <label className="space-y-2">
-              <span className="block font-semibold">Surface-gravity reference</span>
+              <span className="block font-semibold">
+                {messages.controls.fields.gravityReference}
+              </span>
               <select
-                aria-label="Surface-gravity reference body"
+                aria-label={messages.controls.fieldAriaLabels.gravityReference}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
                 disabled={requestState === "loading"}
                 onChange={(event) => {
@@ -507,17 +537,17 @@ export function RocketMissionDesignerView({
                 }}
                 value={draftGravityBody}
               >
-                {Object.entries(GRAVITY_LABELS).map(([value, label]) => (
+                {(["earth", "moon", "mars"] as const).map((value) => (
                   <option key={value} value={value}>
-                    {label}
+                    {gravityLabel(value, messages.gravityBodies)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="space-y-2">
-              <span className="block font-semibold">Velocity reference</span>
+              <span className="block font-semibold">{messages.controls.fields.reference}</span>
               <select
-                aria-label="Educational velocity reference"
+                aria-label={messages.controls.fieldAriaLabels.reference}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
                 disabled={requestState === "loading"}
                 onChange={(event) => {
@@ -526,20 +556,26 @@ export function RocketMissionDesignerView({
                 }}
                 value={draftReferenceId}
               >
-                {Object.entries(REFERENCE_LABELS).map(([value, label]) => (
+                {(
+                  [
+                    "earth_200_mile_orbit_example",
+                    "earth_equatorial_escape_speed",
+                    "mars_equatorial_escape_speed",
+                  ] as const
+                ).map((value) => (
                   <option key={value} value={value}>
-                    {label}
+                    {referenceLabel(value, messages.references)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="space-y-2">
               <span className="flex justify-between gap-2 font-semibold">
-                <span>Payload mass</span>
+                <span>{messages.controls.fields.payloadMass}</span>
                 <span className="text-xs font-normal text-[var(--muted)]">kg</span>
               </span>
               <input
-                aria-label="Payload mass kg"
+                aria-label={messages.controls.fieldAriaLabels.payloadMass}
                 className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                 disabled={requestState === "loading"}
                 max={ROCKET_MISSION_DESIGNER_LIMITS.maxPayloadMassKg}
@@ -556,10 +592,9 @@ export function RocketMissionDesignerView({
           </div>
 
           <fieldset className="space-y-4 rounded-md border border-[var(--border)] p-4">
-            <legend className="px-1 font-semibold">Stages in ignition order</legend>
+            <legend className="px-1 font-semibold">{messages.controls.stagesLegend}</legend>
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Each stage has positive dry mass, propellant mass, thrust, and specific impulse.
-              Stages are never silently reordered, merged, or optimized.
+              {messages.controls.stagesDescription}
             </p>
             <div className="space-y-4">
               {draftStages.map((stage, index) => (
@@ -567,11 +602,18 @@ export function RocketMissionDesignerView({
                   className="grid gap-4 rounded-md border border-[var(--border)] p-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_auto] xl:items-end"
                   key={index}
                 >
-                  <legend className="px-1 font-semibold">Stage {index + 1}</legend>
+                  <legend className="px-1 font-semibold">
+                    {formatMessageTemplate(messages.controls.stageLegend, { index: index + 1 })}
+                  </legend>
                   <label className="space-y-2">
-                    <span className="block font-semibold">Dry mass kg</span>
+                    <span className="block font-semibold">
+                      {messages.controls.fields.stageDryMass}
+                    </span>
                     <input
-                      aria-label={`Stage ${index + 1} dry mass kg`}
+                      aria-label={formatMessageTemplate(
+                        messages.controls.fieldAriaLabels.stageDryMass,
+                        { index: index + 1 },
+                      )}
                       className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                       disabled={requestState === "loading"}
                       max={ROCKET_MISSION_DESIGNER_LIMITS.maxStageDryMassKg}
@@ -583,9 +625,14 @@ export function RocketMissionDesignerView({
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="block font-semibold">Propellant kg</span>
+                    <span className="block font-semibold">
+                      {messages.controls.fields.stagePropellantMass}
+                    </span>
                     <input
-                      aria-label={`Stage ${index + 1} propellant mass kg`}
+                      aria-label={formatMessageTemplate(
+                        messages.controls.fieldAriaLabels.stagePropellantMass,
+                        { index: index + 1 },
+                      )}
                       className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                       disabled={requestState === "loading"}
                       max={ROCKET_MISSION_DESIGNER_LIMITS.maxStagePropellantMassKg}
@@ -597,9 +644,14 @@ export function RocketMissionDesignerView({
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="block font-semibold">Specific impulse s</span>
+                    <span className="block font-semibold">
+                      {messages.controls.fields.stageSpecificImpulse}
+                    </span>
                     <input
-                      aria-label={`Stage ${index + 1} specific impulse s`}
+                      aria-label={formatMessageTemplate(
+                        messages.controls.fieldAriaLabels.stageSpecificImpulse,
+                        { index: index + 1 },
+                      )}
                       className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                       disabled={requestState === "loading"}
                       max={ROCKET_MISSION_DESIGNER_LIMITS.maxStageSpecificImpulseS}
@@ -613,9 +665,14 @@ export function RocketMissionDesignerView({
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="block font-semibold">Thrust N</span>
+                    <span className="block font-semibold">
+                      {messages.controls.fields.stageThrust}
+                    </span>
                     <input
-                      aria-label={`Stage ${index + 1} thrust N`}
+                      aria-label={formatMessageTemplate(
+                        messages.controls.fieldAriaLabels.stageThrust,
+                        { index: index + 1 },
+                      )}
                       className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
                       disabled={requestState === "loading"}
                       max={ROCKET_MISSION_DESIGNER_LIMITS.maxStageThrustN}
@@ -627,7 +684,10 @@ export function RocketMissionDesignerView({
                     />
                   </label>
                   <button
-                    aria-label={`Remove stage ${index + 1}`}
+                    aria-label={formatMessageTemplate(
+                      messages.controls.fieldAriaLabels.removeStage,
+                      { index: index + 1 },
+                    )}
                     className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 font-semibold"
                     disabled={
                       requestState === "loading" ||
@@ -636,7 +696,7 @@ export function RocketMissionDesignerView({
                     onClick={() => removeStage(index)}
                     type="button"
                   >
-                    Remove
+                    {messages.actions.remove}
                   </button>
                 </fieldset>
               ))}
@@ -650,7 +710,7 @@ export function RocketMissionDesignerView({
               onClick={addStage}
               type="button"
             >
-              Add stage
+              {messages.actions.addStage}
             </button>
           </fieldset>
 
@@ -660,7 +720,9 @@ export function RocketMissionDesignerView({
               disabled={requestState === "loading"}
               type="submit"
             >
-              {requestState === "loading" ? "Calculating…" : "Calculate ideal model"}
+              {requestState === "loading"
+                ? messages.actions.calculating
+                : messages.actions.calculate}
             </button>
             <button
               className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
@@ -668,7 +730,7 @@ export function RocketMissionDesignerView({
               onClick={resetDefault}
               type="button"
             >
-              Reset synthetic preset
+              {messages.actions.reset}
             </button>
           </div>
         </form>
@@ -679,89 +741,108 @@ export function RocketMissionDesignerView({
 
       {calculation === null ? (
         <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">No canonical result available</h2>
-          <p className="mt-2 text-[var(--muted)]">
-            No browser-generated fallback delta-v, staging, TWR, payload sensitivity, or mission
-            comparison is substituted.
-          </p>
+          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
+          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
         </section>
       ) : (
         <section aria-labelledby="rocket-result-heading" className="space-y-7">
           <div className="max-w-4xl space-y-2">
             <h2 className="text-2xl font-semibold" id="rocket-result-heading">
-              Canonical ideal staged result
+              {messages.result.title}
             </h2>
             <p className="leading-7 text-[var(--muted)]">
-              Model {calculation.model_version}. The selected surface-gravity reference is{" "}
-              {format(calculation.selected_surface_gravity_m_s2)} m/s². All values below are
-              returned by the canonical Python model.
+              {formatMessageTemplate(messages.result.description, {
+                modelVersion: calculation.model_version,
+                gravity: format(calculation.selected_surface_gravity_m_s2, locale),
+              })}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Total ideal delta-v</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.labels.totalIdealDeltaV}
+              </p>
               <p className="mt-1 font-semibold">
-                {format(calculation.total_ideal_delta_v_m_s)} m/s
+                {format(calculation.total_ideal_delta_v_m_s, locale)} m/s
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Launch mass</p>
+              <p className="text-sm text-[var(--muted)]">{messages.result.labels.launchMass}</p>
               <p className="mt-1 font-semibold">
-                {format(calculation.mass_fractions.launch_mass_kg)} kg
+                {format(calculation.mass_fractions.launch_mass_kg, locale)} kg
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Propellant fraction</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.labels.propellantFraction}
+              </p>
               <p className="mt-1 font-semibold">
-                {format(calculation.mass_fractions.propellant_fraction_of_launch_mass)}
+                {format(calculation.mass_fractions.propellant_fraction_of_launch_mass, locale)}
               </p>
             </div>
             <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">Payload fraction</p>
+              <p className="text-sm text-[var(--muted)]">
+                {messages.result.labels.payloadFraction}
+              </p>
               <p className="mt-1 font-semibold">
-                {format(calculation.mass_fractions.payload_fraction_of_launch_mass)}
+                {format(calculation.mass_fractions.payload_fraction_of_launch_mass, locale)}
               </p>
             </div>
           </div>
-          <StageResults result={calculation} />
+          <StageResults locale={locale} messages={messages.stages} result={calculation} />
           <section aria-labelledby="rocket-payload-heading" className="space-y-4">
             <div className="max-w-4xl space-y-2">
               <h3 className="text-xl font-semibold" id="rocket-payload-heading">
-                Fixed payload sensitivity
+                {messages.payload.title}
               </h3>
-              <p className="leading-7 text-[var(--muted)]">
-                The five returned points keep the submitted stages unchanged. They are an
-                educational sensitivity view, not an optimizer or recommendation.
-              </p>
+              <p className="leading-7 text-[var(--muted)]">{messages.payload.description}</p>
             </div>
-            <PayloadTradeoffFigure result={calculation} />
-            <PayloadTradeoffTable result={calculation} />
+            <PayloadTradeoffFigure
+              locale={locale}
+              messages={messages.figure}
+              result={calculation}
+            />
+            <PayloadTradeoffTable
+              locale={locale}
+              messages={messages.payload}
+              result={calculation}
+            />
           </section>
           <section
             aria-labelledby="rocket-reference-heading"
             className="max-w-4xl space-y-3 rounded-md border border-[var(--border-strong)] p-5"
           >
             <h3 className="text-xl font-semibold" id="rocket-reference-heading">
-              Educational velocity reference
+              {messages.referenceResult.title}
             </h3>
             <p className="font-semibold">{calculation.reference_comparison.label}</p>
             <dl className="grid gap-3 sm:grid-cols-3">
               <div>
-                <dt className="text-sm text-[var(--muted)]">Reference value</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.referenceResult.labels.value}
+                </dt>
                 <dd className="font-mono">
-                  {format(calculation.reference_comparison.reference_value_m_s)} m/s
+                  {format(calculation.reference_comparison.reference_value_m_s, locale)} m/s
                 </dd>
               </div>
               <div>
-                <dt className="text-sm text-[var(--muted)]">Ideal Δv difference</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.referenceResult.labels.difference}
+                </dt>
                 <dd className="font-mono">
-                  {format(calculation.reference_comparison.ideal_delta_v_difference_m_s)} m/s
+                  {format(calculation.reference_comparison.ideal_delta_v_difference_m_s, locale)}{" "}
+                  m/s
                 </dd>
               </div>
               <div>
-                <dt className="text-sm text-[var(--muted)]">Ideal Δv/reference ratio</dt>
+                <dt className="text-sm text-[var(--muted)]">
+                  {messages.referenceResult.labels.ratio}
+                </dt>
                 <dd className="font-mono">
-                  {format(calculation.reference_comparison.ideal_delta_v_to_reference_ratio)}
+                  {format(
+                    calculation.reference_comparison.ideal_delta_v_to_reference_ratio,
+                    locale,
+                  )}
                 </dd>
               </div>
             </dl>
@@ -778,17 +859,16 @@ export function RocketMissionDesignerView({
         className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
       >
         <h2 className="text-2xl font-semibold" id="rocket-model-heading">
-          Model contract and provenance
+          {messages.model.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          V1 is an educational ideal staged-rocket model, not an engineering design, trajectory
-          solver, mission planner, launch-capability assessment, or hazardous construction guide.
-        </p>
+        <p className="leading-7 text-[var(--muted)]">{messages.model.description}</p>
         <details open>
-          <summary className="cursor-pointer font-semibold">Assumptions and limitations</summary>
+          <summary className="cursor-pointer font-semibold">
+            {messages.model.assumptionsAndLimitations}
+          </summary>
           <div className="mt-3 grid gap-5 md:grid-cols-2">
             <div>
-              <h3 className="font-semibold">Assumptions</h3>
+              <h3 className="font-semibold">{messages.model.assumptions}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {ROCKET_MISSION_DESIGNER_DEFINITION.assumptions.map((item) => (
                   <li key={item}>{item}</li>
@@ -796,7 +876,7 @@ export function RocketMissionDesignerView({
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Limitations</h3>
+              <h3 className="font-semibold">{messages.model.limitations}</h3>
               <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
                 {ROCKET_MISSION_DESIGNER_DEFINITION.limitations.map((item) => (
                   <li key={item}>{item}</li>
@@ -806,15 +886,22 @@ export function RocketMissionDesignerView({
           </div>
         </details>
         <div>
-          <h3 className="font-semibold">Reviewed sources</h3>
+          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
           <div className="mt-2">
-            <SourceList />
+            <SourceList messages={messages.model} />
           </div>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Current committed browser state: {state.stages.length} stage
-          {state.stages.length === 1 ? "" : "s"}, {format(state.payload_mass_kg)} kg payload,{" "}
-          {GRAVITY_LABELS[state.gravity_body]} surface-gravity reference.
+          {formatMessageTemplate(
+            state.stages.length === 1
+              ? messages.model.currentStateOne
+              : messages.model.currentStateMany,
+            {
+              count: formatLocaleNumber(state.stages.length, locale),
+              payload: format(state.payload_mass_kg, locale),
+              gravity: gravityLabel(state.gravity_body, messages.gravityBodies),
+            },
+          )}
         </p>
       </section>
     </article>

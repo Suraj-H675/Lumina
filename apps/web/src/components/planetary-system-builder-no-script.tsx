@@ -1,6 +1,13 @@
 import type { PlanetarySystemBuilderCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { PlanetarySystemBuilderMessages } from "../lib/i18n/messages/types";
+import {
   PLANETARY_SYSTEM_BUILDER_DEFINITION,
   PLANETARY_SYSTEM_BUILDER_SOURCES,
   type PlanetarySystemBuilderState,
@@ -10,17 +17,24 @@ type PlanetarySystemBuilderNoScriptProps = Readonly<{
   initialState: PlanetarySystemBuilderState;
   initialStateInvalid: boolean;
   initialCalculation: PlanetarySystemBuilderCalculationResponse | null;
+  locale: PublishedLocale;
+  messages: PlanetarySystemBuilderMessages;
 }>;
 
-function numeric(value: number, unit = ""): string {
-  const formatted =
-    Math.abs(value) >= 1e6 || (Math.abs(value) > 0 && Math.abs(value) < 1e-3)
-      ? value.toExponential(5)
-      : value.toLocaleString("en", { maximumSignificantDigits: 7 });
+function numeric(value: number, locale: PublishedLocale, unit = ""): string {
+  let formatted: string;
+  if (value === 0) {
+    formatted = formatLocaleNumber(0, locale, { useGrouping: false });
+  } else if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(5).split("e");
+    formatted = `${formatLocaleFixedNumber(Number(mantissa), 5, locale)}e${exponent}`;
+  } else {
+    formatted = formatLocaleNumber(value, locale, { maximumSignificantDigits: 7 });
+  }
   return unit ? `${formatted} ${unit}` : formatted;
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: PlanetarySystemBuilderMessages["model"] }>) {
   return (
     <ul>
       {PLANETARY_SYSTEM_BUILDER_DEFINITION.references.map((sourceId) => {
@@ -30,7 +44,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <a href={source.url} rel="noreferrer">
                 {source.title} — {source.organization_or_authors}
@@ -47,87 +61,101 @@ export function PlanetarySystemBuilderNoScript({
   initialState,
   initialStateInvalid,
   initialCalculation,
+  locale,
+  messages,
 }: PlanetarySystemBuilderNoScriptProps) {
   return (
     <noscript>
       <article>
         <header>
-          <p>Phase 7 / Planetary System Builder</p>
-          <h1>Planetary System Builder</h1>
-          <p>
-            Build a circular, coplanar, non-interacting teaching system. Lumina&apos;s Python
-            astronomy domain owns every Keplerian period, reference habitable-zone boundary, and
-            pairwise mutual-Hill diagnostic.
-          </p>
+          <p>{messages.noScript.eyebrow}</p>
+          <h1>{messages.header.title}</h1>
+          <p>{messages.noScript.intro}</p>
         </header>
         {initialStateInvalid ? (
           <section aria-labelledby="builder-nojs-invalid">
-            <h2 id="builder-nojs-invalid">Shared planetary-system state rejected</h2>
-            <p>The reviewed illustrative three-planet preset is shown instead.</p>
+            <h2 id="builder-nojs-invalid">{messages.invalidState.title}</h2>
+            <p>{messages.invalidState.description}</p>
           </section>
         ) : null}
         <section aria-labelledby="builder-nojs-input">
-          <h2 id="builder-nojs-input">Requested teaching system</h2>
-          <p>Stellar mass: {numeric(initialState.stellar_mass_msun, "M☉")}</p>
-          <p>Stellar luminosity: {numeric(initialState.stellar_luminosity_lsun, "L☉")}</p>
-          <p>Effective temperature: {numeric(initialState.stellar_effective_temperature_k, "K")}</p>
+          <h2 id="builder-nojs-input">{messages.noScript.requestedTitle}</h2>
+          <p>
+            {messages.noScript.stateLabels.stellarMass}:{" "}
+            {numeric(initialState.stellar_mass_msun, locale, "M☉")}
+          </p>
+          <p>
+            {messages.noScript.stateLabels.stellarLuminosity}:{" "}
+            {numeric(initialState.stellar_luminosity_lsun, locale, "L☉")}
+          </p>
+          <p>
+            {messages.noScript.stateLabels.effectiveTemperature}:{" "}
+            {numeric(initialState.stellar_effective_temperature_k, locale, "K")}
+          </p>
           <ol>
             {initialState.planets.map((planet, index) => (
               <li key={`${index}-${planet.semi_major_axis_au}`}>
-                Planet {index + 1}: {numeric(planet.mass_mearth, "M⊕")} at{" "}
-                {numeric(planet.semi_major_axis_au, "AU")}
+                {formatMessageTemplate(messages.noScript.planetLine, {
+                  index: index + 1,
+                  mass: numeric(planet.mass_mearth, locale),
+                  axis: numeric(planet.semi_major_axis_au, locale),
+                })}
               </li>
             ))}
           </ol>
         </section>
         {initialCalculation === null ? (
           <section aria-labelledby="builder-nojs-unavailable">
-            <h2 id="builder-nojs-unavailable">No canonical result available</h2>
-            <p>No browser-generated periods, HZ boundaries, or Hill diagnostics are substituted.</p>
+            <h2 id="builder-nojs-unavailable">{messages.noScript.unavailableTitle}</h2>
+            <p>{messages.noScript.unavailableDescription}</p>
           </section>
         ) : (
           <section aria-labelledby="builder-nojs-result">
-            <h2 id="builder-nojs-result">Canonical system result</h2>
-            <p>Model version: {initialCalculation.model_version}</p>
+            <h2 id="builder-nojs-result">{messages.noScript.resultTitle}</h2>
             <p>
-              Modeled reference HZ: {numeric(initialCalculation.habitable_zone.inner_edge_au, "AU")}{" "}
-              to {numeric(initialCalculation.habitable_zone.outer_edge_au, "AU")}.
+              {messages.noScript.modelVersion}: {initialCalculation.model_version}
+            </p>
+            <p>
+              {formatMessageTemplate(messages.noScript.hzRange, {
+                inner: numeric(initialCalculation.habitable_zone.inner_edge_au, locale),
+                outer: numeric(initialCalculation.habitable_zone.outer_edge_au, locale),
+              })}
             </p>
             <p>{initialCalculation.habitable_zone.habitability_note}</p>
             <table>
-              <caption>Returned planet periods and reference-HZ placement.</caption>
+              <caption>{messages.noScript.planetsCaption}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Planet</th>
-                  <th scope="col">Mass M⊕</th>
-                  <th scope="col">Semimajor axis AU</th>
-                  <th scope="col">Period days</th>
-                  <th scope="col">Reference-HZ placement</th>
+                  <th scope="col">{messages.planets.headers.planet}</th>
+                  <th scope="col">{messages.planets.headers.mass}</th>
+                  <th scope="col">{messages.planets.headers.axis}</th>
+                  <th scope="col">{messages.planets.headers.period}</th>
+                  <th scope="col">{messages.planets.headers.hzPlacement}</th>
                 </tr>
               </thead>
               <tbody>
                 {initialCalculation.planets.map((planet) => (
                   <tr key={planet.index}>
                     <td>{planet.index}</td>
-                    <td>{numeric(planet.mass_mearth)}</td>
-                    <td>{numeric(planet.semi_major_axis_au)}</td>
-                    <td>{numeric(planet.orbital_period_days)}</td>
+                    <td>{numeric(planet.mass_mearth, locale)}</td>
+                    <td>{numeric(planet.semi_major_axis_au, locale)}</td>
+                    <td>{numeric(planet.orbital_period_days, locale)}</td>
                     <td>{planet.habitable_zone_relation}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             {initialCalculation.adjacent_pairs.length === 0 ? (
-              <p>A single-planet system has no adjacent-pair mutual-Hill diagnostic.</p>
+              <p>{messages.noScript.singlePlanet}</p>
             ) : (
               <table>
-                <caption>Returned adjacent-pair mutual-Hill spacing diagnostics.</caption>
+                <caption>{messages.noScript.pairwiseCaption}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Pair</th>
-                    <th scope="col">Separation Δ</th>
-                    <th scope="col">Assessment</th>
-                    <th scope="col">Interpretation</th>
+                    <th scope="col">{messages.noScript.pairwiseHeaders.pair}</th>
+                    <th scope="col">{messages.noScript.pairwiseHeaders.separation}</th>
+                    <th scope="col">{messages.noScript.pairwiseHeaders.assessment}</th>
+                    <th scope="col">{messages.noScript.pairwiseHeaders.interpretation}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -136,7 +164,7 @@ export function PlanetarySystemBuilderNoScript({
                       <td>
                         {pair.inner_index}–{pair.outer_index}
                       </td>
-                      <td>{numeric(pair.separation_mutual_hill)}</td>
+                      <td>{numeric(pair.separation_mutual_hill, locale)}</td>
                       <td>{pair.spacing_assessment}</td>
                       <td>{pair.interpretation}</td>
                     </tr>
@@ -149,16 +177,16 @@ export function PlanetarySystemBuilderNoScript({
           </section>
         )}
         <section aria-labelledby="builder-nojs-model">
-          <h2 id="builder-nojs-model">Model contract and provenance</h2>
+          <h2 id="builder-nojs-model">{messages.model.title}</h2>
           <p>{PLANETARY_SYSTEM_BUILDER_DEFINITION.sampling_policy}</p>
-          <h3>Limitations</h3>
+          <h3>{messages.model.limitations}</h3>
           <ul>
             {PLANETARY_SYSTEM_BUILDER_DEFINITION.limitations.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <h3>Reviewed sources</h3>
-          <SourceList />
+          <h3>{messages.model.reviewedSources}</h3>
+          <SourceList messages={messages.model} />
         </section>
       </article>
     </noscript>

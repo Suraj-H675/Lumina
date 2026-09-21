@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RocketMissionDesignerView } from "../src/components/rocket-mission-designer-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_ROCKET_MISSION_DESIGNER_STATE } from "../src/lib/simulations/rocket-mission-designer";
 import {
   ROCKET_MISSION_DESIGNER_DEFAULT_RESULT,
@@ -25,6 +27,8 @@ function renderView(invalid = false) {
       initialCalculation={ROCKET_MISSION_DESIGNER_DEFAULT_RESULT}
       initialState={DEFAULT_ROCKET_MISSION_DESIGNER_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.rocketMissionDesigner}
     />,
   );
 }
@@ -107,5 +111,40 @@ describe("RocketMissionDesignerView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/outside the reviewed v1 input bounds/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned rocket science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.rocketMissionDesigner,
+      header: {
+        ...enMessages.simulationLabs.rocketMissionDesigner.header,
+        title: "Localized Rocket Designer",
+      },
+      result: {
+        ...enMessages.simulationLabs.rocketMissionDesigner.result,
+        labels: {
+          ...enMessages.simulationLabs.rocketMissionDesigner.result.labels,
+          totalIdealDeltaV: "Localized delta-v label",
+        },
+      },
+    };
+
+    render(
+      <RocketMissionDesignerView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={ROCKET_MISSION_DESIGNER_DEFAULT_RESULT}
+        initialState={DEFAULT_ROCKET_MISSION_DESIGNER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Rocket Designer" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized delta-v label")).toBeVisible();
+    expect(screen.getByText(ROCKET_MISSION_DESIGNER_DEFAULT_RESULT.model_note)).toBeVisible();
+    expect(screen.getByRole("link", { name: /Ideal Rocket Equation/i })).toBeVisible();
   });
 });

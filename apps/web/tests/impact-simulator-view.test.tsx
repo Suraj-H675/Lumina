@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ImpactSimulatorView } from "../src/components/impact-simulator-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_IMPACT_SIMULATOR_STATE } from "../src/lib/simulations/impact-simulator";
 import {
   IMPACT_SIMULATOR_DEFAULT_RESULT,
@@ -25,6 +27,8 @@ function renderView(invalid = false) {
       initialCalculation={IMPACT_SIMULATOR_DEFAULT_RESULT}
       initialState={DEFAULT_IMPACT_SIMULATOR_STATE}
       initialStateInvalid={invalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.impactSimulator}
     />,
   );
 }
@@ -107,5 +111,40 @@ describe("ImpactSimulatorView", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(/outside the reviewed large solid-rock v1 domain/i)).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting returned impact science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.impactSimulator,
+      header: {
+        ...enMessages.simulationLabs.impactSimulator.header,
+        title: "Localized Impact Simulator",
+      },
+      result: {
+        ...enMessages.simulationLabs.impactSimulator.result,
+        labels: {
+          ...enMessages.simulationLabs.impactSimulator.result.labels,
+          kineticEnergy: "Localized kinetic energy",
+        },
+      },
+    };
+
+    render(
+      <ImpactSimulatorView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={IMPACT_SIMULATOR_DEFAULT_RESULT}
+        initialState={DEFAULT_IMPACT_SIMULATOR_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Impact Simulator" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized kinetic energy")).toBeVisible();
+    expect(screen.getByText(IMPACT_SIMULATOR_DEFAULT_RESULT.uncertainty_note)).toBeVisible();
+    expect(screen.getByRole("link", { name: /Earth Impact Effects Program/i })).toBeVisible();
   });
 });

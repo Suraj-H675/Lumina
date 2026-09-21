@@ -1,6 +1,13 @@
 import type { RocketMissionDesignerCalculationResponse } from "@lumina/api-client";
 
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RocketMissionDesignerMessages } from "../lib/i18n/messages/types";
+import {
   ROCKET_MISSION_DESIGNER_DEFINITION,
   ROCKET_MISSION_DESIGNER_SOURCES,
   type RocketMissionDesignerState,
@@ -10,17 +17,24 @@ type RocketMissionDesignerNoScriptProps = Readonly<{
   initialState: RocketMissionDesignerState;
   initialStateInvalid: boolean;
   initialCalculation: RocketMissionDesignerCalculationResponse | null;
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages;
 }>;
 
-function numeric(value: number, unit = ""): string {
-  const formatted =
-    Math.abs(value) >= 1e6 || (Math.abs(value) > 0 && Math.abs(value) < 1e-3)
-      ? value.toExponential(5)
-      : value.toLocaleString("en", { maximumSignificantDigits: 7 });
+function numeric(value: number, locale: PublishedLocale, unit = ""): string {
+  let formatted: string;
+  if (value === 0) {
+    formatted = formatLocaleNumber(0, locale, { useGrouping: false });
+  } else if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(5).split("e");
+    formatted = `${formatLocaleFixedNumber(Number(mantissa), 5, locale)}e${exponent}`;
+  } else {
+    formatted = formatLocaleNumber(value, locale, { maximumSignificantDigits: 7 });
+  }
   return unit ? `${formatted} ${unit}` : formatted;
 }
 
-function SourceList() {
+function SourceList({ messages }: Readonly<{ messages: RocketMissionDesignerMessages["model"] }>) {
   return (
     <ul>
       {ROCKET_MISSION_DESIGNER_DEFINITION.references.map((sourceId) => {
@@ -30,7 +44,7 @@ function SourceList() {
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <a href={source.url} rel="noreferrer">
                 {source.title} — {source.organization_or_authors}
@@ -47,49 +61,54 @@ export function RocketMissionDesignerNoScript({
   initialState,
   initialStateInvalid,
   initialCalculation,
+  locale,
+  messages,
 }: RocketMissionDesignerNoScriptProps) {
   return (
     <noscript>
       <article>
         <header>
-          <p>Phase 7 / Rocket / Mission Designer</p>
-          <h1>Rocket / Mission Designer</h1>
-          <p>
-            Explore a source-backed ideal staged-rocket teaching model. Lumina&apos;s Python
-            astronomy domain owns stage bookkeeping, ideal delta-v, surface-gravity TWR references,
-            payload sensitivity, and velocity-reference comparisons.
-          </p>
+          <p>{messages.noScript.eyebrow}</p>
+          <h1>{messages.header.title}</h1>
+          <p>{messages.noScript.intro}</p>
         </header>
         {initialStateInvalid ? (
           <section aria-labelledby="rocket-nojs-invalid">
-            <h2 id="rocket-nojs-invalid">Shared rocket state rejected</h2>
-            <p>The reviewed synthetic two-stage teaching preset is shown instead.</p>
+            <h2 id="rocket-nojs-invalid">{messages.invalidState.title}</h2>
+            <p>{messages.invalidState.description}</p>
           </section>
         ) : null}
         <section aria-labelledby="rocket-nojs-input">
-          <h2 id="rocket-nojs-input">Requested teaching vehicle</h2>
-          <p>Surface-gravity reference body: {initialState.gravity_body}</p>
-          <p>Velocity reference: {initialState.delta_v_reference_id}</p>
-          <p>Payload: {numeric(initialState.payload_mass_kg, "kg")}</p>
+          <h2 id="rocket-nojs-input">{messages.noScript.requestedTitle}</h2>
+          <p>
+            {messages.noScript.stateLabels.gravityBody}: {initialState.gravity_body}
+          </p>
+          <p>
+            {messages.noScript.stateLabels.reference}: {initialState.delta_v_reference_id}
+          </p>
+          <p>
+            {messages.noScript.stateLabels.payload}:{" "}
+            {numeric(initialState.payload_mass_kg, locale, "kg")}
+          </p>
           <table>
-            <caption>Submitted stages in ignition order.</caption>
+            <caption>{messages.noScript.inputCaption}</caption>
             <thead>
               <tr>
-                <th scope="col">Stage</th>
-                <th scope="col">Dry mass kg</th>
-                <th scope="col">Propellant kg</th>
-                <th scope="col">Isp s</th>
-                <th scope="col">Thrust N</th>
+                <th scope="col">{messages.noScript.inputHeaders.stage}</th>
+                <th scope="col">{messages.noScript.inputHeaders.dryMass}</th>
+                <th scope="col">{messages.noScript.inputHeaders.propellant}</th>
+                <th scope="col">{messages.noScript.inputHeaders.isp}</th>
+                <th scope="col">{messages.noScript.inputHeaders.thrust}</th>
               </tr>
             </thead>
             <tbody>
               {initialState.stages.map((stage, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
-                  <td>{numeric(stage.dry_mass_kg)}</td>
-                  <td>{numeric(stage.propellant_mass_kg)}</td>
-                  <td>{numeric(stage.specific_impulse_s)}</td>
-                  <td>{numeric(stage.thrust_n)}</td>
+                  <td>{numeric(stage.dry_mass_kg, locale)}</td>
+                  <td>{numeric(stage.propellant_mass_kg, locale)}</td>
+                  <td>{numeric(stage.specific_impulse_s, locale)}</td>
+                  <td>{numeric(stage.thrust_n, locale)}</td>
                 </tr>
               ))}
             </tbody>
@@ -97,92 +116,99 @@ export function RocketMissionDesignerNoScript({
         </section>
         {initialCalculation === null ? (
           <section aria-labelledby="rocket-nojs-unavailable">
-            <h2 id="rocket-nojs-unavailable">No canonical result available</h2>
-            <p>
-              No browser-generated delta-v, staging, TWR, payload trade-off, or mission comparison
-              is substituted.
-            </p>
+            <h2 id="rocket-nojs-unavailable">{messages.noScript.unavailableTitle}</h2>
+            <p>{messages.noScript.unavailableDescription}</p>
           </section>
         ) : (
           <>
             <section aria-labelledby="rocket-nojs-result">
-              <h2 id="rocket-nojs-result">Canonical ideal staged result</h2>
-              <p>Model version: {initialCalculation.model_version}</p>
+              <h2 id="rocket-nojs-result">{messages.noScript.resultTitle}</h2>
               <p>
-                Total ideal delta-v: {numeric(initialCalculation.total_ideal_delta_v_m_s, "m/s")}
+                {messages.noScript.modelVersion}: {initialCalculation.model_version}
               </p>
               <p>
-                Selected surface gravity:{" "}
-                {numeric(initialCalculation.selected_surface_gravity_m_s2, "m/s²")}
+                {messages.noScript.resultLabels.totalIdealDeltaV}:{" "}
+                {numeric(initialCalculation.total_ideal_delta_v_m_s, locale, "m/s")}
+              </p>
+              <p>
+                {messages.noScript.resultLabels.selectedGravity}:{" "}
+                {numeric(initialCalculation.selected_surface_gravity_m_s2, locale, "m/s²")}
               </p>
               <table>
-                <caption>Python-returned stage results.</caption>
+                <caption>{messages.noScript.stageCaption}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Stage</th>
-                    <th scope="col">Ignition mass kg</th>
-                    <th scope="col">Burnout mass kg</th>
-                    <th scope="col">Ideal Δv m/s</th>
-                    <th scope="col">Surface-reference TWR</th>
+                    <th scope="col">{messages.noScript.resultStageHeaders.stage}</th>
+                    <th scope="col">{messages.noScript.resultStageHeaders.ignitionMass}</th>
+                    <th scope="col">{messages.noScript.resultStageHeaders.burnoutMass}</th>
+                    <th scope="col">{messages.noScript.resultStageHeaders.idealDeltaV}</th>
+                    <th scope="col">{messages.noScript.resultStageHeaders.twr}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {initialCalculation.stages.map((stage) => (
                     <tr key={stage.index}>
                       <td>{stage.index}</td>
-                      <td>{numeric(stage.ignition_mass_kg)}</td>
-                      <td>{numeric(stage.burnout_before_jettison_mass_kg)}</td>
-                      <td>{numeric(stage.ideal_delta_v_m_s)}</td>
-                      <td>{numeric(stage.surface_gravity_thrust_to_weight)}</td>
+                      <td>{numeric(stage.ignition_mass_kg, locale)}</td>
+                      <td>{numeric(stage.burnout_before_jettison_mass_kg, locale)}</td>
+                      <td>{numeric(stage.ideal_delta_v_m_s, locale)}</td>
+                      <td>{numeric(stage.surface_gravity_thrust_to_weight, locale)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               <p>
-                Launch mass: {numeric(initialCalculation.mass_fractions.launch_mass_kg, "kg")};
-                propellant fraction:{" "}
-                {numeric(initialCalculation.mass_fractions.propellant_fraction_of_launch_mass)};
-                payload fraction:{" "}
-                {numeric(initialCalculation.mass_fractions.payload_fraction_of_launch_mass)}.
+                {messages.noScript.resultLabels.launchMass}:{" "}
+                {numeric(initialCalculation.mass_fractions.launch_mass_kg, locale, "kg")};{" "}
+                {messages.noScript.resultLabels.propellantFraction}:{" "}
+                {numeric(
+                  initialCalculation.mass_fractions.propellant_fraction_of_launch_mass,
+                  locale,
+                )}
+                ; {messages.noScript.resultLabels.payloadFraction}:{" "}
+                {numeric(initialCalculation.mass_fractions.payload_fraction_of_launch_mass, locale)}
+                .
               </p>
             </section>
             <section aria-labelledby="rocket-nojs-payload">
-              <h2 id="rocket-nojs-payload">Fixed payload sensitivity</h2>
-              <p>
-                These returned points keep the submitted stages fixed. They are not an optimizer or
-                design recommendation.
-              </p>
+              <h2 id="rocket-nojs-payload">{messages.noScript.payloadTitle}</h2>
+              <p>{messages.noScript.payloadDescription}</p>
               <table>
-                <caption>Python-returned payload trade-off points.</caption>
+                <caption>{messages.noScript.payloadCaption}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Payload multiplier</th>
-                    <th scope="col">Payload kg</th>
-                    <th scope="col">Total ideal Δv m/s</th>
+                    <th scope="col">{messages.payload.headers.multiplier}</th>
+                    <th scope="col">{messages.payload.headers.payload}</th>
+                    <th scope="col">{messages.payload.headers.totalDeltaV}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {initialCalculation.payload_tradeoff.map((point) => (
                     <tr key={point.payload_multiplier}>
-                      <td>{numeric(point.payload_multiplier)}</td>
-                      <td>{numeric(point.payload_mass_kg)}</td>
-                      <td>{numeric(point.total_ideal_delta_v_m_s)}</td>
+                      <td>{numeric(point.payload_multiplier, locale)}</td>
+                      <td>{numeric(point.payload_mass_kg, locale)}</td>
+                      <td>{numeric(point.total_ideal_delta_v_m_s, locale)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </section>
             <section aria-labelledby="rocket-nojs-reference">
-              <h2 id="rocket-nojs-reference">Educational velocity reference</h2>
+              <h2 id="rocket-nojs-reference">{messages.noScript.referenceTitle}</h2>
               <p>{initialCalculation.reference_comparison.label}</p>
               <p>
-                Reference value:{" "}
-                {numeric(initialCalculation.reference_comparison.reference_value_m_s, "m/s")}
+                {messages.referenceResult.labels.value}:{" "}
+                {numeric(
+                  initialCalculation.reference_comparison.reference_value_m_s,
+                  locale,
+                  "m/s",
+                )}
               </p>
               <p>
-                Ideal delta-v difference:{" "}
+                {messages.noScript.referenceDifference}:{" "}
                 {numeric(
                   initialCalculation.reference_comparison.ideal_delta_v_difference_m_s,
+                  locale,
                   "m/s",
                 )}
               </p>
@@ -192,16 +218,16 @@ export function RocketMissionDesignerNoScript({
           </>
         )}
         <section aria-labelledby="rocket-nojs-model">
-          <h2 id="rocket-nojs-model">Model contract and provenance</h2>
+          <h2 id="rocket-nojs-model">{messages.model.title}</h2>
           <p>{ROCKET_MISSION_DESIGNER_DEFINITION.default_preset}</p>
-          <h3>Limitations</h3>
+          <h3>{messages.model.limitations}</h3>
           <ul>
             {ROCKET_MISSION_DESIGNER_DEFINITION.limitations.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <h3>Reviewed sources</h3>
-          <SourceList />
+          <h3>{messages.model.reviewedSources}</h3>
+          <SourceList messages={messages.model} />
         </section>
       </article>
     </noscript>

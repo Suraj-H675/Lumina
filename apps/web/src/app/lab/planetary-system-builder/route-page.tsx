@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { PlanetarySystemBuilderEnhanced } from "../../../components/planetary-system-builder-enhanced";
 import { PlanetarySystemBuilderNoScript } from "../../../components/planetary-system-builder-no-script";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type { PlanetarySystemBuilderMessages } from "../../../lib/i18n/messages/types";
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadPlanetarySystemBuilderCalculation } from "../../../lib/server/planetary-system-builder";
 import {
@@ -10,16 +12,19 @@ import {
   type PlanetarySystemBuilderState,
 } from "../../../lib/simulations/planetary-system-builder";
 
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/lab/planetary-system-builder" },
-  title: "Planetary System Builder",
-  description:
-    "Build a deterministic circular non-interacting planetary system and inspect source-backed Keplerian periods, a conservative reference habitable-zone band, and limited pairwise mutual-Hill spacing diagnostics.",
-};
+export function createPlanetarySystemBuilderMetadata(
+  messages: PlanetarySystemBuilderMessages,
+): Metadata {
+  return {
+    alternates: { canonical: "/lab/planetary-system-builder" },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type PlanetarySystemBuilderPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: PlanetarySystemBuilderMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
@@ -36,6 +41,8 @@ function stateFromSearchParams(
 }
 
 export default async function PlanetarySystemBuilderPage({
+  locale,
+  messages,
   searchParams,
 }: PlanetarySystemBuilderPageProps) {
   const requested = stateFromSearchParams(await searchParams);
@@ -51,12 +58,16 @@ export default async function PlanetarySystemBuilderPage({
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
       <PlanetarySystemBuilderEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}
+        locale={locale}
+        messages={messages}
       />
     </>
   );

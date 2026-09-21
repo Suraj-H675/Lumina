@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import type { RocketMissionDesignerCalculationResponse } from "@lumina/api-client";
 
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { RocketMissionDesignerMessages } from "../lib/i18n/messages/types";
 import type { RocketMissionDesignerState } from "../lib/simulations/rocket-mission-designer";
 
 const InteractiveRocketMissionDesigner = dynamic(
@@ -15,6 +17,8 @@ type RocketMissionDesignerEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: RocketMissionDesignerCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: RocketMissionDesignerMessages;
 }>;
 
 export function RocketMissionDesignerEnhanced(props: RocketMissionDesignerEnhancedProps) {

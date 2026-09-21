@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
 from datetime import datetime, timedelta
+from decimal import Decimal
 from time import monotonic
 from typing import Any, cast
 from uuid import UUID, uuid4
@@ -588,6 +589,68 @@ async def test_ineligible_rows_and_attempt_boundaries(
         (exhausted, "queued", 5),
         (boundary, "running", 5),
     ]
+
+
+@pytest.mark.asyncio
+async def test_phase8d_oldest_eligible_queue_age_is_measurable_without_worker_output(
+    claim_database_runtime: DatabaseRuntime,
+    integration_settings: IntegrationTestSettings,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Measure eligible queue age from PostgreSQL server time without exposing job evidence."""
+    anchor = _database_anchor(integration_settings)
+    eligible = UUID("00000000-0000-4000-8000-000000000040")
+    future = UUID("00000000-0000-4000-8000-000000000050")
+    exhausted = UUID("00000000-0000-4000-8000-000000000060")
+    _seed_queued_with_fields(
+        integration_settings,
+        identifier=eligible,
+        priority=1,
+        available_at=anchor - timedelta(seconds=7),
+        created_at=anchor - timedelta(seconds=30),
+    )
+    _seed_queued_with_fields(
+        integration_settings,
+        identifier=future,
+        priority=10,
+        available_at=anchor + timedelta(hours=1),
+        created_at=anchor - timedelta(hours=1),
+    )
+    _seed_queued_with_fields(
+        integration_settings,
+        identifier=exhausted,
+        priority=20,
+        available_at=anchor - timedelta(seconds=30),
+        created_at=anchor - timedelta(hours=1),
+        attempts=5,
+    )
+
+    rows = _execute(
+        integration_settings,
+        "SELECT EXTRACT(EPOCH FROM (transaction_timestamp() - MIN(available_at))) * 1000 "
+        "FROM public.job WHERE status = 'queued' "
+        "AND available_at <= transaction_timestamp() AND attempts < max_attempts",
+    )
+    age_value = rows[0][0]
+    assert not isinstance(age_value, bool)
+    assert isinstance(age_value, (int, float, Decimal))
+    queue_age_ms = float(age_value)
+    assert queue_age_ms >= 6_500
+
+    with capsys.disabled():
+        print(f"PHASE8D_OLDEST_ELIGIBLE_QUEUE_AGE_MS={queue_age_ms:.3f}")
+
+    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.phase8d-age")
+    assert isinstance(claimed, ClaimedJob)
+    assert claimed.id == eligible
+
+    after_claim = _execute(
+        integration_settings,
+        "SELECT EXTRACT(EPOCH FROM (transaction_timestamp() - MIN(available_at))) * 1000 "
+        "FROM public.job WHERE status = 'queued' "
+        "AND available_at <= transaction_timestamp() AND attempts < max_attempts",
+    )
+    assert after_claim == [(None,)]
 
 
 @pytest.mark.asyncio

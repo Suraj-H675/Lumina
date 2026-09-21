@@ -62,6 +62,17 @@ summary:focus-visible,
   outline-offset: 0.1875rem;
 }
 
+.scale-explorer-enhanced-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+@media (scripting: none) {
+  .scale-explorer-enhanced-shell {
+    min-height: 0;
+  }
+}
+
 button {
   cursor: pointer;
 }

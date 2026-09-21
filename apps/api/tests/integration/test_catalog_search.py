@@ -2,18 +2,24 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator, Callable, Iterator
+from math import ceil
+from time import perf_counter_ns
 from typing import Final
 from uuid import UUID
 
+import httpx
 import pytest
 import pytest_asyncio
+from fastapi import FastAPI
+from lumina.bootstrap import create_app
 from lumina.catalog.application.search import CatalogSearchService
 from lumina.catalog.domain.identity import ALIAS_NORMALIZATION_VERSION, normalize_alias
 from lumina.catalog.domain.read import CatalogEntityType, CatalogReadValidationRejected
 from lumina.catalog.domain.search import SearchMatchReason, SearchResult
 from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
-from lumina.settings import IntegrationTestSettings
+from lumina.settings import AppSettings, IntegrationTestSettings
 from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
 from sqlalchemy import URL, Connection, create_engine, text
 from sqlalchemy.engine import make_url
@@ -173,6 +179,12 @@ def _slugs(service_result: tuple[SearchResult, ...]) -> list[str]:
     return [item.entity.slug for item in service_result]
 
 
+def _percentile_ms(samples: list[float], fraction: float) -> float:
+    ordered = sorted(samples)
+    index = max(0, min(len(ordered) - 1, ceil(len(ordered) * fraction) - 1))
+    return ordered[index]
+
+
 @pytest.mark.asyncio
 async def test_exact_slug_and_exact_canonical_name_tiers_rank_in_contract_order(
     search_service: CatalogSearchService,
@@ -273,6 +285,60 @@ async def test_suggest_returns_summaries_capped_at_ten_and_never_fuzzy(
     results = await search_service.suggest("fixture", limit=10)
     assert 0 < len(results) <= 10
     assert all(item.match_reason in _SUGGEST_TIERS for item in results)
+
+
+@pytest.mark.asyncio
+async def test_phase8d_catalog_search_api_reports_p50_p95_latency(
+    integration_settings: IntegrationTestSettings,
+    fixture_search_entities: None,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Measure the real ASGI -> service -> PostgreSQL search path without freezing a budget yet."""
+    del fixture_search_entities
+    app: FastAPI = create_app(
+        AppSettings.model_validate(
+            {
+                "LUMINA_ENV": "test",
+                "LUMINA_DATABASE_URL": integration_settings.test_database_url.get_secret_value(),
+            }
+        )
+    )
+    workloads = (
+        ("exact", "/api/v1/search", {"q": "fixture-andromeda"}),
+        ("prefix", "/api/v1/search", {"q": "fixture alpha hy"}),
+        ("fuzzy", "/api/v1/search", {"q": "fixture alpja lyaae"}),
+        ("suggest", "/api/v1/search/suggest", {"q": "Alpha Lyr"}),
+    )
+    metrics: dict[str, dict[str, float]] = {}
+
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            for label, path, params in workloads:
+                for _ in range(5):
+                    warmup = await client.get(path, params=params)
+                    assert warmup.status_code == 200
+                    payload = warmup.json()
+                    assert isinstance(payload, dict)
+                    assert payload.get("items")
+
+                samples: list[float] = []
+                for _ in range(25):
+                    started = perf_counter_ns()
+                    response = await client.get(path, params=params)
+                    samples.append((perf_counter_ns() - started) / 1_000_000)
+                    assert response.status_code == 200
+                    payload = response.json()
+                    assert isinstance(payload, dict)
+                    assert payload.get("items")
+
+                metrics[label] = {
+                    "p50_ms": _percentile_ms(samples, 0.50),
+                    "p95_ms": _percentile_ms(samples, 0.95),
+                }
+
+    with capsys.disabled():
+        print("PHASE8D_CATALOG_API_LATENCY=" + json.dumps(metrics, sort_keys=True))
 
 
 _SUGGEST_TIERS = frozenset(

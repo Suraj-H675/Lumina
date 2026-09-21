@@ -37,12 +37,14 @@ export function ScaleExplorerEnhanced({
 }: ScaleExplorerEnhancedProps) {
   return (
     <PresentationModeMessagesProvider messages={presentationModeMessages}>
-      <InteractiveScaleExplorer
-        initialState={initialState}
-        initialStateInvalid={initialStateInvalid}
-        locale={locale}
-        messages={messages}
-      />
+      <div className="scale-explorer-enhanced-shell">
+        <InteractiveScaleExplorer
+          initialState={initialState}
+          initialStateInvalid={initialStateInvalid}
+          locale={locale}
+          messages={messages}
+        />
+      </div>
     </PresentationModeMessagesProvider>
   );
 }

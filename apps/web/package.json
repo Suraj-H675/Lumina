@@ -4,7 +4,7 @@
   "private": true,
   "description": "Lumina accessible web foundation",
   "scripts": {
-    "build": "next build && node ../../scripts/ci/check_wwt_bundle_isolation.mjs",
+    "build": "next build && node ../../scripts/ci/check_wwt_bundle_isolation.mjs && node ../../scripts/ci/check_web_performance_budgets.mjs",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",

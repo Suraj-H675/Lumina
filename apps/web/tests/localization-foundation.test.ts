@@ -625,6 +625,32 @@ describe("Phase 8C localization foundation", () => {
     expect(seasons.noScript.result.distanceSummary).toContain("{flux}");
     expect(seasons.result.comparisonSummary).toContain("{latitude}");
     expect(seasons.result.description).toContain("{modelVersion}");
+
+    const telescope = enMessages.simulationLabs.telescopeBuilder;
+    expect(telescope.controls.range).toContain("{unit}");
+    expect(telescope.controls.range).toContain("{minimum}");
+    expect(telescope.controls.range).toContain("{maximum}");
+    expect(telescope.controls.sliderAriaLabel).toContain("{label}");
+    expect(telescope.controls.sliderAriaValue).toContain("{value}");
+    expect(telescope.controls.sliderAriaValue).toContain("{unit}");
+    expect(telescope.failures.invalidFinite).toContain("{field}");
+    expect(telescope.figures.fieldFit.targetExtent).toContain("{percent}");
+    expect(telescope.figures.opticalTrain.description).toContain("{modifier}");
+    expect(telescope.figures.opticalTrain.effectiveFocalLength).toContain("{value}");
+    expect(telescope.figures.opticalTrain.nativeFocalLength).toContain("{value}");
+    expect(telescope.figures.opticalTrain.schematicType).toContain("{telescopeType}");
+    expect(telescope.model.defaultPresetSummary).toContain("{presets}");
+    expect(telescope.model.inputFieldDetails).toContain("{unit}");
+    expect(telescope.model.inputFieldDetails).toContain("{range}");
+    expect(telescope.model.inputFieldDetails).toContain("{defaultValue}");
+    expect(telescope.model.sourceUnavailable).toContain("{sourceId}");
+    expect(telescope.noScript.model.defaultPresetSummary).toContain("{presets}");
+    expect(telescope.noScript.model.modelVersionSummary).toContain("{modelVersion}");
+    expect(telescope.noScript.model.modelVersionSummary).toContain("{schemaVersion}");
+    expect(telescope.result.description).toContain("{modelVersion}");
+    expect(telescope.result.targetFitFits).toContain("{targetFit}");
+    expect(telescope.result.targetFitDoesNotFit).toContain("{targetFit}");
+    expect(telescope.result.typeSummary).toContain("{telescopeType}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

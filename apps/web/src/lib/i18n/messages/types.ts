@@ -2879,6 +2879,218 @@ export type SeasonsSimulatorMessages = Readonly<{
   }>;
 }>;
 
+export type TelescopeBuilderMessages = Readonly<{
+  actions: Readonly<{
+    calculate: string;
+    reset: string;
+    resetDefault: string;
+    share: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    fieldsets: Readonly<{
+      eyepieceAndTarget: string;
+      modifier: string;
+      telescope: string;
+    }>;
+    fields: Readonly<{
+      aperture: string;
+      eyepieceApparentField: string;
+      eyepieceFocalLength: string;
+      modifierFactor: string;
+      targetAngularExtent: string;
+      telescopeFocalLength: string;
+    }>;
+    helps: Readonly<{
+      aperture: string;
+      eyepieceApparentField: string;
+      eyepieceFocalLength: string;
+      modifierFactorBarlow: string;
+      modifierFactorNone: string;
+      modifierFactorReducer: string;
+      targetAngularExtent: string;
+      telescopeFocalLength: string;
+    }>;
+    modifier: Readonly<{
+      description: string;
+      label: string;
+      options: Readonly<{
+        barlow: string;
+        none: string;
+        reducer: string;
+      }>;
+    }>;
+    range: string;
+    sliderAriaLabel: string;
+    sliderAriaValue: string;
+    telescopeType: Readonly<{
+      description: string;
+      label: string;
+      options: Readonly<{
+        catadioptric: string;
+        reflector: string;
+        refractor: string;
+      }>;
+    }>;
+    title: string;
+  }>;
+  failures: Readonly<{
+    initialUnavailable: string;
+    invalidConfiguration: string;
+    invalidFinite: string;
+    noApiOrigin: string;
+    rejected: string;
+    resultMismatch: string;
+    serviceUnavailable: string;
+  }>;
+  figures: Readonly<{
+    fieldFit: Readonly<{
+      approximateField: string;
+      caption: string;
+      description: string;
+      targetBeyondField: string;
+      targetExtent: string;
+      title: string;
+    }>;
+    opticalTrain: Readonly<{
+      aperture: string;
+      caption: string;
+      description: string;
+      effectiveFocalLength: string;
+      eyepiece: string;
+      nativeFocalLength: string;
+      schematicType: string;
+      telescope: string;
+      title: string;
+    }>;
+    sectionDescription: string;
+    sectionTitle: string;
+  }>;
+  footer: Readonly<{
+    link: string;
+    prefix: string;
+  }>;
+  header: Readonly<{
+    breadcrumbAriaLabel: string;
+    eyebrow: string;
+    intro: string;
+    labBreadcrumb: string;
+    title: string;
+  }>;
+  invalidState: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    defaultPresetSummary: string;
+    equations: string;
+    frozenConstants: string;
+    inputFieldDetails: string;
+    inputsAndValidity: string;
+    limitations: string;
+    reviewedSources: string;
+    sourceUnavailable: string;
+    title: string;
+  }>;
+  noScript: Readonly<{
+    currentState: Readonly<{
+      aperture: string;
+      eyepieceApparentField: string;
+      eyepieceFocalLength: string;
+      modifier: string;
+      targetAngularExtent: string;
+      telescopeFocalLength: string;
+      telescopeType: string;
+      title: string;
+    }>;
+    eyebrow: string;
+    intro: string;
+    invalidDescription: string;
+    model: Readonly<{
+      defaultPresetSummary: string;
+      equations: string;
+      frozenConstantsLabel: string;
+      limitations: string;
+      modelVersionLabel: string;
+      modelVersionSummary: string;
+      references: string;
+      title: string;
+      validityAndAssumptions: string;
+    }>;
+    result: Readonly<{
+      caption: string;
+      labels: Readonly<{
+        collectingAreaRatio: string;
+        dawesReference: string;
+        effectiveFocalLength: string;
+        effectiveFocalRatio: string;
+        exitPupil: string;
+        magnification: string;
+        nativeFocalRatio: string;
+        rayleighReference: string;
+        targetAngularSize: string;
+        targetFieldFraction: string;
+        targetFit: string;
+        trueField: string;
+      }>;
+      noWarnings: string;
+      title: string;
+      warningsTitle: string;
+    }>;
+    unavailableDescription: string;
+    unavailableTitle: string;
+  }>;
+  objective: Readonly<{
+    thinkAbout: string;
+    title: string;
+  }>;
+  result: Readonly<{
+    description: string;
+    labels: Readonly<{
+      collectingAreaRatio: string;
+      dawesReference: string;
+      effectiveFocalLength: string;
+      effectiveFocalRatio: string;
+      exitPupil: string;
+      magnification: string;
+      nativeFocalRatio: string;
+      rayleighReference: string;
+      targetAngularSize: string;
+      targetFieldFraction: string;
+      targetFit: string;
+      trueField: string;
+    }>;
+    noWarnings: string;
+    targetFitDoesNotFit: string;
+    targetFitFits: string;
+    title: string;
+    typeLabel: string;
+    typeSummary: string;
+    unavailableDescription: string;
+    unavailableTitle: string;
+    warningsTitle: string;
+  }>;
+  share: Readonly<{
+    copied: string;
+    ready: string;
+    reset: string;
+    tooLong: string;
+    urlLabel: string;
+  }>;
+  status: Readonly<{
+    calculating: string;
+  }>;
+  table: Readonly<{
+    ariaLabel: string;
+    caption: string;
+    quantity: string;
+    value: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
   eclipseSimulator: EclipseSimulatorMessages;
@@ -2892,6 +3104,7 @@ export type SimulationLabMessages = Readonly<{
   seasonsSimulator: SeasonsSimulatorMessages;
   spectroscopyLab: SpectroscopyLabMessages;
   stellarLaboratory: StellarLaboratoryMessages;
+  telescopeBuilder: TelescopeBuilderMessages;
   transitMethod: TransitMethodMessages;
 }>;
 

@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
 
 import { TelescopeBuilderView } from "../src/components/telescope-builder-view";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import {
   DEFAULT_TELESCOPE_BUILDER_STATE,
   type TelescopeType,
@@ -97,6 +99,8 @@ function renderView(
       initialCalculation={initialCalculation}
       initialState={initialState}
       initialStateInvalid={initialStateInvalid}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.telescopeBuilder}
     />,
   );
 }
@@ -184,5 +188,43 @@ describe("TelescopeBuilderView", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       /reset to the balanced-reference default/i,
     );
+  });
+
+  it("localizes interface chrome without rewriting canonical telescope science or sources", () => {
+    const messages = {
+      ...enMessages.simulationLabs.telescopeBuilder,
+      header: {
+        ...enMessages.simulationLabs.telescopeBuilder.header,
+        title: "Localized Telescope Builder",
+      },
+      result: {
+        ...enMessages.simulationLabs.telescopeBuilder.result,
+        labels: {
+          ...enMessages.simulationLabs.telescopeBuilder.result.labels,
+          magnification: "Localized magnification",
+        },
+      },
+    };
+
+    render(
+      <TelescopeBuilderView
+        apiOrigin="http://127.0.0.1:8000"
+        initialCalculation={DEFAULT_RESULT}
+        initialState={DEFAULT_TELESCOPE_BUILDER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Telescope Builder" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized magnification")).toBeVisible();
+    expect(screen.getByTestId("telescope-results-table")).toHaveTextContent("fits");
+    expect(
+      screen.getByRole("link", { name: "How to Choose Your Telescope Magnification" }),
+    ).toBeVisible();
+    expect(screen.getByText(/not a product recommendation or a guaranteed view/i)).toBeVisible();
   });
 });

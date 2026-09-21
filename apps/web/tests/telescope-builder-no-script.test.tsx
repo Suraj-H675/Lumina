@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
 
 import { TelescopeBuilderNoScript } from "../src/components/telescope-builder-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_TELESCOPE_BUILDER_STATE } from "../src/lib/simulations/telescope-builder";
 
 const RESULT: TelescopeBuilderCalculationResponse = {
@@ -41,6 +43,8 @@ describe("TelescopeBuilderNoScript", () => {
         initialCalculation={RESULT}
         initialState={DEFAULT_TELESCOPE_BUILDER_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.telescopeBuilder}
       />,
     );
     const tableBody = markup.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";
@@ -60,6 +64,8 @@ describe("TelescopeBuilderNoScript", () => {
         initialCalculation={null}
         initialState={DEFAULT_TELESCOPE_BUILDER_STATE}
         initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.telescopeBuilder}
       />,
     );
 
@@ -77,6 +83,8 @@ describe("TelescopeBuilderNoScript", () => {
         }}
         initialState={DEFAULT_TELESCOPE_BUILDER_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.telescopeBuilder}
       />,
     );
 

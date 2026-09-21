@@ -3727,6 +3727,246 @@ export const enMessages = {
         selectedLatitude: "Selected latitude",
       },
     },
+    telescopeBuilder: {
+      actions: {
+        calculate: "Calculate",
+        reset: "Reset",
+        resetDefault: "Reset to default state",
+        share: "Share state",
+      },
+      controls: {
+        description:
+          "Canonical units are millimetres, degrees, and arcminutes. These continuous inputs are hypothetical model parameters, not a commercial equipment catalogue. Changes stay in a draft until you activate Calculate.",
+        fieldsets: {
+          eyepieceAndTarget: "Eyepiece and target",
+          modifier: "Optional focal-length modifier",
+          telescope: "Telescope objective and focal length",
+        },
+        fields: {
+          aperture: "Aperture",
+          eyepieceApparentField: "Eyepiece apparent field",
+          eyepieceFocalLength: "Eyepiece focal length",
+          modifierFactor: "Effective modifier factor",
+          targetAngularExtent: "Target angular extent",
+          telescopeFocalLength: "Native telescope focal length",
+        },
+        helps: {
+          aperture:
+            "Clear nominal objective diameter. The 20–1000 mm range is a Lumina v1 guardrail, not a statement about all telescopes.",
+          eyepieceApparentField:
+            "Nominal eyepiece apparent field. The simple AFOV/magnification field is approximate because field-stop geometry is not modeled.",
+          eyepieceFocalLength:
+            "Hypothetical eyepiece focal length. Shorter values produce more magnification for the same effective telescope focal length.",
+          modifierFactorBarlow: "Barlow teaching range: 1.1× through 5×.",
+          modifierFactorNone: "None requires exactly 1×.",
+          modifierFactorReducer: "Reducer teaching range: 0.5× through 0.95×.",
+          targetAngularExtent:
+            "One scalar angular extent for comparison with the approximate field diameter; it is not brightness, area, shape, or observability.",
+          telescopeFocalLength:
+            "Native telescope focal length. The native focal ratio F/D must also remain between f/2 and f/30 in v1.",
+        },
+        modifier: {
+          description:
+            "Choose at most one. The factor is supplied as the effective focal-length multiplier; v1 does not derive it from physical spacing.",
+          label: "Optical modifier kind",
+          options: {
+            barlow: "Barlow",
+            none: "None",
+            reducer: "Focal reducer",
+          },
+        },
+        range: "{unit}; {minimum} to {maximum}",
+        sliderAriaLabel: "{label} slider",
+        sliderAriaValue: "{value} {unit}",
+        telescopeType: {
+          description:
+            "Descriptive only in v1; changing this selection does not change numeric outputs.",
+          label: "Telescope type",
+          options: {
+            catadioptric: "Catadioptric",
+            reflector: "Reflector",
+            refractor: "Refractor",
+          },
+        },
+        title: "Choose hypothetical optical inputs",
+      },
+      failures: {
+        initialUnavailable: "Calculation unavailable; no fallback result was substituted.",
+        invalidConfiguration:
+          "This configuration is outside the v1 input ranges or modifier rules. Check the numeric fields and selected modifier before calculating.",
+        invalidFinite: "{field} must be a finite number.",
+        noApiOrigin: "Calculation unavailable because no safe API origin is configured.",
+        rejected:
+          "The canonical Telescope Builder model rejected this configuration. Check the native focal ratio, modifier factor, and magnification; the last valid result remains visible.",
+        resultMismatch: "The calculation response was not accepted as the requested model state.",
+        serviceUnavailable: "Calculation unavailable; the last valid result remains visible.",
+      },
+      figures: {
+        fieldFit: {
+          approximateField: "approximate field",
+          caption:
+            "The field circle and target marker are proportional schematic geometry only. A target that fits the approximate angular field is not thereby visible, resolved, bright, or well framed.",
+          description:
+            "A schematic approximate field circle and a target extent marker. The numeric target field fraction is authoritative; the marker is not a target photograph or morphology.",
+          targetBeyondField: "target extends beyond field",
+          targetExtent: "target extent = {percent}% of field diameter",
+          title: "Approximate field and target extent comparison",
+        },
+        opticalTrain: {
+          aperture: "aperture",
+          caption:
+            "Optical train drawing is schematic, not to physical scale. The modifier represents the supplied effective factor; it is not a ray trace or a real product prescription.",
+          description:
+            "A schematic aperture, telescope tube, optional {modifier} modifier, and eyepiece. Native and effective focal lengths are written below; the drawing is not to physical scale.",
+          effectiveFocalLength: "{value} mm effective",
+          eyepiece: "eyepiece",
+          nativeFocalLength: "{value} mm native",
+          schematicType: "schematic only · {telescopeType} is descriptive in v1",
+          telescope: "telescope",
+          title: "Schematic visual optical train",
+        },
+        sectionDescription:
+          "These accessible SVGs are subordinate to the textual result. Their positions and shapes are normalized presentation transforms, not optical prescriptions or physical scale.",
+        sectionTitle: "Schematic geometry views",
+      },
+      footer: {
+        link: "open the Lab index",
+        prefix: "Explore another reviewed lab:",
+      },
+      header: {
+        breadcrumbAriaLabel: "Breadcrumb",
+        eyebrow: "Phase 3B / Vertical 3",
+        intro:
+          "Explore idealized visual-observing geometry: aperture, focal lengths, apparent field, modifiers, magnification, approximate field, exit pupil, and aperture-based reference limits. The result is not a product recommendation or a guaranteed view.",
+        labBreadcrumb: "Space Lab",
+        title: "Telescope Builder",
+      },
+      invalidState: {
+        description:
+          "Lumina rejected the model version, exact field set, value range, relational constraint, or canonical serialized form. The separately labelled default state is shown until you choose a new valid state.",
+        title: "The shared Telescope Builder state was not valid",
+      },
+      metadataDescription:
+        "Explore idealized visual-observing telescope, eyepiece, focal modifier, magnification, field, and exit-pupil geometry.",
+      metadataTitle: "Telescope Builder",
+      model: {
+        assumptions: "Assumptions and type disclosure",
+        defaultPresetSummary: "Default preset: {presets} (hypothetical, not a product).",
+        equations: "Equations and relationships",
+        frozenConstants: "Frozen constants",
+        inputFieldDetails: "{unit}; {range}; default {defaultValue}.",
+        inputsAndValidity: "Inputs and validity domain",
+        limitations: "Limitations",
+        reviewedSources: "Reviewed scientific sources",
+        sourceUnavailable: "Unavailable source record: {sourceId}",
+        title: "Model, assumptions, validity, and provenance",
+      },
+      noScript: {
+        currentState: {
+          aperture: "Aperture",
+          eyepieceApparentField: "Eyepiece apparent field",
+          eyepieceFocalLength: "Eyepiece focal length",
+          modifier: "Optical modifier",
+          targetAngularExtent: "Target angular extent",
+          telescopeFocalLength: "Native telescope focal length",
+          telescopeType: "Telescope type",
+          title: "Current model state",
+        },
+        eyebrow: "Phase 3B / Vertical 3",
+        intro:
+          "Explore an idealized visual-observing telescope and eyepiece geometry model without JavaScript. The canonical calculation is evaluated on the server through Lumina's read-only astronomy API.",
+        invalidDescription:
+          "The requested version, exact field set, value range, relational constraint, or serialized form was rejected. The displayed state is the separately labelled default reset state.",
+        model: {
+          defaultPresetSummary: "Default preset: {presets}.",
+          equations: "Equations",
+          frozenConstantsLabel: "Frozen constants:",
+          limitations: "Limitations",
+          modelVersionLabel: "Model version:",
+          modelVersionSummary:
+            "{modelVersion}; share schema version {schemaVersion}. These are idealized optical estimates, not guaranteed views, equipment recommendations, or imaging calculations.",
+          references: "References and provenance",
+          title: "Model, equations, assumptions, and provenance",
+          validityAndAssumptions: "Validity and assumptions",
+        },
+        result: {
+          caption:
+            "Canonical idealized visual-observing geometry; all values retain their stated units.",
+          labels: {
+            collectingAreaRatio: "Ideal collecting-area ratio vs 7 mm reference pupil",
+            dawesReference: "Dawes empirical double-star reference",
+            effectiveFocalLength: "Effective focal length",
+            effectiveFocalRatio: "Effective focal ratio",
+            exitPupil: "Exit pupil",
+            magnification: "Magnification",
+            nativeFocalRatio: "Native focal ratio",
+            rayleighReference: "Rayleigh clear-aperture reference",
+            targetAngularSize: "Target angular size",
+            targetFieldFraction: "Target field fraction",
+            targetFit: "Target fit",
+            trueField: "Approximate true field",
+          },
+          noWarnings: "No practical rules-of-thumb warnings for this configuration.",
+          title: "Canonical text and data result",
+          warningsTitle: "Rules-of-thumb warnings",
+        },
+        unavailableDescription:
+          "The Telescope Builder calculation service was unavailable. No fabricated or unrelated result was substituted.",
+        unavailableTitle: "Calculation unavailable",
+      },
+      objective: {
+        thinkAbout: "Think about:",
+        title: "What this lab demonstrates",
+      },
+      result: {
+        description:
+          "The result is calculated by {modelVersion} in the Python astronomy domain. Values below are learner-formatted; the API response keeps deterministic double-precision values.",
+        labels: {
+          collectingAreaRatio: "Ideal collecting-area ratio vs 7 mm reference pupil",
+          dawesReference: "Dawes empirical visual double-star reference",
+          effectiveFocalLength: "Effective focal length",
+          effectiveFocalRatio: "Effective focal ratio",
+          exitPupil: "Exit pupil",
+          magnification: "Magnification",
+          nativeFocalRatio: "Native focal ratio",
+          rayleighReference: "Rayleigh clear-circular-aperture reference",
+          targetAngularSize: "Target angular size",
+          targetFieldFraction: "Target field fraction",
+          targetFit: "Target fit",
+          trueField: "Approximate true field",
+        },
+        noWarnings: "No v1 practical rules-of-thumb warnings for this configuration.",
+        targetFitDoesNotFit:
+          "{targetFit} means only that the supplied scalar target extent is larger than the approximate field diameter.",
+        targetFitFits:
+          "{targetFit} means only that the supplied scalar target extent is no larger than the approximate field diameter.",
+        title: "Canonical model result",
+        typeLabel: "Type",
+        typeSummary:
+          "{telescopeType}. Numeric outputs are invariant across the three descriptive type labels in v1.",
+        unavailableDescription:
+          "No scientific fallback was substituted. Check the connection and calculate again.",
+        unavailableTitle: "Calculation unavailable",
+        warningsTitle: "Practical rules of thumb",
+      },
+      share: {
+        copied: "Share link copied. It contains only the versioned optical inputs.",
+        ready: "Share link ready below. Copy it manually; no personal data is included.",
+        reset: "Telescope Builder reset to the balanced-reference default.",
+        tooLong: "This state is too long to share safely.",
+        urlLabel: "Share URL:",
+      },
+      status: {
+        calculating: "Calculating the canonical model result…",
+      },
+      table: {
+        ariaLabel: "Telescope Builder canonical result table",
+        caption:
+          "Canonical numeric Telescope Builder outputs. The table is authoritative and independent of colour, animation, or SVG.",
+        quantity: "Quantity",
+        value: "Value",
+      },
+    },
     spectroscopyLab: {
       actions: {
         calculate: "Calculate spectrum",

@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 
 import { TelescopeBuilderEnhanced } from "../../../components/telescope-builder-enhanced";
 import { TelescopeBuilderNoScript } from "../../../components/telescope-builder-no-script";
-import type { PresentationModeMessages } from "../../../lib/i18n/messages/types";
+import type { PublishedLocale } from "../../../lib/i18n/locales";
+import type {
+  PresentationModeMessages,
+  TelescopeBuilderMessages,
+} from "../../../lib/i18n/messages/types";
 import {
   DEFAULT_TELESCOPE_BUILDER_STATE,
   decodeTelescopeBuilderState,
@@ -13,16 +17,19 @@ import { loadTelescopeBuilderCalculation } from "../../../lib/server/telescope-b
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  alternates: {
-    canonical: "/lab/telescope-builder",
-  },
-  title: "Telescope Builder",
-  description:
-    "Explore idealized visual-observing telescope, eyepiece, focal modifier, magnification, field, and exit-pupil geometry.",
-};
+export function createTelescopeBuilderMetadata(messages: TelescopeBuilderMessages): Metadata {
+  return {
+    alternates: {
+      canonical: "/lab/telescope-builder",
+    },
+    description: messages.metadataDescription,
+    title: messages.metadataTitle,
+  };
+}
 
 type TelescopeBuilderPageProps = Readonly<{
+  locale: PublishedLocale;
+  messages: TelescopeBuilderMessages;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
   presentationModeMessages: PresentationModeMessages;
 }>;
@@ -43,6 +50,8 @@ function stateFromSearchParams(
 }
 
 export default async function TelescopeBuilderPage({
+  locale,
+  messages,
   presentationModeMessages,
   searchParams,
 }: TelescopeBuilderPageProps) {
@@ -61,12 +70,16 @@ export default async function TelescopeBuilderPage({
         initialCalculation={initialCalculation}
         initialState={initialState}
         initialStateInvalid={stateInvalid}
+        locale={locale}
+        messages={messages}
       />
       <TelescopeBuilderEnhanced
         apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={initialState}
         initialStateInvalid={stateInvalid}
+        locale={locale}
+        messages={messages}
         presentationModeMessages={presentationModeMessages}
       />
     </>

@@ -4,7 +4,11 @@ import dynamic from "next/dynamic";
 
 import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
 
-import type { PresentationModeMessages } from "../lib/i18n/messages/types";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type {
+  PresentationModeMessages,
+  TelescopeBuilderMessages,
+} from "../lib/i18n/messages/types";
 import { PresentationModeMessagesProvider } from "../lib/i18n/presentation-mode-context";
 import type { TelescopeBuilderState } from "../lib/simulations/telescope-builder";
 
@@ -21,6 +25,8 @@ type TelescopeBuilderEnhancedProps = Readonly<{
   initialStateInvalid: boolean;
   initialCalculation: TelescopeBuilderCalculationResponse | null;
   apiOrigin: string | null;
+  locale: PublishedLocale;
+  messages: TelescopeBuilderMessages;
   presentationModeMessages: PresentationModeMessages;
 }>;
 
@@ -30,6 +36,8 @@ export function TelescopeBuilderEnhanced({
   initialStateInvalid,
   initialCalculation,
   apiOrigin,
+  locale,
+  messages,
   presentationModeMessages,
 }: TelescopeBuilderEnhancedProps) {
   return (
@@ -39,6 +47,8 @@ export function TelescopeBuilderEnhanced({
         initialCalculation={initialCalculation}
         initialState={initialState}
         initialStateInvalid={initialStateInvalid}
+        locale={locale}
+        messages={messages}
       />
     </PresentationModeMessagesProvider>
   );

@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { ScaleExplorerNoScript } from "../src/components/scale-explorer-no-script";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import {
   DEFAULT_SCALE_EXPLORER_STATE,
   buildScaleExplorerModel,
@@ -13,6 +15,8 @@ describe("ScaleExplorerNoScript", () => {
       <ScaleExplorerNoScript
         initialState={DEFAULT_SCALE_EXPLORER_STATE}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
       />,
     );
     const model = buildScaleExplorerModel(DEFAULT_SCALE_EXPLORER_STATE);
@@ -35,6 +39,8 @@ describe("ScaleExplorerNoScript", () => {
       <ScaleExplorerNoScript
         initialState={DEFAULT_SCALE_EXPLORER_STATE}
         initialStateInvalid={true}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
       />,
     );
     const tableBody = markup.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? "";

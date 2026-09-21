@@ -1,4 +1,11 @@
 import {
+  formatLocaleFixedNumber,
+  formatLocaleNumber,
+  formatMessageTemplate,
+} from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ScaleExplorerMessages } from "../lib/i18n/messages/types";
+import {
   SCALE_EXPLORER_DEFINITION,
   SCALE_EXPLORER_SOURCES,
   buildScaleExplorerModel,
@@ -9,30 +16,62 @@ import {
 type ScaleExplorerNoScriptProps = Readonly<{
   initialState: ScaleExplorerState;
   initialStateInvalid: boolean;
+  locale: PublishedLocale;
+  messages: ScaleExplorerMessages;
 }>;
 
-const quantityLabels: Record<ScaleExplorerNode["characteristic_quantity"], string> = {
-  diameter: "characteristic diameter",
-  width: "characteristic width",
-  "observable-extent": "observable-universe extent",
-};
+function quantityLabel(
+  quantity: ScaleExplorerNode["characteristic_quantity"],
+  messages: ScaleExplorerMessages["quantities"],
+): string {
+  switch (quantity) {
+    case "diameter":
+      return messages.diameter;
+    case "width":
+      return messages.width;
+    case "observable-extent":
+      return messages.observableExtent;
+  }
+}
 
-const sourceQuantityLabels: Record<ScaleExplorerNode["source_quantity"], string> = {
-  radius: "source radius",
-  diameter: "source diameter",
-  width: "source width",
-  extent: "source extent",
-};
+function sourceQuantityLabel(
+  quantity: ScaleExplorerNode["source_quantity"],
+  messages: ScaleExplorerMessages["sourceQuantities"],
+): string {
+  return messages[quantity];
+}
 
-function formatDisplayPosition(positionPercent: number): string {
-  return `${positionPercent.toFixed(1)}%`;
+function statusLabel(
+  status: ScaleExplorerNode["value_status"],
+  messages: ScaleExplorerMessages["statuses"],
+): string {
+  switch (status) {
+    case "approximate":
+      return messages.approximate;
+    case "derived-approximate":
+      return messages.derivedApproximate;
+    case "model-based":
+      return messages.modelBased;
+    case "reported":
+      return messages.reported;
+  }
+}
+
+function formatDisplayPosition(positionPercent: number, locale: PublishedLocale): string {
+  return `${formatLocaleFixedNumber(positionPercent, 1, locale)}%`;
 }
 
 function sourceForId(id: string) {
   return SCALE_EXPLORER_SOURCES.find((source) => source.id === id);
 }
 
-function SourceReferences({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }>) {
+function SourceReferences({
+  messages,
+  sourceIds,
+}: Readonly<{
+  messages: ScaleExplorerMessages["sources"];
+  sourceIds: ReadonlyArray<string>;
+}>) {
   return (
     <ul>
       {sourceIds.map((sourceId) => {
@@ -40,7 +79,7 @@ function SourceReferences({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<str
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <>Unavailable source record: {sourceId}</>
+              <>{formatMessageTemplate(messages.unavailableReference, { sourceId })}</>
             ) : (
               <>
                 <a href={source.url} rel="noreferrer">
@@ -66,6 +105,8 @@ function SourceReferences({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<str
 export function ScaleExplorerNoScript({
   initialState,
   initialStateInvalid,
+  locale,
+  messages,
 }: ScaleExplorerNoScriptProps) {
   const model = buildScaleExplorerModel(initialState);
   const selected = model.selected.node;
@@ -74,54 +115,58 @@ export function ScaleExplorerNoScript({
     <noscript>
       <article>
         <header>
-          <p>First Phase 3B lab</p>
-          <h1>Scale Explorer</h1>
-          <p>Compare cited astronomical sizes without JavaScript.</p>
+          <p>{messages.header.eyebrow}</p>
+          <h1>{messages.header.title}</h1>
+          <p>{messages.noScript.intro}</p>
         </header>
         {initialStateInvalid ? (
-          <aside aria-label="The shared scale state was not valid" role="alert">
-            <h2 id="no-script-invalid-scale-state-heading">The shared scale state was not valid</h2>
-            <p>
-              Earth is shown as the safe default because the requested version, node, field set, or
-              serialized form was not accepted.
-            </p>
+          <aside aria-label={messages.invalidState.title} role="alert">
+            <h2 id="no-script-invalid-scale-state-heading">{messages.invalidState.title}</h2>
+            <p>{messages.noScript.invalidDescription}</p>
           </aside>
         ) : null}
         <section aria-labelledby="no-script-selected-scale-heading">
           <h2 id="no-script-selected-scale-heading">{selected.name}</h2>
           <p>
-            {selected.display_value} {quantityLabels[selected.characteristic_quantity]}
+            {formatMessageTemplate(messages.noScript.selectedSummary, {
+              displayValue: selected.display_value,
+              quantity: quantityLabel(selected.characteristic_quantity, messages.quantities),
+            })}
           </p>
           <p>
-            Source: {selected.source_value} {selected.source_unit} ({selected.source_quantity});
-            status: {selected.value_status}; display: {selected.display_position_percent.toFixed(1)}
-            % logarithmic.
+            {formatMessageTemplate(messages.noScript.sourceSummary, {
+              position: formatLocaleFixedNumber(selected.display_position_percent, 1, locale),
+              sourceQuantity: sourceQuantityLabel(
+                selected.source_quantity,
+                messages.sourceQuantities,
+              ),
+              sourceUnit: selected.source_unit,
+              sourceValue: formatLocaleNumber(selected.source_value, locale),
+              status: statusLabel(selected.value_status, messages.statuses),
+            })}
           </p>
-          <p>Comparison: {model.selected.comparison.text}</p>
+          <p>
+            {messages.noScript.tableHeaders.comparison}: {model.selected.comparison.text}
+          </p>
           <p>{selected.source_basis}</p>
-          <p>Transition: {selected.transition_explanation.text}</p>
+          <p>
+            {messages.noScript.tableHeaders.transition}: {selected.transition_explanation.text}
+          </p>
         </section>
         <section aria-labelledby="no-script-data-heading">
-          <h2 id="no-script-data-heading">Text and data alternative</h2>
-          <p>
-            Same curated nodes, ordered by characteristic size. Each row includes its characteristic
-            quantity and normalized logarithmic display position. The log coordinate is
-            dimensionless, not a physical location.
-          </p>
+          <h2 id="no-script-data-heading">{messages.noScript.dataTitle}</h2>
+          <p>{messages.noScript.dataDescription}</p>
           <div style={{ overflowX: "auto" }}>
             <table>
-              <caption>
-                Scale nodes, characteristic and source quantities, normalized display positions,
-                status, and evidence.
-              </caption>
+              <caption>{messages.noScript.tableCaption}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Node</th>
-                  <th scope="col">Characteristic size</th>
-                  <th scope="col">Comparison</th>
-                  <th scope="col">Transition</th>
-                  <th scope="col">Source status</th>
-                  <th scope="col">Evidence</th>
+                  <th scope="col">{messages.noScript.tableHeaders.node}</th>
+                  <th scope="col">{messages.noScript.tableHeaders.characteristicSize}</th>
+                  <th scope="col">{messages.noScript.tableHeaders.comparison}</th>
+                  <th scope="col">{messages.noScript.tableHeaders.transition}</th>
+                  <th scope="col">{messages.noScript.tableHeaders.sourceStatus}</th>
+                  <th scope="col">{messages.noScript.tableHeaders.evidence}</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,22 +174,26 @@ export function ScaleExplorerNoScript({
                   <tr key={entry.node.id}>
                     <th scope="row">
                       {entry.node.name}
-                      {entry.node.id === selected.id ? " (selected)" : ""}
+                      {entry.node.id === selected.id ? messages.noScript.selectedSuffix : ""}
                     </th>
                     <td>
                       {entry.node.display_value} (
-                      {quantityLabels[entry.node.characteristic_quantity]};{" "}
-                      {sourceQuantityLabels[entry.node.source_quantity]})
+                      {quantityLabel(entry.node.characteristic_quantity, messages.quantities)};{" "}
+                      {sourceQuantityLabel(entry.node.source_quantity, messages.sourceQuantities)})
                     </td>
                     <td>{entry.comparison.text}</td>
                     <td>{entry.node.transition_explanation.text}</td>
                     <td>
-                      {entry.node.value_status}; normalized logarithmic display position:{" "}
-                      {formatDisplayPosition(entry.position_percent)}
+                      {formatMessageTemplate(messages.noScript.tableStatus, {
+                        position: formatDisplayPosition(entry.position_percent, locale),
+                        status: statusLabel(entry.node.value_status, messages.statuses),
+                      })}
                     </td>
                     <td>
-                      Characteristic: {entry.node.source_ids.join(", ")}; transition:{" "}
-                      {entry.node.transition_explanation.source_ids.join(", ")}
+                      {formatMessageTemplate(messages.noScript.tableSourceEvidence, {
+                        characteristic: entry.node.source_ids.join(", "),
+                        transition: entry.node.transition_explanation.source_ids.join(", "),
+                      })}
                     </td>
                   </tr>
                 ))}
@@ -153,30 +202,35 @@ export function ScaleExplorerNoScript({
           </div>
         </section>
         <section aria-labelledby="no-script-model-heading">
-          <h2 id="no-script-model-heading">Model and assumptions</h2>
+          <h2 id="no-script-model-heading">{messages.noScript.model.title}</h2>
           <p>
-            <strong>Model:</strong> {SCALE_EXPLORER_DEFINITION.model_version};{" "}
-            <strong>input:</strong> {SCALE_EXPLORER_DEFINITION.input_schema.name}; input unit:{" "}
+            <strong>{messages.noScript.model.model}</strong>{" "}
+            {SCALE_EXPLORER_DEFINITION.model_version}; <strong>input:</strong>{" "}
+            {SCALE_EXPLORER_DEFINITION.input_schema.name}; input unit:{" "}
             {SCALE_EXPLORER_DEFINITION.input_schema.unit}; calculation unit: m. Log position is
             diagram-only, not physical arrangement.
           </p>
           <p>
-            <strong>Relationships:</strong> km/ly inputs → m; characteristic diameter = 2 × radius
-            for radius entries; direct diameters, widths, and extents stay labeled; ratio =
-            selected/reference; p = 100 × (log10(S) − log10(Smin)) / (log10(Smax) − log10(Smin)); 1
-            ly ≈ 9.46 × 10^15 m.
+            <strong>{messages.noScript.model.relationships}</strong> km/ly inputs → m;
+            characteristic diameter = 2 × radius for radius entries; direct diameters, widths, and
+            extents stay labeled; ratio = selected/reference; p = 100 × (log10(S) − log10(Smin)) /
+            (log10(Smax) − log10(Smin)); 1 ly ≈ 9.46 × 10^15 m.
           </p>
           <p>
-            <strong>Assumptions:</strong> One labeled size per node; rounded sources remain
-            approximate; no distance, nesting, or co-location; light-year conversion is approximate.
+            <strong>{messages.noScript.model.assumptions}</strong> One labeled size per node;
+            rounded sources remain approximate; no distance, nesting, or co-location; light-year
+            conversion is approximate.
           </p>
           <p>
-            <strong>Known limitations:</strong> Curated, no interpolation; planet radii become
-            definitional diameters; the Moon keeps its direct diameter; galaxy/universe extents are
-            broad; observable ≠ entire universe.
+            <strong>{messages.noScript.model.knownLimitations}</strong> Curated, no interpolation;
+            planet radii become definitional diameters; the Moon keeps its direct diameter;
+            galaxy/universe extents are broad; observable ≠ entire universe.
           </p>
-          <h3>References</h3>
-          <SourceReferences sourceIds={SCALE_EXPLORER_DEFINITION.references} />
+          <h3>{messages.noScript.model.references}</h3>
+          <SourceReferences
+            messages={messages.sources}
+            sourceIds={SCALE_EXPLORER_DEFINITION.references}
+          />
         </section>
       </article>
     </noscript>

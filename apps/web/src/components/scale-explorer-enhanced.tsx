@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-import type { PresentationModeMessages } from "../lib/i18n/messages/types";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { PresentationModeMessages, ScaleExplorerMessages } from "../lib/i18n/messages/types";
 import { PresentationModeMessagesProvider } from "../lib/i18n/presentation-mode-context";
 import type { ScaleExplorerState } from "../lib/simulations/scale-explorer";
 
@@ -18,6 +19,8 @@ const InteractiveScaleExplorer = dynamic(
 type ScaleExplorerEnhancedProps = Readonly<{
   initialState: ScaleExplorerState;
   initialStateInvalid: boolean;
+  locale: PublishedLocale;
+  messages: ScaleExplorerMessages;
   presentationModeMessages: PresentationModeMessages;
 }>;
 
@@ -28,6 +31,8 @@ type ScaleExplorerEnhancedProps = Readonly<{
 export function ScaleExplorerEnhanced({
   initialState,
   initialStateInvalid,
+  locale,
+  messages,
   presentationModeMessages,
 }: ScaleExplorerEnhancedProps) {
   return (
@@ -35,6 +40,8 @@ export function ScaleExplorerEnhanced({
       <InteractiveScaleExplorer
         initialState={initialState}
         initialStateInvalid={initialStateInvalid}
+        locale={locale}
+        messages={messages}
       />
     </PresentationModeMessagesProvider>
   );

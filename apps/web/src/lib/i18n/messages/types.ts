@@ -2481,6 +2481,211 @@ export type RocketMissionDesignerMessages = Readonly<{
   }>;
 }>;
 
+export type ScaleExplorerMessages = Readonly<{
+  actions: Readonly<{
+    continueLearning: string;
+    copyShareLink: string;
+    nextNode: string;
+    previousNode: string;
+    reset: string;
+  }>;
+  categories: Readonly<{
+    cosmological: string;
+    galaxy: string;
+    moon: string;
+    planet: string;
+    star: string;
+  }>;
+  comparisonEvidence: Readonly<{
+    inputNodeIds: string;
+    inputSourceRecords: string;
+    rounding: string;
+    summary: string;
+    title: string;
+  }>;
+  controls: Readonly<{
+    description: string;
+    nodeSummary: string;
+    sliderAriaValue: string;
+    sliderLabel: string;
+    title: string;
+  }>;
+  dataAlternative: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  entityLinks: Readonly<{
+    description: string;
+    entityReference: string;
+    sourceReference: string;
+    title: string;
+  }>;
+  header: Readonly<{
+    breadcrumbAriaLabel: string;
+    eyebrow: string;
+    intro: string;
+    labBreadcrumb: string;
+    title: string;
+  }>;
+  invalidMetadataDescription: string;
+  invalidMetadataTitle: string;
+  invalidState: Readonly<{
+    description: string;
+    title: string;
+  }>;
+  metadataDescription: string;
+  metadataTitle: string;
+  model: Readonly<{
+    assumptions: string;
+    automatedValidationFixtures: string;
+    characteristicSizeAlgorithm: string;
+    characteristicSizeInputs: string;
+    characteristicSizeTolerance: string;
+    characteristicSizeValidDomain: string;
+    comparisonAlgorithm: string;
+    comparisonInputs: string;
+    contentReview: string;
+    contentReviewValue: string;
+    derivedQuantityContracts: string;
+    disclaimer: string;
+    howScaleBuilt: string;
+    input: string;
+    inputValue: string;
+    knownLimitations: string;
+    mathsToNotice: string;
+    modelVersion: string;
+    output: string;
+    references: string;
+    relationshipsUsed: string;
+    shareStateShape: string;
+    shareStateSuffix: string;
+    title: string;
+    validDomain: string;
+    validRange: string;
+    validRangeValue: string;
+    numericalTolerance: string;
+  }>;
+  noScript: Readonly<{
+    dataDescription: string;
+    dataTitle: string;
+    invalidDescription: string;
+    intro: string;
+    model: Readonly<{
+      assumptions: string;
+      knownLimitations: string;
+      model: string;
+      references: string;
+      relationships: string;
+      title: string;
+    }>;
+    selectedSuffix: string;
+    selectedSummary: string;
+    sourceSummary: string;
+    tableCaption: string;
+    tableHeaders: Readonly<{
+      characteristicSize: string;
+      comparison: string;
+      evidence: string;
+      node: string;
+      sourceStatus: string;
+      transition: string;
+    }>;
+    tableSourceEvidence: string;
+    tableStatus: string;
+  }>;
+  objective: Readonly<{
+    thinkAbout: string;
+    title: string;
+  }>;
+  quantities: Readonly<{
+    diameter: string;
+    observableExtent: string;
+    width: string;
+  }>;
+  result: Readonly<{
+    calculatedComparison: string;
+    characteristicEvidence: string;
+    comparison: string;
+    displayPosition: string;
+    displayPositionValue: string;
+    readingTitle: string;
+    referenceFallback: string;
+    selectedNode: string;
+    sourceValue: string;
+    transitionEvidence: string;
+    valueStatus: string;
+    category: string;
+  }>;
+  share: Readonly<{
+    copied: string;
+    description: string;
+    label: string;
+    ready: string;
+    reset: string;
+    title: string;
+  }>;
+  sourceQuantities: Readonly<{
+    diameter: string;
+    extent: string;
+    radius: string;
+    width: string;
+  }>;
+  sources: Readonly<{
+    agency: string;
+    citation: string;
+    details: string;
+    education: string;
+    metadata: string;
+    unavailable: string;
+    unavailableReference: string;
+    unavailableShort: string;
+  }>;
+  statuses: Readonly<{
+    approximate: string;
+    derivedApproximate: string;
+    modelBased: string;
+    reported: string;
+  }>;
+  table: Readonly<{
+    caption: string;
+    characteristicValue: string;
+    headers: Readonly<{
+      characteristicSize: string;
+      comparison: string;
+      evidence: string;
+      node: string;
+      sourceStatus: string;
+    }>;
+    onTrack: string;
+    selected: string;
+    transitionExplanation: string;
+  }>;
+  track: Readonly<{
+    coordinate: string;
+    description: string;
+    largest: string;
+    legendAriaLabel: string;
+    markerSummary: string;
+    otherMarker: string;
+    selectedMarker: string;
+    smallest: string;
+    title: string;
+  }>;
+  transitionContract: Readonly<{
+    algorithm: string;
+    generated: string;
+    inputNodeIds: string;
+    inputSourceRecords: string;
+    learnerFacingRounding: string;
+    numericalTolerance: string;
+    testReferences: string;
+    title: string;
+    units: string;
+    unitsValue: string;
+    validDomain: string;
+  }>;
+}>;
+
 export type SimulationLabMessages = Readonly<{
   blackHoleRelativity: BlackHoleRelativityMessages;
   eclipseSimulator: EclipseSimulatorMessages;
@@ -2490,6 +2695,7 @@ export type SimulationLabMessages = Readonly<{
   radialVelocity: RadialVelocityMessages;
   relativityVisualizations: RelativityVisualizationsMessages;
   rocketMissionDesigner: RocketMissionDesignerMessages;
+  scaleExplorer: ScaleExplorerMessages;
   spectroscopyLab: SpectroscopyLabMessages;
   stellarLaboratory: StellarLaboratoryMessages;
   transitMethod: TransitMethodMessages;

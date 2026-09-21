@@ -2,30 +2,46 @@ import type { Metadata } from "next";
 
 import { ScaleExplorerEnhanced } from "../../../../components/scale-explorer-enhanced";
 import { ScaleExplorerNoScript } from "../../../../components/scale-explorer-no-script";
-import type { PresentationModeMessages } from "../../../../lib/i18n/messages/types";
+import type { PublishedLocale } from "../../../../lib/i18n/locales";
+import type {
+  PresentationModeMessages,
+  ScaleExplorerMessages,
+} from "../../../../lib/i18n/messages/types";
 import { DEFAULT_SCALE_EXPLORER_STATE } from "../../../../lib/simulations/scale-explorer";
 
-export const metadata: Metadata = {
-  robots: {
-    follow: false,
-    index: false,
-  },
-  title: "Invalid Scale Explorer state",
-  description: "A safe fallback for an invalid Scale Explorer share state.",
-};
+export function createInvalidScaleExplorerStateMetadata(messages: ScaleExplorerMessages): Metadata {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+    description: messages.invalidMetadataDescription,
+    title: messages.invalidMetadataTitle,
+  };
+}
 
 export default function InvalidScaleExplorerStatePage({
+  locale,
+  messages,
   presentationModeMessages,
-}: Readonly<{ presentationModeMessages: PresentationModeMessages }>) {
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: ScaleExplorerMessages;
+  presentationModeMessages: PresentationModeMessages;
+}>) {
   return (
     <>
       <ScaleExplorerNoScript
         initialState={DEFAULT_SCALE_EXPLORER_STATE}
         initialStateInvalid={true}
+        locale={locale}
+        messages={messages}
       />
       <ScaleExplorerEnhanced
         initialState={DEFAULT_SCALE_EXPLORER_STATE}
         initialStateInvalid={true}
+        locale={locale}
+        messages={messages}
         presentationModeMessages={presentationModeMessages}
       />
     </>

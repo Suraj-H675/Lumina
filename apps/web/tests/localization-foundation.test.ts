@@ -563,6 +563,42 @@ describe("Phase 8C localization foundation", () => {
     expect(eclipse.noScript.observerLocation).toContain("{longitude}");
     expect(eclipse.noScript.observerLocation).toContain("{elevation}");
     expect(eclipse.result.description).toContain("{modelVersion}");
+
+    const scale = enMessages.simulationLabs.scaleExplorer;
+    expect(scale.comparisonEvidence.rounding).toContain("{rounding}");
+    expect(scale.comparisonEvidence.summary).toContain("{algorithm}");
+    expect(scale.comparisonEvidence.summary).toContain("{version}");
+    expect(scale.comparisonEvidence.summary).toContain("{unit}");
+    expect(scale.controls.description).toContain("{count}");
+    expect(scale.controls.nodeSummary).toContain("{index}");
+    expect(scale.controls.nodeSummary).toContain("{count}");
+    expect(scale.controls.nodeSummary).toContain("{node}");
+    expect(scale.controls.sliderAriaValue).toContain("{index}");
+    expect(scale.controls.sliderAriaValue).toContain("{count}");
+    expect(scale.controls.sliderAriaValue).toContain("{node}");
+    expect(scale.model.contentReviewValue).toContain("{status}");
+    expect(scale.model.contentReviewValue).toContain("{version}");
+    expect(scale.model.contentReviewValue).toContain("{reviewers}");
+    expect(scale.model.contentReviewValue).toContain("{reviewedAt}");
+    expect(scale.model.inputValue).toContain("{name}");
+    expect(scale.model.inputValue).toContain("{unit}");
+    expect(scale.model.validRangeValue).toContain("{count}");
+    expect(scale.model.validRangeValue).toContain("{nodes}");
+    expect(scale.noScript.sourceSummary).toContain("{sourceValue}");
+    expect(scale.noScript.sourceSummary).toContain("{sourceUnit}");
+    expect(scale.noScript.sourceSummary).toContain("{sourceQuantity}");
+    expect(scale.noScript.sourceSummary).toContain("{status}");
+    expect(scale.noScript.sourceSummary).toContain("{position}");
+    expect(scale.result.calculatedComparison).toContain("{selected}");
+    expect(scale.result.calculatedComparison).toContain("{reference}");
+    expect(scale.share.description).toContain("{modelVersion}");
+    expect(scale.share.description).toContain("{schemaVersion}");
+    expect(scale.sources.unavailable).toContain("{sourceId}");
+    expect(scale.sources.unavailableReference).toContain("{sourceId}");
+    expect(scale.table.onTrack).toContain("{percent}");
+    expect(scale.track.markerSummary).toContain("{node}");
+    expect(scale.transitionContract.unitsValue).toContain("{input}");
+    expect(scale.transitionContract.unitsValue).toContain("{output}");
   });
 
   it("keeps Object templates and shared entity-type labels placeholder-complete", () => {

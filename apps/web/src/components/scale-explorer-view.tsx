@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
+import type { PublishedLocale } from "../lib/i18n/locales";
+import type { ScaleExplorerMessages } from "../lib/i18n/messages/types";
 import type { AudienceMode } from "../lib/learning/content";
 import { LearningModeSelector } from "./learning-mode-selector";
 import {
@@ -24,6 +27,8 @@ import {
 type ScaleExplorerViewProps = Readonly<{
   initialState: ScaleExplorerState;
   initialStateInvalid: boolean;
+  locale: PublishedLocale;
+  messages: ScaleExplorerMessages;
 }>;
 
 const modeCopy: Record<
@@ -65,57 +70,81 @@ const modeCopy: Record<
   },
 };
 
-const categoryLabels: Record<ScaleNodeCategory, string> = {
-  cosmological: "Cosmological scale",
-  galaxy: "Galaxy scale",
-  moon: "Moon scale",
-  planet: "Planet scale",
-  star: "Star scale",
-};
-
-const quantityLabels: Record<ScaleExplorerNode["characteristic_quantity"], string> = {
-  diameter: "characteristic diameter",
-  width: "characteristic width",
-  "observable-extent": "observable-universe extent",
-};
-
-const statusLabels: Record<ScaleExplorerNode["value_status"], string> = {
-  approximate: "Approximate",
-  "derived-approximate": "Derived approximate value",
-  "model-based": "Model-based estimate",
-  reported: "Reported source value",
-};
-
 const buttonClassName =
   "inline-flex min-h-11 items-center justify-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--foreground)] no-underline transition-colors motion-reduce:transition-none hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-55";
 
-function formatSourceValue(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
+function categoryLabel(
+  category: ScaleNodeCategory,
+  messages: ScaleExplorerMessages["categories"],
+): string {
+  return messages[category];
 }
 
-function sourceQuantityLabel(node: ScaleExplorerNode): string {
-  switch (node.source_quantity) {
-    case "radius":
-      return "source radius";
+function quantityLabel(
+  quantity: ScaleExplorerNode["characteristic_quantity"],
+  messages: ScaleExplorerMessages["quantities"],
+): string {
+  switch (quantity) {
     case "diameter":
-      return "source diameter";
+      return messages.diameter;
     case "width":
-      return "source width";
-    case "extent":
-      return "source extent";
+      return messages.width;
+    case "observable-extent":
+      return messages.observableExtent;
   }
 }
 
-function formatDisplayPosition(positionPercent: number): string {
-  return `approximately ${Math.round(positionPercent)}%`;
+function sourceQuantityLabel(
+  node: ScaleExplorerNode,
+  messages: ScaleExplorerMessages["sourceQuantities"],
+): string {
+  switch (node.source_quantity) {
+    case "radius":
+      return messages.radius;
+    case "diameter":
+      return messages.diameter;
+    case "width":
+      return messages.width;
+    case "extent":
+      return messages.extent;
+  }
+}
+
+function statusLabel(
+  status: ScaleExplorerNode["value_status"],
+  messages: ScaleExplorerMessages["statuses"],
+): string {
+  switch (status) {
+    case "approximate":
+      return messages.approximate;
+    case "derived-approximate":
+      return messages.derivedApproximate;
+    case "model-based":
+      return messages.modelBased;
+    case "reported":
+      return messages.reported;
+  }
+}
+
+function formatDisplayPosition(
+  positionPercent: number,
+  locale: PublishedLocale,
+  messages: ScaleExplorerMessages,
+): string {
+  return formatMessageTemplate(messages.result.displayPositionValue, {
+    percent: formatLocaleNumber(Math.round(positionPercent), locale),
+  });
 }
 
 function sourceForId(id: string) {
   return SCALE_EXPLORER_SOURCES.find((source) => source.id === id);
 }
 
-function nodeLabel(entry: ScaleExplorerPositionedNode): string {
-  return `${entry.node.name}, ${entry.node.display_value} ${quantityLabels[entry.node.characteristic_quantity]}`;
+function nodeLabel(entry: ScaleExplorerPositionedNode, messages: ScaleExplorerMessages): string {
+  return `${entry.node.name}, ${entry.node.display_value} ${quantityLabel(
+    entry.node.characteristic_quantity,
+    messages.quantities,
+  )}`;
 }
 
 const SCALE_EXPLORER_ROUTE = "/lab/scale-explorer";
@@ -171,7 +200,13 @@ function browserStateSelection(
     : { state: decoded, invalid: false };
 }
 
-function ScaleTrack({ model }: Readonly<{ model: ReturnType<typeof buildScaleExplorerModel> }>) {
+function ScaleTrack({
+  messages,
+  model,
+}: Readonly<{
+  messages: ScaleExplorerMessages["track"];
+  model: ReturnType<typeof buildScaleExplorerModel>;
+}>) {
   return (
     <div className="space-y-3">
       <div
@@ -195,19 +230,17 @@ function ScaleTrack({ model }: Readonly<{ model: ReturnType<typeof buildScaleExp
           })}
         </div>
         <span className="absolute bottom-2 left-4 text-xs font-semibold text-[var(--muted)]">
-          Smallest curated node
+          {messages.smallest}
         </span>
         <span className="absolute bottom-2 right-4 text-xs font-semibold text-[var(--muted)]">
-          Largest curated node
+          {messages.largest}
         </span>
       </div>
       <p className="text-sm text-[var(--muted)]">
-        Selected marker:{" "}
-        <strong className="text-[var(--foreground)]">{model.selected.node.name}</strong>. Marker
-        spacing is logarithmic; markers are not physical positions.
+        {formatMessageTemplate(messages.markerSummary, { node: model.selected.node.name })}
       </p>
       <div
-        aria-label="Relative scale track legend"
+        aria-label={messages.legendAriaLabel}
         className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--muted)]"
         role="group"
       >
@@ -216,24 +249,28 @@ function ScaleTrack({ model }: Readonly<{ model: ReturnType<typeof buildScaleExp
             aria-hidden="true"
             className="inline-block h-7 w-3 rounded-sm border-2 border-[var(--focus)] bg-[var(--accent)]"
           />
-          Selected node marker
+          {messages.selectedMarker}
         </span>
         <span className="inline-flex min-h-11 items-center gap-2">
           <span
             aria-hidden="true"
             className="inline-block h-4 w-1 rounded-full bg-[var(--muted)]"
           />
-          Other curated node marker
+          {messages.otherMarker}
         </span>
-        <span className="inline-flex min-h-11 items-center">
-          Display coordinate: 0–100% (normalized, dimensionless)
-        </span>
+        <span className="inline-flex min-h-11 items-center">{messages.coordinate}</span>
       </div>
     </div>
   );
 }
 
-function SourceList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }>) {
+function SourceList({
+  messages,
+  sourceIds,
+}: Readonly<{
+  messages: ScaleExplorerMessages["sources"];
+  sourceIds: ReadonlyArray<string>;
+}>) {
   return (
     <ul className="m-0 grid list-disc gap-2 pl-5 text-sm leading-6 text-[var(--muted)]">
       {sourceIds.map((sourceId) => {
@@ -241,11 +278,11 @@ function SourceList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <span>Source record unavailable for {sourceId}.</span>
+              <span>{formatMessageTemplate(messages.unavailable, { sourceId })}</span>
             ) : (
               <>
                 <span className="font-semibold">
-                  {source.source_type === "official-agency" ? "Agency source" : "Education source"}
+                  {source.source_type === "official-agency" ? messages.agency : messages.education}
                   :{" "}
                 </span>
                 <code className="mr-2 break-all text-xs text-[var(--foreground)]">{source.id}</code>
@@ -256,14 +293,23 @@ function SourceList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }
                   {source.title}
                 </a>{" "}
                 <span>
-                  ({source.organization_or_authors}; {source.claim_scope}; retrieved{" "}
-                  {source.retrieved_at}; data date: {source.data_date})
+                  {formatMessageTemplate(messages.details, {
+                    authors: source.organization_or_authors,
+                    claimScope: source.claim_scope,
+                    dataDate: source.data_date,
+                    retrievedAt: source.retrieved_at,
+                  })}
                 </span>
                 <span className="mt-1 block text-xs leading-5">
-                  Dataset/release: {source.dataset_or_release}; record/reference:{" "}
-                  {source.record_reference}; terms/licence: {source.terms_or_licence}
+                  {formatMessageTemplate(messages.metadata, {
+                    dataset: source.dataset_or_release,
+                    record: source.record_reference,
+                    terms: source.terms_or_licence,
+                  })}
                 </span>
-                <span className="mt-1 block text-xs leading-5">Citation: {source.citation}</span>
+                <span className="mt-1 block text-xs leading-5">
+                  {formatMessageTemplate(messages.citation, { citation: source.citation })}
+                </span>
               </>
             )}
           </li>
@@ -273,7 +319,13 @@ function SourceList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }
   );
 }
 
-function SourceLinkList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<string> }>) {
+function SourceLinkList({
+  messages,
+  sourceIds,
+}: Readonly<{
+  messages: ScaleExplorerMessages["sources"];
+  sourceIds: ReadonlyArray<string>;
+}>) {
   return (
     <ul className="m-0 grid gap-1 pl-0 text-xs leading-5 text-[var(--muted)]">
       {sourceIds.map((sourceId) => {
@@ -281,7 +333,7 @@ function SourceLinkList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<strin
         return (
           <li key={sourceId}>
             {source === undefined ? (
-              <span>Unavailable: {sourceId}</span>
+              <span>{formatMessageTemplate(messages.unavailableShort, { sourceId })}</span>
             ) : (
               <span className="flex flex-wrap items-center gap-x-2">
                 <code className="break-all text-[var(--foreground)]">{source.id}</code>
@@ -300,23 +352,38 @@ function SourceLinkList({ sourceIds }: Readonly<{ sourceIds: ReadonlyArray<strin
   );
 }
 
-function ComparisonEvidence({ comparison }: Readonly<{ comparison: ScaleExplorerComparison }>) {
+function ComparisonEvidence({
+  comparison,
+  messages,
+}: Readonly<{
+  comparison: ScaleExplorerComparison;
+  messages: ScaleExplorerMessages;
+}>) {
   return (
     <div className="space-y-3 border-t border-[var(--border)] pt-5">
-      <h3>Comparison evidence</h3>
+      <h3>{messages.comparisonEvidence.title}</h3>
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Algorithm: <code className="text-[var(--foreground)]">{comparison.algorithm_id}</code> v
-        {comparison.algorithm_version}; output unit: {comparison.unit}.
+        {formatMessageTemplate(messages.comparisonEvidence.summary, {
+          algorithm: comparison.algorithm_id,
+          unit: comparison.unit,
+          version: comparison.algorithm_version,
+        })}
       </p>
       <p className="text-sm leading-6 text-[var(--muted)]">
-        Input node IDs:{" "}
+        {messages.comparisonEvidence.inputNodeIds}:{" "}
         <code className="break-all text-[var(--foreground)]">
           {comparison.input_node_ids.join(", ")}
         </code>
       </p>
-      <p className="text-sm font-semibold text-[var(--muted)]">Input source records</p>
-      <SourceList sourceIds={comparison.input_source_ids} />
-      <p className="text-sm leading-6 text-[var(--muted)]">Rounding: {comparison.rounding}</p>
+      <p className="text-sm font-semibold text-[var(--muted)]">
+        {messages.comparisonEvidence.inputSourceRecords}
+      </p>
+      <SourceList messages={messages.sources} sourceIds={comparison.input_source_ids} />
+      <p className="text-sm leading-6 text-[var(--muted)]">
+        {formatMessageTemplate(messages.comparisonEvidence.rounding, {
+          rounding: comparison.rounding,
+        })}
+      </p>
     </div>
   );
 }
@@ -327,89 +394,99 @@ type ScaleExplorerTransitionContract = NonNullable<
 
 function TransitionCalculationContract({
   contract,
-}: Readonly<{ contract: ScaleExplorerTransitionContract }>) {
+  messages,
+}: Readonly<{
+  contract: ScaleExplorerTransitionContract;
+  messages: ScaleExplorerMessages;
+}>) {
   return (
     <div className="space-y-3 border-t border-[var(--border)] pt-5">
-      <h3>Transition calculation contract</h3>
+      <h3>{messages.transitionContract.title}</h3>
       <dl className="grid gap-3 text-sm leading-6 text-[var(--muted)] sm:grid-cols-2">
         <div>
-          <dt className="font-semibold">Algorithm</dt>
+          <dt className="font-semibold">{messages.transitionContract.algorithm}</dt>
           <dd className="mt-1">
             <code className="text-[var(--foreground)]">{contract.algorithm_id}</code> v
             {contract.algorithm_version}
           </dd>
         </div>
         <div>
-          <dt className="font-semibold">Units</dt>
+          <dt className="font-semibold">{messages.transitionContract.units}</dt>
           <dd className="mt-1">
-            inputs: {contract.input_unit}; output: {contract.output_unit}
+            {formatMessageTemplate(messages.transitionContract.unitsValue, {
+              input: contract.input_unit,
+              output: contract.output_unit,
+            })}
           </dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="font-semibold">Input node IDs</dt>
+          <dt className="font-semibold">{messages.transitionContract.inputNodeIds}</dt>
           <dd className="mt-1 break-words font-mono text-xs text-[var(--foreground)]">
             {contract.input_node_ids.join(", ")}
           </dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="font-semibold">Valid domain</dt>
+          <dt className="font-semibold">{messages.transitionContract.validDomain}</dt>
           <dd className="mt-1">{contract.valid_domain}</dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="font-semibold">Numerical tolerance</dt>
+          <dt className="font-semibold">{messages.transitionContract.numericalTolerance}</dt>
           <dd className="mt-1">{contract.numerical_tolerance}</dd>
         </div>
         <div className="sm:col-span-2">
-          <dt className="font-semibold">Learner-facing rounding</dt>
+          <dt className="font-semibold">{messages.transitionContract.learnerFacingRounding}</dt>
           <dd className="mt-1">{contract.learner_facing_rounding}</dd>
         </div>
         <div>
-          <dt className="font-semibold">Test references</dt>
+          <dt className="font-semibold">{messages.transitionContract.testReferences}</dt>
           <dd className="mt-1 break-words font-mono text-xs text-[var(--foreground)]">
             {contract.test_references.join(", ")}
           </dd>
         </div>
         <div>
-          <dt className="font-semibold">Generated</dt>
+          <dt className="font-semibold">{messages.transitionContract.generated}</dt>
           <dd className="mt-1">{contract.generated_at}</dd>
         </div>
       </dl>
-      <p className="text-sm font-semibold text-[var(--muted)]">Input source records</p>
-      <SourceList sourceIds={contract.input_source_ids} />
+      <p className="text-sm font-semibold text-[var(--muted)]">
+        {messages.transitionContract.inputSourceRecords}
+      </p>
+      <SourceList messages={messages.sources} sourceIds={contract.input_source_ids} />
     </div>
   );
 }
 
 function NodeTable({
+  locale,
+  messages,
   model,
   onSelect,
 }: Readonly<{
+  locale: PublishedLocale;
+  messages: ScaleExplorerMessages;
   model: ReturnType<typeof buildScaleExplorerModel>;
   onSelect: (nodeId: ScaleExplorerState["node_id"]) => void;
 }>) {
   return (
     <div className="max-w-full overflow-x-auto rounded-md border border-[var(--border)]">
       <table className="min-w-[60rem] w-full border-collapse text-left text-sm">
-        <caption className="sr-only">
-          All curated Scale Explorer nodes in increasing characteristic-size order. Select a row to
-          move the model to that node.
-        </caption>
+        <caption className="sr-only">{messages.table.caption}</caption>
         <thead className="bg-[var(--surface)] text-[var(--muted)]">
           <tr>
             <th className="px-4 py-3 font-semibold" scope="col">
-              Node
+              {messages.table.headers.node}
             </th>
             <th className="px-4 py-3 font-semibold" scope="col">
-              Characteristic size
+              {messages.table.headers.characteristicSize}
             </th>
             <th className="px-4 py-3 font-semibold" scope="col">
-              Comparison
+              {messages.table.headers.comparison}
             </th>
             <th className="px-4 py-3 font-semibold" scope="col">
-              Source status
+              {messages.table.headers.sourceStatus}
             </th>
             <th className="px-4 py-3 font-semibold" scope="col">
-              Evidence
+              {messages.table.headers.evidence}
             </th>
           </tr>
         </thead>
@@ -436,34 +513,39 @@ function NodeTable({
                   </button>
                   {selected ? (
                     <span className="mt-1 block text-xs font-semibold text-[var(--accent)]">
-                      Selected
+                      {messages.table.selected}
                     </span>
                   ) : null}
                 </th>
                 <td className="px-4 py-3 align-top text-[var(--foreground)]">
                   {entry.node.display_value}
                   <span className="mt-1 block text-xs text-[var(--muted)]">
-                    {quantityLabels[entry.node.characteristic_quantity]}
+                    {quantityLabel(entry.node.characteristic_quantity, messages.quantities)}
                   </span>
                 </td>
                 <td className="max-w-sm px-4 py-3 align-top leading-6 text-[var(--muted)]">
                   {entry.comparison.text}
                 </td>
                 <td className="px-4 py-3 align-top leading-6 text-[var(--muted)]">
-                  {statusLabels[entry.node.value_status]}
+                  {statusLabel(entry.node.value_status, messages.statuses)}
                   <span className="mt-1 block text-xs">
-                    {formatDisplayPosition(entry.position_percent)} on track
+                    {formatMessageTemplate(messages.table.onTrack, {
+                      percent: formatLocaleNumber(Math.round(entry.position_percent), locale),
+                    })}
                   </span>
                 </td>
                 <td className="px-4 py-3 align-top">
                   <span className="block text-xs font-semibold text-[var(--muted)]">
-                    Characteristic value
+                    {messages.table.characteristicValue}
                   </span>
-                  <SourceLinkList sourceIds={entry.node.source_ids} />
+                  <SourceLinkList messages={messages.sources} sourceIds={entry.node.source_ids} />
                   <span className="mt-2 block text-xs font-semibold text-[var(--muted)]">
-                    Transition explanation
+                    {messages.table.transitionExplanation}
                   </span>
-                  <SourceLinkList sourceIds={entry.node.transition_explanation.source_ids} />
+                  <SourceLinkList
+                    messages={messages.sources}
+                    sourceIds={entry.node.transition_explanation.source_ids}
+                  />
                 </td>
               </tr>
             );
@@ -474,7 +556,12 @@ function NodeTable({
   );
 }
 
-export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleExplorerViewProps) {
+export function ScaleExplorerView({
+  initialState,
+  initialStateInvalid,
+  locale,
+  messages,
+}: ScaleExplorerViewProps) {
   const [state, setState] = useState<ScaleExplorerState>(initialState);
   const [invalidNotice, setInvalidNotice] = useState(initialStateInvalid);
   const [mode, setMode] = useState<AudienceMode>("explorer");
@@ -525,7 +612,7 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
 
   function handleReset(): void {
     setShareUrl(null);
-    setMessage("Scale Explorer reset to Earth.");
+    setMessage(messages.share.reset);
     replaceBrowserState(null);
     // The synchronous URL event above may restore a direct route's fallback state; reset wins.
     setState(DEFAULT_SCALE_EXPLORER_STATE);
@@ -538,35 +625,34 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
     try {
       if (typeof navigator.clipboard !== "undefined") {
         await navigator.clipboard.writeText(url);
-        setMessage("Share link copied. It contains only the model version and selected node.");
+        setMessage(messages.share.copied);
         return;
       }
     } catch {
       // The visible URL remains available for manual copying when clipboard
       // permission is unavailable.
     }
-    setMessage("Share link ready below. Copy it manually; no personal data is included.");
+    setMessage(messages.share.ready);
   }
 
   return (
     <article className="space-y-12">
-      <nav aria-label="Breadcrumb">
+      <nav aria-label={messages.header.breadcrumbAriaLabel}>
         <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
-          <li>Space Lab</li>
+          <li>{messages.header.labBreadcrumb}</li>
           <li aria-hidden="true">/</li>
-          <li aria-current="page">Scale Explorer</li>
+          <li aria-current="page">{messages.header.title}</li>
         </ol>
       </nav>
 
       <header className="max-w-3xl space-y-5">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          First Phase 3B lab
+          {messages.header.eyebrow}
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Scale Explorer</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
-          Move from the Moon and planets to the Sun, the Milky Way, and the observable universe. The
-          track tells a story about characteristic size; it is not a map of where objects are.
-        </p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          {messages.header.title}
+        </h1>
+        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
       </header>
 
       <LearningModeSelector onChange={setMode} />
@@ -577,20 +663,16 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
           className="max-w-3xl space-y-3 rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
           role="alert"
         >
-          <h2 id="invalid-scale-state-heading">The shared scale state was not valid</h2>
-          <p className="leading-7 text-[var(--muted)]">
-            Lumina could not use that version, node, field set, or serialized form. Earth is shown
-            as an explicit safe default; reset or choose a node to create a valid canonical share
-            state.
-          </p>
+          <h2 id="invalid-scale-state-heading">{messages.invalidState.title}</h2>
+          <p className="leading-7 text-[var(--muted)]">{messages.invalidState.description}</p>
         </aside>
       ) : null}
 
       <section aria-labelledby="scale-objective-heading" className="max-w-3xl space-y-4">
-        <h2 id="scale-objective-heading">What this lab demonstrates</h2>
+        <h2 id="scale-objective-heading">{messages.objective.title}</h2>
         <p className="leading-7 text-[var(--muted)]">{copy.introduction}</p>
         <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 leading-7 text-[var(--foreground)]">
-          <strong>Think about:</strong> {copy.prompt}
+          <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
         </p>
         <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
           {SCALE_EXPLORER_DEFINITION.learning_objectives.map((objective) => (
@@ -601,20 +683,25 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
 
       <section aria-labelledby="scale-controls-heading" className="max-w-3xl space-y-5">
         <div className="space-y-2">
-          <h2 id="scale-controls-heading">Choose a scale node</h2>
+          <h2 id="scale-controls-heading">{messages.controls.title}</h2>
           <p className="leading-7 text-[var(--muted)]" id="scale-control-help">
-            This control moves between {SCALE_EXPLORER_NODES.length} reviewed nodes in increasing
-            characteristic-size order. There is no interpolation between the curated cases.
+            {formatMessageTemplate(messages.controls.description, {
+              count: formatLocaleNumber(SCALE_EXPLORER_NODES.length, locale),
+            })}
           </p>
         </div>
         <div className="space-y-3">
           <label className="font-semibold" htmlFor="scale-node-slider">
-            Curated scale position
+            {messages.controls.sliderLabel}
           </label>
           <input
             aria-describedby="scale-control-help"
-            aria-label="Curated scale position"
-            aria-valuetext={`${model.selected.index + 1} of ${model.nodes.length}: ${nodeLabel(model.selected)}`}
+            aria-label={messages.controls.sliderLabel}
+            aria-valuetext={formatMessageTemplate(messages.controls.sliderAriaValue, {
+              count: formatLocaleNumber(model.nodes.length, locale),
+              index: formatLocaleNumber(model.selected.index + 1, locale),
+              node: nodeLabel(model.selected, messages),
+            })}
             className="block min-h-11 w-full accent-[var(--accent)]"
             id="scale-node-slider"
             max={model.nodes.length - 1}
@@ -625,7 +712,11 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
             value={model.selected.index}
           />
           <p className="text-sm text-[var(--muted)]">
-            Node {model.selected.index + 1} of {model.nodes.length}: {model.selected.node.name}
+            {formatMessageTemplate(messages.controls.nodeSummary, {
+              count: formatLocaleNumber(model.nodes.length, locale),
+              index: formatLocaleNumber(model.selected.index + 1, locale),
+              node: model.selected.node.name,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -638,10 +729,10 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
             }}
             type="button"
           >
-            Previous node
+            {messages.actions.previousNode}
           </button>
           <button className={buttonClassName} onClick={handleReset} type="button">
-            Reset to Earth
+            {messages.actions.reset}
           </button>
           <button
             className={buttonClassName}
@@ -652,21 +743,17 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
             }}
             type="button"
           >
-            Next node
+            {messages.actions.nextNode}
           </button>
         </div>
       </section>
 
       <section aria-labelledby="scale-visual-heading" className="space-y-5">
         <div className="space-y-2">
-          <h2 id="scale-visual-heading">Relative scale track</h2>
-          <p className="max-w-3xl leading-7 text-[var(--muted)]">
-            The markers show relative position on a base-10 logarithmic display from the smallest to
-            the largest curated characteristic size. The track is a diagram, not a physical
-            arrangement and not a distance scale.
-          </p>
+          <h2 id="scale-visual-heading">{messages.track.title}</h2>
+          <p className="max-w-3xl leading-7 text-[var(--muted)]">{messages.track.description}</p>
         </div>
-        <ScaleTrack model={model} />
+        <ScaleTrack messages={messages.track} model={model} />
       </section>
 
       <section
@@ -674,44 +761,60 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
         className="max-w-3xl space-y-5 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
       >
         <div aria-atomic="true" aria-live="polite" role="status">
-          <p className="text-sm font-semibold text-[var(--accent)]">Selected node</p>
+          <p className="text-sm font-semibold text-[var(--accent)]">
+            {messages.result.selectedNode}
+          </p>
           <h2 id="selected-scale-heading">{model.selected.node.name}</h2>
           <p className="mt-2 text-lg leading-8 text-[var(--foreground)]">
             {model.selected.node.display_value}{" "}
-            {quantityLabels[model.selected.node.characteristic_quantity]}
+            {quantityLabel(model.selected.node.characteristic_quantity, messages.quantities)}
           </p>
         </div>
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Category</dt>
-            <dd className="mt-1">{categoryLabels[model.selected.node.category]}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Value status</dt>
-            <dd className="mt-1">{statusLabels[model.selected.node.value_status]}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Source value</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.result.category}
+            </dt>
             <dd className="mt-1">
-              {formatSourceValue(model.selected.node.source_value)}{" "}
+              {categoryLabel(model.selected.node.category, messages.categories)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.result.valueStatus}
+            </dt>
+            <dd className="mt-1">
+              {statusLabel(model.selected.node.value_status, messages.statuses)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.result.sourceValue}
+            </dt>
+            <dd className="mt-1">
+              {formatLocaleNumber(model.selected.node.source_value, locale)}{" "}
               {model.selected.node.source_unit}{" "}
               <span className="text-sm text-[var(--muted)]">
-                ({sourceQuantityLabel(model.selected.node)})
+                ({sourceQuantityLabel(model.selected.node, messages.sourceQuantities)})
               </span>
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Display position</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.result.displayPosition}
+            </dt>
             <dd className="mt-1">
-              {formatDisplayPosition(model.selected.position_percent)} of this curated track
+              {formatDisplayPosition(model.selected.position_percent, locale, messages)}
             </dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-sm font-semibold text-[var(--muted)]">Comparison</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.result.comparison}
+            </dt>
             <dd className="mt-1 leading-7">{model.selected.comparison.text}</dd>
           </div>
         </dl>
-        <ComparisonEvidence comparison={model.selected.comparison} />
+        <ComparisonEvidence comparison={model.selected.comparison} messages={messages} />
         <p className="leading-7 text-[var(--muted)]">{model.selected.node.source_basis}</p>
         <p className="leading-7 text-[var(--foreground)]">
           {model.selected.node.transition_explanation.text}
@@ -719,46 +822,52 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
         {model.selected.node.transition_explanation.derived_quantity !== undefined ? (
           <TransitionCalculationContract
             contract={model.selected.node.transition_explanation.derived_quantity}
+            messages={messages}
           />
         ) : null}
         <div className="grid gap-6 border-t border-[var(--border)] pt-5 sm:grid-cols-2">
           <div className="space-y-2">
-            <h3>Characteristic value evidence</h3>
-            <SourceList sourceIds={model.selected.node.source_ids} />
+            <h3>{messages.result.characteristicEvidence}</h3>
+            <SourceList messages={messages.sources} sourceIds={model.selected.node.source_ids} />
           </div>
           <div className="space-y-2">
-            <h3>Transition evidence</h3>
-            <SourceList sourceIds={model.selected.node.transition_explanation.source_ids} />
+            <h3>{messages.result.transitionEvidence}</h3>
+            <SourceList
+              messages={messages.sources}
+              sourceIds={model.selected.node.transition_explanation.source_ids}
+            />
           </div>
         </div>
         <aside
           aria-labelledby="scale-reading-heading"
           className="space-y-3 rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-4"
         >
-          <h3 id="scale-reading-heading">Reading this result</h3>
+          <h3 id="scale-reading-heading">{messages.result.readingTitle}</h3>
           <p className="leading-7 text-[var(--muted)]">{copy.result_explanation}</p>
           {model.selected.comparison.kind === "calculated-ratio" ? (
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Calculated from {model.selected.node.name} and{" "}
-              {model.nodes.find(
-                (entry) => entry.node.id === model.selected.comparison.reference_node_id,
-              )?.node.name ?? "the reference node"}{" "}
-              characteristic sizes. The ratio is dimensionless; the displayed sentence is rounded to
-              two significant figures.
+              {formatMessageTemplate(messages.result.calculatedComparison, {
+                reference:
+                  model.nodes.find(
+                    (entry) => entry.node.id === model.selected.comparison.reference_node_id,
+                  )?.node.name ?? messages.result.referenceFallback,
+                selected: model.selected.node.name,
+              })}
             </p>
           ) : null}
         </aside>
         <div className="space-y-3 border-t border-[var(--border)] pt-5">
-          <h3>Entity and source links</h3>
+          <h3>{messages.entityLinks.title}</h3>
           <p className="text-sm leading-6 text-[var(--muted)]">
-            These are official NASA reference pages for the selected entity or size claim. They are
-            not Lumina catalogue records.
+            {messages.entityLinks.description}
           </p>
           <ul className="m-0 grid list-disc gap-2 pl-5 text-sm leading-6">
             {model.selected.node.entity_links.map((link) => (
               <li key={link.href}>
                 <span className="mr-1 text-sm text-[var(--muted)]">
-                  {link.kind === "entity-reference" ? "Entity reference:" : "Source reference:"}
+                  {link.kind === "entity-reference"
+                    ? messages.entityLinks.entityReference
+                    : messages.entityLinks.sourceReference}
                 </span>
                 <a
                   className="inline-flex min-h-11 items-center py-2 text-[var(--link)] underline"
@@ -774,70 +883,84 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
 
       <section aria-labelledby="scale-alternative-heading" className="space-y-5">
         <div className="space-y-2">
-          <h2 id="scale-alternative-heading">Text and data alternative</h2>
+          <h2 id="scale-alternative-heading">{messages.dataAlternative.title}</h2>
           <p className="max-w-3xl leading-7 text-[var(--muted)]">
-            This table represents the same model state without relying on the visual track. Every
-            row keeps its source unit, characteristic quantity, comparison, and model position.
+            {messages.dataAlternative.description}
           </p>
         </div>
-        <NodeTable model={model} onSelect={selectNode} />
+        <NodeTable locale={locale} messages={messages} model={model} onSelect={selectNode} />
       </section>
 
       <section aria-labelledby="scale-model-heading" className="max-w-3xl space-y-6">
         <div className="space-y-2">
-          <h2 id="scale-model-heading">Model and assumptions</h2>
+          <h2 id="scale-model-heading">{messages.model.title}</h2>
           <p className="leading-7 text-[var(--muted)]">
-            {copy.model_note} {SCALE_EXPLORER_DEFINITION.visualization_module} This is an
-            educational model, not an operational, research-grade, navigation, or measurement
-            system.
+            {copy.model_note} {SCALE_EXPLORER_DEFINITION.visualization_module}{" "}
+            {messages.model.disclaimer}
           </p>
         </div>
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Model version</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.model.modelVersion}
+            </dt>
             <dd className="mt-1 font-mono text-sm">{SCALE_EXPLORER_MODEL_VERSION}</dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Content review</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.model.contentReview}
+            </dt>
             <dd className="mt-1 leading-7">
-              {SCALE_EXPLORER_DEFINITION.status}; version {SCALE_EXPLORER_DEFINITION.version};
-              reviewed by {SCALE_EXPLORER_DEFINITION.reviewed_by.join(", ")} on{" "}
-              {SCALE_EXPLORER_DEFINITION.reviewed_at.slice(0, 10)}.
+              {formatMessageTemplate(messages.model.contentReviewValue, {
+                reviewedAt: SCALE_EXPLORER_DEFINITION.reviewed_at.slice(0, 10),
+                reviewers: SCALE_EXPLORER_DEFINITION.reviewed_by.join(", "),
+                status: SCALE_EXPLORER_DEFINITION.status,
+                version: formatLocaleNumber(SCALE_EXPLORER_DEFINITION.version, locale),
+              })}
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Input</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">{messages.model.input}</dt>
             <dd className="mt-1 leading-7">
-              {SCALE_EXPLORER_DEFINITION.input_schema.name}: one of the curated node IDs; unit is{" "}
-              {SCALE_EXPLORER_DEFINITION.input_schema.unit}.
+              {formatMessageTemplate(messages.model.inputValue, {
+                name: SCALE_EXPLORER_DEFINITION.input_schema.name,
+                unit: SCALE_EXPLORER_DEFINITION.input_schema.unit,
+              })}
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Valid range</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.model.validRange}
+            </dt>
             <dd className="mt-1 leading-7">
-              Exactly {SCALE_EXPLORER_NODES.length} discrete IDs:{" "}
-              {SCALE_EXPLORER_NODES.map((entry) => entry.name).join(", ")}. Unknown IDs and
-              in-between values are rejected; there is no interpolation.
+              {formatMessageTemplate(messages.model.validRangeValue, {
+                count: formatLocaleNumber(SCALE_EXPLORER_NODES.length, locale),
+                nodes: SCALE_EXPLORER_NODES.map((entry) => entry.name).join(", "),
+              })}
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">Share state shape</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">
+              {messages.model.shareStateShape}
+            </dt>
             <dd className="mt-1 leading-7">
               <code className="text-sm text-[var(--foreground)]">
                 model_version + node_id + schema version
               </code>
-              ; only those three fields are accepted, with no unknown fields.
+              ; {messages.model.shareStateSuffix}
             </dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-sm font-semibold text-[var(--muted)]">Output</dt>
+            <dt className="text-sm font-semibold text-[var(--muted)]">{messages.model.output}</dt>
             <dd className="mt-1 leading-7">
               {SCALE_EXPLORER_DEFINITION.output_schema.join("; ")}.
             </dd>
           </div>
         </dl>
         <div className="space-y-3">
-          <h3>{mode === "explorer" ? "How the scale is built" : "Relationships used"}</h3>
+          <h3>
+            {mode === "explorer" ? messages.model.howScaleBuilt : messages.model.relationshipsUsed}
+          </h3>
           {mode === "explorer" ? (
             <p className="leading-7 text-[var(--muted)]">
               Source values are converted to metres for ordering. The comparison method{" "}
@@ -860,7 +983,7 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
         </div>
         {mode === "student" ? (
           <div className="space-y-3">
-            <h3>Maths to notice</h3>
+            <h3>{messages.model.mathsToNotice}</h3>
             <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
               <li>
                 <code className="text-sm text-[var(--foreground)]">
@@ -883,11 +1006,11 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
         ) : null}
         {mode === "deep-dive" ? (
           <div className="space-y-3">
-            <h3>Derived quantity contracts</h3>
+            <h3>{messages.model.derivedQuantityContracts}</h3>
             <dl className="grid gap-4 sm:grid-cols-2">
               <div>
                 <dt className="text-sm font-semibold text-[var(--muted)]">
-                  Characteristic-size algorithm
+                  {messages.model.characteristicSizeAlgorithm}
                 </dt>
                 <dd className="mt-1 leading-7">
                   <code className="text-sm text-[var(--foreground)]">
@@ -904,14 +1027,16 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
               </div>
               <div>
                 <dt className="text-sm font-semibold text-[var(--muted)]">
-                  Characteristic-size inputs
+                  {messages.model.characteristicSizeInputs}
                 </dt>
                 <dd className="mt-1 leading-7">
                   {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.inputs}.
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">Comparison algorithm</dt>
+                <dt className="text-sm font-semibold text-[var(--muted)]">
+                  {messages.model.comparisonAlgorithm}
+                </dt>
                 <dd className="mt-1 leading-7">
                   <code className="text-sm text-[var(--foreground)]">
                     {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.algorithm_id} v
@@ -925,27 +1050,33 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">Comparison inputs</dt>
+                <dt className="text-sm font-semibold text-[var(--muted)]">
+                  {messages.model.comparisonInputs}
+                </dt>
                 <dd className="mt-1 leading-7">
                   {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.inputs}.
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-semibold text-[var(--muted)]">
-                  Characteristic-size valid domain
+                  {messages.model.characteristicSizeValidDomain}
                 </dt>
                 <dd className="mt-1 leading-7">
                   {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.valid_domain}.
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">Valid domain</dt>
+                <dt className="text-sm font-semibold text-[var(--muted)]">
+                  {messages.model.validDomain}
+                </dt>
                 <dd className="mt-1 leading-7">
                   {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.valid_domain}.
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">Numerical tolerance</dt>
+                <dt className="text-sm font-semibold text-[var(--muted)]">
+                  {messages.model.numericalTolerance}
+                </dt>
                 <dd className="mt-1 leading-7">
                   {
                     SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison
@@ -955,7 +1086,7 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
               </div>
               <div>
                 <dt className="text-sm font-semibold text-[var(--muted)]">
-                  Characteristic-size tolerance
+                  {messages.model.characteristicSizeTolerance}
                 </dt>
                 <dd className="mt-1 leading-7">
                   {
@@ -966,14 +1097,15 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
               </div>
             </dl>
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Automated validation fixtures:{" "}
-              {SCALE_EXPLORER_DEFINITION.validation_fixtures.join(", ")}.
+              {formatMessageTemplate(messages.model.automatedValidationFixtures, {
+                fixtures: SCALE_EXPLORER_DEFINITION.validation_fixtures.join(", "),
+              })}
             </p>
           </div>
         ) : null}
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-3">
-            <h3>Assumptions</h3>
+            <h3>{messages.model.assumptions}</h3>
             <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
               {SCALE_EXPLORER_DEFINITION.assumptions.map((assumption) => (
                 <li key={assumption}>{assumption}</li>
@@ -981,7 +1113,7 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
             </ul>
           </div>
           <div className="space-y-3">
-            <h3>Known limitations</h3>
+            <h3>{messages.model.knownLimitations}</h3>
             <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
               {SCALE_EXPLORER_DEFINITION.limitations.map((limitation) => (
                 <li key={limitation}>{limitation}</li>
@@ -990,11 +1122,17 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
           </div>
         </div>
         <div className="space-y-3">
-          <h3>References</h3>
+          <h3>{messages.model.references}</h3>
           {mode === "deep-dive" ? (
-            <SourceList sourceIds={SCALE_EXPLORER_DEFINITION.references} />
+            <SourceList
+              messages={messages.sources}
+              sourceIds={SCALE_EXPLORER_DEFINITION.references}
+            />
           ) : (
-            <SourceLinkList sourceIds={SCALE_EXPLORER_DEFINITION.references} />
+            <SourceLinkList
+              messages={messages.sources}
+              sourceIds={SCALE_EXPLORER_DEFINITION.references}
+            />
           )}
         </div>
       </section>
@@ -1003,23 +1141,27 @@ export function ScaleExplorerView({ initialState, initialStateInvalid }: ScaleEx
         aria-labelledby="scale-share-heading"
         className="max-w-3xl space-y-4 border-t border-[var(--border)] pt-8"
       >
-        <h2 id="scale-share-heading">Share this scale position</h2>
+        <h2 id="scale-share-heading">{messages.share.title}</h2>
         <p className="leading-7 text-[var(--muted)]">
-          The reproducible state contains model version {SCALE_EXPLORER_MODEL_VERSION}, schema
-          version {SCALE_EXPLORER_DEFINITION.share_schema_version}, and the selected node ID. It
-          does not save an account, location, or personal data.
+          {formatMessageTemplate(messages.share.description, {
+            modelVersion: SCALE_EXPLORER_MODEL_VERSION,
+            schemaVersion: formatLocaleNumber(
+              SCALE_EXPLORER_DEFINITION.share_schema_version,
+              locale,
+            ),
+          })}
         </p>
         <div className="flex flex-wrap gap-3">
           <button className={buttonClassName} onClick={() => void handleShare()} type="button">
-            Copy share link
+            {messages.actions.copyShareLink}
           </button>
           <Link className={buttonClassName} href="/learn">
-            Continue learning
+            {messages.actions.continueLearning}
           </Link>
         </div>
         {shareUrl !== null ? (
           <label className="block space-y-2" htmlFor="scale-share-url">
-            <span className="text-sm font-semibold">Share link</span>
+            <span className="text-sm font-semibold">{messages.share.label}</span>
             <input
               className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-sm text-[var(--foreground)]"
               id="scale-share-url"

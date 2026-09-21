@@ -1,19 +1,26 @@
+import { DEFAULT_LOCALE } from "../../../../../lib/i18n/locales";
 import { enMessages } from "../../../../../lib/i18n/messages/en";
 import ScaleExplorerNodePage, {
+  createScaleExplorerNodeMetadata,
   generateStaticParams,
-  metadata,
 } from "../../../../lab/scale-explorer/[nodeId]/route-page";
 
-export { generateStaticParams, metadata };
+export { generateStaticParams };
+export const metadata = createScaleExplorerNodeMetadata(enMessages.simulationLabs.scaleExplorer);
 export const dynamicParams = false;
 
 type EnglishScaleExplorerNodePageProps = Omit<
   Parameters<typeof ScaleExplorerNodePage>[0],
-  "presentationModeMessages"
+  "locale" | "messages" | "presentationModeMessages"
 >;
 
 export default function EnglishScaleExplorerNodePage(props: EnglishScaleExplorerNodePageProps) {
   return (
-    <ScaleExplorerNodePage {...props} presentationModeMessages={enMessages.presentationMode} />
+    <ScaleExplorerNodePage
+      {...props}
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.simulationLabs.scaleExplorer}
+      presentationModeMessages={enMessages.presentationMode}
+    />
   );
 }

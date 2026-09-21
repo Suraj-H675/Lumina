@@ -8,6 +8,8 @@ import {
   DEFAULT_SCALE_EXPLORER_STATE,
   decodeScaleExplorerState,
 } from "../src/lib/simulations/scale-explorer";
+import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
+import { enMessages } from "../src/lib/i18n/messages/en";
 import { renderWithEnglishMessages as render } from "./i18n-render";
 
 beforeEach(() => {
@@ -18,7 +20,12 @@ beforeEach(() => {
 describe("ScaleExplorerView", () => {
   it("renders the interactive result, model page, data alternative, and sources accessibly", async () => {
     const { container } = render(
-      <ScaleExplorerView initialState={DEFAULT_SCALE_EXPLORER_STATE} initialStateInvalid={false} />,
+      <ScaleExplorerView
+        initialState={DEFAULT_SCALE_EXPLORER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
+      />,
     );
 
     expect(screen.getByRole("heading", { level: 1, name: "Scale Explorer" })).toBeVisible();
@@ -51,6 +58,8 @@ describe("ScaleExplorerView", () => {
       <ScaleExplorerView
         initialState={{ model_version: "scale-explorer-v1", node_id: "milky-way", version: 1 }}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
       />,
     );
 
@@ -65,6 +74,8 @@ describe("ScaleExplorerView", () => {
       <ScaleExplorerView
         initialState={{ model_version: "scale-explorer-v1", node_id: "mercury", version: 1 }}
         initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
       />,
     );
     expect(
@@ -77,7 +88,12 @@ describe("ScaleExplorerView", () => {
   it("changes the deterministic model with the slider and updates the shareable URL state", async () => {
     const user = userEvent.setup();
     render(
-      <ScaleExplorerView initialState={DEFAULT_SCALE_EXPLORER_STATE} initialStateInvalid={false} />,
+      <ScaleExplorerView
+        initialState={DEFAULT_SCALE_EXPLORER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
+      />,
     );
 
     const slider = screen.getByRole("slider", { name: "Curated scale position" });
@@ -101,7 +117,14 @@ describe("ScaleExplorerView", () => {
 
   it("keeps an invalid incoming state visible as an explicit warning and recovers with reset", async () => {
     const user = userEvent.setup();
-    render(<ScaleExplorerView initialState={DEFAULT_SCALE_EXPLORER_STATE} initialStateInvalid />);
+    render(
+      <ScaleExplorerView
+        initialState={DEFAULT_SCALE_EXPLORER_STATE}
+        initialStateInvalid
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
+      />,
+    );
 
     expect(screen.getByRole("alert")).toHaveTextContent(/shared scale state was not valid/i);
     expect(screen.getByRole("alert")).toHaveTextContent(/serialized form/i);
@@ -116,7 +139,12 @@ describe("ScaleExplorerView", () => {
   it("changes presentation copy without changing the selected scientific result", async () => {
     const user = userEvent.setup();
     render(
-      <ScaleExplorerView initialState={DEFAULT_SCALE_EXPLORER_STATE} initialStateInvalid={false} />,
+      <ScaleExplorerView
+        initialState={DEFAULT_SCALE_EXPLORER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={enMessages.simulationLabs.scaleExplorer}
+      />,
     );
 
     expect(screen.getByText(/explorer mode keeps the model explanation concise/i)).toBeVisible();
@@ -134,5 +162,40 @@ describe("ScaleExplorerView", () => {
     expect(screen.getByRole("heading", { name: "Derived quantity contracts" })).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: "Earth" })).toBeVisible();
     expect(screen.getByText("about 12.7 thousand km characteristic diameter")).toBeVisible();
+  });
+
+  it("localizes interface chrome without rewriting curated scale science or source identity", () => {
+    const messages = {
+      ...enMessages.simulationLabs.scaleExplorer,
+      header: {
+        ...enMessages.simulationLabs.scaleExplorer.header,
+        title: "Localized Scale Explorer",
+      },
+      result: {
+        ...enMessages.simulationLabs.scaleExplorer.result,
+        sourceValue: "Localized source value",
+      },
+    };
+
+    render(
+      <ScaleExplorerView
+        initialState={DEFAULT_SCALE_EXPLORER_STATE}
+        initialStateInvalid={false}
+        locale={DEFAULT_LOCALE}
+        messages={messages}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Localized Scale Explorer" }),
+    ).toBeVisible();
+    expect(screen.getByText("Localized source value")).toBeVisible();
+    expect(screen.getByRole("heading", { level: 2, name: "Earth" })).toBeVisible();
+    expect(screen.getByText(/NASA lists an approximate radius of 6,371 km/i)).toBeVisible();
+    expect(screen.getAllByText("nasa-solar-system-sizes").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "NASA Earth facts" })).toHaveAttribute(
+      "href",
+      "https://science.nasa.gov/earth/facts/",
+    );
   });
 });

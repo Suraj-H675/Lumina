@@ -1,0 +1,121 @@
+{
+  "artifact_version": 1,
+  "audit_id": "phase-8d-quality-v1",
+  "phase": "8D",
+  "status": "manual_evidence_pending",
+  "phase_gate": {
+    "completion": "open",
+    "reason": "The automated audit baseline is established, but manual accessibility and representative-hardware evidence remain required before Phase 8D can be described as complete.",
+    "previous_certified_checkpoint": {
+      "commit": "24e22cb1f1cc7879d38f7707fead9fed5252069a",
+      "hosted_ci_run": "35642172976",
+      "result": "success"
+    }
+  },
+  "documentation_policy": {
+    "format": "tracked_json",
+    "reason": "Repository CI intentionally rejects tracked Markdown; this machine-readable artifact is the tracked Phase 8D status, evidence index, claim-boundary record, and verification handoff."
+  },
+  "performance_threshold_provenance": {
+    "core_web_vitals_lab": {
+      "source_url": "https://web.dev/articles/vitals",
+      "lcp_ms": 2500,
+      "cls": 0.1,
+      "scripted_interaction_ms": 200,
+      "scope": "The LCP and CLS lab regression ceilings align with the published good Core Web Vitals thresholds. The 200 ms value is used only as a scripted lab interaction ceiling; this repository does not describe Event Timing samples as field INP."
+    },
+    "deterministic_compute": {
+      "planner_p95_ms": 10,
+      "tonight_100_target_p95_ms": 100,
+      "scope": "These are repository-enforced deterministic local-compute regression ceilings from the certified Phase 8D performance checkpoint, not network or end-user latency SLAs."
+    },
+    "api_in_process": {
+      "budget": null,
+      "scope": "The selected ASGI measurements are reporting-only in-process baselines. They exclude network, reverse-proxy, deployment, and real-user latency; no API latency pass threshold is frozen."
+    },
+    "representative_hardware_wwt": {
+      "budget": null,
+      "scope": "The operator tool records WWT WebGL draw-bearing animation-frame cadence. It is not GPU-completion timing and no project cadence floor is frozen; an optional operator floor must be supplied explicitly."
+    }
+  },
+  "automated_evidence": {
+    "accessibility": [
+      "apps/web/tests/e2e/phase-8d-audit.spec.ts",
+      "apps/web/tests/modal-dialog.test.tsx"
+    ],
+    "webgl_disabled_and_reduced_motion": [
+      "apps/web/tests/e2e/deep-sky.spec.ts",
+      "apps/web/tests/e2e/identify.spec.ts",
+      "apps/web/tests/wwt-client.test.ts"
+    ],
+    "offline": [
+      "apps/web/tests/e2e/pwa-offline.spec.ts",
+      "apps/web/tests/pwa-policy.test.ts",
+      "apps/web/tests/pwa-service-worker-behavior.test.ts"
+    ],
+    "performance": {
+      "api_in_process_percentiles": "apps/api/tests/integration/test_api_performance.py",
+      "catalog_search_percentiles": "apps/api/tests/integration/test_catalog_search.py",
+      "core_web_vitals_lab": "apps/web/tests/e2e/phase-8d-core-web-vitals.spec.ts",
+      "deterministic_compute": "apps/web/tests/phase-8d-compute-performance.test.ts",
+      "initial_javascript": "scripts/ci/check_web_performance_budgets.mjs",
+      "memory_cleanup_proxy": "apps/web/tests/e2e/deep-sky.spec.ts",
+      "worker_queue_age": "apps/api/tests/integration/jobs/test_claim.py",
+      "wwt_bundle_isolation": "scripts/ci/check_wwt_bundle_isolation.mjs"
+    },
+    "synthetic_low_end_proxy": "apps/web/tests/e2e/phase-8d-audit.spec.ts"
+  },
+  "manual_tools": {
+    "representative_hardware_webgl": "apps/web/scripts/measure-wwt-hardware.mjs"
+  },
+  "verification_commands": {
+    "repository": "pnpm check",
+    "python_static": "uv run ruff format --check . && uv run ruff check . && uv run mypy apps/api/src apps/api/tests scripts/bootstrap scripts/data scripts/openapi scripts/ci",
+    "python_postgres": "LUMINA_ENV=test uv run pytest -q",
+    "web_build": "pnpm build",
+    "web_e2e": "pnpm test:e2e",
+    "security": "pnpm security:check",
+    "wwt_tool_tests": "pnpm --filter @lumina/web exec node --test scripts/measure-wwt-hardware.test.mjs",
+    "wwt_server": "(cd apps/web && LUMINA_E2E_COORDINATION_FILE=/tmp/lumina-phase8d-wwt.json node tests/e2e/support/status-stub-harness.mjs)",
+    "wwt_plumbing": "pnpm --filter @lumina/web perf:wwt-hardware -- --url 'http://127.0.0.1:3000/explore/deep-sky?object=messier-31' --headless --allow-software --stub-network --seconds 1 --warmup-seconds 0",
+    "wwt_representative_hardware": "pnpm --filter @lumina/web perf:wwt-hardware -- --url 'http://127.0.0.1:3000/explore/deep-sky?object=messier-31' --seconds 30 --warmup-seconds 5"
+  },
+  "manual_evidence_required": [
+    {
+      "id": "wcag-2.2-aa-manual-review",
+      "reason": "Automated axe, landmarks, focus, contrast, touch, and fallback checks do not prove full WCAG 2.2 AA conformance."
+    },
+    {
+      "id": "screen-reader",
+      "reason": "ARIA roles and automated accessibility-tree checks are not equivalent to testing with a real screen reader."
+    },
+    {
+      "id": "browser-zoom-200",
+      "reason": "Current automated checks use CSS presentation zoom or equivalent narrow-layout proxies; real browser 200% zoom remains manual."
+    },
+    {
+      "id": "representative-low-end-device",
+      "reason": "CPU/network emulation is a synthetic proxy and does not replace representative low-end hardware testing."
+    },
+    {
+      "id": "representative-hardware-webgl-render-cadence",
+      "reason": "Headless Chromium is not representative hardware. The opt-in tool must be run headed against an explicit Lumina URL with real WWT network access; its draw-bearing frame cadence is evidence, not GPU-completion timing or a pass without an explicit floor."
+    },
+    {
+      "id": "field-inp",
+      "reason": "Scripted Event Timing is lab interaction-latency evidence, not field INP/RUM evidence."
+    },
+    {
+      "id": "retained-gpu-memory",
+      "reason": "DOM/listener cleanup after route leave is automated, but retained GPU/driver memory requires representative-hardware profiling."
+    }
+  ],
+  "claim_boundaries": [
+    "CSS or viewport reflow proxies are not described as real browser zoom certification.",
+    "Automated axe results are not described as screen-reader or WCAG certification.",
+    "Scripted lab interaction latency is not described as field INP.",
+    "Synthetic CPU/network throttling is not described as representative low-end hardware evidence.",
+    "In-process ASGI latency is not described as deployed HTTP, proxy, network, or real-user latency.",
+    "WWT draw-bearing animation-frame cadence is not described as GPU-complete frame timing, and representative-hardware eligibility is not described as a performance pass without an explicit floor."
+  ]
+}

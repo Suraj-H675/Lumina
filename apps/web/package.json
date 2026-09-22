@@ -7,8 +7,9 @@
     "build": "next build && node ../../scripts/ci/check_wwt_bundle_isolation.mjs && node ../../scripts/ci/check_web_performance_budgets.mjs",
     "dev": "next dev",
     "lint": "eslint .",
+    "perf:wwt-hardware": "node scripts/measure-wwt-hardware.mjs",
     "start": "next start",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/phase-8d-compute-performance.test.ts && vitest run tests/phase-8d-compute-performance.test.ts --maxWorkers=1 --no-file-parallelism && node --test scripts/measure-wwt-hardware.test.mjs",
     "test:e2e": "playwright test",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },

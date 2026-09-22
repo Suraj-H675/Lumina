@@ -192,6 +192,7 @@ const allowedHistoryTuples = new Set([
   "URI|926d4f273332b8fe476ca5caa76de841dfc547ca|apps/web/tests/status.test.tsx|138",
   "URI|926d4f273332b8fe476ca5caa76de841dfc547ca|apps/web/tests/status.test.tsx|371",
   "URI|926d4f273332b8fe476ca5caa76de841dfc547ca|packages/api-client/tests/transport.test.ts|33",
+  "URI|155b5094925254030d60492567919fe43e497764|apps/web/scripts/measure-wwt-hardware.test.mjs|138",
 ]);
 
 let findings;

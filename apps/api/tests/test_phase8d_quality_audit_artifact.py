@@ -79,7 +79,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 5
+    assert document["artifact_version"] == 6
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -88,8 +88,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     phase_gate = _mapping(document["phase_gate"])
     assert phase_gate["completion"] == "open"
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "4089497d795d1895b844cb39cbb80c7d0e56ce55",
-        "hosted_ci_run": "35724508572",
+        "commit": "ea7d638f1a4d730a4cb609e1a4750b825cca0595",
+        "hosted_ci_run": "35757207299",
         "result": "success",
     }
 
@@ -116,6 +116,12 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "--source-export" in _string(verification_commands["field_inp_validate_import"])
     assert "phase-8d-field-inp-v1.json" in _string(
         verification_commands["field_inp_validate_import"]
+    )
+    assert verification_commands["manual_evidence_validator_tests"] == (
+        "uv run pytest -q apps/api/tests/test_phase8d_manual_evidence.py"
+    )
+    assert "validate_phase8d_manual_evidence.py" in _string(
+        verification_commands["manual_evidence_validate"]
     )
     assert "measure-browser-zoom.test.mjs" in _string(
         verification_commands["browser_zoom_tool_tests"]
@@ -154,6 +160,21 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
         "representative-hardware-webgl-render-cadence",
         "retained-gpu-memory",
     }
+
+    manual_evidence_paths = {
+        "wcag-2.2-aa-manual-review": "data/audits/phase-8d-wcag-manual-v1.json",
+        "screen-reader": "data/audits/phase-8d-screen-reader-v1.json",
+        "browser-zoom-200": "data/audits/phase-8d-browser-zoom-manual-v1.json",
+        "representative-low-end-device": "data/audits/phase-8d-low-end-device-v1.json",
+    }
+    for item_id, tracked_path in manual_evidence_paths.items():
+        manual_item = _mapping(manual_by_id[item_id])
+        readiness = _mapping(manual_item["readiness"])
+        assert readiness["validator"] == "scripts/ci/validate_phase8d_manual_evidence.py"
+        assert readiness["validator_tests"] == "apps/api/tests/test_phase8d_manual_evidence.py"
+        assert readiness["tracked_evidence_path"] == tracked_path
+        assert readiness["manual_evidence_present"] is False
+        assert not (_REPOSITORY_ROOT / tracked_path).exists()
 
     browser_zoom = _mapping(manual_by_id["browser-zoom-200"])
     assert browser_zoom["status"] == "pending"
@@ -409,6 +430,7 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "not described as real browser zoom evidence" in serialized
     assert "not described as completion of the required manual 200% zoom" in serialized
     assert "not described as screen-reader" in serialized
+    assert "manual-evidence validator is not described as a performed human" in serialized
     assert "not described as field inp" in serialized
     assert "validator or empty import path is not described as field inp evidence" in serialized
     assert "does not add behavioral tracking" in serialized

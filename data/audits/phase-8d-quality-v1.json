@@ -1,14 +1,14 @@
 {
-  "artifact_version": 5,
+  "artifact_version": 6,
   "audit_id": "phase-8d-quality-v1",
   "phase": "8D",
   "status": "manual_evidence_pending",
   "phase_gate": {
     "completion": "open",
-    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, and a privacy-bounded field-INP import path are recorded. The tracked field-INP approval manifest is intentionally empty, so no field evidence is currently admissible. Five manual or field evidence items remain because readiness tooling is not field evidence and native browser zoom automation does not replace the required manual accessibility check.",
+    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, and strict manual-evidence validation are recorded. The field-INP approval manifest is empty and all manual/hardware evidence artifacts are absent, so five manual or field evidence items remain open.",
     "previous_certified_checkpoint": {
-      "commit": "4089497d795d1895b844cb39cbb80c7d0e56ce55",
-      "hosted_ci_run": "35724508572",
+      "commit": "ea7d638f1a4d730a4cb609e1a4750b825cca0595",
+      "hosted_ci_run": "35757207299",
       "result": "success"
     }
   },
@@ -69,6 +69,8 @@
     "field_inp_approval_manifest": "data/audits/phase-8d-field-inp-approvals-v1.json",
     "field_inp_validator": "scripts/ci/validate_phase8d_field_inp.py",
     "field_inp_validator_tests": "apps/api/tests/test_phase8d_field_inp_evidence.py",
+    "manual_evidence_validator": "scripts/ci/validate_phase8d_manual_evidence.py",
+    "manual_evidence_validator_tests": "apps/api/tests/test_phase8d_manual_evidence.py",
     "real_browser_zoom": "apps/web/scripts/measure-browser-zoom.mjs",
     "real_browser_zoom_evidence": "data/audits/phase-8d-browser-zoom-v1.json",
     "representative_hardware_webgl": "apps/web/scripts/measure-wwt-hardware.mjs",
@@ -85,6 +87,8 @@
     "security": "pnpm security:check",
     "field_inp_validator_tests": "uv run pytest -q apps/api/tests/test_phase8d_field_inp_evidence.py",
     "field_inp_validate_import": "uv run python scripts/ci/validate_phase8d_field_inp.py --input <approved-aggregate-field-evidence.json> --source-export <approved-source-export> --output data/audits/phase-8d-field-inp-v1.json",
+    "manual_evidence_validator_tests": "uv run pytest -q apps/api/tests/test_phase8d_manual_evidence.py",
+    "manual_evidence_validate": "uv run python scripts/ci/validate_phase8d_manual_evidence.py --input <manually-collected-evidence.json>",
     "browser_zoom_tool_tests": "pnpm --filter @lumina/web exec node --test scripts/measure-browser-zoom.test.mjs",
     "browser_zoom_real": "pnpm --filter @lumina/web audit:browser-zoom -- --url 'http://127.0.0.1:3000/' --output 'data/audits/phase-8d-browser-zoom-v1.json'",
     "wwt_tool_tests": "pnpm --filter @lumina/web exec node --test scripts/measure-wwt-hardware.test.mjs scripts/measure-wwt-gpu-memory.test.mjs",
@@ -97,12 +101,24 @@
     {
       "id": "wcag-2.2-aa-manual-review",
       "status": "pending",
-      "reason": "Automated axe, landmarks, focus, contrast, touch, and fallback checks do not prove full WCAG 2.2 AA conformance."
+      "reason": "Automated axe, landmarks, focus, contrast, touch, and fallback checks do not prove full WCAG 2.2 AA conformance. A strict completeness validator is available, but no manually collected WCAG review artifact exists yet.",
+      "readiness": {
+        "validator": "scripts/ci/validate_phase8d_manual_evidence.py",
+        "validator_tests": "apps/api/tests/test_phase8d_manual_evidence.py",
+        "tracked_evidence_path": "data/audits/phase-8d-wcag-manual-v1.json",
+        "manual_evidence_present": false
+      }
     },
     {
       "id": "screen-reader",
       "status": "pending",
-      "reason": "ARIA roles and automated accessibility-tree checks are not equivalent to testing with a real screen reader."
+      "reason": "ARIA roles and automated accessibility-tree checks are not equivalent to testing with a real screen reader. A strict completeness validator is available, but no manually collected real-screen-reader artifact exists yet.",
+      "readiness": {
+        "validator": "scripts/ci/validate_phase8d_manual_evidence.py",
+        "validator_tests": "apps/api/tests/test_phase8d_manual_evidence.py",
+        "tracked_evidence_path": "data/audits/phase-8d-screen-reader-v1.json",
+        "manual_evidence_present": false
+      }
     },
     {
       "id": "browser-zoom-200",
@@ -113,12 +129,24 @@
         "instrumentation": "chromium-settings-private-default-zoom-v1",
         "assessment": "supporting_real_browser_zoom_automation_manual_review_pending",
         "manual_review_still_required": true
+      },
+      "readiness": {
+        "validator": "scripts/ci/validate_phase8d_manual_evidence.py",
+        "validator_tests": "apps/api/tests/test_phase8d_manual_evidence.py",
+        "tracked_evidence_path": "data/audits/phase-8d-browser-zoom-manual-v1.json",
+        "manual_evidence_present": false
       }
     },
     {
       "id": "representative-low-end-device",
       "status": "pending",
-      "reason": "CPU/network emulation is a synthetic proxy and does not replace representative low-end hardware testing."
+      "reason": "CPU/network emulation is a synthetic proxy and does not replace representative low-end hardware testing. A strict completeness validator is available, but no observation from an actual low-end device exists yet.",
+      "readiness": {
+        "validator": "scripts/ci/validate_phase8d_manual_evidence.py",
+        "validator_tests": "apps/api/tests/test_phase8d_manual_evidence.py",
+        "tracked_evidence_path": "data/audits/phase-8d-low-end-device-v1.json",
+        "manual_evidence_present": false
+      }
     },
     {
       "id": "representative-hardware-webgl-render-cadence",
@@ -210,6 +238,7 @@
     "CSS or viewport reflow proxies are not described as real browser zoom evidence.",
     "Native Chromium 200% browser-zoom automation is not described as completion of the required manual 200% zoom accessibility check.",
     "Automated axe results are not described as screen-reader or WCAG certification.",
+    "A manual-evidence validator is not described as a performed human accessibility or representative-device observation.",
     "Scripted lab interaction latency is not described as field INP.",
     "A field-INP evidence validator or empty import path is not described as field INP evidence.",
     "Phase 8D field-INP readiness does not add behavioral tracking to Lumina; only approved aggregate external evidence may be imported.",

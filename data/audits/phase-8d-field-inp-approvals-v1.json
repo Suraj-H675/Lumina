@@ -1,0 +1,10 @@
+{
+  "artifact_version": 1,
+  "manifest_id": "phase-8d-field-inp-approvals-v1",
+  "phase": "8D",
+  "approved_sources": [],
+  "approved_deployments": [],
+  "approved_privacy_reviews": [],
+  "approved_exports": [],
+  "claim_boundary": "Only entries explicitly frozen in this tracked manifest may authorize a Phase 8D field-INP import. Empty approval lists mean no field-INP evidence is currently admissible."
+}

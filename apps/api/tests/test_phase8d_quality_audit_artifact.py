@@ -9,6 +9,7 @@ from typing import cast
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 _ARTIFACT = _REPOSITORY_ROOT / "data/audits/phase-8d-quality-v1.json"
 _BROWSER_ZOOM_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-browser-zoom-v1.json"
+_FIELD_INP_APPROVALS = _REPOSITORY_ROOT / "data/audits/phase-8d-field-inp-approvals-v1.json"
 _GPU_MEMORY_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-gpu-memory-v1.json"
 _MANUAL_PROTOCOL = _REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
 _REQUIRED_MANUAL_EVIDENCE = {
@@ -78,7 +79,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 4
+    assert document["artifact_version"] == 5
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -87,7 +88,7 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     phase_gate = _mapping(document["phase_gate"])
     assert phase_gate["completion"] == "open"
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "1bbf4bbb520dac8318f92a6f43039636bac73b00",
+        "commit": "4089497d795d1895b844cb39cbb80c7d0e56ce55",
         "hosted_ci_run": "35724508572",
         "result": "success",
     }
@@ -106,6 +107,16 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert verification_commands["web_build"] == "pnpm build"
     assert verification_commands["web_e2e"] == "pnpm test:e2e"
     assert verification_commands["security"] == "pnpm security:check"
+    assert verification_commands["field_inp_validator_tests"] == (
+        "uv run pytest -q apps/api/tests/test_phase8d_field_inp_evidence.py"
+    )
+    assert "validate_phase8d_field_inp.py" in _string(
+        verification_commands["field_inp_validate_import"]
+    )
+    assert "--source-export" in _string(verification_commands["field_inp_validate_import"])
+    assert "phase-8d-field-inp-v1.json" in _string(
+        verification_commands["field_inp_validate_import"]
+    )
     assert "measure-browser-zoom.test.mjs" in _string(
         verification_commands["browser_zoom_tool_tests"]
     )
@@ -123,6 +134,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
         assert not path.is_absolute()
         assert ".." not in path.parts
         candidate = _REPOSITORY_ROOT / path
+        current = _REPOSITORY_ROOT
+        for part in path.parts[:-1]:
+            current = current / part
+            assert not current.is_symlink(), raw_path
         assert not candidate.is_symlink(), raw_path
         resolved = candidate.resolve(strict=True)
         assert resolved.is_relative_to(repository_root), raw_path
@@ -223,6 +238,40 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert browser_zoom_target["shortName"] == "Lumina"
     assert browser_zoom_target["scope"] == "/"
     assert browser_zoom_target["startUrl"] == "/"
+
+    field_inp = _mapping(manual_by_id["field-inp"])
+    assert field_inp["status"] == "pending"
+    field_inp_readiness = _mapping(field_inp["readiness"])
+    assert field_inp_readiness["approval_manifest"] == (
+        "data/audits/phase-8d-field-inp-approvals-v1.json"
+    )
+    assert field_inp_readiness["validator"] == "scripts/ci/validate_phase8d_field_inp.py"
+    assert field_inp_readiness["validator_tests"] == (
+        "apps/api/tests/test_phase8d_field_inp_evidence.py"
+    )
+    assert field_inp_readiness["tracked_evidence_path"] == (
+        "data/audits/phase-8d-field-inp-v1.json"
+    )
+    assert field_inp_readiness["approved_source_count"] == 0
+    assert field_inp_readiness["approved_deployment_count"] == 0
+    assert field_inp_readiness["approved_privacy_review_count"] == 0
+    assert field_inp_readiness["approved_export_count"] == 0
+    assert field_inp_readiness["runtime_behavioral_tracking_added"] is False
+    assert field_inp_readiness["approved_field_evidence_present"] is False
+    assert not (_REPOSITORY_ROOT / _string(field_inp_readiness["tracked_evidence_path"])).exists()
+
+    field_inp_approvals = _load_json_document(_FIELD_INP_APPROVALS)
+    assert field_inp_approvals["artifact_version"] == 1
+    assert field_inp_approvals["manifest_id"] == "phase-8d-field-inp-approvals-v1"
+    assert field_inp_approvals["phase"] == "8D"
+    assert field_inp_approvals["approved_sources"] == []
+    assert field_inp_approvals["approved_deployments"] == []
+    assert field_inp_approvals["approved_privacy_reviews"] == []
+    assert field_inp_approvals["approved_exports"] == []
+    assert (
+        "no field-inp evidence is currently admissible"
+        in _string(field_inp_approvals["claim_boundary"]).casefold()
+    )
 
     representative_wwt = _mapping(manual_by_id["representative-hardware-webgl-render-cadence"])
     assert representative_wwt["status"] == "recorded"
@@ -361,6 +410,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "not described as completion of the required manual 200% zoom" in serialized
     assert "not described as screen-reader" in serialized
     assert "not described as field inp" in serialized
+    assert "validator or empty import path is not described as field inp evidence" in serialized
+    assert "does not add behavioral tracking" in serialized
     assert "not described as representative low-end hardware" in serialized
     assert "not described as gpu-complete frame timing" in serialized
     assert "not described as deployed http" in serialized

@@ -8,6 +8,7 @@ from typing import cast
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 _ARTIFACT = _REPOSITORY_ROOT / "data/audits/phase-8d-quality-v1.json"
+_BROWSER_ZOOM_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-browser-zoom-v1.json"
 _GPU_MEMORY_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-gpu-memory-v1.json"
 _MANUAL_PROTOCOL = _REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
 _REQUIRED_MANUAL_EVIDENCE = {
@@ -77,7 +78,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 3
+    assert document["artifact_version"] == 4
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -86,8 +87,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     phase_gate = _mapping(document["phase_gate"])
     assert phase_gate["completion"] == "open"
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "7d2083cac77e742e006d9f177551d527e1f2cbe6",
-        "hosted_ci_run": "35692043060",
+        "commit": "1bbf4bbb520dac8318f92a6f43039636bac73b00",
+        "hosted_ci_run": "35724508572",
         "result": "success",
     }
 
@@ -105,6 +106,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert verification_commands["web_build"] == "pnpm build"
     assert verification_commands["web_e2e"] == "pnpm test:e2e"
     assert verification_commands["security"] == "pnpm security:check"
+    assert "measure-browser-zoom.test.mjs" in _string(
+        verification_commands["browser_zoom_tool_tests"]
+    )
+    assert "audit:browser-zoom" in _string(verification_commands["browser_zoom_real"])
     assert "measure-wwt-hardware.test.mjs" in _string(verification_commands["wwt_tool_tests"])
     assert "measure-wwt-gpu-memory.test.mjs" in _string(verification_commands["wwt_tool_tests"])
     assert "--stub-network" in _string(verification_commands["wwt_plumbing"])
@@ -134,6 +139,90 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
         "representative-hardware-webgl-render-cadence",
         "retained-gpu-memory",
     }
+
+    browser_zoom = _mapping(manual_by_id["browser-zoom-200"])
+    assert browser_zoom["status"] == "pending"
+    browser_zoom_evidence_ref = _mapping(browser_zoom["evidence"])
+    assert browser_zoom_evidence_ref["artifact"] == "data/audits/phase-8d-browser-zoom-v1.json"
+    assert browser_zoom_evidence_ref["instrumentation"] == (
+        "chromium-settings-private-default-zoom-v1"
+    )
+    assert browser_zoom_evidence_ref["assessment"] == (
+        "supporting_real_browser_zoom_automation_manual_review_pending"
+    )
+    assert browser_zoom_evidence_ref["manual_review_still_required"] is True
+
+    browser_zoom_evidence = _load_json_document(_BROWSER_ZOOM_EVIDENCE)
+    assert browser_zoom_evidence["artifact_version"] == 1
+    assert browser_zoom_evidence["evidence_id"] == "phase-8d-real-browser-zoom-v1"
+    assert browser_zoom_evidence["phase"] == "8D"
+    assert browser_zoom_evidence["build_commit"] == ("1bbf4bbb520dac8318f92a6f43039636bac73b00")
+    assert (
+        browser_zoom_evidence["measurement_command"] == verification_commands["browser_zoom_real"]
+    )
+    assert browser_zoom_evidence["instrumentation"] == ("chromium-settings-private-default-zoom-v1")
+
+    zoom_assessment = _mapping(browser_zoom_evidence["assessment"])
+    assert zoom_assessment["manual_review_still_required"] is True
+    assert zoom_assessment["real_browser_zoom_confirmed"] is True
+    assert zoom_assessment["status"] == (
+        "supporting_real_browser_zoom_automation_manual_review_pending"
+    )
+
+    browser_zoom_metrics = _mapping(browser_zoom_evidence["browser_zoom"])
+    assert browser_zoom_metrics["native_settings_api"] == "chrome.settingsPrivate.setDefaultZoom"
+    assert browser_zoom_metrics["settings_before"] == 1
+    assert browser_zoom_metrics["settings_after"] == 2
+    assert browser_zoom_metrics["target_factor"] == 2
+    zoom_proof = _mapping(browser_zoom_metrics["zoom_proof"])
+    assert zoom_proof["realBrowserZoomConfirmed"] is True
+    assert zoom_proof["dprRatio"] == 2
+    assert zoom_proof["innerWidthRatio"] == 0.5
+    assert zoom_proof["outerWidthRatio"] == 1
+    baseline_zoom_metrics = _mapping(browser_zoom_metrics["baseline"])
+    zoomed_metrics = _mapping(browser_zoom_metrics["zoomed"])
+    assert baseline_zoom_metrics["dpr"] == 1
+    assert zoomed_metrics["dpr"] == 2
+    assert baseline_zoom_metrics["innerWidth"] == 1280
+    assert zoomed_metrics["innerWidth"] == 640
+    assert zoomed_metrics["visualScale"] == 1
+
+    route_observations = browser_zoom_evidence["route_observations"]
+    assert isinstance(route_observations, list)
+    assert len(route_observations) == 8
+    observed_journeys: set[str] = set()
+    for raw_observation in route_observations:
+        observation = _mapping(raw_observation)
+        journey = _string(observation["journey"])
+        observed_journeys.add(journey)
+        route_path = _string(observation["path"])
+        assert observation["verifiedActualUrl"] == f"http://127.0.0.1:3000{route_path}"
+        assert observation["dpr"] == 2
+        assert observation["visualScale"] == 1
+        assert observation["documentHorizontalOverflow"] is False
+        assert observation["h1Visible"] is True
+        assert _string(observation["h1Text"])
+        focusable_count = observation["focusableCount"]
+        assert isinstance(focusable_count, int) and focusable_count > 0
+    assert observed_journeys == {
+        "deep-sky-canvas-fallback",
+        "explore-navigation",
+        "hr-diagram-chart-table",
+        "identify-async-file-flow",
+        "observe-journal-local-data",
+        "offline-storage",
+    }
+
+    route_summary = _mapping(browser_zoom_evidence["route_summary"])
+    assert route_summary["allHeadingsVisible"] is True
+    assert route_summary["noDocumentHorizontalOverflow"] is True
+    assert route_summary["sampledRouteCount"] == 8
+
+    browser_zoom_target = _mapping(browser_zoom_evidence["target_identity"])
+    assert browser_zoom_target["name"] == "Lumina"
+    assert browser_zoom_target["shortName"] == "Lumina"
+    assert browser_zoom_target["scope"] == "/"
+    assert browser_zoom_target["startUrl"] == "/"
 
     representative_wwt = _mapping(manual_by_id["representative-hardware-webgl-render-cadence"])
     assert representative_wwt["status"] == "recorded"
@@ -268,7 +357,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     boundaries = document["claim_boundaries"]
     assert isinstance(boundaries, list)
     serialized = " ".join(boundaries).casefold()
-    assert "not described as real browser zoom" in serialized
+    assert "not described as real browser zoom evidence" in serialized
+    assert "not described as completion of the required manual 200% zoom" in serialized
     assert "not described as screen-reader" in serialized
     assert "not described as field inp" in serialized
     assert "not described as representative low-end hardware" in serialized

@@ -1,14 +1,14 @@
 {
-  "artifact_version": 1,
+  "artifact_version": 3,
   "audit_id": "phase-8d-quality-v1",
   "phase": "8D",
   "status": "manual_evidence_pending",
   "phase_gate": {
     "completion": "open",
-    "reason": "The automated audit baseline is established, but manual accessibility and representative-hardware evidence remain required before Phase 8D can be described as complete.",
+    "reason": "The automated audit baseline, representative-hardware WWT cadence, and renderer-bound representative GPU-memory profiling are recorded. Five manual or field evidence items remain before Phase 8D can be described as complete.",
     "previous_certified_checkpoint": {
-      "commit": "24e22cb1f1cc7879d38f7707fead9fed5252069a",
-      "hosted_ci_run": "35642172976",
+      "commit": "7d2083cac77e742e006d9f177551d527e1f2cbe6",
+      "hosted_ci_run": "35692043060",
       "result": "success"
     }
   },
@@ -66,7 +66,10 @@
     "synthetic_low_end_proxy": "apps/web/tests/e2e/phase-8d-audit.spec.ts"
   },
   "manual_tools": {
-    "representative_hardware_webgl": "apps/web/scripts/measure-wwt-hardware.mjs"
+    "representative_hardware_webgl": "apps/web/scripts/measure-wwt-hardware.mjs",
+    "representative_hardware_gpu_memory": "apps/web/scripts/measure-wwt-gpu-memory.mjs",
+    "representative_hardware_gpu_memory_evidence": "data/audits/phase-8d-gpu-memory-v1.json",
+    "remaining_evidence_protocol": "data/audits/phase-8d-manual-protocol-v1.json"
   },
   "verification_commands": {
     "repository": "pnpm check",
@@ -75,39 +78,105 @@
     "web_build": "pnpm build",
     "web_e2e": "pnpm test:e2e",
     "security": "pnpm security:check",
-    "wwt_tool_tests": "pnpm --filter @lumina/web exec node --test scripts/measure-wwt-hardware.test.mjs",
+    "wwt_tool_tests": "pnpm --filter @lumina/web exec node --test scripts/measure-wwt-hardware.test.mjs scripts/measure-wwt-gpu-memory.test.mjs",
     "wwt_server": "(cd apps/web && LUMINA_E2E_COORDINATION_FILE=/tmp/lumina-phase8d-wwt.json node tests/e2e/support/status-stub-harness.mjs)",
     "wwt_plumbing": "pnpm --filter @lumina/web perf:wwt-hardware -- --url 'http://127.0.0.1:3000/explore/deep-sky?object=messier-31' --headless --allow-software --stub-network --seconds 1 --warmup-seconds 0",
-    "wwt_representative_hardware": "pnpm --filter @lumina/web perf:wwt-hardware -- --url 'http://127.0.0.1:3000/explore/deep-sky?object=messier-31' --seconds 30 --warmup-seconds 5"
+    "wwt_representative_hardware": "pnpm --filter @lumina/web perf:wwt-hardware -- --url 'http://127.0.0.1:3000/explore/deep-sky?object=messier-31' --seconds 30 --warmup-seconds 5",
+    "wwt_representative_gpu_memory": "pnpm --filter @lumina/web perf:wwt-gpu-memory -- --url 'http://127.0.0.1:3000/explore/deep-sky?layer=visible-dss2&object=messier-31' --cycles 5 --settle-ms 5000"
   },
   "manual_evidence_required": [
     {
       "id": "wcag-2.2-aa-manual-review",
+      "status": "pending",
       "reason": "Automated axe, landmarks, focus, contrast, touch, and fallback checks do not prove full WCAG 2.2 AA conformance."
     },
     {
       "id": "screen-reader",
+      "status": "pending",
       "reason": "ARIA roles and automated accessibility-tree checks are not equivalent to testing with a real screen reader."
     },
     {
       "id": "browser-zoom-200",
+      "status": "pending",
       "reason": "Current automated checks use CSS presentation zoom or equivalent narrow-layout proxies; real browser 200% zoom remains manual."
     },
     {
       "id": "representative-low-end-device",
+      "status": "pending",
       "reason": "CPU/network emulation is a synthetic proxy and does not replace representative low-end hardware testing."
     },
     {
       "id": "representative-hardware-webgl-render-cadence",
-      "reason": "Headless Chromium is not representative hardware. The opt-in tool must be run headed against an explicit Lumina URL with real WWT network access; its draw-bearing frame cadence is evidence, not GPU-completion timing or a pass without an explicit floor."
+      "status": "recorded",
+      "reason": "Headed Chromium used a positively identified hardware renderer with real WWT network access. The recorded draw-bearing frame cadence is representative-hardware evidence, not GPU-completion timing or a pass without an explicit floor.",
+      "evidence": {
+        "observed_at": "2026-09-22T11:26:43+05:30",
+        "server_command": "(cd apps/web && LUMINA_E2E_COORDINATION_FILE=/tmp/lumina-phase8d-wwt-representative.json node tests/e2e/support/status-stub-harness.mjs)",
+        "measurement_command": "pnpm --filter @lumina/web perf:wwt-hardware -- --url 'http://127.0.0.1:3000/explore/deep-sky?object=messier-31' --seconds 30 --warmup-seconds 5",
+        "assessment": {
+          "representative_hardware_eligible": true,
+          "passed_cadence_floor": null,
+          "status": "representative_measurement_no_floor"
+        },
+        "instrumentation": "wwt-webgl-draw-bearing-raf-v1",
+        "source": "operator-url",
+        "stub_network": false,
+        "headless": false,
+        "min_cadence_hz": null,
+        "renderer": {
+          "classification": "hardware",
+          "debug_renderer_available": true,
+          "renderer": "ANGLE (Intel, Mesa Intel(R) Graphics (RPL-P), OpenGL ES 3.2)",
+          "vendor": "Google Inc. (Intel)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+        },
+        "environment": {
+          "device_pixel_ratio": 1,
+          "platform": "Linux x86_64",
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+          "viewport": {
+            "height": 900,
+            "width": 1280
+          }
+        },
+        "target_identity": {
+          "manifest_url": "http://127.0.0.1:3000/manifest.webmanifest",
+          "name": "Lumina",
+          "short_name": "Lumina",
+          "scope": "/",
+          "start_url": "/"
+        },
+        "measurement": {
+          "duration_seconds": 30,
+          "warmup_seconds": 5,
+          "draw_calls": 190705,
+          "draw_bearing_frame_count": 3767,
+          "cadence_hz": 125.33363507478087,
+          "frame_interval_ms": {
+            "max": 62.5,
+            "p50": 7,
+            "p95": 13.900000000001455,
+            "p99": 14
+          },
+          "over_33ms_ratio": 0.0002655337227827934
+        }
+      }
     },
     {
       "id": "field-inp",
+      "status": "pending",
       "reason": "Scripted Event Timing is lab interaction-latency evidence, not field INP/RUM evidence."
     },
     {
       "id": "retained-gpu-memory",
-      "reason": "DOM/listener cleanup after route leave is automated, but retained GPU/driver memory requires representative-hardware profiling."
+      "status": "recorded",
+      "reason": "Representative headed Chromium profiling used Linux i915 DRM fdinfo across five client-side WWT activate/leave cycles with DRM clients preserved independently and the WebGL renderer bound through Chromium's render node to the sampled PCI device. The generated evidence records each client's post-leave resident-memory series plus first, final, and maximum observations so cycle-to-cycle changes remain visible. DRM fdinfo cannot attribute those allocations specifically to Lumina or WWT and no project memory floor is frozen, so the recorded result remains observational rather than a performance pass, a leak diagnosis, or proof of full cleanup.",
+      "evidence": {
+        "artifact": "data/audits/phase-8d-gpu-memory-v1.json",
+        "instrumentation": "linux-drm-fdinfo-v2",
+        "assessment": "observational_only_nonzero_post_leave_allocations_no_floor",
+        "generic_pass_threshold": null
+      }
     }
   ],
   "claim_boundaries": [
@@ -116,6 +185,7 @@
     "Scripted lab interaction latency is not described as field INP.",
     "Synthetic CPU/network throttling is not described as representative low-end hardware evidence.",
     "In-process ASGI latency is not described as deployed HTTP, proxy, network, or real-user latency.",
-    "WWT draw-bearing animation-frame cadence is not described as GPU-complete frame timing, and representative-hardware eligibility is not described as a performance pass without an explicit floor."
+    "WWT draw-bearing animation-frame cadence is not described as GPU-complete frame timing, and representative-hardware eligibility is not described as a performance pass without an explicit floor.",
+    "Representative DRM memory observations are not described as whole-engine GPU disposal, zero retention, or a universal GPU-memory pass threshold."
   ]
 }

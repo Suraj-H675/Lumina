@@ -1,0 +1,237 @@
+{
+  "artifact_version": 1,
+  "protocol_id": "phase-8d-manual-protocol-v1",
+  "phase": "8D",
+  "purpose": "Repeatable collection of the remaining manual, field, and representative-device Phase 8D evidence. This protocol is not itself evidence and does not close the Phase 8D gate.",
+  "result_semantics": {
+    "observed_pass": "The recorded sampled flow met the stated checks in the recorded environment.",
+    "observed_finding": "The recorded sampled flow exposed a concrete issue that requires follow-up.",
+    "inconclusive": "The attempted check did not produce enough evidence to support either a sampled pass or a finding.",
+    "unavailable": "The required environment, telemetry, device, or profiler was not available for the check."
+  },
+  "evidence_envelope": [
+    "evidence_id",
+    "status",
+    "observed_at",
+    "build_commit",
+    "operator_or_reviewer",
+    "browser_os_device",
+    "procedure",
+    "route_or_flow",
+    "observations",
+    "evidence_references",
+    "findings",
+    "claim_boundary"
+  ],
+  "manual_journeys": [
+    {
+      "id": "explore-navigation",
+      "routes": ["/explore"],
+      "actions": [
+        "Use the skip link and primary navigation.",
+        "Verify the active route and page heading are understandable.",
+        "Search the catalogue, move to the next results page, follow a result, and return.",
+        "Repeat the usable-flow checks at real browser 200% zoom."
+      ],
+      "risk_coverage": [
+        "shared shell and navigation",
+        "focus order",
+        "catalogue status announcements",
+        "real browser zoom reflow"
+      ]
+    },
+    {
+      "id": "observe-journal-local-data",
+      "routes": ["/observe?object=k2-18&date=2026-08-27", "/journal"],
+      "actions": [
+        "Use fixed test coordinates rather than real location data.",
+        "Calculate the plan, change the selected time, and toggle Sky Finder layers.",
+        "Save and reopen a plan and exercise cancel and confirm deletion.",
+        "Create a journal entry from the planner, open Journal, expand provenance, and exercise cancel and confirm deletion."
+      ],
+      "risk_coverage": [
+        "numeric form controls",
+        "live results",
+        "SVG and textual alternatives",
+        "dialog behavior",
+        "local persistence",
+        "personal-data deletion controls"
+      ]
+    },
+    {
+      "id": "identify-async-file-flow",
+      "routes": ["/identify"],
+      "actions": [
+        "Use a harmless local test image.",
+        "Operate the consent checkbox and submit controls.",
+        "Observe upload and polling success or failure announcements.",
+        "Run the local checks, then exercise cancel and confirm deletion."
+      ],
+      "risk_coverage": [
+        "file input",
+        "consent",
+        "asynchronous status and alert announcements",
+        "image result handling",
+        "destructive actions"
+      ]
+    },
+    {
+      "id": "deep-sky-canvas-fallback",
+      "routes": ["/explore/deep-sky?object=messier-31"],
+      "actions": [
+        "Consume the canonical non-canvas content before activating the atlas.",
+        "Activate the atlas and verify keyboard access around activation and route exit.",
+        "Repeat with WebGL unavailable and verify canonical text and provenance remain usable.",
+        "Exercise this journey on the representative low-end device."
+      ],
+      "risk_coverage": [
+        "canvas and WebGL",
+        "text fallback",
+        "screen-reader-safe non-canvas content",
+        "resource-heavy rendering",
+        "route cleanup"
+      ]
+    },
+    {
+      "id": "hr-diagram-chart-table",
+      "routes": ["/lab/hr-diagram-explorer"],
+      "actions": [
+        "Change the diagram view and toggle a filter.",
+        "Use the keyboard star selector.",
+        "Inspect the plot accessible name and description.",
+        "Navigate the semantic table and verify contained scrolling at real browser 200% zoom."
+      ],
+      "risk_coverage": [
+        "complex controls",
+        "SVG chart alternative",
+        "large semantic table",
+        "selection state",
+        "zoom layout pressure"
+      ]
+    },
+    {
+      "id": "offline-storage",
+      "routes": [
+        "/learn/your-first-night-sky/start-with-the-sky",
+        "/learn/your-first-night-sky/read-the-moon",
+        "/offline",
+        "/offline/storage"
+      ],
+      "actions": [
+        "Visit and reload the approved lesson online.",
+        "Disable connectivity, reload the approved lesson, then request the unvisited lesson.",
+        "Exercise the offline fallback.",
+        "Use storage controls with keyboard and screen reader, including cancel and confirm clear.",
+        "Verify clearing offline cache data does not delete personal saved data."
+      ],
+      "risk_coverage": [
+        "PWA status announcements",
+        "cached-copy semantics",
+        "offline fallback",
+        "storage confirmations",
+        "cache versus personal-data separation"
+      ]
+    }
+  ],
+  "evidence_items": {
+    "wcag-2.2-aa-manual-review": {
+      "journeys": [
+        "explore-navigation",
+        "observe-journal-local-data",
+        "identify-async-file-flow",
+        "deep-sky-canvas-fallback",
+        "hr-diagram-chart-table",
+        "offline-storage"
+      ],
+      "checks": [
+        "tab sequence",
+        "focus visibility",
+        "dialog behavior",
+        "screen-reader landmarks",
+        "chart alternative",
+        "canvas alternative",
+        "real browser 200% zoom",
+        "reduced motion",
+        "contrast",
+        "touch-only interaction"
+      ],
+      "allowed_statuses": ["observed_pass", "observed_finding", "inconclusive", "unavailable"],
+      "generic_pass_threshold": null,
+      "claim_boundary": "A sampled manual review plus automated axe does not constitute unrestricted WCAG 2.2 AA certification."
+    },
+    "screen-reader": {
+      "journeys": [
+        "explore-navigation",
+        "observe-journal-local-data",
+        "identify-async-file-flow",
+        "deep-sky-canvas-fallback",
+        "hr-diagram-chart-table",
+        "offline-storage"
+      ],
+      "checks": [
+        "landmarks and headings",
+        "reading order",
+        "control labels and state",
+        "dialog announcements and focus transitions",
+        "status and alert announcements",
+        "chart and canvas alternatives"
+      ],
+      "allowed_statuses": ["observed_pass", "observed_finding", "inconclusive", "unavailable"],
+      "generic_pass_threshold": null,
+      "claim_boundary": "ARIA, axe, and accessibility-tree automation are not substitutes for evidence from a real screen reader in the recorded browser and operating-system combination."
+    },
+    "browser-zoom-200": {
+      "journeys": [
+        "explore-navigation",
+        "observe-journal-local-data",
+        "identify-async-file-flow",
+        "deep-sky-canvas-fallback",
+        "hr-diagram-chart-table",
+        "offline-storage"
+      ],
+      "checks": [
+        "browser zoom is confirmed at 200%",
+        "content remains visible and operable",
+        "controls do not become unreachable",
+        "required two-dimensional content uses contained scrolling rather than document overflow"
+      ],
+      "allowed_statuses": ["observed_pass", "observed_finding", "inconclusive", "unavailable"],
+      "generic_pass_threshold": null,
+      "claim_boundary": "A sampled 200% browser-zoom observation does not certify every browser, operating system, route, or zoom implementation."
+    },
+    "representative-low-end-device": {
+      "journeys": ["explore-navigation", "deep-sky-canvas-fallback"],
+      "additional_routes": ["/", "/objects/k2-18", "/lab"],
+      "checks": [
+        "record the actual device, browser, operating system, viewport, DPR, and network condition",
+        "observe navigation and interaction usability without synthetic CPU or network substitution",
+        "record captured timings only as observations unless a separately approved budget exists"
+      ],
+      "allowed_statuses": ["observed_pass", "observed_finding", "inconclusive", "unavailable"],
+      "generic_pass_threshold": null,
+      "claim_boundary": "One recorded device does not establish behavior across all low-end devices, and synthetic throttling remains only a proxy."
+    },
+    "field-inp": {
+      "journeys": [],
+      "checks": [
+        "use an approved real-user or field telemetry source for a deployed build",
+        "record the deployment or build, observation window, instrumentation source, sample population and count, aggregation, segmentation, collection limitations, and privacy review",
+        "do not substitute scripted Event Timing or lab interaction measurements"
+      ],
+      "allowed_statuses": ["observed_pass", "observed_finding", "inconclusive", "unavailable"],
+      "generic_pass_threshold": null,
+      "claim_boundary": "Scripted lab interaction latency is not field INP, and absence of approved telemetry is an evidence gap rather than a software failure."
+    },
+    "retained-gpu-memory": {
+      "journeys": ["deep-sky-canvas-fallback"],
+      "checks": [
+        "profile repeated atlas activate, use, and route-leave cycles on representative headed hardware",
+        "record the profiler, renderer, hardware, browser, operating system, cycle count, baseline observations, post-leave observations, and renderer or context errors",
+        "retain the raw capture or profiler reference when available"
+      ],
+      "allowed_statuses": ["observed_pass", "observed_finding", "inconclusive", "unavailable"],
+      "generic_pass_threshold": null,
+      "claim_boundary": "Observed cleanup on one environment does not prove whole-engine GPU disposal or establish a universal memory-delta threshold."
+    }
+  }
+}

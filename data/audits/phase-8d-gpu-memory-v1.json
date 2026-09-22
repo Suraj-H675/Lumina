@@ -1,0 +1,428 @@
+{
+  "artifact_version": 1,
+  "evidence_id": "phase-8d-retained-gpu-memory-v1",
+  "phase": "8D",
+  "observed_at": "2026-09-22T11:52:17.325Z",
+  "build_commit": "7d2083cac77e742e006d9f177551d527e1f2cbe6",
+  "working_tree_dirty_paths": [
+    "apps/api/tests/test_phase8d_quality_audit_artifact.py",
+    "apps/web/package.json",
+    "data/audits/phase-8d-quality-v1.json",
+    "apps/web/scripts/measure-wwt-gpu-memory.mjs",
+    "apps/web/scripts/measure-wwt-gpu-memory.test.mjs",
+    "data/audits/phase-8d-gpu-memory-v1.json",
+    "data/audits/phase-8d-manual-protocol-v1.json"
+  ],
+  "measurement_command": "pnpm --filter @lumina/web perf:wwt-gpu-memory -- --url 'http://127.0.0.1:3000/explore/deep-sky?layer=visible-dss2&object=messier-31' --cycles 5 --settle-ms 5000",
+  "assessment": {
+    "representative_hardware_eligible": true,
+    "status": "representative_memory_measurement_no_floor",
+    "conclusion": "observational_only"
+  },
+  "instrumentation": "linux-drm-fdinfo-v2",
+  "source": "operator-url",
+  "cycles": 5,
+  "settle_ms": 5000,
+  "renderer": {
+    "classification": "hardware",
+    "debug_renderer_available": true,
+    "renderer": "ANGLE (Intel, Mesa Intel(R) Graphics (RPL-P), OpenGL ES 3.2)",
+    "vendor": "Google Inc. (Intel)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "drm": {
+    "driver": "i915",
+    "pdev": "0000:00:02.0",
+    "render_node": "/dev/dri/renderD128",
+    "render_node_vendor_id": "0x8086",
+    "renderer_binding_verified": true,
+    "units": "KiB"
+  },
+  "target_identity": {
+    "manifest_url": "http://127.0.0.1:3000/manifest.webmanifest",
+    "name": "Lumina",
+    "short_name": "Lumina",
+    "scope": "/",
+    "start_url": "/"
+  },
+  "baseline_clients": [
+    {
+      "client_id": "4167",
+      "counters_kib": {
+        "total-system0": 0,
+        "shared-system0": 0,
+        "active-system0": 0,
+        "resident-system0": 0,
+        "purgeable-system0": 0,
+        "total-stolen-system0": 0,
+        "shared-stolen-system0": 0,
+        "active-stolen-system0": 0,
+        "resident-stolen-system0": 0,
+        "purgeable-stolen-system0": 0
+      }
+    }
+  ],
+  "measurements": [
+    {
+      "active_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 145852,
+            "shared-system0": 6144,
+            "active-system0": 59280,
+            "resident-system0": 145852,
+            "purgeable-system0": 14452,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ],
+      "cycle": 1,
+      "post_leave_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 159036,
+            "shared-system0": 6336,
+            "active-system0": 0,
+            "resident-system0": 159036,
+            "purgeable-system0": 8644,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ]
+    },
+    {
+      "active_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 138668,
+            "shared-system0": 6144,
+            "active-system0": 0,
+            "resident-system0": 138668,
+            "purgeable-system0": 1516,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ],
+      "cycle": 2,
+      "post_leave_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 151696,
+            "shared-system0": 6336,
+            "active-system0": 0,
+            "resident-system0": 151696,
+            "purgeable-system0": 1696,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ]
+    },
+    {
+      "active_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 135656,
+            "shared-system0": 6144,
+            "active-system0": 61392,
+            "resident-system0": 135656,
+            "purgeable-system0": 1512,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ],
+      "cycle": 3,
+      "post_leave_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 151020,
+            "shared-system0": 6336,
+            "active-system0": 0,
+            "resident-system0": 151020,
+            "purgeable-system0": 1804,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ]
+    },
+    {
+      "active_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 137296,
+            "shared-system0": 6144,
+            "active-system0": 0,
+            "resident-system0": 137296,
+            "purgeable-system0": 1512,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ],
+      "cycle": 4,
+      "post_leave_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 150888,
+            "shared-system0": 6336,
+            "active-system0": 0,
+            "resident-system0": 144488,
+            "purgeable-system0": 344,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ]
+    },
+    {
+      "active_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 136444,
+            "shared-system0": 6144,
+            "active-system0": 0,
+            "resident-system0": 136428,
+            "purgeable-system0": 1372,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ],
+      "cycle": 5,
+      "post_leave_clients": [
+        {
+          "client_id": "4167",
+          "counters_kib": {
+            "total-system0": 152212,
+            "shared-system0": 6336,
+            "active-system0": 0,
+            "resident-system0": 152196,
+            "purgeable-system0": 6732,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        },
+        {
+          "client_id": "4174",
+          "counters_kib": {
+            "total-system0": 0,
+            "shared-system0": 0,
+            "active-system0": 0,
+            "resident-system0": 0,
+            "purgeable-system0": 0,
+            "total-stolen-system0": 0,
+            "shared-stolen-system0": 0,
+            "active-stolen-system0": 0,
+            "resident-stolen-system0": 0,
+            "purgeable-stolen-system0": 0
+          }
+        }
+      ]
+    }
+  ],
+  "derived_observation": {
+    "note": "DRM clients are preserved independently. No cross-client physical-memory total is computed.",
+    "post_leave_resident_by_client": {
+      "4167": {
+        "final_is_max": false,
+        "final_kib": 152196,
+        "first_kib": 159036,
+        "max_kib": 159036,
+        "series_kib": [159036, 151696, 151020, 144488, 152196]
+      },
+      "4174": {
+        "final_is_max": true,
+        "final_kib": 0,
+        "first_kib": 0,
+        "max_kib": 0,
+        "series_kib": [0, 0, 0, 0, 0]
+      }
+    }
+  },
+  "claim_boundaries": [
+    "This evidence does not define or apply a universal GPU-memory pass threshold.",
+    "Observed DRM allocations do not prove whole-engine GPU disposal, zero retention, or absence of all retained resources.",
+    "Linux DRM fdinfo reports the tested Chromium GPU process's driver-accounted DRM-client allocations and does not attribute every allocation to Lumina or WWT.",
+    "Renderer binding verifies Chromium's render node, PCI device, driver, vendor family, and WebGL renderer family; it does not attribute individual allocations to the WWT canvas.",
+    "This measurement applies only to the recorded browser, DRM client/device, renderer, operating environment, route, and cycle procedure."
+  ]
+}

@@ -8,6 +8,8 @@ from typing import cast
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 _ARTIFACT = _REPOSITORY_ROOT / "data/audits/phase-8d-quality-v1.json"
+_GPU_MEMORY_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-gpu-memory-v1.json"
+_MANUAL_PROTOCOL = _REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
 _REQUIRED_MANUAL_EVIDENCE = {
     "browser-zoom-200",
     "field-inp",
@@ -20,6 +22,10 @@ _REQUIRED_MANUAL_EVIDENCE = {
 
 
 def _load_document() -> dict[str, object]:
+    return _load_json_document(_ARTIFACT)
+
+
+def _load_json_document(path: Path) -> dict[str, object]:
     def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
         document: dict[str, object] = {}
         for key, value in pairs:
@@ -28,7 +34,7 @@ def _load_document() -> dict[str, object]:
         return document
 
     value = json.loads(
-        _ARTIFACT.read_text(encoding="utf-8"),
+        path.read_text(encoding="utf-8"),
         object_pairs_hook=reject_duplicate_keys,
     )
     assert isinstance(value, dict)
@@ -71,7 +77,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 1
+    assert document["artifact_version"] == 3
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -80,8 +86,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     phase_gate = _mapping(document["phase_gate"])
     assert phase_gate["completion"] == "open"
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "24e22cb1f1cc7879d38f7707fead9fed5252069a",
-        "hosted_ci_run": "35642172976",
+        "commit": "7d2083cac77e742e006d9f177551d527e1f2cbe6",
+        "hosted_ci_run": "35692043060",
         "result": "success",
     }
 
@@ -100,8 +106,11 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert verification_commands["web_e2e"] == "pnpm test:e2e"
     assert verification_commands["security"] == "pnpm security:check"
     assert "measure-wwt-hardware.test.mjs" in _string(verification_commands["wwt_tool_tests"])
+    assert "measure-wwt-gpu-memory.test.mjs" in _string(verification_commands["wwt_tool_tests"])
     assert "--stub-network" in _string(verification_commands["wwt_plumbing"])
     assert "--headless" not in _string(verification_commands["wwt_representative_hardware"])
+    assert "--cycles 5" in _string(verification_commands["wwt_representative_gpu_memory"])
+    assert "--settle-ms 5000" in _string(verification_commands["wwt_representative_gpu_memory"])
 
     repository_root = _REPOSITORY_ROOT.resolve(strict=True)
     for raw_path in _evidence_paths(document):
@@ -118,6 +127,143 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert isinstance(manual, list)
     assert {item["id"] for item in manual} == _REQUIRED_MANUAL_EVIDENCE
     assert all(isinstance(item.get("reason"), str) and item["reason"] for item in manual)
+    manual_by_id = {item["id"]: item for item in manual}
+    assert {
+        item_id for item_id, item in manual_by_id.items() if item.get("status") == "pending"
+    } == _REQUIRED_MANUAL_EVIDENCE - {
+        "representative-hardware-webgl-render-cadence",
+        "retained-gpu-memory",
+    }
+
+    representative_wwt = _mapping(manual_by_id["representative-hardware-webgl-render-cadence"])
+    assert representative_wwt["status"] == "recorded"
+    evidence = _mapping(representative_wwt["evidence"])
+    assert evidence["measurement_command"] == verification_commands["wwt_representative_hardware"]
+    assert evidence["instrumentation"] == "wwt-webgl-draw-bearing-raf-v1"
+    assert evidence["source"] == "operator-url"
+    assert evidence["stub_network"] is False
+    assert evidence["headless"] is False
+    assert evidence["min_cadence_hz"] is None
+
+    assessment = _mapping(evidence["assessment"])
+    assert assessment["representative_hardware_eligible"] is True
+    assert assessment["passed_cadence_floor"] is None
+    assert assessment["status"] == "representative_measurement_no_floor"
+
+    renderer = _mapping(evidence["renderer"])
+    assert renderer["classification"] == "hardware"
+    assert renderer["debug_renderer_available"] is True
+    assert "Intel" in _string(renderer["renderer"])
+
+    target_identity = _mapping(evidence["target_identity"])
+    assert target_identity["name"] == "Lumina"
+    assert target_identity["short_name"] == "Lumina"
+    assert target_identity["scope"] == "/"
+    assert target_identity["start_url"] == "/"
+
+    measurement = _mapping(evidence["measurement"])
+    assert measurement["duration_seconds"] == 30
+    assert measurement["warmup_seconds"] == 5
+    assert isinstance(measurement["draw_calls"], int) and measurement["draw_calls"] > 0
+    assert (
+        isinstance(measurement["draw_bearing_frame_count"], int)
+        and measurement["draw_bearing_frame_count"] > 2
+    )
+    assert isinstance(measurement["cadence_hz"], (int, float))
+    assert measurement["cadence_hz"] > 0
+
+    retained_gpu = _mapping(manual_by_id["retained-gpu-memory"])
+    assert retained_gpu["status"] == "recorded"
+    retained_evidence = _mapping(retained_gpu["evidence"])
+    assert retained_evidence["artifact"] == "data/audits/phase-8d-gpu-memory-v1.json"
+    assert retained_evidence["instrumentation"] == "linux-drm-fdinfo-v2"
+    assert (
+        retained_evidence["assessment"]
+        == "observational_only_nonzero_post_leave_allocations_no_floor"
+    )
+    assert retained_evidence["generic_pass_threshold"] is None
+
+    gpu_evidence = _load_json_document(_GPU_MEMORY_EVIDENCE)
+    assert gpu_evidence["artifact_version"] == 1
+    assert gpu_evidence["evidence_id"] == "phase-8d-retained-gpu-memory-v1"
+    assert gpu_evidence["phase"] == "8D"
+    assert gpu_evidence["build_commit"] == "7d2083cac77e742e006d9f177551d527e1f2cbe6"
+    assert (
+        gpu_evidence["measurement_command"]
+        == verification_commands["wwt_representative_gpu_memory"]
+    )
+    assert gpu_evidence["instrumentation"] == "linux-drm-fdinfo-v2"
+    assert gpu_evidence["cycles"] == 5
+    assert gpu_evidence["settle_ms"] == 5000
+
+    gpu_assessment = _mapping(gpu_evidence["assessment"])
+    assert gpu_assessment["representative_hardware_eligible"] is True
+    assert gpu_assessment["status"] == "representative_memory_measurement_no_floor"
+    assert gpu_assessment["conclusion"] == "observational_only"
+
+    gpu_renderer = _mapping(gpu_evidence["renderer"])
+    assert gpu_renderer["classification"] == "hardware"
+    assert gpu_renderer["debug_renderer_available"] is True
+    assert "Intel" in _string(gpu_renderer["renderer"])
+
+    drm = _mapping(gpu_evidence["drm"])
+    assert drm["driver"] == "i915"
+    assert drm["pdev"] == "0000:00:02.0"
+    assert drm["render_node"] == "/dev/dri/renderD128"
+    assert drm["render_node_vendor_id"] == "0x8086"
+    assert drm["renderer_binding_verified"] is True
+    assert drm["units"] == "KiB"
+
+    baseline_clients = gpu_evidence["baseline_clients"]
+    assert isinstance(baseline_clients, list)
+    assert len(baseline_clients) == 1
+    baseline_client = _mapping(baseline_clients[0])
+    baseline_client_id = _string(baseline_client["client_id"])
+    baseline_counters = _mapping(baseline_client["counters_kib"])
+    assert baseline_counters["resident-system0"] == 0
+
+    gpu_measurements = gpu_evidence["measurements"]
+    assert isinstance(gpu_measurements, list)
+    assert [item["cycle"] for item in gpu_measurements] == [1, 2, 3, 4, 5]
+    post_leave_resident: list[int] = []
+    for raw_item in gpu_measurements:
+        item = _mapping(raw_item)
+        active_clients = item["active_clients"]
+        post_leave_clients = item["post_leave_clients"]
+        assert isinstance(active_clients, list)
+        assert isinstance(post_leave_clients, list)
+
+        active_by_id = {
+            _string(_mapping(client)["client_id"]): _mapping(_mapping(client)["counters_kib"])
+            for client in active_clients
+        }
+        post_leave_by_id = {
+            _string(_mapping(client)["client_id"]): _mapping(_mapping(client)["counters_kib"])
+            for client in post_leave_clients
+        }
+        assert baseline_client_id in active_by_id
+        assert baseline_client_id in post_leave_by_id
+        resident = post_leave_by_id[baseline_client_id]["resident-system0"]
+        assert isinstance(resident, int)
+        post_leave_resident.append(resident)
+        for client_id, counters in post_leave_by_id.items():
+            if client_id == baseline_client_id:
+                continue
+            assert all(value == 0 for value in counters.values())
+    assert len(post_leave_resident) == 5
+    assert all(value > 0 for value in post_leave_resident)
+    assert len(set(post_leave_resident)) > 1
+
+    derived = _mapping(gpu_evidence["derived_observation"])
+    assert "preserved independently" in _string(derived["note"])
+    assert "No cross-client physical-memory total" in _string(derived["note"])
+    resident_summary = _mapping(derived["post_leave_resident_by_client"])
+    baseline_summary = _mapping(resident_summary[baseline_client_id])
+    assert baseline_summary["series_kib"] == post_leave_resident
+    assert baseline_summary["first_kib"] == post_leave_resident[0]
+    assert baseline_summary["final_kib"] == post_leave_resident[-1]
+    assert baseline_summary["max_kib"] == max(post_leave_resident)
+    assert baseline_summary["final_is_max"] is (post_leave_resident[-1] == max(post_leave_resident))
 
     boundaries = document["claim_boundaries"]
     assert isinstance(boundaries, list)
@@ -128,3 +274,74 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "not described as representative low-end hardware" in serialized
     assert "not described as gpu-complete frame timing" in serialized
     assert "not described as deployed http" in serialized
+    assert "not described as whole-engine gpu disposal" in serialized
+
+
+def test_phase8d_manual_protocol_is_bounded_and_matches_pending_evidence() -> None:
+    audit = _load_document()
+    protocol = _load_json_document(_MANUAL_PROTOCOL)
+
+    assert protocol["artifact_version"] == 1
+    assert protocol["protocol_id"] == "phase-8d-manual-protocol-v1"
+    assert protocol["phase"] == "8D"
+
+    manual = audit["manual_evidence_required"]
+    assert isinstance(manual, list)
+    pending_ids = {
+        item["id"] for item in manual if isinstance(item, dict) and item.get("status") == "pending"
+    }
+
+    evidence_items = _mapping(protocol["evidence_items"])
+    assert set(evidence_items) == _REQUIRED_MANUAL_EVIDENCE - {
+        "representative-hardware-webgl-render-cadence"
+    }
+    assert pending_ids == set(evidence_items) - {"retained-gpu-memory"}
+
+    envelope = protocol["evidence_envelope"]
+    assert isinstance(envelope, list)
+    assert {
+        "evidence_id",
+        "status",
+        "observed_at",
+        "build_commit",
+        "operator_or_reviewer",
+        "browser_os_device",
+        "procedure",
+        "route_or_flow",
+        "observations",
+        "evidence_references",
+        "findings",
+        "claim_boundary",
+    }.issubset(envelope)
+
+    journeys = protocol["manual_journeys"]
+    assert isinstance(journeys, list)
+    journey_ids = {
+        item["id"]
+        for item in journeys
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    assert journey_ids == {
+        "deep-sky-canvas-fallback",
+        "explore-navigation",
+        "hr-diagram-chart-table",
+        "identify-async-file-flow",
+        "observe-journal-local-data",
+        "offline-storage",
+    }
+
+    for item_id, raw_item in evidence_items.items():
+        item = _mapping(raw_item)
+        assert item["generic_pass_threshold"] is None, item_id
+        assert isinstance(item["claim_boundary"], str) and item["claim_boundary"]
+        allowed_statuses = item["allowed_statuses"]
+        assert isinstance(allowed_statuses, list)
+        assert set(allowed_statuses) == {
+            "observed_pass",
+            "observed_finding",
+            "inconclusive",
+            "unavailable",
+        }
+        item_journeys = item["journeys"]
+        assert isinstance(item_journeys, list)
+        assert all(journey in journey_ids for journey in item_journeys)

@@ -737,6 +737,22 @@ def test_rejects_extra_protocol_evidence_item_under_v1(
         validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
 
 
+@pytest.mark.parametrize("mutation", ["extra_top_level", "expanded_envelope"])
+def test_rejects_protocol_v1_structural_expansion(
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    if mutation == "extra_top_level":
+        protocol["future_semantics"] = {"enabled": True}
+    else:
+        cast(list[str], protocol["evidence_envelope"]).append("raw_events")
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    with pytest.raises(ManualEvidenceError, match="frozen v1"):
+        validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
+
+
 @pytest.mark.parametrize("version", [True, 1.0])
 def test_rejects_non_integer_protocol_version(version: object) -> None:
     protocol = dict(PROTOCOL)

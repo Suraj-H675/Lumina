@@ -341,6 +341,27 @@ def test_draft_rejects_empty_required_check_list() -> None:
         _prepare.build_manual_draft("screen-reader", protocol=protocol)
 
 
+@pytest.mark.parametrize("mutation", ["extra_top_level", "expanded_envelope"])
+def test_draft_rejects_protocol_v1_structural_expansion(mutation: str) -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    if mutation == "extra_top_level":
+        protocol["future_semantics"] = {"enabled": True}
+    else:
+        cast(list[str], protocol["evidence_envelope"]).append("raw_events")
+
+    with pytest.raises(ManualDraftError, match="frozen v1"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
+def test_draft_rejects_extra_manual_journey_field_under_v1() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    journeys = cast(list[dict[str, object]], protocol["manual_journeys"])
+    journeys[0]["future_semantics"] = True
+
+    with pytest.raises(ManualDraftError, match=r"manual_journeys\[0\].*exactly"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
 def test_protocol_reader_rejects_duplicate_keys_and_symlinked_file(tmp_path: Path) -> None:
     with pytest.raises(ManualDraftError, match="duplicate JSON key"):
         _prepare._parse_json_text(

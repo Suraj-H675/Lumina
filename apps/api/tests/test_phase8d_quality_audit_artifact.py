@@ -15,6 +15,37 @@ _BROWSER_ZOOM_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-browser-zoom-v
 _FIELD_INP_APPROVALS = _REPOSITORY_ROOT / "data/audits/phase-8d-field-inp-approvals-v1.json"
 _GPU_MEMORY_EVIDENCE = _REPOSITORY_ROOT / "data/audits/phase-8d-gpu-memory-v1.json"
 _MANUAL_PROTOCOL = _REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
+_PROTOCOL_KEYS = {
+    "artifact_version",
+    "protocol_id",
+    "phase",
+    "purpose",
+    "result_semantics",
+    "evidence_envelope",
+    "manual_journeys",
+    "evidence_items",
+}
+_PROTOCOL_EVIDENCE_ENVELOPE = {
+    "evidence_id",
+    "status",
+    "observed_at",
+    "build_commit",
+    "operator_or_reviewer",
+    "browser_os_device",
+    "procedure",
+    "route_or_flow",
+    "observations",
+    "evidence_references",
+    "findings",
+    "claim_boundary",
+}
+_PROTOCOL_STATUSES = {
+    "observed_pass",
+    "observed_finding",
+    "inconclusive",
+    "unavailable",
+}
+_MANUAL_JOURNEY_KEYS = {"id", "routes", "actions", "risk_coverage"}
 _REQUIRED_MANUAL_EVIDENCE = {
     "browser-zoom-200",
     "field-inp",
@@ -104,7 +135,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 14
+    assert document["artifact_version"] == 15
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -126,10 +157,11 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert (
         "frozen-v1 protocol validation across the complete shared trust root" in phase_gate_reason
     )
+    assert "top-level, envelope, journey, item-set, and status structures" in phase_gate_reason
     assert "explicit temporal-integrity checks" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "823dfb3f14a825435880f646b7399852173ff226",
-        "hosted_ci_run": "35853146037",
+        "commit": "27269d2e140bd93b37bfe0438827fe8eed881cd9",
+        "hosted_ci_run": "35865480393",
         "result": "success",
     }
 
@@ -498,10 +530,16 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "referential integrity" in serialized
     assert "coherent sample/value pairs" in serialized
     assert "protocol v1 is validated as one complete shared trust root" in serialized
+    assert "top-level keys" in serialized
+    assert "evidence envelope" in serialized
+    assert "manual-journey object shape" in serialized
     assert "evidence-item set is frozen" in serialized
     assert "required journey/check lists cannot disappear" in serialized
     assert "allowed statuses stay canonical" in serialized
-    assert "semantic expansion requires an explicit protocol/code version change" in serialized
+    assert (
+        "structural or semantic expansion requires an explicit protocol/code version change"
+        in serialized
+    )
     assert "approval timestamps and approved export windows may not be future-dated" in serialized
     assert "timezone-aware iso-8601 values" in serialized
     assert "not described as field inp" in serialized
@@ -517,9 +555,15 @@ def test_phase8d_manual_protocol_is_bounded_and_matches_pending_evidence() -> No
     audit = _load_document()
     protocol = _load_json_document(_MANUAL_PROTOCOL)
 
+    assert set(protocol) == _PROTOCOL_KEYS
     assert protocol["artifact_version"] == 1
     assert protocol["protocol_id"] == "phase-8d-manual-protocol-v1"
     assert protocol["phase"] == "8D"
+    assert _string(protocol["purpose"]).strip()
+
+    result_semantics = _mapping(protocol["result_semantics"])
+    assert set(result_semantics) == _PROTOCOL_STATUSES
+    assert all(_string(result_semantics[status]).strip() for status in _PROTOCOL_STATUSES)
 
     manual = audit["manual_evidence_required"]
     assert isinstance(manual, list)
@@ -535,28 +579,23 @@ def test_phase8d_manual_protocol_is_bounded_and_matches_pending_evidence() -> No
 
     envelope = protocol["evidence_envelope"]
     assert isinstance(envelope, list)
-    assert {
-        "evidence_id",
-        "status",
-        "observed_at",
-        "build_commit",
-        "operator_or_reviewer",
-        "browser_os_device",
-        "procedure",
-        "route_or_flow",
-        "observations",
-        "evidence_references",
-        "findings",
-        "claim_boundary",
-    }.issubset(envelope)
+    assert len(envelope) == len(set(envelope))
+    assert set(envelope) == _PROTOCOL_EVIDENCE_ENVELOPE
 
     journeys = protocol["manual_journeys"]
-    assert isinstance(journeys, list)
-    journey_ids = {
-        item["id"]
-        for item in journeys
-        if isinstance(item, dict) and isinstance(item.get("id"), str)
-    }
+    assert isinstance(journeys, list) and journeys
+    journey_ids: set[str] = set()
+    for raw_journey in journeys:
+        journey = _mapping(raw_journey)
+        assert set(journey) == _MANUAL_JOURNEY_KEYS
+        journey_id = _string(journey["id"])
+        assert journey_id.strip() and journey_id.isprintable()
+        assert journey_id not in journey_ids
+        journey_ids.add(journey_id)
+        for field in ("routes", "actions", "risk_coverage"):
+            values = journey[field]
+            assert isinstance(values, list) and values
+            assert all(isinstance(value, str) and value.strip() for value in values)
     assert journey_ids == {
         "deep-sky-canvas-fallback",
         "explore-navigation",
@@ -572,12 +611,8 @@ def test_phase8d_manual_protocol_is_bounded_and_matches_pending_evidence() -> No
         assert isinstance(item["claim_boundary"], str) and item["claim_boundary"]
         allowed_statuses = item["allowed_statuses"]
         assert isinstance(allowed_statuses, list)
-        assert set(allowed_statuses) == {
-            "observed_pass",
-            "observed_finding",
-            "inconclusive",
-            "unavailable",
-        }
+        assert len(allowed_statuses) == len(set(allowed_statuses))
+        assert set(allowed_statuses) == _PROTOCOL_STATUSES
         item_journeys = item["journeys"]
         assert isinstance(item_journeys, list)
         assert all(journey in journey_ids for journey in item_journeys)

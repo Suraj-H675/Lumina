@@ -23,6 +23,30 @@ _PROTOCOL_EVIDENCE_ITEMS = SUPPORTED_ITEMS | {
     "field-inp",
     "retained-gpu-memory",
 }
+_PROTOCOL_KEYS = {
+    "artifact_version",
+    "protocol_id",
+    "phase",
+    "purpose",
+    "result_semantics",
+    "evidence_envelope",
+    "manual_journeys",
+    "evidence_items",
+}
+_PROTOCOL_EVIDENCE_ENVELOPE = {
+    "evidence_id",
+    "status",
+    "observed_at",
+    "build_commit",
+    "operator_or_reviewer",
+    "browser_os_device",
+    "procedure",
+    "route_or_flow",
+    "observations",
+    "evidence_references",
+    "findings",
+    "claim_boundary",
+}
 _ITEM_KEYS = {
     "journeys",
     "checks",
@@ -31,6 +55,7 @@ _ITEM_KEYS = {
     "claim_boundary",
 }
 _LOW_END_ITEM_KEYS = _ITEM_KEYS | {"additional_routes"}
+_MANUAL_JOURNEY_KEYS = {"id", "routes", "actions", "risk_coverage"}
 _CANONICAL_STATUSES = {
     "observed_pass",
     "observed_finding",
@@ -128,6 +153,10 @@ def _read_tracked_file_no_follow(
 
 
 def _validate_protocol_identity(protocol: dict[str, object]) -> dict[str, object]:
+    if set(protocol) != _PROTOCOL_KEYS:
+        raise ManualDraftError(
+            "manual protocol top-level keys must exactly match the frozen v1 contract"
+        )
     version = protocol.get("artifact_version")
     if (
         type(version) is not int
@@ -136,6 +165,20 @@ def _validate_protocol_identity(protocol: dict[str, object]) -> dict[str, object
         or protocol.get("phase") != "8D"
     ):
         raise ManualDraftError("manual protocol identity is invalid")
+    purpose = protocol["purpose"]
+    if not isinstance(purpose, str) or not purpose.strip() or not purpose.isprintable():
+        raise ManualDraftError("manual protocol purpose must be a non-empty printable string")
+    envelope = protocol["evidence_envelope"]
+    if not isinstance(envelope, list) or not all(
+        isinstance(item, str) and item.strip() and item.isprintable() for item in envelope
+    ):
+        raise ManualDraftError(
+            "manual protocol evidence_envelope must be a list of non-empty printable strings"
+        )
+    if len(envelope) != len(set(envelope)) or set(envelope) != _PROTOCOL_EVIDENCE_ENVELOPE:
+        raise ManualDraftError(
+            "manual protocol evidence_envelope must exactly match the frozen v1 field set"
+        )
     return protocol
 
 
@@ -228,16 +271,24 @@ def _environment_plan(item_id: str) -> tuple[list[dict[str, object]], dict[str, 
 
 def _journey_index(protocol: dict[str, object]) -> dict[str, dict[str, object]]:
     raw_journeys = protocol.get("manual_journeys")
-    if not isinstance(raw_journeys, list):
-        raise ManualDraftError("manual protocol manual_journeys must be a list")
+    if not isinstance(raw_journeys, list) or not raw_journeys:
+        raise ManualDraftError("manual protocol manual_journeys must be a non-empty list")
     result: dict[str, dict[str, object]] = {}
     for index, raw_journey in enumerate(raw_journeys):
-        if not isinstance(raw_journey, dict):
-            raise ManualDraftError(f"manual_journeys[{index}] must be an object")
+        if not isinstance(raw_journey, dict) or set(raw_journey) != _MANUAL_JOURNEY_KEYS:
+            raise ManualDraftError(
+                f"manual_journeys[{index}] must contain exactly {sorted(_MANUAL_JOURNEY_KEYS)}"
+            )
         journey = cast(dict[str, object], raw_journey)
         journey_id = journey.get("id")
-        if not isinstance(journey_id, str) or not journey_id:
-            raise ManualDraftError(f"manual_journeys[{index}].id must be a non-empty string")
+        if (
+            not isinstance(journey_id, str)
+            or not journey_id.strip()
+            or not journey_id.isprintable()
+        ):
+            raise ManualDraftError(
+                f"manual_journeys[{index}].id must be a non-empty printable string"
+            )
         if journey_id in result:
             raise ManualDraftError(f"duplicate manual journey id: {journey_id}")
         result[journey_id] = journey

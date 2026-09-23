@@ -397,6 +397,23 @@ def test_field_protocol_rejects_malformed_unselected_protocol_item(
         _validate(_valid_evidence())
 
 
+@pytest.mark.parametrize("mutation", ["extra_top_level", "expanded_envelope"])
+def test_field_protocol_rejects_protocol_v1_structural_expansion(
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    protocol_path = REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
+    protocol = cast(dict[str, object], json.loads(protocol_path.read_text(encoding="utf-8")))
+    if mutation == "extra_top_level":
+        protocol["future_semantics"] = {"enabled": True}
+    else:
+        cast(list[str], protocol["evidence_envelope"]).append("raw_events")
+    monkeypatch.setattr(_module, "_load_tracked_json", lambda *_args, **_kwargs: protocol)
+
+    with pytest.raises(FieldInpEvidenceError, match="frozen v1"):
+        _validate(_valid_evidence())
+
+
 def test_rejects_unknown_fields_so_raw_events_or_identifiers_cannot_hide_in_artifact() -> None:
     evidence = _valid_evidence()
     evidence["raw_events"] = [{"session_id": "forbidden"}]

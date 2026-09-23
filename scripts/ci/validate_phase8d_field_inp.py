@@ -131,6 +131,30 @@ _PROTOCOL_EVIDENCE_ITEMS = {
     "field-inp",
     "retained-gpu-memory",
 }
+_PROTOCOL_KEYS = {
+    "artifact_version",
+    "protocol_id",
+    "phase",
+    "purpose",
+    "result_semantics",
+    "evidence_envelope",
+    "manual_journeys",
+    "evidence_items",
+}
+_PROTOCOL_EVIDENCE_ENVELOPE = {
+    "evidence_id",
+    "status",
+    "observed_at",
+    "build_commit",
+    "operator_or_reviewer",
+    "browser_os_device",
+    "procedure",
+    "route_or_flow",
+    "observations",
+    "evidence_references",
+    "findings",
+    "claim_boundary",
+}
 _PROTOCOL_ITEM_KEYS = {
     "journeys",
     "checks",
@@ -379,6 +403,10 @@ def _number(value: object, label: str) -> float:
 
 def _protocol_field_inp() -> dict[str, object]:
     protocol = _load_tracked_json(MANUAL_PROTOCOL, "manual protocol")
+    if set(protocol) != _PROTOCOL_KEYS:
+        raise FieldInpEvidenceError(
+            "manual protocol top-level keys must exactly match the frozen v1 contract"
+        )
     version = protocol.get("artifact_version")
     if (
         type(version) is not int
@@ -387,6 +415,18 @@ def _protocol_field_inp() -> dict[str, object]:
         or protocol.get("phase") != "8D"
     ):
         raise FieldInpEvidenceError("manual protocol identity is invalid")
+    _string(protocol["purpose"], "manual protocol purpose")
+    envelope = protocol["evidence_envelope"]
+    if not isinstance(envelope, list):
+        raise FieldInpEvidenceError("manual protocol evidence_envelope must be a list")
+    envelope_values = [_string(value, "manual protocol evidence_envelope") for value in envelope]
+    if (
+        len(envelope_values) != len(set(envelope_values))
+        or set(envelope_values) != _PROTOCOL_EVIDENCE_ENVELOPE
+    ):
+        raise FieldInpEvidenceError(
+            "manual protocol evidence_envelope must exactly match the frozen v1 field set"
+        )
     raw_items = protocol.get("evidence_items")
     if not isinstance(raw_items, dict) or set(raw_items) != _PROTOCOL_EVIDENCE_ITEMS:
         raise FieldInpEvidenceError(

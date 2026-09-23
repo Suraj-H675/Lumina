@@ -216,7 +216,7 @@ def _object(value: object, label: str, keys: set[str]) -> dict[str, object]:
 
 
 def _string(value: object, label: str) -> str:
-    if not isinstance(value, str) or not value.strip() or any(ord(char) < 32 for char in value):
+    if not isinstance(value, str) or not value.strip() or not value.isprintable():
         raise ManualEvidenceError(f"{label} must be a non-empty printable string")
     return value
 

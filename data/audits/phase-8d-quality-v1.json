@@ -1,14 +1,14 @@
 {
-  "artifact_version": 10,
+  "artifact_version": 11,
   "audit_id": "phase-8d-quality-v1",
   "phase": "8D",
   "status": "manual_evidence_pending",
   "phase_gate": {
     "completion": "open",
-    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, strict manual-evidence validation with environment-bound screen-reader, zoom, reduced-motion, WebGL-disabled, and touch checks plus protocol-consistent unavailable-environment semantics, bounded no-follow external evidence input, and a non-evidence operator worksheet generator are recorded. The four remaining human/low-end manual artifacts are absent, the field-INP approval manifest is empty, and no field-INP artifact exists, so five manual or field evidence items remain open. Representative WWT cadence and GPU-memory hardware observations remain separately recorded.",
+    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, strict manual-evidence validation with environment-bound screen-reader, zoom, reduced-motion, WebGL-disabled, and touch checks plus protocol-consistent unavailable-environment semantics, bounded no-follow external evidence input, printable-text enforcement, fail-closed field-INP approval-manifest trust-record validation, and a non-evidence operator worksheet generator are recorded. The four remaining human/low-end manual artifacts are absent, the field-INP approval manifest is empty, and no field-INP artifact exists, so five manual or field evidence items remain open. Representative WWT cadence and GPU-memory hardware observations remain separately recorded.",
     "previous_certified_checkpoint": {
-      "commit": "4ee9a719ea90c0e97814de449c8c450375d8adb6",
-      "hosted_ci_run": "35822167938",
+      "commit": "b2a301f6992123f726e86e896161b4bec1c9bcbc",
+      "hosted_ci_run": "35823190632",
       "result": "success"
     }
   },
@@ -256,6 +256,8 @@
     "An unavailable manual observation may record that its required specialized environment or device capability was unavailable; inconclusive and observed statuses still require that capability to be present and recorded.",
     "A manual evidence artifact cannot summarize itself as inconclusive or unavailable when any required observation records an observed finding.",
     "Operator-supplied manual and field-INP JSON evidence inputs are accepted only as bounded regular files; final-component symlinks and non-regular files are rejected before parsing.",
+    "Manual evidence, manual protocol strings, and field-INP evidence or approval text reject non-printable control/format characters while retaining visible international Unicode.",
+    "Every tracked field-INP approval-manifest trust record and approved export is validated independently for admissible metadata, referential integrity, ordered observation windows, INP metric identity, and coherent sample/value pairs before evidence import.",
     "Scripted lab interaction latency is not described as field INP.",
     "A field-INP evidence validator or empty import path is not described as field INP evidence.",
     "Phase 8D field-INP readiness does not add behavioral tracking to Lumina; only approved aggregate external evidence may be imported.",

@@ -238,7 +238,10 @@ def test_rejects_non_integer_protocol_version(version: object) -> None:
         _prepare.build_manual_draft("screen-reader", protocol=protocol)
 
 
-@pytest.mark.parametrize("invalid_check", ["   ", "bad\ncheck"])
+@pytest.mark.parametrize(
+    "invalid_check",
+    ["   ", "bad\ncheck", "bad\u007fcheck", "bad\u009bcheck", "bad\u202echeck", "bad\u200bcheck"],
+)
 def test_rejects_non_printable_or_blank_protocol_strings(invalid_check: str) -> None:
     protocol = json.loads(json.dumps(_prepare._load_protocol()))
     item = cast(
@@ -250,6 +253,24 @@ def test_rejects_non_printable_or_blank_protocol_strings(invalid_check: str) -> 
 
     with pytest.raises(ManualDraftError, match="list of non-empty printable strings"):
         _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
+def test_accepts_visible_international_unicode_in_protocol_strings() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks[0] = "lecteur d’écran — 測試"
+
+    draft = cast(
+        dict[str, object],
+        _prepare.build_manual_draft("screen-reader", protocol=protocol),
+    )
+    evidence = cast(dict[str, object], draft["evidence_template"])
+    observations = cast(list[dict[str, object]], evidence["observations"])
+    assert any(observation["check"] == "lecteur d’écran — 測試" for observation in observations)
 
 
 def test_protocol_reader_rejects_duplicate_keys_and_symlinked_file(tmp_path: Path) -> None:

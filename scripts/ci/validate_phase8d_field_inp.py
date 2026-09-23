@@ -312,7 +312,7 @@ def _object_list(value: object, label: str, keys: set[str]) -> list[dict[str, ob
 
 
 def _string(value: object, label: str) -> str:
-    if not isinstance(value, str) or not value.strip() or any(ord(char) < 32 for char in value):
+    if not isinstance(value, str) or not value.strip() or not value.isprintable():
         raise FieldInpEvidenceError(f"{label} must be a non-empty printable string")
     return value
 
@@ -405,6 +405,7 @@ def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
         _APPROVED_EXPORT_KEYS,
     )
 
+    approval_ids: dict[str, set[str]] = {}
     for label, entries in (
         ("approved_sources", source_entries),
         ("approved_deployments", deployment_entries),
@@ -414,6 +415,49 @@ def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
         ids = [_string(item["approval_id"], f"{label}.approval_id") for item in entries]
         if len(ids) != len(set(ids)):
             raise FieldInpEvidenceError(f"{label} approval_id values must be unique")
+        approval_ids[label] = set(ids)
+
+    for index, item in enumerate(source_entries):
+        _string(item["name"], f"approved_sources[{index}].name")
+        _string(item["kind"], f"approved_sources[{index}].kind")
+        _https_url(
+            item["documentation_url"],
+            f"approved_sources[{index}].documentation_url",
+        )
+        _string(
+            item["approval_reference"],
+            f"approved_sources[{index}].approval_reference",
+        )
+
+    for index, item in enumerate(deployment_entries):
+        _https_url(
+            item["origin"],
+            f"approved_deployments[{index}].origin",
+            origin_only=True,
+        )
+        build_commit = _string(
+            item["build_commit"],
+            f"approved_deployments[{index}].build_commit",
+        )
+        if _COMMIT_PATTERN.fullmatch(build_commit) is None:
+            raise FieldInpEvidenceError(
+                f"approved_deployments[{index}].build_commit must be a lowercase "
+                "40-character Git SHA"
+            )
+        _string(item["environment"], f"approved_deployments[{index}].environment")
+        _string(
+            item["deployment_reference"],
+            f"approved_deployments[{index}].deployment_reference",
+        )
+
+    for index, item in enumerate(privacy_entries):
+        _string(
+            item["approval_reference"],
+            f"approved_privacy_reviews[{index}].approval_reference",
+        )
+        _string(item["reviewer"], f"approved_privacy_reviews[{index}].reviewer")
+        _utc(item["approved_at"], f"approved_privacy_reviews[{index}].approved_at")
+        _string(item["scope"], f"approved_privacy_reviews[{index}].scope")
 
     for index, item in enumerate(export_entries):
         sha256 = _string(item["sha256"], f"approved_exports[{index}].sha256")
@@ -422,20 +466,54 @@ def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
                 f"approved_exports[{index}].sha256 must be a lowercase SHA-256 digest"
             )
         _string(item["reference"], f"approved_exports[{index}].reference")
-        _string(item["source_approval_id"], f"approved_exports[{index}].source_approval_id")
-        _string(
+        source_approval_id = _string(
+            item["source_approval_id"],
+            f"approved_exports[{index}].source_approval_id",
+        )
+        deployment_approval_id = _string(
             item["deployment_approval_id"],
             f"approved_exports[{index}].deployment_approval_id",
         )
-        _string(item["privacy_approval_id"], f"approved_exports[{index}].privacy_approval_id")
-        _utc(item["observation_start"], f"approved_exports[{index}].observation_start")
-        _utc(item["observation_end"], f"approved_exports[{index}].observation_end")
+        privacy_approval_id = _string(
+            item["privacy_approval_id"],
+            f"approved_exports[{index}].privacy_approval_id",
+        )
+        if source_approval_id not in approval_ids["approved_sources"]:
+            raise FieldInpEvidenceError(
+                f"approved_exports[{index}].source_approval_id must name an approved source"
+            )
+        if deployment_approval_id not in approval_ids["approved_deployments"]:
+            raise FieldInpEvidenceError(
+                f"approved_exports[{index}].deployment_approval_id must name an approved deployment"
+            )
+        if privacy_approval_id not in approval_ids["approved_privacy_reviews"]:
+            raise FieldInpEvidenceError(
+                f"approved_exports[{index}].privacy_approval_id must name an approved "
+                "privacy review"
+            )
+        observation_start = _utc(
+            item["observation_start"],
+            f"approved_exports[{index}].observation_start",
+        )
+        observation_end = _utc(
+            item["observation_end"],
+            f"approved_exports[{index}].observation_end",
+        )
+        if observation_end <= observation_start:
+            raise FieldInpEvidenceError(
+                f"approved_exports[{index}].observation_end must be after observation_start"
+            )
         sample_count = item["sample_count"]
         if isinstance(sample_count, bool) or not isinstance(sample_count, int) or sample_count < 0:
             raise FieldInpEvidenceError(
                 f"approved_exports[{index}].sample_count must be a non-negative integer"
             )
-        _string(item["aggregation_metric"], f"approved_exports[{index}].aggregation_metric")
+        aggregation_metric = _string(
+            item["aggregation_metric"],
+            f"approved_exports[{index}].aggregation_metric",
+        )
+        if aggregation_metric != "INP":
+            raise FieldInpEvidenceError(f"approved_exports[{index}].aggregation_metric must be INP")
         _string(
             item["aggregation_statistic"],
             f"approved_exports[{index}].aggregation_statistic",
@@ -443,6 +521,11 @@ def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
         approved_value = item["aggregation_value_ms"]
         if approved_value is not None:
             _number(approved_value, f"approved_exports[{index}].aggregation_value_ms")
+        if (sample_count == 0) != (approved_value is None):
+            raise FieldInpEvidenceError(
+                f"approved_exports[{index}].sample_count and aggregation_value_ms must be "
+                "zero/null or positive/numeric together"
+            )
         _string(item["segmentation_scope"], f"approved_exports[{index}].segmentation_scope")
         _string(
             item["segmentation_description"],

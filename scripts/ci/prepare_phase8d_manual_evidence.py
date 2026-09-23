@@ -136,8 +136,7 @@ def _load_protocol(
 
 def _string_list(value: object, label: str) -> list[str]:
     if not isinstance(value, list) or not all(
-        isinstance(item, str) and item.strip() and not any(ord(char) < 32 for char in item)
-        for item in value
+        isinstance(item, str) and item.strip() and item.isprintable() for item in value
     ):
         raise ManualDraftError(f"{label} must be a list of non-empty printable strings")
     return cast(list[str], value)

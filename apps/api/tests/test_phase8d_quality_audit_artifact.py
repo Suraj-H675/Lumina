@@ -79,7 +79,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 10
+    assert document["artifact_version"] == 11
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -96,9 +96,11 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
         "environment-bound screen-reader, zoom, reduced-motion, webgl-disabled" in phase_gate_reason
     )
     assert "protocol-consistent unavailable-environment semantics" in phase_gate_reason
+    assert "printable-text enforcement" in phase_gate_reason
+    assert "fail-closed field-inp approval-manifest trust-record validation" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "4ee9a719ea90c0e97814de449c8c450375d8adb6",
-        "hosted_ci_run": "35822167938",
+        "commit": "b2a301f6992123f726e86e896161b4bec1c9bcbc",
+        "hosted_ci_run": "35823190632",
         "result": "success",
     }
 
@@ -458,6 +460,11 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "unavailable manual observation may record" in serialized
     assert "inconclusive and observed statuses still require" in serialized
     assert "cannot summarize itself as inconclusive or unavailable" in serialized
+    assert "reject non-printable control/format characters" in serialized
+    assert "visible international unicode" in serialized
+    assert "every tracked field-inp approval-manifest trust record" in serialized
+    assert "referential integrity" in serialized
+    assert "coherent sample/value pairs" in serialized
     assert "not described as field inp" in serialized
     assert "validator or empty import path is not described as field inp evidence" in serialized
     assert "does not add behavioral tracking" in serialized

@@ -202,6 +202,24 @@ def test_rejects_non_integer_evidence_artifact_version(version: object) -> None:
         validate_manual_evidence(evidence, now=FIXED_NOW)
 
 
+@pytest.mark.parametrize("control", ["\u007f", "\u009b", "\u202e", "\u200b"])
+def test_rejects_non_printable_unicode_in_manual_text_fields(control: str) -> None:
+    evidence = _valid_evidence("screen-reader")
+    evidence["operator_or_reviewer"] = f"reviewer{control}name"
+    with pytest.raises(ManualEvidenceError, match="non-empty printable string"):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
+
+
+def test_accepts_visible_international_unicode_in_manual_text_fields() -> None:
+    evidence = _valid_evidence("screen-reader")
+    evidence["operator_or_reviewer"] = "José 測試"
+    cast(dict[str, object], evidence["manual_attestation"])["notes"] = (
+        "Révision manuelle confirmée — 測試完成"
+    )
+
+    assert validate_manual_evidence(evidence, now=FIXED_NOW) == evidence
+
+
 def test_low_end_requires_all_protocol_additional_routes() -> None:
     evidence = _valid_evidence("representative-low-end-device")
     routes = cast(list[str], evidence["route_or_flow"])

@@ -220,6 +220,78 @@ def test_rejects_non_integer_approval_manifest_version(version: object) -> None:
         _validate(_valid_evidence(), approvals=approvals)
 
 
+@pytest.mark.parametrize(
+    ("section", "field", "value", "message"),
+    [
+        ("approved_sources", "documentation_url", "http://example.com/metrics", "HTTPS URL"),
+        ("approved_deployments", "build_commit", "deadbeef", "40-character Git SHA"),
+        ("approved_privacy_reviews", "reviewer", "reviewer\u202ename", "printable string"),
+    ],
+)
+def test_approval_manifest_rejects_malformed_trust_records_even_when_unused(
+    section: str,
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    approvals = _approvals()
+    entries = cast(list[dict[str, object]], approvals[section])
+    entries.append(dict(entries[0]))
+    entries[-1]["approval_id"] = f"unused-{section}"
+    entries[-1][field] = value
+
+    with pytest.raises(FieldInpEvidenceError, match=message):
+        _module._approval_manifest(approvals)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("reversed_window", "observation_end must be after observation_start"),
+        ("wrong_metric", "aggregation_metric must be INP"),
+        ("dangling_source", "source_approval_id must name an approved source"),
+        ("dangling_deployment", "deployment_approval_id must name an approved deployment"),
+        ("dangling_privacy", "privacy_approval_id must name an approved privacy review"),
+    ],
+)
+def test_approval_manifest_rejects_impossible_or_dangling_export_approvals(
+    mutation: str,
+    message: str,
+) -> None:
+    approvals = _approvals()
+    export = cast(list[dict[str, object]], approvals["approved_exports"])[0]
+    if mutation == "reversed_window":
+        export["observation_end"] = "2026-09-14T00:00:00Z"
+    elif mutation == "wrong_metric":
+        export["aggregation_metric"] = "LCP"
+    elif mutation == "dangling_source":
+        export["source_approval_id"] = "source-missing"
+    elif mutation == "dangling_deployment":
+        export["deployment_approval_id"] = "deployment-missing"
+    else:
+        export["privacy_approval_id"] = "privacy-missing"
+
+    with pytest.raises(FieldInpEvidenceError, match=message):
+        _module._approval_manifest(approvals)
+
+
+@pytest.mark.parametrize(
+    ("sample_count", "value_ms"),
+    [(0, 180.0), (1200, None)],
+)
+def test_approval_manifest_rejects_incoherent_export_sample_and_value_pairs(
+    sample_count: int,
+    value_ms: float | None,
+) -> None:
+    approvals = _approvals()
+    export = cast(list[dict[str, object]], approvals["approved_exports"])[0]
+    export["sample_count"] = sample_count
+    export["aggregation_value_ms"] = value_ms
+
+    with pytest.raises(FieldInpEvidenceError, match="sample_count and aggregation_value_ms"):
+        _module._approval_manifest(approvals)
+
+
 @pytest.mark.parametrize("version", [True, 1.0])
 def test_rejects_non_integer_field_evidence_version(version: object) -> None:
     evidence = _valid_evidence()
@@ -247,6 +319,21 @@ def test_rejects_unknown_fields_so_raw_events_or_identifiers_cannot_hide_in_arti
     evidence["raw_events"] = [{"session_id": "forbidden"}]
     with pytest.raises(FieldInpEvidenceError, match="top-level keys mismatch"):
         _validate(evidence)
+
+
+@pytest.mark.parametrize("control", ["\u007f", "\u009b", "\u202e", "\u200b"])
+def test_rejects_non_printable_unicode_in_field_evidence_text(control: str) -> None:
+    evidence = _valid_evidence()
+    evidence["collection_limitations"] = [f"approved aggregate export{control}note"]
+    with pytest.raises(FieldInpEvidenceError, match="non-empty printable string"):
+        _validate(evidence)
+
+
+def test_accepts_visible_international_unicode_in_field_evidence_text() -> None:
+    evidence = _valid_evidence()
+    evidence["collection_limitations"] = ["Données agrégées vérifiées — 測試完成"]
+
+    assert _validate(evidence) == evidence
 
 
 @pytest.mark.parametrize(

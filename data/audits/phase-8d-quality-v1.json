@@ -1,14 +1,14 @@
 {
-  "artifact_version": 7,
+  "artifact_version": 8,
   "audit_id": "phase-8d-quality-v1",
   "phase": "8D",
   "status": "manual_evidence_pending",
   "phase_gate": {
     "completion": "open",
-    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, strict manual-evidence validation, and a non-evidence operator worksheet generator are recorded. The four remaining human/low-end manual artifacts are absent, the field-INP approval manifest is empty, and no field-INP artifact exists, so five manual or field evidence items remain open. Representative WWT cadence and GPU-memory hardware observations remain separately recorded.",
+    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, strict manual-evidence validation, bounded no-follow external evidence input, and a non-evidence operator worksheet generator are recorded. The four remaining human/low-end manual artifacts are absent, the field-INP approval manifest is empty, and no field-INP artifact exists, so five manual or field evidence items remain open. Representative WWT cadence and GPU-memory hardware observations remain separately recorded.",
     "previous_certified_checkpoint": {
-      "commit": "e69b0501868b1dba402d144ae7babe9f22658e9a",
-      "hosted_ci_run": "35760083191",
+      "commit": "121e25cda625ba3184f30cba8f33b246c104e53c",
+      "hosted_ci_run": "35818442071",
       "result": "success"
     }
   },
@@ -252,6 +252,7 @@
     "Automated axe results are not described as screen-reader or WCAG certification.",
     "A manual-evidence validator is not described as a performed human accessibility or representative-device observation.",
     "A generated manual-review worksheet or template is not described as manual evidence, a performed observation, or Phase 8D completion.",
+    "Operator-supplied manual and field-INP JSON evidence inputs are accepted only as bounded regular files; final-component symlinks and non-regular files are rejected before parsing.",
     "Scripted lab interaction latency is not described as field INP.",
     "A field-INP evidence validator or empty import path is not described as field INP evidence.",
     "Phase 8D field-INP readiness does not add behavioral tracking to Lumina; only approved aggregate external evidence may be imported.",

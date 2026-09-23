@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -169,6 +170,14 @@ def _valid_evidence(
 def test_accepts_complete_manual_evidence_for_supported_items(item_id: str) -> None:
     evidence = _valid_evidence(item_id)
     assert validate_manual_evidence(evidence, now=FIXED_NOW) == evidence
+
+
+@pytest.mark.parametrize("version", [True, 1.0])
+def test_rejects_non_integer_evidence_artifact_version(version: object) -> None:
+    evidence = _valid_evidence("screen-reader")
+    evidence["artifact_version"] = version
+    with pytest.raises(ManualEvidenceError, match="artifact_version must be 1"):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
 
 
 def test_low_end_requires_all_protocol_additional_routes() -> None:
@@ -367,6 +376,33 @@ def test_rejects_unknown_top_level_fields_and_non_finite_json(tmp_path: Path) ->
     path.write_text('{"value": NaN}', encoding="utf-8")
     with pytest.raises(ManualEvidenceError, match="non-finite JSON number"):
         _module._load_input(path)
+
+
+def test_manual_input_reader_rejects_symlink_and_oversized_json(tmp_path: Path) -> None:
+    target = tmp_path / "target.json"
+    target.write_text('{"value": 1}', encoding="utf-8")
+    symlink = tmp_path / "manual-link.json"
+    symlink.symlink_to(target)
+    with pytest.raises(ManualEvidenceError, match="could not open manual evidence safely"):
+        _module._load_input(symlink)
+
+    oversized = tmp_path / "oversized.json"
+    oversized.write_text(
+        '{"padding":"' + ("x" * (1024 * 1024)) + '"}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ManualEvidenceError, match="exceeds the 1 MiB input bound"):
+        _module._load_input(oversized)
+
+    fifo = tmp_path / "manual-fifo.json"
+    os.mkfifo(fifo)
+    with pytest.raises(ManualEvidenceError, match="manual evidence must be a regular file"):
+        _module._load_input(fifo)
+
+    invalid_utf8 = tmp_path / "invalid-utf8.json"
+    invalid_utf8.write_bytes(b'{"value":"\xff"}')
+    with pytest.raises(ManualEvidenceError, match="decode manual evidence as UTF-8"):
+        _module._load_input(invalid_utf8)
 
 
 def test_rejects_same_version_phase_protocol_with_wrong_protocol_id() -> None:

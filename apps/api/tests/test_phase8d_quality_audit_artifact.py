@@ -79,7 +79,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 7
+    assert document["artifact_version"] == 8
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -91,9 +91,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "four remaining human/low-end manual artifacts are absent" in phase_gate_reason
     assert "no field-inp artifact exists" in phase_gate_reason
     assert "representative wwt cadence and gpu-memory hardware observations" in phase_gate_reason
+    assert "bounded no-follow external evidence input" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "e69b0501868b1dba402d144ae7babe9f22658e9a",
-        "hosted_ci_run": "35760083191",
+        "commit": "121e25cda625ba3184f30cba8f33b246c104e53c",
+        "hosted_ci_run": "35818442071",
         "result": "success",
     }
 
@@ -447,6 +448,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "not described as screen-reader" in serialized
     assert "manual-evidence validator is not described as a performed human" in serialized
     assert "worksheet or template is not described as manual evidence" in serialized
+    assert "accepted only as bounded regular files" in serialized
+    assert "final-component symlinks and non-regular files are rejected" in serialized
     assert "not described as field inp" in serialized
     assert "validator or empty import path is not described as field inp evidence" in serialized
     assert "does not add behavioral tracking" in serialized

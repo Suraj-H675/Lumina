@@ -83,6 +83,7 @@ _ITEM_KEYS = {
 }
 _LOW_END_ITEM_KEYS = _ITEM_KEYS | {"additional_routes"}
 _COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+_MAX_INPUT_BYTES = 1024 * 1024
 
 
 class ManualEvidenceError(ValueError):
@@ -165,10 +166,38 @@ def _read_tracked_json(path: Path, label: str) -> dict[str, object]:
 
 
 def _load_input(path: Path) -> dict[str, object]:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    if hasattr(os, "O_NONBLOCK"):
+        flags |= os.O_NONBLOCK
+
+    file_fd: int | None = None
     try:
-        text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as exc:
-        raise ManualEvidenceError(f"could not read manual evidence: {exc}") from exc
+        file_fd = os.open(path, flags)
+        metadata = os.fstat(file_fd)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ManualEvidenceError("manual evidence must be a regular file")
+        chunks: list[bytes] = []
+        total = 0
+        while True:
+            chunk = os.read(file_fd, 64 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > _MAX_INPUT_BYTES:
+                raise ManualEvidenceError("manual evidence exceeds the 1 MiB input bound")
+            chunks.append(chunk)
+        text = b"".join(chunks).decode("utf-8")
+    except ManualEvidenceError:
+        raise
+    except OSError as exc:
+        raise ManualEvidenceError(f"could not open manual evidence safely: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise ManualEvidenceError(f"could not decode manual evidence as UTF-8: {exc}") from exc
+    finally:
+        if file_fd is not None:
+            os.close(file_fd)
     return _parse_json_text(text, "manual evidence")
 
 
@@ -409,7 +438,8 @@ def validate_manual_evidence(
         missing = sorted(_TOP_LEVEL_KEYS - set(document))
         extra = sorted(set(document) - _TOP_LEVEL_KEYS)
         raise ManualEvidenceError(f"top-level keys mismatch; missing={missing}, extra={extra}")
-    if document["artifact_version"] != 1:
+    artifact_version = document["artifact_version"]
+    if type(artifact_version) is not int or artifact_version != 1:
         raise ManualEvidenceError("artifact_version must be 1")
     if document["phase"] != "8D":
         raise ManualEvidenceError("phase must be 8D")

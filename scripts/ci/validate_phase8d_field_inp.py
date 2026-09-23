@@ -125,6 +125,9 @@ class FieldInpEvidenceError(ValueError):
     """Raised when Phase 8D field-INP evidence is not admissible."""
 
 
+_MAX_JSON_INPUT_BYTES = 1024 * 1024
+
+
 def _parse_json_text(text: str, label: str) -> dict[str, object]:
     def reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
         result: dict[str, object] = {}
@@ -153,10 +156,38 @@ def _parse_json_text(text: str, label: str) -> dict[str, object]:
 
 
 def _load_json(path: Path) -> dict[str, object]:
+    flags = os.O_RDONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    if hasattr(os, "O_NONBLOCK"):
+        flags |= os.O_NONBLOCK
+
+    file_fd: int | None = None
     try:
-        text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as exc:
-        raise FieldInpEvidenceError(f"could not read JSON evidence: {exc}") from exc
+        file_fd = os.open(path, flags)
+        metadata = os.fstat(file_fd)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise FieldInpEvidenceError("JSON evidence must be a regular file")
+        chunks: list[bytes] = []
+        total = 0
+        while True:
+            chunk = os.read(file_fd, 64 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > _MAX_JSON_INPUT_BYTES:
+                raise FieldInpEvidenceError("JSON evidence exceeds the 1 MiB input bound")
+            chunks.append(chunk)
+        text = b"".join(chunks).decode("utf-8")
+    except FieldInpEvidenceError:
+        raise
+    except OSError as exc:
+        raise FieldInpEvidenceError(f"could not open JSON evidence safely: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise FieldInpEvidenceError(f"could not decode JSON evidence as UTF-8: {exc}") from exc
+    finally:
+        if file_fd is not None:
+            os.close(file_fd)
     return _parse_json_text(text, "JSON evidence")
 
 
@@ -796,14 +827,24 @@ def _write_tracked_output(
         if target_stat is not None and stat.S_ISLNK(target_stat.st_mode):
             raise FieldInpEvidenceError("tracked field-INP output must not be a symlink")
 
-        os.replace(
-            temporary_name,
-            target_name,
-            src_dir_fd=parent_fd,
-            dst_dir_fd=parent_fd,
-        )
+        try:
+            os.replace(
+                temporary_name,
+                target_name,
+                src_dir_fd=parent_fd,
+                dst_dir_fd=parent_fd,
+            )
+        except OSError as exc:
+            raise FieldInpEvidenceError(
+                f"could not replace tracked field-INP evidence safely: {exc}"
+            ) from exc
         temporary_created = False
-        os.fsync(parent_fd)
+        try:
+            os.fsync(parent_fd)
+        except OSError as exc:
+            raise FieldInpEvidenceError(
+                f"tracked field-INP evidence durability is unknown after replace: {exc}"
+            ) from exc
     finally:
         if temporary_fd is not None:
             os.close(temporary_fd)

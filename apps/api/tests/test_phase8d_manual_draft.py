@@ -156,6 +156,34 @@ def test_draft_writer_refuses_existing_file_and_hard_link(tmp_path: Path) -> Non
     assert hard_link.read_text(encoding="utf-8") == "keep-tracked\n"
 
 
+def test_draft_writer_removes_new_file_if_parent_fsync_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    draft = cast(dict[str, object], _prepare.build_manual_draft("screen-reader"))
+    audits = tmp_path / "audits"
+    output_dir = tmp_path / "output"
+    audits.mkdir()
+    output_dir.mkdir()
+    output = output_dir / "draft.json"
+    real_fsync = _prepare.os.fsync
+    calls = 0
+
+    def fail_parent_fsync(fd: int) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("simulated parent fsync failure")
+        real_fsync(fd)
+
+    monkeypatch.setattr(_prepare.os, "fsync", fail_parent_fsync)
+    with pytest.raises(ManualDraftError, match="could not write manual-review draft safely"):
+        _prepare._write_draft(draft, output, audit_directory=audits)
+
+    assert calls == 2
+    assert not output.exists()
+
+
 def test_pinned_draft_parent_fd_survives_symlink_replacement_race(tmp_path: Path) -> None:
     audits = tmp_path / "audits"
     output_dir = tmp_path / "output"

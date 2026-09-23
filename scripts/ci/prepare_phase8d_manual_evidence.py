@@ -416,8 +416,10 @@ def _write_draft(
                 raise ManualDraftError("could not write manual-review draft")
             view = view[written:]
         os.fsync(target_fd)
-        completed = True
         os.fsync(parent_fd)
+        completed = True
+    except OSError as exc:
+        raise ManualDraftError(f"could not write manual-review draft safely: {exc}") from exc
     finally:
         if target_fd is not None:
             os.close(target_fd)

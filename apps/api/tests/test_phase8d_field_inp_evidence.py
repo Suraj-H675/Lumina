@@ -436,6 +436,66 @@ def test_atomic_output_writes_canonical_json_inside_owned_directory(tmp_path: Pa
     assert not list(audits.glob("*.tmp"))
 
 
+def test_atomic_output_cleans_temp_and_preserves_target_when_replace_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository = tmp_path / "repo"
+    audits = repository / "data" / "audits"
+    audits.mkdir(parents=True)
+    tracked = audits / "phase-8d-field-inp-v1.json"
+    tracked.write_text("old-evidence\n", encoding="utf-8")
+
+    def fail_replace(*_args: object, **_kwargs: object) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(_module.os, "replace", fail_replace)
+    with pytest.raises(FieldInpEvidenceError, match="could not replace tracked field-INP evidence"):
+        _module._write_tracked_output(
+            _valid_evidence(),
+            tracked,
+            repository_root=repository,
+            tracked_output=tracked,
+        )
+
+    assert tracked.read_text(encoding="utf-8") == "old-evidence\n"
+    assert not list(audits.glob("*.tmp"))
+
+
+def test_atomic_output_reports_unknown_durability_after_successful_replace_fsync_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository = tmp_path / "repo"
+    audits = repository / "data" / "audits"
+    audits.mkdir(parents=True)
+    tracked = audits / "phase-8d-field-inp-v1.json"
+    tracked.write_text("old-evidence\n", encoding="utf-8")
+    evidence = _valid_evidence()
+    real_fsync = _module.os.fsync
+    calls = 0
+
+    def fail_parent_fsync(fd: int) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("simulated parent fsync failure")
+        real_fsync(fd)
+
+    monkeypatch.setattr(_module.os, "fsync", fail_parent_fsync)
+    with pytest.raises(FieldInpEvidenceError, match="durability is unknown after replace"):
+        _module._write_tracked_output(
+            evidence,
+            tracked,
+            repository_root=repository,
+            tracked_output=tracked,
+        )
+
+    assert calls == 2
+    assert json.loads(tracked.read_text(encoding="utf-8")) == evidence
+    assert not list(audits.glob("*.tmp"))
+
+
 def test_atomic_output_does_not_delete_preexisting_temp_collision(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -604,3 +664,30 @@ def test_json_loader_rejects_non_finite_duplicate_and_oversized_numbers(tmp_path
 
     with pytest.raises(FieldInpEvidenceError, match="finite numeric value"):
         _module._number(10**10000, "value")
+
+
+def test_json_loader_rejects_symlink_and_oversized_evidence_file(tmp_path: Path) -> None:
+    target = tmp_path / "target.json"
+    target.write_text('{"value": 1}', encoding="utf-8")
+    symlink = tmp_path / "field-inp-link.json"
+    symlink.symlink_to(target)
+    with pytest.raises(FieldInpEvidenceError, match="could not open JSON evidence safely"):
+        _module._load_json(symlink)
+
+    oversized = tmp_path / "oversized.json"
+    oversized.write_text(
+        '{"padding":"' + ("x" * (1024 * 1024)) + '"}',
+        encoding="utf-8",
+    )
+    with pytest.raises(FieldInpEvidenceError, match="exceeds the 1 MiB input bound"):
+        _module._load_json(oversized)
+
+    fifo = tmp_path / "field-inp-fifo.json"
+    os.mkfifo(fifo)
+    with pytest.raises(FieldInpEvidenceError, match="JSON evidence must be a regular file"):
+        _module._load_json(fifo)
+
+    invalid_utf8 = tmp_path / "invalid-utf8.json"
+    invalid_utf8.write_bytes(b'{"value":"\xff"}')
+    with pytest.raises(FieldInpEvidenceError, match="decode JSON evidence as UTF-8"):
+        _module._load_json(invalid_utf8)

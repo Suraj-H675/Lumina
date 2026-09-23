@@ -238,6 +238,40 @@ def test_capabilities_exposes_only_safe_authoritative_policy(tmp_path: Path) -> 
         assert forbidden not in serialized
 
 
+@pytest.mark.parametrize(
+    ("method", "path", "kwargs"),
+    [
+        ("GET", "/api/v1/identification/capabilities", {}),
+        (
+            "POST",
+            "/api/v1/identification/submissions",
+            {
+                "files": {"file": ("night.png", b"fixture", "image/png")},
+                "data": {"consent_remote_processing": "false"},
+            },
+        ),
+        ("GET", f"/api/v1/identification/submissions/{_SUBMISSION_ID}", {}),
+        ("GET", f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution", {}),
+        ("DELETE", f"/api/v1/identification/submissions/{_SUBMISSION_ID}", {}),
+    ],
+)
+def test_disabled_identification_fails_closed_for_every_public_route(
+    tmp_path: Path,
+    method: str,
+    path: str,
+    kwargs: dict[str, object],
+) -> None:
+    storage_root = tmp_path / "private-storage"
+    app = _app(tmp_path, LUMINA_ENABLE_IDENTIFICATION=False)
+
+    assert not storage_root.exists()
+
+    response = _request(app, method, path, **kwargs)
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "request.not_found"
+
+
 def test_capabilities_advertises_nova_only_when_explicitly_enabled(tmp_path: Path) -> None:
     app = _app(
         tmp_path,

@@ -4,7 +4,7 @@ import { OrbitSandboxEnhanced } from "../../../components/orbit-sandbox-enhanced
 import { OrbitSandboxNoScript } from "../../../components/orbit-sandbox-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { OrbitSandboxMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadOrbitSandboxCalculation } from "../../../lib/server/orbit-sandbox";
 import {
   DEFAULT_ORBIT_SANDBOX_STATE,
@@ -44,9 +44,10 @@ export default async function OrbitSandboxPage({
   searchParams,
 }: OrbitSandboxPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadOrbitSandboxCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -60,7 +61,7 @@ export default async function OrbitSandboxPage({
         messages={messages}
       />
       <OrbitSandboxEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

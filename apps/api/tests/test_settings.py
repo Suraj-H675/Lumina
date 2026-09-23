@@ -154,6 +154,34 @@ def test_safe_network_defaults_and_immutable_empty_cors() -> None:
     assert settings.astrometry_allow_commercial_use == "n"
     assert settings.astrometry_poll_seconds == 5
     assert settings.astrometry_timeout_seconds == 900
+    assert settings.identification_enabled is True
+
+
+@pytest.mark.parametrize("environment", ["staging", "production"])
+def test_public_environments_disable_identification_by_default(environment: str) -> None:
+    settings = _settings({"LUMINA_ENV": environment})
+
+    assert settings.enable_identification is None
+    assert settings.identification_enabled is False
+
+
+@pytest.mark.parametrize("environment", ["staging", "production"])
+def test_public_environments_can_explicitly_enable_identification(environment: str) -> None:
+    settings = _settings(
+        {
+            "LUMINA_ENV": environment,
+            "LUMINA_ENABLE_IDENTIFICATION": "true",
+        }
+    )
+
+    assert settings.enable_identification is True
+    assert settings.identification_enabled is True
+
+
+@pytest.mark.parametrize("value", ["yes", "1", "TRUE", "False", 1, 0, ""])
+def test_identification_enable_rejects_boolean_coercion(value: object) -> None:
+    with pytest.raises(ValidationError):
+        _settings({"LUMINA_ENV": "test", "LUMINA_ENABLE_IDENTIFICATION": value})
 
 
 @pytest.mark.parametrize(
@@ -469,6 +497,31 @@ def test_configured_cors_origins_are_parsed_to_tuple() -> None:
         "http://localhost:3000",
         "https://example.com",
     )
+
+
+@pytest.mark.parametrize("environment", ["staging", "production"])
+def test_public_environments_require_https_for_configured_cors_origins(
+    environment: str,
+) -> None:
+    with pytest.raises(ValidationError, match="HTTPS CORS origins"):
+        _settings(
+            {
+                "LUMINA_ENV": environment,
+                "LUMINA_CORS_ORIGINS": "http://app.example.test",
+            }
+        )
+
+    settings = _settings(
+        {
+            "LUMINA_ENV": environment,
+            "LUMINA_CORS_ORIGINS": "https://app.example.test",
+        }
+    )
+    assert settings.cors_origins == ("https://app.example.test",)
+
+
+def test_production_allows_empty_cors_for_same_origin_reverse_proxy() -> None:
+    assert _settings({"LUMINA_ENV": "production"}).cors_origins == ()
 
 
 @pytest.mark.parametrize("value", ["yes", "1", "enabled", ""])

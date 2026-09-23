@@ -4,7 +4,7 @@ import { StellarLaboratoryEnhanced } from "../../../components/stellar-laborator
 import { StellarLaboratoryNoScript } from "../../../components/stellar-laboratory-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { StellarLaboratoryMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadStellarLaboratoryCalculation } from "../../../lib/server/stellar-laboratory";
 import {
   DEFAULT_STELLAR_LABORATORY_STATE,
@@ -44,9 +44,10 @@ export default async function StellarLaboratoryPage({
   searchParams,
 }: StellarLaboratoryPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadStellarLaboratoryCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -60,7 +61,7 @@ export default async function StellarLaboratoryPage({
         messages={messages}
       />
       <StellarLaboratoryEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

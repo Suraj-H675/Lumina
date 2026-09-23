@@ -4,7 +4,7 @@ import { RadialVelocityEnhanced } from "../../../components/radial-velocity-enha
 import { RadialVelocityNoScript } from "../../../components/radial-velocity-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { RadialVelocityMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadRadialVelocityCalculation } from "../../../lib/server/radial-velocity";
 import {
   DEFAULT_RADIAL_VELOCITY_STATE,
@@ -44,9 +44,10 @@ export default async function RadialVelocityPage({
   searchParams,
 }: RadialVelocityPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadRadialVelocityCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -60,7 +61,7 @@ export default async function RadialVelocityPage({
         messages={messages}
       />
       <RadialVelocityEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

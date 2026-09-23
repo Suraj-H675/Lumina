@@ -9,7 +9,7 @@ import type {
   TonightMessages,
 } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
-import { resolveWebApiOrigin } from "../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin } from "../../lib/server/api-origin";
 
 export function createTonightMetadata(messages: TonightMessages): Metadata {
   return {
@@ -42,7 +42,7 @@ export default async function TonightPage({
   const params = await searchParams;
   const date = firstValue(params.date);
   const initialDate = date !== undefined && isValidNightDate(date) ? date : undefined;
-  const configured = resolveWebApiOrigin();
+  const configured = resolvePublicWebApiOrigin();
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   return (

@@ -3,7 +3,7 @@ import { identificationCapabilitiesEndpoint, requestEndpoint } from "@lumina/api
 
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type { IdentifyMessages } from "../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { IdentifyView } from "./identify-view";
 
 export function createIdentifyMetadata(messages: IdentifyMessages): Metadata {
@@ -18,19 +18,23 @@ export default async function IdentifyPage({
   locale,
   messages,
 }: Readonly<{ locale: PublishedLocale; messages: IdentifyMessages }>) {
-  const configured = resolveWebApiOrigin();
-  if (!configured.valid) {
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
+  if (!serverApiConfiguration.valid || !publicApiConfiguration.valid) {
     return <IdentifyUnavailable messages={messages} reason="apiOrigin" />;
   }
 
-  const outcome = await requestEndpoint(configured.origin, identificationCapabilitiesEndpoint);
+  const outcome = await requestEndpoint(
+    serverApiConfiguration.origin,
+    identificationCapabilitiesEndpoint,
+  );
   if (outcome.kind !== "ok") {
     return <IdentifyUnavailable messages={messages} reason="policy" />;
   }
 
   return (
     <IdentifyView
-      apiOrigin={configured.origin}
+      apiOrigin={publicApiConfiguration.origin}
       capabilities={outcome.data}
       locale={locale}
       messages={messages}

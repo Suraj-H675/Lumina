@@ -197,7 +197,10 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
         }
 
     settings = load_settings()
-    runtime = create_database_runtime(settings.database_url)
+    runtime = create_database_runtime(
+        settings.database_url,
+        tls_mode=settings.resolved_database_tls_mode,
+    )
     try:
         if namespace.command == "ingest":
             started = perf_counter()

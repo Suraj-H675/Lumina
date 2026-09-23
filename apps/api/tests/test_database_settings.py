@@ -25,6 +25,45 @@ def test_runtime_database_url_is_secret_and_requires_asyncpg() -> None:
 
     assert "private" not in repr(settings)
     assert "***" in str(settings.database_url)
+    assert settings.resolved_database_tls_mode == "disable"
+
+
+def test_public_runtime_defaults_to_verified_database_tls_and_rejects_disable() -> None:
+    production = AppSettings.model_validate(
+        {
+            "LUMINA_ENV": "production",
+            "LUMINA_DATABASE_URL": (
+                "postgresql+asyncpg://lumina_app:private@db.example.test:5432/lumina"
+            ),
+        }
+    )
+    assert production.database_tls_mode is None
+    assert production.resolved_database_tls_mode == "verify-full"
+
+    with pytest.raises(ValidationError, match="verified database TLS"):
+        AppSettings.model_validate(
+            {
+                "LUMINA_ENV": "production",
+                "LUMINA_DATABASE_URL": (
+                    "postgresql+asyncpg://lumina_app:private@db.example.test:5432/lumina"
+                ),
+                "LUMINA_DATABASE_TLS_MODE": "disable",
+            }
+        )
+
+
+@pytest.mark.parametrize("value", ["prefer", "require", "verify-ca", "true", ""])
+def test_database_tls_mode_accepts_only_disable_or_verify_full(value: str) -> None:
+    with pytest.raises(ValidationError):
+        AppSettings.model_validate(
+            {
+                "LUMINA_ENV": "test",
+                "LUMINA_DATABASE_URL": (
+                    "postgresql+asyncpg://lumina_app:private@127.0.0.1:5432/lumina"
+                ),
+                "LUMINA_DATABASE_TLS_MODE": value,
+            }
+        )
 
 
 @pytest.mark.parametrize(
@@ -48,6 +87,7 @@ def test_runtime_url_rejects_wrong_driver_or_missing_components(url: str) -> Non
 def test_migration_settings_require_psycopg() -> None:
     settings = MigrationSettings.model_validate(
         {
+            "LUMINA_ENV": "production",
             "LUMINA_DATABASE_URL": (
                 "postgresql+asyncpg://runtime:runtime-private@127.0.0.1:5432/lumina"
             ),
@@ -57,6 +97,7 @@ def test_migration_settings_require_psycopg() -> None:
         }
     )
     assert settings.database_sync_url.get_secret_value().startswith("postgresql+psycopg://")
+    assert settings.resolved_database_tls_mode == "verify-full"
     assert "runtime-private" not in repr(settings)
     assert "migration-private" not in repr(settings)
 

@@ -11,7 +11,7 @@ import type {
   SavedObservationPlanMessages,
 } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
-import { resolveWebApiOrigin } from "../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin } from "../../lib/server/api-origin";
 import { loadObjectBySlugPerRequest } from "../../lib/server/catalog";
 
 export function createObserveMetadata(messages: ObservationPlannerMessages["metadata"]): Metadata {
@@ -56,7 +56,7 @@ export default async function ObservePage({
   const rawDate = firstValue(params.date);
   const initialDate = rawDate !== undefined && isValidNightDate(rawDate) ? rawDate : undefined;
   const outcome = hasSavedParam || slug === null ? null : await loadObjectBySlugPerRequest(slug);
-  const configured = resolveWebApiOrigin();
+  const configured = resolvePublicWebApiOrigin();
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   return (

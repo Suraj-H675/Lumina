@@ -4,7 +4,7 @@ import { RelativityVisualizationsEnhanced } from "../../../components/relativity
 import { RelativityVisualizationsNoScript } from "../../../components/relativity-visualizations-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { RelativityVisualizationsMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadRelativityVisualizationsCalculation } from "../../../lib/server/relativity-visualizations";
 import {
   DEFAULT_RELATIVITY_VISUALIZATIONS_STATE,
@@ -46,9 +46,10 @@ export default async function RelativityVisualizationsPage({
   searchParams,
 }: RelativityVisualizationsPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadRelativityVisualizationsCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -62,7 +63,7 @@ export default async function RelativityVisualizationsPage({
         messages={messages}
       />
       <RelativityVisualizationsEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

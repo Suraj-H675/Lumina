@@ -4,7 +4,7 @@ import { TransitMethodEnhanced } from "../../../components/transit-method-enhanc
 import { TransitMethodNoScript } from "../../../components/transit-method-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { TransitMethodMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadTransitMethodCalculation } from "../../../lib/server/transit-method";
 import {
   DEFAULT_TRANSIT_METHOD_STATE,
@@ -44,9 +44,10 @@ export default async function TransitMethodPage({
   searchParams,
 }: TransitMethodPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadTransitMethodCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -60,7 +61,7 @@ export default async function TransitMethodPage({
         messages={messages}
       />
       <TransitMethodEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

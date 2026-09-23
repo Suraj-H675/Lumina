@@ -7,7 +7,10 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest
-from lumina.identification.application.fake_solver import FakePlateSolverHandler
+from lumina.identification.application.fake_solver import (
+    DisabledIdentificationHandler,
+    FakePlateSolverHandler,
+)
 from lumina.identification.domain.storage import (
     PrivateObjectKey,
     PrivateStorageError,
@@ -188,3 +191,16 @@ def test_fake_solver_representation_is_redacted() -> None:
     handler = FakePlateSolverHandler(Repository(_submission()), Store(_CONTENT))
     assert repr(handler) == "FakePlateSolverHandler(<redacted>)"
     assert _SUBMISSION_ID.hex not in repr(handler)
+
+
+@pytest.mark.asyncio
+async def test_disabled_handler_rejects_persisted_work_without_inspection() -> None:
+    handler = DisabledIdentificationHandler()
+    payload = PersistedJobPayload.from_decoded({"private": "sentinel"})
+
+    with pytest.raises(NonRetryableHandlerFailure):
+        handler.validate_payload(payload)
+    with pytest.raises(NonRetryableHandlerFailure):
+        await handler.handle(payload)
+
+    assert repr(handler) == "DisabledIdentificationHandler(<redacted>)"

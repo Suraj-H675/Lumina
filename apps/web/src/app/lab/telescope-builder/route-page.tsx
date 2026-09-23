@@ -12,7 +12,7 @@ import {
   decodeTelescopeBuilderState,
   type TelescopeBuilderState,
 } from "../../../lib/simulations/telescope-builder";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadTelescopeBuilderCalculation } from "../../../lib/server/telescope-builder";
 
 export const dynamic = "force-dynamic";
@@ -56,9 +56,10 @@ export default async function TelescopeBuilderPage({
   searchParams,
 }: TelescopeBuilderPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadTelescopeBuilderCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const stateInvalid = requested.invalid || calculation.kind === "invalid";
   const initialState = stateInvalid ? DEFAULT_TELESCOPE_BUILDER_STATE : requested.state;
@@ -74,7 +75,7 @@ export default async function TelescopeBuilderPage({
         messages={messages}
       />
       <TelescopeBuilderEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={initialState}
         initialStateInvalid={stateInvalid}

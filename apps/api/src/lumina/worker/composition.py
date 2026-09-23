@@ -9,7 +9,10 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum, auto
 from typing import Protocol
 
-from lumina.identification.application.fake_solver import FakePlateSolverHandler
+from lumina.identification.application.fake_solver import (
+    DisabledIdentificationHandler,
+    FakePlateSolverHandler,
+)
 from lumina.identification.application.remote_polling import RemoteSolvePollingService
 from lumina.identification.application.submissions import RetentionCleanupService
 from lumina.identification.domain.uploads import UploadValidationPolicy
@@ -149,7 +152,10 @@ async def run_worker_process(
 
     try:
         settings = settings_loader()
-        resources.engine_runtime = create_database_runtime(settings.database_url)
+        resources.engine_runtime = create_database_runtime(
+            settings.database_url,
+            tls_mode=settings.resolved_database_tls_mode,
+        )
 
         async def fatal_cleanup(deadline: float) -> None:
             await _cleanup_runtime_resources(resources, deadline=deadline, restore_output=False)
@@ -206,50 +212,55 @@ async def run_worker_process(
             session_factory,
             nasa_api_key=settings.nasa_api_key,
         )
-        identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
-        identification_repository = PostgreSqlIdentificationSubmissionRepository(
-            session_factory,
-            operation_wait_timeout_ms=operation_timeout,
-        )
-        identification_solutions = PostgreSqlSolutionRepository(
-            session_factory,
-            operation_wait_timeout_ms=operation_timeout,
-        )
-        identification_handler = FakePlateSolverHandler(
-            identification_repository,
-            identification_store,
-        )
-        identification_retention_cleanup = RetentionCleanupService(
-            identification_repository,
-            identification_store,
-            now=lambda: datetime.now(UTC),
-            terminal_retention=timedelta(hours=settings.upload_retention_hours),
-            solutions=identification_solutions,
-        )
+        identification_handler: FakePlateSolverHandler | DisabledIdentificationHandler
+        identification_retention_cleanup = None
         remote_identification = None
-        if settings.enable_remote_astrometry:
-            api_key = settings.astrometry_api_key
-            if api_key is None:
-                raise WorkerCompositionError()
-            remote_identification = RemoteSolvePollingService(
-                PostgreSqlRemoteSolveRepository(
-                    session_factory,
-                    operation_wait_timeout_ms=operation_timeout,
-                ),
+        if settings.identification_enabled:
+            identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
+            identification_repository = PostgreSqlIdentificationSubmissionRepository(
+                session_factory,
+                operation_wait_timeout_ms=operation_timeout,
+            )
+            identification_solutions = PostgreSqlSolutionRepository(
+                session_factory,
+                operation_wait_timeout_ms=operation_timeout,
+            )
+            identification_handler = FakePlateSolverHandler(
                 identification_repository,
                 identification_store,
-                RemoteNovaAdapter(
-                    api_url=settings.astrometry_api_url,
-                    api_key=api_key,
-                ),
-                UploadValidationPolicy(
-                    max_bytes=settings.upload_max_bytes,
-                    max_pixels=settings.upload_max_pixels,
-                    min_dimension=32,
-                ),
-                identification_solutions,
-                poll_seconds=settings.astrometry_poll_seconds,
             )
+            identification_retention_cleanup = RetentionCleanupService(
+                identification_repository,
+                identification_store,
+                now=lambda: datetime.now(UTC),
+                terminal_retention=timedelta(hours=settings.upload_retention_hours),
+                solutions=identification_solutions,
+            )
+            if settings.enable_remote_astrometry:
+                api_key = settings.astrometry_api_key
+                if api_key is None:
+                    raise WorkerCompositionError()
+                remote_identification = RemoteSolvePollingService(
+                    PostgreSqlRemoteSolveRepository(
+                        session_factory,
+                        operation_wait_timeout_ms=operation_timeout,
+                    ),
+                    identification_repository,
+                    identification_store,
+                    RemoteNovaAdapter(
+                        api_url=settings.astrometry_api_url,
+                        api_key=api_key,
+                    ),
+                    UploadValidationPolicy(
+                        max_bytes=settings.upload_max_bytes,
+                        max_pixels=settings.upload_max_pixels,
+                        min_dimension=32,
+                    ),
+                    identification_solutions,
+                    poll_seconds=settings.astrometry_poll_seconds,
+                )
+        else:
+            identification_handler = DisabledIdentificationHandler()
         registry = production_handler_registry(
             provider_sync=provider_composition.sync_handler,
             provider_sync_validator=provider_composition.sync_handler.validate_payload,

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { CollectionDetailView } from "../../../components/collection-detail-view";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { CollectionsMessages, EntityTypeMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin } from "../../../lib/server/api-origin";
 
 /**
  * A local collection lives only in one browser, so server metadata cannot
@@ -35,7 +35,7 @@ export default async function CollectionPage({
   const { collectionId } = await params;
 
   // Public API origin for bounded typeahead adds; carries no secrets.
-  const configured = resolveWebApiOrigin();
+  const configured = resolvePublicWebApiOrigin();
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   return (

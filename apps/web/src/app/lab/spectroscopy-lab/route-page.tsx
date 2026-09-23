@@ -4,7 +4,7 @@ import { SpectroscopyLabEnhanced } from "../../../components/spectroscopy-lab-en
 import { SpectroscopyLabNoScript } from "../../../components/spectroscopy-lab-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { SpectroscopyLabMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadSpectroscopyCalculation } from "../../../lib/server/spectroscopy-lab";
 import {
   DEFAULT_SPECTROSCOPY_STATE,
@@ -44,9 +44,10 @@ export default async function SpectroscopyLabPage({
   searchParams,
 }: SpectroscopyLabPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadSpectroscopyCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -60,7 +61,7 @@ export default async function SpectroscopyLabPage({
         messages={messages}
       />
       <SpectroscopyLabEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

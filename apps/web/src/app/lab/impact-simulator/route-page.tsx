@@ -4,7 +4,7 @@ import { ImpactSimulatorEnhanced } from "../../../components/impact-simulator-en
 import { ImpactSimulatorNoScript } from "../../../components/impact-simulator-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { ImpactSimulatorMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadImpactSimulatorCalculation } from "../../../lib/server/impact-simulator";
 import {
   DEFAULT_IMPACT_SIMULATOR_STATE,
@@ -44,9 +44,10 @@ export default async function ImpactSimulatorPage({
   searchParams,
 }: ImpactSimulatorPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadImpactSimulatorCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -60,7 +61,7 @@ export default async function ImpactSimulatorPage({
         messages={messages}
       />
       <ImpactSimulatorEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

@@ -16,7 +16,7 @@ import type {
   EntityTypeMessages,
   ExploreMessages,
 } from "../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin } from "../../lib/server/api-origin";
 import { loadExploreCatalogue, searchCatalogue } from "../../lib/server/catalog";
 
 export function createExploreMetadata(messages: ExploreMessages): Metadata {
@@ -55,7 +55,7 @@ export default async function ExplorePage({
   // The public API origin, resolved once server-side. It carries no secrets —
   // the suggest endpoint is a public read — so the client combobox may call it
   // directly for bounded typeahead requests.
-  const configured = resolveWebApiOrigin();
+  const configured = resolvePublicWebApiOrigin();
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   const committed = query.length > 0;

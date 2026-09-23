@@ -2877,7 +2877,11 @@ setInterval(() => undefined, 1_000);
       })
     : spawn("pnpm", ["exec", "next", "start", "--hostname", "127.0.0.1"], {
         detached: true,
-        env: { ...process.env, LUMINA_WEB_API_ORIGIN: apiOrigin },
+        env: {
+          ...process.env,
+          LUMINA_WEB_API_ORIGIN: apiOrigin,
+          LUMINA_WEB_PUBLIC_API_ORIGIN: apiOrigin,
+        },
         stdio: "inherit",
       });
   webProcess.on("message", (message) => {

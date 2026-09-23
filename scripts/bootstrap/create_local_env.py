@@ -134,6 +134,7 @@ def _content(
         "LUMINA_CORS_ORIGINS=",
         f"POSTGRES_HOST_PORT={postgres_host_port}",
         *(f"{name}={value}" for name, value in secrets_by_name.items()),
+        "LUMINA_DATABASE_TLS_MODE=disable",
         "LUMINA_DATABASE_URL=postgresql+asyncpg://lumina_app:${POSTGRES_RUNTIME_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina",
         "LUMINA_DATABASE_SYNC_URL=postgresql+psycopg://lumina_migrate:${POSTGRES_MIGRATION_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina",
         "LUMINA_CATALOG_OPERATOR_DATABASE_URL=postgresql+asyncpg://lumina_catalog_operator:${POSTGRES_CATALOG_OPERATOR_PASSWORD}@127.0.0.1:${POSTGRES_HOST_PORT}/lumina",

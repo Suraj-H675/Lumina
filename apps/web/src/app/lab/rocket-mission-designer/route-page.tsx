@@ -4,7 +4,7 @@ import { RocketMissionDesignerEnhanced } from "../../../components/rocket-missio
 import { RocketMissionDesignerNoScript } from "../../../components/rocket-mission-designer-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { RocketMissionDesignerMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadRocketMissionDesignerCalculation } from "../../../lib/server/rocket-mission-designer";
 import {
   DEFAULT_ROCKET_MISSION_DESIGNER_STATE,
@@ -46,9 +46,10 @@ export default async function RocketMissionDesignerPage({
   searchParams,
 }: RocketMissionDesignerPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadRocketMissionDesignerCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -62,7 +63,7 @@ export default async function RocketMissionDesignerPage({
         messages={messages}
       />
       <RocketMissionDesignerEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

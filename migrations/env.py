@@ -10,6 +10,10 @@ from lumina.shared.infrastructure.database.migration_identity import (
     MigrationIdentity,
     migration_identity_from_secrets,
 )
+from lumina.shared.infrastructure.database.transport import (
+    DatabaseTlsMode,
+    psycopg_connect_args,
+)
 from sqlalchemy import Connection, create_engine
 from sqlalchemy.pool import NullPool
 
@@ -25,7 +29,15 @@ def _identity() -> MigrationIdentity:
     if isinstance(injected, MigrationIdentity):
         return injected
     settings = load_migration_settings()
+    config.attributes["database_tls_mode"] = settings.resolved_database_tls_mode
     return migration_identity_from_secrets(settings.database_sync_url, settings.database_url)
+
+
+def _database_tls_mode() -> DatabaseTlsMode:
+    value = config.attributes.get("database_tls_mode")
+    if value in {"disable", "verify-full"}:
+        return value
+    return "disable"
 
 
 def run_migrations_offline() -> None:
@@ -51,7 +63,11 @@ def run_migrations_online() -> None:
         with context.begin_transaction():
             context.run_migrations()
         return
-    connectable = create_engine(identity.migration_url, poolclass=NullPool)
+    connectable = create_engine(
+        identity.migration_url,
+        poolclass=NullPool,
+        connect_args=psycopg_connect_args(_database_tls_mode()),
+    )
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():

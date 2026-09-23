@@ -19,6 +19,7 @@ from lumina.shared.infrastructure.database.target import (
     DatabaseTargetError,
     parse_database_url,
 )
+from lumina.shared.infrastructure.database.transport import DatabaseTlsMode
 
 RuntimeEnvironment = Literal["development", "test", "staging", "production"]
 LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
@@ -39,6 +40,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_ENABLE_API_DOCS",
         "LUMINA_BUILD_COMMIT",
         "LUMINA_DATABASE_URL",
+        "LUMINA_DATABASE_TLS_MODE",
         "LUMINA_NASA_API_KEY",
         "LUMINA_DATABASE_SYNC_URL",
         "LUMINA_CATALOG_OPERATOR_DATABASE_URL",
@@ -58,6 +60,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_WORKER_POLL_SECONDS",
         "LUMINA_STORAGE_BACKEND",
         "LUMINA_STORAGE_LOCAL_ROOT",
+        "LUMINA_ENABLE_IDENTIFICATION",
         "LUMINA_UPLOAD_MAX_BYTES",
         "LUMINA_UPLOAD_MAX_PIXELS",
         "LUMINA_UPLOAD_RETENTION_HOURS",
@@ -283,6 +286,10 @@ class AppSettings(BaseSettings):
         validation_alias="LUMINA_ASTROMETRY_TIMEOUT_SECONDS",
     )
     database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
+    database_tls_mode: DatabaseTlsMode | None = Field(
+        default=None,
+        validation_alias="LUMINA_DATABASE_TLS_MODE",
+    )
     job_payload_max_bytes: int = Field(
         default=61_440,
         ge=1,
@@ -354,6 +361,10 @@ class AppSettings(BaseSettings):
     storage_local_root: Path = Field(
         default=_REPOSITORY_ROOT / "var" / "storage",
         validation_alias="LUMINA_STORAGE_LOCAL_ROOT",
+    )
+    enable_identification: bool | None = Field(
+        default=None,
+        validation_alias="LUMINA_ENABLE_IDENTIFICATION",
     )
     upload_max_bytes: int = Field(
         default=25 * 1024 * 1024,
@@ -429,6 +440,14 @@ class AppSettings(BaseSettings):
             raise ValueError("Only filesystem private storage is supported in Phase 6A")
         if self.enable_remote_astrometry and self.astrometry_api_key is None:
             raise ValueError("Remote Astrometry.net requires a configured server API key")
+        if self.enable_remote_astrometry and not self.identification_enabled:
+            raise ValueError("Remote Astrometry.net requires identification to be enabled")
+        if self.env in {"staging", "production"} and self.database_tls_mode == "disable":
+            raise ValueError("Staging and production require verified database TLS")
+        if self.env in {"staging", "production"} and any(
+            urlsplit(origin).scheme != "https" for origin in self.cors_origins
+        ):
+            raise ValueError("Staging and production require HTTPS CORS origins")
         return self
 
     @field_validator("database_url")
@@ -450,6 +469,13 @@ class AppSettings(BaseSettings):
     @classmethod
     def validate_remote_astrometry_enabled(cls, value: object) -> bool:
         return _parse_strict_boolean(value, field="Remote Astrometry.net enable setting")
+
+    @field_validator("enable_identification", mode="before")
+    @classmethod
+    def validate_identification_enabled(cls, value: object) -> bool | None:
+        if value is None:
+            return None
+        return _parse_strict_boolean(value, field="Identification enable setting")
 
     @field_validator("astrometry_api_url")
     @classmethod
@@ -520,6 +546,20 @@ class AppSettings(BaseSettings):
             return self.enable_api_docs
         return self.env in {"development", "test"}
 
+    @property
+    def identification_enabled(self) -> bool:
+        """Default private-upload identification off in public environments unless opted in."""
+        if self.enable_identification is not None:
+            return self.enable_identification
+        return self.env in {"development", "test"}
+
+    @property
+    def resolved_database_tls_mode(self) -> DatabaseTlsMode:
+        """Use verified database TLS by default for every public environment."""
+        if self.database_tls_mode is not None:
+            return self.database_tls_mode
+        return "verify-full" if self.env in {"staging", "production"} else "disable"
+
 
 class MigrationSettings(BaseSettings):
     """Validated synchronous settings used exclusively by Alembic."""
@@ -532,8 +572,13 @@ class MigrationSettings(BaseSettings):
         hide_input_in_errors=True,
     )
 
+    env: RuntimeEnvironment = Field(validation_alias="LUMINA_ENV")
     database_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_URL")
     database_sync_url: SecretStr = Field(validation_alias="LUMINA_DATABASE_SYNC_URL")
+    database_tls_mode: DatabaseTlsMode | None = Field(
+        default=None,
+        validation_alias="LUMINA_DATABASE_TLS_MODE",
+    )
 
     @field_validator("database_url")
     @classmethod
@@ -554,6 +599,18 @@ class MigrationSettings(BaseSettings):
             drivername="postgresql+psycopg",
             field="Database sync URL",
         )
+
+    @model_validator(mode="after")
+    def validate_database_transport(self) -> MigrationSettings:
+        if self.env in {"staging", "production"} and self.database_tls_mode == "disable":
+            raise ValueError("Staging and production require verified database TLS")
+        return self
+
+    @property
+    def resolved_database_tls_mode(self) -> DatabaseTlsMode:
+        if self.database_tls_mode is not None:
+            return self.database_tls_mode
+        return "verify-full" if self.env in {"staging", "production"} else "disable"
 
 
 class CatalogOperatorSettings(BaseSettings):

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from .target import parse_database_url
+from .transport import DatabaseTlsMode, asyncpg_connect_args
 
 
 @dataclass(frozen=True)
@@ -23,7 +24,11 @@ class DatabaseRuntime:
     session_factory: async_sessionmaker[AsyncSession]
 
 
-def create_database_runtime(database_url: SecretStr) -> DatabaseRuntime:
+def create_database_runtime(
+    database_url: SecretStr,
+    *,
+    tls_mode: DatabaseTlsMode = "disable",
+) -> DatabaseRuntime:
     """Construct the bounded runtime pool without opening a database connection."""
     parsed_url, _ = parse_database_url(
         database_url.get_secret_value(),
@@ -37,6 +42,7 @@ def create_database_runtime(database_url: SecretStr) -> DatabaseRuntime:
         max_overflow=0,
         pool_timeout=5,
         pool_pre_ping=True,
+        connect_args=asyncpg_connect_args(tls_mode),
     )
     return DatabaseRuntime(
         engine=engine, session_factory=async_sessionmaker(engine, expire_on_commit=False)

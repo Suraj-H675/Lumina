@@ -4,7 +4,7 @@ import { PlanetarySystemBuilderEnhanced } from "../../../components/planetary-sy
 import { PlanetarySystemBuilderNoScript } from "../../../components/planetary-system-builder-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { PlanetarySystemBuilderMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadPlanetarySystemBuilderCalculation } from "../../../lib/server/planetary-system-builder";
 import {
   DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE,
@@ -46,9 +46,10 @@ export default async function PlanetarySystemBuilderPage({
   searchParams,
 }: PlanetarySystemBuilderPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadPlanetarySystemBuilderCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
@@ -62,7 +63,7 @@ export default async function PlanetarySystemBuilderPage({
         messages={messages}
       />
       <PlanetarySystemBuilderEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

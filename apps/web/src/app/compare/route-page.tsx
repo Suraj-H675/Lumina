@@ -10,7 +10,7 @@ import type {
   CompareMessages,
   EntityTypeMessages,
 } from "../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin } from "../../lib/server/api-origin";
 import { loadCompareObjectsPerRequest } from "../../lib/server/compare";
 
 type CompareRoutePageProps = Readonly<{
@@ -85,7 +85,7 @@ export default async function ComparePage({
   // The public API origin, resolved once server-side. It carries no secrets —
   // the suggest endpoint is a public read — so the add-object combobox may call
   // it directly for bounded typeahead requests.
-  const configured = resolveWebApiOrigin();
+  const configured = resolvePublicWebApiOrigin();
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   const states =

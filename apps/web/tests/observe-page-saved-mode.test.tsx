@@ -22,6 +22,7 @@ vi.mock("../src/lib/server/catalog", () => ({
 }));
 
 vi.mock("../src/lib/server/api-origin", () => ({
+  resolvePublicWebApiOrigin: () => ({ valid: false }),
   resolveWebApiOrigin: () => ({ valid: false }),
 }));
 

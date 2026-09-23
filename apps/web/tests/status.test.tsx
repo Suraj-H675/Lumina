@@ -13,7 +13,7 @@ vi.mock("server-only", () => ({}));
 import { StatusView } from "../src/app/status/status-view";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { StatusMessages } from "../src/lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../src/lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../src/lib/server/api-origin";
 import {
   loadFoundationStatus,
   type FoundationStatus,
@@ -194,6 +194,42 @@ describe("server-only API origin", () => {
     const url = "https://user:secret@example.test"; // trufflehog:ignore
     expect(resolveWebApiOrigin(undefined, "production")).toEqual({ valid: false });
     expect(resolveWebApiOrigin(url, "production")).toEqual({
+      valid: false,
+    });
+  });
+});
+
+describe("browser-visible public API origin", () => {
+  it("requires a non-loopback HTTPS origin in production", () => {
+    expect(resolvePublicWebApiOrigin("https://API.EXAMPLE.TEST/", "production")).toEqual({
+      origin: "https://api.example.test",
+      valid: true,
+    });
+    expect(resolvePublicWebApiOrigin("http://api.example.test", "production")).toEqual({
+      valid: false,
+    });
+    expect(resolvePublicWebApiOrigin("https://127.0.0.1:8443", "production")).toEqual({
+      valid: false,
+    });
+    expect(resolvePublicWebApiOrigin("https://localhost:8443", "production")).toEqual({
+      valid: false,
+    });
+  });
+
+  it("uses the local API only as a development default and fails closed when production is missing", () => {
+    expect(resolvePublicWebApiOrigin(undefined, "development")).toEqual({
+      origin: "http://127.0.0.1:8000",
+      valid: true,
+    });
+    expect(resolvePublicWebApiOrigin(undefined, "production")).toEqual({ valid: false });
+  });
+
+  it("permits insecure loopback only through the explicit production E2E seam", () => {
+    expect(resolvePublicWebApiOrigin("http://127.0.0.1:8765", "production", true)).toEqual({
+      origin: "http://127.0.0.1:8765",
+      valid: true,
+    });
+    expect(resolvePublicWebApiOrigin("http://api.example.test", "production", true)).toEqual({
       valid: false,
     });
   });

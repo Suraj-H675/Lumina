@@ -67,7 +67,10 @@ def _parser() -> _SafeArgumentParser:
 
 async def _run(namespace: argparse.Namespace) -> dict[str, object]:
     settings = load_settings()
-    runtime = create_database_runtime(settings.database_url)
+    runtime = create_database_runtime(
+        settings.database_url,
+        tls_mode=settings.resolved_database_tls_mode,
+    )
     try:
         provider_composition = compose_provider_runtime(
             runtime.session_factory,

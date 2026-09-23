@@ -86,7 +86,10 @@ from lumina.space_now.application.satellites import SatellitePassService, Satell
 def create_app(settings: AppSettings) -> FastAPI:
     """Compose the API without connecting to PostgreSQL during import or startup."""
     configure_logging(settings.log_level)
-    database_runtime = create_database_runtime(settings.database_url)
+    database_runtime = create_database_runtime(
+        settings.database_url,
+        tls_mode=settings.resolved_database_tls_mode,
+    )
     readiness_service = DatabaseReadinessService(SqlAlchemyDatabaseProbe(database_runtime.engine))
     catalog_read_repository = PostgreSqlCatalogReadRepository(database_runtime.session_factory)
     catalog_read_service = CatalogReadService(catalog_read_repository)
@@ -96,65 +99,70 @@ def create_app(settings: AppSettings) -> FastAPI:
         database_runtime.session_factory,
         nasa_api_key=settings.nasa_api_key,
     )
-    identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
-    identification_repository = PostgreSqlIdentificationSubmissionRepository(
-        database_runtime.session_factory,
-        operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
-    )
-    identification_solutions = PostgreSqlSolutionRepository(
-        database_runtime.session_factory,
-        operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
-    )
-    identification_remote_state = PostgreSqlRemoteSolveRepository(
-        database_runtime.session_factory,
-        operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
-    )
-    identification_uploads = StoreValidatedUploadService(
-        identification_store,
-        UploadValidationPolicy(
-            max_bytes=settings.upload_max_bytes,
-            max_pixels=settings.upload_max_pixels,
-            min_dimension=32,
-        ),
-    )
-    identification_create = CreateSubmissionService(
-        identification_uploads,
-        identification_repository,
-        identification_store,
-        now=lambda: datetime.now(UTC),
-        provisional_retention=timedelta(hours=settings.upload_retention_hours),
-    )
-    identification_delete = DeleteSubmissionService(
-        identification_repository,
-        identification_store,
-        now=lambda: datetime.now(UTC),
-        solutions=identification_solutions,
-    )
-    identification_enqueue = EnqueueJobService(
-        PostgreSqlEnqueueJobStore(
+    identification_submit = None
+    identification_remote_start = None
+    identification_public_read = None
+    identification_delete = None
+    if settings.identification_enabled:
+        identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
+        identification_repository = PostgreSqlIdentificationSubmissionRepository(
             database_runtime.session_factory,
-            wait_timeout_ms=settings.job_enqueue_wait_timeout_ms,
-        ),
-        payload_max_bytes=settings.job_payload_max_bytes,
-        default_max_attempts=settings.job_default_max_attempts,
-    )
-    identification_submit = SubmitIdentificationService(
-        identification_create,
-        identification_enqueue,
-        identification_repository,
-        identification_delete,
-    )
-    identification_remote_start = StartRemoteIdentificationService(
-        identification_create,
-        identification_remote_state,
-        identification_delete,
-        timeout_seconds=settings.astrometry_timeout_seconds,
-    )
-    identification_public_read = IdentificationPublicReadService(
-        identification_repository,
-        identification_remote_state,
-        identification_solutions,
-    )
+            operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
+        )
+        identification_solutions = PostgreSqlSolutionRepository(
+            database_runtime.session_factory,
+            operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
+        )
+        identification_remote_state = PostgreSqlRemoteSolveRepository(
+            database_runtime.session_factory,
+            operation_wait_timeout_ms=settings.job_operation_wait_timeout_ms,
+        )
+        identification_uploads = StoreValidatedUploadService(
+            identification_store,
+            UploadValidationPolicy(
+                max_bytes=settings.upload_max_bytes,
+                max_pixels=settings.upload_max_pixels,
+                min_dimension=32,
+            ),
+        )
+        identification_create = CreateSubmissionService(
+            identification_uploads,
+            identification_repository,
+            identification_store,
+            now=lambda: datetime.now(UTC),
+            provisional_retention=timedelta(hours=settings.upload_retention_hours),
+        )
+        identification_delete = DeleteSubmissionService(
+            identification_repository,
+            identification_store,
+            now=lambda: datetime.now(UTC),
+            solutions=identification_solutions,
+        )
+        identification_enqueue = EnqueueJobService(
+            PostgreSqlEnqueueJobStore(
+                database_runtime.session_factory,
+                wait_timeout_ms=settings.job_enqueue_wait_timeout_ms,
+            ),
+            payload_max_bytes=settings.job_payload_max_bytes,
+            default_max_attempts=settings.job_default_max_attempts,
+        )
+        identification_submit = SubmitIdentificationService(
+            identification_create,
+            identification_enqueue,
+            identification_repository,
+            identification_delete,
+        )
+        identification_remote_start = StartRemoteIdentificationService(
+            identification_create,
+            identification_remote_state,
+            identification_delete,
+            timeout_seconds=settings.astrometry_timeout_seconds,
+        )
+        identification_public_read = IdentificationPublicReadService(
+            identification_repository,
+            identification_remote_state,
+            identification_solutions,
+        )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -216,13 +224,12 @@ def create_app(settings: AppSettings) -> FastAPI:
         allow_headers=["Accept", "Content-Type", "X-Request-ID"],
         expose_headers=["X-Request-ID"],
     )
-    application.add_middleware(
-        BoundedRequestBodyMiddleware,
-        limits={
-            ("POST", "/api/v1/now/satellites/passes"): 4_096,
-            ("POST", "/api/v1/identification/submissions"): settings.upload_max_bytes + 65_536,
-        },
-    )
+    body_limits = {("POST", "/api/v1/now/satellites/passes"): 4_096}
+    if settings.identification_enabled:
+        body_limits[("POST", "/api/v1/identification/submissions")] = (
+            settings.upload_max_bytes + 65_536
+        )
+    application.add_middleware(BoundedRequestBodyMiddleware, limits=body_limits)
     application.add_middleware(RequestContextMiddleware)
     application.include_router(router)
     application.include_router(astronomy_router)
@@ -243,5 +250,6 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(provider_router)
     application.include_router(participate_router)
     application.include_router(space_now_router)
-    application.include_router(identification_router)
+    if settings.identification_enabled:
+        application.include_router(identification_router)
     return application

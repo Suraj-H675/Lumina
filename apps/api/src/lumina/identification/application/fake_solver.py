@@ -77,6 +77,24 @@ class FakePlateSolverHandler:
         return self.__repr__()
 
 
+class DisabledIdentificationHandler:
+    """Fail persisted identification work without touching private storage."""
+
+    def validate_payload(self, payload: PersistedJobPayload) -> None:
+        del payload
+        raise NonRetryableHandlerFailure()
+
+    async def handle(self, payload: PersistedJobPayload) -> object:
+        del payload
+        raise NonRetryableHandlerFailure()
+
+    def __repr__(self) -> str:
+        return "DisabledIdentificationHandler(<redacted>)"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+
 def _submission_id(payload: PersistedJobPayload) -> UUID:
     value = payload.value
     if not isinstance(value, Mapping) or set(value) != {"submission_id"}:
@@ -93,4 +111,4 @@ def _submission_id(payload: PersistedJobPayload) -> UUID:
     return identifier
 
 
-__all__ = ["FakePlateSolverHandler", "SubmissionReader"]
+__all__ = ["DisabledIdentificationHandler", "FakePlateSolverHandler", "SubmissionReader"]

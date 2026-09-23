@@ -4,7 +4,7 @@ import { EclipseSimulatorEnhanced } from "../../../components/eclipse-simulator-
 import { EclipseSimulatorNoScript } from "../../../components/eclipse-simulator-no-script";
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { EclipseSimulatorMessages } from "../../../lib/i18n/messages/types";
-import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
+import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
 import { loadEclipseSimulatorCalculation } from "../../../lib/server/eclipse-simulator";
 import {
   DEFAULT_ECLIPSE_SIMULATOR_STATE,
@@ -44,9 +44,10 @@ export default async function EclipseSimulatorPage({
   searchParams,
 }: EclipseSimulatorPageProps) {
   const requested = stateFromSearchParams(await searchParams);
-  const apiConfiguration = resolveWebApiOrigin();
+  const serverApiConfiguration = resolveWebApiOrigin();
+  const publicApiConfiguration = resolvePublicWebApiOrigin();
   const calculation = await loadEclipseSimulatorCalculation(requested.state, {
-    ...(apiConfiguration.valid ? { origin: apiConfiguration.origin } : {}),
+    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
   });
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
   return (
@@ -59,7 +60,7 @@ export default async function EclipseSimulatorPage({
         messages={messages}
       />
       <EclipseSimulatorEnhanced
-        apiOrigin={apiConfiguration.valid ? apiConfiguration.origin : null}
+        apiOrigin={publicApiConfiguration.valid ? publicApiConfiguration.origin : null}
         initialCalculation={initialCalculation}
         initialState={requested.state}
         initialStateInvalid={requested.invalid}

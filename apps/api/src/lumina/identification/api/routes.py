@@ -100,6 +100,8 @@ async def get_identification_capabilities(
     request: Request,
 ) -> IdentificationCapabilitiesResponse | JSONResponse:
     """Expose only safe upload, solver-mode, and retention policy facts."""
+    if not request.app.state.settings.identification_enabled:
+        return _feature_unavailable(request)
     if request.query_params:
         return _invalid(request)
     settings = request.app.state.settings
@@ -126,6 +128,8 @@ async def create_identification_submission(
     consent_remote_processing: Annotated[bool, Form()] = False,
 ) -> IdentificationCreateResponse | JSONResponse:
     """Accept one bounded private raster for the configured identification solver."""
+    if not request.app.state.settings.identification_enabled:
+        return _feature_unavailable(request)
     if request.query_params:
         return _invalid(request)
     settings = request.app.state.settings
@@ -233,6 +237,8 @@ async def get_identification_submission(
     submission_id: UUID,
 ) -> IdentificationStatusResponse | JSONResponse:
     """Return only safe lifecycle state and a validated synthetic result."""
+    if not request.app.state.settings.identification_enabled:
+        return _feature_unavailable(request)
     if request.query_params:
         return _invalid(request)
     service: IdentificationPublicReadService = request.app.state.identification_public_read_service
@@ -288,6 +294,8 @@ async def get_identification_solution(
     ] = None,
 ) -> IdentificationSolutionResponse | JSONResponse:
     """Return one bounded page of a stored normalized remote astrometric solution."""
+    if not request.app.state.settings.identification_enabled:
+        return _feature_unavailable(request)
     if (
         any(key != "cursor" for key in request.query_params)
         or len(request.query_params.getlist("cursor")) > 1
@@ -366,6 +374,8 @@ async def get_identification_solution(
 )
 async def delete_identification_submission(request: Request, submission_id: UUID) -> Response:
     """Delete private bytes and scrub private metadata; repeat deletion is safe."""
+    if not request.app.state.settings.identification_enabled:
+        return _feature_unavailable(request)
     if request.query_params:
         return _invalid(request)
     service: DeleteSubmissionService = request.app.state.identification_delete_service
@@ -391,6 +401,15 @@ def _invalid(request: Request) -> JSONResponse:
         status_code=422,
         code="request.validation_failed",
         message="The request could not be validated.",
+    )
+
+
+def _feature_unavailable(request: Request) -> JSONResponse:
+    return error_response(
+        request,
+        status_code=503,
+        code="feature.not_available",
+        message="Image identification is not available in this deployment.",
     )
 
 

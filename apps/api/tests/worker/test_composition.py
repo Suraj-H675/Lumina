@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from typing import Any, NoReturn, cast
 
 import pytest
+from lumina.identification.application.fake_solver import DisabledIdentificationHandler
 from lumina.jobs.application.handlers import SystemNoopHandler
 from lumina.settings import AppSettings
 from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
@@ -208,6 +209,7 @@ def _settings() -> AppSettings:
         AppSettings,
         SimpleNamespace(
             database_url=object(),
+            resolved_database_tls_mode="disable",
             nasa_api_key=None,
             job_operation_wait_timeout_ms=5_000,
             job_result_max_bytes=61_440,
@@ -221,6 +223,7 @@ def _settings() -> AppSettings:
             upload_max_bytes=25 * 1024 * 1024,
             upload_max_pixels=50_000_000,
             upload_retention_hours=24,
+            identification_enabled=True,
             enable_remote_astrometry=False,
             astrometry_api_url="https://nova.astrometry.net/api",
             astrometry_api_key=None,
@@ -238,7 +241,11 @@ def _patch_pre_readiness_dependencies(
         DatabaseRuntime,
         SimpleNamespace(engine=engine, session_factory=object()),
     )
-    monkeypatch.setattr(composition, "create_database_runtime", lambda url: runtime)
+    monkeypatch.setattr(
+        composition,
+        "create_database_runtime",
+        lambda url, **kwargs: runtime,
+    )
 
     async def compatible(engine_value: object, *, operation_wait_timeout_ms: int) -> None:
         del engine_value, operation_wait_timeout_ms
@@ -296,6 +303,51 @@ def _patch_pre_readiness_dependencies(
         "production_handler_registry",
         lambda **kwargs: object(),
     )
+
+
+@pytest.mark.asyncio
+async def test_disabled_identification_requires_no_private_storage_or_solver_composition(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    engine = _EngineSpy()
+    output = _OutputSpy()
+    _patch_pre_readiness_dependencies(monkeypatch, engine=engine)
+    captured_registry: dict[str, object] = {}
+
+    def forbidden(*args: object, **kwargs: object) -> NoReturn:
+        raise AssertionError((args, kwargs))
+
+    for name in (
+        "FilesystemPrivateObjectStore",
+        "PostgreSqlIdentificationSubmissionRepository",
+        "PostgreSqlSolutionRepository",
+        "RetentionCleanupService",
+        "FakePlateSolverHandler",
+    ):
+        monkeypatch.setattr(composition, name, forbidden)
+
+    def registry(**kwargs: object) -> object:
+        captured_registry.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(composition, "production_handler_registry", registry)
+    monkeypatch.setattr(
+        composition,
+        "install_signal_handlers",
+        lambda shutdown_event: (shutdown_event.set(), _SignalsSpy(shutdown_event.set))[1],
+    )
+    monkeypatch.setattr(composition, "build_worker_owner_identity", lambda prefix: object())
+
+    def settings() -> AppSettings:
+        value = cast(Any, _settings())
+        value.identification_enabled = False
+        return cast(AppSettings, value)
+
+    assert await run_worker_process(output, settings_loader=settings) == 0
+    assert isinstance(captured_registry["identification_solve"], DisabledIdentificationHandler)
+    assert engine.dispose_calls == 1
+    assert output.stdout == []
+    assert output.stderr == []
 
 
 @pytest.mark.asyncio

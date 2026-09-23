@@ -135,8 +135,11 @@ def _load_protocol(
 
 
 def _string_list(value: object, label: str) -> list[str]:
-    if not isinstance(value, list) or not all(isinstance(item, str) and item for item in value):
-        raise ManualDraftError(f"{label} must be a list of non-empty strings")
+    if not isinstance(value, list) or not all(
+        isinstance(item, str) and item.strip() and not any(ord(char) < 32 for char in item)
+        for item in value
+    ):
+        raise ManualDraftError(f"{label} must be a list of non-empty printable strings")
     return cast(list[str], value)
 
 
@@ -155,6 +158,8 @@ def _environment(environment_id: str) -> dict[str, object]:
         "screen_reader_version": None,
         "browser_zoom_percent": None,
         "browser_zoom_confirmed": None,
+        "reduced_motion_confirmed": None,
+        "webgl_disabled_confirmed": None,
         "network_condition": None,
         "actual_device_confirmed": None,
         "synthetic_cpu": None,
@@ -169,11 +174,15 @@ def _environment_plan(item_id: str) -> tuple[list[dict[str, object]], dict[str, 
             _environment("general"),
             _environment("screen-reader"),
             _environment("browser-zoom-200"),
+            _environment("reduced-motion"),
+            _environment("webgl-disabled"),
             _environment("touch-device"),
         ]
         check_mapping = {
             "screen-reader landmarks": "screen-reader",
             "real browser 200% zoom": "browser-zoom-200",
+            "reduced motion": "reduced-motion",
+            "canvas alternative": "webgl-disabled",
             "touch-only interaction": "touch-device",
         }
         return environments, check_mapping

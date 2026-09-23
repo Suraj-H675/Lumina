@@ -61,6 +61,8 @@ def _base_environment(environment_id: str) -> dict[str, object]:
         "screen_reader_version": None,
         "browser_zoom_percent": None,
         "browser_zoom_confirmed": None,
+        "reduced_motion_confirmed": None,
+        "webgl_disabled_confirmed": None,
         "network_condition": None,
         "actual_device_confirmed": None,
         "synthetic_cpu": None,
@@ -71,17 +73,31 @@ def _base_environment(environment_id: str) -> dict[str, object]:
 
 
 def _environments(item_id: str) -> list[dict[str, object]]:
-    primary = _base_environment("primary")
     if item_id == "wcag-2.2-aa-manual-review":
-        primary["screen_reader"] = "Orca"
-        primary["screen_reader_version"] = "50.2"
-        primary["browser_zoom_percent"] = 200
-        primary["browser_zoom_confirmed"] = True
-        touch = _base_environment("touch")
+        general = _base_environment("general")
+        screen_reader = _base_environment("screen-reader")
+        screen_reader["screen_reader"] = "Orca"
+        screen_reader["screen_reader_version"] = "50.2"
+        browser_zoom = _base_environment("browser-zoom-200")
+        browser_zoom["browser_zoom_percent"] = 200
+        browser_zoom["browser_zoom_confirmed"] = True
+        reduced_motion = _base_environment("reduced-motion")
+        reduced_motion["reduced_motion_confirmed"] = True
+        webgl_disabled = _base_environment("webgl-disabled")
+        webgl_disabled["webgl_disabled_confirmed"] = True
+        touch = _base_environment("touch-device")
         touch["device"] = "recorded physical touch device"
         touch["actual_device_confirmed"] = True
         touch["touch_input_confirmed"] = True
-        return [primary, touch]
+        return [
+            general,
+            screen_reader,
+            browser_zoom,
+            reduced_motion,
+            webgl_disabled,
+            touch,
+        ]
+    primary = _base_environment("primary")
     if item_id == "screen-reader":
         primary["screen_reader"] = "Orca"
         primary["screen_reader_version"] = "50.2"
@@ -104,8 +120,14 @@ def _environments(item_id: str) -> list[dict[str, object]]:
 
 
 def _environment_id_for_check(item_id: str, check: str) -> str:
-    if item_id == "wcag-2.2-aa-manual-review" and check == "touch-only interaction":
-        return "touch"
+    if item_id == "wcag-2.2-aa-manual-review":
+        return {
+            "screen-reader landmarks": "screen-reader",
+            "real browser 200% zoom": "browser-zoom-200",
+            "reduced motion": "reduced-motion",
+            "canvas alternative": "webgl-disabled",
+            "touch-only interaction": "touch-device",
+        }.get(check, "general")
     return "primary"
 
 
@@ -266,9 +288,9 @@ def test_low_end_requires_real_device_without_synthetic_substitution(
 def test_wcag_screen_reader_checks_require_real_reader_environment() -> None:
     evidence = _valid_evidence("wcag-2.2-aa-manual-review")
     environments = cast(list[dict[str, object]], evidence["browser_os_device"])
-    primary = next(item for item in environments if item["environment_id"] == "primary")
-    primary["screen_reader"] = None
-    primary["screen_reader_version"] = None
+    environment = next(item for item in environments if item["environment_id"] == "screen-reader")
+    environment["screen_reader"] = None
+    environment["screen_reader_version"] = None
     with pytest.raises(ManualEvidenceError, match="real screen reader name and version"):
         validate_manual_evidence(evidence, now=FIXED_NOW)
 
@@ -276,8 +298,10 @@ def test_wcag_screen_reader_checks_require_real_reader_environment() -> None:
 def test_wcag_zoom_checks_require_native_200_percent_environment() -> None:
     evidence = _valid_evidence("wcag-2.2-aa-manual-review")
     environments = cast(list[dict[str, object]], evidence["browser_os_device"])
-    primary = next(item for item in environments if item["environment_id"] == "primary")
-    primary["browser_zoom_percent"] = 175
+    environment = next(
+        item for item in environments if item["environment_id"] == "browser-zoom-200"
+    )
+    environment["browser_zoom_percent"] = 175
     with pytest.raises(ManualEvidenceError, match="confirmed native browser page zoom at 200%"):
         validate_manual_evidence(evidence, now=FIXED_NOW)
 
@@ -285,9 +309,45 @@ def test_wcag_zoom_checks_require_native_200_percent_environment() -> None:
 def test_wcag_touch_checks_require_recorded_physical_touch_environment() -> None:
     evidence = _valid_evidence("wcag-2.2-aa-manual-review")
     environments = cast(list[dict[str, object]], evidence["browser_os_device"])
-    touch = next(item for item in environments if item["environment_id"] == "touch")
+    touch = next(item for item in environments if item["environment_id"] == "touch-device")
     touch["touch_input_confirmed"] = False
     with pytest.raises(ManualEvidenceError, match="confirmed touch input"):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
+
+
+@pytest.mark.parametrize(
+    ("check", "environment_id", "field", "message"),
+    [
+        (
+            "reduced motion",
+            "reduced-motion",
+            "reduced_motion_confirmed",
+            "confirmed reduced-motion mode",
+        ),
+        (
+            "canvas alternative",
+            "webgl-disabled",
+            "webgl_disabled_confirmed",
+            "confirmed WebGL-disabled mode",
+        ),
+    ],
+)
+def test_wcag_environment_sensitive_checks_require_recorded_mode(
+    check: str,
+    environment_id: str,
+    field: str,
+    message: str,
+) -> None:
+    evidence = _valid_evidence("wcag-2.2-aa-manual-review")
+    environments = cast(list[dict[str, object]], evidence["browser_os_device"])
+    environment = next(item for item in environments if item["environment_id"] == environment_id)
+    environment[field] = False
+    observations = cast(list[dict[str, object]], evidence["observations"])
+    assert any(
+        observation["check"] == check and observation["environment_id"] == environment_id
+        for observation in observations
+    )
+    with pytest.raises(ManualEvidenceError, match=message):
         validate_manual_evidence(evidence, now=FIXED_NOW)
 
 
@@ -319,6 +379,21 @@ def test_non_pass_summary_status_requires_matching_observation(
         match=(
             f"top-level {summary_status} requires at least one {required_observation} observation"
         ),
+    ):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
+
+
+@pytest.mark.parametrize("summary_status", ["inconclusive", "unavailable"])
+def test_summary_status_cannot_hide_an_observed_finding(summary_status: str) -> None:
+    evidence = _valid_evidence("browser-zoom-200", status=summary_status)
+    observations = cast(list[dict[str, object]], evidence["observations"])
+    observations[0]["status"] = "observed_finding"
+    observations[1]["status"] = summary_status
+    evidence["findings"] = ["A concrete manual finding was recorded."]
+
+    with pytest.raises(
+        ManualEvidenceError,
+        match="observed_finding observation requires top-level observed_finding",
     ):
         validate_manual_evidence(evidence, now=FIXED_NOW)
 

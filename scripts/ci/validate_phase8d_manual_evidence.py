@@ -54,6 +54,8 @@ _ENVIRONMENT_KEYS = {
     "screen_reader_version",
     "browser_zoom_percent",
     "browser_zoom_confirmed",
+    "reduced_motion_confirmed",
+    "webgl_disabled_confirmed",
     "network_condition",
     "actual_device_confirmed",
     "synthetic_cpu",
@@ -335,6 +337,8 @@ def _validate_environment(environment: dict[str, object]) -> None:
         "synthetic_cpu",
         "synthetic_network",
         "touch_input_confirmed",
+        "reduced_motion_confirmed",
+        "webgl_disabled_confirmed",
     ):
         value = environment[field]
         if value is not None and not isinstance(value, bool):
@@ -392,6 +396,16 @@ def _require_touch_device(environment: dict[str, object], label: str) -> None:
         raise ManualEvidenceError(f"{label} requires confirmed touch input on the recorded device")
 
 
+def _require_reduced_motion(environment: dict[str, object], label: str) -> None:
+    if environment["reduced_motion_confirmed"] is not True:
+        raise ManualEvidenceError(f"{label} requires confirmed reduced-motion mode")
+
+
+def _require_webgl_disabled(environment: dict[str, object], label: str) -> None:
+    if environment["webgl_disabled_confirmed"] is not True:
+        raise ManualEvidenceError(f"{label} requires confirmed WebGL-disabled mode")
+
+
 def _require_low_end_device(environment: dict[str, object], label: str) -> None:
     if (
         environment["viewport_width_css_px"] is None
@@ -425,6 +439,10 @@ def _validate_observation_environment(
             _require_screen_reader(environment, label)
         elif check == "real browser 200% zoom":
             _require_native_200_zoom(environment, label)
+        elif check == "reduced motion":
+            _require_reduced_motion(environment, label)
+        elif check == "canvas alternative":
+            _require_webgl_disabled(environment, label)
         elif check == "touch-only interaction":
             _require_touch_device(environment, label)
 
@@ -563,6 +581,10 @@ def validate_manual_evidence(
     ):
         raise ManualEvidenceError(
             "top-level observed_pass requires every required observation to be observed_pass"
+        )
+    if "observed_finding" in observation_statuses and status != "observed_finding":
+        raise ManualEvidenceError(
+            "an observed_finding observation requires top-level observed_finding"
         )
     required_summary_observation = {
         "observed_finding": "observed_finding",

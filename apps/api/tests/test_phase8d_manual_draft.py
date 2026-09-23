@@ -92,6 +92,8 @@ def test_wcag_draft_preassigns_specialized_environment_slots() -> None:
         )
     assert by_check["screen-reader landmarks"] == {"screen-reader"}
     assert by_check["real browser 200% zoom"] == {"browser-zoom-200"}
+    assert by_check["reduced motion"] == {"reduced-motion"}
+    assert by_check["canvas alternative"] == {"webgl-disabled"}
     assert by_check["touch-only interaction"] == {"touch-device"}
 
 
@@ -233,6 +235,20 @@ def test_rejects_non_integer_protocol_version(version: object) -> None:
     protocol = dict(_prepare._load_protocol())
     protocol["artifact_version"] = version
     with pytest.raises(ManualDraftError, match="manual protocol identity is invalid"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
+@pytest.mark.parametrize("invalid_check", ["   ", "bad\ncheck"])
+def test_rejects_non_printable_or_blank_protocol_strings(invalid_check: str) -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks[0] = invalid_check
+
+    with pytest.raises(ManualDraftError, match="list of non-empty printable strings"):
         _prepare.build_manual_draft("screen-reader", protocol=protocol)
 
 

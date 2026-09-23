@@ -191,6 +191,7 @@ def _composition_settings() -> AppSettings:
         AppSettings,
         SimpleNamespace(
             database_url=object(),
+            resolved_database_tls_mode="disable",
             job_operation_wait_timeout_ms=1_000,
             job_result_max_bytes=61_440,
             job_stale_seconds=120,
@@ -389,7 +390,7 @@ async def test_settled_safe_close_failure_disposes_engine_with_normal_status(
     )
     output = _Output()
     monkeypatch.setattr(startup, "_run_check", close_failure_check)
-    monkeypatch.setattr(composition, "create_database_runtime", lambda url: runtime)
+    monkeypatch.setattr(composition, "create_database_runtime", lambda url, **kwargs: runtime)
 
     status = await run_worker_process(
         cast(ProcessOutput, output),

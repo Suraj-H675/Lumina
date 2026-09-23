@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol, cast
+from typing import Protocol, cast
 
 import anyio
 import lumina.shared.infrastructure.database.runtime as runtime_module
+import pytest
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 from lumina.shared.infrastructure.database.transport import psycopg_connect_args
 from pydantic import SecretStr
@@ -31,7 +32,7 @@ def test_runtime_constructs_expected_pool_without_connecting() -> None:
 
 
 def test_runtime_threads_verified_tls_as_driver_connect_args(
-    monkeypatch: object,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     seen: dict[str, object] = {}
     engine = object()
@@ -41,7 +42,6 @@ def test_runtime_threads_verified_tls_as_driver_connect_args(
         seen.update(kwargs)
         return engine
 
-    monkeypatch = cast(Any, monkeypatch)
     monkeypatch.setattr(runtime_module, "create_async_engine", fake_create_async_engine)
 
     runtime = create_database_runtime(

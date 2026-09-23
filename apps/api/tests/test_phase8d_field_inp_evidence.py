@@ -190,6 +190,44 @@ def _validate(
     )
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("artifact_version", True),
+        ("artifact_version", 1.0),
+        ("protocol_id", "phase-8d-manual-protocol-impostor"),
+        ("phase", "8C"),
+    ],
+)
+def test_rejects_wrong_manual_protocol_identity(
+    field: str,
+    value: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(_module.MANUAL_PROTOCOL.read_text(encoding="utf-8"))
+    protocol[field] = value
+    monkeypatch.setattr(_module, "_load_tracked_json", lambda *_args, **_kwargs: protocol)
+
+    with pytest.raises(FieldInpEvidenceError, match="manual protocol identity is invalid"):
+        _module._protocol_field_inp()
+
+
+@pytest.mark.parametrize("version", [True, 1.0])
+def test_rejects_non_integer_approval_manifest_version(version: object) -> None:
+    approvals = _approvals()
+    approvals["artifact_version"] = version
+    with pytest.raises(FieldInpEvidenceError, match="approval manifest artifact_version must be 1"):
+        _validate(_valid_evidence(), approvals=approvals)
+
+
+@pytest.mark.parametrize("version", [True, 1.0])
+def test_rejects_non_integer_field_evidence_version(version: object) -> None:
+    evidence = _valid_evidence()
+    evidence["artifact_version"] = version
+    with pytest.raises(FieldInpEvidenceError, match="artifact_version must be 1"):
+        _validate(evidence)
+
+
 @pytest.mark.parametrize("status", ["observed_finding", "inconclusive", "unavailable"])
 def test_accepts_non_pass_protocol_statuses_with_tracked_export_approval(status: str) -> None:
     evidence = _valid_evidence(status=status)

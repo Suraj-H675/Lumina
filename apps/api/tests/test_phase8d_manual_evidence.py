@@ -374,3 +374,11 @@ def test_rejects_same_version_phase_protocol_with_wrong_protocol_id() -> None:
     protocol["protocol_id"] = "phase-8d-manual-protocol-impostor"
     with pytest.raises(ManualEvidenceError, match="manual protocol identity is invalid"):
         _module._validate_protocol_identity(protocol)
+
+
+@pytest.mark.parametrize("version", [True, 1.0])
+def test_rejects_non_integer_protocol_version(version: object) -> None:
+    protocol = dict(PROTOCOL)
+    protocol["artifact_version"] = version
+    with pytest.raises(ManualEvidenceError, match="manual protocol identity is invalid"):
+        _module._validate_protocol_identity(protocol)

@@ -240,8 +240,10 @@ def _list_of_strings(value: object, label: str, *, allow_empty: bool = False) ->
 
 
 def _validate_protocol_identity(protocol: dict[str, object]) -> dict[str, object]:
+    version = protocol.get("artifact_version")
     if (
-        protocol.get("artifact_version") != 1
+        type(version) is not int
+        or version != 1
         or protocol.get("protocol_id") != "phase-8d-manual-protocol-v1"
         or protocol.get("phase") != "8D"
     ):

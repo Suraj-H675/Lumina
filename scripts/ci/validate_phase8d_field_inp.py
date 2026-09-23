@@ -325,6 +325,14 @@ def _number(value: object, label: str) -> float:
 
 def _protocol_field_inp() -> dict[str, object]:
     protocol = _load_tracked_json(MANUAL_PROTOCOL, "manual protocol")
+    version = protocol.get("artifact_version")
+    if (
+        type(version) is not int
+        or version != 1
+        or protocol.get("protocol_id") != "phase-8d-manual-protocol-v1"
+        or protocol.get("phase") != "8D"
+    ):
+        raise FieldInpEvidenceError("manual protocol identity is invalid")
     raw_items = protocol.get("evidence_items")
     if not isinstance(raw_items, dict) or not all(isinstance(key, str) for key in raw_items):
         raise FieldInpEvidenceError("manual protocol evidence_items must be an object")
@@ -338,7 +346,8 @@ def _protocol_field_inp() -> dict[str, object]:
 
 def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
     manifest = _object(document, "approval manifest", _APPROVAL_MANIFEST_KEYS)
-    if manifest["artifact_version"] != 1:
+    manifest_version = manifest["artifact_version"]
+    if type(manifest_version) is not int or manifest_version != 1:
         raise FieldInpEvidenceError("approval manifest artifact_version must be 1")
     if manifest["manifest_id"] != "phase-8d-field-inp-approvals-v1":
         raise FieldInpEvidenceError("approval manifest id must be phase-8d-field-inp-approvals-v1")
@@ -489,7 +498,8 @@ def validate_field_inp_evidence(
     if current_time.tzinfo != UTC:
         raise FieldInpEvidenceError("validator current time must use UTC")
 
-    if document["artifact_version"] != 1:
+    artifact_version = document["artifact_version"]
+    if type(artifact_version) is not int or artifact_version != 1:
         raise FieldInpEvidenceError("artifact_version must be 1")
     if document["evidence_id"] != "phase-8d-field-inp-v1":
         raise FieldInpEvidenceError("evidence_id must be phase-8d-field-inp-v1")

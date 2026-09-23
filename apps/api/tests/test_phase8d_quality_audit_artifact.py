@@ -79,7 +79,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 11
+    assert document["artifact_version"] == 12
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -98,9 +98,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "protocol-consistent unavailable-environment semantics" in phase_gate_reason
     assert "printable-text enforcement" in phase_gate_reason
     assert "fail-closed field-inp approval-manifest trust-record validation" in phase_gate_reason
+    assert "frozen-v1 manual and field protocol trust-root validation" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "b2a301f6992123f726e86e896161b4bec1c9bcbc",
-        "hosted_ci_run": "35823190632",
+        "commit": "3e6a950fb05fbc4473c4ccee6bd11673e2e15984",
+        "hosted_ci_run": "35824433389",
         "result": "success",
     }
 
@@ -465,6 +466,9 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "every tracked field-inp approval-manifest trust record" in serialized
     assert "referential integrity" in serialized
     assert "coherent sample/value pairs" in serialized
+    assert "protocol v1 status semantics" in serialized
+    assert "journey/check uniqueness" in serialized
+    assert "semantic expansion requires an explicit protocol/code version change" in serialized
     assert "not described as field inp" in serialized
     assert "validator or empty import path is not described as field inp evidence" in serialized
     assert "does not add behavioral tracking" in serialized

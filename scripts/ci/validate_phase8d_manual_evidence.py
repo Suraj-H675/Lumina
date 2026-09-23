@@ -84,6 +84,13 @@ _ITEM_KEYS = {
     "claim_boundary",
 }
 _LOW_END_ITEM_KEYS = _ITEM_KEYS | {"additional_routes"}
+_MANUAL_JOURNEY_KEYS = {"id", "routes", "actions", "risk_coverage"}
+_CANONICAL_STATUSES = {
+    "observed_pass",
+    "observed_finding",
+    "inconclusive",
+    "unavailable",
+}
 _COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 _MAX_INPUT_BYTES = 1024 * 1024
 
@@ -286,6 +293,83 @@ def _protocol() -> dict[str, object]:
     return _validate_protocol_identity(_read_tracked_json(MANUAL_PROTOCOL, "manual protocol"))
 
 
+def _validated_protocol_item(protocol: dict[str, object], item_id: str) -> dict[str, object]:
+    _validate_protocol_identity(protocol)
+
+    result_semantics = protocol.get("result_semantics")
+    if not isinstance(result_semantics, dict) or set(result_semantics) != _CANONICAL_STATUSES:
+        raise ManualEvidenceError(
+            "manual protocol result_semantics must exactly match the frozen v1 status set"
+        )
+    for status in _CANONICAL_STATUSES:
+        _string(result_semantics[status], f"protocol result_semantics.{status}")
+
+    raw_journeys = protocol.get("manual_journeys")
+    if not isinstance(raw_journeys, list) or not raw_journeys:
+        raise ManualEvidenceError("manual protocol manual_journeys must be a non-empty list")
+    journey_ids: list[str] = []
+    for index, raw_journey in enumerate(raw_journeys):
+        journey = _object(
+            raw_journey,
+            f"manual_journeys[{index}]",
+            _MANUAL_JOURNEY_KEYS,
+        )
+        journey_id = _string(journey["id"], f"manual_journeys[{index}].id")
+        journey_ids.append(journey_id)
+        _list_of_strings(journey["routes"], f"manual_journeys[{index}].routes")
+        _list_of_strings(journey["actions"], f"manual_journeys[{index}].actions")
+        _list_of_strings(
+            journey["risk_coverage"],
+            f"manual_journeys[{index}].risk_coverage",
+        )
+    if len(journey_ids) != len(set(journey_ids)):
+        raise ManualEvidenceError("manual journey id values must be unique")
+
+    raw_items = protocol.get("evidence_items")
+    if not isinstance(raw_items, dict):
+        raise ManualEvidenceError("manual protocol evidence_items must be an object")
+    raw_item = cast(dict[str, object], raw_items).get(item_id)
+    expected_keys = _LOW_END_ITEM_KEYS if item_id == "representative-low-end-device" else _ITEM_KEYS
+    item = _object(raw_item, f"protocol item {item_id}", expected_keys)
+
+    journeys = _list_of_strings(item["journeys"], "protocol journeys")
+    if len(journeys) != len(set(journeys)):
+        raise ManualEvidenceError("protocol journeys values must be unique")
+    unknown_journeys = sorted(set(journeys) - set(journey_ids))
+    if unknown_journeys:
+        raise ManualEvidenceError(
+            f"protocol item {item_id} references unknown manual journey(s): {unknown_journeys}"
+        )
+
+    checks = _list_of_strings(item["checks"], "protocol checks")
+    if len(checks) != len(set(checks)):
+        raise ManualEvidenceError("protocol checks values must be unique")
+
+    allowed_statuses = _list_of_strings(item["allowed_statuses"], "protocol allowed_statuses")
+    if (
+        len(allowed_statuses) != len(set(allowed_statuses))
+        or set(allowed_statuses) != _CANONICAL_STATUSES
+    ):
+        raise ManualEvidenceError(
+            "protocol allowed_statuses must exactly match the frozen v1 status set"
+        )
+
+    if item["generic_pass_threshold"] is not None:
+        raise ManualEvidenceError("manual protocol generic_pass_threshold must remain null")
+    _string(item["claim_boundary"], "protocol claim_boundary")
+
+    if item_id == "representative-low-end-device":
+        additional_routes = _list_of_strings(
+            item["additional_routes"],
+            "protocol additional_routes",
+            allow_empty=True,
+        )
+        if len(additional_routes) != len(set(additional_routes)):
+            raise ManualEvidenceError("protocol additional_routes values must be unique")
+
+    return item
+
+
 def _required_flows(item: dict[str, object]) -> list[str]:
     journeys = _list_of_strings(item["journeys"], "protocol journeys")
     additional_routes = item.get("additional_routes", [])
@@ -471,19 +555,12 @@ def validate_manual_evidence(
         raise ManualEvidenceError("evidence_id must match the selected item_id")
 
     protocol = _protocol()
-    raw_items = protocol.get("evidence_items")
-    if not isinstance(raw_items, dict):
-        raise ManualEvidenceError("manual protocol evidence_items must be an object")
-    raw_item = cast(dict[str, object], raw_items).get(item_id)
-    expected_keys = _LOW_END_ITEM_KEYS if item_id == "representative-low-end-device" else _ITEM_KEYS
-    item = _object(raw_item, f"protocol item {item_id}", expected_keys)
+    item = _validated_protocol_item(protocol, item_id)
 
     allowed_statuses = _list_of_strings(item["allowed_statuses"], "protocol allowed_statuses")
     status = _string(document["status"], "status")
     if status not in allowed_statuses:
         raise ManualEvidenceError("status is not allowed by the selected protocol item")
-    if item["generic_pass_threshold"] is not None:
-        raise ManualEvidenceError("manual protocol generic_pass_threshold must remain null")
     if document["claim_boundary"] != item["claim_boundary"]:
         raise ManualEvidenceError("claim_boundary must exactly match the selected protocol item")
 

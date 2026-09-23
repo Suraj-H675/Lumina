@@ -314,6 +314,38 @@ def test_observed_pass_fails_closed_until_threshold_policy_is_frozen() -> None:
         )
 
 
+def test_field_protocol_rejects_noncanonical_status_added_under_v1(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol_path = REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
+    protocol = cast(dict[str, object], json.loads(protocol_path.read_text(encoding="utf-8")))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["field-inp"],
+    )
+    cast(list[str], item["allowed_statuses"]).append("certified_pass")
+    monkeypatch.setattr(_module, "_load_tracked_json", lambda *_args, **_kwargs: protocol)
+
+    with pytest.raises(FieldInpEvidenceError, match="allowed_statuses must exactly match"):
+        _validate(_valid_evidence(status="certified_pass"))
+
+
+def test_field_protocol_rejects_generic_pass_threshold_under_v1(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol_path = REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
+    protocol = cast(dict[str, object], json.loads(protocol_path.read_text(encoding="utf-8")))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["field-inp"],
+    )
+    item["generic_pass_threshold"] = 200
+    monkeypatch.setattr(_module, "_load_tracked_json", lambda *_args, **_kwargs: protocol)
+
+    with pytest.raises(FieldInpEvidenceError, match="generic_pass_threshold must remain null"):
+        _validate(_valid_evidence())
+
+
 def test_rejects_unknown_fields_so_raw_events_or_identifiers_cannot_hide_in_artifact() -> None:
     evidence = _valid_evidence()
     evidence["raw_events"] = [{"session_id": "forbidden"}]

@@ -273,6 +273,46 @@ def test_accepts_visible_international_unicode_in_protocol_strings() -> None:
     assert any(observation["check"] == "lecteur d’écran — 測試" for observation in observations)
 
 
+def test_draft_rejects_duplicate_protocol_checks() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks.append(checks[0])
+
+    with pytest.raises(ManualDraftError, match="screen-reader.checks values must be unique"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
+def test_draft_rejects_duplicate_protocol_journeys() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    journeys = cast(list[str], item["journeys"])
+    journeys.append(journeys[0])
+
+    with pytest.raises(ManualDraftError, match="screen-reader.journeys values must be unique"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
+def test_draft_rejects_expanded_v1_status_semantics() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    cast(list[str], item["allowed_statuses"]).append("certified_pass")
+    semantics = cast(dict[str, object], protocol["result_semantics"])
+    semantics["certified_pass"] = "An invented status that must require a new protocol version."
+
+    with pytest.raises(ManualDraftError, match="frozen v1 status set"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
 def test_protocol_reader_rejects_duplicate_keys_and_symlinked_file(tmp_path: Path) -> None:
     with pytest.raises(ManualDraftError, match="duplicate JSON key"):
         _prepare._parse_json_text(

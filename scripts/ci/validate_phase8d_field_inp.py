@@ -117,6 +117,12 @@ _APPROVED_EXPORT_KEYS = {
     "segmentation_scope",
     "segmentation_description",
 }
+_CANONICAL_STATUSES = {
+    "observed_pass",
+    "observed_finding",
+    "inconclusive",
+    "unavailable",
+}
 _COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
@@ -368,11 +374,46 @@ def _protocol_field_inp() -> dict[str, object]:
     if not isinstance(raw_items, dict) or not all(isinstance(key, str) for key in raw_items):
         raise FieldInpEvidenceError("manual protocol evidence_items must be an object")
     items = cast(dict[str, object], raw_items)
-    return _object(
+    item = _object(
         items.get("field-inp"),
         "manual protocol field-inp",
         {"journeys", "checks", "allowed_statuses", "generic_pass_threshold", "claim_boundary"},
     )
+    result_semantics = protocol.get("result_semantics")
+    if not isinstance(result_semantics, dict) or set(result_semantics) != _CANONICAL_STATUSES:
+        raise FieldInpEvidenceError(
+            "manual protocol result_semantics must exactly match the frozen v1 status set"
+        )
+    for status in _CANONICAL_STATUSES:
+        _string(result_semantics[status], f"manual protocol result_semantics.{status}")
+
+    journeys = item["journeys"]
+    if journeys != []:
+        raise FieldInpEvidenceError("manual protocol field-inp.journeys must remain empty")
+
+    checks = item["checks"]
+    if not isinstance(checks, list) or not checks:
+        raise FieldInpEvidenceError("manual protocol field-inp.checks must be a non-empty list")
+    check_values = [_string(check, "manual protocol field-inp.checks") for check in checks]
+    if len(check_values) != len(set(check_values)):
+        raise FieldInpEvidenceError("manual protocol field-inp.checks values must be unique")
+
+    allowed_statuses = item["allowed_statuses"]
+    if not isinstance(allowed_statuses, list):
+        raise FieldInpEvidenceError("manual protocol field-inp.allowed_statuses must be a list")
+    status_values = [
+        _string(status, "manual protocol field-inp.allowed_statuses") for status in allowed_statuses
+    ]
+    if len(status_values) != len(set(status_values)) or set(status_values) != _CANONICAL_STATUSES:
+        raise FieldInpEvidenceError(
+            "manual protocol field-inp.allowed_statuses must exactly match the frozen v1 status set"
+        )
+    if item["generic_pass_threshold"] is not None:
+        raise FieldInpEvidenceError(
+            "manual protocol field-inp.generic_pass_threshold must remain null"
+        )
+    _string(item["claim_boundary"], "manual protocol field-inp.claim_boundary")
+    return item
 
 
 def _approval_manifest(document: dict[str, object]) -> dict[str, object]:

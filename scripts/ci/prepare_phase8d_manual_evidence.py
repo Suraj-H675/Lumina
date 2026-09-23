@@ -19,6 +19,12 @@ SUPPORTED_ITEMS = {
     "browser-zoom-200",
     "representative-low-end-device",
 }
+_CANONICAL_STATUSES = {
+    "observed_pass",
+    "observed_finding",
+    "inconclusive",
+    "unavailable",
+}
 _COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -142,6 +148,13 @@ def _string_list(value: object, label: str) -> list[str]:
     return cast(list[str], value)
 
 
+def _unique_string_list(value: object, label: str) -> list[str]:
+    result = _string_list(value, label)
+    if len(result) != len(set(result)):
+        raise ManualDraftError(f"{label} values must be unique")
+    return result
+
+
 def _environment(environment_id: str) -> dict[str, object]:
     return {
         "environment_id": environment_id,
@@ -236,16 +249,39 @@ def build_manual_draft(
     if not isinstance(raw_item, dict):
         raise ManualDraftError(f"manual protocol is missing evidence item {item_id}")
     item = cast(dict[str, object], raw_item)
-    journeys = _string_list(item.get("journeys"), f"{item_id}.journeys")
-    checks = _string_list(item.get("checks"), f"{item_id}.checks")
-    additional_routes = _string_list(
+    journeys = _unique_string_list(item.get("journeys"), f"{item_id}.journeys")
+    checks = _unique_string_list(item.get("checks"), f"{item_id}.checks")
+    additional_routes = _unique_string_list(
         item.get("additional_routes", []),
         f"{item_id}.additional_routes",
     )
-    allowed_statuses = _string_list(item.get("allowed_statuses"), f"{item_id}.allowed_statuses")
+    allowed_statuses = _unique_string_list(
+        item.get("allowed_statuses"),
+        f"{item_id}.allowed_statuses",
+    )
+    if set(allowed_statuses) != _CANONICAL_STATUSES:
+        raise ManualDraftError(
+            f"{item_id}.allowed_statuses must exactly match the frozen v1 status set"
+        )
     claim_boundary = item.get("claim_boundary")
-    if not isinstance(claim_boundary, str) or not claim_boundary:
-        raise ManualDraftError(f"{item_id}.claim_boundary must be a non-empty string")
+    if (
+        not isinstance(claim_boundary, str)
+        or not claim_boundary.strip()
+        or not claim_boundary.isprintable()
+    ):
+        raise ManualDraftError(f"{item_id}.claim_boundary must be a non-empty printable string")
+
+    result_semantics = protocol_document.get("result_semantics")
+    if not isinstance(result_semantics, dict) or set(result_semantics) != _CANONICAL_STATUSES:
+        raise ManualDraftError(
+            "manual protocol result_semantics must exactly match the frozen v1 status set"
+        )
+    for status in _CANONICAL_STATUSES:
+        meaning = result_semantics[status]
+        if not isinstance(meaning, str) or not meaning.strip() or not meaning.isprintable():
+            raise ManualDraftError(
+                f"manual protocol result_semantics.{status} must be a non-empty printable string"
+            )
 
     journey_by_id = _journey_index(protocol_document)
     checklist: list[dict[str, object]] = []
@@ -294,10 +330,6 @@ def build_manual_draft(
                     "evidence_references": [],
                 }
             )
-
-    result_semantics = protocol_document.get("result_semantics")
-    if not isinstance(result_semantics, dict):
-        raise ManualDraftError("manual protocol result_semantics must be an object")
 
     return {
         "draft_version": 1,

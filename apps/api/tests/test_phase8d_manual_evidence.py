@@ -617,6 +617,77 @@ def test_rejects_same_version_phase_protocol_with_wrong_protocol_id() -> None:
         _module._validate_protocol_identity(protocol)
 
 
+def test_rejects_protocol_item_with_duplicate_checks(monkeypatch: pytest.MonkeyPatch) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks.append(checks[0])
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    with pytest.raises(ManualEvidenceError, match="protocol checks values must be unique"):
+        validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
+
+
+def test_rejects_protocol_with_duplicate_manual_journey_ids(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    journeys = cast(list[dict[str, object]], protocol["manual_journeys"])
+    journeys.append(dict(journeys[0]))
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    with pytest.raises(ManualEvidenceError, match="manual journey id values must be unique"):
+        validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
+
+
+def test_rejects_protocol_item_referencing_unknown_manual_journey(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    journeys = cast(list[str], item["journeys"])
+    replaced = journeys[0]
+    journeys[0] = "missing-manual-journey"
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    evidence = _valid_evidence("screen-reader")
+    flows = cast(list[str], evidence["route_or_flow"])
+    flows[flows.index(replaced)] = "missing-manual-journey"
+    observations = cast(list[dict[str, object]], evidence["observations"])
+    for observation in observations:
+        if observation["route_or_flow"] == replaced:
+            observation["route_or_flow"] = "missing-manual-journey"
+
+    with pytest.raises(ManualEvidenceError, match="references unknown manual journey"):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
+
+
+def test_rejects_noncanonical_status_added_to_v1_protocol(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    cast(list[str], item["allowed_statuses"]).append("certified_pass")
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    evidence = _valid_evidence("screen-reader", status="certified_pass")
+    observations = cast(list[dict[str, object]], evidence["observations"])
+    for observation in observations:
+        observation["status"] = "certified_pass"
+
+    with pytest.raises(ManualEvidenceError, match="protocol allowed_statuses must exactly match"):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
+
+
 @pytest.mark.parametrize("version", [True, 1.0])
 def test_rejects_non_integer_protocol_version(version: object) -> None:
     protocol = dict(PROTOCOL)

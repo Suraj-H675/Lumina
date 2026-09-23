@@ -416,7 +416,15 @@ def _protocol_field_inp() -> dict[str, object]:
     return item
 
 
-def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
+def _approval_manifest(
+    document: dict[str, object],
+    *,
+    now: datetime | None = None,
+) -> dict[str, object]:
+    current_time = datetime.now(UTC) if now is None else now
+    if current_time.tzinfo != UTC:
+        raise FieldInpEvidenceError("approval manifest current time must use UTC")
+
     manifest = _object(document, "approval manifest", _APPROVAL_MANIFEST_KEYS)
     manifest_version = manifest["artifact_version"]
     if type(manifest_version) is not int or manifest_version != 1:
@@ -497,7 +505,14 @@ def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
             f"approved_privacy_reviews[{index}].approval_reference",
         )
         _string(item["reviewer"], f"approved_privacy_reviews[{index}].reviewer")
-        _utc(item["approved_at"], f"approved_privacy_reviews[{index}].approved_at")
+        approved_at = _utc(
+            item["approved_at"],
+            f"approved_privacy_reviews[{index}].approved_at",
+        )
+        if approved_at > current_time:
+            raise FieldInpEvidenceError(
+                f"approved_privacy_reviews[{index}].approved_at must not be in the future"
+            )
         _string(item["scope"], f"approved_privacy_reviews[{index}].scope")
 
     for index, item in enumerate(export_entries):
@@ -543,6 +558,10 @@ def _approval_manifest(document: dict[str, object]) -> dict[str, object]:
         if observation_end <= observation_start:
             raise FieldInpEvidenceError(
                 f"approved_exports[{index}].observation_end must be after observation_start"
+            )
+        if observation_end > current_time:
+            raise FieldInpEvidenceError(
+                f"approved_exports[{index}].observation_end must not be in the future"
             )
         sample_count = item["sample_count"]
         if isinstance(sample_count, bool) or not isinstance(sample_count, int) or sample_count < 0:
@@ -625,10 +644,15 @@ def validate_field_inp_evidence(
     ):
         raise FieldInpEvidenceError("manual protocol allowed_statuses is invalid")
 
+    current_time = datetime.now(UTC) if now is None else now
+    if current_time.tzinfo != UTC:
+        raise FieldInpEvidenceError("validator current time must use UTC")
+
     approvals = _approval_manifest(
         _load_tracked_json(APPROVAL_MANIFEST, "field-INP approval manifest")
         if approvals_document is None
-        else approvals_document
+        else approvals_document,
+        now=current_time,
     )
     approved_sources = _object_list(
         approvals["approved_sources"], "approved_sources", _APPROVED_SOURCE_KEYS
@@ -648,10 +672,6 @@ def validate_field_inp_evidence(
         "approved_exports",
         _APPROVED_EXPORT_KEYS,
     )
-
-    current_time = datetime.now(UTC) if now is None else now
-    if current_time.tzinfo != UTC:
-        raise FieldInpEvidenceError("validator current time must use UTC")
 
     artifact_version = document["artifact_version"]
     if type(artifact_version) is not int or artifact_version != 1:

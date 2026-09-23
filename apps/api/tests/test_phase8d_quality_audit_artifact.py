@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
+
+import pytest
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 _ARTIFACT = _REPOSITORY_ROOT / "data/audits/phase-8d-quality-v1.json"
@@ -54,6 +57,28 @@ def _string(value: object) -> str:
     return value
 
 
+def _not_future_timestamp(value: object, *, now: datetime | None = None) -> datetime:
+    raw = _string(value)
+    try:
+        parsed = datetime.fromisoformat(raw[:-1] + "+00:00" if raw.endswith("Z") else raw)
+    except ValueError as exc:
+        raise AssertionError("timestamp must be ISO-8601") from exc
+    assert parsed.tzinfo is not None, "timestamp must include an explicit timezone"
+    current_time = datetime.now(UTC) if now is None else now
+    assert current_time.tzinfo is not None, "comparison time must include an explicit timezone"
+    assert parsed.astimezone(UTC) <= current_time.astimezone(UTC), "timestamp must not be future"
+    return parsed
+
+
+def test_phase8d_recorded_evidence_timestamp_guard_rejects_naive_and_future_values() -> None:
+    fixed_now = datetime(2026, 9, 23, 10, 0, tzinfo=UTC)
+    assert _not_future_timestamp("2026-09-22T11:26:43+05:30", now=fixed_now).tzinfo is not None
+    with pytest.raises(AssertionError, match="explicit timezone"):
+        _not_future_timestamp("2026-09-22T11:26:43", now=fixed_now)
+    with pytest.raises(AssertionError, match="must not be future"):
+        _not_future_timestamp("2026-09-23T10:00:01Z", now=fixed_now)
+
+
 def _evidence_paths(document: dict[str, object]) -> list[str]:
     automated = document["automated_evidence"]
     assert isinstance(automated, dict)
@@ -79,7 +104,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 12
+    assert document["artifact_version"] == 13
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -99,9 +124,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "printable-text enforcement" in phase_gate_reason
     assert "fail-closed field-inp approval-manifest trust-record validation" in phase_gate_reason
     assert "frozen-v1 manual and field protocol trust-root validation" in phase_gate_reason
+    assert "explicit temporal-integrity checks" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "3e6a950fb05fbc4473c4ccee6bd11673e2e15984",
-        "hosted_ci_run": "35824433389",
+        "commit": "eb5002ea8582c50d15aaf50a6606092e8fd85d3d",
+        "hosted_ci_run": "35825829642",
         "result": "success",
     }
 
@@ -215,6 +241,7 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert browser_zoom_evidence["artifact_version"] == 1
     assert browser_zoom_evidence["evidence_id"] == "phase-8d-real-browser-zoom-v1"
     assert browser_zoom_evidence["phase"] == "8D"
+    _not_future_timestamp(browser_zoom_evidence["observed_at"])
     assert browser_zoom_evidence["build_commit"] == ("1bbf4bbb520dac8318f92a6f43039636bac73b00")
     assert (
         browser_zoom_evidence["measurement_command"] == verification_commands["browser_zoom_real"]
@@ -320,6 +347,7 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     representative_wwt = _mapping(manual_by_id["representative-hardware-webgl-render-cadence"])
     assert representative_wwt["status"] == "recorded"
     evidence = _mapping(representative_wwt["evidence"])
+    _not_future_timestamp(evidence["observed_at"])
     assert evidence["measurement_command"] == verification_commands["wwt_representative_hardware"]
     assert evidence["instrumentation"] == "wwt-webgl-draw-bearing-raf-v1"
     assert evidence["source"] == "operator-url"
@@ -369,6 +397,7 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert gpu_evidence["artifact_version"] == 1
     assert gpu_evidence["evidence_id"] == "phase-8d-retained-gpu-memory-v1"
     assert gpu_evidence["phase"] == "8D"
+    _not_future_timestamp(gpu_evidence["observed_at"])
     assert gpu_evidence["build_commit"] == "7d2083cac77e742e006d9f177551d527e1f2cbe6"
     assert (
         gpu_evidence["measurement_command"]
@@ -469,6 +498,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "protocol v1 status semantics" in serialized
     assert "journey/check uniqueness" in serialized
     assert "semantic expansion requires an explicit protocol/code version change" in serialized
+    assert "approval timestamps and approved export windows may not be future-dated" in serialized
+    assert "timezone-aware iso-8601 values" in serialized
     assert "not described as field inp" in serialized
     assert "validator or empty import path is not described as field inp evidence" in serialized
     assert "does not add behavioral tracking" in serialized

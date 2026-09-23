@@ -292,6 +292,37 @@ def test_approval_manifest_rejects_incoherent_export_sample_and_value_pairs(
         _module._approval_manifest(approvals)
 
 
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("future_privacy_approval", "approved_at must not be in the future"),
+        ("future_export_window", "observation_end must not be in the future"),
+    ],
+)
+def test_approval_manifest_rejects_future_dated_trust_records(
+    mutation: str,
+    message: str,
+) -> None:
+    approvals = _approvals()
+    if mutation == "future_privacy_approval":
+        privacy = cast(list[dict[str, object]], approvals["approved_privacy_reviews"])[0]
+        privacy["approved_at"] = "2026-09-22T16:30:01Z"
+    else:
+        export = cast(list[dict[str, object]], approvals["approved_exports"])[0]
+        export["observation_end"] = "2026-09-22T16:30:01Z"
+
+    with pytest.raises(FieldInpEvidenceError, match=message):
+        _module._approval_manifest(approvals, now=FIXED_NOW)
+
+
+def test_approval_manifest_requires_explicit_utc_current_time() -> None:
+    with pytest.raises(FieldInpEvidenceError, match="current time must use UTC"):
+        _module._approval_manifest(
+            _approvals(),
+            now=datetime(2026, 9, 22, 16, 30),
+        )
+
+
 @pytest.mark.parametrize("version", [True, 1.0])
 def test_rejects_non_integer_field_evidence_version(version: object) -> None:
     evidence = _valid_evidence()

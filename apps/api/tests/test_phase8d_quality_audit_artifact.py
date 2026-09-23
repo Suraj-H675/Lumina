@@ -79,7 +79,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 9
+    assert document["artifact_version"] == 10
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -95,9 +95,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert (
         "environment-bound screen-reader, zoom, reduced-motion, webgl-disabled" in phase_gate_reason
     )
+    assert "protocol-consistent unavailable-environment semantics" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "9ed624e8733892de57f61d4789373a22d7207238",
-        "hosted_ci_run": "35819938724",
+        "commit": "4ee9a719ea90c0e97814de449c8c450375d8adb6",
+        "hosted_ci_run": "35822167938",
         "result": "success",
     }
 
@@ -454,6 +455,8 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "accepted only as bounded regular files" in serialized
     assert "final-component symlinks and non-regular files are rejected" in serialized
     assert "explicitly confirm reduced-motion mode and webgl-disabled mode" in serialized
+    assert "unavailable manual observation may record" in serialized
+    assert "inconclusive and observed statuses still require" in serialized
     assert "cannot summarize itself as inconclusive or unavailable" in serialized
     assert "not described as field inp" in serialized
     assert "validator or empty import path is not described as field inp evidence" in serialized

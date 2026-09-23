@@ -285,6 +285,118 @@ def test_low_end_requires_real_device_without_synthetic_substitution(
         validate_manual_evidence(evidence, now=FIXED_NOW)
 
 
+@pytest.mark.parametrize(
+    ("item_id", "environment_field", "value"),
+    [
+        ("screen-reader", "screen_reader", None),
+        ("browser-zoom-200", "browser_zoom_confirmed", False),
+        ("representative-low-end-device", "actual_device_confirmed", False),
+    ],
+)
+def test_unavailable_observation_does_not_require_the_missing_environment_capability(
+    item_id: str,
+    environment_field: str,
+    value: object,
+) -> None:
+    evidence = _valid_evidence(
+        item_id,
+        status="unavailable",
+        observation_status="unavailable",
+    )
+    environments = cast(list[dict[str, object]], evidence["browser_os_device"])
+    environments[0][environment_field] = value
+    if item_id == "screen-reader":
+        environments[0]["screen_reader_version"] = None
+
+    assert validate_manual_evidence(evidence, now=FIXED_NOW) == evidence
+
+
+@pytest.mark.parametrize(
+    ("item_id", "environment_field", "value", "message"),
+    [
+        ("screen-reader", "screen_reader", None, "real screen reader name and version"),
+        (
+            "browser-zoom-200",
+            "browser_zoom_confirmed",
+            False,
+            "confirmed native browser page zoom at 200%",
+        ),
+        (
+            "representative-low-end-device",
+            "actual_device_confirmed",
+            False,
+            "actual physical device",
+        ),
+    ],
+)
+def test_inconclusive_observation_still_requires_the_recorded_environment_capability(
+    item_id: str,
+    environment_field: str,
+    value: object,
+    message: str,
+) -> None:
+    evidence = _valid_evidence(
+        item_id,
+        status="inconclusive",
+        observation_status="inconclusive",
+    )
+    environments = cast(list[dict[str, object]], evidence["browser_os_device"])
+    environments[0][environment_field] = value
+    if item_id == "screen-reader":
+        environments[0]["screen_reader_version"] = None
+
+    with pytest.raises(ManualEvidenceError, match=message):
+        validate_manual_evidence(evidence, now=FIXED_NOW)
+
+
+@pytest.mark.parametrize(
+    ("check", "environment_id", "mutations"),
+    [
+        (
+            "screen-reader landmarks",
+            "screen-reader",
+            {"screen_reader": None, "screen_reader_version": None},
+        ),
+        (
+            "real browser 200% zoom",
+            "browser-zoom-200",
+            {"browser_zoom_confirmed": False},
+        ),
+        (
+            "reduced motion",
+            "reduced-motion",
+            {"reduced_motion_confirmed": False},
+        ),
+        (
+            "canvas alternative",
+            "webgl-disabled",
+            {"webgl_disabled_confirmed": False},
+        ),
+        (
+            "touch-only interaction",
+            "touch-device",
+            {"actual_device_confirmed": False, "touch_input_confirmed": False},
+        ),
+    ],
+)
+def test_wcag_unavailable_check_can_record_the_missing_specialized_capability(
+    check: str,
+    environment_id: str,
+    mutations: dict[str, object],
+) -> None:
+    evidence = _valid_evidence("wcag-2.2-aa-manual-review", status="unavailable")
+    observations = cast(list[dict[str, object]], evidence["observations"])
+    matching = [observation for observation in observations if observation["check"] == check]
+    assert matching
+    for observation in matching:
+        observation["status"] = "unavailable"
+    environments = cast(list[dict[str, object]], evidence["browser_os_device"])
+    environment = next(item for item in environments if item["environment_id"] == environment_id)
+    environment.update(mutations)
+
+    assert validate_manual_evidence(evidence, now=FIXED_NOW) == evidence
+
+
 def test_wcag_screen_reader_checks_require_real_reader_environment() -> None:
     evidence = _valid_evidence("wcag-2.2-aa-manual-review")
     environments = cast(list[dict[str, object]], evidence["browser_os_device"])

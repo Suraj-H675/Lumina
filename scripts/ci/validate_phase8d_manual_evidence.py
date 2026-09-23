@@ -425,9 +425,12 @@ def _require_low_end_device(environment: dict[str, object], label: str) -> None:
 def _validate_observation_environment(
     item_id: str,
     check: str,
+    status: str,
     environment: dict[str, object],
     label: str,
 ) -> None:
+    if status == "unavailable":
+        return
     if item_id == "screen-reader":
         _require_screen_reader(environment, label)
     elif item_id == "browser-zoom-200":
@@ -561,6 +564,7 @@ def validate_manual_evidence(
         _validate_observation_environment(
             item_id,
             check,
+            observation_status,
             environment,
             f"observations[{index}]",
         )

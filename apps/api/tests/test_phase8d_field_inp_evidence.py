@@ -377,6 +377,26 @@ def test_field_protocol_rejects_generic_pass_threshold_under_v1(
         _validate(_valid_evidence())
 
 
+def test_field_protocol_rejects_malformed_unselected_protocol_item(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol_path = REPOSITORY_ROOT / "data/audits/phase-8d-manual-protocol-v1.json"
+    protocol = cast(dict[str, object], json.loads(protocol_path.read_text(encoding="utf-8")))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["retained-gpu-memory"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks.append(checks[0])
+    monkeypatch.setattr(_module, "_load_tracked_json", lambda *_args, **_kwargs: protocol)
+
+    with pytest.raises(
+        FieldInpEvidenceError,
+        match="retained-gpu-memory.*checks values must be unique",
+    ):
+        _validate(_valid_evidence())
+
+
 def test_rejects_unknown_fields_so_raw_events_or_identifiers_cannot_hide_in_artifact() -> None:
     evidence = _valid_evidence()
     evidence["raw_events"] = [{"session_id": "forbidden"}]

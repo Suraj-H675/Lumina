@@ -313,6 +313,34 @@ def test_draft_rejects_expanded_v1_status_semantics() -> None:
         _prepare.build_manual_draft("screen-reader", protocol=protocol)
 
 
+def test_draft_rejects_duplicate_checks_in_unselected_protocol_item() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["retained-gpu-memory"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks.append(checks[0])
+
+    with pytest.raises(
+        ManualDraftError,
+        match="retained-gpu-memory.checks values must be unique",
+    ):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
+def test_draft_rejects_empty_required_check_list() -> None:
+    protocol = json.loads(json.dumps(_prepare._load_protocol()))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["screen-reader"],
+    )
+    item["checks"] = []
+
+    with pytest.raises(ManualDraftError, match="list of non-empty printable strings"):
+        _prepare.build_manual_draft("screen-reader", protocol=protocol)
+
+
 def test_protocol_reader_rejects_duplicate_keys_and_symlinked_file(tmp_path: Path) -> None:
     with pytest.raises(ManualDraftError, match="duplicate JSON key"):
         _prepare._parse_json_text(

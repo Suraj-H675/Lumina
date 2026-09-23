@@ -688,6 +688,55 @@ def test_rejects_noncanonical_status_added_to_v1_protocol(
         validate_manual_evidence(evidence, now=FIXED_NOW)
 
 
+def test_rejects_duplicate_checks_in_unselected_protocol_item(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["retained-gpu-memory"],
+    )
+    checks = cast(list[str], item["checks"])
+    checks.append(checks[0])
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    with pytest.raises(
+        ManualEvidenceError,
+        match="protocol checks values must be unique.*retained-gpu-memory",
+    ):
+        validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
+
+
+def test_rejects_expanded_statuses_in_unselected_protocol_item(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    item = cast(
+        dict[str, object],
+        cast(dict[str, object], protocol["evidence_items"])["retained-gpu-memory"],
+    )
+    cast(list[str], item["allowed_statuses"]).append("certified_pass")
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    with pytest.raises(
+        ManualEvidenceError,
+        match="protocol allowed_statuses must exactly match.*retained-gpu-memory",
+    ):
+        validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
+
+
+def test_rejects_extra_protocol_evidence_item_under_v1(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = json.loads(json.dumps(PROTOCOL))
+    items = cast(dict[str, object], protocol["evidence_items"])
+    items["future-manual-item"] = dict(cast(dict[str, object], items["screen-reader"]))
+    monkeypatch.setattr(_module, "_protocol", lambda: protocol)
+
+    with pytest.raises(ManualEvidenceError, match="evidence_items must exactly match"):
+        validate_manual_evidence(_valid_evidence("screen-reader"), now=FIXED_NOW)
+
+
 @pytest.mark.parametrize("version", [True, 1.0])
 def test_rejects_non_integer_protocol_version(version: object) -> None:
     protocol = dict(PROTOCOL)

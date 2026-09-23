@@ -19,6 +19,18 @@ SUPPORTED_ITEMS = {
     "browser-zoom-200",
     "representative-low-end-device",
 }
+_PROTOCOL_EVIDENCE_ITEMS = SUPPORTED_ITEMS | {
+    "field-inp",
+    "retained-gpu-memory",
+}
+_ITEM_KEYS = {
+    "journeys",
+    "checks",
+    "allowed_statuses",
+    "generic_pass_threshold",
+    "claim_boundary",
+}
+_LOW_END_ITEM_KEYS = _ITEM_KEYS | {"additional_routes"}
 _CANONICAL_STATUSES = {
     "observed_pass",
     "observed_finding",
@@ -140,16 +152,23 @@ def _load_protocol(
     return _validate_protocol_identity(_parse_json_text(text, "manual protocol"))
 
 
-def _string_list(value: object, label: str) -> list[str]:
-    if not isinstance(value, list) or not all(
-        isinstance(item, str) and item.strip() and item.isprintable() for item in value
+def _string_list(value: object, label: str, *, allow_empty: bool = False) -> list[str]:
+    if (
+        not isinstance(value, list)
+        or (not allow_empty and not value)
+        or not all(isinstance(item, str) and item.strip() and item.isprintable() for item in value)
     ):
         raise ManualDraftError(f"{label} must be a list of non-empty printable strings")
     return cast(list[str], value)
 
 
-def _unique_string_list(value: object, label: str) -> list[str]:
-    result = _string_list(value, label)
+def _unique_string_list(
+    value: object,
+    label: str,
+    *,
+    allow_empty: bool = False,
+) -> list[str]:
+    result = _string_list(value, label, allow_empty=allow_empty)
     if len(result) != len(set(result)):
         raise ManualDraftError(f"{label} values must be unique")
     return result
@@ -225,6 +244,73 @@ def _journey_index(protocol: dict[str, object]) -> dict[str, dict[str, object]]:
     return result
 
 
+def _validated_protocol_items(
+    protocol: dict[str, object],
+) -> dict[str, dict[str, object]]:
+    raw_items = protocol.get("evidence_items")
+    if not isinstance(raw_items, dict) or set(raw_items) != _PROTOCOL_EVIDENCE_ITEMS:
+        raise ManualDraftError(
+            "manual protocol evidence_items must exactly match the frozen v1 item set"
+        )
+    items = cast(dict[str, object], raw_items)
+    journey_by_id = _journey_index(protocol)
+    journey_ids = set(journey_by_id)
+    for journey_id, journey in journey_by_id.items():
+        _string_list(journey.get("routes"), f"{journey_id}.routes")
+        _string_list(journey.get("actions"), f"{journey_id}.actions")
+        _string_list(journey.get("risk_coverage"), f"{journey_id}.risk_coverage")
+
+    validated: dict[str, dict[str, object]] = {}
+    for candidate_id in sorted(_PROTOCOL_EVIDENCE_ITEMS):
+        raw_item = items[candidate_id]
+        expected_keys = (
+            _LOW_END_ITEM_KEYS if candidate_id == "representative-low-end-device" else _ITEM_KEYS
+        )
+        if not isinstance(raw_item, dict) or set(raw_item) != expected_keys:
+            raise ManualDraftError(f"{candidate_id} must contain exactly {sorted(expected_keys)}")
+        item = cast(dict[str, object], raw_item)
+        journeys = _unique_string_list(
+            item["journeys"],
+            f"{candidate_id}.journeys",
+            allow_empty=candidate_id == "field-inp",
+        )
+        unknown_journeys = sorted(set(journeys) - journey_ids)
+        if unknown_journeys:
+            raise ManualDraftError(
+                f"{candidate_id}.journeys references unknown manual journey(s): {unknown_journeys}"
+            )
+        _unique_string_list(item["checks"], f"{candidate_id}.checks")
+        allowed_statuses = _unique_string_list(
+            item["allowed_statuses"],
+            f"{candidate_id}.allowed_statuses",
+        )
+        if set(allowed_statuses) != _CANONICAL_STATUSES:
+            raise ManualDraftError(
+                f"{candidate_id}.allowed_statuses must exactly match the frozen v1 status set"
+            )
+        if item["generic_pass_threshold"] is not None:
+            raise ManualDraftError(
+                f"{candidate_id}.generic_pass_threshold must remain null under protocol v1"
+            )
+        claim_boundary = item["claim_boundary"]
+        if (
+            not isinstance(claim_boundary, str)
+            or not claim_boundary.strip()
+            or not claim_boundary.isprintable()
+        ):
+            raise ManualDraftError(
+                f"{candidate_id}.claim_boundary must be a non-empty printable string"
+            )
+        if candidate_id == "representative-low-end-device":
+            _unique_string_list(
+                item["additional_routes"],
+                f"{candidate_id}.additional_routes",
+                allow_empty=True,
+            )
+        validated[candidate_id] = item
+    return validated
+
+
 def build_manual_draft(
     item_id: str,
     *,
@@ -242,18 +328,13 @@ def build_manual_draft(
         _load_protocol() if protocol is None else _validate_protocol_identity(protocol)
     )
 
-    raw_items = protocol_document.get("evidence_items")
-    if not isinstance(raw_items, dict):
-        raise ManualDraftError("manual protocol evidence_items must be an object")
-    raw_item = cast(dict[str, object], raw_items).get(item_id)
-    if not isinstance(raw_item, dict):
-        raise ManualDraftError(f"manual protocol is missing evidence item {item_id}")
-    item = cast(dict[str, object], raw_item)
-    journeys = _unique_string_list(item.get("journeys"), f"{item_id}.journeys")
-    checks = _unique_string_list(item.get("checks"), f"{item_id}.checks")
+    item = _validated_protocol_items(protocol_document)[item_id]
+    journeys = _unique_string_list(item["journeys"], f"{item_id}.journeys")
+    checks = _unique_string_list(item["checks"], f"{item_id}.checks")
     additional_routes = _unique_string_list(
         item.get("additional_routes", []),
         f"{item_id}.additional_routes",
+        allow_empty=True,
     )
     allowed_statuses = _unique_string_list(
         item.get("allowed_statuses"),

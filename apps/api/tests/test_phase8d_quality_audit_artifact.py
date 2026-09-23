@@ -104,7 +104,7 @@ def _evidence_paths(document: dict[str, object]) -> list[str]:
 
 def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence() -> None:
     document = _load_document()
-    assert document["artifact_version"] == 13
+    assert document["artifact_version"] == 14
     assert document["audit_id"] == "phase-8d-quality-v1"
     assert document["phase"] == "8D"
     assert document["status"] == "manual_evidence_pending"
@@ -123,11 +123,13 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "protocol-consistent unavailable-environment semantics" in phase_gate_reason
     assert "printable-text enforcement" in phase_gate_reason
     assert "fail-closed field-inp approval-manifest trust-record validation" in phase_gate_reason
-    assert "frozen-v1 manual and field protocol trust-root validation" in phase_gate_reason
+    assert (
+        "frozen-v1 protocol validation across the complete shared trust root" in phase_gate_reason
+    )
     assert "explicit temporal-integrity checks" in phase_gate_reason
     assert phase_gate["previous_certified_checkpoint"] == {
-        "commit": "eb5002ea8582c50d15aaf50a6606092e8fd85d3d",
-        "hosted_ci_run": "35825829642",
+        "commit": "823dfb3f14a825435880f646b7399852173ff226",
+        "hosted_ci_run": "35853146037",
         "result": "success",
     }
 
@@ -495,8 +497,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert "every tracked field-inp approval-manifest trust record" in serialized
     assert "referential integrity" in serialized
     assert "coherent sample/value pairs" in serialized
-    assert "protocol v1 status semantics" in serialized
-    assert "journey/check uniqueness" in serialized
+    assert "protocol v1 is validated as one complete shared trust root" in serialized
+    assert "evidence-item set is frozen" in serialized
+    assert "required journey/check lists cannot disappear" in serialized
+    assert "allowed statuses stay canonical" in serialized
     assert "semantic expansion requires an explicit protocol/code version change" in serialized
     assert "approval timestamps and approved export windows may not be future-dated" in serialized
     assert "timezone-aware iso-8601 values" in serialized

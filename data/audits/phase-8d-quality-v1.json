@@ -1,14 +1,14 @@
 {
-  "artifact_version": 13,
+  "artifact_version": 14,
   "audit_id": "phase-8d-quality-v1",
   "phase": "8D",
   "status": "manual_evidence_pending",
   "phase_gate": {
     "completion": "open",
-    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, strict manual-evidence validation with environment-bound screen-reader, zoom, reduced-motion, WebGL-disabled, and touch checks plus protocol-consistent unavailable-environment semantics, bounded no-follow external evidence input, printable-text enforcement, fail-closed field-INP approval-manifest trust-record validation, frozen-v1 manual and field protocol trust-root validation, explicit temporal-integrity checks for approval records and recorded observations, and a non-evidence operator worksheet generator are recorded. The four remaining human/low-end manual artifacts are absent, the field-INP approval manifest is empty, and no field-INP artifact exists, so five manual or field evidence items remain open. Representative WWT cadence and GPU-memory hardware observations remain separately recorded.",
+    "reason": "The automated audit baseline, renderer-bound representative GPU evidence, supporting real-browser 200% zoom automation, privacy-bounded field-INP intake, strict manual-evidence validation with environment-bound screen-reader, zoom, reduced-motion, WebGL-disabled, and touch checks plus protocol-consistent unavailable-environment semantics, bounded no-follow external evidence input, printable-text enforcement, fail-closed field-INP approval-manifest trust-record validation, frozen-v1 protocol validation across the complete shared trust root for manual validation, worksheet generation, and field-INP import, explicit temporal-integrity checks for approval records and recorded observations, and a non-evidence operator worksheet generator are recorded. The four remaining human/low-end manual artifacts are absent, the field-INP approval manifest is empty, and no field-INP artifact exists, so five manual or field evidence items remain open. Representative WWT cadence and GPU-memory hardware observations remain separately recorded.",
     "previous_certified_checkpoint": {
-      "commit": "eb5002ea8582c50d15aaf50a6606092e8fd85d3d",
-      "hosted_ci_run": "35825829642",
+      "commit": "823dfb3f14a825435880f646b7399852173ff226",
+      "hosted_ci_run": "35853146037",
       "result": "success"
     }
   },
@@ -258,7 +258,7 @@
     "Operator-supplied manual and field-INP JSON evidence inputs are accepted only as bounded regular files; final-component symlinks and non-regular files are rejected before parsing.",
     "Manual evidence, manual protocol strings, and field-INP evidence or approval text reject non-printable control/format characters while retaining visible international Unicode.",
     "Every tracked field-INP approval-manifest trust record and approved export is validated independently for admissible metadata, referential integrity, ordered observation windows, INP metric identity, and coherent sample/value pairs before evidence import.",
-    "Protocol v1 status semantics, journey/check uniqueness, manual-journey references, and null generic pass thresholds are fail-closed across manual validation, worksheet generation, and field-INP import; semantic expansion requires an explicit protocol/code version change.",
+    "Protocol v1 is validated as one complete shared trust root by manual validation, worksheet generation, and field-INP import: the evidence-item set is frozen, required journey/check lists cannot disappear, journey/check identities are unique where required, manual-journey references resolve, allowed statuses stay canonical, and generic pass thresholds remain null; semantic expansion requires an explicit protocol/code version change.",
     "Field-INP approval timestamps and approved export windows may not be future-dated, and recorded browser-zoom, representative-WWT, and GPU-memory observation timestamps must be timezone-aware ISO-8601 values that are not in the future.",
     "Scripted lab interaction latency is not described as field INP.",
     "A field-INP evidence validator or empty import path is not described as field INP evidence.",

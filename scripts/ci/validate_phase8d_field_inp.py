@@ -123,6 +123,23 @@ _CANONICAL_STATUSES = {
     "inconclusive",
     "unavailable",
 }
+_PROTOCOL_EVIDENCE_ITEMS = {
+    "wcag-2.2-aa-manual-review",
+    "screen-reader",
+    "browser-zoom-200",
+    "representative-low-end-device",
+    "field-inp",
+    "retained-gpu-memory",
+}
+_PROTOCOL_ITEM_KEYS = {
+    "journeys",
+    "checks",
+    "allowed_statuses",
+    "generic_pass_threshold",
+    "claim_boundary",
+}
+_PROTOCOL_LOW_END_ITEM_KEYS = _PROTOCOL_ITEM_KEYS | {"additional_routes"}
+_PROTOCOL_JOURNEY_KEYS = {"id", "routes", "actions", "risk_coverage"}
 _COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
@@ -371,14 +388,11 @@ def _protocol_field_inp() -> dict[str, object]:
     ):
         raise FieldInpEvidenceError("manual protocol identity is invalid")
     raw_items = protocol.get("evidence_items")
-    if not isinstance(raw_items, dict) or not all(isinstance(key, str) for key in raw_items):
-        raise FieldInpEvidenceError("manual protocol evidence_items must be an object")
+    if not isinstance(raw_items, dict) or set(raw_items) != _PROTOCOL_EVIDENCE_ITEMS:
+        raise FieldInpEvidenceError(
+            "manual protocol evidence_items must exactly match the frozen v1 item set"
+        )
     items = cast(dict[str, object], raw_items)
-    item = _object(
-        items.get("field-inp"),
-        "manual protocol field-inp",
-        {"journeys", "checks", "allowed_statuses", "generic_pass_threshold", "claim_boundary"},
-    )
     result_semantics = protocol.get("result_semantics")
     if not isinstance(result_semantics, dict) or set(result_semantics) != _CANONICAL_STATUSES:
         raise FieldInpEvidenceError(
@@ -387,33 +401,131 @@ def _protocol_field_inp() -> dict[str, object]:
     for status in _CANONICAL_STATUSES:
         _string(result_semantics[status], f"manual protocol result_semantics.{status}")
 
-    journeys = item["journeys"]
-    if journeys != []:
-        raise FieldInpEvidenceError("manual protocol field-inp.journeys must remain empty")
-
-    checks = item["checks"]
-    if not isinstance(checks, list) or not checks:
-        raise FieldInpEvidenceError("manual protocol field-inp.checks must be a non-empty list")
-    check_values = [_string(check, "manual protocol field-inp.checks") for check in checks]
-    if len(check_values) != len(set(check_values)):
-        raise FieldInpEvidenceError("manual protocol field-inp.checks values must be unique")
-
-    allowed_statuses = item["allowed_statuses"]
-    if not isinstance(allowed_statuses, list):
-        raise FieldInpEvidenceError("manual protocol field-inp.allowed_statuses must be a list")
-    status_values = [
-        _string(status, "manual protocol field-inp.allowed_statuses") for status in allowed_statuses
-    ]
-    if len(status_values) != len(set(status_values)) or set(status_values) != _CANONICAL_STATUSES:
-        raise FieldInpEvidenceError(
-            "manual protocol field-inp.allowed_statuses must exactly match the frozen v1 status set"
+    raw_journeys = protocol.get("manual_journeys")
+    if not isinstance(raw_journeys, list) or not raw_journeys:
+        raise FieldInpEvidenceError("manual protocol manual_journeys must be a non-empty list")
+    journey_ids: list[str] = []
+    for index, raw_journey in enumerate(raw_journeys):
+        journey = _object(
+            raw_journey,
+            f"manual protocol manual_journeys[{index}]",
+            _PROTOCOL_JOURNEY_KEYS,
         )
-    if item["generic_pass_threshold"] is not None:
-        raise FieldInpEvidenceError(
-            "manual protocol field-inp.generic_pass_threshold must remain null"
+        journey_id = _string(
+            journey["id"],
+            f"manual protocol manual_journeys[{index}].id",
         )
-    _string(item["claim_boundary"], "manual protocol field-inp.claim_boundary")
-    return item
+        journey_ids.append(journey_id)
+        for field in ("routes", "actions", "risk_coverage"):
+            values = journey[field]
+            if not isinstance(values, list) or not values:
+                raise FieldInpEvidenceError(
+                    f"manual protocol manual_journeys[{index}].{field} must be a non-empty list"
+                )
+            for value in values:
+                _string(
+                    value,
+                    f"manual protocol manual_journeys[{index}].{field}",
+                )
+    if len(journey_ids) != len(set(journey_ids)):
+        raise FieldInpEvidenceError("manual protocol manual journey ids must be unique")
+    journey_id_set = set(journey_ids)
+
+    validated_items: dict[str, dict[str, object]] = {}
+    for candidate_id in sorted(_PROTOCOL_EVIDENCE_ITEMS):
+        expected_keys = (
+            _PROTOCOL_LOW_END_ITEM_KEYS
+            if candidate_id == "representative-low-end-device"
+            else _PROTOCOL_ITEM_KEYS
+        )
+        item = _object(
+            items[candidate_id],
+            f"manual protocol {candidate_id}",
+            expected_keys,
+        )
+        journeys = item["journeys"]
+        if not isinstance(journeys, list):
+            raise FieldInpEvidenceError(f"manual protocol {candidate_id}.journeys must be a list")
+        if candidate_id == "field-inp":
+            if journeys != []:
+                raise FieldInpEvidenceError("manual protocol field-inp.journeys must remain empty")
+            journey_values: list[str] = []
+        else:
+            if not journeys:
+                raise FieldInpEvidenceError(
+                    f"manual protocol {candidate_id}.journeys must be a non-empty list"
+                )
+            journey_values = [
+                _string(value, f"manual protocol {candidate_id}.journeys") for value in journeys
+            ]
+            if len(journey_values) != len(set(journey_values)):
+                raise FieldInpEvidenceError(
+                    f"manual protocol {candidate_id}.journeys values must be unique"
+                )
+            unknown = sorted(set(journey_values) - journey_id_set)
+            if unknown:
+                raise FieldInpEvidenceError(
+                    f"manual protocol {candidate_id}.journeys references unknown manual "
+                    f"journey(s): {unknown}"
+                )
+
+        checks = item["checks"]
+        if not isinstance(checks, list) or not checks:
+            raise FieldInpEvidenceError(
+                f"manual protocol {candidate_id}.checks must be a non-empty list"
+            )
+        check_values = [
+            _string(check, f"manual protocol {candidate_id}.checks") for check in checks
+        ]
+        if len(check_values) != len(set(check_values)):
+            raise FieldInpEvidenceError(
+                f"manual protocol {candidate_id}.checks values must be unique"
+            )
+
+        allowed_statuses = item["allowed_statuses"]
+        if not isinstance(allowed_statuses, list):
+            raise FieldInpEvidenceError(
+                f"manual protocol {candidate_id}.allowed_statuses must be a list"
+            )
+        status_values = [
+            _string(status, f"manual protocol {candidate_id}.allowed_statuses")
+            for status in allowed_statuses
+        ]
+        if (
+            len(status_values) != len(set(status_values))
+            or set(status_values) != _CANONICAL_STATUSES
+        ):
+            raise FieldInpEvidenceError(
+                f"manual protocol {candidate_id}.allowed_statuses must exactly match the "
+                "frozen v1 status set"
+            )
+        if item["generic_pass_threshold"] is not None:
+            raise FieldInpEvidenceError(
+                f"manual protocol {candidate_id}.generic_pass_threshold must remain null"
+            )
+        _string(item["claim_boundary"], f"manual protocol {candidate_id}.claim_boundary")
+
+        if candidate_id == "representative-low-end-device":
+            additional_routes = item["additional_routes"]
+            if not isinstance(additional_routes, list):
+                raise FieldInpEvidenceError(
+                    "manual protocol representative-low-end-device.additional_routes must be a list"
+                )
+            route_values = [
+                _string(
+                    route,
+                    "manual protocol representative-low-end-device.additional_routes",
+                )
+                for route in additional_routes
+            ]
+            if len(route_values) != len(set(route_values)):
+                raise FieldInpEvidenceError(
+                    "manual protocol representative-low-end-device.additional_routes values "
+                    "must be unique"
+                )
+        validated_items[candidate_id] = item
+
+    return validated_items["field-inp"]
 
 
 def _approval_manifest(

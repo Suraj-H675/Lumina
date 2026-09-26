@@ -13,7 +13,7 @@ fail() {
 
 command -v git >/dev/null 2>&1 || fail "Git is required."
 command -v node >/dev/null 2>&1 || fail "Node.js 24.x active LTS is required."
-command -v uv >/dev/null 2>&1 || fail "A maintained uv version >=0.11.0 is required."
+command -v uv >/dev/null 2>&1 || fail "A maintained uv 0.12.x version >=0.12.17 is required."
 command -v docker >/dev/null 2>&1 || fail "Docker with Compose is required for Phase 0B2."
 docker info >/dev/null 2>&1 || fail "Docker daemon access is required for Phase 0B2."
 docker compose version >/dev/null 2>&1 || fail "Docker Compose is required for Phase 0B2."
@@ -25,8 +25,9 @@ NODE_MAJOR=${NODE_VERSION%%.*}
 UV_VERSION=$(uv --version | awk '{print $2}')
 UV_MAJOR=$(printf '%s' "$UV_VERSION" | cut -d. -f1)
 UV_MINOR=$(printf '%s' "$UV_VERSION" | cut -d. -f2)
-if [ "$UV_MAJOR" -eq 0 ] && [ "$UV_MINOR" -lt 11 ]; then
-  fail "uv >=0.11.0 is required; found $UV_VERSION."
+UV_PATCH=$(printf '%s' "$UV_VERSION" | cut -d. -f3 | sed 's/[^0-9].*$//')
+if [ "$UV_MAJOR" -ne 0 ] || [ "$UV_MINOR" -ne 12 ] || [ -z "$UV_PATCH" ] || [ "$UV_PATCH" -lt 17 ]; then
+  fail "uv 0.12.x >=0.12.17 is required; found $UV_VERSION."
 fi
 
 if command -v corepack >/dev/null 2>&1; then

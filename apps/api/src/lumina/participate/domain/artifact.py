@@ -15,6 +15,16 @@ PARTICIPATE_SCHEMA_VERSION: Final = 1
 PARTICIPATE_ARTIFACT_PATH: Final = "data/seed/participate-v1.json"
 PARTICIPATE_PACKAGED_ARTIFACT_PATH: Final = "data/participate-v1.json"
 
+
+def _find_repository_root(start: Path) -> Path | None:
+    for parent in (start, *start.parents):
+        if (parent / PARTICIPATE_ARTIFACT_PATH).is_file():
+            return parent
+    return None
+
+
+REPOSITORY_ROOT: Final = _find_repository_root(Path(__file__).resolve())
+
 _SOURCE_URLS: Final = {
     "nasa-citizen-science-directory": "https://science.nasa.gov/citizen-science/",
     "nasa-galaxy-zoo": "https://science.nasa.gov/citizen-science/galaxy-zoo/",
@@ -399,7 +409,9 @@ def _validate_activity(value: object, source_ids: set[str]) -> str:
     return activity_id
 
 
-def load_reviewed_participate_artifact(*, repository_root: Path | None = None) -> dict[str, object]:
+def load_reviewed_participate_artifact(
+    *, repository_root: Path | None = REPOSITORY_ROOT
+) -> dict[str, object]:
     """Load and strictly validate the reviewed source artifact or packaged mirror."""
 
     try:

@@ -161,7 +161,11 @@ class ProviderComposition:
 
 def nasa_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
     """Build the immutable code-owned NASA policy after loading its reviewed manifest."""
-    source_manifest = load_nasa_source_manifest(repository_root)
+    source_manifest = (
+        load_nasa_source_manifest()
+        if repository_root is None
+        else load_nasa_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=PROVIDER_CODE,
         adapter_id=ADAPTER_ID,
@@ -179,7 +183,11 @@ def nasa_runtime_config(*, repository_root: Path | None = None) -> ProviderRunti
 
 def nasa_apod_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
     """Build the immutable APOD policy after loading its reviewed manifest."""
-    source_manifest = load_nasa_apod_source_manifest(repository_root)
+    source_manifest = (
+        load_nasa_apod_source_manifest()
+        if repository_root is None
+        else load_nasa_apod_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=APOD_PROVIDER_CODE,
         adapter_id=APOD_ADAPTER_ID,
@@ -202,7 +210,11 @@ def nasa_apod_runtime_config(*, repository_root: Path | None = None) -> Provider
 
 def nasa_neows_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
     """Build the immutable NeoWs policy after loading its reviewed manifest."""
-    source_manifest = load_nasa_neows_source_manifest(repository_root)
+    source_manifest = (
+        load_nasa_neows_source_manifest()
+        if repository_root is None
+        else load_nasa_neows_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=NEOWS_PROVIDER_CODE,
         adapter_id=NEOWS_ADAPTER_ID,
@@ -226,7 +238,11 @@ def nasa_neows_runtime_config(*, repository_root: Path | None = None) -> Provide
 
 def noaa_swpc_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
     """Build the fixed NOAA SWPC atomic-snapshot policy."""
-    source_manifest = load_noaa_swpc_source_manifest(repository_root)
+    source_manifest = (
+        load_noaa_swpc_source_manifest()
+        if repository_root is None
+        else load_noaa_swpc_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=SWPC_PROVIDER_CODE,
         adapter_id=SWPC_ADAPTER_ID,
@@ -250,7 +266,11 @@ def noaa_swpc_runtime_config(*, repository_root: Path | None = None) -> Provider
 
 def launch_library_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
     """Build the fixed Launch Library 2 upcoming-launch policy."""
-    source_manifest = load_launch_library_source_manifest(repository_root)
+    source_manifest = (
+        load_launch_library_source_manifest()
+        if repository_root is None
+        else load_launch_library_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=LL2_PROVIDER_CODE,
         adapter_id=LL2_ADAPTER_ID,
@@ -274,7 +294,11 @@ def launch_library_runtime_config(*, repository_root: Path | None = None) -> Pro
 
 def celestrak_runtime_config(*, repository_root: Path | None = None) -> ProviderRuntimeConfig:
     """Build the fixed selected-group CelesTrak OMM policy."""
-    source_manifest = load_celestrak_source_manifest(repository_root)
+    source_manifest = (
+        load_celestrak_source_manifest()
+        if repository_root is None
+        else load_celestrak_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=CELESTRAK_PROVIDER_CODE,
         adapter_id=CELESTRAK_ADAPTER_ID,
@@ -300,7 +324,11 @@ def zooniverse_panoptes_runtime_config(
     *, repository_root: Path | None = None
 ) -> ProviderRuntimeConfig:
     """Build the fixed six-project Zooniverse Panoptes status policy."""
-    source_manifest = load_zooniverse_panoptes_source_manifest(repository_root)
+    source_manifest = (
+        load_zooniverse_panoptes_source_manifest()
+        if repository_root is None
+        else load_zooniverse_panoptes_source_manifest(repository_root)
+    )
     return ProviderRuntimeConfig(
         provider_code=PANOPTES_PROVIDER_CODE,
         adapter_id=PANOPTES_ADAPTER_ID,

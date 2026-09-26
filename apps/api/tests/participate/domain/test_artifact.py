@@ -7,7 +7,6 @@ from typing import Any, cast
 import pytest
 from lumina.participate.domain.artifact import (
     PARTICIPATE_ARTIFACT_PATH,
-    PARTICIPATE_PACKAGED_ARTIFACT_PATH,
     ParticipateArtifactError,
     load_reviewed_participate_artifact,
 )
@@ -48,14 +47,8 @@ def test_reviewed_participate_artifact_matches_frozen_v1_contract() -> None:
     assert len(sources) == 19
 
 
-def test_packaged_runtime_artifact_is_byte_identical_and_loads_through_same_validator() -> None:
+def test_default_source_checkout_loader_uses_the_canonical_reviewed_artifact() -> None:
     repository_root = _repository_root()
-    reviewed = (repository_root / PARTICIPATE_ARTIFACT_PATH).read_bytes()
-    packaged = (
-        repository_root / "apps/api/src/lumina" / PARTICIPATE_PACKAGED_ARTIFACT_PATH
-    ).read_bytes()
-
-    assert packaged == reviewed
     assert load_reviewed_participate_artifact() == load_reviewed_participate_artifact(
         repository_root=repository_root
     )

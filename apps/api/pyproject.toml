@@ -31,3 +31,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lumina"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"../../data/manifests/sources" = "lumina/data/manifests/sources"
+"../../data/seed/participate-v1.json" = "lumina/data/participate-v1.json"

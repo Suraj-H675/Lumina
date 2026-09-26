@@ -19,6 +19,7 @@ import pytest
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml"
 SECURITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_security.sh"
+DOC_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py"
 MIGRATION_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_migration_integrity.py"
 PNPM_WORKSPACE_PATH = REPOSITORY_ROOT / "pnpm-workspace.yaml"
 PNPM_LOCKFILE_PATH = REPOSITORY_ROOT / "pnpm-lock.yaml"
@@ -41,6 +42,7 @@ def _load_module(name: str, path: Path) -> ModuleType:
     return module
 
 
+_doc_checker = _load_module("lumina_ci_doc_checker", DOC_SCRIPT)
 _migration_checker = _load_module("lumina_ci_migration_checker", MIGRATION_SCRIPT)
 
 ACTION_PINS = {
@@ -62,8 +64,6 @@ SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
     "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2",
     "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2",
-    "next@16.2.12>postcss": "8.5.25",
-    "next@16.2.12>sharp": "0.35.0",
 }
 HISTORICAL_TRUFFLEHOG_EXCEPTIONS = (
     (
@@ -259,12 +259,18 @@ def _dependency_inputs() -> dict[Path, bytes]:
     return {path: path.read_bytes() for path in DEPENDENCY_INPUT_PATHS}
 
 
-def _has_pinned_uv_version(output: str) -> bool:
+def _has_supported_local_uv_version(output: str) -> bool:
     lines = output.splitlines()
     if len(lines) != 1:
         return False
     fields = lines[0].split()
-    return len(fields) >= 2 and fields[0] == "uv" and fields[1] == "0.12.1"
+    if len(fields) < 2 or fields[0] != "uv":
+        return False
+    version = fields[1].split(".")
+    if len(version) != 3 or any(not part.isdigit() for part in version):
+        return False
+    major, minor, patch = (int(part) for part in version)
+    return major == 0 and minor == 12 and patch >= 17
 
 
 def test_workflow_uses_only_exact_reviewed_action_pins() -> None:
@@ -292,8 +298,6 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
     assert _top_level_yaml_block(workspace, "overrides") == (
         '  "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2"',
         '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2"',
-        '  "next@16.2.12>postcss": "8.5.25"',
-        '  "next@16.2.12>sharp": "0.35.0"',
         "",
     )
     _assert_exact_pnpm_overrides(_top_level_yaml_mapping(workspace, "overrides"))
@@ -306,8 +310,6 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
     [
         {
             "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.2.0",
-            "next@16.2.12>postcss": "8.5.25",
-            "next@16.2.12>sharp": "0.35.0",
         },
         {
             **EXPECTED_PNPM_OVERRIDES,
@@ -389,7 +391,7 @@ const input = Buffer.from([255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255]);
     assert result["length"] > 0
 
 
-def test_local_runtime_version_policy_accepts_node_major_24_and_pinned_uv_metadata() -> None:
+def test_local_runtime_version_policy_accepts_node_major_24_and_maintained_uv() -> None:
     _run(
         [
             "node",
@@ -398,9 +400,12 @@ def test_local_runtime_version_policy_accepts_node_major_24_and_pinned_uv_metada
         ],
         cwd=REPOSITORY_ROOT,
     )
-    assert _has_pinned_uv_version(_run(["uv", "--version"], cwd=REPOSITORY_ROOT).stdout)
-    assert _has_pinned_uv_version("uv 0.12.1 (official-build-metadata)\n")
-    assert not _has_pinned_uv_version("uv 0.12.2 (official-build-metadata)\n")
+    assert _has_supported_local_uv_version(_run(["uv", "--version"], cwd=REPOSITORY_ROOT).stdout)
+    assert _has_supported_local_uv_version("uv 0.12.17 (official-build-metadata)\n")
+    assert _has_supported_local_uv_version("uv 0.12.18\n")
+    assert _has_supported_local_uv_version("uv 0.12.19 (official-build-metadata)\n")
+    assert not _has_supported_local_uv_version("uv 0.12.16 (official-build-metadata)\n")
+    assert not _has_supported_local_uv_version("uv 0.13.0\n")
 
 
 def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
@@ -435,16 +440,16 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
         assert "pnpm install --frozen-lockfile" in node_job
 
     assert workflow.count("astral-sh/setup-uv@") == 2
-    assert workflow.count('version: "0.12.1"') == 2
+    assert workflow.count('version: "0.12.18"') == 2
     assert workflow.count('python-version: "3.12.13"') == 2
     assert workflow.count("download-from-astral-mirror: false") == 2
     assert workflow.count("enable-cache: true") == 2
     assert workflow.count('cache-dependency-glob: "uv.lock"') == 2
-    assert workflow.count('cache-suffix: "uv-0.12.1"') == 2
+    assert workflow.count('cache-suffix: "uv-0.12.18"') == 2
     assert workflow.count("cache-python: false") == 2
     for uv_job in (repository, python):
         assert "uv --version |" in uv_job
-        assert 'NR == 1 && $1 == "uv" && $2 == "0.12.1"' in uv_job
+        assert 'NR == 1 && $1 == "uv" && $2 == "0.12.18"' in uv_job
         assert "uv lock --check" in uv_job
         assert "uv sync --locked" in uv_job
 
@@ -904,6 +909,88 @@ def test_security_signal_cleanup_removes_private_temporary_output(
     assert not Path(temporary_root).exists()
 
 
+def _doc_repository(tmp_path: Path) -> Path:
+    repository = tmp_path / "docs-repository"
+    _initialize_repository(repository)
+    (repository / ".gitignore").write_text("ignored.md\n", encoding="utf-8")
+    (repository / "docs").mkdir()
+    (repository / "docs" / "target.md").write_text("# Valid section\n", encoding="utf-8")
+    (repository / "README.md").write_text(
+        "[valid](docs/target.md#valid-section)\n", encoding="utf-8"
+    )
+    _commit_all(repository, "documentation")
+    return repository
+
+
+def _run_doc_checker(repository: Path) -> subprocess.CompletedProcess[str]:
+    return _run([sys.executable, str(DOC_SCRIPT)], cwd=repository, check=False)
+
+
+def test_doc_checker_validates_tracked_and_modified_markdown(tmp_path: Path) -> None:
+    repository = _doc_repository(tmp_path)
+    valid = _run_doc_checker(repository)
+    assert valid.returncode == 0
+    assert "2 Markdown files checked" in valid.stdout
+
+    (repository / "tracked-broken.md").write_text(
+        "[tracked](docs/missing-tracked.md)\n", encoding="utf-8"
+    )
+    _commit_all(repository, "add tracked broken link")
+    tracked_broken = _run_doc_checker(repository)
+    assert tracked_broken.returncode == 1
+    assert "tracked-broken.md:1: doc.target_missing" in tracked_broken.stdout
+
+    (repository / "tracked-broken.md").write_text(
+        "[fixed](docs/target.md#valid-section)\n", encoding="utf-8"
+    )
+    _commit_all(repository, "fix tracked link")
+    (repository / "README.md").write_text("[broken](docs/missing.md)\n", encoding="utf-8")
+    broken = _run_doc_checker(repository)
+    assert broken.returncode == 1
+    assert "README.md:1: doc.target_missing" in broken.stdout
+
+
+def test_doc_checker_includes_untracked_excludes_ignored_and_deleted(tmp_path: Path) -> None:
+    repository = _doc_repository(tmp_path)
+    deleted = repository / "deleted.md"
+    deleted.write_text("[broken](missing-deleted.md)\n", encoding="utf-8")
+    _commit_all(repository, "add deleted candidate")
+    deleted.unlink()
+    (repository / "ignored.md").write_text("[ignored](missing-ignored.md)\n", encoding="utf-8")
+    (repository / "new.md").write_text("[new](missing-new.md)\n", encoding="utf-8")
+
+    result = _run_doc_checker(repository)
+    assert result.returncode == 1
+    assert "new.md:1: doc.target_missing" in result.stdout
+    assert "ignored.md" not in result.stdout
+    assert "deleted.md" not in result.stdout
+
+
+def test_doc_checker_rejects_repository_and_symlink_escapes(tmp_path: Path) -> None:
+    repository = _doc_repository(tmp_path)
+    outside = tmp_path / "outside.md"
+    outside.write_text("# Outside\n", encoding="utf-8")
+    (repository / "escape.md").write_text("[escape](../outside.md)\n", encoding="utf-8")
+    (repository / "linked.md").symlink_to(outside)
+
+    result = _run_doc_checker(repository)
+    assert result.returncode == 1
+    assert "escape.md:1: doc.target_escape" in result.stdout
+    assert "linked.md:0: doc.candidate_escape" in result.stdout
+
+
+def test_doc_checker_ignores_external_schemes(tmp_path: Path) -> None:
+    repository = _doc_repository(tmp_path)
+    (repository / "external.md").write_text(
+        "[web](https://example.invalid/a#b)\n"
+        "[mail](mailto:owner@example.invalid)\n"
+        "[custom](science-data:catalog-entry)\n",
+        encoding="utf-8",
+    )
+    result = _run_doc_checker(repository)
+    assert result.returncode == 0
+
+
 def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> None:
     diagnostics = _migration_checker.validate_migrations()
     assert diagnostics == ()
@@ -1067,26 +1154,33 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
     assert "migration.unapproved_file: 0003_unapproved.py" in changed
 
 
-def test_root_commands_and_issue_forms_are_publication_complete() -> None:
+def test_root_commands_and_repository_guidance_are_publication_complete() -> None:
     package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
     scripts = package["scripts"]
-    assert "docs:check" not in scripts
+    assert scripts["docs:check"] == "uv run python scripts/ci/check_doc_links.py"
+    assert scripts["package:check"] == "uv run python scripts/ci/check_python_wheel.py"
     assert scripts["migrations:check"] == "uv run python scripts/ci/check_migration_integrity.py"
     assert scripts["security:check"] == "bash scripts/ci/check_security.sh"
-    for command in ("api:check", "manifests:check", "migrations:check"):
+    for command in (
+        "api:check",
+        "package:check",
+        "manifests:check",
+        "docs:check",
+        "migrations:check",
+    ):
         assert f"pnpm run {command}" in scripts["check"]
-    assert "docs:check" not in scripts["check"]
     assert "security:check" not in scripts["check"]
 
-    assert not (REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py").exists()
-    tracked = _run(["git", "ls-files", "-z"], cwd=REPOSITORY_ROOT).stdout.split("\0")
-    assert not any(path.lower().endswith(".md") for path in tracked if path)
-    assert ".github/pull_request_template.md" not in tracked
-
-    workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
-    repository = _workflow_job(workflow, "repository", "python_postgres")
-    assert "Assert current tree tracks no Markdown" in repository
-    assert "awk 'tolower($0) ~ /\\.md$/'" in repository
+    for relative in (
+        "README.md",
+        "AGENTS.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        ".github/pull_request_template.md",
+        "docs/README.md",
+    ):
+        assert (REPOSITORY_ROOT / relative).is_file()
 
     template_root = REPOSITORY_ROOT / ".github" / "ISSUE_TEMPLATE"
     assert {path.name for path in template_root.glob("*.yml")} == {
@@ -1100,7 +1194,6 @@ def test_root_commands_and_issue_forms_are_publication_complete() -> None:
         assert "secret" in text.lower() or "privacy" in text.lower()
     bug_report = (template_root / "bug_report.yml").read_text(encoding="utf-8")
     assert 'GitHub\'s "Report a vulnerability"' in bug_report
-    assert "SECURITY.md" not in bug_report
 
 
 def test_current_fictional_uri_inputs_use_only_inline_trufflehog_ignore_markers() -> None:

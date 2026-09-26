@@ -6,8 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Requests must respect Lumina's no-LLM, free-core, local-first, provenance, accessibility,
-        and phased-delivery requirements. A future roadmap item is not automatically in current scope.
+        Requests should explain the user problem, scientific/data basis, accessibility implications,
+        privacy/security impact, and operational cost. Existing architecture and past roadmap
+        decisions are context rather than immutable constraints.
   - type: textarea
     id: outcome
     attributes:
@@ -18,8 +19,8 @@ body:
   - type: input
     id: phase
     attributes:
-      label: Roadmap phase
-      description: Identify the roadmap phase or explain the minimum prerequisite.
+      label: Product area or prerequisite
+      description: Identify the affected product area and any concrete prerequisite when known.
     validations:
       required: true
   - type: textarea
@@ -51,11 +52,11 @@ body:
     validations:
       required: true
   - type: checkboxes
-    id: invariants
+    id: confirmation
     attributes:
-      label: Product invariants
+      label: Confirmation
       options:
-        - label: This does not require an LLM, generative content, a paid core API, or a public social network.
+        - label: I identified any new paid dependency, external service, account requirement, or recurring infrastructure cost.
           required: true
-        - label: Core use remains accessible without animation or 3D and does not require an account.
+        - label: I considered an accessible non-pointer/non-animation/non-3D path for any core interaction this changes.
           required: true

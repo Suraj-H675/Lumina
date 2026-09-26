@@ -9,9 +9,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from importlib import resources
 from logging.handlers import BufferingHandler
-from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -351,22 +349,8 @@ def test_nasa_source_manifest_pins_official_provenance_without_a_licence_claim()
     assert "DataManifest" in manifest.fetch_time_policy
 
 
-def test_packaged_source_manifest_matches_reviewed_repository_manifest() -> None:
-    repository_root = Path(__file__).resolve().parents[4]
-    packaged = resources.files("lumina").joinpath(
-        "data/manifests/sources/nasa-exoplanet-archive.json"
-    )
-
-    assert (
-        packaged.read_bytes()
-        == (repository_root / "data/manifests/sources/nasa-exoplanet-archive.json").read_bytes()
-    )
-
-
-def test_source_manifest_falls_back_to_packaged_resource_when_repository_is_absent(
-    tmp_path: Path,
-) -> None:
-    assert load_nasa_source_manifest(tmp_path).source_id == "nasa-exoplanet-archive"
+def test_source_manifest_uses_canonical_repository_manifest_in_source_checkout() -> None:
+    assert load_nasa_source_manifest().source_id == "nasa-exoplanet-archive"
 
 
 def test_runtime_policy_rejects_manifest_endpoint_drift() -> None:

@@ -62,9 +62,13 @@ OSV_IMAGE = (
     "ghcr.io/google/osv-scanner:v2.4.0@"
     "sha256:5116601dedc01c1c580eb92371883ec052fc4c13c3fbc109d621a63ac416d475"
 )
-API_BASE_IMAGE = (
-    "ghcr.io/astral-sh/uv:0.12.17-python3.12-trixie-slim@"
-    "sha256:9a59bb7206905ccaae4f7dab222fbac47c125a21e5fc16f43f427cd6c940ade3"
+API_UV_IMAGE = (
+    "ghcr.io/astral-sh/uv:0.12.17@"
+    "sha256:10787c682e4184e4f290de1171fd4703dc63de99221f10fe1c99002ce7fa9acc"
+)
+API_PYTHON_IMAGE = (
+    "python:3.12.13-slim-trixie@"
+    "sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36"
 )
 SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
@@ -300,8 +304,11 @@ def test_api_container_definition_is_pinned_non_root_and_runtime_complete() -> N
     dockerfile = API_DOCKERFILE_PATH.read_text(encoding="utf-8")
     dockerignore = DOCKERIGNORE_PATH.read_text(encoding="utf-8")
 
-    assert dockerfile.splitlines()[0] == f"FROM {API_BASE_IMAGE}"
-    assert dockerfile.count("FROM ") == 1
+    lines = dockerfile.splitlines()
+    assert lines[0] == f"FROM {API_UV_IMAGE} AS uv"
+    assert f"FROM {API_PYTHON_IMAGE}" in lines
+    assert dockerfile.count("FROM ") == 2
+    assert "COPY --from=uv /uv /uvx /bin/" in dockerfile
     assert "UV_FROZEN=1" in dockerfile
     assert "UV_NO_DEV=1" in dockerfile
     assert "UV_PYTHON_DOWNLOADS=0" in dockerfile

@@ -54,7 +54,7 @@ jobs:
       - name: Resolve deployed production release
         id: release
         env:
-          LUMINA_PRODUCTION_META_URL: https://lumina-psi-eight-23.vercel.app/api/v1/meta
+          LUMINA_PRODUCTION_META_URL: https://nova-lumina.vercel.app/api/v1/meta
         run: |
           python3 - <<'PY'
           import json

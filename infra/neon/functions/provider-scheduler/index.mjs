@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
-const LUMINA_SYNC_URL = "https://lumina-psi-eight-23.vercel.app/api/v1/providers/internal-sync";
+const LUMINA_SYNC_URL = "https://nova-lumina.vercel.app/api/v1/providers/internal-sync";
 const PROVIDERS = new Set([
   "celestrak-gp",
   "launch-library-2",

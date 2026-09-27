@@ -4,6 +4,8 @@ Lumina is a public astronomy learning and exploration platform that combines rev
 
 The project prioritises scientific honesty, provenance, accessibility, graceful degradation, and a low-cost operational footprint. Existing implementation choices are not treated as permanent constraints: they should be kept only while they remain the best solution.
 
+Live application: https://nova-lumina.vercel.app
+
 ## What Lumina includes
 
 - catalogue exploration and object pages;

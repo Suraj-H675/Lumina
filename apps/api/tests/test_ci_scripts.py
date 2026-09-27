@@ -395,7 +395,7 @@ def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe
     assert "runs-on: ubuntu-24.04" in workflow
     assert "timeout-minutes: 15" in workflow
     assert "contents: read" in workflow
-    assert "https://lumina-psi-eight-23.vercel.app/api/v1/meta" in workflow
+    assert "https://nova-lumina.vercel.app/api/v1/meta" in workflow
     assert "urllib.request.urlopen(request, timeout=30)" in workflow
     assert 're.fullmatch(r"[0-9a-f]{40}", build_commit)' in workflow
     assert "ref: ${{ steps.release.outputs.sha }}" in workflow

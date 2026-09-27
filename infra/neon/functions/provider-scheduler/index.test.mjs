@@ -65,10 +65,7 @@ test("invokes only the fixed Lumina sync endpoint with private authorization", a
   );
 
   assert.equal(response.status, 200);
-  assert.equal(
-    observed.url,
-    "https://lumina-psi-eight-23.vercel.app/api/v1/providers/internal-sync",
-  );
+  assert.equal(observed.url, "https://nova-lumina.vercel.app/api/v1/providers/internal-sync");
   assert.equal(observed.init.method, "POST");
   assert.equal(observed.init.headers.Authorization, `Bearer ${DOWNSTREAM_TOKEN}`);
   assert.equal(observed.init.headers["X-Lumina-Provider-Code"], "noaa-swpc");

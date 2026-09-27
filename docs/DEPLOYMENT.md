@@ -1,0 +1,247 @@
+# Deployment
+
+Lumina's public runtime is a multi-service application. A deployment is only ready when the web
+application, API, PostgreSQL state, reviewed catalogue data, and enabled provider state agree on the
+same release.
+
+This document describes the vendor-neutral deployment contract. Hosting-specific configuration may
+implement this contract, but must not weaken it.
+
+## Public deployment profile
+
+The recommended first public profile is:
+
+- Next.js web application on an HTTPS Node-capable host;
+- the production FastAPI image from `infra/docker/api/Dockerfile` on an HTTPS container-capable web
+  service;
+- durable managed PostgreSQL;
+- image identification disabled;
+- provider refresh performed by bounded scheduled `lumina-provider sync` commands rather than a
+  continuously running worker;
+- API documentation left disabled by the production default.
+
+The worker is still the canonical runtime for queued jobs and is required if identification or other
+queued work is enabled. The direct provider command is only an alternative execution boundary for
+the same guarded `ProviderSyncService` when the deployment does not otherwise need a worker.
+
+## Required production settings
+
+### API
+
+At minimum the API service needs:
+
+```text
+LUMINA_ENV=production
+LUMINA_LOG_LEVEL=INFO
+LUMINA_API_HOST=0.0.0.0
+LUMINA_API_PORT=<service port>
+LUMINA_CORS_ORIGINS=https://<public-web-origin>
+LUMINA_BUILD_COMMIT=<deployed git sha>
+LUMINA_DATABASE_TLS_MODE=verify-full
+LUMINA_DATABASE_URL=postgresql+asyncpg://<runtime-role>:<password>@<host>:<port>/<database>
+LUMINA_ENABLE_IDENTIFICATION=false
+LUMINA_ENABLE_REMOTE_ASTROMETRY=false
+```
+
+Do not append database query parameters. Lumina configures the reviewed TLS mode through driver
+arguments and intentionally rejects connection-string query options.
+
+The one-off migration environment additionally needs:
+
+```text
+LUMINA_DATABASE_SYNC_URL=postgresql+psycopg://<migration-role>:<password>@<host>:<port>/<database>
+```
+
+The reviewed Messier v2 catalogue operation additionally needs:
+
+```text
+LUMINA_CATALOG_OPERATOR_DATABASE_URL=postgresql+asyncpg://<catalog-role>:<password>@<host>:<port>/<database>
+```
+
+`LUMINA_NASA_API_KEY` is optional for the core product. Providers whose reviewed contracts require a
+registered NASA key must remain disabled until the key is configured server-side.
+
+### Web
+
+Production web builds require both API origins explicitly:
+
+```text
+LUMINA_WEB_API_ORIGIN=https://<public-api-origin>
+LUMINA_WEB_PUBLIC_API_ORIGIN=https://<public-api-origin>
+```
+
+The first value is used by server-side web requests. The second can reach browser code and therefore
+must be the real public HTTPS API origin. Production deliberately rejects loopback and plaintext
+browser API origins.
+
+## Database bootstrap
+
+Use an administrator/database-owner connection only for initial role/database ownership and extension
+provisioning. Do not run the application with administrator credentials.
+
+Create three fixed login roles with pairwise-distinct credentials:
+
+- `lumina_migrate`: migration role; no superuser, createdb, createrole, bypassrls, or inherited role
+  privileges;
+- `lumina_app`: API/provider runtime role with the least privileges granted by migrations;
+- `lumina_catalog_operator`: reviewed catalogue canonical-selection role, also without inherited or
+  administrative privileges.
+
+The target database remains owned by the database administrator. Revoke public database/schema
+privileges, grant database `CONNECT` to the three Lumina roles, grant `USAGE, CREATE` on `public` to
+`lumina_migrate`, and grant only `USAGE` on `public` to the runtime and catalogue roles.
+
+### Migration order
+
+The accepted migration lineage deliberately requires owner-provisioned `pg_trgm` between B2 and B3.
+For a new production database:
+
+```sh
+uv run alembic upgrade b7f3a2c81d4e
+# As the database owner, in the target Lumina database:
+# CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public;
+uv run alembic upgrade head
+test "$(uv run alembic heads)" = "f1b2c3d4e5f6 (head)"
+```
+
+Do not rewrite migration history or create the extension from the runtime/migration role merely to
+fit a hosting vendor. A managed PostgreSQL service that cannot satisfy this contract is not compatible
+with Lumina.
+
+## Reviewed catalogue bootstrap
+
+Migrations do not by themselves establish the complete reviewed catalogue. After migrations, ingest
+and verify every current reviewed slice:
+
+```sh
+uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
+uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1
+
+uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
+uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
+
+uv run lumina-catalog ingest --slice simbad-messier-j2000-v2
+uv run lumina-catalog data-check --slice simbad-messier-j2000-v2
+```
+
+The Messier ingestion command uses the separate catalogue-operator connection for canonical selection
+and validates the reviewed selection fingerprint. A failed ingest or data check blocks deployment.
+
+These commands are replay-safe and should also be exercised against a deployment candidate before a
+release is promoted.
+
+## Provider refresh without a permanent worker
+
+Provider state is disabled by default. Enable only providers that the deployment is prepared to keep
+fresh and whose credentials, where required, are configured:
+
+```sh
+uv run lumina-provider enable --provider <provider-code>
+```
+
+A scheduler may then call the bounded direct execution boundary:
+
+```sh
+uv run lumina-provider sync --provider <provider-code>
+```
+
+This command uses the same provider registry, lease acquisition, due-time checks, request limits,
+schema validation, replacement protection, stale fallback, circuit breaker, and persistence as the
+worker-owned provider job. Its JSON output contains operational metadata only; provider payload bytes
+and raw response hashes are not emitted.
+
+Use the reviewed source-manifest cadence:
+
+| Provider code | Scheduler invocation |
+| --- | --- |
+| `noaa-swpc` | every 5 minutes |
+| `nasa-exoplanet-archive` | hourly (the provider enforces its 6-hour eligibility) |
+| `nasa-apod` | hourly (the provider enforces its 4-hour eligibility) |
+| `nasa-neows` | hourly (the provider enforces its 2-hour eligibility) |
+| `launch-library-2` | hourly |
+| `celestrak-gp` | hourly (the provider enforces its 2-hour eligibility) |
+| `zooniverse-panoptes` | every 6 hours |
+
+The scheduler must run the exact release that owns the deployed database contract. GitHub Actions can
+run scheduled workflows as often as every five minutes, but schedule configuration should only be
+enabled after production database secrets exist.
+
+If no scheduler is configured, leave provider state disabled and expose the product's existing honest
+unavailable state instead of claiming current provider data.
+
+## Identification
+
+The first public profile keeps identification disabled. The current implementation supports private
+uploads on filesystem storage only. Enabling it on an ephemeral web service would lose uploads, and
+API/worker processes would need shared persistent storage.
+
+Do not enable identification until the deployment provides a reviewed shared persistent-storage
+design. Remote Astrometry.net additionally requires its server API key and the worker's polling and
+retention lifecycle.
+
+## Container artifact
+
+Build the API from the repository root:
+
+```sh
+docker build -f infra/docker/api/Dockerfile -t lumina-api:<git-sha> .
+```
+
+The image:
+
+- pins the official uv/Python base image by digest;
+- installs only locked production Python dependencies;
+- contains the API source, migrations, and reviewed runtime science data required by the API;
+- runs as UID/GID `10001` rather than root;
+- contains no environment secrets;
+- can be used for the API service and for one-off migration/catalog/provider operator commands.
+
+CI must build and smoke this image before aggregate acceptance can pass.
+
+## Release order
+
+For an initial deployment:
+
+1. Provision PostgreSQL and the three Lumina roles.
+2. Migrate to B2.
+3. Provision and verify `pg_trgm` as the database owner.
+4. Migrate to repository head.
+5. Ingest and data-check all three reviewed catalogue slices.
+6. Deploy the API image with identification and providers disabled.
+7. Verify API liveness and readiness over HTTPS.
+8. Build/deploy the web app with the exact public API origin.
+9. Verify browser requests, CORS, narrow/mobile behavior, and critical product journeys on the public
+   origins.
+10. Configure provider credentials, deliberately enable approved providers, then enable their external
+    schedules.
+11. Observe provider freshness/status before describing those surfaces as live.
+
+For subsequent releases, run migrations/catalog checks as an explicit pre-promotion step. Never run
+Alembic automatically from every API replica or request cold start.
+
+## Public verification
+
+At minimum verify the deployed release against:
+
+- `/health/live` and `/health/ready` on the API origin;
+- `/status` on the web origin;
+- catalogue browse/search and one object detail;
+- one deterministic simulation request from the browser;
+- one observation/sky-context journey;
+- mobile-width overflow and keyboard navigation on representative routes;
+- provider status/freshness for every provider actually enabled;
+- the deployed build SHA reported by the API status surface.
+
+The remaining human/device quality evidence in `docs/QUALITY_STATUS.md` is still required for claims
+that exceed automated deployment readiness.
+
+## Secrets and rollback
+
+- Keep database, NASA, and Astrometry.net credentials only in server-side secret stores.
+- Never expose them through `NEXT_PUBLIC_*`, browser-visible configuration, image layers, logs, or
+  committed deployment files.
+- Retain the previous web/API artifact for rollback.
+- Database migrations are forward-owned. Before applying a release migration, understand whether an
+  application rollback remains compatible with the migrated schema.
+- Back up or use the managed database provider's restore/branch mechanism before destructive operator
+  work.

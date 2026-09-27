@@ -16,6 +16,7 @@ from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.domain.models import EnqueueJobOutcome, JobType
 from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
 from lumina.provenance.application.registry import PRODUCTION_PROVIDER_CODES, ProviderRegistration
+from lumina.provenance.application.sync import ProviderSyncReport
 from lumina.provenance.composition import compose_provider_runtime
 from lumina.provenance.domain.runtime import (
     PROVIDER_CODE,
@@ -54,6 +55,7 @@ def _parser() -> _SafeArgumentParser:
         ("status", "Read safe provider runtime status."),
         ("enable", "Enable provider synchronization."),
         ("disable", "Disable provider synchronization."),
+        ("sync", "Run one bounded provider synchronization cycle now."),
         ("enqueue-sync", "Enqueue the provider sync for its approved UTC cadence."),
     ):
         command_parser = commands.add_parser(command, help=help_text)
@@ -92,6 +94,8 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
                 enabled=namespace.command == "enable",
             )
             return _status_payload(registration, snapshot)
+        if namespace.command == "sync":
+            return _sync_payload(await sync_service.sync(namespace.provider))
         if namespace.command == "enqueue-sync":
             return await _enqueue_sync(settings, runtime.session_factory, namespace.provider)
         raise InvalidProviderInvocation()
@@ -195,6 +199,19 @@ def _enqueue_payload(
         "status": outcome.status.value,
         "replayed": outcome.replayed,
         "idempotency_key": idempotency_key,
+    }
+
+
+def _sync_payload(report: ProviderSyncReport) -> dict[str, object]:
+    """Expose only bounded operational metadata from a handled direct sync."""
+    return {
+        "provider_code": report.provider_code,
+        "outcome": report.outcome.value,
+        "failure_code": report.failure_code,
+        "attempts": report.attempts,
+        "retries": report.retries,
+        "cache_state": report.cache_state,
+        "stale_fallback": report.stale_fallback,
     }
 
 

@@ -352,6 +352,77 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  api_container:
+    name: API container
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Build production API image
+        run: |
+          docker build \
+            --file infra/docker/api/Dockerfile \
+            --tag lumina-api:ci \
+            .
+
+      - name: Smoke production API image
+        run: |
+          test "$(docker run --rm --entrypoint id lumina-api:ci -u)" = "10001"
+          docker run --rm \
+            --entrypoint /app/.venv/bin/lumina-provider \
+            lumina-api:ci \
+            --help >/dev/null
+          artifact_output="$(
+            docker run --rm \
+              --entrypoint /app/.venv/bin/lumina-catalog \
+              lumina-api:ci \
+              ingest --slice simbad-messier-j2000-v2 --validate-only
+          )"
+          docker run --rm -i \
+            --entrypoint /app/.venv/bin/python \
+            lumina-api:ci \
+            - "$artifact_output" <<'PY'
+          import json
+          import sys
+          from lumina.sky_context.domain.bright_star_artifact import (
+              BRIGHT_STAR_ROW_COUNT,
+              validate_bright_star_artifact,
+          )
+          from lumina.sky_context.domain.iau_context_artifact import (
+              CONSTELLATION_ROW_COUNT,
+              NAMED_ANCHOR_ROW_COUNT,
+              validate_iau_context_artifacts,
+          )
+
+          payload = json.loads(sys.argv[1])
+          assert payload == {
+              "artifact_sha256": "7d155edba33d1fc89b036da458de8dc40d387a5c898ef0c717f1463d49a38cdc",
+              "duration_ms": payload["duration_ms"],
+              "measurement_count": 220,
+              "replayed_source_record_count": 0,
+              "slice_id": "simbad-messier-j2000-v2",
+              "source_record_count": 110,
+              "status": "validated",
+          }
+          assert isinstance(payload["duration_ms"], int) and payload["duration_ms"] >= 0
+          bright = validate_bright_star_artifact()
+          named, constellations = validate_iau_context_artifacts()
+          assert len(bright.rows) == BRIGHT_STAR_ROW_COUNT
+          assert len(named.rows) == NAMED_ANCHOR_ROW_COUNT
+          assert len(constellations.constellations) == CONSTELLATION_ROW_COUNT
+          PY
+
+      - name: Assert clean repository
+        if: always()
+        run: |
+          git diff --exit-code
+          git diff --cached --quiet
+          test -z "$(git ls-files --others --exclude-standard)"
+
   security:
     name: Dependency and secret security
     runs-on: ubuntu-24.04
@@ -407,7 +478,7 @@ jobs:
   phase0_acceptance:
     name: Phase 0 acceptance
     if: always()
-    needs: [repository, python_postgres, web_e2e, security]
+    needs: [repository, python_postgres, web_e2e, api_container, security]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -416,4 +487,5 @@ jobs:
           test '${{ needs.repository.result }}' = 'success'
           test '${{ needs.python_postgres.result }}' = 'success'
           test '${{ needs.web_e2e.result }}' = 'success'
+          test '${{ needs.api_container.result }}' = 'success'
           test '${{ needs.security.result }}' = 'success'

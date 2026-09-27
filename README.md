@@ -106,6 +106,8 @@ See [Testing](docs/TESTING.md) and [Quality status](docs/QUALITY_STATUS.md).
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and [Data and provenance](docs/DATA_AND_PROVENANCE.md).
 
 Current runtime/environment ownership is documented in [Configuration](docs/CONFIGURATION.md).
+Public runtime topology, database/catalog bootstrap, and release order are documented in
+[Deployment](docs/DEPLOYMENT.md).
 
 ## Project status
 

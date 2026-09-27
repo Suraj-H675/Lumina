@@ -1,0 +1,42 @@
+FROM ghcr.io/astral-sh/uv:0.12.17-python3.12-trixie-slim@sha256:9a59bb7206905ccaae4f7dab222fbac47c125a21e5fc16f43f427cd6c940ade3
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_FROZEN=1 \
+    UV_NO_DEV=1 \
+    UV_PYTHON_DOWNLOADS=0 \
+    PATH="/app/.venv/bin:$PATH"
+
+WORKDIR /app
+
+# Install the locked third-party dependency graph before copying application
+# sources so ordinary source edits can reuse this layer.
+COPY pyproject.toml uv.lock .python-version ./
+COPY apps/api/pyproject.toml apps/api/pyproject.toml
+RUN uv sync --frozen --no-dev --no-install-workspace
+
+# Keep the editable workspace layout intentionally: several reviewed science
+# artifacts resolve from the repository root, and Alembic owns repository-local
+# migration files. Only runtime-owned source/data is copied into the image.
+COPY apps/api/src apps/api/src
+COPY apps/web/public/data apps/web/public/data
+COPY data/manifests data/manifests
+COPY data/seed data/seed
+COPY data/sky data/sky
+COPY migrations migrations
+COPY alembic.ini ./
+
+RUN uv sync --frozen --no-dev
+
+RUN groupadd --system --gid 10001 lumina \
+    && useradd --system --uid 10001 --gid 10001 --home-dir /nonexistent --shell /usr/sbin/nologin lumina \
+    && mkdir -p /app/var/storage \
+    && chown -R 10001:10001 /app/var
+
+USER 10001:10001
+
+ENV LUMINA_API_HOST=0.0.0.0
+
+EXPOSE 8000
+
+CMD ["lumina-api"]

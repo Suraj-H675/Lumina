@@ -18,6 +18,8 @@ import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml"
+API_DOCKERFILE_PATH = REPOSITORY_ROOT / "infra" / "docker" / "api" / "Dockerfile"
+DOCKERIGNORE_PATH = REPOSITORY_ROOT / ".dockerignore"
 SECURITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_security.sh"
 DOC_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py"
 MIGRATION_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_migration_integrity.py"
@@ -59,6 +61,10 @@ TRUFFLEHOG_IMAGE = (
 OSV_IMAGE = (
     "ghcr.io/google/osv-scanner:v2.4.0@"
     "sha256:5116601dedc01c1c580eb92371883ec052fc4c13c3fbc109d621a63ac416d475"
+)
+API_BASE_IMAGE = (
+    "ghcr.io/astral-sh/uv:0.12.17-python3.12-trixie-slim@"
+    "sha256:9a59bb7206905ccaae4f7dab222fbac47c125a21e5fc16f43f427cd6c940ade3"
 )
 SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
@@ -287,7 +293,43 @@ def test_workflow_uses_only_exact_reviewed_action_pins() -> None:
         assert comment == expected_tag
     assert "actions/cache" not in workflow
     assert "uses: actions/checkout@" in workflow
-    assert workflow.count("uses: actions/checkout@") == 4
+    assert workflow.count("uses: actions/checkout@") == 5
+
+
+def test_api_container_definition_is_pinned_non_root_and_runtime_complete() -> None:
+    dockerfile = API_DOCKERFILE_PATH.read_text(encoding="utf-8")
+    dockerignore = DOCKERIGNORE_PATH.read_text(encoding="utf-8")
+
+    assert dockerfile.splitlines()[0] == f"FROM {API_BASE_IMAGE}"
+    assert dockerfile.count("FROM ") == 1
+    assert "UV_FROZEN=1" in dockerfile
+    assert "UV_NO_DEV=1" in dockerfile
+    assert "UV_PYTHON_DOWNLOADS=0" in dockerfile
+    assert "uv sync --frozen --no-dev --no-install-workspace" in dockerfile
+    assert "uv sync --frozen --no-dev" in dockerfile
+    for required_copy in (
+        "COPY apps/api/src apps/api/src",
+        "COPY apps/web/public/data apps/web/public/data",
+        "COPY data/manifests data/manifests",
+        "COPY data/seed data/seed",
+        "COPY data/sky data/sky",
+        "COPY migrations migrations",
+        "COPY alembic.ini ./",
+    ):
+        assert required_copy in dockerfile
+    assert "USER 10001:10001" in dockerfile
+    assert "ENV LUMINA_API_HOST=0.0.0.0" in dockerfile
+    assert 'CMD ["lumina-api"]' in dockerfile
+    assert "COPY . " not in dockerfile
+    assert "ADD " not in dockerfile
+
+    ignored = set(dockerignore.splitlines())
+    assert ".env" in ignored
+    assert ".env.*" in ignored
+    assert "!.env.example" in ignored
+    assert ".git/" in ignored
+    assert ".venv/" in ignored
+    assert "node_modules/" in ignored
 
 
 def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> None:
@@ -415,14 +457,17 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     assert '"b5c6d7e8f9a0 (head)"' not in workflow
     repository = _workflow_job(workflow, "repository", "python_postgres")
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
-    web = _workflow_job(workflow, "web_e2e", "security")
+    web = _workflow_job(workflow, "web_e2e", "api_container")
+    container = _workflow_job(workflow, "api_container", "security")
     security = _workflow_job(workflow, "security", "phase0_acceptance")
 
-    assert workflow.count("persist-credentials: false") == 4
-    assert workflow.count("fetch-depth: 1") == 3
+    assert workflow.count("persist-credentials: false") == 5
+    assert workflow.count("fetch-depth: 1") == 4
     assert "fetch-depth: 0" in security
     assert "fetch-depth: 1" not in security
     assert "persist-credentials: false" in security
+    assert "fetch-depth: 1" in container
+    assert "persist-credentials: false" in container
     assert "actions/checkout@" not in _workflow_job(workflow, "phase0_acceptance", None)
 
     temporary_directory_setup = 'echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"'
@@ -438,6 +483,8 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
         assert "pnpm/action-setup@" in node_job
         assert "actions/setup-node@" in node_job
         assert "pnpm install --frozen-lockfile" in node_job
+    assert "pnpm/action-setup@" not in container
+    assert "actions/setup-node@" not in container
 
     assert workflow.count("astral-sh/setup-uv@") == 2
     assert workflow.count('version: "0.12.18"') == 2
@@ -458,7 +505,8 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     repository = _workflow_job(workflow, "repository", "python_postgres")
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
-    web = _workflow_job(workflow, "web_e2e", "security")
+    web = _workflow_job(workflow, "web_e2e", "api_container")
+    container = _workflow_job(workflow, "api_container", "security")
     security = _workflow_job(workflow, "security", "phase0_acceptance")
     clean_tree = (
         "          git diff --exit-code\n"
@@ -466,7 +514,7 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
         '          test -z "$(git ls-files --others --exclude-standard)"'
     )
 
-    assert workflow.count(clean_tree) == 4
+    assert workflow.count(clean_tree) == 5
     assert repository.index("lumina-api-client-first-*") < repository.index(clean_tree)
     candidate_compose = 'docker compose --env-file .env -p "$candidate_project"'
     assert "scripts/bootstrap/create_local_env.py --ephemeral-candidate" in python
@@ -476,6 +524,13 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     assert python.index("unlink -- .env") < python.index(clean_tree)
     assert web.index("lumina-status-e2e-*") < web.index(clean_tree)
     assert web.index(clean_tree) < web.index("actions/upload-artifact@")
+    assert "docker build" in container
+    assert "--file infra/docker/api/Dockerfile" in container
+    assert "--tag lumina-api:ci" in container
+    assert "docker run --rm --entrypoint id lumina-api:ci -u" in container
+    assert "/app/.venv/bin/lumina-provider" in container
+    assert "simbad-messier-j2000-v2" in container
+    assert container.index("Smoke production API image") < container.index(clean_tree)
     assert security.index("lumina-security-*") < security.index(clean_tree)
 
     browser_command = "pnpm --filter @lumina/web exec playwright install --with-deps chromium"
@@ -485,6 +540,9 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     assert 'Version 1.62.1"' in web
     assert "pnpm security:check" in security
     assert "git ls-files -- apps/web/next-env.d.ts" not in repository
+    acceptance = _workflow_job(workflow, "phase0_acceptance", None)
+    assert "needs: [repository, python_postgres, web_e2e, api_container, security]" in acceptance
+    assert "needs.api_container.result" in acceptance
 
 
 def test_security_script_has_exact_images_and_required_static_safeguards() -> None:

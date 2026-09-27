@@ -8,7 +8,6 @@ from typing import Protocol, cast
 
 import anyio
 import lumina.shared.infrastructure.database.runtime as runtime_module
-import lumina.shared.infrastructure.database.transport as transport_module
 import pytest
 from lumina.shared.infrastructure.database.runtime import create_database_runtime
 from lumina.shared.infrastructure.database.transport import psycopg_connect_args
@@ -86,7 +85,7 @@ def test_migration_tls_mode_uses_default_ca_file_when_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        transport_module.ssl,
+        ssl,
         "get_default_verify_paths",
         lambda: SimpleNamespace(cafile="/system/ca-bundle.pem"),
     )
@@ -101,7 +100,7 @@ def test_migration_tls_mode_falls_back_to_libpq_system_roots(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        transport_module.ssl,
+        ssl,
         "get_default_verify_paths",
         lambda: SimpleNamespace(cafile=None),
     )

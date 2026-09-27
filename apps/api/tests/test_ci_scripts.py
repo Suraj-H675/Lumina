@@ -374,9 +374,9 @@ def test_vercel_services_route_only_backend_owned_public_prefixes_to_api() -> No
 def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe() -> None:
     workflow = PROVIDER_WORKFLOW_PATH.read_text(encoding="utf-8")
 
-    assert 'cron: "2-57/5 * * * *"' in workflow
-    assert 'cron: "19 * * * *"' in workflow
-    assert 'cron: "41 */6 * * *"' in workflow
+    assert "workflow_dispatch:" in workflow
+    assert "schedule:" not in workflow
+    assert "cron:" not in workflow
     assert "lumina-production-provider-operator" in workflow
     assert "cancel-in-progress: false" in workflow
     assert "runs-on: ubuntu-24.04" in workflow
@@ -392,7 +392,6 @@ def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe
     assert "LUMINA_DATABASE_URL: ${{ secrets.LUMINA_DATABASE_URL }}" in workflow
     assert "LUMINA_NASA_API_KEY: ${{ secrets.LUMINA_NASA_API_KEY }}" in workflow
     assert 'uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"' in workflow
-    assert 'uv run lumina-provider sync --provider "$provider"' in workflow
     assert "git push" not in workflow
     assert "pull_request:" not in workflow
 

@@ -26,10 +26,6 @@ on:
           - launch-library-2
           - celestrak-gp
           - zooniverse-panoptes
-  schedule:
-    - cron: "2-57/5 * * * *"
-    - cron: "19 * * * *"
-    - cron: "41 */6 * * *"
 
 permissions:
   contents: read
@@ -109,40 +105,8 @@ jobs:
 
       - name: Run provider operator command
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          SCHEDULE: ${{ github.event.schedule }}
           MANUAL_OPERATION: ${{ inputs.operation }}
           MANUAL_PROVIDER: ${{ inputs.provider }}
         run: |
           set -euo pipefail
-
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"
-            exit 0
-          fi
-
-          case "$SCHEDULE" in
-            "2-57/5 * * * *")
-              providers=(noaa-swpc)
-              ;;
-            "19 * * * *")
-              providers=(
-                nasa-exoplanet-archive
-                nasa-apod
-                nasa-neows
-                launch-library-2
-                celestrak-gp
-              )
-              ;;
-            "41 */6 * * *")
-              providers=(zooniverse-panoptes)
-              ;;
-            *)
-              echo "Unrecognized provider schedule." >&2
-              exit 1
-              ;;
-          esac
-
-          for provider in "${providers[@]}"; do
-            uv run lumina-provider sync --provider "$provider"
-          done
+          uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"

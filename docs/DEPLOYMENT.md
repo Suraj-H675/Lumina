@@ -231,9 +231,8 @@ trigger is retried or delivered late.
 `.github/workflows/providers.yml` remains the manual operator and rollback fallback. It resolves the
 stable production `/api/v1/meta` endpoint first and checks out the exact reported `build_commit`
 before running any provider operator command, keeping manual work aligned with the deployed database
-contract. Keep its existing schedules enabled during the Neon cutover only; after Neon schedule
-triggers have produced successful production invocations, remove the GitHub `schedule` block to
-avoid maintaining two schedulers.
+contract. It is intentionally manual-only; automatic provider scheduling belongs exclusively to the
+Neon triggers above so Lumina does not maintain two competing production schedulers.
 
 The workflow requires a GitHub Actions `LUMINA_DATABASE_URL` secret containing the same pooled,
 `lumina_app` production URL shape used by the API. `LUMINA_NASA_API_KEY` remains optional: APOD and

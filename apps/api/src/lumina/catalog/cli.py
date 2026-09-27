@@ -204,7 +204,8 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
                 artifact_sha256 = V2_ARTIFACT_SHA256
                 ingestion_result = await messier_service.ingest()
                 operator_runtime = create_database_runtime(
-                    load_catalog_operator_settings().database_url
+                    load_catalog_operator_settings().database_url,
+                    tls_mode=settings.resolved_database_tls_mode,
                 )
                 try:
                     selection_result = await PostgreSqlMessierCanonicalSelectionStore(

@@ -99,7 +99,9 @@ another trusted browser origin is deliberately introduced.
 ## Database bootstrap
 
 Use an administrator/database-owner connection only for initial role/database ownership and extension
-provisioning. Do not run the application with administrator credentials.
+provisioning. The accepted migration lineage requires that administrator role to be named
+`lumina_admin`; `pg_trgm 1.6` must also be owned by `lumina_admin`. Do not run the application with
+administrator credentials.
 
 Create three fixed login roles with pairwise-distinct credentials:
 
@@ -109,9 +111,14 @@ Create three fixed login roles with pairwise-distinct credentials:
 - `lumina_catalog_operator`: reviewed catalogue canonical-selection role, also without inherited or
   administrative privileges.
 
-The target database remains owned by the database administrator. Revoke public database/schema
+The target database remains owned by `lumina_admin`. Revoke public database/schema
 privileges, grant database `CONNECT` to the three Lumina roles, grant `USAGE, CREATE` on `public` to
 `lumina_migrate`, and grant only `USAGE` on `public` to the runtime and catalogue roles.
+
+On PostgreSQL 18 managed services, verify the three restricted roles after provisioning. They must
+have no `SUPERUSER`, `CREATEDB`, `CREATEROLE`, `REPLICATION`, `BYPASSRLS`, or inherited-role
+capabilities, and no role memberships in either direction. Some provider APIs create roles with
+administrative memberships by default; those provider-created roles do not satisfy Lumina's contract.
 
 ### Migration order
 
@@ -120,7 +127,7 @@ For a new production database:
 
 ```sh
 uv run alembic upgrade b7f3a2c81d4e
-# As the database owner, in the target Lumina database:
+# As lumina_admin, in the target Lumina database:
 # CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public;
 uv run alembic upgrade head
 test "$(uv run alembic heads)" = "f1b2c3d4e5f6 (head)"

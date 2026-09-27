@@ -37,8 +37,11 @@ Development bootstrap also uses the `POSTGRES_*` values shown in `.env.example` 
 Compose credentials. Those Compose credentials are local infrastructure state, not browser
 configuration.
 
-Staging and production require verified database TLS. Runtime and migration credentials remain
-separate.
+Staging and production require verified database TLS. Async runtime connections use the operating
+system trust store with certificate and hostname verification; they do not require a per-user
+`~/.postgresql/root.crt`. Migration clients still use psycopg/libpq `verify-full`, so operators must
+ensure the deployment environment exposes its trusted CA bundle through normal libpq/system trust
+configuration. Runtime and migration credentials remain separate.
 
 ## Jobs and worker
 

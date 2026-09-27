@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ssl
 from typing import Protocol, cast
 
 import anyio
@@ -50,7 +51,33 @@ def test_runtime_threads_verified_tls_as_driver_connect_args(
     )
 
     assert runtime.engine is engine
-    assert seen["connect_args"] == {"ssl": "verify-full"}
+    connect_args = cast(dict[str, object], seen["connect_args"])
+    ssl_context = connect_args["ssl"]
+    assert isinstance(ssl_context, ssl.SSLContext)
+    assert ssl_context.check_hostname is True
+    assert ssl_context.verify_mode == ssl.CERT_REQUIRED
+
+
+def test_runtime_disables_asyncpg_tls_only_when_explicitly_requested(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: dict[str, object] = {}
+    engine = object()
+
+    def fake_create_async_engine(url: object, **kwargs: object) -> object:
+        seen["url"] = url
+        seen.update(kwargs)
+        return engine
+
+    monkeypatch.setattr(runtime_module, "create_async_engine", fake_create_async_engine)
+
+    runtime = create_database_runtime(
+        SecretStr("postgresql+asyncpg://runtime:private@127.0.0.1:5432/lumina"),
+        tls_mode="disable",
+    )
+
+    assert runtime.engine is engine
+    assert seen["connect_args"] == {"ssl": False}
 
 
 def test_migration_tls_mode_maps_to_psycopg_without_url_queries() -> None:

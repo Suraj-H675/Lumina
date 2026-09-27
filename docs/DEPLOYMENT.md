@@ -134,7 +134,7 @@ uv run alembic upgrade b7f3a2c81d4e
 # As lumina_admin, in the target Lumina database:
 # CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public;
 uv run alembic upgrade head
-test "$(uv run alembic heads)" = "f1b2c3d4e5f6 (head)"
+test "$(uv run alembic heads)" = "a2b3c4d5e6f7 (head)"
 ```
 
 Do not rewrite migration history or create the extension from the runtime/migration role merely to

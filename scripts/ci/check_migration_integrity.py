@@ -158,6 +158,12 @@ EXPECTED_MIGRATIONS = (
         down_revision="f0a1b2c3d4e5",
         sha256="1a0422abdef88cb156585060b210b38b58a27da6734e001abc1f8e708ad99289",
     ),
+    MigrationContract(
+        filename="a2b3c4d5e6f7_add_zooniverse_panoptes_provider.py",
+        revision="a2b3c4d5e6f7",
+        down_revision="f1b2c3d4e5f6",
+        sha256="2da28df6c509c2654f03a60e581912d70e7dd43fea4429642a75314da3bb51dc",
+    ),
 )
 
 
@@ -218,7 +224,7 @@ def main() -> int:
         for diagnostic in diagnostics:
             print(diagnostic)
         return 1
-    print("Migration integrity passed: 23 accepted revisions, head f1b2c3d4e5f6.")
+    print("Migration integrity passed: 24 accepted revisions, head a2b3c4d5e6f7.")
     return 0
 
 

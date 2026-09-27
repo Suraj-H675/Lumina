@@ -17,7 +17,7 @@ from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import run_migration_operation
 
-_HEAD = "f1b2c3d4e5f6"
+_HEAD = "a2b3c4d5e6f7"
 _SOLUTION = "identification_solution"
 _ANNOTATION = "identification_annotation"
 _SUBMISSION_ID = UUID("64000000-0000-4000-8000-000000000001")

@@ -13,7 +13,7 @@ from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import run_migration_operation
 
-_HEAD = "f1b2c3d4e5f6"
+_HEAD = "a2b3c4d5e6f7"
 _REMOTE = "identification_remote_solve"
 _TRANSITION = "identification_remote_transition"
 _FAKE_ID = UUID("63000000-0000-4000-8000-000000000001")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 
 import anyio
@@ -159,6 +160,22 @@ class _StatusService:
         return _neows_snapshot()
 
 
+class _ConcurrentStatusService(_StatusService):
+    def __init__(self, value: ProviderStatusSnapshot) -> None:
+        super().__init__(value)
+        self.active = 0
+        self.max_active = 0
+
+    async def status(self, provider_code: str) -> ProviderStatusSnapshot:
+        self.active += 1
+        self.max_active = max(self.max_active, self.active)
+        try:
+            await asyncio.sleep(0.01)
+            return await super().status(provider_code)
+        finally:
+            self.active -= 1
+
+
 def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None:
     app = _app()
     app.state.provider_registry = production_provider_registry()
@@ -224,3 +241,15 @@ def test_status_failure_is_safe_and_does_not_leak_exception_detail() -> None:
     assert response.json()["error"]["code"] == "provider.status_unavailable"
     assert response.json()["error"]["message"] == "Provider status is temporarily unavailable."
     assert "Provider runtime failed" not in response.text
+
+
+def test_status_reads_the_finite_provider_set_concurrently() -> None:
+    app = _app()
+    app.state.provider_registry = production_provider_registry()
+    service = _ConcurrentStatusService(_snapshot(enabled=False))
+    app.state.provider_sync_service = service
+
+    response = _request(app)
+
+    assert response.status_code == 200
+    assert service.max_active == 7

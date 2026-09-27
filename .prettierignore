@@ -2,6 +2,7 @@
 .env.example
 .venv
 .cache
+.vercel
 node_modules
 apps/web/.next
 apps/web/playwright-report

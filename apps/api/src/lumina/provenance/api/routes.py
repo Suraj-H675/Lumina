@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, cast
 
 from fastapi import APIRouter, Request
@@ -38,15 +39,18 @@ async def provider_status(request: Request) -> ProviderStatusListResponse | JSON
     registry: StaticProviderRegistry = request.app.state.provider_registry
     service: ProviderSyncService = request.app.state.provider_sync_service
     try:
-        status_values: list[ProviderStatusResponse] = []
-        for provider_code in sorted(registry.registered_codes):
+        provider_codes = tuple(sorted(registry.registered_codes))
+        registrations = []
+        for provider_code in provider_codes:
             registration = registry.resolve(provider_code)
             if registration is None:
                 return _unavailable(request)
-            status_values.append(
-                _status_response(registration.config, await service.status(provider_code))
-            )
-        statuses = tuple(status_values)
+            registrations.append(registration)
+        snapshots = await asyncio.gather(*(service.status(code) for code in provider_codes))
+        statuses = tuple(
+            _status_response(registration.config, snapshot)
+            for registration, snapshot in zip(registrations, snapshots, strict=True)
+        )
         if len(statuses) != len(registry.registered_codes):
             return _unavailable(request)
         return ProviderStatusListResponse(providers=statuses)

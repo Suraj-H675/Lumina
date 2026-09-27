@@ -78,6 +78,8 @@ browser API origins.
 
 The repository `vercel.json` defines a same-project deployment with:
 
+- Singapore (`sin1`) as the compute region so the web/API runtime stays colocated with the
+  production Neon database in `aws-ap-southeast-1`;
 - `web`: the Next.js workspace in `apps/web/`;
 - `api`: the root `Dockerfile.vercel` container;
 - a private service binding that injects the API service URL into the web service as

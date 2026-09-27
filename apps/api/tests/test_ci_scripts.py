@@ -343,6 +343,7 @@ def test_api_container_definition_is_pinned_non_root_and_runtime_complete() -> N
 def test_vercel_services_route_only_backend_owned_public_prefixes_to_api() -> None:
     config = json.loads(VERCEL_CONFIG_PATH.read_text(encoding="utf-8"))
 
+    assert config["regions"] == ["sin1"]
     assert config["services"] == {
         "web": {
             "root": "apps/web/",

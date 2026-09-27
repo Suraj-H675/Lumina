@@ -535,6 +535,8 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     assert "--file infra/docker/api/Dockerfile" in container
     assert "--tag lumina-api:ci" in container
     assert "docker run --rm --entrypoint id lumina-api:ci -u" in container
+    assert "/app/.venv/bin/python lumina-api:ci --version" in container
+    assert 'NR == 1 && $1 == "uv" && $2 == "0.12.17"' in container
     assert "/app/.venv/bin/lumina-provider" in container
     assert "simbad-messier-j2000-v2" in container
     assert container.index("Smoke production API image") < container.index(clean_tree)

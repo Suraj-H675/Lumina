@@ -189,7 +189,7 @@ docker build -f infra/docker/api/Dockerfile -t lumina-api:<git-sha> .
 
 The image:
 
-- pins the official uv/Python base image by digest;
+- pins the official Python 3.12.13 base and uv 0.12.17 binary image by digest;
 - installs only locked production Python dependencies;
 - contains the API source, migrations, and reviewed runtime science data required by the API;
 - runs as UID/GID `10001` rather than root;

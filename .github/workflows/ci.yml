@@ -372,6 +372,9 @@ jobs:
       - name: Smoke production API image
         run: |
           test "$(docker run --rm --entrypoint id lumina-api:ci -u)" = "10001"
+          test "$(docker run --rm --entrypoint /app/.venv/bin/python lumina-api:ci --version)" = "Python 3.12.13"
+          docker run --rm --entrypoint /bin/uv lumina-api:ci --version |
+            awk 'NR == 1 && $1 == "uv" && $2 == "0.12.17" { ok=1 } END { exit !(NR == 1 && ok) }'
           docker run --rm \
             --entrypoint /app/.venv/bin/lumina-provider \
             lumina-api:ci \

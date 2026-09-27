@@ -365,7 +365,7 @@ jobs:
       - name: Build production API image
         run: |
           docker build \
-            --file infra/docker/api/Dockerfile \
+            --file Dockerfile.vercel \
             --tag lumina-api:ci \
             .
 

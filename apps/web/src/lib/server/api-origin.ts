@@ -41,13 +41,19 @@ export function resolvePublicWebApiOrigin(
   configuredValue = process.env.LUMINA_WEB_PUBLIC_API_ORIGIN,
   environment: string | undefined = process.env.NODE_ENV,
   allowInsecureLoopback = process.env.LUMINA_E2E_COORDINATION_FILE !== undefined,
+  vercelDeploymentHost = process.env.VERCEL_URL,
 ): WebApiOriginConfiguration {
-  const value =
+  const explicitValue =
     configuredValue === undefined || configuredValue === ""
       ? environment === "production"
         ? undefined
         : DEVELOPMENT_API_ORIGIN
       : configuredValue;
+  const value =
+    explicitValue ??
+    (environment === "production" && vercelDeploymentHost
+      ? `https://${vercelDeploymentHost}`
+      : undefined);
   if (value === undefined) return { valid: false };
 
   const normalized = normalizeApiOrigin(value);

@@ -12,7 +12,7 @@ implement this contract, but must not weaken it.
 The recommended first public profile is:
 
 - Next.js web application on an HTTPS Node-capable host;
-- the production FastAPI image from `infra/docker/api/Dockerfile` on an HTTPS container-capable web
+- the production FastAPI image from `Dockerfile.vercel` on an HTTPS container-capable web
   service;
 - durable managed PostgreSQL;
 - image identification disabled;
@@ -63,7 +63,7 @@ registered NASA key must remain disabled until the key is configured server-side
 
 ### Web
 
-Production web builds require both API origins explicitly:
+Generic production web builds require both API origins explicitly:
 
 ```text
 LUMINA_WEB_API_ORIGIN=https://<public-api-origin>
@@ -73,6 +73,28 @@ LUMINA_WEB_PUBLIC_API_ORIGIN=https://<public-api-origin>
 The first value is used by server-side web requests. The second can reach browser code and therefore
 must be the real public HTTPS API origin. Production deliberately rejects loopback and plaintext
 browser API origins.
+
+### Vercel Services profile
+
+The repository `vercel.json` defines a same-project deployment with:
+
+- `web`: the Next.js workspace in `apps/web/`;
+- `api`: the root `Dockerfile.vercel` container;
+- a private service binding that injects the API service URL into the web service as
+  `LUMINA_WEB_API_ORIGIN`;
+- public same-origin rewrites for `/api/v1/*` and `/health/*` only;
+- all remaining routes, including Next's own `/api/satellite-passes`, routed to `web`.
+
+For this profile, `LUMINA_WEB_PUBLIC_API_ORIGIN` does not need to be configured. In production on
+Vercel, Lumina derives the browser-visible HTTPS origin from `VERCEL_URL`. Outside Vercel, the
+explicit public-origin requirement remains unchanged and fails closed when omitted.
+
+The API console runner also honors a platform-provided `PORT` when present; invalid platform values
+fail startup rather than silently falling back. `LUMINA_API_PORT` remains the default everywhere
+else.
+
+Because the public API is same-origin in this profile, leave `LUMINA_CORS_ORIGINS` unset/empty unless
+another trusted browser origin is deliberately introduced.
 
 ## Database bootstrap
 
@@ -152,15 +174,15 @@ and raw response hashes are not emitted.
 
 Use the reviewed source-manifest cadence:
 
-| Provider code | Scheduler invocation |
-| --- | --- |
-| `noaa-swpc` | every 5 minutes |
+| Provider code            | Scheduler invocation                                  |
+| ------------------------ | ----------------------------------------------------- |
+| `noaa-swpc`              | every 5 minutes                                       |
 | `nasa-exoplanet-archive` | hourly (the provider enforces its 6-hour eligibility) |
-| `nasa-apod` | hourly (the provider enforces its 4-hour eligibility) |
-| `nasa-neows` | hourly (the provider enforces its 2-hour eligibility) |
-| `launch-library-2` | hourly |
-| `celestrak-gp` | hourly (the provider enforces its 2-hour eligibility) |
-| `zooniverse-panoptes` | every 6 hours |
+| `nasa-apod`              | hourly (the provider enforces its 4-hour eligibility) |
+| `nasa-neows`             | hourly (the provider enforces its 2-hour eligibility) |
+| `launch-library-2`       | hourly                                                |
+| `celestrak-gp`           | hourly (the provider enforces its 2-hour eligibility) |
+| `zooniverse-panoptes`    | every 6 hours                                         |
 
 The scheduler must run the exact release that owns the deployed database contract. GitHub Actions can
 run scheduled workflows as often as every five minutes, but schedule configuration should only be
@@ -184,7 +206,7 @@ retention lifecycle.
 Build the API from the repository root:
 
 ```sh
-docker build -f infra/docker/api/Dockerfile -t lumina-api:<git-sha> .
+docker build -f Dockerfile.vercel -t lumina-api:<git-sha> .
 ```
 
 The image:

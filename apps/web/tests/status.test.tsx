@@ -221,7 +221,21 @@ describe("browser-visible public API origin", () => {
       origin: "http://127.0.0.1:8000",
       valid: true,
     });
-    expect(resolvePublicWebApiOrigin(undefined, "production")).toEqual({ valid: false });
+    expect(resolvePublicWebApiOrigin(undefined, "production", false, undefined)).toEqual({
+      valid: false,
+    });
+  });
+
+  it("uses the Vercel deployment host as a same-origin production fallback", () => {
+    expect(
+      resolvePublicWebApiOrigin(undefined, "production", false, "lumina-preview.vercel.app"),
+    ).toEqual({
+      origin: "https://lumina-preview.vercel.app",
+      valid: true,
+    });
+    expect(resolvePublicWebApiOrigin(undefined, "production", false, "bad.example/path")).toEqual({
+      valid: false,
+    });
   });
 
   it("permits insecure loopback only through the explicit production E2E seam", () => {

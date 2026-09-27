@@ -87,6 +87,11 @@ The Next.js server accepts two separate API origins:
 - `LUMINA_WEB_API_ORIGIN` — private/server-to-server API origin.
 - `LUMINA_WEB_PUBLIC_API_ORIGIN` — browser-visible API origin.
 
+On a Vercel Services deployment, `LUMINA_WEB_API_ORIGIN` is injected through the private API service
+binding and `LUMINA_WEB_PUBLIC_API_ORIGIN` may be omitted; Lumina derives the same-origin HTTPS
+deployment URL from Vercel's `VERCEL_URL`. Other production platforms still require the explicit
+browser-visible origin.
+
 Development defaults both to loopback. Production requires an explicit browser-visible origin and
 rejects plaintext or loopback public targets. Provider/database secrets must never be placed in
 `NEXT_PUBLIC_*` variables.

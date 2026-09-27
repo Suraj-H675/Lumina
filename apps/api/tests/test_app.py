@@ -79,6 +79,7 @@ def test_console_runner_reuses_module_settings_and_application(
         return resolved_settings
 
     monkeypatch.setattr(lumina.settings, "load_settings", fake_load_settings)
+    monkeypatch.delenv("PORT", raising=False)
     sys.modules.pop("lumina.main", None)
     module: ModuleType = importlib.import_module("lumina.main")
     calls: list[tuple[object, dict[str, object]]] = []
@@ -103,4 +104,43 @@ def test_console_runner_reuses_module_settings_and_application(
             },
         )
     ]
+    sys.modules.pop("lumina.main", None)
+
+
+def test_console_runner_honors_platform_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    resolved_settings = _settings(LUMINA_API_HOST="0.0.0.0", LUMINA_API_PORT=8123)
+    monkeypatch.setattr(lumina.settings, "load_settings", lambda: resolved_settings)
+    monkeypatch.setenv("PORT", "4317")
+    sys.modules.pop("lumina.main", None)
+    module: ModuleType = importlib.import_module("lumina.main")
+    calls: list[dict[str, object]] = []
+
+    monkeypatch.setattr(module.uvicorn, "run", lambda _application, **kwargs: calls.append(kwargs))
+    module.run()
+
+    assert calls == [
+        {
+            "host": "0.0.0.0",
+            "port": 4317,
+            "access_log": False,
+            "log_config": None,
+        }
+    ]
+    sys.modules.pop("lumina.main", None)
+
+
+@pytest.mark.parametrize("value", ["", "0", "65536", " 8000", "8000 ", "8e3", "１２３"])
+def test_console_runner_rejects_invalid_platform_port(
+    monkeypatch: pytest.MonkeyPatch,
+    value: str,
+) -> None:
+    resolved_settings = _settings()
+    monkeypatch.setattr(lumina.settings, "load_settings", lambda: resolved_settings)
+    monkeypatch.setenv("PORT", value)
+    sys.modules.pop("lumina.main", None)
+    module: ModuleType = importlib.import_module("lumina.main")
+
+    with pytest.raises(RuntimeError, match="PORT must be an integer"):
+        module.run()
+
     sys.modules.pop("lumina.main", None)

@@ -23,6 +23,7 @@ def clear_lumina_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in tuple(os.environ):
         if key.startswith("LUMINA_"):
             monkeypatch.delenv(key)
+    monkeypatch.delenv("VERCEL_GIT_COMMIT_SHA", raising=False)
 
 
 def test_environment_is_required_without_dotenv(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -71,6 +72,22 @@ def test_real_environment_overrides_dotenv(
 
     assert settings.env == "test"
     assert settings.api_port == 8002
+
+
+def test_vercel_git_commit_fills_build_commit_only_when_lumina_value_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUMINA_ENV", "development")
+    monkeypatch.setenv(
+        "LUMINA_DATABASE_URL",
+        "postgresql+asyncpg://lumina_app:secret@127.0.0.1:5432/lumina",
+    )
+    monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", "abc123def456")
+
+    assert load_settings(env_file=None).build_commit == "abc123def456"
+
+    monkeypatch.setenv("LUMINA_BUILD_COMMIT", "explicit-build")
+    assert load_settings(env_file=None).build_commit == "explicit-build"
 
 
 def test_unknown_lumina_key_in_dotenv_is_rejected(tmp_path: Path) -> None:

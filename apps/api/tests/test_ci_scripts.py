@@ -18,7 +18,8 @@ import pytest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml"
-API_DOCKERFILE_PATH = REPOSITORY_ROOT / "infra" / "docker" / "api" / "Dockerfile"
+VERCEL_CONFIG_PATH = REPOSITORY_ROOT / "vercel.json"
+API_DOCKERFILE_PATH = REPOSITORY_ROOT / "Dockerfile.vercel"
 DOCKERIGNORE_PATH = REPOSITORY_ROOT / ".dockerignore"
 SECURITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_security.sh"
 DOC_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py"
@@ -339,6 +340,35 @@ def test_api_container_definition_is_pinned_non_root_and_runtime_complete() -> N
     assert "node_modules/" in ignored
 
 
+def test_vercel_services_route_only_backend_owned_public_prefixes_to_api() -> None:
+    config = json.loads(VERCEL_CONFIG_PATH.read_text(encoding="utf-8"))
+
+    assert config["services"] == {
+        "web": {
+            "root": "apps/web/",
+            "framework": "nextjs",
+            "bindings": [
+                {
+                    "type": "service",
+                    "service": "api",
+                    "format": "url",
+                    "env": "LUMINA_WEB_API_ORIGIN",
+                }
+            ],
+        },
+        "api": {
+            "root": "./",
+            "runtime": "container",
+            "entrypoint": "Dockerfile.vercel",
+        },
+    }
+    assert config["rewrites"] == [
+        {"source": "/api/v1/:path*", "destination": {"service": "api"}},
+        {"source": "/health/:path*", "destination": {"service": "api"}},
+        {"source": "/:path*", "destination": {"service": "web"}},
+    ]
+
+
 def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> None:
     workspace = PNPM_WORKSPACE_PATH.read_text(encoding="utf-8")
     lockfile = PNPM_LOCKFILE_PATH.read_text(encoding="utf-8")
@@ -532,7 +562,7 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     assert web.index("lumina-status-e2e-*") < web.index(clean_tree)
     assert web.index(clean_tree) < web.index("actions/upload-artifact@")
     assert "docker build" in container
-    assert "--file infra/docker/api/Dockerfile" in container
+    assert "--file Dockerfile.vercel" in container
     assert "--tag lumina-api:ci" in container
     assert "docker run --rm --entrypoint id lumina-api:ci -u" in container
     assert "/app/.venv/bin/python lumina-api:ci --version" in container

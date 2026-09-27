@@ -733,6 +733,10 @@ def load_settings(*, env_file: Path | None = _REPOSITORY_ENV_FILE) -> AppSetting
     values.update(
         (key, value) for key, value in os.environ.items() if key in _ALLOWED_ENVIRONMENT_KEYS
     )
+    if "LUMINA_BUILD_COMMIT" not in values:
+        vercel_commit = os.environ.get("VERCEL_GIT_COMMIT_SHA")
+        if vercel_commit:
+            values["LUMINA_BUILD_COMMIT"] = vercel_commit
 
     return AppSettings.model_validate(values)
 

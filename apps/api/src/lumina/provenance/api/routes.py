@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 from typing import Any, cast
 
 from fastapi import APIRouter, Request
@@ -17,9 +18,16 @@ from lumina.provenance.domain.runtime import (
 )
 from lumina.shared.api.errors import ErrorResponse, error_response
 
-from .schemas import ProviderMetricsResponse, ProviderStatusListResponse, ProviderStatusResponse
+from .schemas import (
+    ProviderMetricsResponse,
+    ProviderStatusListResponse,
+    ProviderStatusResponse,
+    ProviderSyncOperationResponse,
+)
 
 router = APIRouter(prefix="/api/v1/providers", tags=["providers"])
+_INTERNAL_SYNC_PATH = "/internal-sync"
+_PROVIDER_CODE_HEADER = "X-Lumina-Provider-Code"
 _ERROR_RESPONSES: dict[int, dict[str, Any]] = {
     503: {
         "model": ErrorResponse,
@@ -58,12 +66,72 @@ async def provider_status(request: Request) -> ProviderStatusListResponse | JSON
         return _unavailable(request)
 
 
+@router.post(
+    _INTERNAL_SYNC_PATH,
+    include_in_schema=False,
+    response_model=ProviderSyncOperationResponse,
+)
+async def provider_internal_sync(
+    request: Request,
+) -> ProviderSyncOperationResponse | JSONResponse:
+    """Run one bounded provider cycle for an authenticated private scheduler."""
+    expected = request.app.state.settings.provider_trigger_token
+    authorization = request.headers.get("Authorization")
+    if expected is None or authorization is None or not authorization.startswith("Bearer "):
+        return _not_found(request)
+    supplied = authorization.removeprefix("Bearer ")
+    if len(supplied) != 64 or not hmac.compare_digest(supplied, expected.get_secret_value()):
+        return _not_found(request)
+
+    if request.query_params or await request.body():
+        return error_response(
+            request,
+            status_code=422,
+            code="request.validation_failed",
+            message="The request could not be validated.",
+        )
+
+    provider_code = request.headers.get(_PROVIDER_CODE_HEADER)
+    registry: StaticProviderRegistry = request.app.state.provider_registry
+    if provider_code is None or registry.resolve(provider_code) is None:
+        return error_response(
+            request,
+            status_code=422,
+            code="request.validation_failed",
+            message="The request could not be validated.",
+        )
+
+    service: ProviderSyncService = request.app.state.provider_sync_service
+    try:
+        report = await service.sync(provider_code)
+    except (ProviderRuntimeError, ProviderStorageFailure):
+        return _unavailable(request)
+    return ProviderSyncOperationResponse(
+        provider_code=report.provider_code,
+        outcome=report.outcome,
+        failure_code=report.failure_code,
+        attempts=report.attempts,
+        retries=report.retries,
+        cache_state=report.cache_state,
+        stale_fallback=report.stale_fallback,
+    )
+
+
 def _unavailable(request: Request) -> JSONResponse:
     return error_response(
         request,
         status_code=503,
         code="provider.status_unavailable",
         message="Provider status is temporarily unavailable.",
+    )
+
+
+def _not_found(request: Request) -> JSONResponse:
+    return error_response(
+        request,
+        status_code=404,
+        code="request.not_found",
+        message="The requested resource was not found.",
     )
 
 

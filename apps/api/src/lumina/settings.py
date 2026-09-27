@@ -30,6 +30,7 @@ _REPOSITORY_ENV_FILE = _REPOSITORY_ROOT / ".env"
 _HOST_LABEL_PATTERN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?")
 _BUILD_COMMIT_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 _WORKER_ID_PREFIX_PATTERN = re.compile(r"[a-z][a-z0-9_.-]{0,90}", re.ASCII)
+_PROVIDER_TRIGGER_TOKEN_PATTERN = re.compile(r"[0-9a-f]{64}", re.ASCII)
 _ALLOWED_ENVIRONMENT_KEYS = frozenset(
     {
         "LUMINA_ENV",
@@ -42,6 +43,7 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
         "LUMINA_DATABASE_URL",
         "LUMINA_DATABASE_TLS_MODE",
         "LUMINA_NASA_API_KEY",
+        "LUMINA_PROVIDER_TRIGGER_TOKEN",
         "LUMINA_DATABASE_SYNC_URL",
         "LUMINA_CATALOG_OPERATOR_DATABASE_URL",
         "LUMINA_TEST_DATABASE_URL",
@@ -106,6 +108,18 @@ def _validate_nasa_api_key(value: object) -> SecretStr | None:
         )
     ):
         raise ValueError("NASA API key is invalid")
+    return SecretStr(raw)
+
+
+def _validate_provider_trigger_token(value: object) -> SecretStr | None:
+    """Accept one optional 256-bit lowercase-hex scheduler credential."""
+    if value is None:
+        return None
+    raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+    if raw == "":
+        return None
+    if not isinstance(raw, str) or _PROVIDER_TRIGGER_TOKEN_PATTERN.fullmatch(raw) is None:
+        raise ValueError("Provider trigger token is invalid")
     return SecretStr(raw)
 
 
@@ -248,6 +262,10 @@ class AppSettings(BaseSettings):
     nasa_api_key: SecretStr | None = Field(
         default=None,
         validation_alias="LUMINA_NASA_API_KEY",
+    )
+    provider_trigger_token: SecretStr | None = Field(
+        default=None,
+        validation_alias="LUMINA_PROVIDER_TRIGGER_TOKEN",
     )
     enable_remote_astrometry: bool = Field(
         default=False,
@@ -464,6 +482,11 @@ class AppSettings(BaseSettings):
     @classmethod
     def validate_nasa_api_key(cls, value: object) -> SecretStr | None:
         return _validate_nasa_api_key(value)
+
+    @field_validator("provider_trigger_token", mode="before")
+    @classmethod
+    def validate_provider_trigger_token(cls, value: object) -> SecretStr | None:
+        return _validate_provider_trigger_token(value)
 
     @field_validator("enable_remote_astrometry", mode="before")
     @classmethod

@@ -440,6 +440,36 @@ def test_nasa_api_key_is_secret_and_is_not_reflected_in_settings_repr() -> None:
     assert secret not in str(settings)
 
 
+def test_provider_trigger_token_is_optional_secret_and_redacted() -> None:
+    assert _settings({"LUMINA_ENV": "test"}).provider_trigger_token is None
+    assert (
+        _settings(
+            {"LUMINA_ENV": "test", "LUMINA_PROVIDER_TRIGGER_TOKEN": ""}
+        ).provider_trigger_token
+        is None
+    )
+
+    secret = "a" * 64
+    settings = _settings({"LUMINA_ENV": "test", "LUMINA_PROVIDER_TRIGGER_TOKEN": secret})
+    assert settings.provider_trigger_token is not None
+    assert settings.provider_trigger_token.get_secret_value() == secret
+    assert secret not in repr(settings)
+    assert secret not in str(settings)
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["a" * 63, "a" * 65, "A" * 64, "g" * 64, "a" * 63 + "\n", 42, False],
+)
+def test_provider_trigger_token_rejects_malformed_values_without_echoing_input(
+    value: object,
+) -> None:
+    with pytest.raises(ValidationError) as captured:
+        _settings({"LUMINA_ENV": "test", "LUMINA_PROVIDER_TRIGGER_TOKEN": value})
+
+    assert str(value) not in str(captured.value)
+
+
 @pytest.mark.parametrize(
     "value",
     [

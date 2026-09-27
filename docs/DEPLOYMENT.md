@@ -198,23 +198,48 @@ Use the reviewed source-manifest cadence:
 | `celestrak-gp`           | hourly (the provider enforces its 2-hour eligibility) |
 | `zooniverse-panoptes`    | every 6 hours                                         |
 
-The production repository scheduler is `.github/workflows/providers.yml`. It deliberately resolves
-the stable production `/api/v1/meta` endpoint first and checks out the exact reported `build_commit`
-before running any provider operator command. This keeps scheduled work aligned with the release that
-owns the deployed database contract, including during a rollback or while a newer `main` commit is
-still awaiting promotion. Missing or malformed production release metadata fails closed.
+The production scheduler of record is the branch-scoped Neon Function in
+`infra/neon/functions/provider-scheduler/`. Neon schedule triggers invoke one provider per request,
+and the function delegates the actual cycle to Lumina's authenticated
+`POST /api/v1/providers/internal-sync` boundary. Provider networking, validation, persistence,
+leases, due-time checks, stale fallback, and circuit breaking therefore remain implemented only in
+the Python provider runtime; the Neon function contains no source-specific science or normalization
+logic.
+
+The API requires `LUMINA_PROVIDER_TRIGGER_TOKEN`, a 64-character lowercase hexadecimal secret, for
+that hidden route. Deploy the same value as an environment variable on the Neon function. The Neon
+function also requires an independent `LUMINA_NEON_TRIGGER_PATH_TOKEN` of the same format; each Neon
+trigger places that private path token plus exactly one approved provider code in its
+`function_path`. Trigger requests must also contain Neon's schedule-invocation header and bounded
+schedule payload. Do not put the Lumina bearer token in a URL or trigger definition.
+
+Create production triggers only for providers that have been deliberately enabled. Use separate
+triggers so one slow or failing source cannot block another provider's invocation:
+
+| Provider code            | Neon schedule trigger |
+| ------------------------ | --------------------- |
+| `noaa-swpc`              | `2-57/5 * * * *`      |
+| `nasa-exoplanet-archive` | `19 * * * *`          |
+| `launch-library-2`       | `23 * * * *`          |
+| `celestrak-gp`           | `27 * * * *`          |
+| `zooniverse-panoptes`    | `41 */6 * * *`        |
+
+APOD and NeoWs remain without schedule triggers until a registered NASA API key is configured and
+those providers are explicitly enabled. Provider-owned due-time checks remain authoritative if a
+trigger is retried or delivered late.
+
+`.github/workflows/providers.yml` remains the manual operator and rollback fallback. It resolves the
+stable production `/api/v1/meta` endpoint first and checks out the exact reported `build_commit`
+before running any provider operator command, keeping manual work aligned with the deployed database
+contract. Keep its existing schedules enabled during the Neon cutover only; after Neon schedule
+triggers have produced successful production invocations, remove the GitHub `schedule` block to
+avoid maintaining two schedulers.
 
 The workflow requires a GitHub Actions `LUMINA_DATABASE_URL` secret containing the same pooled,
 `lumina_app` production URL shape used by the API. `LUMINA_NASA_API_KEY` remains optional: APOD and
 NeoWs stay disabled and network-silent until a registered NASA key is configured and an operator
 explicitly enables them. The workflow exposes manual `status`, `enable`, `disable`, and `sync`
 operations for the finite production provider allowlist.
-
-Scheduled invocations are intentionally offset from the top of the hour because GitHub documents
-that scheduled runs may be delayed during high-load periods. NOAA SWPC runs at five-minute buckets
-offset by two minutes, hourly providers run at minute 19, and Panoptes runs at minute 41 every six
-hours. Provider-owned due-time checks, leases, and idempotency remain authoritative if a scheduled
-run is delayed or replayed.
 
 If no scheduler is configured, leave provider state disabled and expose the product's existing honest
 unavailable state instead of claiming current provider data.

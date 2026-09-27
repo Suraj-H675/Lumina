@@ -6,7 +6,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from lumina.provenance.domain.runtime import CacheState, CircuitState, ProviderFailureCode
+from lumina.provenance.domain.runtime import (
+    CacheState,
+    CircuitState,
+    ProviderFailureCode,
+    ProviderSyncOutcome,
+)
 
 
 class ProviderMetricsResponse(BaseModel):
@@ -71,3 +76,17 @@ class ProviderStatusListResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     providers: tuple[ProviderStatusResponse, ...]
+
+
+class ProviderSyncOperationResponse(BaseModel):
+    """Secret-safe result returned only to the production scheduler boundary."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider_code: str
+    outcome: ProviderSyncOutcome
+    failure_code: str | None
+    attempts: int
+    retries: int
+    cache_state: str | None
+    stale_fallback: bool

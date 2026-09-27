@@ -224,7 +224,10 @@ def create_app(settings: AppSettings) -> FastAPI:
         allow_headers=["Accept", "Content-Type", "X-Request-ID"],
         expose_headers=["X-Request-ID"],
     )
-    body_limits = {("POST", "/api/v1/now/satellites/passes"): 4_096}
+    body_limits = {
+        ("POST", "/api/v1/now/satellites/passes"): 4_096,
+        ("POST", "/api/v1/providers/internal-sync"): 1,
+    }
     if settings.identification_enabled:
         body_limits[("POST", "/api/v1/identification/submissions")] = (
             settings.upload_max_bytes + 65_536

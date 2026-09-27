@@ -17,7 +17,13 @@ def asyncpg_connect_args(mode: DatabaseTlsMode) -> dict[str, object]:
 
 def psycopg_connect_args(mode: DatabaseTlsMode) -> dict[str, str]:
     """Translate the reviewed transport mode to psycopg without URL query options."""
-    return {"sslmode": mode}
+    if mode == "disable":
+        return {"sslmode": "disable"}
+    default_paths = ssl.get_default_verify_paths()
+    return {
+        "sslmode": "verify-full",
+        "sslrootcert": default_paths.cafile or "system",
+    }
 
 
 __all__ = ["DatabaseTlsMode", "asyncpg_connect_args", "psycopg_connect_args"]

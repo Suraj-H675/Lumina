@@ -39,9 +39,10 @@ configuration.
 
 Staging and production require verified database TLS. Async runtime connections use the operating
 system trust store with certificate and hostname verification; they do not require a per-user
-`~/.postgresql/root.crt`. Migration clients still use psycopg/libpq `verify-full`, so operators must
-ensure the deployment environment exposes its trusted CA bundle through normal libpq/system trust
-configuration. Runtime and migration credentials remain separate.
+`~/.postgresql/root.crt`. Migration clients use psycopg/libpq `verify-full` with the default CA file
+reported by Python/OpenSSL (including an `SSL_CERT_FILE` override when configured), falling back to
+libpq's system root store when no CA file is exposed. Runtime and migration credentials remain
+separate.
 
 ## Jobs and worker
 

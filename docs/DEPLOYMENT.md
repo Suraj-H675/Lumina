@@ -85,6 +85,10 @@ The repository `vercel.json` defines a same-project deployment with:
 - public same-origin rewrites for `/api/v1/*` and `/health/*` only;
 - all remaining routes, including Next's own `/api/satellite-passes`, routed to `web`.
 
+For Neon, use the pooled `lumina_app` connection for `LUMINA_DATABASE_URL`; keep migration/admin
+operations on direct connections. This matches Neon's guidance for Python web/serverless runtimes
+while preserving direct-session semantics for Alembic and ownership work.
+
 For this profile, `LUMINA_WEB_PUBLIC_API_ORIGIN` does not need to be configured. In production on
 Vercel, Lumina derives the browser-visible HTTPS origin from `VERCEL_URL`. Outside Vercel, the
 explicit public-origin requirement remains unchanged and fails closed when omitted.

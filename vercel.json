@@ -29,7 +29,7 @@
       "destination": { "service": "api" }
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "destination": { "service": "web" }
     }
   ]

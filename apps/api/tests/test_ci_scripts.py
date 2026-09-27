@@ -365,7 +365,7 @@ def test_vercel_services_route_only_backend_owned_public_prefixes_to_api() -> No
     assert config["rewrites"] == [
         {"source": "/api/v1/:path*", "destination": {"service": "api"}},
         {"source": "/health/:path*", "destination": {"service": "api"}},
-        {"source": "/:path*", "destination": {"service": "web"}},
+        {"source": "/(.*)", "destination": {"service": "web"}},
     ]
 
 

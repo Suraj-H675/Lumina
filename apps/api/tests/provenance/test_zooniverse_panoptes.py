@@ -196,6 +196,26 @@ def test_private_and_not_live_are_preserved_as_source_status_facts() -> None:
     assert parsed.live is False
 
 
+def test_adapter_ignores_large_unconsumed_provider_arrays_within_transport_bound() -> None:
+    body = json.loads(_body("galaxy-zoo"))
+    body["projects"][0]["links"] = {
+        "attached_images": {"ids": list(range(512))},
+        "subject_sets": list(range(1_024)),
+    }
+    raw = _raw(json.dumps(body, separators=(",", ":")).encode())
+    assert len(raw.body) < raw.max_response_bytes
+    adapter = _adapter(_Transport([raw]))
+    request = zooniverse_panoptes_request_plan().components[0].request
+
+    parsed = adapter.validate_component_payload(request, raw)
+
+    assert isinstance(parsed, PanoptesProjectStatus)
+    assert parsed.project_id == 5733
+    assert parsed.slug == "zookeeper/galaxy-zoo"
+    assert parsed.private is False
+    assert parsed.live is True
+
+
 @pytest.mark.parametrize(
     ("field", "replacement"),
     [

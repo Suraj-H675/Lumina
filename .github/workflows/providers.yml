@@ -1,0 +1,148 @@
+name: Production providers
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Provider operator command
+        required: true
+        default: status
+        type: choice
+        options:
+          - status
+          - enable
+          - disable
+          - sync
+      provider:
+        description: Approved provider code
+        required: true
+        default: nasa-exoplanet-archive
+        type: choice
+        options:
+          - nasa-exoplanet-archive
+          - nasa-apod
+          - nasa-neows
+          - noaa-swpc
+          - launch-library-2
+          - celestrak-gp
+          - zooniverse-panoptes
+  schedule:
+    - cron: "2-57/5 * * * *"
+    - cron: "19 * * * *"
+    - cron: "41 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lumina-production-provider-operator
+  cancel-in-progress: false
+
+jobs:
+  operate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      LUMINA_ENV: production
+      LUMINA_DATABASE_TLS_MODE: verify-full
+      LUMINA_DATABASE_URL: ${{ secrets.LUMINA_DATABASE_URL }}
+      LUMINA_NASA_API_KEY: ${{ secrets.LUMINA_NASA_API_KEY }}
+    steps:
+      - name: Require production database configuration
+        run: |
+          test -n "$LUMINA_DATABASE_URL" || {
+            echo "Production provider database secret is not configured." >&2
+            exit 1
+          }
+
+      - name: Resolve deployed production release
+        id: release
+        env:
+          LUMINA_PRODUCTION_META_URL: https://lumina-psi-eight-23.vercel.app/api/v1/meta
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import urllib.request
+
+          request = urllib.request.Request(
+              os.environ["LUMINA_PRODUCTION_META_URL"],
+              headers={"User-Agent": "Lumina provider operator"},
+          )
+          with urllib.request.urlopen(request, timeout=10) as response:
+              if response.status != 200:
+                  raise SystemExit("Production release metadata is unavailable.")
+              payload = json.load(response)
+          build_commit = payload.get("build_commit")
+          if not isinstance(build_commit, str) or re.fullmatch(r"[0-9a-f]{40}", build_commit) is None:
+              raise SystemExit("Production release metadata is invalid.")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"sha={build_commit}\n")
+          PY
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.18"
+          python-version: "3.12.13"
+          download-from-astral-mirror: false
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: "uv-0.12.18-provider-operator"
+          cache-python: false
+
+      - name: Verify uv version
+        run: |
+          uv --version |
+            awk 'NR == 1 && $1 == "uv" && $2 == "0.12.18" { ok=1 } END { exit !(NR == 1 && ok) }'
+
+      - name: Restore production dependencies
+        run: |
+          uv lock --check
+          uv sync --locked --no-dev
+
+      - name: Run provider operator command
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          MANUAL_OPERATION: ${{ inputs.operation }}
+          MANUAL_PROVIDER: ${{ inputs.provider }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"
+            exit 0
+          fi
+
+          case "$SCHEDULE" in
+            "2-57/5 * * * *")
+              providers=(noaa-swpc)
+              ;;
+            "19 * * * *")
+              providers=(
+                nasa-exoplanet-archive
+                nasa-apod
+                nasa-neows
+                launch-library-2
+                celestrak-gp
+              )
+              ;;
+            "41 */6 * * *")
+              providers=(zooniverse-panoptes)
+              ;;
+            *)
+              echo "Unrecognized provider schedule." >&2
+              exit 1
+              ;;
+          esac
+
+          for provider in "${providers[@]}"; do
+            uv run lumina-provider sync --provider "$provider"
+          done

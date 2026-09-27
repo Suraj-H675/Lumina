@@ -50,9 +50,6 @@ from .http import FixedHttpRequest
 
 SOURCE_MANIFEST_PATH: Final = "data/manifests/sources/zooniverse-panoptes.json"
 _OPERATION: Final = "batch_fetch"
-_MAX_JSON_DEPTH: Final = 16
-_MAX_JSON_OBJECT_KEYS: Final = 128
-_MAX_JSON_ARRAY_LENGTH: Final = 256
 _IDENTITY_BY_COMPONENT: Final = {
     component_id: (project_id, slug)
     for component_id, project_id, slug in PANOPTES_PROJECT_IDENTITIES
@@ -261,30 +258,11 @@ def compose_panoptes_snapshot(
 
 
 def _parse_json(body: bytes) -> object:
-    decoded = json.loads(
+    return json.loads(
         body.decode("utf-8", errors="strict"),
         object_pairs_hook=_object_without_duplicate_keys,
         parse_constant=_reject_json_constant,
     )
-    _walk_json(decoded, depth=0)
-    return decoded
-
-
-def _walk_json(value: object, *, depth: int) -> None:
-    if depth > _MAX_JSON_DEPTH:
-        raise ValueError("Panoptes JSON nesting is too deep")
-    if isinstance(value, Mapping):
-        if len(value) > _MAX_JSON_OBJECT_KEYS:
-            raise ValueError("Panoptes JSON object is too large")
-        for key, item in value.items():
-            if type(key) is not str:
-                raise ValueError("Panoptes JSON key is invalid")
-            _walk_json(item, depth=depth + 1)
-    elif isinstance(value, list):
-        if len(value) > _MAX_JSON_ARRAY_LENGTH:
-            raise ValueError("Panoptes JSON array is too large")
-        for item in value:
-            _walk_json(item, depth=depth + 1)
 
 
 def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:

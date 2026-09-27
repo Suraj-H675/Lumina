@@ -198,9 +198,23 @@ Use the reviewed source-manifest cadence:
 | `celestrak-gp`           | hourly (the provider enforces its 2-hour eligibility) |
 | `zooniverse-panoptes`    | every 6 hours                                         |
 
-The scheduler must run the exact release that owns the deployed database contract. GitHub Actions can
-run scheduled workflows as often as every five minutes, but schedule configuration should only be
-enabled after production database secrets exist.
+The production repository scheduler is `.github/workflows/providers.yml`. It deliberately resolves
+the stable production `/api/v1/meta` endpoint first and checks out the exact reported `build_commit`
+before running any provider operator command. This keeps scheduled work aligned with the release that
+owns the deployed database contract, including during a rollback or while a newer `main` commit is
+still awaiting promotion. Missing or malformed production release metadata fails closed.
+
+The workflow requires a GitHub Actions `LUMINA_DATABASE_URL` secret containing the same pooled,
+`lumina_app` production URL shape used by the API. `LUMINA_NASA_API_KEY` remains optional: APOD and
+NeoWs stay disabled and network-silent until a registered NASA key is configured and an operator
+explicitly enables them. The workflow exposes manual `status`, `enable`, `disable`, and `sync`
+operations for the finite production provider allowlist.
+
+Scheduled invocations are intentionally offset from the top of the hour because GitHub documents
+that scheduled runs may be delayed during high-load periods. NOAA SWPC runs at five-minute buckets
+offset by two minutes, hourly providers run at minute 19, and Panoptes runs at minute 41 every six
+hours. Provider-owned due-time checks, leases, and idempotency remain authoritative if a scheduled
+run is delayed or replayed.
 
 If no scheduler is configured, leave provider state disabled and expose the product's existing honest
 unavailable state instead of claiming current provider data.

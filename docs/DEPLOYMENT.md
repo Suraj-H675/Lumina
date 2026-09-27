@@ -92,8 +92,9 @@ operations on direct connections. This matches Neon's guidance for Python web/se
 while preserving direct-session semantics for Alembic and ownership work.
 
 For this profile, `LUMINA_WEB_PUBLIC_API_ORIGIN` does not need to be configured. In production on
-Vercel, Lumina derives the browser-visible HTTPS origin from `VERCEL_URL`. Outside Vercel, the
-explicit public-origin requirement remains unchanged and fails closed when omitted.
+Vercel, Lumina derives the browser-visible HTTPS origin from `VERCEL_PROJECT_PRODUCTION_URL`, which
+tracks the stable production domain rather than the unique hostname of one deployment. Outside
+Vercel, the explicit public-origin requirement remains unchanged and fails closed when omitted.
 
 The API console runner also honors a platform-provided `PORT` when present; invalid platform values
 fail startup rather than silently falling back. `LUMINA_API_PORT` remains the default everywhere

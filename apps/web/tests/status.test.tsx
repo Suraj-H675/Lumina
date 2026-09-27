@@ -226,11 +226,11 @@ describe("browser-visible public API origin", () => {
     });
   });
 
-  it("uses the Vercel deployment host as a same-origin production fallback", () => {
+  it("uses the stable Vercel project production host as the production fallback", () => {
     expect(
-      resolvePublicWebApiOrigin(undefined, "production", false, "lumina-preview.vercel.app"),
+      resolvePublicWebApiOrigin(undefined, "production", false, "lumina.example.vercel.app"),
     ).toEqual({
-      origin: "https://lumina-preview.vercel.app",
+      origin: "https://lumina.example.vercel.app",
       valid: true,
     });
     expect(resolvePublicWebApiOrigin(undefined, "production", false, "bad.example/path")).toEqual({

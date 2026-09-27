@@ -93,8 +93,9 @@ The Next.js server accepts two separate API origins:
 
 On a Vercel Services deployment, `LUMINA_WEB_API_ORIGIN` is injected through the private API service
 binding and `LUMINA_WEB_PUBLIC_API_ORIGIN` may be omitted; Lumina derives the same-origin HTTPS
-deployment URL from Vercel's `VERCEL_URL`. Other production platforms still require the explicit
-browser-visible origin.
+production URL from Vercel's `VERCEL_PROJECT_PRODUCTION_URL`. Using `VERCEL_URL` here is incorrect:
+it names the unique deployment host and becomes cross-origin when a visitor uses the project's
+production alias. Other production platforms still require the explicit browser-visible origin.
 
 Development defaults both to loopback. Production requires an explicit browser-visible origin and
 rejects plaintext or loopback public targets. Provider/database secrets must never be placed in

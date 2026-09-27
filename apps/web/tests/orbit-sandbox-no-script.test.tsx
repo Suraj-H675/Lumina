@@ -56,7 +56,7 @@ describe("OrbitSandboxNoScript", () => {
     );
 
     expect(markup).toContain("Canonical result");
-    expect(markup).toContain("Phase 7 / Orbit Sandbox");
+    expect(markup).toContain("Planar Newtonian two-body model");
     expect(markup).toContain("orbit-sandbox-v1");
     expect(markup).toContain("Specific orbital energy");
     expect(markup).toContain("Collision time in requested window");

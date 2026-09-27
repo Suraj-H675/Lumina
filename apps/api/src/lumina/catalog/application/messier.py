@@ -8,18 +8,7 @@ from typing import Final
 
 from lumina.catalog.application.ingest import CatalogIngestionService
 from lumina.catalog.domain.ingestion import CatalogIngestionStatus, IngestReviewedDatasetCommand
-from lumina.catalog.infrastructure.simbad_messier import (
-    ARTIFACT_SHA256,
-    build_reviewed_simbad_commands,
-)
-from lumina.catalog.infrastructure.simbad_messier_v2 import (
-    ARTIFACT_SHA256 as V2_ARTIFACT_SHA256,
-)
-from lumina.catalog.infrastructure.simbad_messier_v2 import (
-    build_reviewed_simbad_v2_commands,
-)
 
-MESSIER_SLICE_ID: Final = "simbad-messier-j2000-v1"
 MESSIER_V2_SLICE_ID: Final = "simbad-messier-j2000-v2"
 
 
@@ -42,10 +31,8 @@ class MessierReviewedIngestionService:
         self,
         ingestion_service: CatalogIngestionService | None = None,
         *,
-        slice_id: str = MESSIER_SLICE_ID,
-        command_builder: Callable[[], tuple[IngestReviewedDatasetCommand, ...]] = (
-            build_reviewed_simbad_commands
-        ),
+        command_builder: Callable[[], tuple[IngestReviewedDatasetCommand, ...]],
+        slice_id: str = MESSIER_V2_SLICE_ID,
     ) -> None:
         self._ingestion_service = ingestion_service
         self._slice_id = slice_id
@@ -104,11 +91,7 @@ class MessierReviewedIngestionService:
 
 
 __all__ = [
-    "ARTIFACT_SHA256",
-    "MESSIER_SLICE_ID",
     "MESSIER_V2_SLICE_ID",
-    "V2_ARTIFACT_SHA256",
     "MessierIngestionResult",
     "MessierReviewedIngestionService",
-    "build_reviewed_simbad_v2_commands",
 ]

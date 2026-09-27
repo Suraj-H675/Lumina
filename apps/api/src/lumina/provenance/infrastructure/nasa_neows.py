@@ -1,4 +1,4 @@
-"""Fixed NASA Asteroids NeoWs feed adapter for the Phase 4B NEO vertical."""
+"""Fixed NASA Asteroids NeoWs feed adapter for near-Earth-object data."""
 
 from __future__ import annotations
 

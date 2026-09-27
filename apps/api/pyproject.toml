@@ -1,7 +1,7 @@
 [project]
 name = "lumina-api"
 version = "0.0.0"
-description = "Lumina backend package foundation"
+description = "Lumina astronomy API, worker, and provider runtime"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "alembic==1.18.5",

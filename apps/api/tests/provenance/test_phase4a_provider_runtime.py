@@ -456,7 +456,7 @@ async def test_bounded_transport_preserves_bytes_and_rejects_oversize() -> None:
     assert raw.raw_complete is True
     assert raw.content_type_valid is True
     assert "query=select+count%28pl_name%29+from+ps+where+default_flag%3D1" in str(seen["url"])
-    assert seen["user_agent"] == "Lumina/0.0 Phase-4A provider-sync"
+    assert seen["user_agent"] == "Lumina/0.0 nasa-exoplanet-archive-sync"
     assert seen["accept_encoding"] == "identity"
     assert timeout_values[0].connect == 5.0
     assert timeout_values[0].read == 10.0

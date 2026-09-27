@@ -1,4 +1,4 @@
-"""Phase 5B composition model for cross-domain AU reference-length comparison.
+"""Composition model for cross-domain AU reference-length comparison.
 
 The model combines three already-reviewed artifacts without pretending that their quantities are
 scientifically identical. It creates one display axis for unit-compatible positive lengths while
@@ -256,7 +256,7 @@ def build_system_scale_compare_artifact(*, repository_root: Path) -> dict[str, o
             "default_item_ids": ["solar:earth", "exoplanet:kepler-452-b", "voyager:2026"],
             "assumptions": [
                 (
-                    "Only positive AU-valued outputs from three already-reviewed Phase 5B "
+                    "Only positive AU-valued outputs from three reviewed system-scale "
                     "artifacts are composed."
                 ),
                 (

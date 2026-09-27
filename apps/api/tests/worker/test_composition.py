@@ -13,6 +13,7 @@ from typing import Any, NoReturn, cast
 
 import pytest
 from lumina.identification.application.fake_solver import DisabledIdentificationHandler
+from lumina.identification.infrastructure.wcs import normalize_nova_solution
 from lumina.jobs.application.handlers import SystemNoopHandler
 from lumina.settings import AppSettings
 from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
@@ -559,21 +560,30 @@ async def test_remote_astrometry_enabled_injects_only_validated_worker_maintenan
         captured_adapter["api_key"] = api_key.get_secret_value()
         return remote_solver
 
+    def remote_polling_service(
+        repository: object,
+        submissions: object,
+        store: object,
+        solver: object,
+        policy: object,
+        normalizer: object,
+        finalizer: object,
+        *,
+        poll_seconds: int,
+    ) -> object:
+        del submissions, store, policy
+        if (
+            repository is not remote_repository
+            or solver is not remote_solver
+            or normalizer is not normalize_nova_solution
+            or finalizer is not solution_repository
+            or poll_seconds != 5
+        ):
+            raise AssertionError("invalid remote composition")
+        return remote_service
+
     monkeypatch.setattr(composition, "RemoteNovaAdapter", adapter)
-    monkeypatch.setattr(
-        composition,
-        "RemoteSolvePollingService",
-        lambda repository, submissions, store, solver, policy, finalizer, *, poll_seconds: (
-            remote_service
-            if (
-                repository is remote_repository
-                and solver is remote_solver
-                and finalizer is solution_repository
-                and poll_seconds == 5
-            )
-            else (_ for _ in ()).throw(AssertionError("invalid remote composition"))
-        ),
-    )
+    monkeypatch.setattr(composition, "RemoteSolvePollingService", remote_polling_service)
     monkeypatch.setattr(
         composition,
         "install_signal_handlers",

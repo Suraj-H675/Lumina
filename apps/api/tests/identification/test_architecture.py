@@ -24,6 +24,11 @@ def test_identification_domain_is_framework_and_transport_free() -> None:
     assert not any(value.startswith("lumina.identification.infrastructure") for value in imports)
 
 
+def test_identification_application_does_not_import_infrastructure() -> None:
+    imports = set().union(*(_imports(path) for path in (_ROOT / "application").glob("*.py")))
+    assert not any(value.startswith("lumina.identification.infrastructure") for value in imports)
+
+
 def test_remote_nova_transport_is_in_infrastructure_and_hardened() -> None:
     source = (_ROOT / "infrastructure" / "nova.py").read_text(encoding="utf-8")
     assert "import httpx" in source

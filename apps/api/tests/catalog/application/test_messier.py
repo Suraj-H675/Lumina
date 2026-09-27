@@ -1,18 +1,13 @@
-"""Focused tests for the reviewed Messier application boundary."""
+"""Focused tests for the current Messier adapter and superseded-source provenance."""
 
 from __future__ import annotations
 
+import csv
+import hashlib
+from io import StringIO
 from pathlib import Path
 
 from lumina.catalog.infrastructure.postgresql.messier_selection import _fingerprint
-from lumina.catalog.infrastructure.simbad_messier import (
-    ARTIFACT_SHA256,
-    EXPECTED_DATASET,
-    EXPECTED_PROVIDER,
-    EXPECTED_RELEASE,
-    build_reviewed_simbad_commands,
-    read_messier_artifact,
-)
 from lumina.catalog.infrastructure.simbad_messier_v2 import (
     ARTIFACT_BYTES as V2_ARTIFACT_BYTES,
 )
@@ -29,15 +24,34 @@ from lumina.catalog.infrastructure.simbad_messier_v2 import (
 )
 from lumina.provenance.domain.manifests import DataManifest, parse_manifest_json
 
+_V1_ARTIFACT = Path("data/seed/simbad-messier-j2000-v1.csv")
+_V1_ARTIFACT_SHA256 = "b29a5c8b3bf58eb3c7649f18f1f64446c6b3b12dbbb3d59c4e639befe2fbf0e9"
+_V1_RAW_FIELDS = (
+    "requested_identifier",
+    "oid",
+    "main_id",
+    "otype",
+    "ra",
+    "dec",
+    "coo_qual",
+    "coo_bibcode",
+)
 
-def test_reviewed_messier_commands_are_exactly_110_by_220() -> None:
-    commands = build_reviewed_simbad_commands(repository_root=Path.cwd())
 
-    assert len(commands) == 110
-    assert sum(len(command.source_record.measurements) for command in commands) == 220
-    assert all(command.source_manifest.source_id == EXPECTED_PROVIDER for command in commands)
-    assert all(command.data_manifest.dataset_id == EXPECTED_DATASET for command in commands)
-    assert all(command.data_manifest.release_version == EXPECTED_RELEASE for command in commands)
+def _historical_v1_evidence() -> list[tuple[str, ...]]:
+    content = _V1_ARTIFACT.read_bytes()
+    assert hashlib.sha256(content).hexdigest() == _V1_ARTIFACT_SHA256
+    reader = csv.DictReader(StringIO(content.decode("utf-8"), newline=""), strict=True)
+    assert reader.fieldnames == [
+        "messier_number",
+        "canonical_name",
+        "slug",
+        "entity_type",
+        *_V1_RAW_FIELDS,
+    ]
+    rows = list(reader)
+    assert len(rows) == 110
+    return [tuple(row[field] for field in _V1_RAW_FIELDS) for row in rows]
 
 
 def test_messier_fingerprint_is_order_independent_and_semantic() -> None:
@@ -65,14 +79,13 @@ def test_messier_data_manifest_persists_dataset_code() -> None:
     )
 
     assert isinstance(manifest, DataManifest)
-    assert manifest.source_id == EXPECTED_PROVIDER
-    assert manifest.dataset_id == EXPECTED_DATASET
-    assert manifest.release_version == EXPECTED_RELEASE
-    assert manifest.checksum == f"sha256:{ARTIFACT_SHA256}"
+    assert manifest.source_id == "cds-simbad"
+    assert manifest.dataset_id == "messier-j2000"
+    assert manifest.release_version == "v1"
+    assert manifest.checksum == f"sha256:{_V1_ARTIFACT_SHA256}"
 
 
 def test_v2_artifact_freezes_target_semantics_without_rewriting_simbad_evidence() -> None:
-    v1_rows = read_messier_artifact(repository_root=Path.cwd())
     rows = read_messier_v2_artifact(repository_root=Path.cwd())
 
     assert len(rows) == 110
@@ -91,18 +104,8 @@ def test_v2_artifact_freezes_target_semantics_without_rewriting_simbad_evidence(
         )
         for row in rows
     ] == [
-        (
-            row.number,
-            row.requested_identifier,
-            row.oid,
-            row.main_id,
-            row.otype,
-            row.ra,
-            row.dec,
-            row.coordinate_quality,
-            row.coordinate_bibcode,
-        )
-        for row in v1_rows
+        (number, *evidence[:-1], evidence[-1] or None)
+        for number, evidence in enumerate(_historical_v1_evidence(), start=1)
     ]
     assert all(row.coordinate_role == COORDINATE_ROLE for row in rows)
     assert all(row.coordinate_bibcode is None or row.coordinate_bibcode.strip() for row in rows)

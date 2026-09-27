@@ -1,4 +1,4 @@
-"""Normalized CelesTrak OMM contracts for the Phase 4D satellite vertical."""
+"""Normalized CelesTrak OMM contracts for satellite data."""
 
 from __future__ import annotations
 

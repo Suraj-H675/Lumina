@@ -4,7 +4,7 @@
  * dependency-free so both server components and client navigation share it.
  */
 
-/** Phase 1B5 locked maximum; do not raise without a recorded decision. */
+/** Locked comparison maximum; do not raise without a recorded decision. */
 export const COMPARE_MAX_OBJECTS = 3;
 
 /** Repeated singular query parameter carrying one selected slug per value. */

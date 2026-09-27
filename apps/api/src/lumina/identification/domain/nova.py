@@ -1,4 +1,4 @@
-"""Secret-safe domain contracts for the Phase 6B remote Nova adapter."""
+"""Secret-safe domain contracts for the remote Nova adapter."""
 
 from __future__ import annotations
 

@@ -7,14 +7,13 @@ from pathlib import Path
 
 _API_ROOT = Path(__file__).resolve().parents[2]
 _CATALOG_ROOT = _API_ROOT / "src" / "lumina" / "catalog"
-_DOMAIN_APPLICATION = (
-    _CATALOG_ROOT / "domain" / "ingestion.py",
-    _CATALOG_ROOT / "domain" / "read.py",
-    _CATALOG_ROOT / "domain" / "reviewed_slice.py",
-    _CATALOG_ROOT / "application" / "ingest.py",
-    _CATALOG_ROOT / "application" / "read.py",
-    _CATALOG_ROOT / "application" / "reviewed_slice.py",
-    _CATALOG_ROOT / "application" / "data_quality.py",
+_DOMAIN_APPLICATION = tuple(
+    sorted(
+        path
+        for layer in ("domain", "application")
+        for path in (_CATALOG_ROOT / layer).glob("*.py")
+        if path.name != "__init__.py"
+    )
 )
 _FORBIDDEN_DOMAIN_APPLICATION_IMPORTS = {
     "asyncpg",

@@ -23,6 +23,7 @@ from lumina.identification.infrastructure.postgresql import (
 )
 from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRemoteSolveRepository
 from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
+from lumina.identification.infrastructure.wcs import normalize_nova_solution
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.execution import ExecuteOneJobService
@@ -256,6 +257,7 @@ async def run_worker_process(
                         max_pixels=settings.upload_max_pixels,
                         min_dimension=32,
                     ),
+                    normalize_nova_solution,
                     identification_solutions,
                     poll_seconds=settings.astrometry_poll_seconds,
                 )

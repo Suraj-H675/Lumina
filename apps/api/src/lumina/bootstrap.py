@@ -1,4 +1,4 @@
-"""FastAPI composition root for the Phase 0B2 application."""
+"""FastAPI application composition root."""
 
 from __future__ import annotations
 

@@ -629,7 +629,7 @@ describe("Phase 6A identify consent and deletion flow", () => {
         result: {
           outcome: "fixture_solved",
           solver_type: "fake",
-          solver_version: "phase6a-fixture-v1",
+          solver_version: "synthetic-fixture-v1",
           synthetic: true,
         },
         retention_hours: 24,

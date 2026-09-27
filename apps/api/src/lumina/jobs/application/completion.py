@@ -16,7 +16,7 @@ from lumina.jobs.domain.result import validate_job_result
 
 
 class JobCompletionStore(Protocol):
-    """Only the successful-completion capability introduced by Phase 0B3B3."""
+    """Successful-completion capability for claimed jobs."""
 
     async def complete(
         self,

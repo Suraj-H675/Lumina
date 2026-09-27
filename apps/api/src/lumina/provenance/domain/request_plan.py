@@ -89,7 +89,7 @@ class ProviderRequestPlan:
 
     @classmethod
     def single(cls, request: object, max_response_bytes: int) -> ProviderRequestPlan:
-        """Wrap one existing Phase 4A request without changing its checksum semantics."""
+        """Wrap one approved provider request without changing its checksum semantics."""
         return cls(
             components=(ProviderRequestComponent("default", request, max_response_bytes),),
         )

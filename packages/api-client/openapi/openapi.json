@@ -1049,8 +1049,8 @@
             "type": "string"
           },
           "solver_version": {
-            "const": "phase6a-fixture-v1",
-            "default": "phase6a-fixture-v1",
+            "const": "synthetic-fixture-v1",
+            "default": "synthetic-fixture-v1",
             "title": "Solver Version",
             "type": "string"
           },

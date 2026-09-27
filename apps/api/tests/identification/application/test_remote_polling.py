@@ -39,6 +39,7 @@ from lumina.identification.domain.submissions import (
     IdentificationSubmission,
 )
 from lumina.identification.domain.uploads import UploadMediaType, UploadValidationPolicy
+from lumina.identification.infrastructure.wcs import normalize_nova_solution
 
 _NOW = datetime(2026, 9, 15, 17, 0, tzinfo=UTC)
 _SUBMISSION_ID = UUID("73000000-0000-4000-8000-000000000001")
@@ -305,6 +306,7 @@ def _service(
         FakeStore(content),
         nova,
         UploadValidationPolicy(max_bytes=1024 * 1024, max_pixels=1_000_000, min_dimension=32),
+        normalize_nova_solution,
         finalizer,
         poll_seconds=5,
         token_factory=lambda: "c" * 64,
@@ -545,6 +547,7 @@ async def test_local_delete_stops_remote_polling_before_any_provider_request(
         FakeStore(content),
         nova,
         UploadValidationPolicy(max_bytes=1024 * 1024, max_pixels=1_000_000, min_dimension=32),
+        normalize_nova_solution,
         poll_seconds=5,
         token_factory=lambda: "c" * 64,
     )
@@ -681,6 +684,7 @@ async def test_local_delete_before_result_fetch_makes_zero_provider_requests() -
         FakeStore(content),
         nova,
         UploadValidationPolicy(max_bytes=1024 * 1024, max_pixels=1_000_000, min_dimension=32),
+        normalize_nova_solution,
         finalizer,
         poll_seconds=5,
         token_factory=lambda: "c" * 64,

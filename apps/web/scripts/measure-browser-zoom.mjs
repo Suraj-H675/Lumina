@@ -567,7 +567,7 @@ async function main() {
       target_identity: targetIdentity,
       claim_boundaries: [
         "This uses Chromium's native default page-zoom setting, not CSS zoom, pinch zoom, or device-scale emulation.",
-        "Automated real-browser evidence does not replace the manual 200% zoom check required by docs/16_TESTING_QUALITY.md.",
+        "Automated real-browser evidence does not replace the manual 200% zoom check required by docs/QUALITY_STATUS.md.",
         "The sampled routes and one Chromium/Linux environment do not certify all routes, browsers, operating systems, or WCAG 2.2 AA conformance.",
       ],
     };

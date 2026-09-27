@@ -141,6 +141,10 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
     assert document["status"] == "manual_evidence_pending"
     documentation_policy = _mapping(document["documentation_policy"])
     assert documentation_policy["format"] == "tracked_json"
+    documentation_reason = _string(documentation_policy["reason"]).casefold()
+    assert "structured evidence contract" in documentation_reason
+    assert "tracked as markdown under docs/" in documentation_reason
+    assert "reject" not in documentation_reason
     phase_gate = _mapping(document["phase_gate"])
     assert phase_gate["completion"] == "open"
     phase_gate_reason = _string(phase_gate["reason"]).casefold()
@@ -281,6 +285,12 @@ def test_phase8d_quality_audit_artifact_is_bounded_and_points_to_real_evidence()
         browser_zoom_evidence["measurement_command"] == verification_commands["browser_zoom_real"]
     )
     assert browser_zoom_evidence["instrumentation"] == ("chromium-settings-private-default-zoom-v1")
+    zoom_claim_boundaries = browser_zoom_evidence["claim_boundaries"]
+    assert isinstance(zoom_claim_boundaries, list)
+    assert any(
+        "docs/quality_status.md" in _string(boundary).casefold()
+        for boundary in zoom_claim_boundaries
+    )
 
     zoom_assessment = _mapping(browser_zoom_evidence["assessment"])
     assert zoom_assessment["manual_review_still_required"] is True

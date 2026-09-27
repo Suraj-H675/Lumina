@@ -66,7 +66,7 @@ _MAX_LIMIT = 100
 
 
 class CatalogReadRepository(Protocol):
-    """Read-only public-catalogue persistence operations introduced by Phase 1A4."""
+    """Read-only public-catalogue persistence operations."""
 
     async def get_entity_detail(self, *, entity_id: UUID) -> EntityDetail | None:
         """Return one entity detail or a typed absence represented by ``None``."""

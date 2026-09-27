@@ -209,7 +209,7 @@ def test_fixed_http_request_rejects_any_ll2_request_mutation() -> None:
         params=params,
         expected_content_type="application/json",
         max_response_bytes=LL2_MAX_RESPONSE_BYTES,
-        user_agent="Lumina/0.0 Phase-4C provider-sync",
+        user_agent="Lumina/0.0 launch-library-2-sync",
     )
     with pytest.raises(ValueError):
         FixedHttpRequest(
@@ -217,7 +217,7 @@ def test_fixed_http_request_rejects_any_ll2_request_mutation() -> None:
             params=params,
             expected_content_type="application/json",
             max_response_bytes=LL2_MAX_RESPONSE_BYTES,
-            user_agent="Lumina/0.0 Phase-4C provider-sync",
+            user_agent="Lumina/0.0 launch-library-2-sync",
         )
     with pytest.raises(ValueError):
         FixedHttpRequest(
@@ -225,7 +225,7 @@ def test_fixed_http_request_rejects_any_ll2_request_mutation() -> None:
             params=(("limit", "100"),),
             expected_content_type="application/json",
             max_response_bytes=LL2_MAX_RESPONSE_BYTES,
-            user_agent="Lumina/0.0 Phase-4C provider-sync",
+            user_agent="Lumina/0.0 launch-library-2-sync",
         )
     with pytest.raises(ValueError):
         FixedHttpRequest(
@@ -233,5 +233,5 @@ def test_fixed_http_request_rejects_any_ll2_request_mutation() -> None:
             params=params,
             expected_content_type="application/json",
             max_response_bytes=LL2_MAX_RESPONSE_BYTES - 1,
-            user_agent="Lumina/0.0 Phase-4C provider-sync",
+            user_agent="Lumina/0.0 launch-library-2-sync",
         )

@@ -1,4 +1,4 @@
-"""Strict public response schemas for Phase 8A Participate v1."""
+"""Strict public response schemas for Participate v1."""
 
 from __future__ import annotations
 

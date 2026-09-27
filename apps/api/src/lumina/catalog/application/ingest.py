@@ -23,7 +23,7 @@ _LOGGER = logging.getLogger("lumina.catalog.ingestion")
 
 
 class CatalogIngestionStore(Protocol):
-    """The one transactional persistence capability introduced by Phase 1A3."""
+    """Transactional persistence capability for reviewed catalogue ingestion."""
 
     async def ingest(self, prepared: PreparedCatalogIngestion) -> CatalogIngestionOutcome:
         """Reconcile and persist one already validated source record atomically."""

@@ -8,7 +8,7 @@ from lumina.jobs.domain.models import ClaimJobOutcome, validate_claimed_by
 
 
 class ClaimJobStore(Protocol):
-    """Only the passive claim capability introduced by Phase 0B3B1."""
+    """Passive claim capability for durable jobs."""
 
     async def claim(self, *, claimed_by: str) -> ClaimJobOutcome:
         """Claim the next eligible row, or return a typed no-row outcome."""

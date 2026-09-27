@@ -12,7 +12,7 @@
     "status": "ready",
     "version": 1,
     "audience_modes": ["explorer", "student", "deep-dive"],
-    "reviewed_by": ["Luna (primary engineer)"],
+    "reviewed_by": ["Lumina scale-explorer-v1 contract review"],
     "reviewed_at": "2026-09-02T09:12:28Z",
     "updated_at": "2026-09-02T09:12:28Z",
     "model_version": "scale-explorer-v1",

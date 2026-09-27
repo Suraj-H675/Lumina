@@ -19,7 +19,7 @@ from lumina.jobs.domain.payload import validate_json_object
 
 
 class EnqueueJobStore(Protocol):
-    """Only the persistence capability introduced by Phase 0B3A."""
+    """Persistence capability for durable job enqueue."""
 
     async def enqueue(self, job: EnqueueJob) -> EnqueueJobOutcome:
         """Insert or replay one validated logical enqueue request."""

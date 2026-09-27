@@ -1,4 +1,4 @@
-"""Reviewed Solar System distance model for Phase 5B visual exploration.
+"""Reviewed Solar System distance model for visual exploration.
 
 The model is deliberately not an ephemeris. It transforms NASA-reviewed mean Sun distances into
 linear and logarithmic display coordinates so the browser can compare system scale without
@@ -85,7 +85,7 @@ _SOURCE_METADATA: Final = (
 
 
 class SolarSystemExplorerModelError(ValueError):
-    """Raised when reviewed model input violates the Phase 5B contract."""
+    """Raised when reviewed model input violates the distance-model contract."""
 
     def __init__(self) -> None:
         super().__init__("SOLAR_SYSTEM_EXPLORER_MODEL_INVALID")

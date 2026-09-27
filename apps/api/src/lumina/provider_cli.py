@@ -1,4 +1,4 @@
-"""Secret-safe operator commands for the static Phase 4A provider."""
+"""Secret-safe operator commands for provider synchronization."""
 
 from __future__ import annotations
 

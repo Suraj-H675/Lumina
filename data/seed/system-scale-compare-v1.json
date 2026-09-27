@@ -17,7 +17,7 @@
     },
     "default_item_ids": ["solar:earth", "exoplanet:kepler-452-b", "voyager:2026"],
     "assumptions": [
-      "Only positive AU-valued outputs from three already-reviewed Phase 5B artifacts are composed.",
+      "Only positive AU-valued outputs from three reviewed system-scale artifacts are composed.",
       "The shared axis compares numeric reference lengths, not scientific quantity identity.",
       "Earth's reviewed 1 AU mean Sun distance is the arithmetic reference for displayed multiples."
     ],

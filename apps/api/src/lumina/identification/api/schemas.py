@@ -12,6 +12,7 @@ from lumina.identification.domain.public_read import (
     IdentificationPublicState,
     IdentificationRemoteCondition,
 )
+from lumina.identification.domain.submissions import FAKE_SOLVER_VERSION
 
 AnnotationName = Annotated[str, Field(min_length=1, max_length=128)]
 
@@ -21,7 +22,7 @@ class FakeSolverResultResponse(BaseModel):
 
     outcome: Literal["fixture_solved"] = "fixture_solved"
     solver_type: Literal["fake"] = "fake"
-    solver_version: Literal["phase6a-fixture-v1"] = "phase6a-fixture-v1"
+    solver_version: Literal["synthetic-fixture-v1"] = FAKE_SOLVER_VERSION
     synthetic: Literal[True] = True
 
 

@@ -1,4 +1,4 @@
-"""Offline Skyfield/python-sgp4 implementation of the fixed Phase 4D pass policy."""
+"""Offline Skyfield/python-sgp4 implementation of the fixed satellite-pass policy."""
 
 from __future__ import annotations
 

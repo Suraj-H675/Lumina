@@ -22,7 +22,7 @@ type AddObjectToCollectionControlProps = Readonly<{
 
 /**
  * Add an object to this collection through the accepted public suggest
- * endpoint (the frozen Phase 1B3 contract; ranking stays server-side).
+ * catalogue suggestion endpoint; ranking stays server-side.
  *
  * The combobox follows the established accessible pattern: role="combobox"
  * with listbox options, arrow-key activation, Escape to dismiss, and a polite

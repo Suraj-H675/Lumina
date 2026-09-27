@@ -109,7 +109,7 @@ async def test_fake_solver_verifies_private_bytes_and_returns_only_synthetic_res
     assert result == {
         "outcome": "fixture_solved",
         "solver_type": "fake",
-        "solver_version": "phase6a-fixture-v1",
+        "solver_version": "synthetic-fixture-v1",
         "synthetic": True,
     }
     assert all(key not in result for key in ("ra", "dec", "wcs", "annotations", "objects"))

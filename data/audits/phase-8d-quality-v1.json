@@ -14,7 +14,7 @@
   },
   "documentation_policy": {
     "format": "tracked_json",
-    "reason": "Repository CI intentionally rejects tracked Markdown; this machine-readable artifact is the tracked Phase 8D status, evidence index, claim-boundary record, and verification handoff."
+    "reason": "This audit remains tracked JSON because repository validators consume its structured evidence contract. Human-facing project documentation is tracked as Markdown under docs/."
   },
   "performance_threshold_provenance": {
     "core_web_vitals_lab": {
@@ -131,7 +131,7 @@
     {
       "id": "browser-zoom-200",
       "status": "pending",
-      "reason": "Headed Chromium now has supporting automation using the browser's native default page-zoom setting at exactly 200%, with eight representative routes sampled without document-level horizontal overflow. docs/16_TESTING_QUALITY.md still explicitly requires the 200% zoom check in the manual accessibility set, so human review remains pending.",
+      "reason": "Headed Chromium now has supporting automation using the browser's native default page-zoom setting at exactly 200%, with eight representative routes sampled without document-level horizontal overflow. docs/QUALITY_STATUS.md still explicitly requires the 200% zoom check in the manual accessibility set, so human review remains pending.",
       "evidence": {
         "artifact": "data/audits/phase-8d-browser-zoom-v1.json",
         "instrumentation": "chromium-settings-private-default-zoom-v1",

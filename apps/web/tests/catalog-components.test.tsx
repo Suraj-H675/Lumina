@@ -22,6 +22,7 @@ import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 
 const K2_18_ID = "403d0e71-8d81-5c52-abad-c4666c1b5cd6";
+const KEPLER_186_ID = "bbfe8678-81ca-5e70-ac95-c597d7655540";
 const SAVE_MESSAGES = collectionSaveMessageSlice(enMessages.collections);
 
 const k2_18: EntitySummaryResponse = {
@@ -96,7 +97,17 @@ describe("ExploreResultsView", () => {
       <ExploreResultsView
         collectionSaveMessages={SAVE_MESSAGES}
         entityTypeMessages={enMessages.entityTypes}
-        items={[searchItem(), searchItem({ entity: { ...k2_18, canonical_name: "Kepler-186" } })]}
+        items={[
+          searchItem(),
+          searchItem({
+            entity: {
+              ...k2_18,
+              canonical_name: "Kepler-186",
+              id: KEPLER_186_ID,
+              slug: "kepler-186",
+            },
+          }),
+        ]}
         locale={DEFAULT_LOCALE}
         messages={enMessages.explore.search}
         query="ke"

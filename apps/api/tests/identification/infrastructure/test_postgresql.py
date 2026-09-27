@@ -2,14 +2,47 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from typing import cast
+from uuid import UUID
 
 import pytest
+from lumina.identification.domain.submissions import FAKE_SOLVER_VERSION
 from lumina.identification.infrastructure.postgresql import (
     PostgreSqlIdentificationSubmissionRepository,
+    _status,
 )
+from sqlalchemy import RowMapping
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 _NOW = datetime(2026, 9, 15, 12, tzinfo=UTC)
+_SUBMISSION_ID = UUID("76000000-0000-4000-8000-000000000001")
+_JOB_ID = UUID("76000000-0000-4000-8000-000000000002")
+
+
+def test_status_normalizes_legacy_fake_solver_version() -> None:
+    row = cast(
+        RowMapping,
+        {
+            "id": _SUBMISSION_ID,
+            "job_id": _JOB_ID,
+            "created_at": _NOW,
+            "deleted_at": None,
+            "job_status": "succeeded",
+            "job_progress": 1.0,
+            "job_result": {
+                "outcome": "fixture_solved",
+                "solver_type": "fake",
+                "solver_version": "phase6a-fixture-v1",
+                "synthetic": True,
+            },
+            "job_error_code": None,
+            "job_completed_at": _NOW,
+        },
+    )
+
+    status = _status(row)
+
+    assert status.result is not None
+    assert status.result.solver_version == FAKE_SOLVER_VERSION
 
 
 class _Result:

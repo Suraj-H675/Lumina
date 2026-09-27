@@ -1,5 +1,5 @@
 {
-  "extends": "../config-typescript/base.json",
+  "extends": "@lumina/config-typescript/base.json",
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2024"],
     "module": "ESNext",

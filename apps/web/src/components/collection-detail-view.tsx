@@ -33,7 +33,7 @@ import { AddObjectToCollectionControl } from "./collection-add-object";
  * /collections/[collectionId]: one local collection — browse saved objects
  * (from identity snapshots only), rename, delete with confirmation, remove
  * objects, add objects through the accepted public suggest endpoint, and
- * launch 2–3 saved objects into the existing Phase 1B5 Compare experience.
+ * launch 2–3 saved objects into the Compare experience.
  */
 
 const primaryButtonClassName =
@@ -425,7 +425,7 @@ function CompareSelectionPanel({
 
   const launchCompare = useCallback(() => {
     if (selectedSlugs.length < 2) return;
-    // Frozen Phase 1B5 contract: repeated singular object params in selection
+    // Compare URL contract: repeated singular object params preserve selection
     // order; buildCompareHref dedupes and caps by itself.
     router.push(buildCompareHref(selectedSlugs));
   }, [router, selectedSlugs]);

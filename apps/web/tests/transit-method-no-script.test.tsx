@@ -20,7 +20,7 @@ describe("TransitMethodNoScript", () => {
     );
 
     expect(markup).toContain("Canonical result");
-    expect(markup).toContain("Phase 7 / Transit Method Lab");
+    expect(markup).toContain("Exoplanet-transit teaching model");
     expect(markup).toContain("transit-method-v1");
     expect(markup).toContain("Alignment classification");
     expect(markup).toContain("Radius ratio");

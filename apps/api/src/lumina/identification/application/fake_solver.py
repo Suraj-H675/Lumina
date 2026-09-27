@@ -1,4 +1,4 @@
-"""Deterministic Phase 6A fake plate-solver job handler."""
+"""Deterministic fake plate-solver job handler."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from uuid import UUID
 
 from lumina.identification.domain.storage import PrivateObjectStore, PrivateStorageError
 from lumina.identification.domain.submissions import (
+    FAKE_SOLVER_VERSION,
     IdentificationSubmission,
     SubmissionNotFound,
     SubmissionStorageFailure,
@@ -23,7 +24,7 @@ from lumina.jobs.domain.payload import PersistedJobPayload
 _FAKE_RESULT = {
     "outcome": "fixture_solved",
     "solver_type": "fake",
-    "solver_version": "phase6a-fixture-v1",
+    "solver_version": FAKE_SOLVER_VERSION,
     "synthetic": True,
 }
 

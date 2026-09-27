@@ -1,4 +1,4 @@
-import { localeDefinition, type Locale } from "./locales";
+import { localeDefinition, type PublishedLocale } from "./locales";
 import type { CountMessageTemplates } from "./messages/types";
 
 const MESSAGE_PLACEHOLDER_PATTERN = /\{([A-Za-z][A-Za-z0-9]*)\}/gu;
@@ -27,7 +27,7 @@ export function formatMessageTemplate(
 export function formatCountMessage(
   templates: CountMessageTemplates,
   count: number,
-  locale: Locale,
+  locale: PublishedLocale,
   values: Readonly<Record<string, string | number>> = {},
 ): string {
   const category = new Intl.PluralRules(localeDefinition(locale).intlTag).select(count);
@@ -40,7 +40,7 @@ export function formatCountMessage(
 
 export function formatLocaleDateTime(
   value: Date | number,
-  locale: Locale,
+  locale: PublishedLocale,
   options: Intl.DateTimeFormatOptions,
 ): string {
   return new Intl.DateTimeFormat(localeDefinition(locale).intlTag, options).format(value);
@@ -48,7 +48,7 @@ export function formatLocaleDateTime(
 
 export function formatLocaleList(
   values: ReadonlyArray<string>,
-  locale: Locale,
+  locale: PublishedLocale,
   options?: Intl.ListFormatOptions,
 ): string {
   return new Intl.ListFormat(localeDefinition(locale).intlTag, options).format(values);
@@ -56,7 +56,7 @@ export function formatLocaleList(
 
 export function formatLocaleNumber(
   value: number | bigint,
-  locale: Locale,
+  locale: PublishedLocale,
   options?: Intl.NumberFormatOptions,
 ): string {
   return new Intl.NumberFormat(localeDefinition(locale).intlTag, options).format(value);
@@ -65,7 +65,7 @@ export function formatLocaleNumber(
 export function formatLocaleFixedNumber(
   value: number,
   fractionDigits: number,
-  locale: Locale,
+  locale: PublishedLocale,
 ): string {
   const rounded = Number(value.toFixed(fractionDigits));
   return formatLocaleNumber(rounded, locale, {

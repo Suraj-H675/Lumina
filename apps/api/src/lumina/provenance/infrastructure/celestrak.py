@@ -1,4 +1,4 @@
-"""Fixed selected-group CelesTrak OMM JSON adapter for Phase 4D."""
+"""Fixed selected-group CelesTrak OMM JSON adapter."""
 
 from __future__ import annotations
 

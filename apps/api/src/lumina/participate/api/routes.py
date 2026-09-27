@@ -1,4 +1,4 @@
-"""Read-only HTTP translation for Phase 8A Participate."""
+"""Read-only HTTP translation for Participate."""
 
 from __future__ import annotations
 

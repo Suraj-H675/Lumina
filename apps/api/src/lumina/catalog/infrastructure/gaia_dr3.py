@@ -1,7 +1,7 @@
 """Offline parser for the single checksum-pinned Gaia DR3 reviewed artifact.
 
 No network client, endpoint selection, provider registry, or generic CSV interpretation lives
-here.  This adapter converts the one immutable release file into Phase 1A3 ingestion commands.
+here. This adapter converts the immutable release file into deterministic ingestion commands.
 """
 
 from __future__ import annotations

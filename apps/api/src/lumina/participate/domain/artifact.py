@@ -1,4 +1,4 @@
-"""Strict loader for the reviewed Phase 8A Participate v1 content artifact."""
+"""Strict loader for the reviewed Participate v1 content artifact."""
 
 from __future__ import annotations
 

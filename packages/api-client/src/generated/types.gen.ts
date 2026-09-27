@@ -661,7 +661,7 @@ export type FakeSolverResultResponse = {
   /**
    * Solver Version
    */
-  solver_version?: "phase6a-fixture-v1";
+  solver_version?: "synthetic-fixture-v1";
   /**
    * Synthetic
    */

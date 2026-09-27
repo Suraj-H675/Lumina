@@ -1,4 +1,4 @@
-"""Composition boundary for the statically approved Phase 4A provider."""
+"""Composition boundary for statically approved providers."""
 
 from __future__ import annotations
 

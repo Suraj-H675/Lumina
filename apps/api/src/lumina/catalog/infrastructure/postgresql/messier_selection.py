@@ -11,7 +11,7 @@ from uuid import UUID, uuid5
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from lumina.catalog.infrastructure.simbad_messier import (
+from lumina.catalog.infrastructure.simbad_messier_v2 import (
     DECLINATION_QUANTITY,
     EXPECTED_DATASET,
     EXPECTED_PROVIDER,
@@ -19,9 +19,6 @@ from lumina.catalog.infrastructure.simbad_messier import (
     RIGHT_ASCENSION_QUANTITY,
 )
 
-_SELECTION_RULE: Final = "simbad_messier_j2000"
-_SELECTION_VERSION: Final = "v1"
-_EXPLANATION: Final = "Selected from the reviewed CDS SIMBAD Messier ICRS J2000 v1 dataset."
 V2_SELECTION_RULE: Final = "simbad_messier_j2000_catalogue_anchor"
 V2_SELECTION_VERSION: Final = "v2"
 MESSIER_V2_SELECTION_SHA256: Final = (
@@ -104,21 +101,10 @@ class MessierSelectionProfile:
     fingerprint_schema_version: int
 
 
-V1_SELECTION_PROFILE: Final = MessierSelectionProfile(
-    provider=EXPECTED_PROVIDER,
-    dataset=EXPECTED_DATASET,
-    release=EXPECTED_RELEASE,
-    right_ascension=RIGHT_ASCENSION_QUANTITY,
-    declination=DECLINATION_QUANTITY,
-    selection_rule=_SELECTION_RULE,
-    selection_version=_SELECTION_VERSION,
-    explanation=_EXPLANATION,
-    fingerprint_schema_version=1,
-)
 V2_SELECTION_PROFILE: Final = MessierSelectionProfile(
     provider=EXPECTED_PROVIDER,
     dataset=EXPECTED_DATASET,
-    release="v2",
+    release=EXPECTED_RELEASE,
     right_ascension=RIGHT_ASCENSION_QUANTITY,
     declination=DECLINATION_QUANTITY,
     selection_rule=V2_SELECTION_RULE,
@@ -155,7 +141,7 @@ class PostgreSqlMessierCanonicalSelectionStore:
         self,
         session_factory: async_sessionmaker[AsyncSession],
         *,
-        profile: MessierSelectionProfile = V1_SELECTION_PROFILE,
+        profile: MessierSelectionProfile,
     ) -> None:
         self._session_factory = session_factory
         self._profile = profile
@@ -272,7 +258,6 @@ __all__ = [
     "MessierSelectionResult",
     "MESSIER_V2_SELECTION_SHA256",
     "PostgreSqlMessierCanonicalSelectionStore",
-    "V1_SELECTION_PROFILE",
     "V2_EXPLANATION",
     "V2_SELECTION_PROFILE",
     "V2_SELECTION_RULE",

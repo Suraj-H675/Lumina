@@ -280,7 +280,7 @@ export const zErrorResponse = z.object({
 export const zFakeSolverResultResponse = z.object({
   outcome: z.literal("fixture_solved").optional().default("fixture_solved"),
   solver_type: z.literal("fake").optional().default("fake"),
-  solver_version: z.literal("phase6a-fixture-v1").optional().default("phase6a-fixture-v1"),
+  solver_version: z.literal("synthetic-fixture-v1").optional().default("synthetic-fixture-v1"),
   synthetic: z.literal(true).optional().default(true),
 });
 

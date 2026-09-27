@@ -2529,7 +2529,7 @@ const stub = http.createServer(async (request, response) => {
             ? {
                 outcome: "fixture_solved",
                 solver_type: "fake",
-                solver_version: "phase6a-fixture-v1",
+                solver_version: "synthetic-fixture-v1",
                 synthetic: true,
               }
             : null,

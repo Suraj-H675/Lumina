@@ -14,7 +14,6 @@ from typing import NoReturn
 from lumina.catalog.application.data_quality import ReviewedSliceDataQualityService
 from lumina.catalog.application.ingest import CatalogIngestionService
 from lumina.catalog.application.messier import (
-    MESSIER_SLICE_ID,
     MESSIER_V2_SLICE_ID,
     MessierIngestionResult,
     MessierReviewedIngestionService,
@@ -60,12 +59,10 @@ from lumina.catalog.infrastructure.postgresql.data_quality import (
 from lumina.catalog.infrastructure.postgresql.ingestion import PostgreSqlCatalogIngestionStore
 from lumina.catalog.infrastructure.postgresql.messier_selection import (
     MESSIER_V2_SELECTION_SHA256,
-    V1_SELECTION_PROFILE,
     V2_SELECTION_PROFILE,
     PostgreSqlMessierCanonicalSelectionStore,
 )
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
-from lumina.catalog.infrastructure.simbad_messier import ARTIFACT_SHA256
 from lumina.catalog.infrastructure.simbad_messier_v2 import (
     ARTIFACT_SHA256 as V2_ARTIFACT_SHA256,
 )
@@ -112,7 +109,7 @@ def _parser() -> _SafeArgumentParser:
     ingest.add_argument(
         "--slice",
         required=True,
-        choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID, MESSIER_SLICE_ID, MESSIER_V2_SLICE_ID),
+        choices=(REVIEWED_SLICE_ID, ASTROMETRY_SLICE_ID, MESSIER_V2_SLICE_ID),
     )
     ingest.add_argument("--validate-only", action="store_true")
 
@@ -150,17 +147,6 @@ def _parser() -> _SafeArgumentParser:
 async def _run(namespace: argparse.Namespace) -> dict[str, object]:
     if namespace.command == "ingest" and namespace.validate_only:
         started = perf_counter()
-        if namespace.slice == MESSIER_SLICE_ID:
-            validated = await MessierReviewedIngestionService().validate()
-            return {
-                "artifact_sha256": ARTIFACT_SHA256,
-                "duration_ms": _elapsed_milliseconds(started),
-                "measurement_count": validated.measurement_count,
-                "replayed_source_record_count": validated.replayed_source_record_count,
-                "slice_id": validated.slice_id,
-                "source_record_count": validated.source_record_count,
-                "status": validated.status,
-            }
         if namespace.slice == MESSIER_V2_SLICE_ID:
             validated = await MessierReviewedIngestionService(
                 slice_id=MESSIER_V2_SLICE_ID,
@@ -208,19 +194,14 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
             catalog_ingestion = CatalogIngestionService(
                 PostgreSqlCatalogIngestionStore(runtime.session_factory)
             )
-            if namespace.slice in {MESSIER_SLICE_ID, MESSIER_V2_SLICE_ID}:
-                if namespace.slice == MESSIER_SLICE_ID:
-                    messier_service = MessierReviewedIngestionService(catalog_ingestion)
-                    selection_profile = V1_SELECTION_PROFILE
-                    artifact_sha256 = ARTIFACT_SHA256
-                else:
-                    messier_service = MessierReviewedIngestionService(
-                        catalog_ingestion,
-                        slice_id=MESSIER_V2_SLICE_ID,
-                        command_builder=build_reviewed_simbad_v2_commands,
-                    )
-                    selection_profile = V2_SELECTION_PROFILE
-                    artifact_sha256 = V2_ARTIFACT_SHA256
+            if namespace.slice == MESSIER_V2_SLICE_ID:
+                messier_service = MessierReviewedIngestionService(
+                    catalog_ingestion,
+                    slice_id=MESSIER_V2_SLICE_ID,
+                    command_builder=build_reviewed_simbad_v2_commands,
+                )
+                selection_profile = V2_SELECTION_PROFILE
+                artifact_sha256 = V2_ARTIFACT_SHA256
                 ingestion_result = await messier_service.ingest()
                 operator_runtime = create_database_runtime(
                     load_catalog_operator_settings().database_url
@@ -250,18 +231,17 @@ async def _run(namespace: argparse.Namespace) -> dict[str, object]:
                 ).ingest(namespace.slice)
                 artifact_sha256 = _reviewed_artifact_sha256()
             selection_payload: dict[str, object] = {}
-            if namespace.slice in {MESSIER_SLICE_ID, MESSIER_V2_SLICE_ID}:
+            if namespace.slice == MESSIER_V2_SLICE_ID:
                 selection_payload = {
                     "state_sha256": selection_result.fingerprint,
                     "canonical_inserted_count": selection_result.inserted_count,
                     "canonical_unchanged_count": selection_result.unchanged_count,
                     "canonical_superseded_count": selection_result.superseded_count,
                 }
-                if namespace.slice == MESSIER_V2_SLICE_ID:
-                    selection_payload["state_sha256"] = MESSIER_V2_STATE_SHA256
-                    selection_payload["canonical_selection_fingerprint_sha256"] = (
-                        selection_result.fingerprint
-                    )
+                selection_payload["state_sha256"] = MESSIER_V2_STATE_SHA256
+                selection_payload["canonical_selection_fingerprint_sha256"] = (
+                    selection_result.fingerprint
+                )
             return {
                 "artifact_sha256": artifact_sha256,
                 "duration_ms": _elapsed_milliseconds(started),

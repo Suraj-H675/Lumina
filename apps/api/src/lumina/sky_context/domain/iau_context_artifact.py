@@ -1,4 +1,4 @@
-"""Closed validators for Lumina's Phase 2E sky-context artifacts.
+"""Closed validators for Lumina's reviewed IAU sky-context artifacts.
 
 The named-star and constellation products are immutable, same-origin rendering
 context.  They are deliberately kept outside the catalogue schema and are
@@ -188,10 +188,10 @@ _OFFICIAL_CONSTELLATIONS: Final = {
 
 
 class IAUContextArtifactRejected(ValueError):
-    """Safe failure for any Phase 2E manifest or artifact violation."""
+    """Safe failure for any sky-context manifest or artifact violation."""
 
     def __init__(self) -> None:
-        super().__init__("The Phase 2E IAU sky-context artifact was rejected.")
+        super().__init__("The IAU sky-context artifact was rejected.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -670,7 +670,7 @@ def _validate_named_anchor_bright_intersection(
 def validate_named_anchor_artifact(
     *, repository_root: Path = REPOSITORY_ROOT
 ) -> NamedAnchorArtifactReview:
-    """Validate the exact named-anchor manifest, artifact, and Phase 2D join."""
+    """Validate the exact named-anchor manifest, artifact, and reviewed Gaia join."""
     manifest = _load_pinned_document(
         repository_root,
         NAMED_ANCHOR_MANIFEST_PATH,
@@ -1191,7 +1191,7 @@ def validate_constellation_artifact(
 def validate_iau_context_artifacts(
     *, repository_root: Path = REPOSITORY_ROOT
 ) -> tuple[NamedAnchorArtifactReview, ConstellationArtifactReview]:
-    """Validate both Phase 2E products and the immutable Phase 2D dependency."""
+    """Validate both sky-context products and the immutable reviewed Gaia dependency."""
     named = validate_named_anchor_artifact(repository_root=repository_root)
     constellations = validate_constellation_artifact(repository_root=repository_root)
     return named, constellations

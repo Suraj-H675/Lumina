@@ -2,7 +2,7 @@
   "name": "@lumina/web",
   "version": "0.0.0",
   "private": true,
-  "description": "Lumina accessible web foundation",
+  "description": "Lumina astronomy learning and exploration web application",
   "scripts": {
     "build": "next build && node ../../scripts/ci/check_wwt_bundle_isolation.mjs && node ../../scripts/ci/check_web_performance_budgets.mjs",
     "dev": "next dev",
@@ -29,10 +29,11 @@
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
     "@playwright/test": "1.62.1",
+    "@lumina/config-typescript": "workspace:*",
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
-    "@testing-library/user-event": "^14.6.6",
+    "@testing-library/user-event": "14.6.6",
     "@types/jest-axe": "3.5.9",
     "@types/node": "24.10.0",
     "@types/react": "19.2.18",
@@ -43,6 +44,7 @@
     "jest-axe": "11.0.0",
     "jsdom": "30.0.1",
     "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
     "vitest": "4.1.11"
   }
 }

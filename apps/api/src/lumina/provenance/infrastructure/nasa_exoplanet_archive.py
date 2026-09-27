@@ -1,4 +1,4 @@
-"""Fixed NASA Exoplanet Archive TAP adapter for the Phase 4A count probe."""
+"""Fixed NASA Exoplanet Archive TAP adapter for the confirmed-planet count probe."""
 
 from __future__ import annotations
 

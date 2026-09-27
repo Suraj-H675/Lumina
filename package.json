@@ -2,7 +2,7 @@
   "name": "lumina",
   "version": "0.0.0",
   "private": true,
-  "description": "Lumina repository workspace and accessible web foundation",
+  "description": "Lumina astronomy learning and exploration monorepo",
   "packageManager": "pnpm@11.17.0",
   "engines": {
     "node": ">=24 <25",

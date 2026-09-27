@@ -14,9 +14,9 @@ fail() {
 command -v git >/dev/null 2>&1 || fail "Git is required."
 command -v node >/dev/null 2>&1 || fail "Node.js 24.x active LTS is required."
 command -v uv >/dev/null 2>&1 || fail "A maintained uv 0.12.x version >=0.12.17 is required."
-command -v docker >/dev/null 2>&1 || fail "Docker with Compose is required for Phase 0B2."
-docker info >/dev/null 2>&1 || fail "Docker daemon access is required for Phase 0B2."
-docker compose version >/dev/null 2>&1 || fail "Docker Compose is required for Phase 0B2."
+command -v docker >/dev/null 2>&1 || fail "Docker with Compose is required for the local PostgreSQL environment."
+docker info >/dev/null 2>&1 || fail "Docker daemon access is required for the local PostgreSQL environment."
+docker compose version >/dev/null 2>&1 || fail "Docker Compose is required for the local PostgreSQL environment."
 
 NODE_VERSION=$(node -p "process.versions.node")
 NODE_MAJOR=${NODE_VERSION%%.*}

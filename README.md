@@ -109,9 +109,7 @@ Current runtime/environment ownership is documented in [Configuration](docs/CONF
 
 ## Project status
 
-The implemented application and automated repository gates are mature. Final Phase-8D evidence still requires real human/device/deployed observations; those are tracked explicitly rather than being inferred from automated tests. See [Quality status](docs/QUALITY_STATUS.md).
-
-Public-hosting vendor configuration is intentionally not committed as part of this repository-cleanup work.
+The implemented application and automated repository gates are mature. Final quality evidence still requires real human accessibility review, representative-device observations, and approved field performance evidence from a deployment; those gaps are tracked explicitly rather than being inferred from automated tests. See [Quality status](docs/QUALITY_STATUS.md).
 
 ## Security
 

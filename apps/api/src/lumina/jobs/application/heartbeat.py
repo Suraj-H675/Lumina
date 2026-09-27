@@ -15,7 +15,7 @@ from lumina.jobs.domain.models import ExpectedJobAttempt, JobAttemptValidationEr
 
 
 class JobHeartbeatStore(Protocol):
-    """Only the owner-guarded heartbeat capability introduced by Phase 0B3B2."""
+    """Owner-guarded heartbeat capability for claimed jobs."""
 
     async def heartbeat(self, request: HeartbeatJobRequest) -> HeartbeatRecorded:
         """Record one PostgreSQL-authored heartbeat for the expected owner."""

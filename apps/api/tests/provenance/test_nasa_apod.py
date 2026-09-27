@@ -187,7 +187,7 @@ async def test_apod_fetch_uses_only_the_fixed_keyed_endpoint_and_redacts_key_rep
     assert request.params == (("api_key", _TEST_KEY),)
     assert request.expected_content_type == "application/json"
     assert request.max_response_bytes == MAX_RESPONSE_BYTES
-    assert request.user_agent == "Lumina/0.0 Phase-4B provider-sync"
+    assert request.user_agent == "Lumina/0.0 nasa-apod-sync"
     assert _TEST_KEY not in repr(request)
     assert _TEST_KEY not in str(request)
 

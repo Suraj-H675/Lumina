@@ -1,5 +1,3 @@
-import type { LuminaMessages } from "./types";
-
 export const enMessages = {
   catalogueSearch: {
     clearAction: "Clear search",
@@ -315,7 +313,7 @@ export const enMessages = {
     },
     header: {
       backToExplore: "← Explore catalogue",
-      eyebrow: "Advanced atlas · Phase 5A",
+      eyebrow: "Reviewed deep-sky atlas",
       intro:
         "Browse reviewed galaxies, nebulae, and clusters from Lumina's catalogue. The optional WorldWide Telescope view is a renderer only: object identity, coordinates, epoch, and provenance continue to come from Lumina's reviewed data.",
       title: "Deep-sky atlas",
@@ -514,7 +512,7 @@ export const enMessages = {
           "The Solar System explorer uses a different reviewed source and a wider 0–30.05 {unit} range. Comparing the two makes the chosen display scale explicit instead of visually mixing the data sets.",
         title: "Compare the reference system",
       },
-      eyebrow: "System explorer · Phase 5B",
+      eyebrow: "Reviewed exoplanet-system explorer",
       explorer: {
         dataAlternative: {
           description:
@@ -602,7 +600,7 @@ export const enMessages = {
     voyager: {
       backToExplore: "← Explore catalogue",
       centerBodyName: "Sun",
-      eyebrow: "Mission timeline · Phase 5B",
+      eyebrow: "Source-backed mission timeline",
       intro:
         "Follow documented {mission} mission milestones and a checksum-pinned {trajectoryProvider} trajectory. Mission history and trajectory samples remain separate source contracts: {historyProvider} records the launch on {launchDate}, while the pinned {trajectoryProvider} vector series begins {vectorStartDate}.",
       metadataDescription:
@@ -686,7 +684,7 @@ export const enMessages = {
           "Distance from the Sun and physical body size answer different questions. Keep them separate, then compare them intentionally.",
         title: "Continue across scales",
       },
-      eyebrow: "Cosmic Zoom · Phase 5B",
+      eyebrow: "Solar System distance scale",
       explorer: {
         dataAlternative: {
           description:
@@ -763,7 +761,7 @@ export const enMessages = {
         },
         title: "Default comparison data",
       },
-      eyebrow: "Advanced compare · Phase 5B",
+      eyebrow: "Cross-system AU comparison",
       explorer: {
         card: {
           openSourceExplorer: "Open source explorer →",
@@ -819,7 +817,7 @@ export const enMessages = {
       model: {
         assumptionsTitle: "Assumptions",
         description:
-          "Python composes only positive AU-valued outputs from the three already-reviewed Phase 5B artifacts. React selects among those precomputed outputs; it does not reinterpret source science or derive cross-model similarity.",
+          "Python composes only positive AU-valued outputs from the three reviewed system-scale artifacts. React selects among those precomputed outputs; it does not reinterpret source science or derive cross-model similarity.",
         limitationsTitle: "Limitations",
         title: "Composition model and limits",
       },
@@ -1151,11 +1149,11 @@ export const enMessages = {
     },
     header: {
       localDescription:
-        "This phase validates Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic fake fixture: it does not identify the sky and does not return astrometric coordinates.",
-      localEyebrow: "Identify · Phase 6A infrastructure",
+        "This local mode exercises Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic test fixture: it does not identify the sky and does not return astrometric coordinates.",
+      localEyebrow: "Identify · local privacy workflow",
       remoteDescription:
         "Lumina can send one explicitly consented image to {service} for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations.",
-      remoteEyebrow: "Identify · Phase 6B remote plate solving",
+      remoteEyebrow: "Identify · remote plate solving",
       title: "Identify an astronomical image",
     },
     journalPanel: {
@@ -2194,7 +2192,7 @@ export const enMessages = {
           "Calculation service is unavailable; the last valid result remains visible.",
       },
       header: {
-        eyebrow: "Phase 7 · Schwarzschild landmark + static-clock teaching model",
+        eyebrow: "Schwarzschild landmark + static-clock teaching model",
         intro:
           "Explore an ideal non-rotating, uncharged Schwarzschild black hole through source-backed landmark radii and a hypothetical static clock. This is not ray tracing, an observed black-hole reconstruction, an orbit simulator, or an accretion model.",
         title: "Black-Hole / Relativity Lab",
@@ -2246,7 +2244,7 @@ export const enMessages = {
         },
         controlDisclosure:
           "The mass control is the IAU nominal-solar gravitational-parameter ratio, not a measured mass in kilograms. The selected observer is an accelerated hoverer, not a freely falling or orbiting observer.",
-        eyebrow: "Phase 7 / Black-Hole / Relativity Lab",
+        eyebrow: "Black-hole relativity teaching model",
         intro:
           "Explore a source-backed Schwarzschild landmark and static-clock teaching model. Lumina's Python astronomy domain owns all horizon, photon-sphere, ISCO, clock-rate, and gravitational-redshift calculations.",
         requestedStateTitle: "Requested teaching state",
@@ -2342,7 +2340,7 @@ export const enMessages = {
           "Presentation-only apparent-disk sketch normalized from the returned angular radii and center separation. The canonical classification and obscuration are computed by Python, not this SVG.",
       },
       header: {
-        eyebrow: "Phase 7 · offline topocentric solar geometry",
+        eyebrow: "Offline topocentric solar-eclipse geometry",
         intro:
           "Explore the apparent Sun–Moon geometry for one UTC instant and observer. V1 is an educational offline solar-eclipse model, not a precision eclipse-navigation service.",
         title: "Eclipse Simulator",
@@ -2379,7 +2377,7 @@ export const enMessages = {
           partialEnd: "Partial ends",
         },
         eventTitle: "Approximate local contacts",
-        eyebrow: "Phase 7 / Eclipse Simulator",
+        eyebrow: "Solar-eclipse geometry model",
         intro:
           "Explore offline topocentric solar-eclipse geometry. Lumina's Python astronomy domain owns the ephemeris, apparent disk sizes, overlap, classification, and approximate contact search.",
         modelLimitations: "Model limitations",
@@ -2491,7 +2489,7 @@ export const enMessages = {
         link: "Return to Lab index",
       },
       header: {
-        eyebrow: "Phase 3B / Vertical 4",
+        eyebrow: "Gaia DR3 stellar-population explorer",
         learningPrompt: "Learning prompt:",
         title: "H-R Diagram Explorer",
       },
@@ -2547,7 +2545,7 @@ export const enMessages = {
             "{designation} is selected. Its values remain available even when the active filters exclude it.",
           title: "Selected star detail",
         },
-        eyebrow: "Phase 3B / Vertical 4",
+        eyebrow: "Gaia DR3 stellar-population explorer",
         intro:
           "Explore a curated Gaia DR3 stellar sample in two alternate views: physical H-R quantities and Gaia colour–magnitude quantities. This complete text and table result remains available without JavaScript.",
         invalidDescription:
@@ -2683,7 +2681,7 @@ export const enMessages = {
         finalCraterRadius: "Final crater radius",
       },
       header: {
-        eyebrow: "Phase 7 · large solid-rock Earth-impact teaching model",
+        eyebrow: "Large solid-rock Earth-impact teaching model",
         intro:
           "Explore how a synthetic large impactor maps to source-backed kinetic energy, crater-size sensitivity, and lower-bound ejecta deposit radii. This lab has no map, target location, casualty model, emergency-planning output, or optimization.",
         title: "Impact Simulator",
@@ -2711,7 +2709,7 @@ export const enMessages = {
         angleUnit: "degrees",
         ejectaCaption: "Location-free Python-returned lower-bound deposit radii.",
         ejectaTitle: "Lower-bound ejecta thickness radii",
-        eyebrow: "Phase 7 / Impact Simulator",
+        eyebrow: "Earth-impact teaching model",
         intro:
           "Explore a source-backed large solid-rock Earth-impact teaching model. Lumina's Python astronomy domain owns all energy, crater-scaling, coefficient-sensitivity, and ejecta-thickness calculations.",
         requestedTitle: "Requested synthetic impact",
@@ -2832,7 +2830,7 @@ export const enMessages = {
         starLabel: "star",
       },
       header: {
-        eyebrow: "Phase 7 · deterministic multi-planet teaching model",
+        eyebrow: "Deterministic multi-planet teaching model",
         intro:
           "Build one synthetic star with one to eight circular, coplanar, non-interacting planets. Compare Python-owned Keplerian periods, a published conservative reference HZ band, and limited adjacent-pair mutual-Hill context without making a long-term stability claim.",
         title: "Planetary System Builder",
@@ -2862,7 +2860,7 @@ export const enMessages = {
         hzRange: "Modeled reference HZ: {inner} AU to {outer} AU.",
         intro:
           "Build a circular, coplanar, non-interacting teaching system. Lumina's Python astronomy domain owns every Keplerian period, reference habitable-zone boundary, and pairwise mutual-Hill diagnostic.",
-        eyebrow: "Phase 7 / Planetary System Builder",
+        eyebrow: "Multi-planet teaching model",
         modelVersion: "Model version",
         pairwiseCaption: "Returned adjacent-pair mutual-Hill spacing diagnostics.",
         pairwiseHeaders: {
@@ -2986,7 +2984,7 @@ export const enMessages = {
         moon: "Moon",
       },
       header: {
-        eyebrow: "Phase 7 · deterministic ideal staged-rocket teaching model",
+        eyebrow: "Deterministic ideal staged-rocket teaching model",
         intro:
           "Explore how stage masses, specific impulse, thrust, payload, and a selected surface-gravity reference relate inside one deliberately idealized model. This lab does not determine mission feasibility, real launch capability, or operational flight plans.",
         title: "Rocket / Mission Designer",
@@ -3025,7 +3023,7 @@ export const enMessages = {
         },
         intro:
           "Explore a source-backed ideal staged-rocket teaching model. Lumina's Python astronomy domain owns stage bookkeeping, ideal delta-v, surface-gravity TWR references, payload sensitivity, and velocity-reference comparisons.",
-        eyebrow: "Phase 7 / Rocket / Mission Designer",
+        eyebrow: "Staged-rocket teaching model",
         modelVersion: "Model version",
         payloadCaption: "Python-returned payload trade-off points.",
         payloadDescription:
@@ -3151,7 +3149,7 @@ export const enMessages = {
         velocityY: "Initial y velocity",
       },
       header: {
-        eyebrow: "Phase 7 · deterministic simulation",
+        eyebrow: "Planar Newtonian two-body simulation",
         intro:
           "Explore planar Newtonian relative two-body motion from an explicit initial position and velocity. Analytic initial elements and the velocity-Verlet trajectory are calculated only by Lumina's canonical Python astronomy domain.",
         title: "Orbit Sandbox",
@@ -3179,7 +3177,7 @@ export const enMessages = {
       noScript: {
         collisionTimeLabel: "Collision time in requested window",
         currentStateTitle: "Current input state",
-        eyebrow: "Phase 7 / Orbit Sandbox",
+        eyebrow: "Planar Newtonian two-body model",
         intro:
           "Explore a deterministic planar Newtonian two-body model. The canonical orbital elements and trajectory are calculated by Lumina's server-side astronomy domain, not by this page.",
         modelTitle: "Model, assumptions, limitations, and provenance",
@@ -3278,7 +3276,7 @@ export const enMessages = {
         stellarMass: "Stellar mass",
       },
       header: {
-        eyebrow: "Phase 7 / Radial Velocity Lab",
+        eyebrow: "Keplerian reflex-velocity model",
         intro:
           "Explore the star's deterministic Keplerian reflex signal, how inclination suppresses the observed velocity, and why radial velocity constrains a minimum mass rather than a unique true companion mass.",
         title: "Radial Velocity Lab",
@@ -3407,7 +3405,7 @@ export const enMessages = {
         title: "Gravitational redshift uses a different model",
       },
       header: {
-        eyebrow: "Phase 7 · One-dimensional inertial special relativity",
+        eyebrow: "One-dimensional inertial special relativity",
         intro:
           "Compare measurements made by two inertial frames moving at constant relative speed along one shared axis. This model teaches frame-dependent time, length, and simultaneity; it does not model acceleration or gravity.",
         title: "Relativity Visualizations",
@@ -3444,7 +3442,7 @@ export const enMessages = {
         title: "Model contract and provenance",
       },
       noScript: {
-        eyebrow: "Phase 7 / Special Relativity",
+        eyebrow: "Special-relativity teaching model",
         intro:
           "Explore a one-dimensional inertial-frame special-relativity teaching model. Lumina's Python astronomy domain owns the Lorentz factor, time-dilation, length-contraction, and relativity-of-simultaneity calculations.",
         requestedStateTitle: "Requested teaching state",
@@ -3528,7 +3526,7 @@ export const enMessages = {
       },
       header: {
         breadcrumbAriaLabel: "Breadcrumb",
-        eyebrow: "First Phase 3B lab",
+        eyebrow: "Characteristic-size explorer",
         intro:
           "Move from the Moon and planets to the Sun, the Milky Way, and the observable universe. The track tells a story about characteristic size; it is not a map of where objects are.",
         labBreadcrumb: "Space Lab",
@@ -3795,7 +3793,7 @@ export const enMessages = {
       },
       header: {
         breadcrumbAriaLabel: "Breadcrumb",
-        eyebrow: "Phase 3B / Vertical 2",
+        eyebrow: "Idealized seasons geometry",
         intro:
           "See how axial tilt and seasonal orbital position change solar declination, local-noon Sun height, incidence, and geometric daylight between equal-and-opposite latitudes. Distance variation is shown separately as context, not as the cause of opposite-hemisphere seasons.",
         labBreadcrumb: "Space Lab",
@@ -3843,7 +3841,7 @@ export const enMessages = {
           tilt: "Axial tilt",
           title: "Current model state",
         },
-        eyebrow: "Phase 3B / Vertical 2",
+        eyebrow: "Idealized seasons geometry",
         invalidDescription:
           "The requested version, field set, value range, or serialized form was rejected. The displayed state is the separately labelled default reset state.",
         intro:
@@ -4037,7 +4035,7 @@ export const enMessages = {
       },
       header: {
         breadcrumbAriaLabel: "Breadcrumb",
-        eyebrow: "Phase 3B / Vertical 3",
+        eyebrow: "Visual-observing geometry",
         intro:
           "Explore idealized visual-observing geometry: aperture, focal lengths, apparent field, modifiers, magnification, approximate field, exit pupil, and aperture-based reference limits. The result is not a product recommendation or a guaranteed view.",
         labBreadcrumb: "Space Lab",
@@ -4074,7 +4072,7 @@ export const enMessages = {
           telescopeType: "Telescope type",
           title: "Current model state",
         },
-        eyebrow: "Phase 3B / Vertical 3",
+        eyebrow: "Visual-observing geometry",
         intro:
           "Explore an idealized visual-observing telescope and eyepiece geometry model without JavaScript. The canonical calculation is evaluated on the server through Lumina's read-only astronomy API.",
         invalidDescription:
@@ -4214,7 +4212,7 @@ export const enMessages = {
         scrollAriaLabel: "Scrollable normalized spectrum plot",
       },
       header: {
-        eyebrow: "Phase 7 · normalized visible-spectrum teaching model",
+        eyebrow: "Normalized visible-spectrum teaching model",
         intro:
           "Explore an ideal normalized blackbody continuum, a small source-backed atomic fingerprint set, bounded radial-velocity shifts, illustrative resolving power, and deterministic display noise. V1 is not a stellar-atmosphere or abundance-analysis code.",
         title: "Spectroscopy Lab",
@@ -4247,7 +4245,7 @@ export const enMessages = {
       },
       noScript: {
         displayNoiseTemplate: "Display noise σ {sigma}; seed {seed}.",
-        eyebrow: "Phase 7 / Spectroscopy Lab",
+        eyebrow: "Visible-spectrum teaching model",
         intro:
           "Explore a normalized visible teaching spectrum. Lumina's Python astronomy domain owns the continuum, Wien peak, wavelength shifts, representative line profiles, and deterministic noise.",
         lineCaption: "Returned representative source-backed line metadata.",
@@ -4320,7 +4318,7 @@ export const enMessages = {
           "Calculation service is unavailable; the last valid result remains visible.",
       },
       header: {
-        eyebrow: "Phase 7 · approximate source-backed model",
+        eyebrow: "Approximate source-backed stellar model",
         intro:
           "Explore how initial mass maps to typical main-sequence luminosity, radius, effective temperature, an approximate lifetime, a nearest published colour anchor, and a broad expected remnant. This is not an age-resolved stellar-evolution grid.",
         title: "Stellar Laboratory",
@@ -4345,7 +4343,7 @@ export const enMessages = {
         title: "Model contract and provenance",
       },
       noScript: {
-        eyebrow: "Phase 7 / Stellar Laboratory",
+        eyebrow: "Main-sequence teaching model",
         intro:
           "Explore a source-backed approximate main-sequence mass mapping. Lumina's Python astronomy domain owns the empirical relations, lifetime interpolation, and broad remnant classification; this page does not recreate them in the browser.",
         lifecycleTitle: "Broad educational lifecycle",
@@ -4424,7 +4422,7 @@ export const enMessages = {
         stellarRadius: "Stellar radius",
       },
       header: {
-        eyebrow: "Phase 7 · deterministic simulation",
+        eyebrow: "Deterministic exoplanet-transit simulation",
         intro:
           "Explore how circular orbital alignment and relative sizes shape an idealized exoplanet transit. Lumina's canonical Python astronomy domain returns the geometry, contact times, and uniform-source light curve; the browser only validates and displays that result.",
         title: "Transit Method Lab",
@@ -4458,7 +4456,7 @@ export const enMessages = {
       },
       noScript: {
         currentStateTitle: "Current input state",
-        eyebrow: "Phase 7 / Transit Method Lab",
+        eyebrow: "Exoplanet-transit teaching model",
         intro:
           "Explore a deterministic circular-orbit, uniformly bright stellar-disk transit model. Lumina's Python astronomy domain calculates the geometry and light curve; this page does not recreate the transit equations in the browser.",
         modelTitle: "Model, assumptions, limitations, and provenance",
@@ -5661,4 +5659,4 @@ export const enMessages = {
       title: "Daily Visual is currently unavailable.",
     },
   },
-} as const satisfies LuminaMessages;
+} as const;

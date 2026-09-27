@@ -378,7 +378,7 @@ async def test_neows_transport_enforces_its_one_megabyte_raw_bound() -> None:
         ),
         expected_content_type="application/json",
         max_response_bytes=NEOWS_MAX_RESPONSE_BYTES,
-        user_agent="Lumina/0.0 Phase-4B provider-sync",
+        user_agent="Lumina/0.0 nasa-neows-sync",
     )
 
     raw = await transport.request(request)
@@ -396,7 +396,7 @@ def test_neows_fixed_request_rejects_noncanonical_route_query_and_dates() -> Non
             params=params,
             expected_content_type="application/json",
             max_response_bytes=NEOWS_MAX_RESPONSE_BYTES,
-            user_agent="Lumina/0.0 Phase-4B provider-sync",
+            user_agent="Lumina/0.0 nasa-neows-sync",
         )
 
     with pytest.raises(ValueError):

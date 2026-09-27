@@ -22,7 +22,7 @@ type CompareAddObjectProps = Readonly<{
 
 /**
  * Add an object to the comparison through the accepted public suggest
- * endpoint (the Phase 1B3 contract, consumed unchanged; ranking stays
+ * catalogue suggestion endpoint, consumed unchanged; ranking stays
  * server-side). Selecting a suggestion appends its slug to the committed
  * repeated `object` query parameters — the URL remains the only state store.
  */

@@ -27,7 +27,7 @@
       "nasa-skywatching-guide",
       "nasa-eclipse-safety"
     ],
-    "reviewed_by": ["Luna (primary engineer)"],
+    "reviewed_by": ["Lumina learning-content review"],
     "reviewed_at": "2026-09-01T00:00:00.000Z",
     "updated_at": "2026-09-01T00:00:00.000Z",
     "lesson_slugs": [
@@ -80,7 +80,7 @@
       ],
       "prerequisites": [],
       "source_ids": ["nasa-skywatching-faq", "nasa-sun-star", "nasa-eclipse-safety"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "hook": "The first useful instrument is attention. Look up before you look anything up.",
@@ -190,7 +190,7 @@
       ],
       "prerequisites": ["start-with-the-sky"],
       "source_ids": ["nasa-constellations", "iau-constellation-education"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "hook": "A pattern can help you find your way even when its stars are not neighbours in space.",
@@ -301,7 +301,7 @@
       ],
       "prerequisites": ["start-with-the-sky"],
       "source_ids": ["nasa-moon-phases", "nasa-skywatching-faq"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "hook": "The Moon does not change shape; our view of its sunlit half changes.",
@@ -411,7 +411,7 @@
       ],
       "prerequisites": ["find-patterns-and-directions", "read-the-moon"],
       "source_ids": ["nasa-stargazing-places", "nasa-skywatching-faq"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "hook": "The sky can be astronomically ready and still hidden by a cloud, a lamp, or an unsafe path.",
@@ -527,7 +527,7 @@
       ],
       "prerequisites": ["choose-a-good-observing-place"],
       "source_ids": ["nasa-skywatching-faq", "nasa-stargazing-places", "nasa-skywatching-guide"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "hook": "A first observation is not a performance. It is a small piece of evidence you can revisit.",
@@ -639,7 +639,7 @@
         "nasa-sun-star",
         "nasa-eclipse-safety"
       ],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "questions": [
@@ -710,7 +710,7 @@
       "lesson_slug": "find-patterns-and-directions",
       "audience_modes": ["explorer", "student", "deep-dive"],
       "source_ids": ["nasa-constellations", "iau-constellation-education"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "questions": [
@@ -778,7 +778,7 @@
       "lesson_slug": "read-the-moon",
       "audience_modes": ["explorer", "student", "deep-dive"],
       "source_ids": ["nasa-moon-phases"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "questions": [
@@ -846,7 +846,7 @@
       "lesson_slug": "choose-a-good-observing-place",
       "audience_modes": ["explorer", "student", "deep-dive"],
       "source_ids": ["nasa-stargazing-places", "nasa-skywatching-faq"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "questions": [
@@ -920,7 +920,7 @@
       "lesson_slug": "make-your-first-observation",
       "audience_modes": ["explorer", "student", "deep-dive"],
       "source_ids": ["nasa-skywatching-faq", "nasa-stargazing-places"],
-      "reviewed_by": ["Luna (primary engineer)"],
+      "reviewed_by": ["Lumina learning-content review"],
       "reviewed_at": "2026-09-01T00:00:00.000Z",
       "updated_at": "2026-09-01T00:00:00.000Z",
       "questions": [

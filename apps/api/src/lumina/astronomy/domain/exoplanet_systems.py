@@ -1,4 +1,4 @@
-"""Pinned NASA Exoplanet Archive system-layout model for Phase 5B.
+"""Pinned NASA Exoplanet Archive system-layout model.
 
 This module consumes one reviewed PSCompPars CSV snapshot for the five exoplanet-host stars
 already represented in Lumina. It preserves parameter-level references and transforms only

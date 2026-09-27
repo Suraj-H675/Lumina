@@ -1,4 +1,4 @@
-"""Reviewed Voyager 1 timeline and JPL Horizons trajectory artifact for Phase 5B."""
+"""Reviewed Voyager 1 timeline and JPL Horizons trajectory artifact."""
 
 from __future__ import annotations
 

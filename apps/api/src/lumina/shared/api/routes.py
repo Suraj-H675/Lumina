@@ -1,4 +1,4 @@
-"""Phase 0B1 HTTP translation for process and application metadata."""
+"""HTTP translation for process and application metadata."""
 
 from __future__ import annotations
 

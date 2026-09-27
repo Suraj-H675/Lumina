@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionm
 
 from lumina.identification.domain.storage import PrivateObjectKey
 from lumina.identification.domain.submissions import (
+    FAKE_SOLVER_VERSION,
+    LEGACY_FAKE_SOLVER_VERSION,
     CreateIdentificationSubmission,
     FakeSolverResult,
     IdentificationSolverType,
@@ -55,9 +57,10 @@ _FAILURE_CODE = re.compile(r"[a-z][a-z0-9_.-]{0,127}", re.ASCII)
 _FAKE_RESULT = {
     "outcome": "fixture_solved",
     "solver_type": "fake",
-    "solver_version": "phase6a-fixture-v1",
+    "solver_version": FAKE_SOLVER_VERSION,
     "synthetic": True,
 }
+_LEGACY_FAKE_RESULT = {**_FAKE_RESULT, "solver_version": LEGACY_FAKE_SOLVER_VERSION}
 _ATTACH_SQL = text(
     "UPDATE public.identification_submission SET job_id = :job_id "
     "WHERE id = :id AND deleted_at IS NULL AND job_id IS NULL RETURNING "
@@ -424,7 +427,11 @@ def _status(row: RowMapping) -> IdentificationSubmissionStatus:
         result: FakeSolverResult | None = None
 
         if state is IdentificationSubmissionState.SUCCEEDED:
-            if completed_at is None or error_code is not None or raw_result != _FAKE_RESULT:
+            if (
+                completed_at is None
+                or error_code is not None
+                or (raw_result != _FAKE_RESULT and raw_result != _LEGACY_FAKE_RESULT)
+            ):
                 raise SubmissionStorageFailure()
             result = FakeSolverResult()
         elif state in {

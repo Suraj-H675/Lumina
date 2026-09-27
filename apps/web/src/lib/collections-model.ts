@@ -1,7 +1,7 @@
 import type { EntityType } from "@lumina/api-client";
 
 /**
- * Pure domain model for browser-local object collections (Phase 1B6).
+ * Pure domain model for browser-local object collections.
  *
  * Persisted localStorage content is UNTRUSTED input: everything read back from
  * storage flows through {@link validateCollectionsData} before it can become

@@ -1,4 +1,4 @@
-"""Normalized Launch Library 2 contracts for the Phase 4C launch vertical."""
+"""Normalized Launch Library 2 contracts for launch data."""
 
 from __future__ import annotations
 

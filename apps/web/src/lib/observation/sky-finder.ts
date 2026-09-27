@@ -233,7 +233,7 @@ function observerPosition(
   try {
     const observer = new Astronomy.Observer(location.latitude, location.longitude, 0);
     const equatorial = Astronomy.Equator(body, instant, observer, true, true);
-    // No refraction argument is intentional: all Phase 2B/2C positions are geometric.
+    // No refraction argument is intentional: all planner positions here are geometric.
     const horizontal = Astronomy.Horizon(instant, observer, equatorial.ra, equatorial.dec);
     const azimuth = normalizedAzimuth(horizontal.azimuth);
     if (
@@ -402,7 +402,7 @@ function compareNamedAnchors(
   );
 }
 
-/** Joins official names only to the already-positioned Phase 2D Gaia rows. */
+/** Joins official names only to the already-positioned reviewed Gaia rows. */
 export function positionNamedSkyAnchors(
   rows: ReadonlyArray<NamedAnchorContextRow>,
   positionedStars: ReadonlyArray<PositionedBrightContextStar>,

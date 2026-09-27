@@ -1,4 +1,4 @@
-"""Typed Phase 0B1 application configuration."""
+"""Typed application configuration."""
 
 from __future__ import annotations
 
@@ -127,7 +127,7 @@ def _validate_astrometry_api_key(value: object) -> SecretStr | None:
 
 
 def _validate_astrometry_api_url(value: str) -> str:
-    """Lock Phase 6B remote processing to Nova's reviewed HTTPS API origin."""
+    """Lock remote astrometry processing to Nova's reviewed HTTPS API origin."""
     if value != "https://nova.astrometry.net/api":
         raise ValueError("Astrometry.net API URL is not the reviewed Nova HTTPS endpoint")
     parsed = urlsplit(value)
@@ -430,14 +430,14 @@ class AppSettings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_job_execution_relationships(self) -> AppSettings:
-        """Validate worker timing relationships and the Phase 6A storage backend."""
+        """Validate worker timing relationships and the private storage backend."""
         operation_seconds = (self.job_operation_wait_timeout_ms + 999) // 1_000
         if self.job_stale_seconds < 2 * self.job_heartbeat_seconds + operation_seconds:
             raise ValueError("Job stale threshold is incompatible with heartbeat timing")
         if self.job_cancellation_grace_seconds > self.job_handler_timeout_seconds:
             raise ValueError("Job cancellation grace exceeds the handler timeout")
         if self.storage_backend != "filesystem":
-            raise ValueError("Only filesystem private storage is supported in Phase 6A")
+            raise ValueError("Only filesystem private storage is currently supported")
         if self.enable_remote_astrometry and self.astrometry_api_key is None:
             raise ValueError("Remote Astrometry.net requires a configured server API key")
         if self.enable_remote_astrometry and not self.identification_enabled:

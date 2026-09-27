@@ -1,4 +1,4 @@
-"""Fixed Launch Library 2 adapter for Phase 4C upcoming spaceflight data."""
+"""Fixed Launch Library 2 adapter for upcoming spaceflight data."""
 
 from __future__ import annotations
 

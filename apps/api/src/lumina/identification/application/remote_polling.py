@@ -1,4 +1,4 @@
-"""Durable Phase 6B remote-solver lifecycle advancement."""
+"""Durable remote-solver lifecycle advancement."""
 
 from __future__ import annotations
 
@@ -48,7 +48,6 @@ from lumina.identification.domain.uploads import (
     UploadValidationPolicy,
     validate_raster_upload,
 )
-from lumina.identification.infrastructure.wcs import normalize_nova_solution
 
 _LEASE_SECONDS = 300
 
@@ -107,6 +106,18 @@ class NovaRemoteSolver(Protocol):
     async def wcs_file(self, job_id: NovaJobId) -> bytes: ...
 
 
+class SolutionNormalizer(Protocol):
+    def __call__(
+        self,
+        *,
+        calibration: NovaCalibration,
+        annotations: tuple[NovaAnnotation, ...],
+        wcs_bytes: bytes,
+        image_width: int,
+        image_height: int,
+    ) -> NormalizedPlateSolution: ...
+
+
 class SolutionFinalizer(Protocol):
     async def store_and_succeed(
         self, claim: RemoteSolveClaim, solution: NormalizedPlateSolution
@@ -128,6 +139,7 @@ class RemoteSolvePollingService:
         store: PrivateObjectStore,
         solver: NovaRemoteSolver,
         policy: UploadValidationPolicy,
+        solution_normalizer: SolutionNormalizer,
         solution_finalizer: SolutionFinalizer | None = None,
         *,
         poll_seconds: int,
@@ -140,6 +152,7 @@ class RemoteSolvePollingService:
         self._store = store
         self._solver = solver
         self._policy = policy
+        self._solution_normalizer = solution_normalizer
         self._solution_finalizer = solution_finalizer
         self._poll_seconds = poll_seconds
         self._token_factory = token_factory or (lambda: secrets.token_hex(32))
@@ -390,7 +403,7 @@ class RemoteSolvePollingService:
             )
             return
         try:
-            solution = normalize_nova_solution(
+            solution = self._solution_normalizer(
                 calibration=calibration,
                 annotations=annotations,
                 wcs_bytes=wcs_bytes,

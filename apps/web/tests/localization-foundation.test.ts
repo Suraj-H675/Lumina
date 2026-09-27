@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import { formatCoordinateDisclosure } from "../src/lib/i18n/coordinate-disclosure";
 import {
   DEFAULT_LOCALE,
-  KNOWN_LOCALES,
   PUBLISHED_LOCALES,
-  isKnownLocale,
   isPublishedLocale,
   localeDefinition,
 } from "../src/lib/i18n/locales";
@@ -20,24 +18,21 @@ import {
 import { enMessages } from "../src/lib/i18n/messages/en";
 
 describe("Phase 8C localization foundation", () => {
-  it("keeps English canonical while Spanish remains a non-routable draft candidate", () => {
+  it("publishes only locales with an authored dictionary", () => {
     expect(DEFAULT_LOCALE).toBe("en");
-    expect(KNOWN_LOCALES).toEqual(["en", "es"]);
     expect(PUBLISHED_LOCALES).toEqual(["en"]);
-    expect(isKnownLocale("es")).toBe(true);
     expect(isPublishedLocale("es")).toBe(false);
     expect(isPublishedLocale("en")).toBe(true);
-    expect(localeDefinition("es")).toMatchObject({
+    expect(localeDefinition("en")).toMatchObject({
       direction: "ltr",
-      languageTag: "es",
-      publication: "draft",
-      translationReview: null,
+      languageTag: "en",
     });
   });
 
   it("fails closed for unknown locale identifiers", () => {
-    expect(isKnownLocale("fr")).toBe(false);
+    expect(isPublishedLocale("es")).toBe(false);
     expect(isPublishedLocale("fr")).toBe(false);
+    expect(() => localeDefinition("es" as never)).toThrow(/unknown lumina locale/i);
     expect(() => localeDefinition("fr" as never)).toThrow(/unknown lumina locale/i);
   });
 
@@ -52,16 +47,7 @@ describe("Phase 8C localization foundation", () => {
         year: "numeric",
       }),
     ).toBe("September 19, 2026");
-    expect(
-      formatLocaleDateTime(instant, "es", {
-        day: "numeric",
-        month: "long",
-        timeZone: "UTC",
-        year: "numeric",
-      }),
-    ).toBe("19 de septiembre de 2026");
     expect(formatLocaleNumber(1234.5, "en", { maximumFractionDigits: 1 })).toBe("1,234.5");
-    expect(formatLocaleNumber(1234.5, "es", { maximumFractionDigits: 1 })).toBe("1234,5");
   });
 
   it("preserves fixed-decimal rounding before applying locale presentation", () => {

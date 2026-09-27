@@ -1,6 +1,6 @@
 import type { LearningQuiz } from "./content";
 
-/** Fixed policy for every Phase 3A scored knowledge check. */
+/** Fixed policy for every scored knowledge check. */
 export const QUIZ_MASTERY_THRESHOLD = 0.8;
 
 export type QuizQuestionEvaluation = {

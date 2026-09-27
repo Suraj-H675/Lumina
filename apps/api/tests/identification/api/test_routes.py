@@ -494,7 +494,7 @@ def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_p
         "result": {
             "outcome": "fixture_solved",
             "solver_type": "fake",
-            "solver_version": "phase6a-fixture-v1",
+            "solver_version": "synthetic-fixture-v1",
             "synthetic": True,
         },
         "remote_condition": None,

@@ -383,6 +383,7 @@ def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe
     assert "timeout-minutes: 15" in workflow
     assert "contents: read" in workflow
     assert "https://lumina-psi-eight-23.vercel.app/api/v1/meta" in workflow
+    assert "urllib.request.urlopen(request, timeout=30)" in workflow
     assert 're.fullmatch(r"[0-9a-f]{40}", build_commit)' in workflow
     assert "ref: ${{ steps.release.outputs.sha }}" in workflow
     assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1" in workflow

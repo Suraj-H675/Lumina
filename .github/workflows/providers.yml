@@ -70,7 +70,7 @@ jobs:
               os.environ["LUMINA_PRODUCTION_META_URL"],
               headers={"User-Agent": "Lumina provider operator"},
           )
-          with urllib.request.urlopen(request, timeout=10) as response:
+          with urllib.request.urlopen(request, timeout=30) as response:
               if response.status != 200:
                   raise SystemExit("Production release metadata is unavailable.")
               payload = json.load(response)

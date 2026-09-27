@@ -213,16 +213,20 @@ trigger places that private path token plus exactly one approved provider code i
 `function_path`. Trigger requests must also contain Neon's schedule-invocation header and bounded
 schedule payload. Do not put the Lumina bearer token in a URL or trigger definition.
 
-Create production triggers only for providers that have been deliberately enabled. Use separate
-triggers so one slow or failing source cannot block another provider's invocation:
+Create production triggers only for providers that have been deliberately enabled. The reviewed
+polling policy is version-controlled in `infra/neon/provider-schedules.json`. Trigger cadence is
+intentionally more frequent than provider eligibility; the atomic database `next_sync_at` claim is
+the authority for whether an upstream request may run. This prevents second-level cron drift from
+doubling effective refresh intervals while still preserving every provider's upstream rate limit.
+Use separate triggers so one slow or failing source cannot block another provider's invocation:
 
-| Provider code            | Neon schedule trigger |
-| ------------------------ | --------------------- |
-| `noaa-swpc`              | `2-57/5 * * * *`      |
+| Provider code            | Neon polling trigger |
+| ------------------------ | -------------------- |
+| `noaa-swpc`              | `*/2 * * * *`        |
 | `nasa-exoplanet-archive` | `19 * * * *`          |
-| `launch-library-2`       | `23 * * * *`          |
-| `celestrak-gp`           | `27 * * * *`          |
-| `zooniverse-panoptes`    | `41 */6 * * *`        |
+| `launch-library-2`       | `8,38 * * * *`        |
+| `celestrak-gp`           | `13,43 * * * *`       |
+| `zooniverse-panoptes`    | `47 * * * *`          |
 
 APOD and NeoWs remain without schedule triggers until a registered NASA API key is configured and
 those providers are explicitly enabled. Provider-owned due-time checks remain authoritative if a

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "providers": {
+    "noaa-swpc": {
+      "cron": "*/2 * * * *",
+      "max_poll_gap_minutes": 2
+    },
+    "nasa-exoplanet-archive": {
+      "cron": "19 * * * *",
+      "max_poll_gap_minutes": 60
+    },
+    "launch-library-2": {
+      "cron": "8,38 * * * *",
+      "max_poll_gap_minutes": 30
+    },
+    "celestrak-gp": {
+      "cron": "13,43 * * * *",
+      "max_poll_gap_minutes": 30
+    },
+    "zooniverse-panoptes": {
+      "cron": "47 * * * *",
+      "max_poll_gap_minutes": 60
+    }
+  }
+}

@@ -15,10 +15,23 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from lumina.provenance.domain.runtime import (
+    CELESTRAK_FRESH_TTL,
+    CELESTRAK_SUCCESS_REFRESH_INTERVAL,
+    FRESH_TTL,
+    LL2_FRESH_TTL,
+    LL2_SUCCESS_REFRESH_INTERVAL,
+    PANOPTES_FRESH_TTL,
+    PANOPTES_SUCCESS_REFRESH_INTERVAL,
+    SUCCESS_REFRESH_INTERVAL,
+    SWPC_FRESH_TTL,
+    SWPC_SUCCESS_REFRESH_INTERVAL,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml"
 PROVIDER_WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "providers.yml"
+PROVIDER_SCHEDULES_PATH = REPOSITORY_ROOT / "infra" / "neon" / "provider-schedules.json"
 VERCEL_CONFIG_PATH = REPOSITORY_ROOT / "vercel.json"
 API_DOCKERFILE_PATH = REPOSITORY_ROOT / "Dockerfile.vercel"
 DOCKERIGNORE_PATH = REPOSITORY_ROOT / ".dockerignore"
@@ -394,6 +407,47 @@ def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe
     assert 'uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"' in workflow
     assert "git push" not in workflow
     assert "pull_request:" not in workflow
+
+
+def test_neon_provider_schedule_manifest_polls_inside_freshness_windows() -> None:
+    manifest = json.loads(PROVIDER_SCHEDULES_PATH.read_bytes())
+    assert manifest["schema_version"] == 1
+
+    expected = {
+        "noaa-swpc": (
+            "*/2 * * * *",
+            SWPC_SUCCESS_REFRESH_INTERVAL,
+            SWPC_FRESH_TTL,
+        ),
+        "nasa-exoplanet-archive": (
+            "19 * * * *",
+            SUCCESS_REFRESH_INTERVAL,
+            FRESH_TTL,
+        ),
+        "launch-library-2": (
+            "8,38 * * * *",
+            LL2_SUCCESS_REFRESH_INTERVAL,
+            LL2_FRESH_TTL,
+        ),
+        "celestrak-gp": (
+            "13,43 * * * *",
+            CELESTRAK_SUCCESS_REFRESH_INTERVAL,
+            CELESTRAK_FRESH_TTL,
+        ),
+        "zooniverse-panoptes": (
+            "47 * * * *",
+            PANOPTES_SUCCESS_REFRESH_INTERVAL,
+            PANOPTES_FRESH_TTL,
+        ),
+    }
+    assert set(manifest["providers"]) == set(expected)
+
+    for provider_code, (cron, refresh_interval, fresh_ttl) in expected.items():
+        policy = manifest["providers"][provider_code]
+        assert policy["cron"] == cron
+        poll_gap_seconds = policy["max_poll_gap_minutes"] * 60
+        assert 0 < poll_gap_seconds < refresh_interval.total_seconds()
+        assert refresh_interval.total_seconds() + poll_gap_seconds < fresh_ttl.total_seconds()
 
 
 def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> None:

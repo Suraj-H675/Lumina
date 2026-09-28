@@ -237,7 +237,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-02",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
     citation: "NASA / Lunar and Planetary Institute, “Solar System Sizes”, accessed 2026-09-02.",
     claim_scope: "Approximate listed planetary radii for Mercury through Neptune.",
     source_type: "official-education",
@@ -252,7 +252,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-02",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
     citation: "NASA, “Moon lithograph: fast facts”, accessed 2026-09-02.",
     claim_scope: "The Moon's fast-facts diameter of 3,475 km.",
     source_type: "official-education",
@@ -267,7 +267,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-02",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
     citation: "NASA Science, “Our Sun: Facts”, accessed 2026-09-02.",
     claim_scope: "The Sun's approximate diameter of 1.4 million km.",
     source_type: "official-agency",
@@ -282,7 +282,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-02",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
     citation:
       "NASA Science / NASA-JPL-Caltech, “Our Milky Way Galaxy: How Big is Space?”, accessed 2026-09-02.",
     claim_scope: "The Milky Way's approximate galaxy-wide width of 100,000 light-years.",
@@ -298,7 +298,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-02",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
     citation: "NASA, “How Big is Space? We Asked a NASA Expert”, accessed 2026-09-02.",
     claim_scope:
       "An estimate of about 92 billion light-years across for the observable universe, not the whole universe.",
@@ -314,7 +314,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-02",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
     citation: "NASA Science, “What is a light-year?”, accessed 2026-09-02.",
     claim_scope: "A light-year is a distance; NASA gives an approximate kilometre conversion.",
     source_type: "official-education",

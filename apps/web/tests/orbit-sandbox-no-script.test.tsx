@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { OrbitSandboxCalculationResponse } from "@lumina/api-client";
+import type { OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
 
 import { OrbitSandboxNoScript } from "../src/components/orbit-sandbox-no-script";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";

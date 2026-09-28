@@ -2,7 +2,7 @@ import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { SpaceWeatherResponse } from "@lumina/api-client";
+import type { SpaceWeatherResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -208,7 +208,7 @@ describe("Space Now Space Weather", () => {
     });
   });
 
-  it("makes stale state and Lumina retrieval time explicit", () => {
+  it("makes stale state and Nova-Lumina retrieval time explicit", () => {
     renderPage({
       ...response,
       availability: "stale",
@@ -285,7 +285,7 @@ describe("Space Now Space Weather", () => {
 });
 
 describe("server-rendered Space Weather loader", () => {
-  it("requests only Lumina's public cache projection", async () => {
+  it("requests only Nova-Lumina's public cache projection", async () => {
     const requests: string[] = [];
     const fetchImplementation = vi.fn<typeof fetch>().mockImplementation((input) => {
       requests.push(String(input));
@@ -301,10 +301,10 @@ describe("server-rendered Space Weather loader", () => {
       loadNowSpaceWeather({
         environment: "production",
         fetchImplementation,
-        origin: "https://lumina-api.example.test",
+        origin: "https://nova-lumina-api.example.test",
       }),
     ).resolves.toEqual({ data: response, kind: "ok" });
-    expect(requests).toEqual(["https://lumina-api.example.test/api/v1/now/space-weather"]);
+    expect(requests).toEqual(["https://nova-lumina-api.example.test/api/v1/now/space-weather"]);
     expect(requests[0]).not.toContain("services.swpc.noaa.gov");
   });
 });

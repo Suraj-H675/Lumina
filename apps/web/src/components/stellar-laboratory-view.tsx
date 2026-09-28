@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { requestEndpoint, type StellarLaboratoryCalculationResponse } from "@lumina/api-client";
+import {
+  requestEndpoint,
+  type StellarLaboratoryCalculationResponse,
+} from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

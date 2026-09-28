@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
+import type { TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import { TelescopeBuilderNoScript } from "../src/components/telescope-builder-no-script";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";

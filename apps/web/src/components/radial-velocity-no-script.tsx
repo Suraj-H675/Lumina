@@ -1,4 +1,4 @@
-import type { RadialVelocityCalculationResponse } from "@lumina/api-client";
+import type { RadialVelocityCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

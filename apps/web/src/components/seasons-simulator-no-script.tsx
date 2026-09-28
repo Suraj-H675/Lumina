@@ -12,7 +12,7 @@ import {
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { SeasonsSimulatorMessages } from "../lib/i18n/messages/types";
-import type { SeasonsCalculationResponse } from "@lumina/api-client";
+import type { SeasonsCalculationResponse } from "@nova-lumina/api-client";
 
 type SeasonsSimulatorNoScriptProps = Readonly<{
   initialState: SeasonsState;

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { TransitMethodCalculationResponse } from "@lumina/api-client";
+import type { TransitMethodCalculationResponse } from "@nova-lumina/api-client";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { TransitMethodMessages } from "../lib/i18n/messages/types";
 import type { TransitMethodState } from "../lib/simulations/transit-method";

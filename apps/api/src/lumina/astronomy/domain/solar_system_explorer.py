@@ -48,7 +48,7 @@ _SOURCE_METADATA: Final = (
         "retrieved_at": "2026-09-15",
         "data_date": "Page publication metadata is not a planetary-element epoch.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina republishes cited numeric facts and "
+            "NASA factual/educational source; Nova-Lumina republishes cited numeric facts and "
             "links only, not NASA media or identifiers."
         ),
         "citation": (
@@ -71,7 +71,7 @@ _SOURCE_METADATA: Final = (
         "retrieved_at": "2026-09-15",
         "data_date": "Not applicable — unit-definition reference.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina republishes cited unit context and links "
+            "NASA factual/educational source; Nova-Lumina republishes cited unit context and links "
             "only, not NASA media or identifiers."
         ),
         "citation": (

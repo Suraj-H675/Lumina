@@ -47,8 +47,8 @@ class _SafeArgumentParser(argparse.ArgumentParser):
 
 def _parser() -> _SafeArgumentParser:
     parser = _SafeArgumentParser(
-        prog="lumina-provider",
-        description="Operate the statically approved Lumina provider.",
+        prog="nova-lumina-provider",
+        description="Operate the statically approved Nova-Lumina provider.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     for command, help_text in (

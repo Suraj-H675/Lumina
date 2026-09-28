@@ -139,7 +139,7 @@ def _git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
 def _initialize_repository(root: Path) -> None:
     root.mkdir(parents=True)
     _git(root, "init", "--initial-branch=main")
-    _git(root, "config", "user.name", "Lumina CI Test")
+    _git(root, "config", "user.name", "Nova-Lumina CI Test")
     _git(root, "config", "user.email", "ci-test@example.invalid")
 
 
@@ -341,7 +341,7 @@ def test_api_container_definition_is_pinned_non_root_and_runtime_complete() -> N
         assert required_copy in dockerfile
     assert "USER 10001:10001" in dockerfile
     assert "ENV LUMINA_API_HOST=0.0.0.0" in dockerfile
-    assert 'CMD ["lumina-api"]' in dockerfile
+    assert 'CMD ["nova-lumina-api"]' in dockerfile
     assert "COPY . " not in dockerfile
     assert "ADD " not in dockerfile
 
@@ -390,7 +390,7 @@ def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe
     assert "workflow_dispatch:" in workflow
     assert "schedule:" not in workflow
     assert "cron:" not in workflow
-    assert "lumina-production-provider-operator" in workflow
+    assert "nova-lumina-production-provider-operator" in workflow
     assert "cancel-in-progress: false" in workflow
     assert "runs-on: ubuntu-24.04" in workflow
     assert "timeout-minutes: 15" in workflow
@@ -404,7 +404,9 @@ def test_production_provider_workflow_is_deployed_release_pinned_and_secret_safe
     assert "persist-credentials: false" in workflow
     assert "LUMINA_DATABASE_URL: ${{ secrets.LUMINA_DATABASE_URL }}" in workflow
     assert "LUMINA_NASA_API_KEY: ${{ secrets.LUMINA_NASA_API_KEY }}" in workflow
-    assert 'uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"' in workflow
+    assert (
+        'uv run nova-lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"' in workflow
+    )
     assert "git push" not in workflow
     assert "pull_request:" not in workflow
 
@@ -499,7 +501,16 @@ def test_pnpm_lockfile_and_installed_graph_are_frozen_and_remediated() -> None:
 def test_installed_next_sharp_is_the_remediated_virtual_store_copy_and_transforms_raw_rgb() -> None:
     records = json.loads(
         _run(
-            ["pnpm", "--filter", "@lumina/web", "list", "sharp", "--depth", "Infinity", "--json"],
+            [
+                "pnpm",
+                "--filter",
+                "@nova-lumina/web",
+                "list",
+                "sharp",
+                "--depth",
+                "Infinity",
+                "--json",
+            ],
             cwd=REPOSITORY_ROOT,
         ).stdout
     )
@@ -633,29 +644,29 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     )
 
     assert workflow.count(clean_tree) == 5
-    assert repository.index("lumina-api-client-first-*") < repository.index(clean_tree)
+    assert repository.index("nova-lumina-api-client-first-*") < repository.index(clean_tree)
     candidate_compose = 'docker compose --env-file .env -p "$candidate_project"'
     assert "scripts/bootstrap/create_local_env.py --ephemeral-candidate" in python
     assert "source .env" not in python
     assert python.count("docker compose ") == python.count(candidate_compose) == 8
     assert python.index("down -v --remove-orphans") < python.index("unlink -- .env")
     assert python.index("unlink -- .env") < python.index(clean_tree)
-    assert web.index("lumina-status-e2e-*") < web.index(clean_tree)
+    assert web.index("nova-lumina-status-e2e-*") < web.index(clean_tree)
     assert web.index(clean_tree) < web.index("actions/upload-artifact@")
     assert "docker build" in container
     assert "--file Dockerfile.vercel" in container
-    assert "--tag lumina-api:ci" in container
-    assert "docker run --rm --entrypoint id lumina-api:ci -u" in container
-    assert "/app/.venv/bin/python lumina-api:ci --version" in container
+    assert "--tag nova-lumina-api:ci" in container
+    assert "docker run --rm --entrypoint id nova-lumina-api:ci -u" in container
+    assert "/app/.venv/bin/python nova-lumina-api:ci --version" in container
     assert "ssl.create_default_context()" in container
     assert "context.get_ca_certs()" in container
     assert 'NR == 1 && $1 == "uv" && $2 == "0.12.17"' in container
-    assert "/app/.venv/bin/lumina-provider" in container
+    assert "/app/.venv/bin/nova-lumina-provider" in container
     assert "simbad-messier-j2000-v2" in container
     assert container.index("Smoke production API image") < container.index(clean_tree)
-    assert security.index("lumina-security-*") < security.index(clean_tree)
+    assert security.index("nova-lumina-security-*") < security.index(clean_tree)
 
-    browser_command = "pnpm --filter @lumina/web exec playwright install --with-deps chromium"
+    browser_command = "pnpm --filter @nova-lumina/web exec playwright install --with-deps chromium"
     assert workflow.count(browser_command) == 1
     assert "playwright install chromium" not in workflow
     assert "playwright install --with-deps\n" not in workflow
@@ -1054,7 +1065,7 @@ def test_security_rejects_shallow_history_before_scanning(tmp_path: Path) -> Non
     assert result.stdout == "Security history-preflight result=execution-error\n"
     assert result.stderr == ""
     assert not shallow_log.exists()
-    assert not list(tmp_path.glob("lumina-security-*"))
+    assert not list(tmp_path.glob("nova-lumina-security-*"))
 
 
 @pytest.mark.parametrize("sent_signal", [signal.SIGHUP, signal.SIGINT, signal.SIGTERM])
@@ -1081,7 +1092,7 @@ def test_security_signal_cleanup_removes_private_temporary_output(
     assert records
     temporary_root = records[0].get("temp_root")
     if not isinstance(temporary_root, str):
-        temporary_directories = list(tmp_path.glob("lumina-security-*"))
+        temporary_directories = list(tmp_path.glob("nova-lumina-security-*"))
         assert len(temporary_directories) == 1
         temporary_root = str(temporary_directories[0])
     os.killpg(process.pid, sent_signal)

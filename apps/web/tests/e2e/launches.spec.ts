@@ -29,7 +29,7 @@ test.describe("Space Now Launch Center", () => {
 
     await page.goto("/now/launches");
 
-    await expect(page).toHaveTitle(/Launch Center — Lumina/);
+    await expect(page).toHaveTitle(/Launch Center — Nova-Lumina/);
     await expect(page.getByRole("heading", { level: 1, name: "Upcoming launches" })).toBeVisible();
     await expect(page.getByText("Fixture Go Launch")).toBeVisible();
     await expect(page.getByText("Fixture TBC Launch")).toBeVisible();

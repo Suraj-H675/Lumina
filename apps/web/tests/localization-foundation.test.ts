@@ -32,8 +32,8 @@ describe("Phase 8C localization foundation", () => {
   it("fails closed for unknown locale identifiers", () => {
     expect(isPublishedLocale("es")).toBe(false);
     expect(isPublishedLocale("fr")).toBe(false);
-    expect(() => localeDefinition("es" as never)).toThrow(/unknown lumina locale/i);
-    expect(() => localeDefinition("fr" as never)).toThrow(/unknown lumina locale/i);
+    expect(() => localeDefinition("es" as never)).toThrow(/unknown nova-lumina locale/i);
+    expect(() => localeDefinition("fr" as never)).toThrow(/unknown nova-lumina locale/i);
   });
 
   it("formats dates and numbers with an explicit content locale rather than browser defaults", () => {
@@ -106,7 +106,7 @@ describe("Phase 8C localization foundation", () => {
 
   it("keeps generic route-boundary copy in the typed English dictionary", () => {
     expect(enMessages.routeBoundaries.notFound.title).toBe("Page not found");
-    expect(enMessages.routeBoundaries.notFound.returnHome).toMatch(/return to the lumina/i);
+    expect(enMessages.routeBoundaries.notFound.returnHome).toMatch(/return to the nova-lumina/i);
     expect(enMessages.routeBoundaries.routeError.title).toMatch(/could not load/i);
     expect(enMessages.routeBoundaries.routeError.retry).toBe("Try again");
     expect(enMessages.routeBoundaries.globalError.title).toBe("Something went wrong");
@@ -809,7 +809,7 @@ describe("Phase 8C localization foundation", () => {
     expect(enMessages.missionControl.openLaunchCenter).toBe("Open Launch Center");
     expect(enMessages.missionControl.findSatellitePasses).toBe("Find satellite passes");
     expect(enMessages.missionControl.checkSourceStatus).toBe("Check source status");
-    expect(enMessages.missionControl.aboutTitle).toBe("About Lumina");
+    expect(enMessages.missionControl.aboutTitle).toBe("About Nova-Lumina");
   });
 
   it("keeps Mission Control live-state interface copy in the typed English dictionary", () => {
@@ -962,8 +962,8 @@ describe("Phase 8C localization foundation", () => {
 
   it("keeps offline fallback and storage-management copy in typed message groups", () => {
     const landing = enMessages.offline.landing;
-    expect(landing.title).toBe("Lumina is offline");
-    expect(landing.inlineDocumentTitle).toBe("Offline — Lumina");
+    expect(landing.title).toBe("Nova-Lumina is offline");
+    expect(landing.inlineDocumentTitle).toBe("Offline — Nova-Lumina");
     expect(landing.inlineUnavailableDescription).toMatch(/reviewed offline copies/i);
     expect(landing.manageStorage).toBe("Manage offline storage");
 
@@ -979,7 +979,7 @@ describe("Phase 8C localization foundation", () => {
 
   it("keeps status interpretation and provider labels in one typed message group", () => {
     const messages = enMessages.status;
-    expect(messages.title).toBe("Lumina API status");
+    expect(messages.title).toBe("Nova-Lumina API status");
     expect(messages.states.ready.heading).toBe("API available and ready");
     expect(messages.provider.cache.historicalOnlyWhileDisabled).toContain("{cacheLabel}");
     expect(messages.provider.circuit.halfOpen).toBe("Half-open");
@@ -993,7 +993,7 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.metadataTitle).toBe("Lab");
     expect(messages.navigationLabel).toBe("Implemented laboratories");
     expect(messages.openLab).toBe("Open lab →");
-    expect(messages.intro).toMatch(/reviewed Lumina laboratory/i);
+    expect(messages.intro).toMatch(/reviewed Nova-Lumina laboratory/i);
   });
 
   it("keeps Collections interface copy separate from local user data and stable store reasons", () => {
@@ -1046,16 +1046,16 @@ describe("Phase 8C localization foundation", () => {
     expect(messages.countdown.units.second).toContain("{value}");
 
     expect(formatCountMessage(messages.list.snapshotCount, 1, "en", { total: 2 })).toBe(
-      "Showing 1 of 2 normalized launch record retained by this Lumina projection.",
+      "Showing 1 of 2 normalized launch record retained by this Nova-Lumina projection.",
     );
     expect(formatCountMessage(messages.list.snapshotCount, 2, "en", { total: 2 })).toBe(
-      "Showing 2 of 2 normalized launch records retained by this Lumina projection.",
+      "Showing 2 of 2 normalized launch records retained by this Nova-Lumina projection.",
     );
   });
 
   it("keeps Journal interface copy separate from personal observation and import data", () => {
     const messages = enMessages.journal;
-    expect(messages.metadataTitle).toBe("Journal · Lumina");
+    expect(messages.metadataTitle).toBe("Journal · Nova-Lumina");
     expect(messages.entries.savedAt).toContain("{timestamp}");
     expect(messages.entries.deleteGroupLabel).toContain("{title}");
     expect(messages.entries.locationWithCoordinates).toContain("{label}");

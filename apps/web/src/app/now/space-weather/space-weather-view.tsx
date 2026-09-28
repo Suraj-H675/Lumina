@@ -1,4 +1,4 @@
-import type { SpaceWeatherResponse } from "@lumina/api-client";
+import type { SpaceWeatherResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 import type { ReactNode } from "react";
 

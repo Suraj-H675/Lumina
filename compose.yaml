@@ -21,7 +21,7 @@ services:
         protocol: tcp
     volumes:
       - lumina_postgres_data:/var/lib/postgresql
-      - ./infra/docker/postgres/010-ensure-lumina-databases.sh:/docker-entrypoint-initdb.d/010-ensure-lumina-databases.sh:ro
+      - ./infra/docker/postgres/010-ensure-nova-lumina-databases.sh:/docker-entrypoint-initdb.d/010-ensure-nova-lumina-databases.sh:ro
       - ./infra/docker/postgres/healthcheck.sh:/usr/local/bin/lumina-postgres-healthcheck:ro
     healthcheck:
       test: ["CMD-SHELL", "/usr/local/bin/lumina-postgres-healthcheck"]

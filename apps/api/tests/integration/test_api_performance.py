@@ -35,7 +35,7 @@ async def test_phase8d_selected_in_process_api_reports_p50_p95_latency(
     )
     workloads = (
         ("live", "/health/live", None, "status", "live"),
-        ("meta", "/api/v1/meta", None, "application_name", "Lumina"),
+        ("meta", "/api/v1/meta", None, "application_name", "Nova-Lumina"),
         ("ready", "/health/ready", None, "status", "ready"),
         (
             "stellar_laboratory",

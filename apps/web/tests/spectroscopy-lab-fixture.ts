@@ -1,4 +1,4 @@
-import type { SpectroscopyCalculationResponse } from "@lumina/api-client";
+import type { SpectroscopyCalculationResponse } from "@nova-lumina/api-client";
 
 /* Generated from the canonical Python Spectroscopy Lab v1 model for tests only. */
 export const SPECTROSCOPY_DEFAULT_RESULT = {

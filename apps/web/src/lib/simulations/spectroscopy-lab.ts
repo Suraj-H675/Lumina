@@ -2,7 +2,7 @@ import {
   spectroscopyLabEndpoint,
   validateExactGenerated,
   type SpectroscopyCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawSpectroscopyArtifact from "../../../../../data/seed/spectroscopy-lab-v1.json";
 

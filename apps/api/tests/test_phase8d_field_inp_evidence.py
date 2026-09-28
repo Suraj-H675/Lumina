@@ -31,7 +31,7 @@ def _load_module(name: str, path: Path) -> ModuleType:
     return module
 
 
-_module = _load_module("lumina_phase8d_field_inp_validator", SCRIPT)
+_module = _load_module("nova_lumina_phase8d_field_inp_validator", SCRIPT)
 FieldInpEvidenceError = cast(type[ValueError], _module.FieldInpEvidenceError)
 validate_field_inp_evidence = _module.validate_field_inp_evidence
 
@@ -62,7 +62,7 @@ def _approvals(
         "approved_deployments": [
             {
                 "approval_id": "deployment-prod-4089497",
-                "origin": "https://lumina.example/",
+                "origin": "https://nova-lumina.example/",
                 "build_commit": "4089497d795d1895b844cb39cbb80c7d0e56ce55",
                 "environment": "production",
                 "deployment_reference": "deploy-2026-09-22-01",
@@ -115,7 +115,7 @@ def _valid_evidence(
         "observed_at": "2026-09-22T16:00:00Z",
         "deployment": {
             "approval_id": "deployment-prod-4089497",
-            "origin": "https://lumina.example/",
+            "origin": "https://nova-lumina.example/",
             "build_commit": "4089497d795d1895b844cb39cbb80c7d0e56ce55",
             "environment": "production",
             "deployment_reference": "deploy-2026-09-22-01",

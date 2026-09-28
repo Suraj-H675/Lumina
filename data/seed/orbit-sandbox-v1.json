@@ -12,7 +12,7 @@
     "status": "ready",
     "version": 1,
     "audience_modes": ["explorer", "student", "deep-dive"],
-    "reviewed_by": ["Lumina orbit-sandbox-v1 contract review"],
+    "reviewed_by": ["Nova-Lumina orbit-sandbox-v1 contract review"],
     "reviewed_at": "2026-09-17T00:00:00Z",
     "updated_at": "2026-09-17T00:00:00Z",
     "model_version": "orbit-sandbox-v1",
@@ -173,7 +173,7 @@
       "record_reference": "Newtonian constant of gravitation G and exact speed of light c entries.",
       "retrieved_at": "2026-09-17",
       "data_date": "2022 CODATA adjustment",
-      "terms_or_licence": "Official NIST constants reference; Lumina records numeric constants and links to the source.",
+      "terms_or_licence": "Official NIST constants reference; Nova-Lumina records numeric constants and links to the source.",
       "citation": "NIST, 2022 CODATA recommended values of the fundamental physical constants, accessed 2026-09-17.",
       "claim_scope": "G = 6.67430e-11 m^3 kg^-1 s^-2 and c = 299792458 m/s used by the reviewed model domain.",
       "source_type": "official-standards"
@@ -188,7 +188,7 @@
       "record_reference": "Bulk parameters: mass and volumetric mean radius.",
       "retrieved_at": "2026-09-17",
       "data_date": "Current page values at retrieval time.",
-      "terms_or_licence": "Official NASA factual reference; Lumina records reviewed numeric defaults and links to the source.",
+      "terms_or_licence": "Official NASA factual reference; Nova-Lumina records reviewed numeric defaults and links to the source.",
       "citation": "NASA NSSDC, Earth Fact Sheet, accessed 2026-09-17.",
       "claim_scope": "Default Earth mass 5.9722e24 kg and volumetric mean radius 6371 km.",
       "source_type": "official-agency"
@@ -203,7 +203,7 @@
       "record_reference": "Newtonian gravitation, escape speed, circular-orbit speed/energy, Kepler period, conic-section and Schwarzschild-radius equations.",
       "retrieved_at": "2026-09-17",
       "data_date": "Textbook reference; no observation epoch.",
-      "terms_or_licence": "OpenStax educational source; Lumina links to the source and does not redistribute textbook prose.",
+      "terms_or_licence": "OpenStax educational source; Nova-Lumina links to the source and does not redistribute textbook prose.",
       "citation": "OpenStax, University Physics Volume 1, Chapter 13 Key Equations, accessed 2026-09-17.",
       "claim_scope": "Independent educational reference for the Newtonian orbital relationships and weak-field exclusion context used by Orbit Sandbox.",
       "source_type": "official-education"

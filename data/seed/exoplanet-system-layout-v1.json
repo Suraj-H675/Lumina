@@ -29,7 +29,7 @@
       "maximum": 1.046
     },
     "assumptions": [
-      "Only confirmed PSCompPars rows for Lumina's five reviewed host stars are included.",
+      "Only confirmed PSCompPars rows for Nova-Lumina's five reviewed host stars are included.",
       "Only positive, non-limit semi-major-axis values are eligible for layout.",
       "All systems share one axis domain so cross-system spacing remains comparable.",
       "Planet markers use a uniform presentation size and do not encode planet radius."

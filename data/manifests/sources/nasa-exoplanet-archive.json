@@ -5,14 +5,14 @@
   "authentication_method": "None observed or required for the current public synchronous TAP probe; no API key or credential is configured.",
   "cache_ttl": "Fresh for 8 hours after a successful fetch; stale-if-error for the following 72 hours; expired thereafter.",
   "capabilities": ["batch_fetch"],
-  "contact_or_user_agent_requirement": "Lumina sends a fixed identifying User-Agent without personal data.",
+  "contact_or_user_agent_requirement": "Nova-Lumina sends a fixed identifying User-Agent without personal data.",
   "endpoint_or_base_url": "https://exoplanetarchive.ipac.caltech.edu/TAP/sync",
   "failure_and_fallback_behaviour": "Reject malformed or contract-breaking responses, quarantine bounded evidence, retain the last-known-good cache, and expose stale data explicitly only during the approved stale-if-error interval. Never substitute unrelated data.",
   "fetch_time_policy": "Each accepted cache entry records the UTC fetch time and freshness deadlines; no live snapshot DataManifest is generated.",
   "fixture_and_checksum_strategy": "Offline tests use a sanitized two-line CSV fixture bound to the observed count(pl_name) header. Accepted live responses and complete quarantined responses are hashed over their exact raw bytes with SHA-256.",
   "known_limitations": [
     "The confirmed-planet count is mutable external data and is not frozen as a release value.",
-    "The count probe is an operational provider-framework proof only; Lumina does not ingest exoplanet entities or measurements from it in Phase 4A.",
+    "The count probe is an operational provider-framework proof only; Nova-Lumina does not ingest exoplanet entities or measurements from it in Phase 4A.",
     "The Planetary Systems table contains literature solutions; default_flag=1 selects the archive's default parameter set for the documented count query."
   ],
   "last_verified_at": "2026-09-10T10:37:55Z",

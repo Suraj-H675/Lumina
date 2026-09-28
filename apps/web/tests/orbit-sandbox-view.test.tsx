@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ORBIT_SANDBOX_MAX_RESPONSE_BYTES,
   type OrbitSandboxCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { OrbitSandboxView } from "../src/components/orbit-sandbox-view";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";

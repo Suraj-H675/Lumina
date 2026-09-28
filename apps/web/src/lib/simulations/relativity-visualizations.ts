@@ -3,7 +3,7 @@ import {
   validateExactGenerated,
   type RelativityVisualizationsCalculationResponse,
   type RelativityVisualizationsInputResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawRelativityArtifact from "../../../../../data/seed/relativity-visualizations-v1.json";
 

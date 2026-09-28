@@ -10,7 +10,7 @@ from contextlib import suppress
 from typing import Protocol
 
 WORKER_STARTED = b'{"event":"worker.started"}\n'
-WORKER_STARTUP_FAILED = b"Lumina worker startup failed.\n"
+WORKER_STARTUP_FAILED = b"Nova-Lumina worker startup failed.\n"
 HANDLER_SETTLEMENT_UNKNOWN = b'{"event":"worker.handler_settlement_unknown"}\n'
 HEARTBEAT_SETTLEMENT_UNKNOWN = b'{"event":"worker.heartbeat_settlement_unknown"}\n'
 

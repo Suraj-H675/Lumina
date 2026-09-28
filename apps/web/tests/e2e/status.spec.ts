@@ -37,7 +37,7 @@ test.describe("honest API foundation status", () => {
 
     await expect(page.getByRole("heading", { level: 2, name: "API unavailable" })).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Return to the Lumina foundation home page" }),
+      page.getByRole("link", { name: "Return to the Nova-Lumina foundation home page" }),
     ).toHaveAttribute("href", "/");
   });
 

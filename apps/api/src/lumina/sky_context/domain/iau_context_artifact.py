@@ -1,4 +1,4 @@
-"""Closed validators for Lumina's reviewed IAU sky-context artifacts.
+"""Closed validators for Nova-Lumina's reviewed IAU sky-context artifacts.
 
 The named-star and constellation products are immutable, same-origin rendering
 context.  They are deliberately kept outside the catalogue schema and are
@@ -243,7 +243,7 @@ class ConstellationArtifactRow:
 
 @dataclass(frozen=True, slots=True)
 class TargetMembership:
-    """Frozen bounded target-to-region evidence for current Lumina targets."""
+    """Frozen bounded target-to-region evidence for current Nova-Lumina targets."""
 
     target_slug: str
     target_name: str

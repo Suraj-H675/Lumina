@@ -3,7 +3,7 @@ import {
   validateExactGenerated,
   type BlackHoleRelativityCalculationResponse,
   type BlackHoleRelativityInputResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawBlackHoleArtifact from "../../../../../data/seed/black-hole-relativity-v1.json";
 

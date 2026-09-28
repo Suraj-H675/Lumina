@@ -14,7 +14,7 @@ import {
   type EntityDetailResponse,
   type EntitySummaryResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { resolveWebApiOrigin } from "./api-origin";
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
-import type { EntitySummaryResponse } from "@lumina/api-client";
+import type { EntitySummaryResponse } from "@nova-lumina/api-client";
 
 import { collectionStoreFailureMessage } from "../lib/collections-messages";
 import { addObjectsToCollection, useCollectionsData } from "../lib/collections-store";

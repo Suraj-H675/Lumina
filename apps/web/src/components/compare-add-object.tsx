@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useId, useMemo, useRef, useState } from "react";
 
-import type { EntitySummaryResponse } from "@lumina/api-client";
+import type { EntitySummaryResponse } from "@nova-lumina/api-client";
 
 import { COMPARE_MAX_OBJECTS } from "../lib/compare-url";
 import { formatCountMessage } from "../lib/i18n/format";

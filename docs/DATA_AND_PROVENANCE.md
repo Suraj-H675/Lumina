@@ -2,7 +2,7 @@
 
 ## Principle
 
-Lumina should be able to explain where externally sourced scientific information came from, what transformation was applied, and what limitations remain.
+Nova-Lumina should be able to explain where externally sourced scientific information came from, what transformation was applied, and what limitations remain.
 
 ## Repository data areas
 

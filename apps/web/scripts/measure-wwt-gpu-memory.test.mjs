@@ -92,9 +92,9 @@ test("navigates object-first before selecting a non-default deep-sky layer", () 
 test("resolves relative evidence output from the repository root", () => {
   assert.match(
     resolveOutputPath("data/audits/phase-8d-gpu-memory-v1.json"),
-    /\/Lumina\/data\/audits\/phase-8d-gpu-memory-v1\.json$/u,
+    /\/data\/audits\/phase-8d-gpu-memory-v1\.json$/u,
   );
-  assert.equal(resolveOutputPath("/tmp/lumina-gpu.json"), "/tmp/lumina-gpu.json");
+  assert.equal(resolveOutputPath("/tmp/nova-lumina-gpu.json"), "/tmp/nova-lumina-gpu.json");
 });
 
 test("parses Linux DRM fdinfo memory counters", () => {
@@ -239,7 +239,7 @@ test("fails closed for empty counters and multiple devices while preserving same
 });
 
 test("finds the dedicated browser and descendant GPU process", () => {
-  const userDataDir = "/tmp/lumina-profile";
+  const userDataDir = "/tmp/nova-lumina-profile";
   assert.deepEqual(
     findBrowserAndGpuProcesses(
       [
@@ -443,9 +443,9 @@ test("evidence builder emits the tracked observational schema", () => {
     settleMs: 5000,
     targetIdentity: {
       manifestUrl: "http://127.0.0.1:3000/manifest.webmanifest",
-      name: "Lumina",
+      name: "Nova-Lumina",
       scope: "/",
-      shortName: "Lumina",
+      shortName: "Nova-Lumina",
       startUrl: "/",
     },
   });

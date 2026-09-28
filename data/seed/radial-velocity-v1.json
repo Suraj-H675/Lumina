@@ -174,7 +174,7 @@
       "record_reference": "Newtonian constant of gravitation G entry.",
       "retrieved_at": "2026-09-18",
       "data_date": "2022 CODATA adjustment",
-      "terms_or_licence": "Official NIST constants reference; Lumina records the numeric constant and links to the source.",
+      "terms_or_licence": "Official NIST constants reference; Nova-Lumina records the numeric constant and links to the source.",
       "citation": "NIST, 2022 CODATA recommended values of the fundamental physical constants, accessed 2026-09-18.",
       "claim_scope": "G = 6.67430e-11 m^3 kg^-1 s^-2 used by the reviewed model.",
       "source_type": "official-standards"

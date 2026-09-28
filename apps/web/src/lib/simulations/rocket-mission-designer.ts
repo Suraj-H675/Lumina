@@ -3,7 +3,7 @@ import {
   validateExactGenerated,
   type RocketMissionDesignerCalculationResponse,
   type RocketStageInputResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawRocketArtifact from "../../../../../data/seed/rocket-mission-designer-v1.json";
 

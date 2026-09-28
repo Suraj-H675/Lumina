@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { PlanetarySystemBuilderCalculationResponse } from "@lumina/api-client";
+import type { PlanetarySystemBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { PlanetarySystemBuilderMessages } from "../lib/i18n/messages/types";

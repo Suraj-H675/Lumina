@@ -2,7 +2,7 @@ import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ApodResponse } from "@lumina/api-client";
+import type { ApodResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -137,7 +137,7 @@ describe("Space Now Daily Visual", () => {
     expect(screen.queryByRole("link", { name: /APOD image|APOD video/i })).not.toBeInTheDocument();
   });
 
-  it("localizes Lumina chrome without rewriting APOD/provider source values", () => {
+  it("localizes Nova-Lumina chrome without rewriting APOD/provider source values", () => {
     const messages = {
       ...enMessages.spaceNow,
       dailyVisual: {
@@ -204,7 +204,7 @@ describe("Space Now Daily Visual", () => {
 });
 
 describe("server-rendered APOD loader", () => {
-  it("requests only Lumina's public APOD projection without query parameters", async () => {
+  it("requests only Nova-Lumina's public APOD projection without query parameters", async () => {
     const requests: Array<{ url: string; init: RequestInit | undefined }> = [];
     const response = new Response(JSON.stringify(imageResponse), {
       headers: { "content-type": "application/json" },
@@ -218,12 +218,12 @@ describe("server-rendered APOD loader", () => {
     const outcome = await loadNowApod({
       environment: "production",
       fetchImplementation,
-      origin: "https://lumina-api.example.test",
+      origin: "https://nova-lumina-api.example.test",
     });
 
     expect(outcome).toEqual({ data: imageResponse, kind: "ok" });
     expect(requests).toHaveLength(1);
-    expect(requests[0]!.url).toBe("https://lumina-api.example.test/api/v1/now/apod");
+    expect(requests[0]!.url).toBe("https://nova-lumina-api.example.test/api/v1/now/apod");
     expect(requests[0]!.url).not.toContain("api_key");
     expect(requests[0]!.url).not.toContain("date=");
   });
@@ -246,7 +246,7 @@ describe("server-rendered APOD loader", () => {
       loadNowApod({
         environment: "production",
         fetchImplementation,
-        origin: "https://lumina-api.example.test",
+        origin: "https://nova-lumina-api.example.test",
       }),
     ).resolves.toEqual({ kind: "unavailable" });
   });

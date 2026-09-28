@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { requestEndpoint, type TransitMethodCalculationResponse } from "@lumina/api-client";
+import { requestEndpoint, type TransitMethodCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

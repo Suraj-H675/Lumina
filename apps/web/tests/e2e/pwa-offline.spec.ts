@@ -36,7 +36,7 @@ async function installAndCacheVisitedLesson(page: Page): Promise<void> {
 }
 
 test.describe("Phase 8B — PWA/offline foundation", () => {
-  test("reloads a visited approved lesson offline and exposes its Lumina cache time", async ({
+  test("reloads a visited approved lesson offline and exposes its Nova-Lumina cache time", async ({
     context,
     page,
   }) => {
@@ -77,7 +77,9 @@ test.describe("Phase 8B — PWA/offline foundation", () => {
         page.getByRole("heading", { level: 1, name: "Start with the sky you have" }),
       ).toBeVisible();
       const offlineStatus = page.getByRole("status").filter({ hasText: "You are offline" });
-      await expect(offlineStatus).toContainText("This page is an offline copy saved by Lumina");
+      await expect(offlineStatus).toContainText(
+        "This page is an offline copy saved by Nova-Lumina",
+      );
       await expect(offlineStatus.locator("time")).toHaveAttribute(
         "datetime",
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u,
@@ -98,7 +100,7 @@ test.describe("Phase 8B — PWA/offline foundation", () => {
       await page.goto(UNVISITED_LESSON, { waitUntil: "domcontentloaded" });
 
       await expect(
-        page.getByRole("heading", { level: 1, name: "Lumina is offline" }),
+        page.getByRole("heading", { level: 1, name: "Nova-Lumina is offline" }),
       ).toBeVisible();
       await expect(
         page.getByText(/pages you visited while online may still be available/i),
@@ -134,7 +136,7 @@ test.describe("Phase 8B — PWA/offline foundation", () => {
       await page.reload({ waitUntil: "domcontentloaded" });
 
       await expect(
-        page.getByRole("heading", { level: 1, name: "Lumina is offline" }),
+        page.getByRole("heading", { level: 1, name: "Nova-Lumina is offline" }),
       ).toBeVisible();
       await expect(page.getByRole("heading", { level: 1, name: "Space Now" })).toHaveCount(0);
       await expect(page.getByText("Retrieved at (UTC)")).toHaveCount(0);

@@ -2,7 +2,7 @@ import {
   transitMethodEndpoint,
   validateExactGenerated,
   type TransitMethodCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawTransitArtifact from "../../../../../data/seed/transit-method-v1.json";
 

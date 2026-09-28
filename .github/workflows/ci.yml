@@ -73,7 +73,7 @@ jobs:
         run: |
           test -z "$(
             find "${RUNNER_TEMP:-/tmp}" -maxdepth 1 -type d \
-              \( -name 'lumina-api-client-first-*' -o -name 'lumina-api-client-second-*' \) \
+              \( -name 'nova-lumina-api-client-first-*' -o -name 'nova-lumina-api-client-second-*' \) \
               -print -quit
           )"
 
@@ -187,12 +187,12 @@ jobs:
             psql -U lumina_admin -d lumina -c \
             "CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public"
           uv run alembic upgrade head
-          uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
-          uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
-          uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1
-          uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
-          uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
-          uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
+          uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
+          uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
+          uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1
+          uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
+          uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
+          uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
           LUMINA_ENV=test uv run pytest -q
           test "$(uv run alembic heads)" = "a2b3c4d5e6f7 (head)"
           test "$(
@@ -293,8 +293,8 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build
-          test "$(pnpm --filter @lumina/web exec playwright --version)" = "Version 1.62.1"
-          pnpm --filter @lumina/web exec playwright install --with-deps chromium
+          test "$(pnpm --filter @nova-lumina/web exec playwright --version)" = "Version 1.62.1"
+          pnpm --filter @nova-lumina/web exec playwright install --with-deps chromium
           pnpm test:e2e
 
       - name: Assert web cleanup and ignored outputs
@@ -302,12 +302,12 @@ jobs:
         run: |
           test -z "$(
             find "${RUNNER_TEMP:-/tmp}" -maxdepth 1 \
-              -name 'lumina-status-e2e-*' -print -quit
+              -name 'nova-lumina-status-e2e-*' -print -quit
           )"
           if pgrep -f \
             '[s]tatus-stub-harness\.mjs|[n]ext start|[l]umina.*worker' \
             >/dev/null; then
-            echo "Lumina test process residue remains" >&2
+            echo "Nova-Lumina test process residue remains" >&2
             exit 1
           fi
           test -z "$(
@@ -366,30 +366,30 @@ jobs:
         run: |
           docker build \
             --file Dockerfile.vercel \
-            --tag lumina-api:ci \
+            --tag nova-lumina-api:ci \
             .
 
       - name: Smoke production API image
         run: |
-          test "$(docker run --rm --entrypoint id lumina-api:ci -u)" = "10001"
-          test "$(docker run --rm --entrypoint /app/.venv/bin/python lumina-api:ci --version)" = "Python 3.12.13"
-          docker run --rm --entrypoint /app/.venv/bin/python lumina-api:ci -c \
+          test "$(docker run --rm --entrypoint id nova-lumina-api:ci -u)" = "10001"
+          test "$(docker run --rm --entrypoint /app/.venv/bin/python nova-lumina-api:ci --version)" = "Python 3.12.13"
+          docker run --rm --entrypoint /app/.venv/bin/python nova-lumina-api:ci -c \
             'import ssl; context = ssl.create_default_context(); assert context.check_hostname; assert context.verify_mode == ssl.CERT_REQUIRED; assert context.get_ca_certs()'
-          docker run --rm --entrypoint /bin/uv lumina-api:ci --version |
+          docker run --rm --entrypoint /bin/uv nova-lumina-api:ci --version |
             awk 'NR == 1 && $1 == "uv" && $2 == "0.12.17" { ok=1 } END { exit !(NR == 1 && ok) }'
           docker run --rm \
-            --entrypoint /app/.venv/bin/lumina-provider \
-            lumina-api:ci \
+            --entrypoint /app/.venv/bin/nova-lumina-provider \
+            nova-lumina-api:ci \
             --help >/dev/null
           artifact_output="$(
             docker run --rm \
-              --entrypoint /app/.venv/bin/lumina-catalog \
-              lumina-api:ci \
+              --entrypoint /app/.venv/bin/nova-lumina-catalog \
+              nova-lumina-api:ci \
               ingest --slice simbad-messier-j2000-v2 --validate-only
           )"
           docker run --rm -i \
             --entrypoint /app/.venv/bin/python \
-            lumina-api:ci \
+            nova-lumina-api:ci \
             - "$artifact_output" <<'PY'
           import json
           import sys
@@ -470,7 +470,7 @@ jobs:
         run: |
           test -z "$(
             find "${RUNNER_TEMP:-/tmp}" -maxdepth 1 -type d \
-              -name 'lumina-security-*' -print -quit
+              -name 'nova-lumina-security-*' -print -quit
           )"
 
       - name: Assert clean repository

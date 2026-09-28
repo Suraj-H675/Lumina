@@ -73,7 +73,7 @@ async def metadata(request: Request) -> MetaResponse:
     """Translate resolved application metadata into its public contract."""
     settings: AppSettings = request.app.state.settings
     return MetaResponse(
-        application_name="Lumina",
+        application_name="Nova-Lumina",
         application_version=__version__,
         api_version="v1",
         feature_flags=FeatureFlags(),

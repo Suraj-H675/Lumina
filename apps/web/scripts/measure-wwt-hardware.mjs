@@ -20,13 +20,13 @@ const FRAME_PROBE_KEY = "__luminaWwtFrameProbe";
 let receivedSignal = null;
 
 function usage() {
-  return `Usage: pnpm --filter @lumina/web perf:wwt-hardware -- [options]
+  return `Usage: pnpm --filter @nova-lumina/web perf:wwt-hardware -- [options]
 
 Measures WWT draw-bearing animation-frame cadence on the browser/GPU running the benchmark.
 This is an operator-run Phase 8D evidence tool, not a CI benchmark or a GPU-completion profiler.
 
 Options:
-  --url <url>                 Required deep-sky URL for an already-running Lumina instance.
+  --url <url>                 Required deep-sky URL for an already-running Nova-Lumina instance.
   --seconds <number>          Measurement duration in seconds (default: ${DEFAULT_SECONDS}, max: ${MAX_SECONDS}).
   --warmup-seconds <number>   Interactive warm-up before collection (default: ${DEFAULT_WARMUP_SECONDS}, max: ${MAX_WARMUP_SECONDS}).
   --min-cadence-hz <number>   Optional operator-supplied acceptance floor. No project default is frozen.
@@ -35,7 +35,7 @@ Options:
   --stub-network              Stub WWT imagery for plumbing checks. Never representative-hardware evidence.
   --help                      Show this help.
 
-The target must expose Lumina's reviewed web-app manifest and the /explore/deep-sky route. Representative-
+The target must expose Nova-Lumina's reviewed web-app manifest and the /explore/deep-sky route. Representative-
 hardware evidence additionally requires headed Chromium, real WWT network access, and a renderer positively
 identified through WEBGL_debug_renderer_info as a known hardware family. The reported cadence counts animation
 callbacks in which the WWT canvas issues WebGL clear/draw commands; it does not claim GPU-complete frame timing.
@@ -134,11 +134,11 @@ export function parseArgs(argv) {
   }
   if (options.url === null) {
     throw new Error(
-      "--url is required; start the intended Lumina build explicitly before measuring it",
+      "--url is required; start the intended Nova-Lumina build explicitly before measuring it",
     );
   }
   if (new URL(options.url).pathname !== "/explore/deep-sky") {
-    throw new Error("--url must target Lumina's /explore/deep-sky route");
+    throw new Error("--url must target Nova-Lumina's /explore/deep-sky route");
   }
   return options;
 }
@@ -161,17 +161,17 @@ export function classifyRenderer(renderer) {
   return { kind: "hardware", reason: `Recognized hardware renderer detected: ${value}` };
 }
 
-export function assertLuminaUrl(actualUrl, benchmarkUrl, expectedPath, label) {
+export function assertNovaLuminaUrl(actualUrl, benchmarkUrl, expectedPath, label) {
   const actual = new URL(actualUrl);
   const requested = new URL(benchmarkUrl);
   if (actual.origin !== requested.origin) {
     throw new Error(
-      `Lumina target identity check failed: ${label} redirected to a different origin`,
+      `Nova-Lumina target identity check failed: ${label} redirected to a different origin`,
     );
   }
   if (actual.pathname !== expectedPath) {
     throw new Error(
-      `Lumina target identity check failed: ${label} resolved to unexpected path ${actual.pathname}`,
+      `Nova-Lumina target identity check failed: ${label} resolved to unexpected path ${actual.pathname}`,
     );
   }
   return actual.toString();
@@ -231,11 +231,11 @@ export function assessEvidence({
   return { passedCadenceFloor, representativeHardwareEligible, status };
 }
 
-async function verifyLuminaTarget(page, benchmarkUrl) {
+async function verifyNovaLuminaTarget(page, benchmarkUrl) {
   const manifestUrl = new URL("/manifest.webmanifest", benchmarkUrl).toString();
   const response = await page.request.get(manifestUrl, { timeout: 5_000 });
   try {
-    const verifiedManifestUrl = assertLuminaUrl(
+    const verifiedManifestUrl = assertNovaLuminaUrl(
       response.url(),
       benchmarkUrl,
       "/manifest.webmanifest",
@@ -243,19 +243,21 @@ async function verifyLuminaTarget(page, benchmarkUrl) {
     );
     if (!response.ok()) {
       throw new Error(
-        `Lumina target identity check failed: manifest returned HTTP ${response.status()}`,
+        `Nova-Lumina target identity check failed: manifest returned HTTP ${response.status()}`,
       );
     }
     const manifest = await response.json();
     if (
       typeof manifest !== "object" ||
       manifest === null ||
-      manifest.name !== "Lumina" ||
-      manifest.short_name !== "Lumina" ||
+      manifest.name !== "Nova-Lumina" ||
+      manifest.short_name !== "Nova-Lumina" ||
       manifest.scope !== "/" ||
       manifest.start_url !== "/"
     ) {
-      throw new Error("Lumina target identity check failed: reviewed manifest marker is absent");
+      throw new Error(
+        "Nova-Lumina target identity check failed: reviewed manifest marker is absent",
+      );
     }
     return {
       manifestUrl: verifiedManifestUrl,
@@ -270,7 +272,7 @@ async function verifyLuminaTarget(page, benchmarkUrl) {
 }
 
 async function rendererInfo(page) {
-  return page.locator("#lumina-wwt-atlas canvas").evaluate((canvas) => {
+  return page.locator("#nova-lumina-wwt-atlas canvas").evaluate((canvas) => {
     const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
     if (gl === null) throw new Error("Active WWT canvas does not expose WebGL");
     const debug = gl.getExtension("WEBGL_debug_renderer_info");
@@ -320,7 +322,10 @@ async function installFrameProbe(page) {
     const recordDraw = (context) => {
       if (!state.collecting || state.currentRafTimestamp === null) return;
       const canvas = context?.canvas;
-      if (!(canvas instanceof HTMLCanvasElement) || canvas.closest("#lumina-wwt-atlas") === null) {
+      if (
+        !(canvas instanceof HTMLCanvasElement) ||
+        canvas.closest("#nova-lumina-wwt-atlas") === null
+      ) {
         return;
       }
       state.drawCalls += 1;
@@ -459,7 +464,7 @@ async function main() {
     const context = await browser.newContext({ viewport: { height: 900, width: 1280 } });
     const page = await context.newPage();
     await installFrameProbe(page);
-    const targetIdentity = await verifyLuminaTarget(page, benchmarkUrl);
+    const targetIdentity = await verifyNovaLuminaTarget(page, benchmarkUrl);
 
     if (options.stubNetwork) {
       await page.route("https://cdn.worldwidetelescope.org/**", async (route) => {
@@ -474,10 +479,10 @@ async function main() {
     }
 
     await page.goto(benchmarkUrl, { waitUntil: "load" });
-    assertLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
+    assertNovaLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
     await page.getByRole("button", { name: "Open interactive atlas" }).click();
     await page.getByText("Interactive atlas ready.").waitFor({ timeout: 20_000 });
-    assertLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
+    assertNovaLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
     const renderer = await rendererInfo(page);
     const rendererClassification = classifyRenderer(renderer);
     if (rendererClassification.kind !== "hardware" && !options.allowSoftware) {
@@ -488,11 +493,11 @@ async function main() {
     }
 
     await exerciseControls(page, options.warmupSeconds);
-    assertLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
+    assertNovaLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
     await setFrameCollection(page, true);
     await exerciseControls(page, options.seconds);
     const captured = await setFrameCollection(page, false);
-    assertLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
+    assertNovaLuminaUrl(page.url(), benchmarkUrl, "/explore/deep-sky", "benchmark page");
     if (captured === null) throw new Error("WWT frame probe did not return a measurement");
     const summary = summarizeFrames(captured.frameTimestamps);
     const assessment = assessEvidence({

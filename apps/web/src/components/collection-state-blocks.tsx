@@ -48,7 +48,7 @@ export function StorageUnavailableNote({
 /**
  * Recovery state for unreadable persisted data. Explains what happened, keeps
  * the bytes untouched until an explicit two-step confirmation, and reminds the
- * visitor that the rest of Lumina remains usable.
+ * visitor that the rest of Nova-Lumina remains usable.
  */
 export function CorruptedStoragePanel({
   compact = false,

@@ -1,4 +1,4 @@
-import type { NearEarthResponse } from "@lumina/api-client";
+import type { NearEarthResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 
 import {

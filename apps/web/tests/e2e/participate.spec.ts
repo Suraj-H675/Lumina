@@ -32,7 +32,9 @@ test.describe("Phase 8A — Participate", () => {
       await expect(page.getByText("Never point the spectroscope at the Sun.")).toBeVisible();
       await expect(page.getByText(/There is no universal planisphere/i)).toBeVisible();
       await expect(page.getByText(/poor fit very near the equator/i)).toBeVisible();
-      await expect(page.getByText(/You are leaving Lumina for Zooniverse/i).first()).toBeVisible();
+      await expect(
+        page.getByText(/You are leaving Nova-Lumina for Zooniverse/i).first(),
+      ).toBeVisible();
       await expect(
         page.getByRole("link", { name: "Open Galaxy Zoo on Zooniverse" }),
       ).toHaveAttribute("href", "https://www.zooniverse.org/projects/zookeeper/galaxy-zoo");
@@ -56,7 +58,7 @@ test.describe("Phase 8A — Participate", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/participate");
 
-    await expect(page).toHaveTitle(/Participate — Lumina/);
+    await expect(page).toHaveTitle(/Participate — Nova-Lumina/);
     await expect(page.getByText("6 of 6 projects shown")).toBeVisible();
     await page.getByLabel("Training time").selectOption("about_10_min");
     await expect(page.getByText("2 of 6 projects shown")).toBeVisible();

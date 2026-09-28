@@ -220,7 +220,7 @@ def _settings() -> AppSettings:
             job_handler_timeout_seconds=30,
             job_cancellation_grace_seconds=1,
             worker_poll_seconds=2,
-            storage_local_root=Path("/tmp/lumina-worker-fixture-storage"),
+            storage_local_root=Path("/tmp/nova-lumina-worker-fixture-storage"),
             upload_max_bytes=25 * 1024 * 1024,
             upload_max_pixels=50_000_000,
             upload_retention_hours=24,

@@ -1,4 +1,4 @@
-import type { RelativityVisualizationsCalculationResponse } from "@lumina/api-client";
+import type { RelativityVisualizationsCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

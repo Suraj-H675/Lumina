@@ -44,7 +44,9 @@ _DIAGNOSTIC_MESSAGES = {
     "manifest.cli_arguments_invalid": "The manifest validator accepts no arguments.",
 }
 
-_EMPTY_SUCCESS_MESSAGE = "Lumina manifest validation passed: no production manifests are approved."
+_EMPTY_SUCCESS_MESSAGE = (
+    "Nova-Lumina manifest validation passed: no production manifests are approved."
+)
 
 
 @dataclass(frozen=True, order=True, slots=True)
@@ -288,7 +290,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if not result.manifests:
         print(_EMPTY_SUCCESS_MESSAGE)
     else:
-        print(f"Lumina manifest validation passed: {len(result.manifests)} manifest files.")
+        print(f"Nova-Lumina manifest validation passed: {len(result.manifests)} manifest files.")
     return 0
 
 

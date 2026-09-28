@@ -77,7 +77,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Official NASA educational source; Lumina links to the source and does "
+            "Official NASA educational source; Nova-Lumina links to the source and does "
             "not redistribute NASA media."
         ),
         "citation": "NASA Space Place, “What Causes the Seasons?”, accessed 2026-09-09.",
@@ -97,7 +97,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Official NASA factual/educational source; Lumina links to the source and "
+            "Official NASA factual/educational source; Nova-Lumina links to the source and "
             "does not redistribute NASA media."
         ),
         "citation": "NASA Science, “Earth Facts”, accessed 2026-09-09.",
@@ -116,7 +116,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "J2000 reference values as identified by source.",
         "terms_or_licence": (
-            "Official JPL/NASA technical reference; Lumina cites the reviewed "
+            "Official JPL/NASA technical reference; Nova-Lumina cites the reviewed "
             "constants and links to the source."
         ),
         "citation": (
@@ -141,7 +141,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Official U.S. government reference; Lumina links to the source and uses "
+            "Official U.S. government reference; Nova-Lumina links to the source and uses "
             "it for supporting terminology and comparison only."
         ),
         "citation": (
@@ -150,7 +150,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         ),
         "claim_scope": (
             "Supporting definitions for solar declination and solar-coordinate "
-            "geometry; not the Lumina date-specific calculation."
+            "geometry; not the Nova-Lumina date-specific calculation."
         ),
         "source_type": "official-agency",
     },
@@ -166,7 +166,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Official U.S. government reference; Lumina links to the source and uses "
+            "Official U.S. government reference; Nova-Lumina links to the source and uses "
             "it for supporting geometric comparison only."
         ),
         "citation": (
@@ -174,7 +174,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
             "accessed 2026-09-09."
         ),
         "claim_scope": (
-            "Supporting daylight and horizon geometry context; Lumina v1 "
+            "Supporting daylight and horizon geometry context; Nova-Lumina v1 "
             "intentionally uses a geometric point-Sun horizon rather than "
             "observed-rise conventions."
         ),
@@ -192,7 +192,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Official NOAA technical reference; Lumina links to the source for "
+            "Official NOAA technical reference; Nova-Lumina links to the source for "
             "supporting comparison and disclosure."
         ),
         "citation": (
@@ -201,7 +201,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "claim_scope": (
             "Supporting comparison for general solar-zenith geometry and "
             "documentation of refraction and solar-disc corrections excluded by "
-            "Lumina v1; NOAA fractional-year declination is not used."
+            "Nova-Lumina v1; NOAA fractional-year declination is not used."
         ),
         "source_type": "official-agency",
     },

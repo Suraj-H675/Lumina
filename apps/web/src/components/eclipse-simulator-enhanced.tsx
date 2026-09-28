@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { EclipseSimulatorCalculationResponse } from "@lumina/api-client";
+import type { EclipseSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { EclipseSimulatorMessages } from "../lib/i18n/messages/types";

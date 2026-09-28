@@ -1,7 +1,7 @@
 import type { enMessages } from "./en";
 
 /**
- * English is Lumina's canonical authored dictionary. Message types are derived
+ * English is Nova-Lumina's canonical authored dictionary. Message types are derived
  * from its key structure while widening authored string literals so future
  * translations can provide different copy without maintaining a second schema.
  */

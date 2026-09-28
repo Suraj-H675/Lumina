@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 
 import { chromium } from "@playwright/test";
 
-import { assertLuminaUrl, classifyRenderer } from "./measure-wwt-hardware.mjs";
+import { assertNovaLuminaUrl, classifyRenderer } from "./measure-wwt-hardware.mjs";
 
 const DEFAULT_CYCLES = 3;
 const DEFAULT_DEEP_SKY_LAYER = "visible-dss2";
@@ -25,13 +25,13 @@ export function resolveOutputPath(rawPath) {
 let receivedSignal = null;
 
 function usage() {
-  return `Usage: pnpm --filter @lumina/web perf:wwt-gpu-memory -- [options]
+  return `Usage: pnpm --filter @nova-lumina/web perf:wwt-gpu-memory -- [options]
 
 Profiles Linux DRM memory counters for Chromium's GPU process across repeated WWT
 activate/use/route-leave cycles on representative headed hardware.
 
 Options:
-  --url <url>          Required /explore/deep-sky URL for an already-running Lumina instance.
+  --url <url>          Required /explore/deep-sky URL for an already-running Nova-Lumina instance.
   --cycles <number>    Number of activate/leave cycles (default: ${DEFAULT_CYCLES}, max: ${MAX_CYCLES}).
   --settle-ms <number> Wait after activation and route leave before each sample
                        (default: ${DEFAULT_SETTLE_MS}, max: ${MAX_SETTLE_MS}).
@@ -113,11 +113,11 @@ export function parseArgs(argv) {
   }
   if (options.url === null) {
     throw new Error(
-      "--url is required; start the intended Lumina build explicitly before profiling",
+      "--url is required; start the intended Nova-Lumina build explicitly before profiling",
     );
   }
   if (new URL(options.url).pathname !== "/explore/deep-sky") {
-    throw new Error("--url must target Lumina's /explore/deep-sky route");
+    throw new Error("--url must target Nova-Lumina's /explore/deep-sky route");
   }
   const targetUrl = new URL(options.url);
   if (
@@ -137,7 +137,7 @@ export function assertRequestedUrlState(actualRaw, requestedRaw) {
   const actual = new URL(actualRaw);
   const requested = new URL(requestedRaw);
   if (actual.origin !== requested.origin || actual.pathname !== requested.pathname) {
-    throw new Error("Profile page origin/path does not match the requested Lumina URL");
+    throw new Error("Profile page origin/path does not match the requested Nova-Lumina URL");
   }
   const normalized = (url) =>
     [...url.searchParams.entries()]
@@ -149,7 +149,7 @@ export function assertRequestedUrlState(actualRaw, requestedRaw) {
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
   if (normalized(actual) !== normalized(requested)) {
-    throw new Error("Profile page query state does not match the requested Lumina URL");
+    throw new Error("Profile page query state does not match the requested Nova-Lumina URL");
   }
 }
 
@@ -550,26 +550,28 @@ function assertSameDrmDevice(expected, actual) {
   }
 }
 
-async function verifyLuminaTarget(page, benchmarkUrl) {
+async function verifyNovaLuminaTarget(page, benchmarkUrl) {
   const manifestUrl = new URL("/manifest.webmanifest", benchmarkUrl).toString();
   const response = await page.request.get(manifestUrl, { timeout: 5_000 });
   try {
-    assertLuminaUrl(response.url(), benchmarkUrl, "/manifest.webmanifest", "manifest");
+    assertNovaLuminaUrl(response.url(), benchmarkUrl, "/manifest.webmanifest", "manifest");
     if (!response.ok()) {
       throw new Error(
-        `Lumina target identity check failed: manifest returned HTTP ${response.status()}`,
+        `Nova-Lumina target identity check failed: manifest returned HTTP ${response.status()}`,
       );
     }
     const manifest = await response.json();
     if (
       typeof manifest !== "object" ||
       manifest === null ||
-      manifest.name !== "Lumina" ||
-      manifest.short_name !== "Lumina" ||
+      manifest.name !== "Nova-Lumina" ||
+      manifest.short_name !== "Nova-Lumina" ||
       manifest.scope !== "/" ||
       manifest.start_url !== "/"
     ) {
-      throw new Error("Lumina target identity check failed: reviewed manifest marker is absent");
+      throw new Error(
+        "Nova-Lumina target identity check failed: reviewed manifest marker is absent",
+      );
     }
     return {
       manifestUrl: response.url(),
@@ -584,7 +586,7 @@ async function verifyLuminaTarget(page, benchmarkUrl) {
 }
 
 async function rendererInfo(page) {
-  return page.locator("#lumina-wwt-atlas canvas").evaluate((canvas) => {
+  return page.locator("#nova-lumina-wwt-atlas canvas").evaluate((canvas) => {
     const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
     if (gl === null) throw new Error("Active WWT canvas does not expose WebGL");
     const debug = gl.getExtension("WEBGL_debug_renderer_info");
@@ -611,7 +613,7 @@ async function clickExactHref(page, href) {
     return true;
   }, href);
   if (!clicked)
-    throw new Error(`Lumina page does not expose the expected client-side link: ${href}`);
+    throw new Error(`Nova-Lumina page does not expose the expected client-side link: ${href}`);
 }
 
 async function waitForRelativeHref(page, requestedUrl, href) {
@@ -648,7 +650,7 @@ async function gitProvenance() {
 
 function measurementCommand(options) {
   return [
-    "pnpm --filter @lumina/web perf:wwt-gpu-memory --",
+    "pnpm --filter @nova-lumina/web perf:wwt-gpu-memory --",
     `--url '${options.url}'`,
     `--cycles ${options.cycles}`,
     `--settle-ms ${options.settleMs}`,
@@ -770,7 +772,7 @@ export function buildEvidenceArtifact({
     claim_boundaries: [
       "This evidence does not define or apply a universal GPU-memory pass threshold.",
       "Observed DRM allocations do not prove whole-engine GPU disposal, zero retention, or absence of all retained resources.",
-      "Linux DRM fdinfo reports the tested Chromium GPU process's driver-accounted DRM-client allocations and does not attribute every allocation to Lumina or WWT.",
+      "Linux DRM fdinfo reports the tested Chromium GPU process's driver-accounted DRM-client allocations and does not attribute every allocation to Nova-Lumina or WWT.",
       "Renderer binding verifies Chromium's render node, PCI device, driver, vendor family, and WebGL renderer family; it does not attribute individual allocations to the WWT canvas.",
       "This measurement applies only to the recorded browser, DRM client/device, renderer, operating environment, route, and cycle procedure.",
     ],
@@ -783,7 +785,7 @@ async function main() {
     throw new Error("This profiler requires Linux /proc DRM fdinfo");
   }
 
-  const userDataDir = join(tmpdir(), `lumina-phase8d-gpu-memory-${process.pid}`);
+  const userDataDir = join(tmpdir(), `nova-lumina-phase8d-gpu-memory-${process.pid}`);
   let browserIdentity = null;
   let context = null;
   let processes = null;
@@ -869,7 +871,7 @@ async function main() {
       throw new Error("Dedicated Chromium browser identity changed while waiting for GPU process");
     }
     const page = context.pages()[0] ?? (await context.newPage());
-    const targetIdentity = await verifyLuminaTarget(page, options.url);
+    const targetIdentity = await verifyNovaLuminaTarget(page, options.url);
     const provenance = await gitProvenance();
 
     await page.goto(new URL("/explore", options.url).toString(), { waitUntil: "load" });
@@ -885,10 +887,10 @@ async function main() {
     for (let cycle = 1; cycle <= options.cycles; cycle += 1) {
       assertNotAborted(abortRequested, receivedSignal);
       await navigateToRequestedDeepSky(page, options.url);
-      assertLuminaUrl(page.url(), options.url, "/explore/deep-sky", "profile page");
+      assertNovaLuminaUrl(page.url(), options.url, "/explore/deep-sky", "profile page");
       await page.getByRole("button", { name: "Open interactive atlas" }).click();
       await page.getByText("Interactive atlas ready.").waitFor({ timeout: 20_000 });
-      await page.locator("#lumina-wwt-atlas canvas").waitFor({ state: "visible" });
+      await page.locator("#nova-lumina-wwt-atlas canvas").waitFor({ state: "visible" });
 
       if (renderer === null) {
         renderer = await rendererInfo(page);

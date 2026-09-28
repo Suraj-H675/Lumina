@@ -174,7 +174,7 @@ function persist(next: LearningProgressData): LearningProgressStoreResult {
       emit();
       return {
         message:
-          "This browser is blocking local storage, so Lumina cannot save learning progress right now.",
+          "This browser is blocking local storage, so Nova-Lumina cannot save learning progress right now.",
         ok: false,
         reason: "storage-unavailable",
       };
@@ -217,7 +217,7 @@ function isKnownLesson(pathSlug: string, lessonSlug: string): boolean {
 
 function invalidContentResult(): LearningProgressStoreResult {
   return {
-    message: "That learning step is not part of a published Lumina path.",
+    message: "That learning step is not part of a published Nova-Lumina path.",
     ok: false,
     reason: "invalid-content",
   };

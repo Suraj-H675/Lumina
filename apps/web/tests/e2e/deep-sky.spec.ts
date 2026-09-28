@@ -174,7 +174,7 @@ test.describe("Phase 5A — deep-sky atlas", () => {
     expect(stored).not.toContain("12.971599");
     expect(stored).not.toContain("77.594563");
 
-    const atlasRegion = page.locator("#lumina-wwt-atlas");
+    const atlasRegion = page.locator("#nova-lumina-wwt-atlas");
     await atlasRegion.evaluate((element) => element.scrollIntoView({ block: "center" }));
     expect(
       await atlasRegion.evaluate((element) => {
@@ -246,7 +246,7 @@ test.describe("Phase 5A — deep-sky atlas", () => {
       const counters = await cdp.send("Memory.getDOMCounters");
       return {
         ...counters,
-        canvases: await page.locator("#lumina-wwt-atlas canvas").count(),
+        canvases: await page.locator("#nova-lumina-wwt-atlas canvas").count(),
       };
     };
     const enterAtlas = async () => {
@@ -254,7 +254,7 @@ test.describe("Phase 5A — deep-sky atlas", () => {
       await page.waitForURL(/\/explore\/deep-sky/u);
       await page.getByRole("button", { name: "Open interactive atlas" }).click();
       await expect(page.getByText("Interactive atlas ready.")).toBeVisible({ timeout: 15_000 });
-      await expect(page.locator("#lumina-wwt-atlas canvas")).toHaveCount(1);
+      await expect(page.locator("#nova-lumina-wwt-atlas canvas")).toHaveCount(1);
     };
     const leaveAtlas = async () => {
       await page.getByRole("link", { name: /Explore catalogue/i }).click();
@@ -360,7 +360,7 @@ test.describe("Phase 5A — deep-sky atlas", () => {
     expect((await activation.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     await activation.click();
     await expect(page.getByText("Interactive atlas ready.")).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator("#lumina-wwt-atlas canvas")).toBeVisible();
+    await expect(page.locator("#nova-lumina-wwt-atlas canvas")).toBeVisible();
     await expect(page.getByRole("link", { name: "Open canonical object page" })).toBeVisible();
   });
 });

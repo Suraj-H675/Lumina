@@ -8,7 +8,7 @@ import {
 } from "../src/lib/pwa-policy";
 import { enMessages } from "../src/lib/i18n/messages/en";
 
-describe("Lumina service worker route", () => {
+describe("Nova-Lumina service worker route", () => {
   it("serves executable JavaScript with update-safe security and cache headers", async () => {
     const response = GET();
 

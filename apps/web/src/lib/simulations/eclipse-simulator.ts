@@ -2,7 +2,7 @@ import {
   eclipseSimulatorEndpoint,
   validateExactGenerated,
   type EclipseSimulatorCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawEclipseArtifact from "../../../../../data/seed/eclipse-simulator-v1.json";
 

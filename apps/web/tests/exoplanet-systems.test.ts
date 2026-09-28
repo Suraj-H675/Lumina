@@ -26,7 +26,7 @@ describe("Phase 5B exoplanet-system reviewed artifact", () => {
     );
   });
 
-  it("keeps 51 Peg archive naming distinct from Lumina display identity", () => {
+  it("keeps 51 Peg archive naming distinct from Nova-Lumina display identity", () => {
     expect(exoplanetSystemBySlug("51-pegasi")).toMatchObject({
       archive_hostname: "51 Peg",
       display_name: "51 Pegasi",

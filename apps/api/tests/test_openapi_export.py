@@ -516,7 +516,7 @@ def test_operational_failures_emit_one_safe_line_and_leave_no_partial_output(
 
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert captured.err == "Lumina OpenAPI export failed.\n"
+    assert captured.err == "Nova-Lumina OpenAPI export failed.\n"
     assert sentinel not in captured.err
     assert str(output) not in captured.err
     assert "Traceback" not in captured.err

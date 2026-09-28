@@ -62,7 +62,7 @@ describe("saved observation plan view", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Saved plan not found" }),
     ).toBeVisible();
-    expect(screen.getByText(/Lumina did not substitute another plan/i)).toBeVisible();
+    expect(screen.getByText(/Nova-Lumina did not substitute another plan/i)).toBeVisible();
   });
 
   it("deletes only this local plan after explicit confirmation", async () => {

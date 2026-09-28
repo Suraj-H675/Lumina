@@ -132,7 +132,7 @@
       "record_reference": "get_body / solar_system_ephemeris builtin behavior and apparent topocentric positions",
       "retrieved_at": "2026-09-18",
       "data_date": "Astropy 8.0.1 repository-locked release",
-      "terms_or_licence": "Astropy is distributed under its open-source licence; Lumina records API/model provenance and does not redistribute external ephemeris files.",
+      "terms_or_licence": "Astropy is distributed under its open-source licence; Nova-Lumina records API/model provenance and does not redistribute external ephemeris files.",
       "citation": "Astropy Project, Solar System Ephemerides documentation, Astropy 8.0.1.",
       "claim_scope": "Builtin offline ephemeris behavior, apparent light-time-corrected body position API, and explicit ephemeris selection.",
       "source_type": "official software documentation"
@@ -177,7 +177,7 @@
       "record_reference": "Bulk parameters: volumetric mean radius",
       "retrieved_at": "2026-09-18",
       "data_date": "Current fact sheet accessed 2026-09-18",
-      "terms_or_licence": "United States government factual reference; Lumina records the cited physical constant and source link.",
+      "terms_or_licence": "United States government factual reference; Nova-Lumina records the cited physical constant and source link.",
       "citation": "NASA/NSSDCA, Moon Fact Sheet.",
       "claim_scope": "Lunar volumetric mean radius 1737.4 km.",
       "source_type": "official-agency factual reference"
@@ -192,7 +192,7 @@
       "record_reference": "Solar eclipse geometry, umbra/penumbra/antumbra, lunar-orbit inclination, and eclipse seasons",
       "retrieved_at": "2026-09-18",
       "data_date": "Current page accessed 2026-09-18",
-      "terms_or_licence": "NASA public educational material; Lumina records factual geometry claims and links to the source.",
+      "terms_or_licence": "NASA public educational material; Nova-Lumina records factual geometry claims and links to the source.",
       "citation": "NASA Science, Why Do Eclipses Happen?",
       "claim_scope": "Solar-eclipse alignment, local shadow-region terminology, apparent-size explanation, and roughly five-degree lunar-orbit inclination explaining why eclipses are not monthly.",
       "source_type": "official-agency educational reference"
@@ -207,7 +207,7 @@
       "record_reference": "Eye safety for partial, annular, and total solar eclipses",
       "retrieved_at": "2026-09-18",
       "data_date": "Current page accessed 2026-09-18",
-      "terms_or_licence": "NASA public safety guidance; Lumina links and summarizes rather than replacing the source.",
+      "terms_or_licence": "NASA public safety guidance; Nova-Lumina links and summarizes rather than replacing the source.",
       "citation": "NASA Science, Eclipse Viewing Safety.",
       "claim_scope": "Specialized Solar viewing protection requirements and optical-device filter warning.",
       "source_type": "official-agency safety guidance"
@@ -222,7 +222,7 @@
       "record_reference": "Dallas, Texas partial/totality contact and maximum table row",
       "retrieved_at": "2026-09-18",
       "data_date": "Page last updated 2024-11-21",
-      "terms_or_licence": "NASA public factual reference; Lumina uses the published rounded city timing row as an independent validation fixture.",
+      "terms_or_licence": "NASA public factual reference; Nova-Lumina uses the published rounded city timing row as an independent validation fixture.",
       "citation": "NASA Science, 2024 Total Eclipse: Where & When.",
       "claim_scope": "Independent rounded Dallas contact/timing reference and total-eclipse classification.",
       "source_type": "official-agency event reference"
@@ -237,7 +237,7 @@
       "record_reference": "Albuquerque, New Mexico partial/annularity contact and maximum table row",
       "retrieved_at": "2026-09-18",
       "data_date": "Page last updated 2024-11-04",
-      "terms_or_licence": "NASA public factual reference; Lumina uses the published rounded city timing row as an independent validation fixture.",
+      "terms_or_licence": "NASA public factual reference; Nova-Lumina uses the published rounded city timing row as an independent validation fixture.",
       "citation": "NASA Science, 2023 Annular Eclipse: Where & When.",
       "claim_scope": "Independent rounded Albuquerque contact/timing reference and annular-eclipse classification.",
       "source_type": "official-agency event reference"

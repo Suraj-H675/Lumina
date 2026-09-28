@@ -53,7 +53,7 @@ class JsonFormatter(logging.Formatter):
 
 
 def configure_logging(level: str) -> None:
-    """Configure Lumina-owned loggers without replacing host logging."""
+    """Configure Nova-Lumina-owned loggers without replacing host logging."""
     logger = logging.getLogger("lumina")
     logger.setLevel(level)
     logger.propagate = False

@@ -12,7 +12,7 @@ importers:
 
   .:
     devDependencies:
-      '@lumina/config-typescript':
+      '@nova-lumina/config-typescript':
         specifier: workspace:*
         version: link:packages/config-typescript
       prettier:
@@ -24,7 +24,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@lumina/api-client':
+      '@nova-lumina/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
       '@wwtelescope/engine':
@@ -55,7 +55,7 @@ importers:
       '@axe-core/playwright':
         specifier: 4.12.1
         version: 4.12.1(playwright-core@1.62.1)
-      '@lumina/config-typescript':
+      '@nova-lumina/config-typescript':
         specifier: workspace:*
         version: link:../../packages/config-typescript
       '@playwright/test':
@@ -122,7 +122,7 @@ importers:
       '@hey-api/openapi-ts':
         specifier: 0.99.0
         version: 0.99.0(typescript@6.0.3)
-      '@lumina/config-typescript':
+      '@nova-lumina/config-typescript':
         specifier: workspace:*
         version: link:../config-typescript
       '@types/node':

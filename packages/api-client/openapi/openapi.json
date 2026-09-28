@@ -5763,7 +5763,7 @@
       },
       "SpaceWeatherFreshnessResponse": {
         "additionalProperties": false,
-        "description": "Lumina cache timing separate from NOAA source times.",
+        "description": "Nova-Lumina cache timing separate from NOAA source times.",
         "properties": {
           "cache_state": {
             "$ref": "#/components/schemas/CacheState"
@@ -5828,7 +5828,7 @@
       },
       "SpaceWeatherImpactResponse": {
         "additionalProperties": false,
-        "description": "Concise source-bound family context, not a Lumina risk score.",
+        "description": "Concise source-bound family context, not a Nova-Lumina risk score.",
         "properties": {
           "family": {
             "enum": [
@@ -6922,7 +6922,7 @@
     }
   },
   "info": {
-    "title": "Lumina API",
+    "title": "Nova-Lumina API",
     "version": "0.0.0"
   },
   "openapi": "3.1.0",

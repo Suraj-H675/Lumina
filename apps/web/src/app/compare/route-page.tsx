@@ -44,7 +44,7 @@ export async function createCompareMetadata(
       if (state.kind !== "ok") break;
       names.push(state.detail.canonical_name);
     }
-    // The root layout template supplies the "— Lumina" suffix.
+    // The root layout template supplies the "— Nova-Lumina" suffix.
     if (names.length === selection.slugs.length) {
       if (names.length === 2) {
         title = formatMessageTemplate(messages.twoObjectTitle, {

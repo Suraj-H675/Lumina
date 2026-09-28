@@ -54,7 +54,7 @@ const modeCopy: Record<
       "The track uses a logarithmic position so several orders of magnitude can share one readable view. The selected value remains the cited characteristic size.",
     prompt: "Why would an ordinary linear ruler hide most of these comparisons?",
     result_explanation:
-      "A radius is half a diameter. For ratio comparisons, Lumina converts the selected and reference characteristic sizes to metres, then divides the selected size by the reference size.",
+      "A radius is half a diameter. For ratio comparisons, Nova-Lumina converts the selected and reference characteristic sizes to metres, then divides the selected size by the reference size.",
     model_note:
       "Student mode foregrounds the vocabulary: characteristic size, radius, diameter, ratio, and order of magnitude. It does not change the underlying facts.",
   },

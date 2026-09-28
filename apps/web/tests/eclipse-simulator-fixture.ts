@@ -1,4 +1,4 @@
-import type { EclipseSimulatorCalculationResponse } from "@lumina/api-client";
+import type { EclipseSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 export const ECLIPSE_DALLAS_TOTAL_RESULT: EclipseSimulatorCalculationResponse = {
   model_version: "eclipse-simulator-v1",

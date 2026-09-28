@@ -25,7 +25,7 @@ test.describe("Satellite Passes", () => {
 
     await page.goto("/now/satellites");
 
-    await expect(page).toHaveTitle(/Satellite Passes — Lumina/);
+    await expect(page).toHaveTitle(/Satellite Passes — Nova-Lumina/);
     await expect(page.getByRole("heading", { level: 1, name: "Satellite passes" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 3, name: "ISS (ZARYA)" })).toBeVisible();
     await expect(page.getByText("LARGE ID TEST SAT")).toBeVisible();

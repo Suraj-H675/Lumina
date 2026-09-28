@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { requestEndpoint, type OrbitSandboxCalculationResponse } from "@lumina/api-client";
+import { requestEndpoint, type OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

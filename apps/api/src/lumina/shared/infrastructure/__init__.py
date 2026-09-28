@@ -1,1 +1,1 @@
-"""Infrastructure adapters owned by the Lumina modular monolith."""
+"""Infrastructure adapters owned by the Nova-Lumina modular monolith."""

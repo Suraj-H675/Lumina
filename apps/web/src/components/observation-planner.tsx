@@ -12,7 +12,7 @@ import {
   type FormEvent,
 } from "react";
 
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 import { CatalogueSearchBox } from "./catalogue-search-box";
 import { JournalEntryButton } from "./journal-entry-button";

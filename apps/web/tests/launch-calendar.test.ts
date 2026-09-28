@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LaunchItemResponse } from "@lumina/api-client";
+import type { LaunchItemResponse } from "@nova-lumina/api-client";
 
 import { buildLaunchCalendar, launchCalendarFilename } from "../src/lib/launch-calendar";
 

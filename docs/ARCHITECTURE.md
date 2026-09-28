@@ -2,7 +2,25 @@
 
 ## Current shape
 
-Lumina is a monorepo containing a Next.js web application and a Python/FastAPI backend. The backend also owns the sequential background worker and provider integrations. PostgreSQL stores shared server-side state.
+Nova-Lumina is a monorepo containing a Next.js web application and a Python/FastAPI backend. The backend also owns the sequential background worker and provider integrations. PostgreSQL stores shared server-side state.
+
+## Naming compatibility
+
+`Nova-Lumina` is the product, repository, deployment, and user-facing application name. A small set
+of older `lumina` identifiers remain intentionally as compatibility contracts rather than branding:
+
+- the Python import namespace `lumina`;
+- `LUMINA_*` environment variables already provisioned across deployment and CI systems;
+- the private scheduler header `X-Lumina-Provider-Code` already shared by the API and Neon function;
+- PostgreSQL database and role names such as `lumina`, `lumina_app`, and `lumina_migrate`;
+- persisted browser-storage/export identifiers used to read existing local user data;
+- applied migration history and frozen algorithm/schema/version identifiers;
+- content-addressed reviewed scientific artifacts whose exact bytes are part of their integrity contract;
+- historical quality-audit artifacts that record the application name observed when the evidence
+  was actually collected.
+
+Changing any of those requires an explicit compatibility/data migration. Do not rename them merely
+to make internal identifiers mirror the current product brand.
 
 ```text
 browser
@@ -30,7 +48,7 @@ The modular-monolith boundary is currently appropriate because the domains share
 - WorldWide Telescope integration;
 - client-side visualisations;
 - personal browser persistence currently implemented with IndexedDB/Dexie;
-- calls to Lumina's public API.
+- calls to Nova-Lumina's public API.
 
 Browser-local persistence is a current implementation choice, not an invariant. Cross-device/cloud persistence can be introduced later if it provides enough product value and has an acceptable privacy/cost model.
 

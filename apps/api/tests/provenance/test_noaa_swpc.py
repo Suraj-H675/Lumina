@@ -386,5 +386,5 @@ def test_swpc_fixed_http_boundary_rejects_arbitrary_paths() -> None:
             params=(),
             expected_content_type="application/json",
             max_response_bytes=16_384,
-            user_agent="Lumina/0.0 noaa-swpc-sync",
+            user_agent="Nova-Lumina/0.0 noaa-swpc-sync",
         )

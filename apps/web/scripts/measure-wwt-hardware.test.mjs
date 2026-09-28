@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   assessEvidence,
-  assertLuminaUrl,
+  assertNovaLuminaUrl,
   classifyRenderer,
   parseArgs,
   summarizeFrames,
@@ -146,7 +146,7 @@ test("argument parsing bounds duration and rejects non-http operator URLs", () =
 test("target identity stays bound to the requested origin and reviewed paths", () => {
   const benchmarkUrl = "http://127.0.0.1:3000/explore/deep-sky?object=messier-31";
   assert.equal(
-    assertLuminaUrl(
+    assertNovaLuminaUrl(
       "http://127.0.0.1:3000/manifest.webmanifest",
       benchmarkUrl,
       "/manifest.webmanifest",
@@ -155,7 +155,7 @@ test("target identity stays bound to the requested origin and reviewed paths", (
     "http://127.0.0.1:3000/manifest.webmanifest",
   );
   assert.equal(
-    assertLuminaUrl(
+    assertNovaLuminaUrl(
       "http://127.0.0.1:3000/explore/deep-sky?object=messier-31",
       benchmarkUrl,
       "/explore/deep-sky",
@@ -165,7 +165,7 @@ test("target identity stays bound to the requested origin and reviewed paths", (
   );
   assert.throws(
     () =>
-      assertLuminaUrl(
+      assertNovaLuminaUrl(
         "https://example.test/manifest.webmanifest",
         benchmarkUrl,
         "/manifest.webmanifest",
@@ -175,7 +175,7 @@ test("target identity stays bound to the requested origin and reviewed paths", (
   );
   assert.throws(
     () =>
-      assertLuminaUrl(
+      assertNovaLuminaUrl(
         "http://127.0.0.1:3000/not-deep-sky",
         benchmarkUrl,
         "/explore/deep-sky",

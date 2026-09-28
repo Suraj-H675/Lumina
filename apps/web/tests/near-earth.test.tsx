@@ -2,7 +2,7 @@ import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { NearEarthResponse } from "@lumina/api-client";
+import type { NearEarthResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -243,7 +243,7 @@ describe("Space Now Near-Earth Objects", () => {
 });
 
 describe("server-rendered Near-Earth loader", () => {
-  it("requests only Lumina's public projection without date controls", async () => {
+  it("requests only Nova-Lumina's public projection without date controls", async () => {
     const requests: string[] = [];
     const fetchImplementation = vi.fn<typeof fetch>().mockImplementation((input) => {
       requests.push(String(input));
@@ -259,10 +259,10 @@ describe("server-rendered Near-Earth loader", () => {
       loadNowNearEarth({
         environment: "production",
         fetchImplementation,
-        origin: "https://lumina-api.example.test",
+        origin: "https://nova-lumina-api.example.test",
       }),
     ).resolves.toEqual({ data: response, kind: "ok" });
-    expect(requests).toEqual(["https://lumina-api.example.test/api/v1/now/near-earth"]);
+    expect(requests).toEqual(["https://nova-lumina-api.example.test/api/v1/now/near-earth"]);
     expect(requests[0]).not.toContain("api.nasa.gov");
     expect(requests[0]).not.toContain("api_key");
     expect(requests[0]).not.toContain("start_date");
@@ -286,7 +286,7 @@ describe("server-rendered Near-Earth loader", () => {
       loadNowNearEarth({
         environment: "production",
         fetchImplementation,
-        origin: "https://lumina-api.example.test",
+        origin: "https://nova-lumina-api.example.test",
       }),
     ).resolves.toEqual({ kind: "unavailable" });
   });

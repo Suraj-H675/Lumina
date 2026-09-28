@@ -3,7 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
+import type { TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import { TelescopeBuilderView } from "../src/components/telescope-builder-view";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";

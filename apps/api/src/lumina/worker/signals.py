@@ -71,7 +71,7 @@ class InstalledSignalHandlers:
         self._restored = False
 
     def restore(self) -> None:
-        """Remove Lumina callbacks and restore every captured prior handler once."""
+        """Remove Nova-Lumina callbacks and restore every captured prior handler once."""
         if self._restored:
             return
         self._restored = True

@@ -96,7 +96,7 @@ describe("JournalTransferControls", () => {
     const file = new File(["{}"], "journal.json", { type: "application/json" });
     Object.defineProperty(file, "size", { configurable: true, value: 64 * 1024 * 1024 + 1 });
 
-    await user.upload(screen.getByLabelText("Import a Lumina journal file"), file);
+    await user.upload(screen.getByLabelText("Import a Nova-Lumina journal file"), file);
 
     expect(screen.getByRole("status")).toHaveTextContent(/empty or exceeds/i);
     expect(transferMocks.parse).not.toHaveBeenCalled();
@@ -113,7 +113,7 @@ describe("JournalTransferControls", () => {
     renderTransfer(onImported);
 
     await user.upload(
-      screen.getByLabelText("Import a Lumina journal file"),
+      screen.getByLabelText("Import a Nova-Lumina journal file"),
       new File(["{}"], "journal.json", { type: "application/json" }),
     );
     expect(await screen.findByRole("heading", { name: "Import preview" })).toBeVisible();
@@ -139,7 +139,7 @@ describe("JournalTransferControls", () => {
   it("reports a validation failure without applying anything", async () => {
     transferMocks.parse.mockRejectedValue(new Error("bad"));
     renderTransfer();
-    const input = screen.getByLabelText("Import a Lumina journal file");
+    const input = screen.getByLabelText("Import a Nova-Lumina journal file");
 
     fireEvent.change(input, {
       target: { files: [new File(["bad"], "bad.json", { type: "application/json" })] },

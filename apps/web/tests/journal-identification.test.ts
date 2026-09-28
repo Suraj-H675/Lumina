@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import type { IdentificationSolutionResponse } from "@nova-lumina/api-client";
 
 const databaseMocks = vi.hoisted(() => ({
   attachJournalImage: vi.fn(),
@@ -85,7 +85,7 @@ describe("identification journal adapter", () => {
     databaseMocks.deleteJournalEntry.mockResolvedValue(true);
   });
 
-  it("maps only normalized Lumina science and explicit user-confirmed metadata", () => {
+  it("maps only normalized Nova-Lumina science and explicit user-confirmed metadata", () => {
     const mapped = identificationJournalEntryInput(input(), SNAPSHOT_ID);
 
     expect(mapped.observed_time).toEqual({

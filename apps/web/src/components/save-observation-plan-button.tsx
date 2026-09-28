@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { EntityType } from "@lumina/api-client";
+import type { EntityType } from "@nova-lumina/api-client";
 
 import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";

@@ -1,6 +1,6 @@
 # Code of Conduct
 
-Lumina contributors are expected to maintain a respectful, inclusive, evidence-based environment.
+Nova-Lumina contributors are expected to maintain a respectful, inclusive, evidence-based environment.
 
 - Critique ideas and implementation choices, not people.
 - Be patient with different experience levels.

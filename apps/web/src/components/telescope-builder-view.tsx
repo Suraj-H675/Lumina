@@ -7,7 +7,7 @@ import {
   requestEndpoint,
   telescopeBuilderEndpoint,
   type TelescopeBuilderCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

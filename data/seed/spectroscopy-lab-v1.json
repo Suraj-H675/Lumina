@@ -138,7 +138,7 @@
       "record_reference": "Blackbody/continuous-spectrum and wavelength education context",
       "retrieved_at": "2026-09-18",
       "data_date": "Current textbook page accessed 2026-09-18",
-      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Lumina records concepts/equations and source links.",
+      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Nova-Lumina records concepts/equations and source links.",
       "citation": "OpenStax, Astronomy 2e, Section 5.2.",
       "claim_scope": "Visible electromagnetic-spectrum and blackbody continuum teaching context.",
       "source_type": "open textbook"
@@ -153,7 +153,7 @@
       "record_reference": "Continuous, emission, and absorption spectra",
       "retrieved_at": "2026-09-18",
       "data_date": "Current textbook page accessed 2026-09-18",
-      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Lumina records concepts/equations and source links.",
+      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Nova-Lumina records concepts/equations and source links.",
       "citation": "OpenStax, Astronomy 2e, Section 5.3.",
       "claim_scope": "Educational distinction between continuous, emission-line, and absorption-line spectra.",
       "source_type": "open textbook"
@@ -168,7 +168,7 @@
       "record_reference": "delta-lambda/lambda = radial velocity/c and astronomy sign convention",
       "retrieved_at": "2026-09-18",
       "data_date": "Current textbook page accessed 2026-09-18",
-      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Lumina records concepts/equations and source links.",
+      "terms_or_licence": "OpenStax textbook content under its stated Creative Commons licence; Nova-Lumina records concepts/equations and source links.",
       "citation": "OpenStax, Astronomy 2e, Section 5.6.",
       "claim_scope": "First-order radial-velocity wavelength shift and positive-recession/negative-approach interpretation.",
       "source_type": "open textbook"
@@ -183,7 +183,7 @@
       "record_reference": "speed of light, Planck constant, Boltzmann constant, and Wien wavelength displacement law constant",
       "retrieved_at": "2026-09-18",
       "data_date": "2022 CODATA recommended values",
-      "terms_or_licence": "NIST factual standards reference; Lumina records exact/recommended constant values and links to the source.",
+      "terms_or_licence": "NIST factual standards reference; Nova-Lumina records exact/recommended constant values and links to the source.",
       "citation": "NIST, 2022 CODATA recommended values of the fundamental physical constants.",
       "claim_scope": "c=299792458 m/s exact; h=6.62607015e-34 J Hz^-1 exact; k=1.380649e-23 J/K exact; Wien wavelength displacement constant 2.897771955...e-3 m K.",
       "source_type": "official standards reference"
@@ -198,7 +198,7 @@
       "record_reference": "380-750 nm; unit=1 nm; format=2 CSV; show_av=3 all-vacuum; observed wavelength and relative intensity requested; allowed and forbidden transitions included",
       "retrieved_at": "2026-09-18",
       "data_date": "Current ASD results accessed 2026-09-18",
-      "terms_or_licence": "NIST scientific database factual values; Lumina stores only the small reviewed representative subset with source/query provenance.",
+      "terms_or_licence": "NIST scientific database factual values; Nova-Lumina stores only the small reviewed representative subset with source/query provenance.",
       "citation": "NIST Atomic Spectra Database, Lines output, reviewed visible-range all-vacuum queries for H I, He I, Na I, and Ca II.",
       "claim_scope": "Observed vacuum wavelengths and source-provided relative-intensity context for the explicit representative v1 fingerprint subset.",
       "source_type": "official scientific database"
@@ -213,7 +213,7 @@
       "record_reference": "Spectroscopic Modes table: maximum resolution (lambda/delta-lambda)",
       "retrieved_at": "2026-09-18",
       "data_date": "Page last update 2021-11-21",
-      "terms_or_licence": "ESO public instrument documentation; Lumina records the resolving-power definition and link.",
+      "terms_or_licence": "ESO public instrument documentation; Nova-Lumina records the resolving-power definition and link.",
       "citation": "ESO, UVES Overview.",
       "claim_scope": "Observatory use of resolving power R=lambda/delta-lambda.",
       "source_type": "official observatory documentation"
@@ -228,7 +228,7 @@
       "record_reference": "Dispersion/resolution tables identify resolving power as lambda/delta-lambda, unitless",
       "retrieved_at": "2026-09-18",
       "data_date": "Current documentation accessed 2026-09-18",
-      "terms_or_licence": "STScI/JWST public instrument documentation; Lumina records the resolving-power definition and link.",
+      "terms_or_licence": "STScI/JWST public instrument documentation; Nova-Lumina records the resolving-power definition and link.",
       "citation": "STScI, JWST NIRSpec Dispersers and Filters.",
       "claim_scope": "Independent observatory documentation of resolving power lambda/delta-lambda.",
       "source_type": "official observatory documentation"

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import rawTelescopeBuilderArtifact from "../../../data/seed/telescope-builder-v1.json";
 
-import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
+import type { TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   DEFAULT_TELESCOPE_BUILDER_STATE,

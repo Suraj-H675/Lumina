@@ -138,7 +138,7 @@ describe("generated contract boundary", () => {
     expect(
       validateExactGenerated(zMetaResponse, {
         api_version: "v1",
-        application_name: "Lumina",
+        application_name: "Nova-Lumina",
         application_version: "0.0.0",
         build_commit: null,
         feature_flags: {},
@@ -211,7 +211,7 @@ describe("generated contract boundary", () => {
     expect(
       validateExactGenerated(zMetaResponse, {
         api_version: "v1",
-        application_name: "Lumina",
+        application_name: "Nova-Lumina",
         application_version: "0.0.0",
         build_commit: null,
         feature_flags: {},

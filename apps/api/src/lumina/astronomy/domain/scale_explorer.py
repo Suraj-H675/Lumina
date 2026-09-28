@@ -70,7 +70,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-02",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina redistributes cited numeric "
+            "NASA factual/educational source; Nova-Lumina redistributes cited numeric "
             "facts and links only, not NASA media. NASA media guidance says factual "
             "educational/informational use may be permitted without endorsement, "
             "while third-party material and NASA identifiers require separate review."
@@ -95,7 +95,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-02",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina redistributes cited numeric "
+            "NASA factual/educational source; Nova-Lumina redistributes cited numeric "
             "facts and links only, not NASA media. NASA media guidance says factual "
             "educational/informational use may be permitted without endorsement, "
             "while third-party material and NASA identifiers require separate review."
@@ -116,7 +116,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-02",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina redistributes cited numeric "
+            "NASA factual/educational source; Nova-Lumina redistributes cited numeric "
             "facts and links only, not NASA media. NASA media guidance says factual "
             "educational/informational use may be permitted without endorsement, "
             "while third-party material and NASA identifiers require separate review."
@@ -139,7 +139,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-02",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina redistributes cited numeric "
+            "NASA factual/educational source; Nova-Lumina redistributes cited numeric "
             "facts and links only, not NASA media. NASA media guidance says factual "
             "educational/informational use may be permitted without endorsement, "
             "while third-party material and NASA identifiers require separate review."
@@ -166,7 +166,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-02",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina redistributes cited numeric "
+            "NASA factual/educational source; Nova-Lumina redistributes cited numeric "
             "facts and links only, not NASA media. NASA media guidance says factual "
             "educational/informational use may be permitted without endorsement, "
             "while third-party material and NASA identifiers require separate review."
@@ -190,7 +190,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-02",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "NASA factual/educational source; Lumina redistributes cited numeric "
+            "NASA factual/educational source; Nova-Lumina redistributes cited numeric "
             "facts and links only, not NASA media. NASA media guidance says factual "
             "educational/informational use may be permitted without endorsement, "
             "while third-party material and NASA identifiers require separate review."

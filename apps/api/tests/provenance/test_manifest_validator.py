@@ -70,7 +70,7 @@ def test_empty_temporary_root_and_approved_production_manifests_are_valid(
     assert main([]) == 0
     output = capsys.readouterr()
     assert output.err == ""
-    assert output.out == "Lumina manifest validation passed: 14 manifest files.\n"
+    assert output.out == "Nova-Lumina manifest validation passed: 14 manifest files.\n"
 
 
 def test_messier_manifests_are_canonical_and_review_evidence_is_pinned() -> None:

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { classifyPwaRequest, type PwaRequestKind } from "../src/lib/pwa-policy";
 
-const ORIGIN = "https://lumina.example";
+const ORIGIN = "https://nova-lumina.example";
 
 function classify(
   url: string,

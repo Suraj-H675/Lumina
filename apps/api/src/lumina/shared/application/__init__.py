@@ -1,1 +1,1 @@
-"""Application services shared by Lumina modules."""
+"""Application services shared by Nova-Lumina modules."""

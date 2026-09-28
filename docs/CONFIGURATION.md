@@ -1,6 +1,6 @@
 # Configuration
 
-Lumina configuration is explicit and server-owned. The accepted backend settings are defined in
+Nova-Lumina configuration is explicit and server-owned. The accepted backend settings are defined in
 `apps/api/src/lumina/settings.py`; safe development examples live in `.env.example`. Web API-origin
 settings are owned by `apps/web` and documented in `apps/web/.env.example`.
 
@@ -92,7 +92,7 @@ The Next.js server accepts two separate API origins:
 - `LUMINA_WEB_PUBLIC_API_ORIGIN` — browser-visible API origin.
 
 On a Vercel Services deployment, `LUMINA_WEB_API_ORIGIN` is injected through the private API service
-binding and `LUMINA_WEB_PUBLIC_API_ORIGIN` may be omitted; Lumina derives the same-origin HTTPS
+binding and `LUMINA_WEB_PUBLIC_API_ORIGIN` may be omitted; Nova-Lumina derives the same-origin HTTPS
 production URL from Vercel's `VERCEL_PROJECT_PRODUCTION_URL`. Using `VERCEL_URL` here is incorrect:
 it names the unique deployment host and becomes cross-origin when a visitor uses the project's
 production alias. Other production platforms still require the explicit browser-visible origin.

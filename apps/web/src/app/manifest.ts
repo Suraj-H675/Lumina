@@ -18,9 +18,9 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
     ],
-    name: "Lumina",
+    name: "Nova-Lumina",
     scope: "/",
-    short_name: "Lumina",
+    short_name: "Nova-Lumina",
     start_url: "/",
     theme_color: "#05070f",
   };

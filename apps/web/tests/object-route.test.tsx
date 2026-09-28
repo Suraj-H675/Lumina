@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 const { loadObjectMock } = vi.hoisted(() => ({
   loadObjectMock: vi.fn(),

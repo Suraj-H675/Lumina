@@ -1154,7 +1154,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Validate aggregate Phase 8D field-INP evidence without adding runtime telemetry "
-            "to Lumina."
+            "to Nova-Lumina."
         )
     )
     parser.add_argument("--input", required=True, type=Path, help="JSON evidence file to validate")

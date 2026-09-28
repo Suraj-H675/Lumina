@@ -16,7 +16,7 @@ import {
   type SatelliteListResponse,
   type SpaceWeatherResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { resolveWebApiOrigin } from "./api-origin";
 

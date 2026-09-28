@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { RelativityVisualizationsCalculationResponse } from "@lumina/api-client";
+import type { RelativityVisualizationsCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { RelativityVisualizationsMessages } from "../lib/i18n/messages/types";

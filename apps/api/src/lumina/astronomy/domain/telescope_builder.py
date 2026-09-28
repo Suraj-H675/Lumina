@@ -106,7 +106,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "OpenStax textbook source; Lumina links to the source and does not "
+            "OpenStax textbook source; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": "OpenStax, “6.1 Telescopes”, accessed 2026-09-09.",
@@ -129,7 +129,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "OpenStax textbook source; Lumina links to the source and does not "
+            "OpenStax textbook source; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": "OpenStax, “4.5 Circular Apertures and Resolution”, accessed 2026-09-09.",
@@ -154,7 +154,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Sky & Telescope publication; Lumina links to the source and does not "
+            "Sky & Telescope publication; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": (
@@ -179,7 +179,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Celestron technical reference; Lumina links to the source and does not "
+            "Celestron technical reference; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": "Celestron, “Astronomy Glossary of Terms”, accessed 2026-09-09.",
@@ -202,7 +202,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "University educational source; Lumina links to the source and does not "
+            "University educational source; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": (
@@ -231,7 +231,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Celestron technical reference; Lumina links to the source and does not "
+            "Celestron technical reference; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": (
@@ -260,7 +260,7 @@ _EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Not stated by source.",
         "terms_or_licence": (
-            "Sky & Telescope publication; Lumina links to the source and does not "
+            "Sky & Telescope publication; Nova-Lumina links to the source and does not "
             "redistribute its text."
         ),
         "citation": (

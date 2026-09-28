@@ -12,7 +12,7 @@
     "status": "ready",
     "version": 1,
     "audience_modes": ["explorer", "student", "deep-dive"],
-    "reviewed_by": ["Lumina telescope-builder-v1 contract review"],
+    "reviewed_by": ["Nova-Lumina telescope-builder-v1 contract review"],
     "reviewed_at": "2026-09-09T00:00:00Z",
     "updated_at": "2026-09-09T00:00:00Z",
     "model_version": "telescope-builder-v1",
@@ -156,7 +156,7 @@
       "Warnings do not invalidate a configuration and no warnings are generated for unmodelled seeing, mount, quality, brightness, or target properties."
     ],
     "telescope_type_disclosure": "Telescope type is descriptive in Telescope Builder v1. The model does not know this instrument's obstruction, transmission, aberrations, or optical quality, so the numeric estimates use the same ideal clear-aperture geometry as the other types. A refractor selection does not imply perfect transmission or absence of aberration.",
-    "modifier_semantics": "The modifier factor is the supplied effective focal-length multiplier actually produced by the optical train. Lumina does not derive it from lens spacing; real Barlow and reducer factors can vary with optical spacing and equipment design.",
+    "modifier_semantics": "The modifier factor is the supplied effective focal-length multiplier actually produced by the optical train. Nova-Lumina does not derive it from lens spacing; real Barlow and reducer factors can vary with optical spacing and equipment design.",
     "target_fit_definition": "fits means only that the supplied scalar target angular extent is no larger than the approximate field diameter. It does not mean visible, resolved, bright enough, aesthetically framed, or observable.",
     "visualization_module": "Semantic HTML and accessible SVG render a schematic optical train and a proportional field-fit comparison from canonical outputs. Drawings are normalized or schematic, not prescriptions or physical scale; the textual result is authoritative and no visual transform changes the science.",
     "assumptions": [
@@ -211,7 +211,7 @@
       "record_reference": "Section 6.1 page-level discussion of telescope aperture, focal length, and optical designs.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "OpenStax textbook source; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "OpenStax, “6.1 Telescopes”, accessed 2026-09-09.",
       "claim_scope": "Aperture determines collecting area and telescope focal length/eyepiece relationships provide first-order visual context.",
       "source_type": "official-education"
@@ -226,7 +226,7 @@
       "record_reference": "Section 4.5 page-level Rayleigh criterion for a circular aperture.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "OpenStax textbook source; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "OpenStax, “4.5 Circular Apertures and Resolution”, accessed 2026-09-09.",
       "claim_scope": "Theoretical Rayleigh resolution relationship 1.22 lambda divided by aperture diameter for a circular aperture, with ideal assumptions.",
       "source_type": "official-education"
@@ -241,7 +241,7 @@
       "record_reference": "Article section describing the Dawes visual double-star relationship.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "Sky & Telescope publication; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "Sky & Telescope, “Pushing Limits: A Spring Sky Double Star Romp”, accessed 2026-09-09.",
       "claim_scope": "Dawes empirical double-star reference approximately 116 divided by aperture in millimetres; not a general resolution guarantee.",
       "source_type": "technical-reference"
@@ -256,7 +256,7 @@
       "record_reference": "Page-level entries for focal length, focal ratio, eyepiece, exit pupil, field of view, and aperture.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "Celestron technical reference; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "Celestron, “Astronomy Glossary of Terms”, accessed 2026-09-09.",
       "claim_scope": "Supporting first-order magnification, focal-ratio, exit-pupil, AFOV/TFOV, modifier, and aperture-area relationships.",
       "source_type": "technical-reference"
@@ -271,7 +271,7 @@
       "record_reference": "Page sections on aperture, resolution, magnification, focal ratio, and useful visual magnification.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "University educational source; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "University educational source; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "Western Washington University Astronomy 101, “Telescopes”, accessed 2026-09-09.",
       "claim_scope": "Supporting educational context that aperture controls ideal light gathering/resolution, magnification uses focal lengths, focal ratio is focal length divided by aperture, and approximately 50x per inch is a visual rule of thumb under ideal conditions.",
       "source_type": "official-education"
@@ -286,7 +286,7 @@
       "record_reference": "Page-level exit-pupil definition and human dark-adapted pupil context.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "Celestron technical reference; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "Celestron, “What is Exit Pupil and Eye Relief for Sport Optics?”, accessed 2026-09-09.",
       "claim_scope": "Supporting exit-pupil interpretation and the qualification that a 5 to 7 mm dark-adapted eye pupil is a context range, not a universal user constant.",
       "source_type": "technical-reference"
@@ -301,7 +301,7 @@
       "record_reference": "Page-level comparison reference for magnification, approximate field, exit pupil, and practical visual context.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+      "terms_or_licence": "Sky & Telescope publication; Nova-Lumina links to the source and does not redistribute its text.",
       "citation": "Sky & Telescope, “How to Choose Your Telescope Magnification”, accessed 2026-09-09.",
       "claim_scope": "Independent reference for the default-style first-order magnification, approximate TFOV, exit-pupil, and non-guaranteed practical magnification relationships.",
       "source_type": "technical-reference"

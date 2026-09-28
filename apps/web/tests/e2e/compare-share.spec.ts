@@ -11,7 +11,7 @@ test("a direct share URL renders identities, shared rows, and provenance", async
   expect(headerTexts.indexOf("Kepler-452")).toBeLessThan(headerTexts.indexOf("K2-18"));
 
   // Truthful share metadata from canonical names, in URL order.
-  await expect(page).toHaveTitle("Kepler-452 vs K2-18 — Lumina");
+  await expect(page).toHaveTitle("Kepler-452 vs K2-18 — Nova-Lumina");
 
   const table = page.getByRole("table");
   await expect(table).toBeVisible();

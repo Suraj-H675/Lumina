@@ -1,4 +1,4 @@
-import type { BlackHoleRelativityCalculationResponse } from "@lumina/api-client";
+import type { BlackHoleRelativityCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

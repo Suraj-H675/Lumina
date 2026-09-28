@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ParticipateResponse } from "@lumina/api-client";
+import type { ParticipateResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -77,7 +77,7 @@ describe("Participate", () => {
     expect(galaxy).toHaveAttribute("target", "_blank");
     expect(galaxy).toHaveAttribute("rel", expect.stringContaining("noopener"));
     expect(galaxy).toHaveAccessibleDescription(
-      expect.stringContaining("You are leaving Lumina for Zooniverse"),
+      expect.stringContaining("You are leaving Nova-Lumina for Zooniverse"),
     );
     expect(
       screen.getByText(/does not send location, age, identity, challenge completion/i),
@@ -202,7 +202,7 @@ describe("Participate", () => {
 });
 
 describe("Participate server loader", () => {
-  it("requests only Lumina's public Participate projection", async () => {
+  it("requests only Nova-Lumina's public Participate projection", async () => {
     const requests: string[] = [];
     const fetchImplementation = vi.fn<typeof fetch>().mockImplementation((input) => {
       requests.push(String(input));
@@ -218,10 +218,10 @@ describe("Participate server loader", () => {
       loadParticipate({
         environment: "production",
         fetchImplementation,
-        origin: "https://lumina-api.example.test",
+        origin: "https://nova-lumina-api.example.test",
       }),
     ).resolves.toEqual({ data: PARTICIPATE_FRESH_RESPONSE, kind: "ok" });
-    expect(requests).toEqual(["https://lumina-api.example.test/api/v1/participate"]);
+    expect(requests).toEqual(["https://nova-lumina-api.example.test/api/v1/participate"]);
     expect(requests[0]).not.toContain("zooniverse.org");
     expect(requests[0]).not.toContain("location");
     expect(requests[0]).not.toContain("user");
@@ -245,7 +245,7 @@ describe("Participate server loader", () => {
       loadParticipate({
         environment: "production",
         fetchImplementation,
-        origin: "https://lumina-api.example.test",
+        origin: "https://nova-lumina-api.example.test",
       }),
     ).resolves.toEqual({ kind: "unavailable" });
   });

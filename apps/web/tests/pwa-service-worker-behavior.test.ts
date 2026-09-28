@@ -2,15 +2,15 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import { buildLuminaServiceWorkerSource } from "../src/lib/pwa-service-worker";
+import { buildNovaLuminaServiceWorkerSource } from "../src/lib/pwa-service-worker";
 import { DEFAULT_LOCALE, localeDefinition } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import { LUMINA_PWA_DOCUMENT_CACHE, LUMINA_PWA_METADATA_CACHE } from "../src/lib/pwa-policy";
 
-const ORIGIN = "https://lumina.example";
+const ORIGIN = "https://nova-lumina.example";
 
 function serviceWorkerSource(): string {
-  return buildLuminaServiceWorkerSource({
+  return buildNovaLuminaServiceWorkerSource({
     languageTag: localeDefinition(DEFAULT_LOCALE).languageTag,
     offlineMessages: enMessages.offline.landing,
   });
@@ -65,7 +65,7 @@ async function fetchResponse(listener: WorkerListener, request: Request): Promis
   return await response;
 }
 
-describe("Lumina service-worker storage failure behavior", () => {
+describe("Nova-Lumina service-worker storage failure behavior", () => {
   it("returns a successful network document even when CacheStorage cannot be opened", async () => {
     const cacheFailure = new DOMException("blocked", "SecurityError");
     const cachesValue = {
@@ -120,7 +120,7 @@ describe("Lumina service-worker storage failure behavior", () => {
     );
 
     expect(response.status).toBe(503);
-    expect(await response.text()).toContain("Lumina is offline");
+    expect(await response.text()).toContain("Nova-Lumina is offline");
   });
 
   it("does not overwrite an existing install shell while a replacement worker is waiting", async () => {

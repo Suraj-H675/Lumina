@@ -1,1 +1,1 @@
-"""Infrastructure shared by Lumina backend modules."""
+"""Infrastructure shared by Nova-Lumina backend modules."""

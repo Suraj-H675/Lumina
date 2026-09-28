@@ -20,7 +20,7 @@ if [[ ! -f "$repo_root/pnpm-lock.yaml" || ! -f "$repo_root/uv.lock" ]]; then
   exit 20
 fi
 
-security_tmp="$(mktemp -d "${TMPDIR:-/tmp}/lumina-security-XXXXXX")"
+security_tmp="$(mktemp -d "${TMPDIR:-/tmp}/nova-lumina-security-XXXXXX")"
 chmod 0700 "$security_tmp"
 
 cleanup() {

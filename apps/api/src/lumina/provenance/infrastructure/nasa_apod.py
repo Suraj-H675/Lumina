@@ -69,7 +69,7 @@ class NasaApodRequest:
 
 
 class NasaApodPayload(BaseModel):
-    """Strict validated APOD JSON fields before Lumina normalization."""
+    """Strict validated APOD JSON fields before Nova-Lumina normalization."""
 
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 

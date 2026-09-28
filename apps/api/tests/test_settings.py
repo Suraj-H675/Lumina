@@ -7,7 +7,7 @@ from pathlib import Path
 
 import lumina.settings as settings_module
 import pytest
-from lumina.settings import AppSettings, UnknownLuminaSettingError, load_settings
+from lumina.settings import AppSettings, UnknownNovaLuminaSettingError, load_settings
 from pydantic import SecretStr, ValidationError
 
 _DATABASE_URL = "postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test"
@@ -97,7 +97,7 @@ def test_unknown_lumina_key_in_dotenv_is_rejected(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    with pytest.raises(UnknownLuminaSettingError, match="LUMINA_FUTURE_SETTING"):
+    with pytest.raises(UnknownNovaLuminaSettingError, match="LUMINA_FUTURE_SETTING"):
         load_settings(env_file=env_file)
 
 
@@ -107,7 +107,7 @@ def test_unknown_lumina_key_in_process_environment_is_rejected(
     monkeypatch.setenv("LUMINA_ENV", "test")
     monkeypatch.setenv("LUMINA_FUTURE_SETTING", "not-owned")
 
-    with pytest.raises(UnknownLuminaSettingError, match="LUMINA_FUTURE_SETTING"):
+    with pytest.raises(UnknownNovaLuminaSettingError, match="LUMINA_FUTURE_SETTING"):
         load_settings(env_file=None)
 
 
@@ -120,7 +120,7 @@ def test_unrelated_process_and_dotenv_keys_are_ignored(
         "LUMINA_ENV=test\nLUMINA_DATABASE_URL=postgresql+asyncpg://lumina_test_app:secret@127.0.0.1:5432/lumina_test\nSHELL_THEME=dark\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("UNRELATED_SERVICE_TOKEN", "not-lumina-owned")
+    monkeypatch.setenv("UNRELATED_SERVICE_TOKEN", "not-nova-lumina-owned")
 
     assert load_settings(env_file=env_file).env == "test"
 

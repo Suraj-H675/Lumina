@@ -1,4 +1,4 @@
-import type { ImpactSimulatorCalculationResponse } from "@lumina/api-client";
+import type { ImpactSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

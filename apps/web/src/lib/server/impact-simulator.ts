@@ -4,7 +4,7 @@ import {
   requestEndpoint,
   type ImpactSimulatorCalculationResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   impactSimulatorRequestEndpoint,

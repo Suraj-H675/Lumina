@@ -3437,7 +3437,7 @@ export type SpaceWeatherAuroraResponse = {
 /**
  * SpaceWeatherFreshnessResponse
  *
- * Lumina cache timing separate from NOAA source times.
+ * Nova-Lumina cache timing separate from NOAA source times.
  */
 export type SpaceWeatherFreshnessResponse = {
   cache_state: CacheState;
@@ -3462,7 +3462,7 @@ export type SpaceWeatherFreshnessResponse = {
 /**
  * SpaceWeatherImpactResponse
  *
- * Concise source-bound family context, not a Lumina risk score.
+ * Concise source-bound family context, not a Nova-Lumina risk score.
  */
 export type SpaceWeatherImpactResponse = {
   /**

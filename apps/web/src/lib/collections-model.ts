@@ -1,4 +1,4 @@
-import type { EntityType } from "@lumina/api-client";
+import type { EntityType } from "@nova-lumina/api-client";
 
 /**
  * Pure domain model for browser-local object collections.

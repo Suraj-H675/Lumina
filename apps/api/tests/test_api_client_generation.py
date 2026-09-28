@@ -87,7 +87,7 @@ def test_publication_rolls_back_the_complete_set_after_later_failure(
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client publication failed\.$",
+        match=r"^Nova-Lumina API client publication failed\.$",
     ):
         publish(publications, before_replace=fail_during)
 
@@ -151,7 +151,7 @@ def test_publication_rejects_every_partial_canonical_shape_without_residue(
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client canonical artifact set is incomplete\.$",
+        match=r"^Nova-Lumina API client canonical artifact set is incomplete\.$",
     ):
         publish(
             [
@@ -188,7 +188,7 @@ def test_concurrent_canonical_change_is_preserved_and_earlier_replacements_roll_
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client publication detected a concurrent change\.$",
+        match=r"^Nova-Lumina API client publication detected a concurrent change\.$",
     ):
         publish(publications, before_replace=modify_after_backup)
 
@@ -218,7 +218,7 @@ def test_atomic_exchange_detects_change_after_last_reread_and_preserves_displace
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client publication detected a concurrent change\.$",
+        match=r"^Nova-Lumina API client publication detected a concurrent change\.$",
     ):
         publish(
             [
@@ -250,7 +250,7 @@ def test_atomic_no_replace_preserves_target_that_appears_after_last_absence_chec
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client publication detected a concurrent change\.$",
+        match=r"^Nova-Lumina API client publication detected a concurrent change\.$",
     ):
         publish(
             [
@@ -286,7 +286,7 @@ def test_change_after_exchange_is_retained_before_old_set_is_restored(
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client publication requires recovery\.$",
+        match=r"^Nova-Lumina API client publication requires recovery\.$",
     ):
         publish(
             [
@@ -330,7 +330,7 @@ def test_missing_renameat2_fails_before_staging_or_publication(
 
     with pytest.raises(
         RuntimeError,
-        match=r"^Lumina API client atomic publication is unavailable\.$",
+        match=r"^Nova-Lumina API client atomic publication is unavailable\.$",
     ):
         publish(
             [
@@ -371,7 +371,7 @@ def test_rollback_failure_retains_recovery_material_and_raises_only_safe_failure
             before_restore=fail_second_restore,
         )
 
-    assert str(failure.value) == "Lumina API client publication requires recovery."
+    assert str(failure.value) == "Nova-Lumina API client publication requires recovery."
     assert failure.value.__cause__ is None
     assert failure.value.__suppress_context__
     assert [path.read_text() for path in destinations] == ["new-1", "old-2", "old-3"]
@@ -385,19 +385,19 @@ def test_rollback_failure_retains_recovery_material_and_raises_only_safe_failure
     [
         (
             "PublicationConcurrencyError",
-            "Lumina API client publication detected a concurrent change.\n",
+            "Nova-Lumina API client publication detected a concurrent change.\n",
         ),
         (
             "PublicationRecoveryError",
-            "Lumina API client publication requires recovery.\n",
+            "Nova-Lumina API client publication requires recovery.\n",
         ),
         (
             "PublicationPrimitiveError",
-            "Lumina API client atomic publication is unavailable.\n",
+            "Nova-Lumina API client atomic publication is unavailable.\n",
         ),
         (
             "PublicationOperationError",
-            "Lumina API client publication failed.\n",
+            "Nova-Lumina API client publication failed.\n",
         ),
     ],
 )

@@ -1,4 +1,4 @@
-import type { LaunchDetailResponse, LaunchItemResponse } from "@lumina/api-client";
+import type { LaunchDetailResponse, LaunchItemResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 
 import { formatLocaleList, formatMessageTemplate } from "../../../../lib/i18n/format";

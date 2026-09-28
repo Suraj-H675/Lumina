@@ -1,4 +1,4 @@
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 /**
  * The comparison model for /compare.

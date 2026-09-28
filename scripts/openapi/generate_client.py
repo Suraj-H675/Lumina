@@ -1,4 +1,4 @@
-"""Generate or check the committed Lumina OpenAPI client artifacts."""
+"""Generate or check the committed Nova-Lumina OpenAPI client artifacts."""
 
 from __future__ import annotations
 
@@ -568,35 +568,35 @@ class PartialCanonicalSetError(SafePublicationError):
     """Raised when only part of the canonical artifact set exists."""
 
     def __init__(self) -> None:
-        super().__init__("Lumina API client canonical artifact set is incomplete.")
+        super().__init__("Nova-Lumina API client canonical artifact set is incomplete.")
 
 
 class PublicationConcurrencyError(SafePublicationError):
     """Raised when canonical bytes change after the publication baseline."""
 
     def __init__(self) -> None:
-        super().__init__("Lumina API client publication detected a concurrent change.")
+        super().__init__("Nova-Lumina API client publication detected a concurrent change.")
 
 
 class PublicationRecoveryError(SafePublicationError):
     """Raised when publication recovery cannot be completed and verified."""
 
     def __init__(self) -> None:
-        super().__init__("Lumina API client publication requires recovery.")
+        super().__init__("Nova-Lumina API client publication requires recovery.")
 
 
 class PublicationPrimitiveError(SafePublicationError):
     """Raised when safe atomic publication is unavailable."""
 
     def __init__(self) -> None:
-        super().__init__("Lumina API client atomic publication is unavailable.")
+        super().__init__("Nova-Lumina API client atomic publication is unavailable.")
 
 
 class PublicationOperationError(SafePublicationError):
     """Raised when an ordinary publication operation fails after safe recovery."""
 
     def __init__(self) -> None:
-        super().__init__("Lumina API client publication failed.")
+        super().__init__("Nova-Lumina API client publication failed.")
 
 
 @dataclass(frozen=True)
@@ -753,7 +753,7 @@ const samples = [
   [schemas.zReadyResponse, {status: "ready"}],
   [schemas.zMetaResponse, {
     api_version: "v1",
-    application_name: "Lumina",
+    application_name: "Nova-Lumina",
     application_version: "0.0.0",
     build_commit: null,
     feature_flags: {},
@@ -823,9 +823,11 @@ def _generate_once(workspace: Path) -> dict[Path, bytes]:
 
 def generate_validated_artifacts() -> dict[Path, bytes]:
     """Run two isolated generations and return only a byte-identical artifact set."""
-    with tempfile.TemporaryDirectory(prefix="lumina-api-client-first-") as first_directory:
+    with tempfile.TemporaryDirectory(prefix="nova-lumina-api-client-first-") as first_directory:
         first = _generate_once(Path(first_directory))
-        with tempfile.TemporaryDirectory(prefix="lumina-api-client-second-") as second_directory:
+        with tempfile.TemporaryDirectory(
+            prefix="nova-lumina-api-client-second-"
+        ) as second_directory:
             second = _generate_once(Path(second_directory))
     if first.keys() != second.keys():
         raise GenerationError("isolated generations emitted different artifact sets")
@@ -874,12 +876,12 @@ def _load_linux_renameat2() -> _AtomicRename:
 def _verify_atomic_publication_primitives(parent: Path, rename: _AtomicRename) -> None:
     """Prove both required renameat2 flags on one destination filesystem."""
     probe = uuid4().hex
-    exchange_left = parent / f".lumina-renameat2-{probe}.exchange-left"
-    exchange_right = parent / f".lumina-renameat2-{probe}.exchange-right"
-    no_replace_source = parent / f".lumina-renameat2-{probe}.noreplace-source"
-    no_replace_destination = parent / f".lumina-renameat2-{probe}.noreplace-destination"
-    refusal_source = parent / f".lumina-renameat2-{probe}.refusal-source"
-    refusal_destination = parent / f".lumina-renameat2-{probe}.refusal-destination"
+    exchange_left = parent / f".nova-lumina-renameat2-{probe}.exchange-left"
+    exchange_right = parent / f".nova-lumina-renameat2-{probe}.exchange-right"
+    no_replace_source = parent / f".nova-lumina-renameat2-{probe}.noreplace-source"
+    no_replace_destination = parent / f".nova-lumina-renameat2-{probe}.noreplace-destination"
+    refusal_source = parent / f".nova-lumina-renameat2-{probe}.refusal-source"
+    refusal_destination = parent / f".nova-lumina-renameat2-{probe}.refusal-destination"
     paths = (
         exchange_left,
         exchange_right,

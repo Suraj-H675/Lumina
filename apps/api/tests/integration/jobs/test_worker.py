@@ -447,7 +447,7 @@ def _child_environment(settings: IntegrationTestSettings) -> dict[str, str]:
 
 
 def _worker_executable() -> tuple[str, ...]:
-    executable = shutil.which("lumina-worker")
+    executable = shutil.which("nova-lumina-worker")
     assert executable is not None
     assert Path(executable).is_file()
     return (sys.executable, executable)

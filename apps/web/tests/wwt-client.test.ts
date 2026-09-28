@@ -76,7 +76,7 @@ function resetFake(): void {
 
 function container(): HTMLDivElement {
   const element = document.createElement("div");
-  element.id = "lumina-wwt-atlas";
+  element.id = "nova-lumina-wwt-atlas";
   document.body.append(element);
   return element;
 }
@@ -160,13 +160,13 @@ describe("lazy WWT client adapter", () => {
     expect(fake.freestandingControl.freestandingMode).toBe(true);
     expect(fake.constructorOptions).toEqual([
       {
-        elId: "lumina-wwt-atlas",
+        elId: "nova-lumina-wwt-atlas",
         freestandingAssetBaseurl: "https://web.wwtassets.org/engine/assets",
         startInternalRenderLoop: false,
       },
     ]);
     expect(fake.loadImageCollection).toHaveBeenCalledWith(
-      "http://localhost:3000/wwt/lumina-sky-layers.wtml",
+      "http://localhost:3000/wwt/nova-lumina-sky-layers.wtml",
       false,
     );
     expect(host.querySelector("canvas")).not.toBeNull();

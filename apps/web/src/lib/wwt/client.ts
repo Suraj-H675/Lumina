@@ -13,7 +13,7 @@ import {
 } from "./atlas";
 import { createAtlasRenderLoop, type AtlasRenderLoop } from "./render-loop";
 
-const ATLAS_ELEMENT_ID = "lumina-wwt-atlas";
+const ATLAS_ELEMENT_ID = "nova-lumina-wwt-atlas";
 const INITIALIZATION_TIMEOUT_MS = 10_000;
 const CAMERA_MOVE_TIMEOUT_MS = 5_000;
 const SURVEY_PROBE_TIMEOUT_MS = 5_000;

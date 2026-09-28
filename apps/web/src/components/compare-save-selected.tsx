@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { EntityType } from "@lumina/api-client";
+import type { EntityType } from "@nova-lumina/api-client";
 
 import {
   collectionNameProblemMessage,

@@ -36,12 +36,12 @@ function renderHome() {
   );
 }
 
-describe("Lumina Mission Control home", () => {
+describe("Nova-Lumina Mission Control home", () => {
   it("renders Mission Control while keeping the construction state honest", () => {
     renderHome();
 
     expect(screen.getByRole("heading", { level: 1, name: "Mission Control" })).toBeVisible();
-    expect(screen.getByText(/Lumina is still under construction/i)).toBeVisible();
+    expect(screen.getByText(/Nova-Lumina is still under construction/i)).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: "Current mission event" })).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: /Hubble and Webb probe/i })).toBeVisible();
   });
@@ -92,7 +92,7 @@ describe("Lumina Mission Control home", () => {
   });
 });
 
-describe("Lumina route boundaries", () => {
+describe("Nova-Lumina route boundaries", () => {
   it("uses route-specific loading boundaries without requiring a root loading boundary", () => {
     expect(existsSync(rootLoadingPath)).toBe(false);
     expect(existsSync(learnLoadingPath)).toBe(true);
@@ -103,7 +103,7 @@ describe("Lumina route boundaries", () => {
     rerender(<NotFound messages={enMessages.routeBoundaries.notFound} />);
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
     expect(
-      screen.getByRole("link", { name: /return to the lumina foundation home page/i }),
+      screen.getByRole("link", { name: /return to the nova-lumina foundation home page/i }),
     ).toHaveAttribute("href", "/");
   });
 

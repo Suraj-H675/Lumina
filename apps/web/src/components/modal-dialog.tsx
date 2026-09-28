@@ -28,7 +28,7 @@ function tabbableElements(panel: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Minimal accessible modal dialog for Lumina's local-first flows.
+ * Minimal accessible modal dialog for Nova-Lumina's local-first flows.
  *
  * role="dialog" labelled by its title (and optional description); Escape
  * closes; pressing the backdrop closes; initial focus lands on the first

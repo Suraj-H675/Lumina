@@ -1,6 +1,6 @@
 # Deployment
 
-Lumina's public runtime is a multi-service application. A deployment is only ready when the web
+Nova-Lumina's public runtime is a multi-service application. A deployment is only ready when the web
 application, API, PostgreSQL state, reviewed catalogue data, and enabled provider state agree on the
 same release.
 
@@ -16,7 +16,7 @@ The recommended first public profile is:
   service;
 - durable managed PostgreSQL;
 - image identification disabled;
-- provider refresh performed by bounded scheduled `lumina-provider sync` commands rather than a
+- provider refresh performed by bounded scheduled `nova-lumina-provider sync` commands rather than a
   continuously running worker;
 - API documentation left disabled by the production default.
 
@@ -43,7 +43,7 @@ LUMINA_ENABLE_IDENTIFICATION=false
 LUMINA_ENABLE_REMOTE_ASTROMETRY=false
 ```
 
-Do not append database query parameters. Lumina configures the reviewed TLS mode through driver
+Do not append database query parameters. Nova-Lumina configures the reviewed TLS mode through driver
 arguments and intentionally rejects connection-string query options.
 
 The one-off migration environment additionally needs:
@@ -92,7 +92,7 @@ operations on direct connections. This matches Neon's guidance for Python web/se
 while preserving direct-session semantics for Alembic and ownership work.
 
 For this profile, `LUMINA_WEB_PUBLIC_API_ORIGIN` does not need to be configured. In production on
-Vercel, Lumina derives the browser-visible HTTPS origin from `VERCEL_PROJECT_PRODUCTION_URL`, which
+Vercel, Nova-Lumina derives the browser-visible HTTPS origin from `VERCEL_PROJECT_PRODUCTION_URL`, which
 tracks the stable production domain rather than the unique hostname of one deployment. Outside
 Vercel, the explicit public-origin requirement remains unchanged and fails closed when omitted.
 
@@ -119,13 +119,13 @@ Create three fixed login roles with pairwise-distinct credentials:
   administrative privileges.
 
 The target database remains owned by `lumina_admin`. Revoke public database/schema
-privileges, grant database `CONNECT` to the three Lumina roles, grant `USAGE, CREATE` on `public` to
+privileges, grant database `CONNECT` to the three Nova-Lumina roles, grant `USAGE, CREATE` on `public` to
 `lumina_migrate`, and grant only `USAGE` on `public` to the runtime and catalogue roles.
 
 On PostgreSQL 18 managed services, verify the three restricted roles after provisioning. They must
 have no `SUPERUSER`, `CREATEDB`, `CREATEROLE`, `REPLICATION`, `BYPASSRLS`, or inherited-role
 capabilities, and no role memberships in either direction. Some provider APIs create roles with
-administrative memberships by default; those provider-created roles do not satisfy Lumina's contract.
+administrative memberships by default; those provider-created roles do not satisfy Nova-Lumina's contract.
 
 ### Migration order
 
@@ -134,7 +134,7 @@ For a new production database:
 
 ```sh
 uv run alembic upgrade b7f3a2c81d4e
-# As lumina_admin, in the target Lumina database:
+# As lumina_admin, in the target Nova-Lumina database:
 # CREATE EXTENSION pg_trgm VERSION '1.6' SCHEMA public;
 uv run alembic upgrade head
 test "$(uv run alembic heads)" = "a2b3c4d5e6f7 (head)"
@@ -142,7 +142,7 @@ test "$(uv run alembic heads)" = "a2b3c4d5e6f7 (head)"
 
 Do not rewrite migration history or create the extension from the runtime/migration role merely to
 fit a hosting vendor. A managed PostgreSQL service that cannot satisfy this contract is not compatible
-with Lumina.
+with Nova-Lumina.
 
 ## Reviewed catalogue bootstrap
 
@@ -150,14 +150,14 @@ Migrations do not by themselves establish the complete reviewed catalogue. After
 and verify every current reviewed slice:
 
 ```sh
-uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
-uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1
+uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1
+uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1
 
-uv run lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
-uv run lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
+uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1
+uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1
 
-uv run lumina-catalog ingest --slice simbad-messier-j2000-v2
-uv run lumina-catalog data-check --slice simbad-messier-j2000-v2
+uv run nova-lumina-catalog ingest --slice simbad-messier-j2000-v2
+uv run nova-lumina-catalog data-check --slice simbad-messier-j2000-v2
 ```
 
 The Messier ingestion command uses the separate catalogue-operator connection for canonical selection
@@ -172,13 +172,13 @@ Provider state is disabled by default. Enable only providers that the deployment
 fresh and whose credentials, where required, are configured:
 
 ```sh
-uv run lumina-provider enable --provider <provider-code>
+uv run nova-lumina-provider enable --provider <provider-code>
 ```
 
 A scheduler may then call the bounded direct execution boundary:
 
 ```sh
-uv run lumina-provider sync --provider <provider-code>
+uv run nova-lumina-provider sync --provider <provider-code>
 ```
 
 This command uses the same provider registry, lease acquisition, due-time checks, request limits,
@@ -200,7 +200,7 @@ Use the reviewed source-manifest cadence:
 
 The production scheduler of record is the branch-scoped Neon Function in
 `infra/neon/functions/provider-scheduler/`. Neon schedule triggers invoke one provider per request,
-and the function delegates the actual cycle to Lumina's authenticated
+and the function delegates the actual cycle to Nova-Lumina's authenticated
 `POST /api/v1/providers/internal-sync` boundary. Provider networking, validation, persistence,
 leases, due-time checks, stale fallback, and circuit breaking therefore remain implemented only in
 the Python provider runtime; the Neon function contains no source-specific science or normalization
@@ -211,7 +211,7 @@ that hidden route. Deploy the same value as an environment variable on the Neon 
 function also requires an independent `LUMINA_NEON_TRIGGER_PATH_TOKEN` of the same format; each Neon
 trigger places that private path token plus exactly one approved provider code in its
 `function_path`. Trigger requests must also contain Neon's schedule-invocation header and bounded
-schedule payload. Do not put the Lumina bearer token in a URL or trigger definition.
+schedule payload. Do not put the Nova-Lumina bearer token in a URL or trigger definition.
 
 Create production triggers only for providers that have been deliberately enabled. The reviewed
 polling policy is version-controlled in `infra/neon/provider-schedules.json`. Trigger cadence is
@@ -236,7 +236,7 @@ trigger is retried or delivered late.
 stable production `/api/v1/meta` endpoint first and checks out the exact reported `build_commit`
 before running any provider operator command, keeping manual work aligned with the deployed database
 contract. It is intentionally manual-only; automatic provider scheduling belongs exclusively to the
-Neon triggers above so Lumina does not maintain two competing production schedulers.
+Neon triggers above so Nova-Lumina does not maintain two competing production schedulers.
 
 The workflow requires a GitHub Actions `LUMINA_DATABASE_URL` secret containing the same pooled,
 `lumina_app` production URL shape used by the API. `LUMINA_NASA_API_KEY` remains optional: APOD and
@@ -262,7 +262,7 @@ retention lifecycle.
 Build the API from the repository root:
 
 ```sh
-docker build -f Dockerfile.vercel -t lumina-api:<git-sha> .
+docker build -f Dockerfile.vercel -t nova-lumina-api:<git-sha> .
 ```
 
 The image:
@@ -280,7 +280,7 @@ CI must build and smoke this image before aggregate acceptance can pass.
 
 For an initial deployment:
 
-1. Provision PostgreSQL and the three Lumina roles.
+1. Provision PostgreSQL and the three Nova-Lumina roles.
 2. Migrate to B2.
 3. Provision and verify `pg_trgm` as the database owner.
 4. Migrate to repository head.

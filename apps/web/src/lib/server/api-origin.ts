@@ -1,6 +1,6 @@
 import "server-only";
 
-import { normalizeApiOrigin } from "@lumina/api-client";
+import { normalizeApiOrigin } from "@nova-lumina/api-client";
 
 const DEVELOPMENT_API_ORIGIN = "http://127.0.0.1:8000";
 

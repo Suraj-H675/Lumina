@@ -1,8 +1,8 @@
 {
-  "name": "@lumina/web",
+  "name": "@nova-lumina/web",
   "version": "0.0.0",
   "private": true,
-  "description": "Lumina astronomy learning and exploration web application",
+  "description": "Nova-Lumina astronomy learning and exploration web application",
   "scripts": {
     "build": "next build && node ../../scripts/ci/check_wwt_bundle_isolation.mjs && node ../../scripts/ci/check_web_performance_budgets.mjs",
     "dev": "next dev",
@@ -16,7 +16,7 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@lumina/api-client": "workspace:*",
+    "@nova-lumina/api-client": "workspace:*",
     "@wwtelescope/engine": "7.40.0",
     "@wwtelescope/engine-helpers": "0.18.0",
     "astronomy-engine": "2.1.19",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
     "@playwright/test": "1.62.1",
-    "@lumina/config-typescript": "workspace:*",
+    "@nova-lumina/config-typescript": "workspace:*",
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",

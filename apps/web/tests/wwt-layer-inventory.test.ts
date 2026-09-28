@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { APPROVED_WWT_RUNTIME_HOSTS, ATLAS_LAYERS } from "../src/lib/wwt/atlas";
 
-const WTML_PATH = resolve(process.cwd(), "public/wwt/lumina-sky-layers.wtml");
+const WTML_PATH = resolve(process.cwd(), "public/wwt/nova-lumina-sky-layers.wtml");
 
 function parsedImageSets(
   xml: string,

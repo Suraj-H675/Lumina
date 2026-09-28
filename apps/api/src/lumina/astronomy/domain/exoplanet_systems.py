@@ -1,7 +1,7 @@
 """Pinned NASA Exoplanet Archive system-layout model.
 
 This module consumes one reviewed PSCompPars CSV snapshot for the five exoplanet-host stars
-already represented in Lumina. It preserves parameter-level references and transforms only
+already represented in Nova-Lumina. It preserves parameter-level references and transforms only
 non-limit, positive semi-major axes into shared linear/log display coordinates. It is not an
 ephemeris and never infers current orbital phase or planet position.
 """
@@ -270,7 +270,7 @@ def build_exoplanet_system_artifact(*, repository_root: Path) -> dict[str, objec
             "shared_scale_domain_au": {"minimum": minimum, "maximum": maximum},
             "assumptions": [
                 (
-                    "Only confirmed PSCompPars rows for Lumina's five reviewed host stars are "
+                    "Only confirmed PSCompPars rows for Nova-Lumina's five reviewed host stars are "
                     "included."
                 ),
                 "Only positive, non-limit semi-major-axis values are eligible for layout.",

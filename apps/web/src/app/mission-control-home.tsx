@@ -1,4 +1,4 @@
-import type { LaunchItemResponse } from "@lumina/api-client";
+import type { LaunchItemResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 
 import { ContinueLearningCard } from "../components/continue-learning-card";

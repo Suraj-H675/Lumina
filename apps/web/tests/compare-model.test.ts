@@ -4,7 +4,7 @@ import type {
   EntityDetailResponse,
   EntityQuantityResponse,
   QuantityReference,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { buildCompareModel, type CompareObjectState } from "../src/lib/compare-model";
 

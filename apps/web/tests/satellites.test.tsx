@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { SatelliteListResponse, SatellitePassResponse } from "@lumina/api-client";
+import type { SatelliteListResponse, SatellitePassResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -361,11 +361,11 @@ describe("Satellite Passes page", () => {
   it.each([
     [
       "elements_outside_supported_age",
-      "The requested prediction window extends beyond Lumina's supported element-age bound",
+      "The requested prediction window extends beyond Nova-Lumina's supported element-age bound",
     ],
     [
       "catalog_number_unsupported_by_sgp4",
-      "This catalog number is outside the runtime range supported by Lumina's current SGP4 implementation",
+      "This catalog number is outside the runtime range supported by Nova-Lumina's current SGP4 implementation",
     ],
     [
       "unsupported_sgp4_state",
@@ -405,7 +405,7 @@ describe("Satellite Passes page", () => {
 });
 
 describe("satellite server and proxy boundaries", () => {
-  it("loads only Lumina's cache-only satellite GET endpoint", async () => {
+  it("loads only Nova-Lumina's cache-only satellite GET endpoint", async () => {
     const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify(listResponse), {
         headers: { "content-type": "application/json" },
@@ -415,16 +415,16 @@ describe("satellite server and proxy boundaries", () => {
     const outcome = await loadNowSatellites({
       environment: "production",
       fetchImplementation,
-      origin: "https://lumina-api.example.test",
+      origin: "https://nova-lumina-api.example.test",
     });
     expect(outcome).toEqual({ data: listResponse, kind: "ok" });
     expect(String(fetchImplementation.mock.calls[0]?.[0])).toBe(
-      "https://lumina-api.example.test/api/v1/now/satellites",
+      "https://nova-lumina-api.example.test/api/v1/now/satellites",
     );
   });
 
   it("bounds and validates the private proxy request and never echoes coordinates", async () => {
-    process.env.LUMINA_WEB_API_ORIGIN = "https://lumina-api.example.test";
+    process.env.LUMINA_WEB_API_ORIGIN = "https://nova-lumina-api.example.test";
     const backend = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify(passResponse), {
         headers: { "content-type": "application/json" },
@@ -449,12 +449,12 @@ describe("satellite server and proxy boundaries", () => {
     expect(text).not.toContain("35.1234");
     expect(text).not.toContain("-105.5678");
     const [url, init] = backend.mock.calls[0] ?? [];
-    expect(String(url)).toBe("https://lumina-api.example.test/api/v1/now/satellites/passes");
+    expect(String(url)).toBe("https://nova-lumina-api.example.test/api/v1/now/satellites/passes");
     expect(String(init?.body)).toContain('"latitude_deg":35.1234');
   });
 
   it("rejects an oversized proxy body before any backend request", async () => {
-    process.env.LUMINA_WEB_API_ORIGIN = "https://lumina-api.example.test";
+    process.env.LUMINA_WEB_API_ORIGIN = "https://nova-lumina-api.example.test";
     const backend = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", backend);
     const response = await POST(

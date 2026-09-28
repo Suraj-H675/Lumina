@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
-import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import type { IdentificationSolutionResponse } from "@nova-lumina/api-client";
 
 import { formatLocaleNumber, formatMessageTemplate } from "../../lib/i18n/format";
 import type { PublishedLocale } from "../../lib/i18n/locales";

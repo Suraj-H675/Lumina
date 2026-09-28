@@ -88,7 +88,7 @@ export function LearningProgressControls({ locale, messages }: LearningProgressC
       const url = window.URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "lumina-learning-progress.json";
+      anchor.download = "nova-lumina-learning-progress.json";
       anchor.click();
       window.URL.revokeObjectURL(url);
       setMessage(messages.exportSuccess);

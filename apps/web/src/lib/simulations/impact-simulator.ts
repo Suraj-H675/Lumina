@@ -3,7 +3,7 @@ import {
   validateExactGenerated,
   type ImpactSimulatorCalculationResponse,
   type ImpactSimulatorInputResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawImpactArtifact from "../../../../../data/seed/impact-simulator-v1.json";
 

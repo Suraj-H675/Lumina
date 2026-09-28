@@ -78,8 +78,8 @@ _ALLOWED_ENVIRONMENT_KEYS = frozenset(
 )
 
 
-class UnknownLuminaSettingError(ValueError):
-    """Raised when a configuration source contains unsupported Lumina settings."""
+class UnknownNovaLuminaSettingError(ValueError):
+    """Raised when a configuration source contains unsupported Nova-Lumina settings."""
 
 
 def _validate_database_url(value: SecretStr, *, drivername: str, field: str) -> SecretStr:
@@ -732,7 +732,7 @@ def _reject_unknown_lumina_keys(values: Mapping[str, object]) -> None:
     )
     if unknown:
         names = ", ".join(unknown)
-        raise UnknownLuminaSettingError(f"Unknown Lumina environment variable(s): {names}")
+        raise UnknownNovaLuminaSettingError(f"Unknown Nova-Lumina environment variable(s): {names}")
 
 
 def load_settings(*, env_file: Path | None = _REPOSITORY_ENV_FILE) -> AppSettings:
@@ -787,7 +787,7 @@ def load_integration_test_settings(
 
 
 def _load_environment_values(env_file: Path | None) -> dict[str, object]:
-    """Load known Lumina values with real environment precedence."""
+    """Load known Nova-Lumina values with real environment precedence."""
     values: dict[str, object] = {}
     if env_file is not None and env_file.is_file():
         dotenv_source = DotEnvSettingsSource(

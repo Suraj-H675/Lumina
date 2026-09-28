@@ -1539,7 +1539,7 @@ export const zSpaceWeatherAuroraResponse = z.object({
 /**
  * SpaceWeatherFreshnessResponse
  *
- * Lumina cache timing separate from NOAA source times.
+ * Nova-Lumina cache timing separate from NOAA source times.
  */
 export const zSpaceWeatherFreshnessResponse = z.object({
   cache_state: zCacheState,
@@ -1552,7 +1552,7 @@ export const zSpaceWeatherFreshnessResponse = z.object({
 /**
  * SpaceWeatherImpactResponse
  *
- * Concise source-bound family context, not a Lumina risk score.
+ * Concise source-bound family context, not a Nova-Lumina risk score.
  */
 export const zSpaceWeatherImpactResponse = z.object({
   family: z.enum(["R", "S", "G"]),

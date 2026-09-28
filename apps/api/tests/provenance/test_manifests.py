@@ -129,10 +129,10 @@ def test_repository_paths_reject_unsafe_forms(unsafe: str) -> None:
 
 def test_identifiers_are_case_sensitive_and_never_normalized() -> None:
     document = _document("source")
-    document["source_id"] = "Lumina-Fixture-Source"
+    document["source_id"] = "Nova-Lumina-Fixture-Source"
     manifest = _parse_document(document)
     assert isinstance(manifest, SourceManifest)
-    assert manifest.source_id == "Lumina-Fixture-Source"
+    assert manifest.source_id == "Nova-Lumina-Fixture-Source"
 
 
 def test_direct_construction_rejects_non_utf8_surrogate_text() -> None:

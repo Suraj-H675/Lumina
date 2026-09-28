@@ -5,7 +5,7 @@ import {
   validateExactGenerated,
   type SatelliteItemResponse,
   type SatellitePassResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 

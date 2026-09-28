@@ -1,6 +1,6 @@
 # Production provenance manifests
 
-This directory contains reviewed source and data manifests used by Lumina's deterministic validation and ingestion boundaries.
+This directory contains reviewed source and data manifests used by Nova-Lumina's deterministic validation and ingestion boundaries.
 
 - `sources/` describes approved upstream sources/providers.
 - `data/` describes exact reviewed dataset/release artifacts and references their source identity.

@@ -173,7 +173,7 @@ def create_app(settings: AppSettings) -> FastAPI:
 
     docs_enabled = settings.api_docs_enabled
     application = FastAPI(
-        title="Lumina API",
+        title="Nova-Lumina API",
         version=__version__,
         docs_url="/docs" if docs_enabled else None,
         redoc_url="/redoc" if docs_enabled else None,

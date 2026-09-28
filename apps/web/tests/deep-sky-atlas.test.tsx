@@ -256,7 +256,7 @@ describe("Phase 5A deep-sky atlas activation boundary", () => {
     expect(fake.session.setLayer).not.toHaveBeenCalledWith("infrared-wise");
   });
 
-  it("detaches the Lumina-owned atlas lifecycle when the component unmounts", async () => {
+  it("detaches the Nova-Lumina-owned atlas lifecycle when the component unmounts", async () => {
     const view = renderAtlas();
     await userEvent.click(screen.getByRole("button", { name: "Open interactive atlas" }));
     await screen.findByText("Interactive atlas ready.");

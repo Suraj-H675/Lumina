@@ -1,12 +1,12 @@
-# Lumina
+# Nova-Lumina
 
-Lumina is a public astronomy learning and exploration platform that combines reviewed scientific data, deterministic simulations, observation planning, sky visualisation, live-space data, and guided learning in one web application.
+Nova-Lumina is a public astronomy learning and exploration platform that combines reviewed scientific data, deterministic simulations, observation planning, sky visualisation, live-space data, and guided learning in one web application.
 
 The project prioritises scientific honesty, provenance, accessibility, graceful degradation, and a low-cost operational footprint. Existing implementation choices are not treated as permanent constraints: they should be kept only while they remain the best solution.
 
 Live application: https://nova-lumina.vercel.app
 
-## What Lumina includes
+## What Nova-Lumina includes
 
 - catalogue exploration and object pages;
 - astronomy simulations and interactive labs;
@@ -16,7 +16,7 @@ Live application: https://nova-lumina.vercel.app
 - learning paths, quizzes, collections, journals, saved plans, offline support, and PWA behaviour;
 - optional image identification infrastructure, currently safe to disable at deployment level.
 
-Lumina currently has no required LLM dependency. Scientific results come from reviewed data, deterministic calculations, and explicit source/model boundaries.
+Nova-Lumina currently has no required LLM dependency. Scientific results come from reviewed data, deterministic calculations, and explicit source/model boundaries.
 
 ## Repository layout
 
@@ -63,7 +63,7 @@ uv run alembic upgrade head
 Start the API:
 
 ```sh
-LUMINA_ENV=development uv run lumina-api
+LUMINA_ENV=development uv run nova-lumina-api
 ```
 
 Start the web application:

@@ -125,7 +125,7 @@ def test_adapter_uses_exact_versioned_accept_header_and_fixed_paths() -> None:
     assert sent.expected_content_type == "application/vnd.api+json"
     assert sent.accept_header == "application/vnd.api+json; version=1"
     assert sent.max_response_bytes == 32_768
-    assert sent.user_agent == "Lumina/0.0 zooniverse-panoptes-sync"
+    assert sent.user_agent == "Nova-Lumina/0.0 zooniverse-panoptes-sync"
 
 
 def test_adapter_normalizes_all_components_and_discards_provider_prose() -> None:
@@ -293,7 +293,7 @@ def test_component_request_and_fixed_http_request_reject_unapproved_paths() -> N
             params=(),
             expected_content_type="application/vnd.api+json",
             max_response_bytes=32_768,
-            user_agent="Lumina/0.0 zooniverse-panoptes-sync",
+            user_agent="Nova-Lumina/0.0 zooniverse-panoptes-sync",
             accept_header="application/vnd.api+json; version=1",
         )
     with pytest.raises(ValueError):
@@ -302,7 +302,7 @@ def test_component_request_and_fixed_http_request_reject_unapproved_paths() -> N
             params=(),
             expected_content_type="application/vnd.api+json",
             max_response_bytes=32_768,
-            user_agent="Lumina/0.0 zooniverse-panoptes-sync",
+            user_agent="Nova-Lumina/0.0 zooniverse-panoptes-sync",
             accept_header=None,
         )
 

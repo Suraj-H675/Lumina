@@ -6,7 +6,7 @@ import type {
   CatalogSearchResponse,
   EntityDetailResponse,
   EntitySummaryResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { ObjectNotFoundView } from "../src/components/object-not-found-view";
 import { ObjectView } from "../src/components/object-view";
@@ -279,7 +279,7 @@ describe("ObjectView", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "HD 209458" })).toBeVisible();
     expect(
-      screen.getByText(/no measurements are published through lumina for this object yet/i),
+      screen.getByText(/no measurements are published through nova-lumina for this object yet/i),
     ).toBeVisible();
     expect(document.body.textContent).not.toContain("undefined");
   });

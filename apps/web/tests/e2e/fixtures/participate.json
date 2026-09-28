@@ -7,8 +7,8 @@
     "status": "ready",
     "version": 1,
     "summary": "Curated astronomy citizen-science opportunities, evergreen observing challenges, and reviewed hands-on activities with explicit safety and external-handoff boundaries.",
-    "external_handoff_notice": "You are leaving Lumina for Zooniverse. Zooniverse account, privacy, moderation, and community rules apply on the external site.",
-    "privacy_note": "Lumina does not send location, age, identity, challenge completion, activity completion, or Zooniverse account data to the Participate API.",
+    "external_handoff_notice": "You are leaving Nova-Lumina for Zooniverse. Zooniverse account, privacy, moderation, and community rules apply on the external site.",
+    "privacy_note": "Nova-Lumina does not send location, age, identity, challenge completion, activity completion, or Zooniverse account data to the Participate API.",
     "status_unavailable_label": "Current project status unavailable",
     "stale_status_label": "Status may be stale",
     "references": [
@@ -390,7 +390,7 @@
       ],
       "steps": [
         "Open the reviewed latitude-specific planisphere generator.",
-        "Choose a kit for the latitude nearest your observing location; do not enter a precise address into Lumina.",
+        "Choose a kit for the latitude nearest your observing location; do not enter a precise address into Nova-Lumina.",
         "Print all pieces at the same scale and follow the external assembly instructions.",
         "Use the assembled planisphere as an approximate sky-orientation aid."
       ],
@@ -405,7 +405,7 @@
       "limitations": [
         "There is no universal planisphere: the chart depends on latitude.",
         "Conventional planispheres are a poor fit very near the equator; use an appropriate interactive sky map there.",
-        "Lumina links to the external generator and does not redistribute its printable kit."
+        "Nova-Lumina links to the external generator and does not redistribute its printable kit."
       ],
       "source_ids": ["nasa-space-place-starfinder", "in-the-sky-planisphere"],
       "external_resource": {

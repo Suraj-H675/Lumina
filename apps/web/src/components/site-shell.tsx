@@ -28,7 +28,7 @@ export function SiteShell({ children, locale, messages }: SiteShellProps) {
             <span aria-hidden="true" className="text-[var(--accent)]">
               ✦
             </span>
-            Lumina
+            Nova-Lumina
           </Link>
           <SiteNav messages={messages.navigation} />
         </div>

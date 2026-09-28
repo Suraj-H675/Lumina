@@ -1,6 +1,6 @@
 {
   "checksum": null,
-  "citation": "Lumina fictional scalar fixtures, fixture release v1; test-only and not scientific data.",
+  "citation": "Nova-Lumina fictional scalar fixtures, fixture release v1; test-only and not scientific data.",
   "coverage": "Four fictional scalar cases used only to test deterministic contract behavior.",
   "dataset_id": "fictional-scalar-fixtures",
   "documentation_url": "https://fixtures.invalid/lumina/dataset-documentation",

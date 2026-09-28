@@ -1,4 +1,4 @@
-"""Lumina-owned normalized contracts for the NOAA SWPC snapshot."""
+"""Nova-Lumina-owned normalized contracts for the NOAA SWPC snapshot."""
 
 from __future__ import annotations
 

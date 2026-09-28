@@ -5,7 +5,7 @@ import { SeasonsSimulatorNoScript } from "../src/components/seasons-simulator-no
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_SEASONS_STATE } from "../src/lib/simulations/seasons-simulator";
-import type { SeasonsCalculationResponse } from "@lumina/api-client";
+import type { SeasonsCalculationResponse } from "@nova-lumina/api-client";
 
 const RESULT: SeasonsCalculationResponse = {
   model_version: "seasons-simulator-v1",

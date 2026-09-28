@@ -1,6 +1,6 @@
-# Contributing to Lumina
+# Contributing to Nova-Lumina
 
-Lumina welcomes well-scoped improvements that preserve scientific correctness, accessibility, privacy, and maintainability.
+Nova-Lumina welcomes well-scoped improvements that preserve scientific correctness, accessibility, privacy, and maintainability.
 
 ## Before changing code
 
@@ -17,7 +17,7 @@ docker compose --env-file .env up -d --wait db
 uv run alembic upgrade head
 ```
 
-Run the web app with `pnpm dev` and the API with `LUMINA_ENV=development uv run lumina-api`.
+Run the web app with `pnpm dev` and the API with `LUMINA_ENV=development uv run nova-lumina-api`.
 
 ## Required checks
 

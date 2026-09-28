@@ -12,7 +12,7 @@ import {
   type MouseEvent,
 } from "react";
 
-import type { EntitySummaryResponse } from "@lumina/api-client";
+import type { EntitySummaryResponse } from "@nova-lumina/api-client";
 
 import { formatCountMessage } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";

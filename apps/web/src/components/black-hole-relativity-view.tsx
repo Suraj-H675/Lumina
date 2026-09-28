@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { requestEndpoint, type BlackHoleRelativityCalculationResponse } from "@lumina/api-client";
+import {
+  requestEndpoint,
+  type BlackHoleRelativityCalculationResponse,
+} from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

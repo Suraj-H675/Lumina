@@ -1,4 +1,4 @@
-import type { RocketMissionDesignerCalculationResponse } from "@lumina/api-client";
+import type { RocketMissionDesignerCalculationResponse } from "@nova-lumina/api-client";
 
 /* Generated from the canonical Python Rocket/Mission Designer v1 model for tests only. */
 export const ROCKET_MISSION_DESIGNER_DEFAULT_RESULT = {

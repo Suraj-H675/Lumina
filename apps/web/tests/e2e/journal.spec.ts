@@ -68,7 +68,7 @@ test("Journal renders local personal data and requires confirmed local deletion"
 }) => {
   await seedJournal(page);
 
-  await expect(page).toHaveTitle(/Journal · Lumina/);
+  await expect(page).toHaveTitle(/Journal · Nova-Lumina/);
   await expect(page.getByRole("heading", { level: 1, name: "Observation Journal" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Orion test" })).toBeVisible();
   await expect(page.getByText("Back garden", { exact: false })).toBeVisible();
@@ -95,7 +95,7 @@ test("Journal keeps its privacy shell useful without client JavaScript", async (
   const page = await context.newPage();
   try {
     await page.goto("/journal");
-    await expect(page).toHaveTitle(/Journal · Lumina/);
+    await expect(page).toHaveTitle(/Journal · Nova-Lumina/);
     await expect(
       page.getByRole("heading", { level: 1, name: "Observation Journal" }),
     ).toBeVisible();

@@ -4,7 +4,7 @@ import {
   requestEndpoint,
   type TransitMethodCalculationResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   transitMethodRequestEndpoint,

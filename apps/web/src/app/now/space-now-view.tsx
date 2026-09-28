@@ -1,4 +1,4 @@
-import type { ApodResponse } from "@lumina/api-client";
+import type { ApodResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 
 import type { SpaceNowMessages } from "../../lib/i18n/messages/types";

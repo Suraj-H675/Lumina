@@ -1,4 +1,4 @@
-import type { PlanetarySystemBuilderCalculationResponse } from "@lumina/api-client";
+import type { PlanetarySystemBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 /* Generated from the canonical Python Planetary System Builder v1 model for tests only. */
 export const PLANETARY_SYSTEM_BUILDER_DEFAULT_RESULT = {

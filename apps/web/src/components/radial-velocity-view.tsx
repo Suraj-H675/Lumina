@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { requestEndpoint, type RadialVelocityCalculationResponse } from "@lumina/api-client";
+import { requestEndpoint, type RadialVelocityCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

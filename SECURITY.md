@@ -10,7 +10,7 @@ Include only the minimum information required to reproduce the issue. Do not inc
 
 ## Security expectations
 
-Lumina treats these as security-sensitive boundaries:
+Nova-Lumina treats these as security-sensitive boundaries:
 
 - provider and database credentials;
 - public/private API-origin separation;

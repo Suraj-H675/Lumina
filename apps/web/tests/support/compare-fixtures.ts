@@ -1,4 +1,4 @@
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 /**
  * Component-test fixtures shaped exactly like the accepted public entity

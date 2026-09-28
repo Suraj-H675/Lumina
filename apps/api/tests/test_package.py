@@ -9,7 +9,7 @@ import lumina
 
 def test_package_version_comes_from_installed_metadata() -> None:
     """The public version has one authoritative package-metadata source."""
-    assert lumina.__version__ == metadata.version("lumina-api")
+    assert lumina.__version__ == metadata.version("nova-lumina-api")
 
 
 def test_console_entry_point_is_installed() -> None:
@@ -18,7 +18,7 @@ def test_console_entry_point_is_installed() -> None:
         entry_point.name: entry_point.value
         for entry_point in metadata.entry_points(group="console_scripts")
     }
-    assert scripts["lumina-api"] == "lumina.main:run"
+    assert scripts["nova-lumina-api"] == "lumina.main:run"
 
 
 def test_wheel_resources_are_force_included_from_canonical_repository_data() -> None:

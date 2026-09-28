@@ -1,4 +1,4 @@
-"""Transport-neutral runtime contracts for Lumina provider synchronization."""
+"""Transport-neutral runtime contracts for Nova-Lumina provider synchronization."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ FIXED_HOST: Final = "exoplanetarchive.ipac.caltech.edu"
 FIXED_PATH: Final = "/TAP/sync"
 FIXED_QUERY: Final = "select count(pl_name) from ps where default_flag=1"
 FIXED_FORMAT: Final = "csv"
-FIXED_USER_AGENT: Final = "Lumina/0.0 nasa-exoplanet-archive-sync"
+FIXED_USER_AGENT: Final = "Nova-Lumina/0.0 nasa-exoplanet-archive-sync"
 
 APOD_PROVIDER_CODE: Final = "nasa-apod"
 APOD_ADAPTER_ID: Final = "nasa-apod-daily-media"
@@ -33,7 +33,7 @@ APOD_SOURCE_SCHEMA_VERSION: Final = "apod-v1-json-v1"
 APOD_HOST: Final = "api.nasa.gov"
 APOD_PATH: Final = "/planetary/apod"
 APOD_FORMAT: Final = "json"
-APOD_USER_AGENT: Final = "Lumina/0.0 nasa-apod-sync"
+APOD_USER_AGENT: Final = "Nova-Lumina/0.0 nasa-apod-sync"
 APOD_CONTENT_TYPE: Final = "application/json"
 APOD_OFFICIAL_HOST: Final = "apod.nasa.gov"
 APOD_OFFICIAL_PATH: Final = "/apod/"
@@ -46,7 +46,7 @@ NEOWS_SOURCE_SCHEMA_VERSION: Final = "neows-feed-v1-json-v1"
 NEOWS_HOST: Final = "api.nasa.gov"
 NEOWS_PATH: Final = "/neo/rest/v1/feed"
 NEOWS_FORMAT: Final = "json"
-NEOWS_USER_AGENT: Final = "Lumina/0.0 nasa-neows-sync"
+NEOWS_USER_AGENT: Final = "Nova-Lumina/0.0 nasa-neows-sync"
 NEOWS_CONTENT_TYPE: Final = "application/json"
 
 SWPC_PROVIDER_CODE: Final = "noaa-swpc"
@@ -57,7 +57,7 @@ SWPC_SOURCE_SCHEMA_VERSION: Final = "swpc-space-weather-v1"
 SWPC_HOST: Final = "services.swpc.noaa.gov"
 SWPC_BASE_PATH: Final = "/"
 SWPC_CONTENT_TYPE: Final = "application/json"
-SWPC_USER_AGENT: Final = "Lumina/0.0 noaa-swpc-sync"
+SWPC_USER_AGENT: Final = "Nova-Lumina/0.0 noaa-swpc-sync"
 SWPC_SUCCESS_REFRESH_INTERVAL: Final = timedelta(minutes=5)
 SWPC_FRESH_TTL: Final = timedelta(minutes=10)
 SWPC_STALE_IF_ERROR_GRACE: Final = timedelta(minutes=50)
@@ -89,7 +89,7 @@ LL2_HOST: Final = "ll.thespacedevs.com"
 LL2_PATH: Final = "/2.3.0/launches/upcoming/"
 LL2_FORMAT: Final = "json"
 LL2_CONTENT_TYPE: Final = "application/json"
-LL2_USER_AGENT: Final = "Lumina/0.0 launch-library-2-sync"
+LL2_USER_AGENT: Final = "Nova-Lumina/0.0 launch-library-2-sync"
 LL2_MAX_RESPONSE_BYTES: Final = 1_048_576
 LL2_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=1)
 LL2_FRESH_TTL: Final = timedelta(hours=2)
@@ -104,7 +104,7 @@ CELESTRAK_HOST: Final = "celestrak.org"
 CELESTRAK_PATH: Final = "/NORAD/elements/gp.php"
 CELESTRAK_FORMAT: Final = "json"
 CELESTRAK_CONTENT_TYPE: Final = "application/json"
-CELESTRAK_USER_AGENT: Final = "Lumina/0.0 celestrak-gp-sync"
+CELESTRAK_USER_AGENT: Final = "Nova-Lumina/0.0 celestrak-gp-sync"
 CELESTRAK_STATIONS_MAX_RESPONSE_BYTES: Final = 131_072
 CELESTRAK_VISUAL_MAX_RESPONSE_BYTES: Final = 524_288
 CELESTRAK_MAX_TOTAL_RESPONSE_BYTES: Final = 655_360
@@ -122,7 +122,7 @@ PANOPTES_BASE_PATH: Final = "/api/projects/"
 PANOPTES_FORMAT: Final = "json"
 PANOPTES_CONTENT_TYPE: Final = "application/vnd.api+json"
 PANOPTES_ACCEPT: Final = "application/vnd.api+json; version=1"
-PANOPTES_USER_AGENT: Final = "Lumina/0.0 zooniverse-panoptes-sync"
+PANOPTES_USER_AGENT: Final = "Nova-Lumina/0.0 zooniverse-panoptes-sync"
 PANOPTES_SUCCESS_REFRESH_INTERVAL: Final = timedelta(hours=6)
 PANOPTES_FRESH_TTL: Final = timedelta(hours=8)
 PANOPTES_STALE_IF_ERROR_GRACE: Final = timedelta(hours=72)

@@ -1,4 +1,4 @@
-import type { RocketMissionDesignerCalculationResponse } from "@lumina/api-client";
+import type { RocketMissionDesignerCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

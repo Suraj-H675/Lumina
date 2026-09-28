@@ -164,7 +164,7 @@ def test_participate_returns_reviewed_content_and_current_status_within_normal_c
     assert payload["activities"][1]["id"] == "pinhole-projector"
     assert "Never look at the Sun through the pinhole." in payload["activities"][1]["safety"]
     assert payload["definition"]["external_handoff_notice"].startswith(
-        "You are leaving Lumina for Zooniverse"
+        "You are leaving Nova-Lumina for Zooniverse"
     )
 
     serialized = response.text

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
+import type { TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type {

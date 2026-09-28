@@ -1,4 +1,4 @@
-import type { BlackHoleRelativityCalculationResponse } from "@lumina/api-client";
+import type { BlackHoleRelativityCalculationResponse } from "@nova-lumina/api-client";
 
 export const BLACK_HOLE_RELATIVITY_DEFAULT_RESULT = {
   model_version: "black-hole-relativity-v1",

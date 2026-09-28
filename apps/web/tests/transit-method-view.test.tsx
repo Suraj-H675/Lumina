@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { TransitMethodCalculationResponse } from "@lumina/api-client";
+import type { TransitMethodCalculationResponse } from "@nova-lumina/api-client";
 
 import { TransitMethodView } from "../src/components/transit-method-view";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";

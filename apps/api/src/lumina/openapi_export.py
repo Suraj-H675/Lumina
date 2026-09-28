@@ -16,7 +16,7 @@ from lumina.bootstrap import create_app
 from lumina.settings import AppSettings
 
 _INERT_DATABASE_URL = "postgresql+asyncpg://openapi_export:nonsecret@127.0.0.1:1/lumina_openapi"
-_EXPORT_FAILURE_MESSAGE = "Lumina OpenAPI export failed."
+_EXPORT_FAILURE_MESSAGE = "Nova-Lumina OpenAPI export failed."
 
 
 def serialize_openapi(document: dict[str, Any]) -> bytes:

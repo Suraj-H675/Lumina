@@ -24,10 +24,13 @@ test("parses a root operator URL and repository-relative output", () => {
     },
   );
   assert.throws(() => parseArgs([]), /--url is required/u);
-  assert.throws(() => parseArgs(["--url", "http://127.0.0.1:3000/explore"]), /root Lumina URL/u);
+  assert.throws(
+    () => parseArgs(["--url", "http://127.0.0.1:3000/explore"]),
+    /root Nova-Lumina URL/u,
+  );
   assert.match(
     resolveOutputPath("data/audits/phase-8d-browser-zoom-v1.json"),
-    /\/Lumina\/data\/audits\/phase-8d-browser-zoom-v1\.json$/u,
+    /\/data\/audits\/phase-8d-browser-zoom-v1\.json$/u,
   );
 });
 
@@ -77,7 +80,7 @@ test("binds query-bearing route observations to the exact requested URL state", 
         "http://127.0.0.1:3000/observe?date=2026-08-27&object=k2-18",
         "http://127.0.0.1:3000/observe?object=k2-18&date=2026-08-27",
       ),
-    /exact requested Lumina URL state/u,
+    /exact requested Nova-Lumina URL state/u,
   );
   assert.throws(
     () =>
@@ -85,7 +88,7 @@ test("binds query-bearing route observations to the exact requested URL state", 
         "http://127.0.0.1:3000/observe?object=k2-18",
         "http://127.0.0.1:3000/observe?object=k2-18&date=2026-08-27",
       ),
-    /exact requested Lumina URL state/u,
+    /exact requested Nova-Lumina URL state/u,
   );
 });
 

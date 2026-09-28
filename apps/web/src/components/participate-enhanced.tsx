@@ -1,6 +1,6 @@
 "use client";
 
-import type { ParticipateResponse } from "@lumina/api-client";
+import type { ParticipateResponse } from "@nova-lumina/api-client";
 import dynamic from "next/dynamic";
 
 import type { PublishedLocale } from "../lib/i18n/locales";

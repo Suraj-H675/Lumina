@@ -1,4 +1,4 @@
-import type { OrbitSandboxCalculationResponse } from "@lumina/api-client";
+import type { OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

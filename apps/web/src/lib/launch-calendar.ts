@@ -1,4 +1,4 @@
-import type { LaunchItemResponse } from "@lumina/api-client";
+import type { LaunchItemResponse } from "@nova-lumina/api-client";
 
 function icalEscape(value: string): string {
   return value
@@ -68,10 +68,10 @@ export function buildLaunchCalendar(launch: LaunchItemResponse): string | null {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Lumina//Launch Center//EN",
+    "PRODID:-//Nova-Lumina//Launch Center//EN",
     "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
-    `UID:${icalEscape(`launch-library-2-${launch.launch_id}@lumina.local`)}`,
+    `UID:${icalEscape(`launch-library-2-${launch.launch_id}@nova-lumina.local`)}`,
     `DTSTAMP:${dtStamp}`,
     `DTSTART:${dtStart}`,
     ...(dtEnd === null || dtEnd === dtStart ? [] : [`DTEND:${dtEnd}`]),

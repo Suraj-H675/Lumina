@@ -26,6 +26,6 @@ export function isPublishedLocale(value: unknown): value is PublishedLocale {
 }
 
 export function localeDefinition(locale: string): LocaleDefinition {
-  if (!isPublishedLocale(locale)) throw new TypeError(`Unknown Lumina locale: ${locale}`);
+  if (!isPublishedLocale(locale)) throw new TypeError(`Unknown Nova-Lumina locale: ${locale}`);
   return LOCALE_DEFINITIONS[locale];
 }

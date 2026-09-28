@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Folder Name="Lumina reviewed sky layers" Group="Explorer">
+<Folder Name="Nova-Lumina reviewed sky layers" Group="Explorer">
   <ImageSet BandPass="Visible" BaseDegreesPerTile="180" BaseTileLevel="0" BottomsUp="False" CenterX="0" CenterY="0" DataSetType="Sky" ElevationModel="False" FileType=".png" Generic="False" Name="Digitized Sky Survey (Color)" Projection="Toast" QuadTreeMap="0123" Rotation="0" Sparse="False" StockSet="True" TileLevels="12" Url="https://cdn.worldwidetelescope.org/wwtweb/dss.aspx?q={1},{2},{3}" WidthFactor="2">
     <Credits>Copyright DSS Consortium. These data are from the DSS2 survey.</Credits>
     <CreditsUrl>https://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm</CreditsUrl>

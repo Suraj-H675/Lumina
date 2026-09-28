@@ -180,13 +180,13 @@ class NasaNeowsCodec(ProviderPayloadCodec):
 
 
 def neows_object_id(neo_reference_id: str) -> str:
-    """Build the public Lumina object identity from the validated source ID."""
+    """Build the public Nova-Lumina object identity from the validated source ID."""
     _validate_neo_reference_id(neo_reference_id)
     return f"{NEOWS_PROVIDER_CODE}-{neo_reference_id}"
 
 
 def neows_encounter_id(neo_reference_id: str, approach_date: str) -> str:
-    """Build the public Lumina event identity from source ID and date."""
+    """Build the public Nova-Lumina event identity from source ID and date."""
     _validate_neo_reference_id(neo_reference_id)
     _parse_date(approach_date)
     return f"{neows_object_id(neo_reference_id)}-{approach_date}"

@@ -29,7 +29,7 @@ from lumina.identification.domain.uploads import UploadMediaType
 
 _NOVA_ORIGIN = "https://nova.astrometry.net"
 _NOVA_API_URL = "https://nova.astrometry.net/api"
-_USER_AGENT = "Lumina/0.0 remote-astrometry"
+_USER_AGENT = "Nova-Lumina/0.0 remote-astrometry"
 _MAX_RESPONSE_BYTES = 65_536
 _MAX_ANNOTATION_RESPONSE_BYTES = 1_048_576
 _MAX_WCS_BYTES = 262_144

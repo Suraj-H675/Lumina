@@ -2,7 +2,7 @@ import {
   planetarySystemBuilderEndpoint,
   validateExactGenerated,
   type PlanetarySystemBuilderCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawBuilderArtifact from "../../../../../data/seed/planetary-system-builder-v1.json";
 

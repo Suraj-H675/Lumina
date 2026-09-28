@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ProviderStatusResponse } from "@lumina/api-client";
+import type { ProviderStatusResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -140,7 +140,7 @@ function apiResponse(path: string, readyStatus = 200): Response {
   if (path === "/api/v1/meta") {
     return Response.json({
       api_version: "v1",
-      application_name: "Lumina",
+      application_name: "Nova-Lumina",
       application_version: "0.0.0",
       build_commit: null,
       feature_flags: {},
@@ -228,9 +228,9 @@ describe("browser-visible public API origin", () => {
 
   it("uses the stable Vercel project production host as the production fallback", () => {
     expect(
-      resolvePublicWebApiOrigin(undefined, "production", false, "lumina.example.vercel.app"),
+      resolvePublicWebApiOrigin(undefined, "production", false, "nova-lumina.example.vercel.app"),
     ).toEqual({
-      origin: "https://lumina.example.vercel.app",
+      origin: "https://nova-lumina.example.vercel.app",
       valid: true,
     });
     expect(resolvePublicWebApiOrigin(undefined, "production", false, "bad.example/path")).toEqual({
@@ -264,7 +264,7 @@ describe("status stub harness shutdown", () => {
     "records traffic after an earlier clean assertion and fails only after final cleanup",
     { timeout: 15_000 },
     async () => {
-      const temporaryDirectory = await mkdtemp(join(tmpdir(), "lumina-stub-shutdown-test-"));
+      const temporaryDirectory = await mkdtemp(join(tmpdir(), "nova-lumina-stub-shutdown-test-"));
       let harness: ChildProcess | undefined;
 
       try {
@@ -511,10 +511,10 @@ describe("honest status view", () => {
   ])("renders the $kind state with accessible status text", async (status) => {
     const { container } = renderStatus(status);
 
-    expect(screen.getByRole("heading", { level: 1, name: "Lumina API status" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Nova-Lumina API status" })).toBeVisible();
     expect(screen.getByRole("status")).toBeVisible();
     expect(
-      screen.getByRole("link", { name: "Return to the Lumina foundation home page" }),
+      screen.getByRole("link", { name: "Return to the Nova-Lumina foundation home page" }),
     ).toHaveAttribute("href", "/");
     expect((await axe(container)).violations).toHaveLength(0);
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ParticipateResponse } from "@lumina/api-client";
+import type { ParticipateResponse } from "@nova-lumina/api-client";
 import { useEffect, useMemo, useState } from "react";
 
 import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";

@@ -54,7 +54,7 @@ test("rejects wrong private path and unknown providers", async () => {
   );
 });
 
-test("invokes only the fixed Lumina sync endpoint with private authorization", async () => {
+test("invokes only the fixed Nova-Lumina sync endpoint with private authorization", async () => {
   let observed;
   const response = await handleRequest(
     request(`/${PATH_TOKEN}/noaa-swpc`),

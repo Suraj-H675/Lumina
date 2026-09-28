@@ -223,7 +223,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Gaia DR3 release; no per-row observation date is used by this artifact.",
     terms_or_licence:
-      "ESA Gaia archive data; Lumina retains source attribution and links to the official documentation.",
+      "ESA Gaia archive data; Nova-Lumina retains source attribution and links to the official documentation.",
     citation:
       "ESA Gaia Data Release 3 Documentation, “20.1.1 gaia_source”, release 1.3, accessed 2026-09-09.",
     claim_scope:
@@ -241,7 +241,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Gaia DR3 release; Gaia-published percentiles are retained as source values.",
     terms_or_licence:
-      "ESA Gaia archive data; Lumina retains source attribution and links to the official documentation.",
+      "ESA Gaia archive data; Nova-Lumina retains source attribution and links to the official documentation.",
     citation:
       "ESA Gaia Data Release 3 Documentation, “20.2.1 astrophysical_parameters”, release 1.3, accessed 2026-09-09.",
     claim_scope:
@@ -257,7 +257,8 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     record_reference: "Release-level documentation landing page for the pinned DR3 data product.",
     retrieved_at: "2026-09-09",
     data_date: "Gaia DR3 documentation release 1.3.",
-    terms_or_licence: "ESA Gaia documentation; Lumina links to the official release documentation.",
+    terms_or_licence:
+      "ESA Gaia documentation; Nova-Lumina links to the official release documentation.",
     citation: "ESA Gaia Data Release 3 Documentation, release 1.3, accessed 2026-09-09.",
     claim_scope:
       "Pinned release identity: this vertical uses Gaia DR3 and does not substitute a later data release.",
@@ -274,11 +275,11 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Catalogue publication/update 2024-11-21 as reported by CDS/VizieR.",
     terms_or_licence:
-      "CDS/VizieR catalogue; Lumina links to and attributes the published catalogue.",
+      "CDS/VizieR catalogue; Nova-Lumina links to and attributes the published catalogue.",
     citation:
       "Hunt E.L. and Reffert S., “Improving the open cluster census. III.”, A&A 686, A42 (2024), VizieR J/A+A/686/A42, accessed 2026-09-09.",
     claim_scope:
-      "Pinned cluster membership rows and accepted-name/ID metadata for Pleiades, Hyades, Praesepe, and M 67; no membership is inferred by Lumina.",
+      "Pinned cluster membership rows and accepted-name/ID metadata for Pleiades, Hyades, Praesepe, and M 67; no membership is inferred by Nova-Lumina.",
     source_type: "catalogue",
   },
   "esa-gaia-hr-diagram": {
@@ -293,7 +294,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Published 2018; no row data are imported from this page.",
     terms_or_licence:
-      "Official ESA educational page; Lumina links to the source and does not redistribute its media.",
+      "Official ESA educational page; Nova-Lumina links to the source and does not redistribute its media.",
     citation: "European Space Agency, “Gaia’s Hertzsprung-Russell diagram”, accessed 2026-09-09.",
     claim_scope:
       "Supporting explanation of H-R diagram orientation and broad population structure; source-published Gaia values remain authoritative for plotted records.",

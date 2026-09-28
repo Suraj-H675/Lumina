@@ -12,7 +12,7 @@
     "status": "ready",
     "version": 1,
     "audience_modes": ["explorer", "student", "deep-dive"],
-    "reviewed_by": ["Lumina scale-explorer-v1 contract review"],
+    "reviewed_by": ["Nova-Lumina scale-explorer-v1 contract review"],
     "reviewed_at": "2026-09-02T09:12:28Z",
     "updated_at": "2026-09-02T09:12:28Z",
     "model_version": "scale-explorer-v1",
@@ -129,7 +129,7 @@
       "record_reference": "Page-level claim; no stable record identifier supplied.",
       "retrieved_at": "2026-09-02",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "terms_or_licence": "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
       "citation": "NASA / Lunar and Planetary Institute, “Solar System Sizes”, accessed 2026-09-02.",
       "claim_scope": "Approximate listed planetary radii for Mercury through Neptune.",
       "source_type": "official-education"
@@ -144,7 +144,7 @@
       "record_reference": "Page-level claim; no stable record identifier supplied.",
       "retrieved_at": "2026-09-02",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "terms_or_licence": "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
       "citation": "NASA, “Moon lithograph: fast facts”, accessed 2026-09-02.",
       "claim_scope": "The Moon's fast-facts diameter of 3,475 km.",
       "source_type": "official-education"
@@ -159,7 +159,7 @@
       "record_reference": "Page-level claim; no stable record identifier supplied.",
       "retrieved_at": "2026-09-02",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "terms_or_licence": "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
       "citation": "NASA Science, “Our Sun: Facts”, accessed 2026-09-02.",
       "claim_scope": "The Sun's approximate diameter of 1.4 million km.",
       "source_type": "official-agency"
@@ -174,7 +174,7 @@
       "record_reference": "Page-level claim; no stable record identifier supplied.",
       "retrieved_at": "2026-09-02",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "terms_or_licence": "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
       "citation": "NASA Science / NASA-JPL-Caltech, “Our Milky Way Galaxy: How Big is Space?”, accessed 2026-09-02.",
       "claim_scope": "The Milky Way's approximate galaxy-wide width of 100,000 light-years.",
       "source_type": "official-agency"
@@ -189,7 +189,7 @@
       "record_reference": "Page-level claim; no stable record identifier supplied.",
       "retrieved_at": "2026-09-02",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "terms_or_licence": "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
       "citation": "NASA, “How Big is Space? We Asked a NASA Expert”, accessed 2026-09-02.",
       "claim_scope": "An estimate of about 92 billion light-years across for the observable universe, not the whole universe.",
       "source_type": "official-agency"
@@ -204,7 +204,7 @@
       "record_reference": "Page-level claim; no stable record identifier supplied.",
       "retrieved_at": "2026-09-02",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "NASA factual/educational source; Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
+      "terms_or_licence": "NASA factual/educational source; Nova-Lumina redistributes cited numeric facts and links only, not NASA media. NASA media guidance says factual educational/informational use may be permitted without endorsement, while third-party material and NASA identifiers require separate review.",
       "citation": "NASA Science, “What is a light-year?”, accessed 2026-09-02.",
       "claim_scope": "A light-year is a distance; NASA gives an approximate kilometre conversion.",
       "source_type": "official-education"
@@ -257,7 +257,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 4.88 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 2,440 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 2,440 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"
@@ -306,7 +306,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 6.78 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 3,390 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 3,390 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"
@@ -342,7 +342,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 12.1 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 6,052 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 6,052 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"
@@ -378,7 +378,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 12.7 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 6,371 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 6,371 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "contextual",
         "text": "Reference point for the planetary comparisons."
@@ -414,7 +414,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 49.2 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 24,622 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 24,622 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"
@@ -463,7 +463,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 50.7 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 25,362 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 25,362 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"
@@ -499,7 +499,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 116 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 58,232 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 58,232 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"
@@ -535,7 +535,7 @@
       "characteristic_quantity": "diameter",
       "display_value": "about 140 thousand km",
       "value_status": "derived-approximate",
-      "source_basis": "NASA lists an approximate radius of 69,911 km; Lumina derives the characteristic diameter as 2 × radius.",
+      "source_basis": "NASA lists an approximate radius of 69,911 km; Nova-Lumina derives the characteristic diameter as 2 × radius.",
       "comparison": {
         "kind": "ratio",
         "reference_node_id": "earth"

@@ -43,7 +43,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("Lumina PWA connectivity and update status", () => {
+describe("Nova-Lumina PWA connectivity and update status", () => {
   it("announces lost connectivity without relabelling displayed provider data as current", () => {
     render(<PwaStatus {...PWA_PROPS} />);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -60,7 +60,7 @@ describe("Lumina PWA connectivity and update status", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/check its source and retrieval time/i);
   });
 
-  it("labels an approved cached page with the recorded Lumina cache time", async () => {
+  it("labels an approved cached page with the recorded Nova-Lumina cache time", async () => {
     setOnline(false);
     window.history.replaceState({}, "", "/learn/your-first-night-sky");
     const cachedAt = "2026-09-19T09:15:00.000Z";
@@ -73,7 +73,9 @@ describe("Lumina PWA connectivity and update status", () => {
 
     const { container } = render(<PwaStatus {...PWA_PROPS} />);
 
-    expect(await screen.findByText(/this page is an offline copy saved by lumina/i)).toBeVisible();
+    expect(
+      await screen.findByText(/this page is an offline copy saved by nova-lumina/i),
+    ).toBeVisible();
     expect(container.querySelector("time")).toHaveAttribute("datetime", cachedAt);
   });
 
@@ -143,7 +145,7 @@ describe("Lumina PWA connectivity and update status", () => {
         updateViaCache: "none",
       });
     });
-    expect(await screen.findByText(/a lumina update is ready/i)).toBeVisible();
+    expect(await screen.findByText(/a nova-lumina update is ready/i)).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Apply update" }));
     expect(postMessage).toHaveBeenCalledWith({ type: "LUMINA_ACTIVATE_UPDATE" });

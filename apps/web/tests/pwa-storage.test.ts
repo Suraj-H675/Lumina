@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   PwaStorageError,
-  clearLuminaOfflineCopies,
+  clearNovaLuminaOfflineCopies,
   readApproximateBrowserStorage,
 } from "../src/lib/pwa-storage";
 
@@ -12,7 +12,7 @@ afterEach(() => {
 });
 
 describe("PWA storage boundaries", () => {
-  it("clears only Lumina CacheStorage namespaces and leaves unrelated caches untouched", async () => {
+  it("clears only Nova-Lumina CacheStorage namespaces and leaves unrelated caches untouched", async () => {
     const remove = vi.fn().mockResolvedValue(true);
     vi.stubGlobal("caches", {
       delete: remove,
@@ -26,7 +26,7 @@ describe("PWA storage boundaries", () => {
         ]),
     });
 
-    await expect(clearLuminaOfflineCopies()).resolves.toEqual({ deleted: 3 });
+    await expect(clearNovaLuminaOfflineCopies()).resolves.toEqual({ deleted: 3 });
     expect(remove.mock.calls.map(([name]) => name)).toEqual([
       "lumina-pwa-documents-v1",
       "lumina-pwa-static-v1",
@@ -36,7 +36,7 @@ describe("PWA storage boundaries", () => {
 
   it("reports an explicit cache-unavailable state instead of pretending a clear succeeded", async () => {
     vi.stubGlobal("caches", undefined);
-    await expect(clearLuminaOfflineCopies()).rejects.toEqual(
+    await expect(clearNovaLuminaOfflineCopies()).rejects.toEqual(
       new PwaStorageError("cache-unavailable"),
     );
   });

@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { IdentificationCapabilitiesResponse } from "@lumina/api-client";
+import type { IdentificationCapabilitiesResponse } from "@nova-lumina/api-client";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { IdentifyMessages } from "../src/lib/i18n/messages/types";
@@ -19,7 +19,7 @@ const fake = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock("@lumina/api-client", () => ({
+vi.mock("@nova-lumina/api-client", () => ({
   createIdentificationSubmission: fake.create,
   deleteIdentificationSubmission: fake.delete,
   getIdentificationSolution: fake.solution,

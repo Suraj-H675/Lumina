@@ -231,7 +231,7 @@ def test_fixed_http_request_rejects_mutated_celestrak_queries() -> None:
         params=(("GROUP", "VISUAL"), ("FORMAT", "JSON")),
         expected_content_type="application/json",
         max_response_bytes=CELESTRAK_VISUAL_MAX_RESPONSE_BYTES,
-        user_agent="Lumina/0.0 celestrak-gp-sync",
+        user_agent="Nova-Lumina/0.0 celestrak-gp-sync",
     )
     with pytest.raises(ValueError):
         FixedHttpRequest(
@@ -239,7 +239,7 @@ def test_fixed_http_request_rejects_mutated_celestrak_queries() -> None:
             params=(("CATNR", "25544"), ("FORMAT", "JSON")),
             expected_content_type="application/json",
             max_response_bytes=CELESTRAK_VISUAL_MAX_RESPONSE_BYTES,
-            user_agent="Lumina/0.0 celestrak-gp-sync",
+            user_agent="Nova-Lumina/0.0 celestrak-gp-sync",
         )
     with pytest.raises(ValueError):
         FixedHttpRequest(
@@ -247,5 +247,5 @@ def test_fixed_http_request_rejects_mutated_celestrak_queries() -> None:
             params=(("GROUP", "STATIONS"), ("FORMAT", "CSV")),
             expected_content_type="application/json",
             max_response_bytes=CELESTRAK_STATIONS_MAX_RESPONSE_BYTES,
-            user_agent="Lumina/0.0 celestrak-gp-sync",
+            user_agent="Nova-Lumina/0.0 celestrak-gp-sync",
         )

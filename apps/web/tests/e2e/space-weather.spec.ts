@@ -18,7 +18,7 @@ test.describe("Space Now Space Weather", () => {
 
     await page.goto("/now/space-weather");
 
-    await expect(page).toHaveTitle(/Space Weather — Lumina/);
+    await expect(page).toHaveTitle(/Space Weather — Nova-Lumina/);
     await expect(page.getByRole("heading", { level: 1, name: "Space Weather" })).toBeVisible();
     await expect(
       page.getByRole("heading", { level: 2, name: "Current NOAA scales" }),

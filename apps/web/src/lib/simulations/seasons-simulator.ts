@@ -2,7 +2,7 @@ import {
   seasonsSimulatorEndpoint,
   validateExactGenerated,
   type SeasonsCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawSeasonsArtifact from "../../../../../data/seed/seasons-simulator-v1.json";
 
@@ -269,7 +269,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Official NASA educational source; Lumina links to the source and does not redistribute NASA media.",
+      "Official NASA educational source; Nova-Lumina links to the source and does not redistribute NASA media.",
     citation: "NASA Space Place, “What Causes the Seasons?”, accessed 2026-09-09.",
     claim_scope:
       "Educational explanation that Earth's seasons are primarily caused by axial tilt rather than distance from the Sun.",
@@ -285,7 +285,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Official NASA factual/educational source; Lumina links to the source and does not redistribute NASA media.",
+      "Official NASA factual/educational source; Nova-Lumina links to the source and does not redistribute NASA media.",
     citation: "NASA Science, “Earth Facts”, accessed 2026-09-09.",
     claim_scope: "Earth axial-tilt and annual seasonal context.",
     source_type: "official-agency",
@@ -300,7 +300,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "J2000 reference values as identified by source.",
     terms_or_licence:
-      "Official JPL/NASA technical reference; Lumina cites the reviewed constants and links to the source.",
+      "Official JPL/NASA technical reference; Nova-Lumina cites the reviewed constants and links to the source.",
     citation:
       "NASA JPL Solar System Dynamics, “Approximate Positions of the Planets”, accessed 2026-09-09.",
     claim_scope:
@@ -318,11 +318,11 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Official U.S. government reference; Lumina links to the source and uses it for supporting terminology and comparison only.",
+      "Official U.S. government reference; Nova-Lumina links to the source and uses it for supporting terminology and comparison only.",
     citation:
       "U.S. Naval Observatory, “Computing Approximate Solar Coordinates”, accessed 2026-09-09.",
     claim_scope:
-      "Supporting definitions for solar declination and solar-coordinate geometry; not the Lumina date-specific calculation.",
+      "Supporting definitions for solar declination and solar-coordinate geometry; not the Nova-Lumina date-specific calculation.",
     source_type: "official-agency",
   },
   "usno-daylight-geometry": {
@@ -336,11 +336,11 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Official U.S. government reference; Lumina links to the source and uses it for supporting geometric comparison only.",
+      "Official U.S. government reference; Nova-Lumina links to the source and uses it for supporting geometric comparison only.",
     citation:
       "U.S. Naval Observatory, “Sunrise and Sunset Times Near the Solstices”, accessed 2026-09-09.",
     claim_scope:
-      "Supporting daylight and horizon geometry context; Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
+      "Supporting daylight and horizon geometry context; Nova-Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
     source_type: "official-agency",
   },
   "noaa-solar-calculator-details": {
@@ -353,11 +353,11 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Official NOAA technical reference; Lumina links to the source for supporting comparison and disclosure.",
+      "Official NOAA technical reference; Nova-Lumina links to the source for supporting comparison and disclosure.",
     citation:
       "NOAA Global Monitoring Laboratory, “Solar Calculation Details”, accessed 2026-09-09.",
     claim_scope:
-      "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Lumina v1; NOAA fractional-year declination is not used.",
+      "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Nova-Lumina v1; NOAA fractional-year declination is not used.",
     source_type: "official-agency",
   },
 };

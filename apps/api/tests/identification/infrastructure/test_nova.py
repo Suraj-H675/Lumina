@@ -84,7 +84,7 @@ async def test_login_upload_and_poll_use_only_reviewed_private_contract() -> Non
         assert request.url.query == b""
         assert request.headers["accept"] == "application/json"
         assert request.headers["accept-encoding"] == "identity"
-        assert request.headers["user-agent"] == "Lumina/0.0 remote-astrometry"
+        assert request.headers["user-agent"] == "Nova-Lumina/0.0 remote-astrometry"
         path = request.url.path
         body: dict[str, object]
         if path == "/api/login":

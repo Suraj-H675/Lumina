@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-import type { SeasonsCalculationResponse } from "@lumina/api-client";
+import type { SeasonsCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type {

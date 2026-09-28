@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { CatalogSearchResponse } from "@lumina/api-client";
+import type { CatalogSearchResponse } from "@nova-lumina/api-client";
 
 import { formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";

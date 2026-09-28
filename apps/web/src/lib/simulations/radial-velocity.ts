@@ -2,7 +2,7 @@ import {
   radialVelocityEndpoint,
   validateExactGenerated,
   type RadialVelocityCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawRadialVelocityArtifact from "../../../../../data/seed/radial-velocity-v1.json";
 

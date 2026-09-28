@@ -2,7 +2,7 @@ import {
   orbitSandboxEndpoint,
   validateExactGenerated,
   type OrbitSandboxCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawOrbitArtifact from "../../../../../data/seed/orbit-sandbox-v1.json";
 

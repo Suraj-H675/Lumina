@@ -1,4 +1,4 @@
-import type { TransitMethodCalculationResponse } from "@lumina/api-client";
+import type { TransitMethodCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   DEFAULT_TRANSIT_METHOD_STATE,

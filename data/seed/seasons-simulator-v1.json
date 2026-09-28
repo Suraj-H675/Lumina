@@ -12,7 +12,7 @@
     "status": "ready",
     "version": 1,
     "audience_modes": ["explorer", "student", "deep-dive"],
-    "reviewed_by": ["Lumina seasons-simulator-v1 contract review"],
+    "reviewed_by": ["Nova-Lumina seasons-simulator-v1 contract review"],
     "reviewed_at": "2026-09-09T00:00:00Z",
     "updated_at": "2026-09-09T00:00:00Z",
     "model_version": "seasons-simulator-v1",
@@ -152,7 +152,7 @@
       "record_reference": "Page-level explanation; no stable record identifier supplied.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Official NASA educational source; Lumina links to the source and does not redistribute NASA media.",
+      "terms_or_licence": "Official NASA educational source; Nova-Lumina links to the source and does not redistribute NASA media.",
       "citation": "NASA Space Place, “What Causes the Seasons?”, accessed 2026-09-09.",
       "claim_scope": "Educational explanation that Earth's seasons are primarily caused by axial tilt rather than distance from the Sun.",
       "source_type": "official-education"
@@ -167,7 +167,7 @@
       "record_reference": "Page-level Earth facts; no stable record identifier supplied.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Official NASA factual/educational source; Lumina links to the source and does not redistribute NASA media.",
+      "terms_or_licence": "Official NASA factual/educational source; Nova-Lumina links to the source and does not redistribute NASA media.",
       "citation": "NASA Science, “Earth Facts”, accessed 2026-09-09.",
       "claim_scope": "Earth axial-tilt and annual seasonal context.",
       "source_type": "official-agency"
@@ -182,7 +182,7 @@
       "record_reference": "Earth/Moon barycenter row; J2000 obliquity reference in the page table.",
       "retrieved_at": "2026-09-09",
       "data_date": "J2000 reference values as identified by source.",
-      "terms_or_licence": "Official JPL/NASA technical reference; Lumina cites the reviewed constants and links to the source.",
+      "terms_or_licence": "Official JPL/NASA technical reference; Nova-Lumina cites the reviewed constants and links to the source.",
       "citation": "NASA JPL Solar System Dynamics, “Approximate Positions of the Planets”, accessed 2026-09-09.",
       "claim_scope": "Reviewed Earth/Moon-barycenter eccentricity, longitude of perihelion, and J2000 obliquity constants used by this idealized model.",
       "source_type": "official-agency"
@@ -197,9 +197,9 @@
       "record_reference": "Page-level solar-coordinate definitions; no stable record identifier supplied.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Official U.S. government reference; Lumina links to the source and uses it for supporting terminology and comparison only.",
+      "terms_or_licence": "Official U.S. government reference; Nova-Lumina links to the source and uses it for supporting terminology and comparison only.",
       "citation": "U.S. Naval Observatory, “Computing Approximate Solar Coordinates”, accessed 2026-09-09.",
-      "claim_scope": "Supporting definitions for solar declination and solar-coordinate geometry; not the Lumina date-specific calculation.",
+      "claim_scope": "Supporting definitions for solar declination and solar-coordinate geometry; not the Nova-Lumina date-specific calculation.",
       "source_type": "official-agency"
     },
     {
@@ -212,9 +212,9 @@
       "record_reference": "Page-level daylight-geometry reference; no stable record identifier supplied.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Official U.S. government reference; Lumina links to the source and uses it for supporting geometric comparison only.",
+      "terms_or_licence": "Official U.S. government reference; Nova-Lumina links to the source and uses it for supporting geometric comparison only.",
       "citation": "U.S. Naval Observatory, “Sunrise and Sunset Times Near the Solstices”, accessed 2026-09-09.",
-      "claim_scope": "Supporting daylight and horizon geometry context; Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
+      "claim_scope": "Supporting daylight and horizon geometry context; Nova-Lumina v1 intentionally uses a geometric point-Sun horizon rather than observed-rise conventions.",
       "source_type": "official-agency"
     },
     {
@@ -227,9 +227,9 @@
       "record_reference": "Page-level calculation details; no stable record identifier supplied.",
       "retrieved_at": "2026-09-09",
       "data_date": "Not stated by source.",
-      "terms_or_licence": "Official NOAA technical reference; Lumina links to the source for supporting comparison and disclosure.",
+      "terms_or_licence": "Official NOAA technical reference; Nova-Lumina links to the source for supporting comparison and disclosure.",
       "citation": "NOAA Global Monitoring Laboratory, “Solar Calculation Details”, accessed 2026-09-09.",
-      "claim_scope": "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Lumina v1; NOAA fractional-year declination is not used.",
+      "claim_scope": "Supporting comparison for general solar-zenith geometry and documentation of refraction and solar-disc corrections excluded by Nova-Lumina v1; NOAA fractional-year declination is not used.",
       "source_type": "official-agency"
     }
   ],

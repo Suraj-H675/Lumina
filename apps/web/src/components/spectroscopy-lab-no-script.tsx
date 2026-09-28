@@ -1,4 +1,4 @@
-import type { SpectroscopyCalculationResponse } from "@lumina/api-client";
+import type { SpectroscopyCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

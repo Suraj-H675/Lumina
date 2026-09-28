@@ -1,4 +1,4 @@
-"""Closed, immutable contract for Lumina's reviewed Gaia DR3 seed slice.
+"""Closed, immutable contract for Nova-Lumina's reviewed Gaia DR3 seed slice.
 
 The contract is intentionally narrow.  It is not a provider registry or a generic dataset
 configuration format: every accepted identity, path, release, and vocabulary member is fixed in

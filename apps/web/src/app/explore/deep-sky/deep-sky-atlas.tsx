@@ -314,7 +314,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
       <div
         aria-label={messages.canvasAriaLabel}
         className="relative min-h-72 overflow-hidden border border-[var(--border)] bg-black sm:min-h-96"
-        id="lumina-wwt-atlas"
+        id="nova-lumina-wwt-atlas"
         ref={containerRef}
       >
         {!active ? (

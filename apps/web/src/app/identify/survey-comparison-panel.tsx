@@ -1,6 +1,6 @@
 "use client";
 
-import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import type { IdentificationSolutionResponse } from "@nova-lumina/api-client";
 import { useEffect, useRef, useState } from "react";
 
 import { formatLocaleFixedNumber, formatMessageTemplate } from "../../lib/i18n/format";
@@ -226,7 +226,7 @@ export function SurveyComparisonPanel({
               service: WORLDWIDE_TELESCOPE_NAME,
             })}
             className="aspect-square min-h-64 overflow-hidden border border-[var(--border)] bg-black"
-            id="lumina-wwt-atlas"
+            id="nova-lumina-wwt-atlas"
             ref={containerRef}
             role="region"
           />

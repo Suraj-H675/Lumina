@@ -378,14 +378,14 @@ export function HRDiagramExplorerNoScript({
           <p>{HR_DIAGRAM_DEFINITION.uncertainty_semantics}</p>
           <h3>{messages.noScript.model.underivedTitle}</h3>
           <p>
-            Lumina does not convert BP−RP to temperature, M_G to luminosity, or plot position to
-            spectral class, evolutionary stage, age, mass, radius, lifetime, or future evolution.
+            Nova-Lumina does not convert BP−RP to temperature, M_G to luminosity, or plot position
+            to spectral class, evolutionary stage, age, mass, radius, lifetime, or future evolution.
             The physical H-R and Gaia colour–magnitude views are alternate source-variable views.
           </p>
           <p>
             Cluster filters use the reviewed Hunt &amp; Reffert catalogue rows. The selected-star
             detail preserves the source row&apos;s membership probability and inrj/inrt flags; a
-            catalogue association is not a Lumina-recomputed membership claim.
+            catalogue association is not a Nova-Lumina-recomputed membership claim.
           </p>
           <h3>{messages.noScript.model.assumptionsAndLimitations}</h3>
           <ul>

@@ -565,7 +565,7 @@ const NOW_SATELLITES_FIXTURE = {
     official_documentation_url: "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
     terms_url: "https://celestrak.org/usage-policy.php",
     attribution_text:
-      "Satellite general-perturbations element data is provided by CelesTrak. Lumina preserves source freshness and model limitations and does not claim real-time tracking or guaranteed optical visibility.",
+      "Satellite general-perturbations element data is provided by CelesTrak. Nova-Lumina preserves source freshness and model limitations and does not claim real-time tracking or guaranteed optical visibility.",
   },
 };
 
@@ -2705,7 +2705,7 @@ const stub = http.createServer(async (request, response) => {
   } else {
     sendJson(response, 200, {
       api_version: "v1",
-      application_name: "Lumina",
+      application_name: "Nova-Lumina",
       application_version: "e2e-fixture",
       build_commit: null,
       feature_flags: {},
@@ -2902,7 +2902,7 @@ setInterval(() => undefined, 1_000);
   }
 } catch (error) {
   if (error instanceof ProductionBuildRequiredError) {
-    process.stderr.write("Lumina E2E requires a production build; run pnpm build.\n");
+    process.stderr.write("Nova-Lumina E2E requires a production build; run pnpm build.\n");
   }
   await shutdown(1);
 }

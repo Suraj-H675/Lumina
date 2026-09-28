@@ -1,4 +1,4 @@
-import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import type { IdentificationSolutionResponse } from "@nova-lumina/api-client";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";

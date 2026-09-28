@@ -6,13 +6,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Lumina distinguishes measurements, estimates, models, hypotheses, artist impressions, and
+        Nova-Lumina distinguishes measurements, estimates, models, hypotheses, artist impressions, and
         unknowns. Do not paste copyrighted source text, credentials, exact private locations, or
         unpublished personal data.
   - type: input
     id: location
     attributes:
-      label: Lumina record or location
+      label: Nova-Lumina record or location
       description: Give the entity ID, manifest path, field, calculation, or page without private user data.
     validations:
       required: true

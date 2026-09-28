@@ -1,4 +1,4 @@
-import type { PlanetarySystemBuilderCalculationResponse } from "@lumina/api-client";
+import type { PlanetarySystemBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

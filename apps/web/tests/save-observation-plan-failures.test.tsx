@@ -58,7 +58,7 @@ describe("saved-plan storage failures", () => {
     await user.click(screen.getByRole("button", { name: "Save plan" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      /not allowing Lumina to store saved plans/i,
+      /not allowing Nova-Lumina to store saved plans/i,
     );
     expect(screen.queryByText(/saved locally/i)).not.toBeInTheDocument();
   });

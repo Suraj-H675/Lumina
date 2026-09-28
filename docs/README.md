@@ -1,8 +1,8 @@
-# Lumina documentation
+# Nova-Lumina documentation
 
-This directory contains the current engineering documentation for Lumina. It intentionally avoids historical phase diaries and duplicated implementation logs.
+This directory contains the current engineering documentation for Nova-Lumina. It intentionally avoids historical phase diaries and duplicated implementation logs.
 
-- [Product](PRODUCT.md) — what Lumina is trying to achieve and current constraints.
+- [Product](PRODUCT.md) — what Nova-Lumina is trying to achieve and current constraints.
 - [Architecture](ARCHITECTURE.md) — runtime components and boundaries.
 - [Repository](REPOSITORY.md) — directory ownership and source-of-truth rules.
 - [Data and provenance](DATA_AND_PROVENANCE.md) — scientific data/artifact policy.

@@ -107,7 +107,7 @@ def test_metadata_contract_is_exact() -> None:
 
     assert response.status_code == 200
     assert response.json() == {
-        "application_name": "Lumina",
+        "application_name": "Nova-Lumina",
         "application_version": __version__,
         "api_version": "v1",
         "feature_flags": {},

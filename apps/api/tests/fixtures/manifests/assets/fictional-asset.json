@@ -1,8 +1,8 @@
 {
   "asset_type": "fictional test diagram",
   "checksum": null,
-  "creator": "Lumina test fixture maintainers",
-  "credit_line": "Fictional Lumina test-only asset; not a photograph or scientific image.",
+  "creator": "Nova-Lumina test fixture maintainers",
+  "credit_line": "Fictional Nova-Lumina test-only asset; not a photograph or scientific image.",
   "downloaded_at": null,
   "entity_ids": [],
   "id": "lumina-fictional-asset",
@@ -14,6 +14,6 @@
   "modifications": [],
   "review_status": "Test-only fictional fixture reviewed for Phase 0C3 contract coverage.",
   "source_page": "https://fixtures.invalid/lumina/fictional-asset-source",
-  "title": "Fictional Lumina Contract Diagram",
+  "title": "Fictional Nova-Lumina Contract Diagram",
   "usage_notes": "Use only for manifest validation tests; no production asset is approved."
 }

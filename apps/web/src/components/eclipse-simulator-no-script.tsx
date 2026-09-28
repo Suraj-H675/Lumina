@@ -1,4 +1,4 @@
-import type { EclipseSimulatorCalculationResponse } from "@lumina/api-client";
+import type { EclipseSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";

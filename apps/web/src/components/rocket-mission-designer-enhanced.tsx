@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { RocketMissionDesignerCalculationResponse } from "@lumina/api-client";
+import type { RocketMissionDesignerCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { RocketMissionDesignerMessages } from "../lib/i18n/messages/types";

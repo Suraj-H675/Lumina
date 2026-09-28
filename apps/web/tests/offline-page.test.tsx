@@ -10,11 +10,11 @@ function renderOffline(messages: OfflineMessages["landing"] = enMessages.offline
   return render(<OfflinePage messages={messages} />);
 }
 
-describe("Lumina offline fallback page", () => {
+describe("Nova-Lumina offline fallback page", () => {
   it("explains the bounded visited-content model without implying live data is available", () => {
     renderOffline();
 
-    expect(screen.getByRole("heading", { level: 1, name: "Lumina is offline" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Nova-Lumina is offline" })).toBeVisible();
     expect(
       screen.getByText(/pages you visited while online may still be available/i),
     ).toBeVisible();

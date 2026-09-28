@@ -53,7 +53,7 @@ export function JournalTransferControls({
       const url = URL.createObjectURL(blob);
       try {
         const anchor = document.createElement("a");
-        anchor.download = `lumina-journal-${new Date().toISOString().slice(0, 10)}.json`;
+        anchor.download = `nova-lumina-journal-${new Date().toISOString().slice(0, 10)}.json`;
         anchor.href = url;
         anchor.click();
       } finally {

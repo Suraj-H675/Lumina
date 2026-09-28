@@ -32,7 +32,7 @@ export const enMessages = {
       deleteAction: "Delete",
       deleteCollectionAction: "Delete collection",
       deleteDescription:
-        "This removes “{collectionName}” from this browser only. The Lumina catalogue itself is not affected.",
+        "This removes “{collectionName}” from this browser only. The Nova-Lumina catalogue itself is not affected.",
       deleteItemCount: {
         one: "Its {count} saved object will be removed with it.",
         other: "Its {count} saved objects will be removed with it.",
@@ -156,7 +156,7 @@ export const enMessages = {
         },
         title: "Save to a collection",
         unavailable:
-          "This browser is blocking local storage, so Lumina cannot save collections here right now. Browsing and comparing still work normally.",
+          "This browser is blocking local storage, so Nova-Lumina cannot save collections here right now. Browsing and comparing still work normally.",
       },
       trigger: {
         manageAriaLabel: "Saved. Manage where {objectName} is saved",
@@ -179,9 +179,9 @@ export const enMessages = {
       loading: "Checking your saved collections…",
       storageUnavailable: {
         pageDescription:
-          "This browser is blocking site storage, so Lumina cannot save or show collections right now. Browsing, search, object pages, and comparison all keep working normally.",
+          "This browser is blocking site storage, so Nova-Lumina cannot save or show collections right now. Browsing, search, object pages, and comparison all keep working normally.",
         pickerDescription:
-          "This browser is blocking site storage, so Lumina cannot save or show collections right now. Nothing was changed. Browsing, search, object pages, and comparison all keep working normally.",
+          "This browser is blocking site storage, so Nova-Lumina cannot save or show collections right now. Nothing was changed. Browsing, search, object pages, and comparison all keep working normally.",
         title: "Local storage is unavailable",
       },
     },
@@ -220,7 +220,7 @@ export const enMessages = {
       header: {
         eyebrow: "Optional interactive renderer",
         intro:
-          "The catalogue above is Lumina's canonical science. Opening this supplemental atlas loads the WorldWide Telescope engine and imagery from the credited survey hosts. No external WWT or imagery request is made before you activate it.",
+          "The catalogue above is Nova-Lumina's canonical science. Opening this supplemental atlas loads the WorldWide Telescope engine and imagery from the credited survey hosts. No external WWT or imagery request is made before you activate it.",
         title: "WorldWide Telescope atlas",
       },
       observer: {
@@ -231,7 +231,7 @@ export const enMessages = {
         localHorizon: "Show local-horizon context",
         longitudeLabel: "Longitude °",
         privacy:
-          "Coordinates remain only in this component's memory. They are not placed in the URL, stored, logged, sent to Lumina APIs, or sent to imagery providers.",
+          "Coordinates remain only in this component's memory. They are not placed in the URL, stored, logged, sent to Nova-Lumina APIs, or sent to imagery providers.",
         useLocation: "Use my location",
       },
       rendererDisclosure:
@@ -253,7 +253,7 @@ export const enMessages = {
         horizonEnabled: "Local-horizon observer context enabled.",
         horizonFailed: "The atlas could not change horizon context.",
         initialLayerUnavailable:
-          "{layerLabel} imagery is unavailable right now. Lumina did not start the interactive renderer; the canonical catalogue and source information remain available.",
+          "{layerLabel} imagery is unavailable right now. Nova-Lumina did not start the interactive renderer; the canonical catalogue and source information remain available.",
         invalidLayer: "That survey layer is not part of the reviewed inventory.",
         layerChanged: "Survey layer changed to {layerLabel}.",
         layerDisplayFailed: "That survey layer could not be displayed.",
@@ -281,7 +281,7 @@ export const enMessages = {
       },
       time: {
         apply: "Apply UTC time",
-        help: "Time changes viewing context only. It does not change Lumina's canonical catalogue coordinates.",
+        help: "Time changes viewing context only. It does not change Nova-Lumina's canonical catalogue coordinates.",
         inputLabel: "ISO 8601 UTC instant",
         legend: "UTC viewing context",
         useCurrent: "Use current time",
@@ -306,7 +306,7 @@ export const enMessages = {
       summary: "Galaxies · nebulae · clusters",
       title: "Reviewed deep-sky catalogue",
       unavailableDescription:
-        "Lumina could not load any of the bounded galaxy, nebula, or cluster slices. No substitute objects are shown.",
+        "Nova-Lumina could not load any of the bounded galaxy, nebula, or cluster slices. No substitute objects are shown.",
       unavailableTitle: "Deep-sky catalogue temporarily unavailable",
       unavailableTypes:
         "Partial catalogue: {types} could not be loaded, while the available types remain usable.",
@@ -315,18 +315,18 @@ export const enMessages = {
       backToExplore: "← Explore catalogue",
       eyebrow: "Reviewed deep-sky atlas",
       intro:
-        "Browse reviewed galaxies, nebulae, and clusters from Lumina's catalogue. The optional WorldWide Telescope view is a renderer only: object identity, coordinates, epoch, and provenance continue to come from Lumina's reviewed data.",
+        "Browse reviewed galaxies, nebulae, and clusters from Nova-Lumina's catalogue. The optional WorldWide Telescope view is a renderer only: object identity, coordinates, epoch, and provenance continue to come from Nova-Lumina's reviewed data.",
       title: "Deep-sky atlas",
     },
     invalidLayer:
-      "The requested survey layer is not part of Lumina's reviewed atlas inventory. Visible DSS2 is shown instead.",
+      "The requested survey layer is not part of Nova-Lumina's reviewed atlas inventory. Visible DSS2 is shown instead.",
     layers: {
       description:
         "These links are safe shareable atlas state. They contain only a closed layer identifier and, when selected, the catalogue object slug — never observer coordinates or viewing time.",
       title: "Reviewed survey layers",
     },
     metadataDescription:
-      "Browse Lumina's reviewed galaxies, nebulae, and clusters, then optionally view them with credited WorldWide Telescope survey imagery.",
+      "Browse Nova-Lumina's reviewed galaxies, nebulae, and clusters, then optionally view them with credited WorldWide Telescope survey imagery.",
     metadataTitle: "Deep-sky atlas",
     selection: {
       coordinateAmbiguousDescription:
@@ -334,7 +334,7 @@ export const enMessages = {
       coordinateAmbiguousTitle: "{objectName} has multiple accepted coordinate pairs",
       coordinateSourceLabel: "Coordinate source",
       coordinateUnavailableDescription:
-        "The canonical object remains valid, but Lumina does not currently have one complete reviewed coordinate pair that this renderer may use.",
+        "The canonical object remains valid, but Nova-Lumina does not currently have one complete reviewed coordinate pair that this renderer may use.",
       coordinateUnavailableTitle: "{objectName} has no accepted atlas coordinate",
       datasetLabel: "Dataset",
       declinationLabel: "Declination",
@@ -350,7 +350,7 @@ export const enMessages = {
       selectTitle: "Select an object",
       sourceRecordLabel: "source record",
       unavailableDescription:
-        "Lumina could not reload the selected catalogue object, so the atlas will not invent coordinates.",
+        "Nova-Lumina could not reload the selected catalogue object, so the atlas will not invent coordinates.",
       unavailableTitle: "Selected object unavailable",
     },
   },
@@ -367,7 +367,7 @@ export const enMessages = {
     eventDateLabel: "Event date",
     eyebrow: "Mission Control · Reviewed discoveries",
     intro:
-      "These are authored, version-controlled summaries checked against the sources linked on each card. Lumina does not generate or continuously scrape science-news prose.",
+      "These are authored, version-controlled summaries checked against the sources linked on each card. Nova-Lumina does not generate or continuously scrape science-news prose.",
     metadataDescription:
       "A small version-controlled set of recent space-science and mission updates reviewed against primary or peer-reviewed sources.",
     metadataTitle: "Reviewed discoveries",
@@ -416,14 +416,14 @@ export const enMessages = {
     empty: {
       addHeading: "Add an object",
       description:
-        "Add two or three objects to see their reviewed measurements side by side, each with its own source. Lumina compares published values honestly — it never scores or ranks them.",
+        "Add two or three objects to see their reviewed measurements side by side, each with its own source. Nova-Lumina compares published values honestly — it never scores or ranks them.",
       title: "Nothing selected yet",
     },
     footerBackToExplore: "← Back to Explore",
     header: {
       eyebrow: "The catalogue",
       intro:
-        "Put up to three catalogue objects side by side. Every value keeps its exact units and its source — Lumina compares published measurements honestly and never scores them.",
+        "Put up to three catalogue objects side by side. Every value keeps its exact units and its source — Nova-Lumina compares published measurements honestly and never scores them.",
       title: "Compare",
     },
     metadata: {
@@ -474,7 +474,7 @@ export const enMessages = {
   explore: {
     browse: {
       emptyDescription:
-        "No reviewed objects are published yet. Lumina adds objects deliberately, with full provenance, rather than importing catalogues wholesale.",
+        "No reviewed objects are published yet. Nova-Lumina adds objects deliberately, with full provenance, rather than importing catalogues wholesale.",
       emptyTitle: "The catalogue is being curated",
       heading: "In the catalogue now",
       nextPage: "Next page",
@@ -495,14 +495,14 @@ export const enMessages = {
       exoplanetSystemsAction: "Compare exoplanet systems →",
       eyebrow: "The catalogue",
       intro:
-        "A small but honest slice of the universe: every value Lumina publishes is traceable to its source. Start with a name — or browse below.",
+        "A small but honest slice of the universe: every value Nova-Lumina publishes is traceable to its source. Start with a name — or browse below.",
       solarSystemAction: "Compare Solar System distances →",
       systemCompareAction: "Compare system scales →",
       title: "Explore real objects, provenance included",
       voyagerAction: "Follow Voyager 1 mission →",
     },
     metadataDescription:
-      "Search and browse Lumina's reviewed astronomical catalogue. Every published value keeps its source and provenance.",
+      "Search and browse Nova-Lumina's reviewed astronomical catalogue. Every published value keeps its source and provenance.",
     metadataTitle: "Explore the catalogue",
     exoplanetSystems: {
       backToExplore: "← Explore catalogue",
@@ -556,7 +556,7 @@ export const enMessages = {
         planet: {
           discoverySummary: "Host: {host} · discovered {year} · {method}",
           disclosure:
-            "These two parameters may come from different publications because {table} is a composite table. Lumina therefore keeps each parameter's reference attached to that value.",
+            "These two parameters may come from different publications because {table} is a composite table. Nova-Lumina therefore keeps each parameter's reference attached to that value.",
           eyebrow: "Selected confirmed planet",
         },
         scaleAriaLabel: "Orbital reference scale",
@@ -571,9 +571,9 @@ export const enMessages = {
         trackSummary: "{distance} {unit} · {position}% of shared {mode} track",
       },
       intro:
-        "Compare confirmed planets around the five host stars already reviewed by Lumina. The layout uses cited orbit semi-major axes—not current positions, not generated orbits, and not an artist's impression.",
+        "Compare confirmed planets around the five host stars already reviewed by Nova-Lumina. The layout uses cited orbit semi-major axes—not current positions, not generated orbits, and not an artist's impression.",
       metadataDescription:
-        "Compare pinned {provider} semi-major-axis layouts for Lumina's five reviewed host-star systems without implying current planet positions.",
+        "Compare pinned {provider} semi-major-axis layouts for Nova-Lumina's five reviewed host-star systems without implying current planet positions.",
       metadataTitle: "Exoplanet System Layouts",
       model: {
         assumptionsTitle: "Assumptions",
@@ -587,7 +587,7 @@ export const enMessages = {
         bytesLabel: "Raw snapshot bytes",
         columnDocumentation: "{columnSet} column definitions ↗",
         description:
-          "Lumina does not query {provider} when you open this page. It uses this checksum-pinned, reviewed snapshot so the visual remains reproducible.",
+          "Nova-Lumina does not query {provider} when you open this page. It uses this checksum-pinned, reviewed snapshot so the visual remains reproducible.",
         providerLabel: "Provider",
         querySummary: "Exact pinned {tap} query",
         retrievedLabel: "Retrieved",
@@ -609,7 +609,7 @@ export const enMessages = {
       model: {
         assumptionsTitle: "Assumptions",
         description:
-          "Lumina does not propagate a spacecraft orbit in the browser. It renders a reviewed static artifact whose annual XYZ vectors were parsed and validated by the Python astronomy domain.",
+          "Nova-Lumina does not propagate a spacecraft orbit in the browser. It renders a reviewed static artifact whose annual XYZ vectors were parsed and validated by the Python astronomy domain.",
         limitationsTitle: "Limitations",
         title: "Model and limitations",
       },
@@ -651,7 +651,7 @@ export const enMessages = {
       title: "{mission} Mission Timeline and Trajectory",
       trajectory: {
         description:
-          "The path below is an {xyAxes} projection of {center}-centered geometric positions in the {frame} ecliptic frame. {zAxis} is not drawn in the projection and remains visible numerically. Annual points are connected only as a visual guide; Lumina does not interpolate a continuous flight solution.",
+          "The path below is an {xyAxes} projection of {center}-centered geometric positions in the {frame} ecliptic frame. {zAxis} is not drawn in the projection and remains visible numerically. Annual points are connected only as a visual guide; Nova-Lumina does not interpolate a continuous flight solution.",
         distanceHistory: {
           ariaLabel: "{mission} heliocentric distance by annual sample",
           description:
@@ -716,7 +716,7 @@ export const enMessages = {
         selected: {
           compareSizeAction: "Compare {body}'s characteristic size →",
           disclosure:
-            "Distance and body size are different quantities. Lumina intentionally keeps them in separate reviewed models rather than drawing planet marker diameters on the distance track.",
+            "Distance and body size are different quantities. Nova-Lumina intentionally keeps them in separate reviewed models rather than drawing planet marker diameters on the distance track.",
           earthRatioLabel: "Relative to Earth's mean distance",
           eyebrow: "Selected reference body",
           lightTimeLabel: "Light-time context",
@@ -735,7 +735,7 @@ export const enMessages = {
       model: {
         assumptionsTitle: "Assumptions",
         description:
-          "The browser consumes a checked-in artifact produced by Lumina's Python astronomy domain. It switches only between precomputed linear and logarithmic positions; it does not recalculate orbital science in the renderer.",
+          "The browser consumes a checked-in artifact produced by Nova-Lumina's Python astronomy domain. It switches only between precomputed linear and logarithmic positions; it does not recalculate orbital science in the renderer.",
         limitationsTitle: "Limitations",
         linearMappingLabel: "Linear mapping",
         logMappingLabel: "Log mapping",
@@ -771,7 +771,7 @@ export const enMessages = {
           source: "Source ↗",
         },
         description:
-          "A shared unit makes numeric scale comparison possible. It does not make mean Sun distance, orbit semi-major axis, and heliocentric vector magnitude interchangeable. Lumina keeps each definition and source attached.",
+          "A shared unit makes numeric scale comparison possible. It does not make mean Sun distance, orbit semi-major axis, and heliocentric vector magnitude interchangeable. Nova-Lumina keeps each definition and source attached.",
         laneAriaLabel: "{name} shared scale reference",
         laneSummary:
           "{value} {unit} · {position}% of shared {mode} display · numeric length is {ratio}× the {unit} arithmetic reference",
@@ -840,7 +840,7 @@ export const enMessages = {
     unavailable: {
       catalogueTitle: "The catalogue is unavailable right now",
       description:
-        "Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
+        "Nova-Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
       searchTitle: "Search is unavailable right now",
     },
   },
@@ -858,14 +858,14 @@ export const enMessages = {
     },
     metadata: {
       description:
-        "{name} in the Lumina catalogue: {entityType} with published measurements and full source provenance.",
+        "{name} in the Nova-Lumina catalogue: {entityType} with published measurements and full source provenance.",
       notFoundTitle: "Object not found",
       unavailableTitle: "Object temporarily unavailable",
     },
     notFound: {
       browseCatalogue: "Browse the catalogue",
       description:
-        "Lumina has no catalogue object at {path}. It may be added later as reviewed data grows — try searching instead.",
+        "Nova-Lumina has no catalogue object at {path}. It may be added later as reviewed data grows — try searching instead.",
       title: "Object not found",
     },
     provenance: {
@@ -883,19 +883,19 @@ export const enMessages = {
     },
     science: {
       empty:
-        "No measurements are published through Lumina for this object yet. This page will grow as reviewed data is added — nothing is estimated or filled in on your behalf.",
+        "No measurements are published through Nova-Lumina for this object yet. This page will grow as reviewed data is added — nothing is estimated or filled in on your behalf.",
       heading: "Scientific data",
       measurementDetails: {
         one: "{count} measurement recorded · original value {originalValue} {originalUnit}",
         other: "{count} measurements recorded · original value {originalValue} {originalUnit}",
       },
-      summary: "Values are shown exactly as selected by Lumina's reviewed pipeline.",
+      summary: "Values are shown exactly as selected by Nova-Lumina's reviewed pipeline.",
       unselected: "Also tracked, awaiting a canonical selection: {quantities}.",
     },
     unavailable: {
       browseCatalogue: "Browse the catalogue",
       description:
-        "Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
+        "Nova-Lumina could not reach the catalogue service within its bounded request window. Nothing is shown rather than showing something wrong — please retry in a moment.",
       title: "This object is temporarily unavailable",
     },
   },
@@ -953,7 +953,7 @@ export const enMessages = {
     header: {
       eyebrow: "Selected-night comparison",
       intro:
-        "Compare the saved objects in one Collection for one observer location and selected night. Lumina exposes the geometry behind the order; it does not calculate a composite observing score or choose a target for you.",
+        "Compare the saved objects in one Collection for one observer location and selected night. Nova-Lumina exposes the geometry behind the order; it does not calculate a composite observing score or choose a target for you.",
       title: "Tonight",
     },
     invalidNight: {
@@ -976,7 +976,7 @@ export const enMessages = {
       lookingUp: "Looking up location…",
       manualLegend: "Enter coordinates manually",
       privacyNote:
-        "Your precise location stays in this browser. It is not sent to Lumina's catalogue API.",
+        "Your precise location stays in this browser. It is not sent to Nova-Lumina's catalogue API.",
       summary: "Used locally for astronomy",
       unsupported: "This browser does not support location access. Enter coordinates manually.",
       useMyLocation: "Use my location",
@@ -1068,7 +1068,7 @@ export const enMessages = {
     },
     weather: {
       consentDisclosure:
-        "Weather requests use coordinates rounded to {digits} decimal places and are sent directly from your browser to {provider}. Lumina does not store observer location.",
+        "Weather requests use coordinates rounded to {digits} decimal places and are sent directly from your browser to {provider}. Nova-Lumina does not store observer location.",
       consentPrompt:
         "Loading weather sends one forecast request with a location rounded to {digits} decimal places directly to {provider}. You choose whether to make this separate provider request.",
       contextUnavailable: "Forecast context unavailable for this peak.",
@@ -1113,12 +1113,12 @@ export const enMessages = {
       description:
         "Run a bounded diagnostic sample of the image already held in this browser. This action makes no additional upload and does not contact {provider} or another survey service.",
       endpointDisclosure:
-        "Minimum/maximum-code proxies count opaque sample pixels where at least one RGB channel is exactly 0 or 255 after browser decoding. Endpoint occupancy can be consistent with clipping, but it can also come from legitimate image content or processing; Lumina does not diagnose exposure from these percentages.",
+        "Minimum/maximum-code proxies count opaque sample pixels where at least one RGB channel is exactly 0 or 255 after browser decoding. Endpoint occupancy can be consistent with clipping, but it can also come from legitimate image content or processing; Nova-Lumina does not diagnose exposure from these percentages.",
       eyebrow: "Browser-local diagnostics",
       failures: {
         decodeFailed:
           "This browser could not decode the selected image for local capture checks. The solved result remains available.",
-        invalidPixels: "The decoded pixel sample failed Lumina's bounded validation checks.",
+        invalidPixels: "The decoded pixel sample failed Nova-Lumina's bounded validation checks.",
         noOpaquePixels:
           "The bounded sample contains no fully opaque pixels, so these RGB diagnostics are not meaningful.",
         unknown:
@@ -1149,10 +1149,10 @@ export const enMessages = {
     },
     header: {
       localDescription:
-        "This local mode exercises Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic test fixture: it does not identify the sky and does not return astrometric coordinates.",
+        "This local mode exercises Nova-Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic test fixture: it does not identify the sky and does not return astrometric coordinates.",
       localEyebrow: "Identify · local privacy workflow",
       remoteDescription:
-        "Lumina can send one explicitly consented image to {service} for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations.",
+        "Nova-Lumina can send one explicitly consented image to {service} for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations.",
       remoteEyebrow: "Identify · remote plate solving",
       title: "Identify an astronomical image",
     },
@@ -1164,11 +1164,11 @@ export const enMessages = {
       },
       attachment: {
         description:
-          "Off by default. If enabled, Lumina stores a filename-free JPEG/PNG Blob in local IndexedDB; it is not uploaded again.",
+          "Off by default. If enabled, Nova-Lumina stores a filename-free JPEG/PNG Blob in local IndexedDB; it is not uploaded again.",
         title: "Keep a local copy of this image in the browser journal.",
       },
       description:
-        "Journal data stays in this browser. Lumina does not read EXIF time or location into the journal: date, place, equipment, conditions, and notes below are saved only from what you explicitly enter.",
+        "Journal data stays in this browser. Nova-Lumina does not read EXIF time or location into the journal: date, place, equipment, conditions, and notes below are saved only from what you explicitly enter.",
       entryIdLabel: "Entry ID:",
       eyebrow: "Browser-local journal",
       failures: {
@@ -1180,7 +1180,7 @@ export const enMessages = {
         invalidFields:
           "The journal fields could not be validated. Check the entered values and try again.",
         rollbackFailed:
-          "The image attachment failed and Lumina could not fully roll back the local journal operation. Review the Journal before retrying.",
+          "The image attachment failed and Nova-Lumina could not fully roll back the local journal operation. Review the Journal before retrying.",
         storageUnavailable: "This browser is not allowing IndexedDB journal storage right now.",
         writeRejected:
           "The browser rejected the journal write. Nothing was changed on the remote solver.",
@@ -1217,7 +1217,7 @@ export const enMessages = {
     },
     metadata: {
       description:
-        "Upload an astronomical image for Lumina's private identification workflow. Remote plate solving is used only when explicitly enabled and consented to.",
+        "Upload an astronomical image for Nova-Lumina's private identification workflow. Remote plate solving is used only when explicitly enabled and consented to.",
       title: "Identify an astronomical image",
     },
     privacy: {
@@ -1231,14 +1231,14 @@ export const enMessages = {
       },
       remote: {
         deletion:
-          "Deleting here removes Lumina's local temporary object and scrubs identifying local metadata. {provider} controls any provider-side retention or deletion limitations.",
+          "Deleting here removes Nova-Lumina's local temporary object and scrubs identifying local metadata. {provider} controls any provider-side retention or deletion limitations.",
         privateMode:
-          "Lumina requests {service}'s private visibility mode and disallows provider-side modification and commercial use for the submitted image.",
+          "Nova-Lumina requests {service}'s private visibility mode and disallows provider-side modification and commercial use for the submitted image.",
         sentToProvider:
-          "The image is sent to {service} only after explicit consent. Lumina keeps the provider API key and provider-side identifiers server-private.",
+          "The image is sent to {service} only after explicit consent. Nova-Lumina keeps the provider API key and provider-side identifiers server-private.",
         title: "Remote processing requires your consent",
         unsolved:
-          "A remote solve can finish without finding an astrometric solution; Lumina reports that separately from processing failure.",
+          "A remote solve can finish without finding an astrometric solution; Nova-Lumina reports that separately from processing failure.",
       },
       retentionLocal:
         "The configured retention period is {hours} hours. Terminal jobs are eligible for cleanup after the retention policy; abandoned uploads are also bounded.",
@@ -1293,7 +1293,7 @@ export const enMessages = {
           "Annotation names are provider-derived labels associated with the solved WCS; they are not object-recognition or generative-AI detections and may not enumerate every object in the field.",
         fingerprintLabel: "WCS source fingerprint:",
         solverDescription:
-          "Lumina validates and normalizes the returned calibration and WCS before storing it.",
+          "Nova-Lumina validates and normalizes the returned calibration and WCS before storing it.",
         solverLabel: "Solver:",
         title: "Solution provenance and limitations",
       },
@@ -1315,9 +1315,9 @@ export const enMessages = {
         "Compare your solved image with a reviewed {service} survey layer centered on the same astrometric field. The two views are not pixel-registered and are not photometrically equivalent; orientation, projection, epoch, resolution, bandpass, and processing may differ.",
       eyebrow: "Opt-in survey context",
       fieldDescription:
-        "Lumina requests a {fieldOfView}° atlas field from the solved center, derived as twice the normalized solution radius.",
+        "Nova-Lumina requests a {fieldOfView}° atlas field from the solved center, derived as twice the normalized solution radius.",
       fieldDescriptionClamped:
-        "Lumina requests a {fieldOfView}° atlas field from the solved center, derived as twice the normalized solution radius and clamped to the certified atlas range.",
+        "Nova-Lumina requests a {fieldOfView}° atlas field from the solved center, derived as twice the normalized solution radius and clamped to the certified atlas range.",
       figures: {
         localAlt: "Original solved astronomical image for survey comparison",
         localCaption: "Your local solved image",
@@ -1387,27 +1387,27 @@ export const enMessages = {
         "Remote provider identifiers are kept private and are not exposed in this interface.",
       remoteConditions: {
         busyFailed:
-          "{provider} returned a capacity response after Lumina's single upload attempt. Lumina did not automatically resubmit because the remote outcome cannot be safely assumed; try again later if you want another solve.",
+          "{provider} returned a capacity response after Nova-Lumina's single upload attempt. Nova-Lumina did not automatically resubmit because the remote outcome cannot be safely assumed; try again later if you want another solve.",
         busyRetry:
-          "{provider} is currently at capacity. Lumina will retry within this solve's bounded timeout; no new upload or consent is required.",
+          "{provider} is currently at capacity. Nova-Lumina will retry within this solve's bounded timeout; no new upload or consent is required.",
         unavailable:
-          "{provider} is temporarily unavailable. Lumina will retry within this solve's bounded timeout; no new upload or consent is required.",
+          "{provider} is temporarily unavailable. Nova-Lumina will retry within this solve's bounded timeout; no new upload or consent is required.",
       },
       results: {
-        expired: "The remote solve did not finish within Lumina's configured timeout.",
+        expired: "The remote solve did not finish within Nova-Lumina's configured timeout.",
         fakeFailure: "The fake identification job could not complete safely.",
         fakeSuccessDescription:
           "The deterministic fake solver completed the private workflow. This is not an astrometric solution and contains no RA/Dec, WCS, orientation, scale, or detected objects.",
         fakeSuccessTitle: "Infrastructure check completed.",
         remoteFailure: "The remote plate-solving workflow could not complete safely.",
         remoteSuccessDescription:
-          "Lumina stored a normalized plate calibration, WCS, and bounded annotations. The WCS-backed result and browser-local image overlay load below; provider credentials and provider identifiers remain private.",
+          "Nova-Lumina stored a normalized plate calibration, WCS, and bounded annotations. The WCS-backed result and browser-local image overlay load below; provider credentials and provider identifiers remain private.",
         remoteSuccessTitle: "Astrometric solution available.",
         unsolved:
           "{provider} completed processing without finding a plate solution. This is not the same as a processing failure.",
       },
       solution: {
-        loadingDescription: "Loading Lumina's stored calibration, WCS, and annotations.",
+        loadingDescription: "Loading Nova-Lumina's stored calibration, WCS, and annotations.",
         loadingTitle: "Loading normalized solution",
         unavailableDescription:
           "The solve completed, but the normalized solution could not be loaded safely.",
@@ -1423,7 +1423,7 @@ export const enMessages = {
     },
     unavailable: {
       description:
-        "Upload infrastructure is private and optional. Core Lumina remains available when this feature is offline.",
+        "Upload infrastructure is private and optional. Core Nova-Lumina remains available when this feature is offline.",
       eyebrow: "Identify · Private image processing",
       heading: "Identification unavailable",
       reasons: {
@@ -1442,9 +1442,9 @@ export const enMessages = {
       bound:
         "Current bound: {maxBytes} and {maxPixels} pixels; each dimension must be at least {minDimension}px.",
       consentLocal:
-        "I understand that Lumina will temporarily store and process this image on the server for this identification job. No remote {provider} service is contacted in this mode, and I can delete the temporary submission below.",
+        "I understand that Nova-Lumina will temporarily store and process this image on the server for this identification job. No remote {provider} service is contacted in this mode, and I can delete the temporary submission below.",
       consentRemote:
-        "I explicitly consent to Lumina temporarily storing this image and sending its bytes to the third-party {service} service for private plate solving. Deleting the submission below removes Lumina's local temporary copy and identifying metadata; remote deletion and retention remain subject to {provider}'s service limitations.",
+        "I explicitly consent to Nova-Lumina temporarily storing this image and sending its bytes to the third-party {service} service for private plate solving. Deleting the submission below removes Nova-Lumina's local temporary copy and identifying metadata; remote deletion and retention remain subject to {provider}'s service limitations.",
       description:
         "Filename and original bytes are temporary server-private data. They are never published in the status response.",
       errors: {
@@ -1452,7 +1452,7 @@ export const enMessages = {
         fileRequired: "Choose one JPEG or PNG image first.",
         serverMediaOnly: "The server accepted only a verified JPEG or PNG image.",
         sizeLimit: "That image exceeds the current private-upload size limit.",
-        timeout: "The private upload timed out before Lumina could confirm it.",
+        timeout: "The private upload timed out before Nova-Lumina could confirm it.",
         unavailable:
           "Image identification is temporarily unavailable. No successful upload was confirmed.",
         unsupportedMedia: "Choose a JPEG or PNG image.",
@@ -1483,7 +1483,7 @@ export const enMessages = {
       },
       form: {
         intro:
-          "The catalogue object is recorded as a local reference. Lumina does not infer when or where you observed it.",
+          "The catalogue object is recorded as a local reference. Nova-Lumina does not infer when or where you observed it.",
         latitudeLabel: "Latitude",
         locationLabel: "Location label",
         locationLegend: "Location (optional)",
@@ -1553,18 +1553,18 @@ export const enMessages = {
     eyebrow: "Browser-local observations",
     failures: {
       storageCorrupted:
-        "Saved journal data failed validation. Lumina left the local bytes untouched rather than guessing.",
+        "Saved journal data failed validation. Nova-Lumina left the local bytes untouched rather than guessing.",
       storageUnavailable:
-        "This browser is not allowing Lumina to read the local journal right now.",
+        "This browser is not allowing Nova-Lumina to read the local journal right now.",
     },
     identifyAnotherImage: "Identify another image",
     intro:
-      "These entries live only in this browser's local IndexedDB. Lumina does not send journal notes, confirmed locations, equipment, or locally retained image attachments to the API.",
+      "These entries live only in this browser's local IndexedDB. Nova-Lumina does not send journal notes, confirmed locations, equipment, or locally retained image attachments to the API.",
     loading: "Loading the local journal…",
     metadataDescription: "Review observations saved locally in this browser.",
-    metadataTitle: "Journal · Lumina",
+    metadataTitle: "Journal · Nova-Lumina",
     privacyDetail:
-      "Plate-solve snapshots come from Lumina's normalized WCS result. Observation time and location appear only when you explicitly confirmed them while saving.",
+      "Plate-solve snapshots come from Nova-Lumina's normalized WCS result. Observation time and location appear only when you explicitly confirmed them while saving.",
     states: {
       emptyDescription:
         "Add an observation from a catalogue object or observation plan, or solve an image in Identify and save its normalized astrometric result.",
@@ -1576,7 +1576,7 @@ export const enMessages = {
     transfer: {
       applyReviewedImport: "Apply reviewed import",
       conflictSummary:
-        "Local updated {localUpdated} · imported updated {importedUpdated}. Lumina's timestamp-based suggestion is {recommendation}, but you must choose.",
+        "Local updated {localUpdated} · imported updated {importedUpdated}. Nova-Lumina's timestamp-based suggestion is {recommendation}, but you must choose.",
       conflictTitle: "Conflict {id}",
       description:
         "Journal exports are portable personal-data files. They can contain your notes, explicitly confirmed location/time, equipment, normalized plate-solve snapshots, and any image Blobs you chose to retain. Store exports accordingly.",
@@ -1593,9 +1593,10 @@ export const enMessages = {
       importComplete:
         "Import complete: {added} added, {replaced} replaced, {keptLocal} kept local.",
       importDescription:
-        "Lumina validates the version, entry schema, attachment hashes, and whole-journal checksum before previewing any import. Existing entries are never silently overwritten.",
-      importFileLabel: "Import a Lumina journal file",
-      importFileSizeInvalid: "That journal file is empty or exceeds Lumina's bounded import limit.",
+        "Nova-Lumina validates the version, entry schema, attachment hashes, and whole-journal checksum before previewing any import. Existing entries are never silently overwritten.",
+      importFileLabel: "Import a Nova-Lumina journal file",
+      importFileSizeInvalid:
+        "That journal file is empty or exceeds Nova-Lumina's bounded import limit.",
       importInvalid: "That journal file could not be validated. Nothing was imported.",
       importPreviewConflicts: {
         one: "{count} conflict requiring a decision",
@@ -1680,7 +1681,7 @@ export const enMessages = {
           dataLink: "Weather data by {provider}",
           licenceLink: "CC BY 4.0 licence",
           privacy:
-            "Weather requests use coordinates rounded to {digits} decimal places and are sent directly from your browser to {provider}. Lumina does not store observer location.",
+            "Weather requests use coordinates rounded to {digits} decimal places and are sent directly from your browser to {provider}. Nova-Lumina does not store observer location.",
           provider: "Forecast provider: {provider}. Data are forecasts, not measurements.",
           providerRetrieved:
             "Forecast provider: {provider}. Retrieved {time}. Data are forecasts, not measurements.",
@@ -1744,7 +1745,7 @@ export const enMessages = {
           windDetail: "At {height}",
         },
         optInDescription:
-          "Loading weather sends a rounded location directly to {provider}. Lumina does not store it. You choose whether to make this separate provider request.",
+          "Loading weather sends a rounded location directly to {provider}. Nova-Lumina does not store it. You choose whether to make this separate provider request.",
         retryAction: "Retry forecast",
         selectedDescription: "{condition} · hourly forecast point",
         selectedTitle: "Forecast nearest {time}",
@@ -1783,7 +1784,7 @@ export const enMessages = {
     },
     coordinatesUnavailable: {
       description:
-        "This object does not currently have a usable accepted Gaia ICRS position. Lumina has not estimated or substituted coordinates.",
+        "This object does not currently have a usable accepted Gaia ICRS position. Nova-Lumina has not estimated or substituted coordinates.",
       title: "Observation planning unavailable",
     },
     header: {
@@ -1813,13 +1814,13 @@ export const enMessages = {
       lookupBusy: "Looking up location…",
       manualLegend: "Enter coordinates manually",
       privacyDescription:
-        "Your precise location stays in this browser. It is not sent to Lumina's catalogue API.",
+        "Your precise location stays in this browser. It is not sent to Nova-Lumina's catalogue API.",
       title: "Observer location",
       useMyLocation: "Use my location",
     },
     metadata: {
       description:
-        "Plan when and where to observe a Lumina catalogue object using deterministic astronomical calculations.",
+        "Plan when and where to observe a Nova-Lumina catalogue object using deterministic astronomical calculations.",
       title: "Observation planner",
     },
     night: {
@@ -1869,9 +1870,9 @@ export const enMessages = {
     },
     savePlan: {
       description:
-        "Saving this plan stores the exact observer coordinates, selected time, target, calculated geometry, and source context only in this browser. Lumina does not send this saved plan to the server or put the coordinates in its URL.",
+        "Saving this plan stores the exact observer coordinates, selected time, target, calculated geometry, and source context only in this browser. Nova-Lumina does not send this saved plan to the server or put the coordinates in its URL.",
       failures: {
-        generic: "Lumina could not save this plan locally. Nothing was sent to the server.",
+        generic: "Nova-Lumina could not save this plan locally. Nothing was sent to the server.",
         identifierUnavailable:
           "This browser cannot create a safe local identifier for the saved plan.",
         planLimit:
@@ -1880,7 +1881,8 @@ export const enMessages = {
           "This browser does not have enough local storage space to save another plan.",
         storageCorrupted:
           "Saved-plan storage could not be read safely. Existing local data was not changed.",
-        storageUnavailable: "This browser is not allowing Lumina to store saved plans right now.",
+        storageUnavailable:
+          "This browser is not allowing Nova-Lumina to store saved plans right now.",
       },
       openSavedPlan: "Open saved plan",
       saveAction: "Save plan",
@@ -1896,7 +1898,7 @@ export const enMessages = {
         positionsDescription:
           "Positions: Gaia DR3 catalogue epoch J2016.0. Proper motion not propagated.",
         sourceDescription:
-          "Source: ESA Gaia Archive · processed by Gaia DPAC. Context rows are not searchable Lumina catalogue entities.",
+          "Source: ESA Gaia Archive · processed by Gaia DPAC. Context rows are not searchable Nova-Lumina catalogue entities.",
         states: {
           hidden: "Bright-star context is hidden.",
           loading: "Loading pinned bright-star context…",
@@ -2072,7 +2074,7 @@ export const enMessages = {
     delete: {
       description:
         "This removes only this saved plan from this browser. It does not clear journal entries, other saved plans, or offline page copies.",
-      failure: "Lumina could not delete this saved plan. The local record may still exist.",
+      failure: "Nova-Lumina could not delete this saved plan. The local record may still exist.",
       title: "Delete this local snapshot?",
     },
     events: {
@@ -2129,27 +2131,27 @@ export const enMessages = {
     },
     states: {
       corrupted: {
-        body: "The stored record failed validation. Lumina left the local data untouched instead of guessing or repairing it silently.",
+        body: "The stored record failed validation. Nova-Lumina left the local data untouched instead of guessing or repairing it silently.",
         heading: "Saved plan storage could not be trusted",
       },
       deleted: {
-        body: "This local snapshot was removed from this browser. Other Lumina personal data was not cleared.",
+        body: "This local snapshot was removed from this browser. Other Nova-Lumina personal data was not cleared.",
         heading: "Saved plan deleted",
       },
       error: {
-        body: "Lumina could not read this local snapshot. No replacement calculation was created.",
+        body: "Nova-Lumina could not read this local snapshot. No replacement calculation was created.",
         heading: "Saved plan could not be read",
       },
       invalid: {
-        body: "The local saved-plan identifier is malformed, so Lumina did not query IndexedDB for another record.",
+        body: "The local saved-plan identifier is malformed, so Nova-Lumina did not query IndexedDB for another record.",
         heading: "Saved plan address is invalid",
       },
       missing: {
-        body: "This browser does not have a saved plan with that local identifier. Lumina did not substitute another plan.",
+        body: "This browser does not have a saved plan with that local identifier. Nova-Lumina did not substitute another plan.",
         heading: "Saved plan not found",
       },
       unavailable: {
-        body: "This browser is not allowing Lumina to read its local IndexedDB storage right now.",
+        body: "This browser is not allowing Nova-Lumina to read its local IndexedDB storage right now.",
         heading: "Saved plans are unavailable",
       },
     },
@@ -2157,8 +2159,8 @@ export const enMessages = {
   labIndex: {
     eyebrow: "Space Lab",
     intro:
-      "Open a reviewed Lumina laboratory. Each lab keeps its model, assumptions, and accessible text result visible alongside its interaction.",
-    metadataDescription: "Lumina's implemented interactive astronomy laboratories.",
+      "Open a reviewed Nova-Lumina laboratory. Each lab keeps its model, assumptions, and accessible text result visible alongside its interaction.",
+    metadataDescription: "Nova-Lumina's implemented interactive astronomy laboratories.",
     metadataTitle: "Lab",
     navigationLabel: "Implemented laboratories",
     openLab: "Open lab →",
@@ -2183,7 +2185,7 @@ export const enMessages = {
       failures: {
         emptyInput: "One or more controls are empty or outside the reviewed v1 domain.",
         outOfDomain:
-          "The requested values are outside the reviewed Schwarzschild v1 domain. Lumina does not clamp or reinterpret them.",
+          "The requested values are outside the reviewed Schwarzschild v1 domain. Nova-Lumina does not clamp or reinterpret them.",
         rejected:
           "The canonical Black-Hole / Relativity Lab rejected this state. The last valid result remains visible.",
         resultMismatch:
@@ -2246,7 +2248,7 @@ export const enMessages = {
           "The mass control is the IAU nominal-solar gravitational-parameter ratio, not a measured mass in kilograms. The selected observer is an accelerated hoverer, not a freely falling or orbiting observer.",
         eyebrow: "Black-hole relativity teaching model",
         intro:
-          "Explore a source-backed Schwarzschild landmark and static-clock teaching model. Lumina's Python astronomy domain owns all horizon, photon-sphere, ISCO, clock-rate, and gravitational-redshift calculations.",
+          "Explore a source-backed Schwarzschild landmark and static-clock teaching model. Nova-Lumina's Python astronomy domain owns all horizon, photon-sphere, ISCO, clock-rate, and gravitational-redshift calculations.",
         requestedStateTitle: "Requested teaching state",
         result: {
           gravitationalParameter: "Gravitational parameter",
@@ -2379,14 +2381,14 @@ export const enMessages = {
         eventTitle: "Approximate local contacts",
         eyebrow: "Solar-eclipse geometry model",
         intro:
-          "Explore offline topocentric solar-eclipse geometry. Lumina's Python astronomy domain owns the ephemeris, apparent disk sizes, overlap, classification, and approximate contact search.",
+          "Explore offline topocentric solar-eclipse geometry. Nova-Lumina's Python astronomy domain owns the ephemeris, apparent disk sizes, overlap, classification, and approximate contact search.",
         modelLimitations: "Model limitations",
         modelVersion: "Model version",
         monthlyQuestion: "Why eclipses are not monthly",
         noEvent: "No local eclipse event is returned for this instant.",
         observerLocation: "Latitude {latitude}°, longitude {longitude}°, elevation {elevation} m.",
         observerTitle: "Observer state",
-        resultCaption: "Canonical Eclipse Simulator result from Lumina's astronomy API.",
+        resultCaption: "Canonical Eclipse Simulator result from Nova-Lumina's astronomy API.",
         resultLabels: {
           centerSeparation: "Center separation",
           moonRadius: "Moon angular radius",
@@ -2522,7 +2524,7 @@ export const enMessages = {
       noScript: {
         dataTitle: "Text and data result",
         detail: {
-          colourNoInterval: "{value}; no Lumina colour uncertainty is synthesized",
+          colourNoInterval: "{value}; no Nova-Lumina colour uncertainty is synthesized",
           labels: {
             agExtinction: "A_G / E(BP−RP)",
             apparentMagnitude: "Apparent Gaia G magnitude",
@@ -2572,12 +2574,12 @@ export const enMessages = {
           view: "View",
         },
         tableCaption:
-          "{count} filtered curated Gaia DR3 records. Values are source-published; stage group is Lumina's frozen grouping of the raw FLAME stage index.",
+          "{count} filtered curated Gaia DR3 records. Values are source-published; stage group is Nova-Lumina's frozen grouping of the raw FLAME stage index.",
         viewDescriptions: {
           gaiaCmd:
             "Gaia colour–magnitude view: published BP−RP colour increases from left to right, while absolute G magnitude is vertically reversed so smaller, more-negative magnitudes appear higher. This is an alternate source-variable view, not a conversion from the physical H-R values.",
           physicalHr:
-            "Physical H-R view: effective temperature is logarithmic and hotter stars are on the left; luminosity is logarithmic and increases upward. The values are Gaia source-published quantities, not conversions made by Lumina.",
+            "Physical H-R view: effective temperature is logarithmic and hotter stars are on the left; luminosity is logarithmic and increases upward. The values are Gaia source-published quantities, not conversions made by Nova-Lumina.",
         },
         views: {
           gaiaCmd: "Gaia colour–magnitude",
@@ -2666,7 +2668,7 @@ export const enMessages = {
       failures: {
         invalidInput: "One or more controls are empty or outside the reviewed v1 domain.",
         outOfDomain:
-          "The requested values are outside the reviewed large solid-rock v1 domain. Lumina does not clamp or reinterpret them.",
+          "The requested values are outside the reviewed large solid-rock v1 domain. Nova-Lumina does not clamp or reinterpret them.",
         rejected:
           "The canonical Impact Simulator rejected this state. The last valid result remains visible.",
         resultMismatch: "The returned result did not match the requested versioned impact state.",
@@ -2711,7 +2713,7 @@ export const enMessages = {
         ejectaTitle: "Lower-bound ejecta thickness radii",
         eyebrow: "Earth-impact teaching model",
         intro:
-          "Explore a source-backed large solid-rock Earth-impact teaching model. Lumina's Python astronomy domain owns all energy, crater-scaling, coefficient-sensitivity, and ejecta-thickness calculations.",
+          "Explore a source-backed large solid-rock Earth-impact teaching model. Nova-Lumina's Python astronomy domain owns all energy, crater-scaling, coefficient-sensitivity, and ejecta-thickness calculations.",
         requestedTitle: "Requested synthetic impact",
         result: {
           bestFinalCrater: "Best final crater",
@@ -2787,7 +2789,7 @@ export const enMessages = {
       },
       controls: {
         description:
-          "Stellar mass, luminosity, and effective temperature are independent educational controls. V1 does not claim every allowed combination is a self-consistent stellar evolution model. Planet order is explicit; Lumina does not silently sort it.",
+          "Stellar mass, luminosity, and effective temperature are independent educational controls. V1 does not claim every allowed combination is a self-consistent stellar evolution model. Planet order is explicit; Nova-Lumina does not silently sort it.",
         fields: {
           effectiveTemperature: "Effective temperature",
           planetAxis: "Semimajor axis AU",
@@ -2859,7 +2861,7 @@ export const enMessages = {
       noScript: {
         hzRange: "Modeled reference HZ: {inner} AU to {outer} AU.",
         intro:
-          "Build a circular, coplanar, non-interacting teaching system. Lumina's Python astronomy domain owns every Keplerian period, reference habitable-zone boundary, and pairwise mutual-Hill diagnostic.",
+          "Build a circular, coplanar, non-interacting teaching system. Nova-Lumina's Python astronomy domain owns every Keplerian period, reference habitable-zone boundary, and pairwise mutual-Hill diagnostic.",
         eyebrow: "Multi-planet teaching model",
         modelVersion: "Model version",
         pairwiseCaption: "Returned adjacent-pair mutual-Hill spacing diagnostics.",
@@ -2964,7 +2966,7 @@ export const enMessages = {
       failures: {
         invalidInput: "One or more controls are empty or outside the reviewed v1 domain.",
         outOfDomain:
-          "The requested payload or stage values are outside the reviewed v1 input bounds. Lumina does not clamp, reorder, or optimize them.",
+          "The requested payload or stage values are outside the reviewed v1 input bounds. Nova-Lumina does not clamp, reorder, or optimize them.",
         rejected:
           "The canonical Rocket / Mission Designer rejected this state. The last valid result remains visible.",
         resultMismatch: "The returned result did not match the requested versioned rocket state.",
@@ -3022,7 +3024,7 @@ export const enMessages = {
           thrust: "Thrust N",
         },
         intro:
-          "Explore a source-backed ideal staged-rocket teaching model. Lumina's Python astronomy domain owns stage bookkeeping, ideal delta-v, surface-gravity TWR references, payload sensitivity, and velocity-reference comparisons.",
+          "Explore a source-backed ideal staged-rocket teaching model. Nova-Lumina's Python astronomy domain owns stage bookkeeping, ideal delta-v, surface-gravity TWR references, payload sensitivity, and velocity-reference comparisons.",
         eyebrow: "Staged-rocket teaching model",
         modelVersion: "Model version",
         payloadCaption: "Python-returned payload trade-off points.",
@@ -3151,7 +3153,7 @@ export const enMessages = {
       header: {
         eyebrow: "Planar Newtonian two-body simulation",
         intro:
-          "Explore planar Newtonian relative two-body motion from an explicit initial position and velocity. Analytic initial elements and the velocity-Verlet trajectory are calculated only by Lumina's canonical Python astronomy domain.",
+          "Explore planar Newtonian relative two-body motion from an explicit initial position and velocity. Analytic initial elements and the velocity-Verlet trajectory are calculated only by Nova-Lumina's canonical Python astronomy domain.",
         title: "Orbit Sandbox",
       },
       invalidState: {
@@ -3179,7 +3181,7 @@ export const enMessages = {
         currentStateTitle: "Current input state",
         eyebrow: "Planar Newtonian two-body model",
         intro:
-          "Explore a deterministic planar Newtonian two-body model. The canonical orbital elements and trajectory are calculated by Lumina's server-side astronomy domain, not by this page.",
+          "Explore a deterministic planar Newtonian two-body model. The canonical orbital elements and trajectory are calculated by Nova-Lumina's server-side astronomy domain, not by this page.",
         modelTitle: "Model, assumptions, limitations, and provenance",
         stateLabels: {
           centralMass: "Central mass",
@@ -3222,7 +3224,7 @@ export const enMessages = {
           trajectorySamples: "Trajectory samples",
         },
         model: "Model {modelVersion}",
-        noScriptCaption: "Canonical Newtonian two-body result from Lumina's astronomy API.",
+        noScriptCaption: "Canonical Newtonian two-body result from Nova-Lumina's astronomy API.",
         noScriptTitle: "Canonical result",
         notReached: "Not reached in requested window",
         title: "Canonical orbit result",
@@ -3291,9 +3293,9 @@ export const enMessages = {
       metadataTitle: "Radial Velocity Lab",
       minimumMass: {
         description:
-          "The conventional projected quantity Mp sin(i) is useful shorthand. Lumina also reports the exact edge-on minimum companion mass obtained from the spectroscopic mass function, which retains the companion mass in the denominator. They converge in the small-companion limit but are not treated as the same algebraic quantity in this model.",
+          "The conventional projected quantity Mp sin(i) is useful shorthand. Nova-Lumina also reports the exact edge-on minimum companion mass obtained from the spectroscopic mass function, which retains the companion mass in the denominator. They converge in the small-companion limit but are not treated as the same algebraic quantity in this model.",
         noScriptDescription:
-          "Lumina reports both the conventional projected quantity Mp sin(i) and the exact edge-on minimum mass implied by the spectroscopic mass function. They are not treated as algebraically identical when the companion mass matters in the denominator.",
+          "Nova-Lumina reports both the conventional projected quantity Mp sin(i) and the exact edge-on minimum mass implied by the spectroscopic mass function. They are not treated as algebraically identical when the companion mass matters in the denominator.",
         noScriptTitle: "Minimum-mass interpretation",
         title: "Mp sin(i) and the exact minimum mass are related, not identical",
       },
@@ -3311,7 +3313,7 @@ export const enMessages = {
       noScript: {
         currentStateTitle: "Current input state",
         intro:
-          "Explore deterministic Keplerian stellar reflex velocity and the inclination–mass degeneracy. Lumina's Python astronomy domain solves the orbit and mass function; this page does not recreate those equations in the browser.",
+          "Explore deterministic Keplerian stellar reflex velocity and the inclination–mass degeneracy. Nova-Lumina's Python astronomy domain solves the orbit and mass function; this page does not recreate those equations in the browser.",
         modelTitle: "Model, assumptions, limitations, and provenance",
         stateLabels: {
           argumentOfPeriastron: "Star's argument of periastron",
@@ -3343,7 +3345,7 @@ export const enMessages = {
           semiAmplitude: "RV semi-amplitude K",
         },
         model: "Model {modelVersion}",
-        noScriptCaption: "Canonical Radial Velocity result from Lumina's astronomy API.",
+        noScriptCaption: "Canonical Radial Velocity result from Nova-Lumina's astronomy API.",
         noScriptLabels: {
           edgeOnMinimumMass: "Exact edge-on minimum companion mass",
           inclinationProjection: "Inclination projection",
@@ -3354,7 +3356,7 @@ export const enMessages = {
         },
         title: "Canonical result",
         unavailableDescription:
-          "Lumina does not fabricate an RV curve in the browser when the canonical service is unavailable.",
+          "Nova-Lumina does not fabricate an RV curve in the browser when the canonical service is unavailable.",
         unavailableNoScriptDescription:
           "No substitute or browser-generated RV curve was fabricated.",
         unavailableNoScriptTitle: "Calculation unavailable",
@@ -3387,7 +3389,7 @@ export const enMessages = {
       failures: {
         emptyInput: "One or more controls are empty or outside the reviewed v1 domain.",
         outOfDomain:
-          "The requested values are outside the reviewed special-relativity v1 domain. Lumina does not clamp or reinterpret them.",
+          "The requested values are outside the reviewed special-relativity v1 domain. Nova-Lumina does not clamp or reinterpret them.",
         rejected:
           "The canonical Relativity Visualizations model rejected this state. The last valid result remains visible.",
         resultMismatch:
@@ -3444,7 +3446,7 @@ export const enMessages = {
       noScript: {
         eyebrow: "Special-relativity teaching model",
         intro:
-          "Explore a one-dimensional inertial-frame special-relativity teaching model. Lumina's Python astronomy domain owns the Lorentz factor, time-dilation, length-contraction, and relativity-of-simultaneity calculations.",
+          "Explore a one-dimensional inertial-frame special-relativity teaching model. Nova-Lumina's Python astronomy domain owns the Lorentz factor, time-dilation, length-contraction, and relativity-of-simultaneity calculations.",
         requestedStateTitle: "Requested teaching state",
         result: {
           dilatedInterval: "Dilated interval",
@@ -3519,7 +3521,7 @@ export const enMessages = {
       },
       entityLinks: {
         description:
-          "These are official NASA reference pages for the selected entity or size claim. They are not Lumina catalogue records.",
+          "These are official NASA reference pages for the selected entity or size claim. They are not Nova-Lumina catalogue records.",
         entityReference: "Entity reference:",
         sourceReference: "Source reference:",
         title: "Entity and source links",
@@ -3536,7 +3538,7 @@ export const enMessages = {
       invalidMetadataTitle: "Invalid Scale Explorer state",
       invalidState: {
         description:
-          "Lumina could not use that version, node, field set, or serialized form. Earth is shown as an explicit safe default; reset or choose a node to create a valid canonical share state.",
+          "Nova-Lumina could not use that version, node, field set, or serialized form. Earth is shown as an explicit safe default; reset or choose a node to create a valid canonical share state.",
         title: "The shared scale state was not valid",
       },
       metadataDescription:
@@ -3801,7 +3803,7 @@ export const enMessages = {
       },
       invalidState: {
         description:
-          "Lumina rejected the model version, exact field set, value range, or canonical serialized form. The separately labelled default state is shown until you choose a new valid state.",
+          "Nova-Lumina rejected the model version, exact field set, value range, or canonical serialized form. The separately labelled default state is shown until you choose a new valid state.",
         title: "The shared Seasons Simulator state was not valid",
       },
       metadataDescription:
@@ -3817,7 +3819,7 @@ export const enMessages = {
         reviewedSources: "Reviewed scientific sources",
         sourceUnavailable: "Unavailable source record: {sourceId}",
         supportingSourceNote:
-          "NOAA's fractional-year declination polynomial is not the Lumina v1 calculation. NOAA is included only as supporting comparison for general solar-position terminology and why real sunrise calculations include corrections excluded here.",
+          "NOAA's fractional-year declination polynomial is not the Nova-Lumina v1 calculation. NOAA is included only as supporting comparison for general solar-position terminology and why real sunrise calculations include corrections excluded here.",
         title: "Model, assumptions, validity, and provenance",
         validityItems: {
           axialTilt: "Axial tilt: 0° through 90° inclusive.",
@@ -3845,7 +3847,7 @@ export const enMessages = {
         invalidDescription:
           "The requested version, field set, value range, or serialized form was rejected. The displayed state is the separately labelled default reset state.",
         intro:
-          "Explore an idealized geometric seasons model without JavaScript. The canonical model calculation is evaluated on the server through Lumina's read-only astronomy API.",
+          "Explore an idealized geometric seasons model without JavaScript. The canonical model calculation is evaluated on the server through Nova-Lumina's read-only astronomy API.",
         model: {
           dayLength: "Day length:",
           frozenConstants: "Frozen constants:",
@@ -3952,7 +3954,7 @@ export const enMessages = {
         },
         helps: {
           aperture:
-            "Clear nominal objective diameter. The 20–1000 mm range is a Lumina v1 guardrail, not a statement about all telescopes.",
+            "Clear nominal objective diameter. The 20–1000 mm range is a Nova-Lumina v1 guardrail, not a statement about all telescopes.",
           eyepieceApparentField:
             "Nominal eyepiece apparent field. The simple AFOV/magnification field is approximate because field-stop geometry is not modeled.",
           eyepieceFocalLength:
@@ -4043,7 +4045,7 @@ export const enMessages = {
       },
       invalidState: {
         description:
-          "Lumina rejected the model version, exact field set, value range, relational constraint, or canonical serialized form. The separately labelled default state is shown until you choose a new valid state.",
+          "Nova-Lumina rejected the model version, exact field set, value range, relational constraint, or canonical serialized form. The separately labelled default state is shown until you choose a new valid state.",
         title: "The shared Telescope Builder state was not valid",
       },
       metadataDescription:
@@ -4074,7 +4076,7 @@ export const enMessages = {
         },
         eyebrow: "Visual-observing geometry",
         intro:
-          "Explore an idealized visual-observing telescope and eyepiece geometry model without JavaScript. The canonical calculation is evaluated on the server through Lumina's read-only astronomy API.",
+          "Explore an idealized visual-observing telescope and eyepiece geometry model without JavaScript. The canonical calculation is evaluated on the server through Nova-Lumina's read-only astronomy API.",
         invalidDescription:
           "The requested version, exact field set, value range, relational constraint, or serialized form was rejected. The displayed state is the separately labelled default reset state.",
         model: {
@@ -4247,7 +4249,7 @@ export const enMessages = {
         displayNoiseTemplate: "Display noise σ {sigma}; seed {seed}.",
         eyebrow: "Visible-spectrum teaching model",
         intro:
-          "Explore a normalized visible teaching spectrum. Lumina's Python astronomy domain owns the continuum, Wien peak, wavelength shifts, representative line profiles, and deterministic noise.",
+          "Explore a normalized visible teaching spectrum. Nova-Lumina's Python astronomy domain owns the continuum, Wien peak, wavelength shifts, representative line profiles, and deterministic noise.",
         lineCaption: "Returned representative source-backed line metadata.",
         requestedModelTitle: "Requested teaching model",
         stateLabels: {
@@ -4345,12 +4347,12 @@ export const enMessages = {
       noScript: {
         eyebrow: "Main-sequence teaching model",
         intro:
-          "Explore a source-backed approximate main-sequence mass mapping. Lumina's Python astronomy domain owns the empirical relations, lifetime interpolation, and broad remnant classification; this page does not recreate them in the browser.",
+          "Explore a source-backed approximate main-sequence mass mapping. Nova-Lumina's Python astronomy domain owns the empirical relations, lifetime interpolation, and broad remnant classification; this page does not recreate them in the browser.",
         lifecycleTitle: "Broad educational lifecycle",
         modelVersion: "Model version",
         requestedMassTitle: "Requested mass",
         resultCaption:
-          "Canonical approximate Stellar Laboratory result from Lumina's astronomy API.",
+          "Canonical approximate Stellar Laboratory result from Nova-Lumina's astronomy API.",
         resultLabels: {
           approximateLifetime: "Approximate main-sequence lifetime",
           expectedRemnant: "Expected remnant",
@@ -4424,7 +4426,7 @@ export const enMessages = {
       header: {
         eyebrow: "Deterministic exoplanet-transit simulation",
         intro:
-          "Explore how circular orbital alignment and relative sizes shape an idealized exoplanet transit. Lumina's canonical Python astronomy domain returns the geometry, contact times, and uniform-source light curve; the browser only validates and displays that result.",
+          "Explore how circular orbital alignment and relative sizes shape an idealized exoplanet transit. Nova-Lumina's canonical Python astronomy domain returns the geometry, contact times, and uniform-source light curve; the browser only validates and displays that result.",
         title: "Transit Method Lab",
       },
       invalidState: {
@@ -4458,7 +4460,7 @@ export const enMessages = {
         currentStateTitle: "Current input state",
         eyebrow: "Exoplanet-transit teaching model",
         intro:
-          "Explore a deterministic circular-orbit, uniformly bright stellar-disk transit model. Lumina's Python astronomy domain calculates the geometry and light curve; this page does not recreate the transit equations in the browser.",
+          "Explore a deterministic circular-orbit, uniformly bright stellar-disk transit model. Nova-Lumina's Python astronomy domain calculates the geometry and light curve; this page does not recreate the transit equations in the browser.",
         modelTitle: "Model, assumptions, limitations, and provenance",
         stateLabels: {
           inclination: "Inclination",
@@ -4496,7 +4498,7 @@ export const enMessages = {
           totalDuration: "First-to-fourth contact duration",
         },
         model: "Model {modelVersion}",
-        noScriptCaption: "Canonical Transit Method result from Lumina's astronomy API.",
+        noScriptCaption: "Canonical Transit Method result from Nova-Lumina's astronomy API.",
         noScriptLabels: {
           alignment: "Alignment classification",
           centralDepthApproximation: "Central depth approximation",
@@ -4525,9 +4527,9 @@ export const enMessages = {
     landing: {
       eyebrow: "Learn",
       intro:
-        "Lumina's learning content is authored, reviewed, and source-backed. Start with one complete path designed to help you make a real first observation.",
+        "Nova-Lumina's learning content is authored, reviewed, and source-backed. Start with one complete path designed to help you make a real first observation.",
       metadataDescription:
-        "Follow Lumina's authored, source-backed learning path for a first night sky.",
+        "Follow Nova-Lumina's authored, source-backed learning path for a first night sky.",
       metadataTitle: "Learn",
       pathLabel: "Complete learning path",
       pathMeta: "{lessonCount} lessons · authored mode variants · deterministic quizzes",
@@ -4539,11 +4541,11 @@ export const enMessages = {
       activityTitle: "Activity: {activityTitle}",
       breadcrumbLabel: "Breadcrumb",
       commonMistakeLabel: "Common mistake:",
-      correctionLabel: "Lumina's correction:",
+      correctionLabel: "Nova-Lumina's correction:",
       expectedObservationLabel: "Expected observation:",
       failures: {
         importInvalid: "The learning-progress operation could not be validated.",
-        invalidContent: "That learning step is not part of a published Lumina path.",
+        invalidContent: "That learning step is not part of a published Nova-Lumina path.",
         storageCorrupted:
           "Saved learning progress could not be read. Reset it from the Learn page to continue.",
         storageQuotaExceeded:
@@ -4560,7 +4562,7 @@ export const enMessages = {
       lockedTitle: "Complete the prerequisite lesson first",
       masterySaved: "Mastery saved locally.",
       metadataDescription:
-        "An authored Lumina learning lesson with a deterministic knowledge check.",
+        "An authored Nova-Lumina learning lesson with a deterministic knowledge check.",
       metadataTitle: "Learning lesson",
       misconceptionTitle: "Misconception check",
       navigationLabel: "Lesson navigation",
@@ -4627,7 +4629,7 @@ export const enMessages = {
       failures: {
         importInvalid:
           "This learning-progress file could not be validated, so nothing was imported.",
-        invalidContent: "That learning step is not part of a published Lumina path.",
+        invalidContent: "That learning step is not part of a published Nova-Lumina path.",
         resetStorageUnavailable:
           "Local storage is not available, so learning progress cannot be reset.",
         storageCorrupted:
@@ -4696,8 +4698,8 @@ export const enMessages = {
   },
   missionControl: {
     aboutBody:
-      "Lumina connects visual exploration, authored learning, deterministic simulations, real-sky observation, and provenance-first current space data. Each capability is added only when its source, assumptions, freshness, and limitations can be shown honestly.",
-    aboutTitle: "About Lumina",
+      "Nova-Lumina connects visual exploration, authored learning, deterministic simulations, real-sky observation, and provenance-first current space data. Each capability is added only when its source, assumptions, freshness, and limitations can be shown honestly.",
+    aboutTitle: "About Nova-Lumina",
     checkSourceStatus: "Check source status",
     continueLearning: {
       activeDescription:
@@ -4739,9 +4741,9 @@ export const enMessages = {
     eyebrow: "Mission Control",
     findSatellitePasses: "Find satellite passes",
     intro:
-      "A small live-and-reviewed home for what is happening in space now: one source-labelled launch event, a bounded upcoming mission board, reviewed discoveries, and your authored learning progress. Lumina is still under construction, so unavailable data stays visibly unavailable rather than being replaced with guesses.",
+      "A small live-and-reviewed home for what is happening in space now: one source-labelled launch event, a bounded upcoming mission board, reviewed discoveries, and your authored learning progress. Nova-Lumina is still under construction, so unavailable data stays visibly unavailable rather than being replaced with guesses.",
     metadataDescription:
-      "Lumina Mission Control combines a cache-backed current launch event, bounded mission board, reviewed discoveries, and authored learning without hiding source freshness or uncertainty.",
+      "Nova-Lumina Mission Control combines a cache-backed current launch event, bounded mission board, reviewed discoveries, and authored learning without hiding source freshness or uncertainty.",
     metadataTitle: "Mission Control",
     missionBoard: {
       description:
@@ -4749,7 +4751,8 @@ export const enMessages = {
       emptyCurrent: "No mission-bearing records are available in the current public launch slice.",
       siteMissing: "Site not provided",
       title: "Upcoming mission board",
-      unavailable: "The mission board is unavailable until Lumina has a validated launch snapshot.",
+      unavailable:
+        "The mission board is unavailable until Nova-Lumina has a validated launch snapshot.",
       vehicleMissing: "Vehicle not provided",
     },
     openLaunchCenter: "Open Launch Center",
@@ -4765,56 +4768,56 @@ export const enMessages = {
   offline: {
     landing: {
       availableDescription:
-        "Previously visited learning material, curated Explore pages, object pages, and the basic observation-planner shell can be available from Lumina's local content cache. Saved personal data is stored separately from those offline copies.",
+        "Previously visited learning material, curated Explore pages, object pages, and the basic observation-planner shell can be available from Nova-Lumina's local content cache. Saved personal data is stored separately from those offline copies.",
       availableTitle: "What can still work",
       backupDescription:
         "Your browser or operating system can evict cached pages. Personal browser storage can also be cleared independently, so offline availability is best effort rather than a permanent guarantee.",
       backupTitle: "Offline copies are not a backup",
       eyebrow: "Offline mode",
       intro:
-        "Pages you visited while online may still be available as reviewed offline copies. An unvisited page may need a connection before Lumina can make it available offline.",
-      inlineDocumentTitle: "Offline — Lumina",
+        "Pages you visited while online may still be available as reviewed offline copies. An unvisited page may need a connection before Nova-Lumina can make it available offline.",
+      inlineDocumentTitle: "Offline — Nova-Lumina",
       inlineUnavailableDescription:
-        "This page is not available from Lumina's reviewed offline copies yet. Reconnect and visit it once before relying on offline access.",
+        "This page is not available from Nova-Lumina's reviewed offline copies yet. Reconnect and visit it once before relying on offline access.",
       manageStorage: "Manage offline storage",
-      metadataDescription: "Lumina's bounded offline fallback and availability guidance.",
+      metadataDescription: "Nova-Lumina's bounded offline fallback and availability guidance.",
       metadataTitle: "Offline",
       networkDescription:
-        "Live space data, source status, weather, uploads, and jobs need a network connection. Lumina never relabels an old provider result as current just because the app is offline.",
+        "Live space data, source status, weather, uploads, and jobs need a network connection. Nova-Lumina never relabels an old provider result as current just because the app is offline.",
       networkTitle: "What still needs a network",
-      title: "Lumina is offline",
+      title: "Nova-Lumina is offline",
     },
     storage: {
       approximate: {
         available:
-          "Approximately {usage} MiB used of a {quota} MiB origin quota. This is an origin-wide estimate from the browser, not an exact measurement of Lumina's offline cache or personal data.",
+          "Approximately {usage} MiB used of a {quota} MiB origin quota. This is an origin-wide estimate from the browser, not an exact measurement of Nova-Lumina's offline cache or personal data.",
         checking: "Checking the browser's storage estimate…",
         heading: "Approximate browser storage",
         unavailable:
           "The browser could not provide its approximate origin-wide usage and quota right now.",
         unsupported:
-          "This browser does not expose an origin-wide storage estimate. Lumina does not request persistent-storage permission automatically.",
+          "This browser does not expose an origin-wide storage estimate. Nova-Lumina does not request persistent-storage permission automatically.",
       },
       cancelAction: "Cancel",
       eyebrow: "Offline mode",
       intro:
-        "Review Lumina's best-effort offline cache separately from personal data stored in this browser. These controls do not create an account or cloud backup.",
+        "Review Nova-Lumina's best-effort offline cache separately from personal data stored in this browser. These controls do not create an account or cloud backup.",
       metadataDescription:
-        "Review and manage Lumina offline copies and local saved observation plans.",
+        "Review and manage Nova-Lumina offline copies and local saved observation plans.",
       metadataTitle: "Offline storage",
       offlineCopies: {
         clearAction: "Clear offline copies",
         clearFailure:
-          "Lumina could not clear its offline copies. Saved plans and journal data were not changed.",
+          "Nova-Lumina could not clear its offline copies. Saved plans and journal data were not changed.",
         clearSuccess: {
-          one: "Cleared {count} Lumina cache store. Personal browser data was not deleted.",
-          other: "Cleared {count} Lumina cache stores. Personal browser data was not deleted.",
+          one: "Cleared {count} Nova-Lumina cache store. Personal browser data was not deleted.",
+          other: "Cleared {count} Nova-Lumina cache stores. Personal browser data was not deleted.",
         },
         confirmAction: "Confirm clear offline copies",
         confirmDescription:
-          "Lumina will delete only cache names it owns. Pages may need to be visited online again before they work offline.",
+          "Nova-Lumina will delete only cache names it owns. Pages may need to be visited online again before they work offline.",
         description:
-          "CacheStorage holds Lumina's visited offline pages, static app assets, and offline metadata. Cache storage is not a backup: the browser or operating system may evict it.",
+          "CacheStorage holds Nova-Lumina's visited offline pages, static app assets, and offline metadata. Cache storage is not a backup: the browser or operating system may evict it.",
         heading: "Offline copies",
         separationNotice:
           "Clearing these copies does not delete saved observation plans, journal entries, collections, or learning progress.",
@@ -4826,7 +4829,7 @@ export const enMessages = {
           "Delete every saved observation plan from this browser? Journal entries and offline copies remain separate and will not be cleared.",
         deleteAction: "Delete all saved plans",
         deleteFailure:
-          "Lumina could not delete the saved plans. Offline copies and journal data were not changed.",
+          "Nova-Lumina could not delete the saved plans. Offline copies and journal data were not changed.",
         deleteSuccess: {
           one: "Deleted {count} saved observation plan. Journal entries and offline copies were not deleted.",
           other:
@@ -4847,7 +4850,7 @@ export const enMessages = {
         separateStoresNotice:
           "Collections and learning progress use separate local browser stores and are not counted in the IndexedDB summary above. Neither action on this page deletes them.",
         unavailable:
-          "Lumina cannot safely read the local personal-data counts right now. No data was changed.",
+          "Nova-Lumina cannot safely read the local personal-data counts right now. No data was changed.",
       },
       title: "Storage and offline copies",
     },
@@ -4875,11 +4878,11 @@ export const enMessages = {
     },
     challenges: {
       description:
-        "These prompts do not predict that a target or event is visible from your hemisphere, latitude, weather, or current sky. Lumina does not request or store location for these challenges.",
+        "These prompts do not predict that a target or event is visible from your hemisphere, latitude, weather, or current sky. Nova-Lumina does not request or store location for these challenges.",
       heading: "Twelve evergreen monthly challenges",
       monthTitle: "Month {month}: {challengeTitle}",
       noScriptDescription:
-        "These are authored observing prompts, not visibility predictions for your location or hemisphere. Lumina does not request or store location for them.",
+        "These are authored observing prompts, not visibility predictions for your location or hemisphere. Nova-Lumina does not request or store location for them.",
       safetyTitle: "Safety",
       stepsTitle: "Steps",
       suggestedDuration: "Suggested duration: {duration}",
@@ -4894,7 +4897,7 @@ export const enMessages = {
         stale: "stale",
       },
       description:
-        "Project status comes only from Lumina's last validated Panoptes cache. This page does not contact Zooniverse from your browser. Reviewed descriptions, challenges, activities, and source links remain Lumina-owned static content.",
+        "Project status comes only from Nova-Lumina's last validated Panoptes cache. This page does not contact Zooniverse from your browser. Reviewed descriptions, challenges, activities, and source links remain Nova-Lumina-owned static content.",
       freshUntilLabel: "Fresh until",
       headings: {
         fresh: "Fresh project-status snapshot",
@@ -4902,7 +4905,7 @@ export const enMessages = {
         unavailable: "Current project status unavailable",
       },
       noScriptDescription:
-        "Panoptes status is read only from Lumina's last validated server-side cache. This page does not contact Zooniverse from your browser.",
+        "Panoptes status is read only from Nova-Lumina's last validated server-side cache. This page does not contact Zooniverse from your browser.",
       noScriptCacheState: "Cache state: {cacheState}",
       noScriptFreshUntil: "Fresh until: {timestamp}",
       noScriptRetrievedAt: "Retrieved at: {timestamp}",
@@ -4971,7 +4974,7 @@ export const enMessages = {
     sourcesTitle: "Reviewed sources",
     unavailable: {
       description:
-        "Lumina could not load the reviewed Participate contract from its own API. No project status, challenge, activity, or external destination is being reconstructed in the browser.",
+        "Nova-Lumina could not load the reviewed Participate contract from its own API. No project status, challenge, activity, or external destination is being reconstructed in the browser.",
       title: "Participate is temporarily unavailable",
     },
     unavailableValue: "Unavailable",
@@ -5045,7 +5048,7 @@ export const enMessages = {
       },
       unavailable: "Provider status unavailable.",
     },
-    returnHome: "Return to the Lumina foundation home page",
+    returnHome: "Return to the Nova-Lumina foundation home page",
     states: {
       availableUnconfirmed: {
         detail:
@@ -5063,15 +5066,16 @@ export const enMessages = {
       },
       unavailable: {
         detail:
-          "This page could not reach the API within its bounded requests. The Lumina foundation page remains available.",
+          "This page could not reach the API within its bounded requests. The Nova-Lumina foundation page remains available.",
         heading: "API unavailable",
       },
     },
-    title: "Lumina API status",
+    title: "Nova-Lumina API status",
   },
   routeBoundaries: {
     globalError: {
-      description: "Lumina could not load. Try again, or return to the foundation home page later.",
+      description:
+        "Nova-Lumina could not load. Try again, or return to the foundation home page later.",
       retry: "Try again",
       title: "Something went wrong",
     },
@@ -5091,19 +5095,19 @@ export const enMessages = {
     },
     notFound: {
       code: "404",
-      description: "This address is not part of the Lumina foundation yet.",
-      returnHome: "Return to the Lumina foundation home page",
+      description: "This address is not part of the Nova-Lumina foundation yet.",
+      returnHome: "Return to the Nova-Lumina foundation home page",
       title: "Page not found",
     },
     routeError: {
       description: "Try again. If the problem continues, return to the foundation home page.",
       retry: "Try again",
-      title: "This part of Lumina could not load",
+      title: "This part of Nova-Lumina could not load",
     },
   },
   shell: {
     exploreCatalogue: "Explore the catalogue",
-    footerTagline: "Lumina — a free, scientifically grounded way to explore space.",
+    footerTagline: "Nova-Lumina — a free, scientifically grounded way to explore space.",
     navigation: {
       ariaLabel: "Primary",
       observationPlannerAriaLabel: "Observation planner",
@@ -5126,12 +5130,12 @@ export const enMessages = {
       applyUpdate: "Apply update",
       applyingUpdate: "Applying update…",
       offlineCopyNotice:
-        "This page is an offline copy saved by Lumina at {cachedAt}. Displayed live or provider data may no longer be current; check its source and retrieval time.",
+        "This page is an offline copy saved by Nova-Lumina at {cachedAt}. Displayed live or provider data may no longer be current; check its source and retrieval time.",
       offlineNotice:
         "Displayed live or provider data may no longer be current; check its source and retrieval time. Unvisited pages and network-only features may be unavailable.",
       offlineTitle: "You are offline.",
       updateHelp: "Apply it when you are ready to reload this page.",
-      updateTitle: "A Lumina update is ready.",
+      updateTitle: "A Nova-Lumina update is ready.",
     },
     skipToMainContent: "Skip to main content",
   },
@@ -5146,12 +5150,12 @@ export const enMessages = {
       copyrightLabel: "Copyright / credit:",
       eyebrow: "Daily Visual",
       externalMediaNotice:
-        "Lumina does not automatically load or redistribute the external media. The official APOD page is opened only when you choose the action above.",
+        "Nova-Lumina does not automatically load or redistribute the external media. The official APOD page is opened only when you choose the action above.",
       freshSnapshot: "Fresh Daily Visual snapshot",
       freshnessDescription:
-        "Freshness describes when Lumina last retrieved and validated this snapshot; it does not describe when the underlying image or video was created.",
+        "Freshness describes when Nova-Lumina last retrieved and validated this snapshot; it does not describe when the underlying image or video was created.",
       invalidOfficialLink:
-        "The official APOD page link is unavailable because the date-derived destination did not pass Lumina's fixed-origin check.",
+        "The official APOD page link is unavailable because the date-derived destination did not pass Nova-Lumina's fixed-origin check.",
       mediaTypeLabel: "Media type",
       mediaTypes: {
         image: "Image",
@@ -5161,7 +5165,7 @@ export const enMessages = {
     },
     eyebrow: "Space Now",
     intro:
-      "One carefully sourced Daily Visual from NASA Astronomy Picture of the Day, with its content date, credit, and Lumina retrieval state kept distinct.",
+      "One carefully sourced Daily Visual from NASA Astronomy Picture of the Day, with its content date, credit, and Nova-Lumina retrieval state kept distinct.",
     launches: {
       common: {
         backToLaunchCenter: "Back to Launch Center",
@@ -5207,7 +5211,7 @@ export const enMessages = {
           launchProvider: "Launch provider",
           ll2RecordUpdated: "LL2 record updated",
           location: "Location",
-          luminaRetrieved: "Lumina retrieved",
+          luminaRetrieved: "Nova-Lumina retrieved",
           missionAgencies: "Mission agencies",
           missionType: "Mission type",
           orbit: "Orbit",
@@ -5219,7 +5223,7 @@ export const enMessages = {
         metadataNotFoundTitle: "Launch not found",
         metadataUnavailableTitle: "Launch temporarily unavailable",
         notFoundDescription:
-          "Lumina keeps a bounded upcoming-launch snapshot. This identifier is not present in that current validated cache.",
+          "Nova-Lumina keeps a bounded upcoming-launch snapshot. This identifier is not present in that current validated cache.",
         notFoundTitle: "Launch not found in the current snapshot",
         officialLaunchPage: "Official launch page",
         officialLiveWebcast: "Official live webcast",
@@ -5228,7 +5232,7 @@ export const enMessages = {
         sourceActionsTitle: "Source actions",
         sourceDocumentation: "Launch Library 2 source",
         transportDescription:
-          "Lumina could not read its API safely, so it is showing no launch claims.",
+          "Nova-Lumina could not read its API safely, so it is showing no launch claims.",
         transportTitle: "Launch detail is temporarily unavailable",
         unavailableTitle: "Launch detail is currently unavailable",
       },
@@ -5244,7 +5248,7 @@ export const enMessages = {
         },
         freshSnapshot: "Fresh launch snapshot",
         intro:
-          "A bounded Launch Library 2 snapshot. Status, NET precision, launch window, source update time, and Lumina retrieval freshness stay separate so placeholder schedules never look more exact than the source says they are.",
+          "A bounded Launch Library 2 snapshot. Status, NET precision, launch window, source update time, and Nova-Lumina retrieval freshness stay separate so placeholder schedules never look more exact than the source says they are.",
         lastSafeRefreshFailure: "Last safe refresh failure: {code}",
         latestRecordUpdate: "The newest LL2 record update represented is {updatedAt}.",
         metadataDescription:
@@ -5253,18 +5257,18 @@ export const enMessages = {
         noBrowserProviderRequest: "No live provider request is made from this page.",
         providerInformation: "Provider information",
         providerRecordUpdatedLabel: "Provider record updated",
-        retrievedCache: "Lumina retrieved this cache at {retrievedAt}.",
+        retrievedCache: "Nova-Lumina retrieved this cache at {retrievedAt}.",
         snapshotCount: {
-          one: "Showing {count} of {total} normalized launch record retained by this Lumina projection.",
+          one: "Showing {count} of {total} normalized launch record retained by this Nova-Lumina projection.",
           other:
-            "Showing {count} of {total} normalized launch records retained by this Lumina projection.",
+            "Showing {count} of {total} normalized launch records retained by this Nova-Lumina projection.",
         },
         sourceDocumentation: "Launch Library 2",
         sourceTitle: "Source and limitations",
         staleSnapshot: "Stale launch snapshot",
         title: "Upcoming launches",
         transportDescription:
-          "Lumina could not read its API within the bounded request window, so it is showing no launch claims.",
+          "Nova-Lumina could not read its API within the bounded request window, so it is showing no launch claims.",
         transportTitle: "Launch Center is temporarily unavailable",
         unavailableTitle: "Launch Center is currently unavailable",
         latestRecordNotRecorded: "not recorded",
@@ -5272,12 +5276,12 @@ export const enMessages = {
       },
       schedule: {
         countdownEligibleDetail:
-          "The source currently marks this Go timing precise enough for Lumina's exact countdown.",
+          "The source currently marks this Go timing precise enough for Nova-Lumina's exact countdown.",
         countdownEligibleList: "This Go record is precise enough for an exact countdown.",
         countdownIneligibleDetail:
           "No exact countdown is shown for this status/precision combination.",
         countdownIneligibleList:
-          "Lumina does not show an exact countdown for this status/precision combination.",
+          "Nova-Lumina does not show an exact countdown for this status/precision combination.",
         launchWindow: "Launch window: {start} → {end}",
         providerPrecision: "Provider precision: {precision} ({abbreviation}). {countdown}",
         scheduleReference: "Schedule reference",
@@ -5335,7 +5339,7 @@ export const enMessages = {
       title: "Near-Earth Objects",
       unavailable: {
         cachedContentExpired: "The cached Near-Earth Objects snapshot has expired.",
-        generic: "Near-Earth approach data could not be loaded from Lumina right now.",
+        generic: "Near-Earth approach data could not be loaded from Nova-Lumina right now.",
         noCachedContent: "No validated Near-Earth Objects snapshot is available yet.",
         providerDisabled: "The Near-Earth Objects provider is disabled.",
         returnToSpaceNow: "Return to Space Now",
@@ -5372,7 +5376,7 @@ export const enMessages = {
           locationPermission: "Location permission was unavailable or declined.",
           noLongerAvailable: "That satellite is no longer present in the current snapshot.",
           requestInvalid: "The pass request could not be validated.",
-          responseInvalid: "Lumina returned an unexpected pass response.",
+          responseInvalid: "Nova-Lumina returned an unexpected pass response.",
           temporarilyUnavailable: "Satellite data is temporarily unavailable.",
           unknown: "Pass calculation could not be completed.",
         },
@@ -5387,7 +5391,7 @@ export const enMessages = {
         loading: "Calculating from the cached element set…",
         option: "{name} · NORAD {catalogNumber}",
         privacy:
-          "Coordinates are used only for this calculation. They are not placed in the URL, sent to {provider}, stored by Lumina, or echoed in the result. Browser geolocation runs only when you press the button below.",
+          "Coordinates are used only for this calculation. They are not placed in the URL, sent to {provider}, stored by Nova-Lumina, or echoed in the result. Browser geolocation runs only when you press the button below.",
         result: {
           algorithmSummary:
             "{propagationModel} · {gravityModel} · observer {observerEllipsoid} · element offset {hours} h",
@@ -5395,7 +5399,7 @@ export const enMessages = {
           illumination:
             "Satellite sunlit at peak: {sunlit}. Observer sky: {skyState} (Sun {sunAltitude}°).",
           limitation:
-            "Sunlit status and observer sky state are model context only. Lumina has no optical-magnitude model here and does not claim that a pass will be visible.",
+            "Sunlit status and observer sky state are model context only. Nova-Lumina has no optical-magnitude model here and does not claim that a pass will be visible.",
           no: "no",
           noPasses:
             "No complete passes above {altitudeThreshold}° were found in the next {windowHours} hours.",
@@ -5405,9 +5409,9 @@ export const enMessages = {
           reasonLabel: "Reason:",
           refusedTitle: "Prediction safely refused",
           refusalCatalogUnsupported:
-            "This catalog number is outside the runtime range supported by Lumina's current SGP4 implementation",
+            "This catalog number is outside the runtime range supported by Nova-Lumina's current SGP4 implementation",
           refusalElementAge:
-            "The requested prediction window extends beyond Lumina's supported element-age bound",
+            "The requested prediction window extends beyond Nova-Lumina's supported element-age bound",
           refusalEventSequence:
             "The propagated event sequence could not be used safely for a complete pass",
           refusalFallback: "unsupported state",
@@ -5419,7 +5423,7 @@ export const enMessages = {
           skyNight: "night",
           skyUnknown: "unknown sky state",
           staleWarning:
-            "Element-age warning: prediction uses elements beyond Lumina's {hours}-hour warning threshold.",
+            "Element-age warning: prediction uses elements beyond Nova-Lumina's {hours}-hour warning threshold.",
           yes: "yes",
         },
       },
@@ -5437,27 +5441,28 @@ export const enMessages = {
         noradReference: "NORAD {catalogNumber}",
         runtimeNotSupported: "Not supported",
         runtimeSupported: "Supported",
-        staleWarning: "Element age exceeds Lumina's {hours}-hour warning threshold.",
+        staleWarning: "Element age exceeds Nova-Lumina's {hours}-hour warning threshold.",
       },
       snapshot: {
         freshTitle: "Fresh element snapshot",
         lastFailure: "Last safe refresh failure: {code}",
         latestEpochNotRecorded: "not recorded",
         summary:
-          "Lumina retrieved this selected-group cache at {retrievedAt}. The newest element epoch represented is {latestEpoch}.",
+          "Nova-Lumina retrieved this selected-group cache at {retrievedAt}. The newest element epoch represented is {latestEpoch}.",
         staleTitle: "Stale element snapshot",
         unrecordedTime: "an unrecorded time",
       },
       source: {
         documentation: "{provider} GP documentation",
         limitations:
-          "Lumina warns when elements are more than {warningHours} hours from the requested start and refuses pass calculations when the {windowHours}-hour prediction window would extend more than {maximumOffsetHours} hours from the element epoch. These are conservative Lumina product limits, not universal {propagationModel} validity claims.",
+          "Nova-Lumina warns when elements are more than {warningHours} hours from the requested start and refuses pass calculations when the {windowHours}-hour prediction window would extend more than {maximumOffsetHours} hours from the element epoch. These are conservative Nova-Lumina product limits, not universal {propagationModel} validity claims.",
         title: "Source, model, and limitations",
         usagePolicy: "{provider} usage policy",
       },
       title: "Satellite passes",
       transport: {
-        description: "Lumina could not safely read its API, so it is showing no satellite claims.",
+        description:
+          "Nova-Lumina could not safely read its API, so it is showing no satellite claims.",
         title: "Satellite data is temporarily unavailable",
       },
       unavailable: {
@@ -5487,7 +5492,7 @@ export const enMessages = {
         notRecorded: "Not recorded",
         retrievedAtLabel: "Snapshot retrieved at (UTC)",
         staleUntilLabel: "Stale grace ends (UTC)",
-        title: "Lumina retrieval state",
+        title: "Nova-Lumina retrieval state",
       },
       impacts: {
         description:
@@ -5538,30 +5543,31 @@ export const enMessages = {
       metadataTitle: "Space Weather",
       notifications: {
         description:
-          "These are recent provider-issued notification records. Lumina does not infer an active alert, warning, watch, cancellation, or severity class from message prose.",
+          "These are recent provider-issued notification records. Nova-Lumina does not infer an active alert, warning, watch, cancellation, or severity class from message prose.",
         empty: "No notification records are present in this snapshot.",
         issueTime: "Provider issue time: {time}",
         title: "Latest {provider} notifications",
       },
       scales: {
         description:
-          "{provider} keeps radio blackouts (R), solar radiation storms (S), and geomagnetic storms (G) as separate source-defined categories. Lumina does not add their levels together.",
+          "{provider} keeps radio blackouts (R), solar radiation storms (S), and geomagnetic storms (G) as separate source-defined categories. Nova-Lumina does not add their levels together.",
         families: {
           geomagnetic: "Geomagnetic storms",
           radioBlackout: "Radio blackouts",
           solarRadiation: "Solar radiation storms",
         },
-        familyContext: "This is the {provider} {code} family level, not a Lumina severity score.",
+        familyContext:
+          "This is the {provider} {code} family level, not a Nova-Lumina severity score.",
         noSourceDescription: "No source description",
         sourceTime:
-          "{provider} scale record time: {date} {time}. Lumina preserves this source time text without relabelling it as local time.",
+          "{provider} scale record time: {date} {time}. Nova-Lumina preserves this source time text without relabelling it as local time.",
         title: "Current {provider} scales",
         unavailable:
           "The current {provider} scale record is not available in this validated snapshot.",
       },
       snapshot: {
         description:
-          "This state describes Lumina's atomic cache snapshot. The {provider} product timestamps below describe the underlying observations, estimates, forecasts, or notifications and are not all from the same instant.",
+          "This state describes Nova-Lumina's atomic cache snapshot. The {provider} product timestamps below describe the underlying observations, estimates, forecasts, or notifications and are not all from the same instant.",
         freshTitle: "Fresh Space Weather snapshot",
         staleTitle: "Stale Space Weather snapshot",
       },
@@ -5582,14 +5588,14 @@ export const enMessages = {
       source: {
         documentation: "{sourceName} official documentation",
         limitations:
-          "Lumina is educational/informational. Consult {provider} directly for operational guidance; this page is not an emergency warning replacement or a safety system.",
+          "Nova-Lumina is educational/informational. Consult {provider} directly for operational guidance; this page is not an emergency warning replacement or a safety system.",
         returnToSpaceNow: "Return to Space Now",
         title: "Source and limitations",
       },
       title: "Space Weather",
       unavailable: {
         cachedContentExpired: "The cached Space Weather snapshot has expired.",
-        generic: "Space Weather data could not be loaded from Lumina right now.",
+        generic: "Space Weather data could not be loaded from Nova-Lumina right now.",
         noCachedContent: "No validated Space Weather snapshot is available yet.",
         providerDisabled: "The Space Weather provider is disabled.",
         title: "Space Weather data is currently unavailable.",
@@ -5616,7 +5622,7 @@ export const enMessages = {
       satellites: {
         action: "Open Satellite Passes",
         description:
-          "Browse selected CelesTrak STATIONS and VISUAL records, inspect element freshness, and run a local SGP4 pass calculation for a location you explicitly provide. Illumination and sky state are shown separately; Lumina does not claim optical visibility.",
+          "Browse selected CelesTrak STATIONS and VISUAL records, inspect element freshness, and run a local SGP4 pass calculation for a location you explicitly provide. Illumination and sky state are shown separately; Nova-Lumina does not claim optical visibility.",
         eyebrow: "Satellite passes",
         title: "Predict selected satellite passes from cached elements",
       },
@@ -5642,7 +5648,7 @@ export const enMessages = {
       notRecorded: "Not recorded",
       retrievedAtLabel: "Retrieved at (UTC)",
       staleUntilLabel: "Stale grace ends (UTC)",
-      title: "Lumina retrieval state",
+      title: "Nova-Lumina retrieval state",
     },
     source: {
       apiDocumentation: "NASA Open APIs",
@@ -5653,7 +5659,7 @@ export const enMessages = {
     title: "Space Now",
     unavailable: {
       cachedContentExpired: "The cached Daily Visual snapshot has expired.",
-      generic: "The Daily Visual could not be loaded from Lumina right now.",
+      generic: "The Daily Visual could not be loaded from Nova-Lumina right now.",
       noCachedContent: "No validated Daily Visual snapshot is available yet.",
       providerDisabled: "The Daily Visual provider is disabled.",
       title: "Daily Visual is currently unavailable.",

@@ -1,4 +1,4 @@
-"""Lumina-owned normalized contracts for the Zooniverse Panoptes status snapshot."""
+"""Nova-Lumina-owned normalized contracts for the Zooniverse Panoptes status snapshot."""
 
 from __future__ import annotations
 

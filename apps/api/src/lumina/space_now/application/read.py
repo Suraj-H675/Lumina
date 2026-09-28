@@ -438,7 +438,7 @@ class SpaceWeatherNotificationProjection:
 
 @dataclass(frozen=True, slots=True)
 class SpaceWeatherImpactProjection:
-    """Concise NOAA-sourced family context, not a Lumina risk score."""
+    """Concise NOAA-sourced family context, not a Nova-Lumina risk score."""
 
     family: Literal["R", "S", "G"]
     summary: str
@@ -456,7 +456,7 @@ class SpaceWeatherAuroraProjection:
 
 @dataclass(frozen=True, slots=True)
 class SpaceWeatherFreshnessProjection:
-    """Lumina retrieval and cache deadlines separate from source timestamps."""
+    """Nova-Lumina retrieval and cache deadlines separate from source timestamps."""
 
     cache_state: CacheState
     retrieved_at: datetime | None

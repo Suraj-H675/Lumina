@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { ParticipateResponse } from "@lumina/api-client";
+import type { ParticipateResponse } from "@nova-lumina/api-client";
 
 import { ParticipateNoScript } from "../src/components/participate-no-script";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
@@ -33,7 +33,7 @@ describe("ParticipateNoScript", () => {
     expect(markup).toContain("There is no universal planisphere");
     expect(markup).toContain("poor fit very near the equator");
     expect(markup).toContain("Scout unfamiliar observing terrain in daylight");
-    expect(markup).toContain("You are leaving Lumina for Zooniverse");
+    expect(markup).toContain("You are leaving Nova-Lumina for Zooniverse");
     expect(markup).toContain("NASA Science");
     expect(markup).toContain("in-the-sky.org/planisphere");
     expect(markup).toContain("Filters require JavaScript, so all six reviewed projects are listed");

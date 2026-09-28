@@ -78,7 +78,7 @@ describe("offline storage manager", () => {
     expect((await axe(container)).violations).toHaveLength(0);
   });
 
-  it("clears Lumina offline copies without deleting saved plans or journal entries", async () => {
+  it("clears Nova-Lumina offline copies without deleting saved plans or journal entries", async () => {
     const user = userEvent.setup();
     await putSavedObservationPlan(savedObservationPlanFixture());
     await createJournalEntryInDatabase({ title: "Keep this journal" });
@@ -88,7 +88,9 @@ describe("offline storage manager", () => {
     await user.click(screen.getByRole("button", { name: "Clear offline copies" }));
     await user.click(screen.getByRole("button", { name: "Confirm clear offline copies" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(/cleared 2 lumina cache stores/i);
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /cleared 2 nova-lumina cache stores/i,
+    );
     expect(deleteCache.mock.calls.map(([name]) => name)).toEqual([
       "lumina-pwa-documents-v1",
       "lumina-pwa-static-v1",

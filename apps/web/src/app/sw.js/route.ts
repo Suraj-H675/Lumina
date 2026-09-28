@@ -1,10 +1,10 @@
-import { buildLuminaServiceWorkerSource } from "../../lib/pwa-service-worker";
+import { buildNovaLuminaServiceWorkerSource } from "../../lib/pwa-service-worker";
 import { DEFAULT_LOCALE, localeDefinition } from "../../lib/i18n/locales";
 import { enMessages } from "../../lib/i18n/messages/en";
 
 export function GET(): Response {
   return new Response(
-    buildLuminaServiceWorkerSource({
+    buildNovaLuminaServiceWorkerSource({
       languageTag: localeDefinition(DEFAULT_LOCALE).languageTag,
       offlineMessages: enMessages.offline.landing,
     }),

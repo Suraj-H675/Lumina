@@ -1,4 +1,4 @@
-import type { ParticipateResponse } from "@lumina/api-client";
+import type { ParticipateResponse } from "@nova-lumina/api-client";
 
 import type { ParticipateMessages } from "./i18n/messages/types";
 

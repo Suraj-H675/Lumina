@@ -31,7 +31,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: lumina-production-provider-operator
+  group: nova-lumina-production-provider-operator
   cancel-in-progress: false
 
 jobs:
@@ -64,7 +64,7 @@ jobs:
 
           request = urllib.request.Request(
               os.environ["LUMINA_PRODUCTION_META_URL"],
-              headers={"User-Agent": "Lumina provider operator"},
+              headers={"User-Agent": "Nova-Lumina provider operator"},
           )
           with urllib.request.urlopen(request, timeout=30) as response:
               if response.status != 200:
@@ -109,4 +109,4 @@ jobs:
           MANUAL_PROVIDER: ${{ inputs.provider }}
         run: |
           set -euo pipefail
-          uv run lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"
+          uv run nova-lumina-provider "$MANUAL_OPERATION" --provider "$MANUAL_PROVIDER"

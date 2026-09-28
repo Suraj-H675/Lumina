@@ -1,5 +1,5 @@
 export const WWT_FREESTANDING_ASSET_BASE = "https://web.wwtassets.org/engine/assets";
-export const WWT_LAYER_COLLECTION_PATH = "/wwt/lumina-sky-layers.wtml";
+export const WWT_LAYER_COLLECTION_PATH = "/wwt/nova-lumina-sky-layers.wtml";
 export const WORLDWIDE_TELESCOPE_NAME = "WorldWide Telescope";
 export const WORLDWIDE_TELESCOPE_SHORT_NAME = "WWT";
 export const ATLAS_DEFAULT_FIELD_OF_VIEW_DEG = 5;

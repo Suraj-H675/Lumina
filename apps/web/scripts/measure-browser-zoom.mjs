@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 
 import { chromium } from "@playwright/test";
 
-import { assertLuminaUrl } from "./measure-wwt-hardware.mjs";
+import { assertNovaLuminaUrl } from "./measure-wwt-hardware.mjs";
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const execFileAsync = promisify(execFile);
@@ -29,14 +29,14 @@ const SAMPLES = [
 ];
 
 function usage() {
-  return `Usage: pnpm --filter @lumina/web audit:browser-zoom -- [options]
+  return `Usage: pnpm --filter @nova-lumina/web audit:browser-zoom -- [options]
 
 Collects supporting Phase 8D evidence using Chromium's native browser default
 page-zoom setting at exactly 200%. This is not CSS zoom, pinch zoom, device-scale
 emulation, or a substitute for the required manual accessibility review.
 
 Options:
-  --url <url>       Required root URL for an already-running Lumina instance.
+  --url <url>       Required root URL for an already-running Nova-Lumina instance.
   --output <path>   Optional JSON artifact output path; relative paths resolve
                     from the repository root.
   --help            Show this help.
@@ -65,7 +65,7 @@ function parseHttpUrl(raw, label) {
     throw new Error(`${label} must not contain credentials`);
   }
   if (value.pathname !== "/" || value.search !== "" || value.hash !== "") {
-    throw new Error(`${label} must be a root Lumina URL without query or fragment state`);
+    throw new Error(`${label} must be a root Nova-Lumina URL without query or fragment state`);
   }
   return value.toString();
 }
@@ -93,7 +93,7 @@ export function parseArgs(argv) {
   }
   if (options.url === null) {
     throw new Error(
-      "--url is required; start the intended Lumina build explicitly before auditing",
+      "--url is required; start the intended Nova-Lumina build explicitly before auditing",
     );
   }
   return options;
@@ -267,7 +267,7 @@ export function assertExactRequestedUrl(actualRaw, requestedRaw) {
     actual.search !== requested.search ||
     actual.hash !== requested.hash
   ) {
-    throw new Error("Zoom route does not match the exact requested Lumina URL state");
+    throw new Error("Zoom route does not match the exact requested Nova-Lumina URL state");
   }
 }
 
@@ -307,31 +307,33 @@ export function summarizeRouteObservations(observations) {
 }
 
 function measurementCommand(options) {
-  const parts = ["pnpm --filter @lumina/web audit:browser-zoom --", `--url '${options.url}'`];
+  const parts = ["pnpm --filter @nova-lumina/web audit:browser-zoom --", `--url '${options.url}'`];
   if (options.output !== null) parts.push(`--output '${options.output}'`);
   return parts.join(" ");
 }
 
-async function verifyLuminaTarget(page, rootUrl) {
+async function verifyNovaLuminaTarget(page, rootUrl) {
   const manifestUrl = new URL("/manifest.webmanifest", rootUrl).toString();
   const response = await page.request.get(manifestUrl, { timeout: 5_000 });
   try {
-    assertLuminaUrl(response.url(), rootUrl, "/manifest.webmanifest", "manifest");
+    assertNovaLuminaUrl(response.url(), rootUrl, "/manifest.webmanifest", "manifest");
     if (!response.ok()) {
       throw new Error(
-        `Lumina target identity check failed: manifest returned HTTP ${response.status()}`,
+        `Nova-Lumina target identity check failed: manifest returned HTTP ${response.status()}`,
       );
     }
     const manifest = await response.json();
     if (
       typeof manifest !== "object" ||
       manifest === null ||
-      manifest.name !== "Lumina" ||
-      manifest.short_name !== "Lumina" ||
+      manifest.name !== "Nova-Lumina" ||
+      manifest.short_name !== "Nova-Lumina" ||
       manifest.scope !== "/" ||
       manifest.start_url !== "/"
     ) {
-      throw new Error("Lumina target identity check failed: reviewed manifest marker is absent");
+      throw new Error(
+        "Nova-Lumina target identity check failed: reviewed manifest marker is absent",
+      );
     }
     return {
       manifestUrl: response.url(),
@@ -493,7 +495,7 @@ async function main() {
 
   let primaryError = null;
   try {
-    userDataDir = await mkdtemp(join(tmpdir(), "lumina-phase8d-browser-zoom-"));
+    userDataDir = await mkdtemp(join(tmpdir(), "nova-lumina-phase8d-browser-zoom-"));
     profileOwned = true;
     assertNotAborted(abortRequested, receivedSignal);
     context = await chromium.launchPersistentContext(userDataDir, {
@@ -503,7 +505,7 @@ async function main() {
     browserIdentity = await waitForBrowserProcess(userDataDir);
     assertNotAborted(abortRequested, receivedSignal);
     const page = context.pages()[0] ?? (await context.newPage());
-    const targetIdentity = await verifyLuminaTarget(page, options.url);
+    const targetIdentity = await verifyNovaLuminaTarget(page, options.url);
     const provenance = await gitProvenance();
 
     await page.goto(new URL("/explore", options.url).toString(), { waitUntil: "networkidle" });

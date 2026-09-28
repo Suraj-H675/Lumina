@@ -1,7 +1,7 @@
 import * as Astronomy from "astronomy-engine";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 import {
   ASTROMETRY_DATASET_CODE,

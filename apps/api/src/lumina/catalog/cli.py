@@ -101,8 +101,8 @@ def _limit(value: str) -> int:
 
 def _parser() -> _SafeArgumentParser:
     parser = _SafeArgumentParser(
-        prog="lumina-catalog",
-        description="Read local Lumina catalogue ingestion conflicts.",
+        prog="nova-lumina-catalog",
+        description="Read local Nova-Lumina catalogue ingestion conflicts.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     ingest = commands.add_parser("ingest", help="Ingest the one reviewed offline source slice.")

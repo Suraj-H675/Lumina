@@ -59,7 +59,8 @@ function maximumAcceptedApodResponse(): Readonly<Record<string, unknown>> {
       official_url: "https://apod.nasa.gov/apod/",
       api_documentation_url: "https://api.nasa.gov/",
       media_usage_url: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-      attribution_text: "NASA APOD; source media remains link-only and is not embedded by Lumina.",
+      attribution_text:
+        "NASA APOD; source media remains link-only and is not embedded by Nova-Lumina.",
     },
   };
 }
@@ -370,7 +371,7 @@ describe("bounded native-fetch transport", () => {
     const nestedAdditive = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse({
         api_version: "v1",
-        application_name: "Lumina",
+        application_name: "Nova-Lumina",
         application_version: "0.0.0",
         build_commit: null,
         feature_flags: {},

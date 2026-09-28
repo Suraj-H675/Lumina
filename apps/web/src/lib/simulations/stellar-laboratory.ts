@@ -2,7 +2,7 @@ import {
   stellarLaboratoryEndpoint,
   validateExactGenerated,
   type StellarLaboratoryCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawStellarLaboratoryArtifact from "../../../../../data/seed/stellar-laboratory-v1.json";
 

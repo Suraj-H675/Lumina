@@ -1,8 +1,8 @@
 [project]
-name = "lumina-workspace"
+name = "nova-lumina-workspace"
 version = "0.0.0"
 requires-python = ">=3.12,<3.13"
-dependencies = ["lumina-api"]
+dependencies = ["nova-lumina-api"]
 
 [dependency-groups]
 dev = [
@@ -21,7 +21,7 @@ required-version = ">=0.12.17,<0.13"
 members = ["apps/api"]
 
 [tool.uv.sources]
-lumina-api = { workspace = true }
+nova-lumina-api = { workspace = true }
 
 [tool.ruff]
 target-version = "py312"

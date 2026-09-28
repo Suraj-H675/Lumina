@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { BlackHoleRelativityCalculationResponse } from "@lumina/api-client";
+import type { BlackHoleRelativityCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { BlackHoleRelativityMessages } from "../lib/i18n/messages/types";

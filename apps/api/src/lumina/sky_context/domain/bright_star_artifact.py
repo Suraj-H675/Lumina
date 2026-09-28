@@ -1,4 +1,4 @@
-"""Closed contract for Lumina's independently pinned Gaia DR3 sky context.
+"""Closed contract for Nova-Lumina's independently pinned Gaia DR3 sky context.
 
 This product is immutable rendering context. It does not create catalogue
 entities, measurements, database records, or a runtime Gaia dependency.

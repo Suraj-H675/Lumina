@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   requestEndpoint,
   type PlanetarySystemBuilderCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

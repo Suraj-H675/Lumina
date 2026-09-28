@@ -95,7 +95,7 @@ export async function handleRequest(request, { env = process.env, fetchImpl = fe
       method: "POST",
       headers: {
         Authorization: `Bearer ${downstreamToken}`,
-        "User-Agent": "Lumina Neon provider scheduler",
+        "User-Agent": "Nova-Lumina Neon provider scheduler",
         "X-Lumina-Provider-Code": provider,
       },
       signal: AbortSignal.timeout(100_000),
@@ -114,7 +114,7 @@ export async function handleRequest(request, { env = process.env, fetchImpl = fe
       scheduled_at: triggerPayload.data.scheduled_at,
     });
   } catch {
-    console.error("Lumina provider scheduler invocation failed", {
+    console.error("Nova-Lumina provider scheduler invocation failed", {
       provider_code: provider,
     });
     return json(502, { error: "provider_sync_failed", provider_code: provider });

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Lumina is a public astronomy learning and exploration platform. It aims to connect discovery, understanding, deterministic experimentation, observation planning, real-sky context, live-space information, and personal learning tools without compromising scientific provenance.
+Nova-Lumina is a public astronomy learning and exploration platform. It aims to connect discovery, understanding, deterministic experimentation, observation planning, real-sky context, live-space information, and personal learning tools without compromising scientific provenance.
 
 ## Audience
 

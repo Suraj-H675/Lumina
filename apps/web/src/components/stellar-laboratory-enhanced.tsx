@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { StellarLaboratoryCalculationResponse } from "@lumina/api-client";
+import type { StellarLaboratoryCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { StellarLaboratoryMessages } from "../lib/i18n/messages/types";

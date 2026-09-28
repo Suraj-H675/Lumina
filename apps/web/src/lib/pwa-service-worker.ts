@@ -27,7 +27,7 @@ type ServiceWorkerOfflineMessages = Pick<
   "inlineDocumentTitle" | "inlineUnavailableDescription" | "title"
 >;
 
-export type LuminaServiceWorkerSourceOptions = Readonly<{
+export type NovaLuminaServiceWorkerSourceOptions = Readonly<{
   languageTag: string;
   offlineMessages: ServiceWorkerOfflineMessages;
 }>;
@@ -35,7 +35,7 @@ export type LuminaServiceWorkerSourceOptions = Readonly<{
 function buildInlineOfflineFallback({
   languageTag,
   offlineMessages,
-}: LuminaServiceWorkerSourceOptions): string {
+}: NovaLuminaServiceWorkerSourceOptions): string {
   return `<!doctype html><html lang="${escapeHtml(languageTag)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(offlineMessages.inlineDocumentTitle)}</title></head><body><main><h1>${escapeHtml(offlineMessages.title)}</h1><p>${escapeHtml(offlineMessages.inlineUnavailableDescription)}</p></main></body></html>`;
 }
 
@@ -44,7 +44,9 @@ function buildInlineOfflineFallback({
  * used by the TypeScript classifier tests. The returned program intentionally
  * has no push/background-sync surface.
  */
-export function buildLuminaServiceWorkerSource(options: LuminaServiceWorkerSourceOptions): string {
+export function buildNovaLuminaServiceWorkerSource(
+  options: NovaLuminaServiceWorkerSourceOptions,
+): string {
   const inlineOfflineFallback = buildInlineOfflineFallback(options);
   return `"use strict";
 

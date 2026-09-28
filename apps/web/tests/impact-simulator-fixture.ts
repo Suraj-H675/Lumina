@@ -1,4 +1,4 @@
-import type { ImpactSimulatorCalculationResponse } from "@lumina/api-client";
+import type { ImpactSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 export const IMPACT_SIMULATOR_DEFAULT_RESULT = {
   model_version: "impact-simulator-v1",

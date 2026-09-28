@@ -36,5 +36,5 @@ def test_help_exits_before_output_activation(
 
     assert cli.main(["--help"]) == 0
     captured = capfd.readouterr()
-    assert "usage: lumina-worker" in captured.out
+    assert "usage: nova-lumina-worker" in captured.out
     assert captured.err == ""

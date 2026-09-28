@@ -18,7 +18,7 @@ function pngDimensions(path: string): Readonly<{ height: number; width: number }
   };
 }
 
-describe("Lumina web app manifest", () => {
+describe("Nova-Lumina web app manifest", () => {
   it("publishes the accepted installable identity with only local reviewed icons", () => {
     expect(manifest()).toEqual({
       background_color: "#05070f",
@@ -37,9 +37,9 @@ describe("Lumina web app manifest", () => {
           type: "image/png",
         },
       ],
-      name: "Lumina",
+      name: "Nova-Lumina",
       scope: "/",
-      short_name: "Lumina",
+      short_name: "Nova-Lumina",
       start_url: "/",
       theme_color: "#05070f",
     });

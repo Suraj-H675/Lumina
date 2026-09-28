@@ -1,4 +1,4 @@
-import type { RelativityVisualizationsCalculationResponse } from "@lumina/api-client";
+import type { RelativityVisualizationsCalculationResponse } from "@nova-lumina/api-client";
 
 export const RELATIVITY_VISUALIZATIONS_DEFAULT_RESULT = {
   model_version: "relativity-visualizations-v1",

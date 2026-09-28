@@ -1,7 +1,7 @@
 [project]
-name = "lumina-api"
+name = "nova-lumina-api"
 version = "0.0.0"
-description = "Lumina astronomy API, worker, and provider runtime"
+description = "Nova-Lumina astronomy API, worker, and provider runtime"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "alembic==1.18.5",
@@ -20,10 +20,10 @@ dependencies = [
 ]
 
 [project.scripts]
-lumina-api = "lumina.main:run"
-lumina-catalog = "lumina.catalog.cli:main"
-lumina-provider = "lumina.provider_cli:main"
-lumina-worker = "lumina.worker.cli:main"
+nova-lumina-api = "lumina.main:run"
+nova-lumina-catalog = "lumina.catalog.cli:main"
+nova-lumina-provider = "lumina.provider_cli:main"
+nova-lumina-worker = "lumina.worker.cli:main"
 
 [build-system]
 requires = ["hatchling==1.28.0"]

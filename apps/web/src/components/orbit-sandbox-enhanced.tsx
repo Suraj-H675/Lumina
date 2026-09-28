@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { OrbitSandboxCalculationResponse } from "@lumina/api-client";
+import type { OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { OrbitSandboxMessages } from "../lib/i18n/messages/types";
 import type { OrbitSandboxState } from "../lib/simulations/orbit-sandbox";

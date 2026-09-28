@@ -4,7 +4,7 @@ import {
   requestEndpoint,
   type RelativityVisualizationsCalculationResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   relativityVisualizationsRequestEndpoint,

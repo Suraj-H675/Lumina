@@ -1,4 +1,4 @@
-"""ASGI export and console runner for Lumina's API."""
+"""ASGI export and console runner for Nova-Lumina's API."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ app = create_app(_settings)
 
 
 def _runtime_port(configured_port: int) -> int:
-    """Honor a platform-assigned port without weakening Lumina's configured default."""
+    """Honor a platform-assigned port without weakening Nova-Lumina's configured default."""
     raw = os.environ.get("PORT")
     if raw is None:
         return configured_port

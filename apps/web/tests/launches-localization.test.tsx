@@ -5,7 +5,7 @@ import type {
   LaunchDetailResponse,
   LaunchItemResponse,
   LaunchListResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { LaunchDetailView } from "../src/app/now/launches/[launchId]/launch-detail-view";
 import { LaunchCountdown } from "../src/app/now/launches/launch-countdown";

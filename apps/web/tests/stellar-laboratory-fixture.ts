@@ -1,4 +1,4 @@
-import type { StellarLaboratoryCalculationResponse } from "@lumina/api-client";
+import type { StellarLaboratoryCalculationResponse } from "@nova-lumina/api-client";
 
 export const STELLAR_LABORATORY_DEFAULT_RESULT: StellarLaboratoryCalculationResponse = {
   model_version: "stellar-laboratory-v1",

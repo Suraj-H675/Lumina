@@ -1,4 +1,4 @@
-"""Secret-safe internal ``lumina-worker`` command boundary."""
+"""Secret-safe internal ``nova-lumina-worker`` command boundary."""
 
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ class _SilentArgumentParser(argparse.ArgumentParser):
 
 def _parser() -> _SilentArgumentParser:
     return _SilentArgumentParser(
-        prog="lumina-worker",
-        description="Run the internal sequential Lumina worker.",
+        prog="nova-lumina-worker",
+        description="Run the internal sequential Nova-Lumina worker.",
         add_help=True,
     )
 

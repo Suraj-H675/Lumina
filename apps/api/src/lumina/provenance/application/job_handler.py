@@ -1,4 +1,4 @@
-"""Provider-owned adapter for the generic Lumina job-handler contract."""
+"""Provider-owned adapter for the generic Nova-Lumina job-handler contract."""
 
 from __future__ import annotations
 

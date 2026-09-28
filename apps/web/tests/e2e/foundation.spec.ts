@@ -27,7 +27,7 @@ test("the skip link moves keyboard focus to the main content", async ({ page }) 
 });
 
 test("an unknown route uses the not-found experience", async ({ page }) => {
-  await page.goto("/not-a-lumina-route");
+  await page.goto("/not-a-nova-lumina-route");
 
   await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
   await expect(
@@ -54,9 +54,9 @@ test("the locale route seam keeps English canonical and draft locale prefixes fa
   await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 
-  const unknownEnglishPath = await page.goto("/fr/not-a-lumina-route");
+  const unknownEnglishPath = await page.goto("/fr/not-a-nova-lumina-route");
   expect(unknownEnglishPath?.status()).toBe(404);
-  await expect(page).toHaveURL(/\/fr\/not-a-lumina-route$/u);
+  await expect(page).toHaveURL(/\/fr\/not-a-nova-lumina-route$/u);
   await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
 });
 

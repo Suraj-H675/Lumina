@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 import { JournalEntryButton } from "./journal-entry-button";
 import { SaveToCollectionsButton } from "./save-to-collections";

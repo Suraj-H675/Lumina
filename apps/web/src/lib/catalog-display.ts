@@ -1,4 +1,4 @@
-import type { EntityDetailResponse, EntityType } from "@lumina/api-client";
+import type { EntityDetailResponse, EntityType } from "@nova-lumina/api-client";
 
 /**
  * Render an exact decimal measurement for humans without inventing precision:

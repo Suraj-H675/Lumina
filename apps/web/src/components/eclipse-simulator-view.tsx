@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { requestEndpoint, type EclipseSimulatorCalculationResponse } from "@lumina/api-client";
+import { requestEndpoint, type EclipseSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,

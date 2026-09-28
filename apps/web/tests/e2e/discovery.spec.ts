@@ -88,7 +88,7 @@ test("typeahead suggestions navigate directly to the chosen object", async ({ pa
 test("a known slug renders the object experience with provenance", async ({ page }) => {
   await page.goto("/objects/k2-18");
 
-  await expect(page).toHaveTitle(/^K2-18 — Lumina$/);
+  await expect(page).toHaveTitle(/^K2-18 — Nova-Lumina$/);
   await expect(page.getByRole("heading", { level: 1, name: "K2-18" })).toBeVisible();
   await expect(page.getByText("Gaia G-band mean magnitude (Vega scale)").first()).toBeVisible();
   // Provenance is human-readable and truthful to the accepted slice.

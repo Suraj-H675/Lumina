@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import type { IdentificationSolutionResponse } from "@nova-lumina/api-client";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { IdentifyMessages } from "../src/lib/i18n/messages/types";

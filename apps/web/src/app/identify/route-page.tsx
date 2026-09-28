@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { identificationCapabilitiesEndpoint, requestEndpoint } from "@lumina/api-client";
+import { identificationCapabilitiesEndpoint, requestEndpoint } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type { IdentifyMessages } from "../../lib/i18n/messages/types";

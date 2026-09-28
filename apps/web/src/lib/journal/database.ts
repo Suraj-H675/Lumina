@@ -48,13 +48,13 @@ export type JournalImageAttachment = Readonly<{
   blob: Blob;
 }>;
 
-type LuminaPersonalDatabase = Dexie & {
+type NovaLuminaPersonalDatabase = Dexie & {
   journalEntries: EntityTable<JournalEntry, "id">;
   journalAttachments: EntityTable<JournalImageAttachment, "id">;
   savedPlans: EntityTable<SavedObservationPlan, "id">;
 };
 
-let database: LuminaPersonalDatabase | null = null;
+let database: NovaLuminaPersonalDatabase | null = null;
 
 export type JournalStorageFailureReason =
   | "storage-unavailable"
@@ -94,8 +94,8 @@ export class SavedPlanStorageError extends Error {
   }
 }
 
-function createDatabase(): LuminaPersonalDatabase {
-  const db = new Dexie(LUMINA_PERSONAL_DB_NAME) as LuminaPersonalDatabase;
+function createDatabase(): NovaLuminaPersonalDatabase {
+  const db = new Dexie(LUMINA_PERSONAL_DB_NAME) as NovaLuminaPersonalDatabase;
   db.version(1).stores({
     journalEntries: "&id, updated_at, created_at",
     journalAttachments: "&id, journal_entry_id, created_at",
@@ -106,7 +106,7 @@ function createDatabase(): LuminaPersonalDatabase {
   return db;
 }
 
-function journalDatabase(): LuminaPersonalDatabase {
+function journalDatabase(): NovaLuminaPersonalDatabase {
   database ??= createDatabase();
   return database;
 }
@@ -149,7 +149,9 @@ function classifySavedPlanStorageError(error: unknown): SavedPlanStorageError {
   return new SavedPlanStorageError("storage-write-failed");
 }
 
-async function validatedSavedPlans(db: LuminaPersonalDatabase): Promise<SavedObservationPlan[]> {
+async function validatedSavedPlans(
+  db: NovaLuminaPersonalDatabase,
+): Promise<SavedObservationPlan[]> {
   const rows = await db.savedPlans.orderBy("updated_at").reverse().toArray();
   const validated: SavedObservationPlan[] = [];
   for (const row of rows) {
@@ -221,7 +223,7 @@ export async function clearSavedObservationPlans(): Promise<void> {
   }
 }
 
-async function validatedEntries(db: LuminaPersonalDatabase): Promise<JournalEntry[]> {
+async function validatedEntries(db: NovaLuminaPersonalDatabase): Promise<JournalEntry[]> {
   const entries = await db.journalEntries.orderBy("updated_at").reverse().toArray();
   const validated: JournalEntry[] = [];
   for (const entry of entries) {

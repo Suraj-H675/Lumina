@@ -26,7 +26,7 @@ test.describe("Space Now Daily Visual", () => {
 
     await page.goto("/now");
 
-    await expect(page).toHaveTitle(/Space Now — Lumina/);
+    await expect(page).toHaveTitle(/Space Now — Nova-Lumina/);
     await expect(page.getByRole("heading", { level: 1, name: "Space Now" })).toBeVisible();
     await expect(
       page.getByRole("heading", { level: 2, name: "Fixture Daily Visual" }),

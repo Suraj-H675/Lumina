@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { SpectroscopyCalculationResponse } from "@lumina/api-client";
+import type { SpectroscopyCalculationResponse } from "@nova-lumina/api-client";
 
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { SpectroscopyLabMessages } from "../lib/i18n/messages/types";

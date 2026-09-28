@@ -29,7 +29,7 @@ def _load_module(name: str, path: Path) -> ModuleType:
     return module
 
 
-_module = _load_module("lumina_phase8d_manual_validator", SCRIPT)
+_module = _load_module("nova_lumina_phase8d_manual_validator", SCRIPT)
 ManualEvidenceError = cast(type[ValueError], _module.ManualEvidenceError)
 validate_manual_evidence = _module.validate_manual_evidence
 PROTOCOL = json.loads(PROTOCOL_PATH.read_text(encoding="utf-8"))

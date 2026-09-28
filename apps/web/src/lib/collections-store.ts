@@ -148,7 +148,7 @@ function persist(next: CollectionsData): StoreResult {
       setStatus("unavailable");
       emit();
       return {
-        message: "This browser is blocking local storage, so Lumina cannot save right now.",
+        message: "This browser is blocking local storage, so Nova-Lumina cannot save right now.",
         ok: false,
         reason: "storage-unavailable",
       };
@@ -201,7 +201,7 @@ function applyStorageRead(read: StorageRead): void {
     }
     case "corrupted":
       // Untrusted bytes stay on disk untouched until the user explicitly
-      // resets; Lumina keeps working around the broken feature.
+      // resets; Nova-Lumina keeps working around the broken feature.
       setStatus("corrupted");
       break;
     case "unavailable":

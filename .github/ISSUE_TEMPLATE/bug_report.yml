@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible Lumina software defect without including private or secret data.
+description: Report a reproducible Nova-Lumina software defect without including private or secret data.
 title: "bug: "
 labels: [bug]
 body:

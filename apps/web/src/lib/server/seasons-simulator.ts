@@ -5,7 +5,7 @@ import {
   seasonsSimulatorEndpoint,
   type SeasonsCalculationResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   validateSeasonsCalculationResult,

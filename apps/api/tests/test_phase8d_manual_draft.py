@@ -28,8 +28,8 @@ def _load_module(name: str, path: Path) -> ModuleType:
     return module
 
 
-_prepare = _load_module("lumina_phase8d_manual_draft", PREPARE_SCRIPT)
-_validate = _load_module("lumina_phase8d_manual_validator_for_draft", VALIDATE_SCRIPT)
+_prepare = _load_module("nova_lumina_phase8d_manual_draft", PREPARE_SCRIPT)
+_validate = _load_module("nova_lumina_phase8d_manual_validator_for_draft", VALIDATE_SCRIPT)
 ManualDraftError = cast(type[ValueError], _prepare.ManualDraftError)
 ManualEvidenceError = cast(type[ValueError], _validate.ManualEvidenceError)
 

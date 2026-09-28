@@ -5,7 +5,7 @@ import {
   telescopeBuilderEndpoint,
   type TelescopeBuilderCalculationResponse,
   type TransportOptions,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import {
   validateTelescopeBuilderCalculationResult,

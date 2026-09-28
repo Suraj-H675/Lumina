@@ -217,7 +217,7 @@ class SpaceWeatherNotificationResponse(BaseModel):
 
 
 class SpaceWeatherImpactResponse(BaseModel):
-    """Concise source-bound family context, not a Lumina risk score."""
+    """Concise source-bound family context, not a Nova-Lumina risk score."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -237,7 +237,7 @@ class SpaceWeatherAuroraResponse(BaseModel):
 
 
 class SpaceWeatherFreshnessResponse(BaseModel):
-    """Lumina cache timing separate from NOAA source times."""
+    """Nova-Lumina cache timing separate from NOAA source times."""
 
     model_config = ConfigDict(extra="forbid")
 

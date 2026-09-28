@@ -1,6 +1,6 @@
 "use client";
 
-import type { IdentificationSolutionResponse } from "@lumina/api-client";
+import type { IdentificationSolutionResponse } from "@nova-lumina/api-client";
 
 import {
   attachJournalImage,

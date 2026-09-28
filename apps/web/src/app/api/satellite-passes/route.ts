@@ -3,7 +3,7 @@ import {
   requestJsonEndpoint,
   satellitePassEndpoint,
   type SatellitePassRequest,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { resolveWebApiOrigin } from "../../../lib/server/api-origin";
 

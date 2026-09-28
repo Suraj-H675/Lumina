@@ -6,7 +6,7 @@ import {
   catalogSuggestEndpoint,
   validateExactGenerated,
   type EntitySummaryResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import { buildSuggestQuery } from "../lib/suggest-shared";
 

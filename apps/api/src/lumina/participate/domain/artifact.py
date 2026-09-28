@@ -494,7 +494,7 @@ def load_reviewed_participate_artifact(
         "stale_status_label",
     ):
         _string(definition[key])
-    if "leaving Lumina" not in _string(
+    if "leaving Nova-Lumina" not in _string(
         definition["external_handoff_notice"]
     ) or "Zooniverse" not in _string(definition["external_handoff_notice"]):
         raise ParticipateArtifactError()

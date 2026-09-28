@@ -72,7 +72,7 @@ const MODE_COPY: Record<
   },
   student: {
     introduction:
-      "The physical H-R view puts hotter effective temperatures on the left and higher luminosities upward. The Gaia colour–magnitude view uses observed BP−RP and absolute G magnitude instead; Lumina does not convert between the axes.",
+      "The physical H-R view puts hotter effective temperatures on the left and higher luminosities upward. The Gaia colour–magnitude view uses observed BP−RP and absolute G magnitude instead; Nova-Lumina does not convert between the axes.",
     question:
       "Why can a star keep the same identity and source values while its plotted coordinates change between views?",
   },
@@ -608,15 +608,15 @@ function ModelSurface({
         equalized to 32 per cluster. Marker density is not a population-density estimate.
       </p>
       <p>
-        The plotted central values are published Gaia quantities. Lumina does not convert BP−RP to
-        temperature, M_G to luminosity, plot position to classification, or source data into age,
+        The plotted central values are published Gaia quantities. Nova-Lumina does not convert BP−RP
+        to temperature, M_G to luminosity, plot position to classification, or source data into age,
         mass, radius, lifetime, or future evolution. FLAME stage groups are model-derived
         educational groupings of the source-published stage index.
       </p>
       <p>
         Cluster filters use the reviewed Hunt &amp; Reffert catalogue rows. The selected-star detail
         preserves that source row&apos;s membership probability and inrj/inrt flags; a catalogue
-        association is not a Lumina-recomputed membership claim.
+        association is not a Nova-Lumina-recomputed membership claim.
       </p>
       <h3>{messages.model.displayRelationships}</h3>
       <dl>

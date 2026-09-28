@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { EntityDetailResponse, EntitySummaryResponse } from "@lumina/api-client";
+import type { EntityDetailResponse, EntitySummaryResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 

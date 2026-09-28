@@ -12,7 +12,7 @@ import {
   listSavedObservationPlans,
 } from "../lib/journal/database";
 import {
-  clearLuminaOfflineCopies,
+  clearNovaLuminaOfflineCopies,
   readApproximateBrowserStorage,
   type ApproximateBrowserStorage,
 } from "../lib/pwa-storage";
@@ -84,7 +84,7 @@ export function OfflineStorageManager({
     setActionError("");
     setActionStatus("");
     try {
-      const result = await clearLuminaOfflineCopies();
+      const result = await clearNovaLuminaOfflineCopies();
       setConfirmClearCaches(false);
       setActionStatus(
         formatCountMessage(messages.offlineCopies.clearSuccess, result.deleted, locale),

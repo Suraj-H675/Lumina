@@ -10,13 +10,13 @@ export class PwaStorageError extends Error {
   readonly reason: PwaStorageFailureReason;
 
   constructor(reason: PwaStorageFailureReason) {
-    super("Lumina offline-copy storage is unavailable or could not be cleared.");
+    super("Nova-Lumina offline-copy storage is unavailable or could not be cleared.");
     this.name = "PwaStorageError";
     this.reason = reason;
   }
 }
 
-export async function clearLuminaOfflineCopies(): Promise<Readonly<{ deleted: number }>> {
+export async function clearNovaLuminaOfflineCopies(): Promise<Readonly<{ deleted: number }>> {
   if (typeof caches === "undefined") throw new PwaStorageError("cache-unavailable");
 
   let names: string[];

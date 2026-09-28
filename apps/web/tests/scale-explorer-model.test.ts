@@ -60,7 +60,7 @@ describe("Scale Explorer model", () => {
       share_schema_version: 1,
     });
     expect(SCALE_EXPLORER_DEFINITION.reviewed_by).toEqual([
-      "Lumina scale-explorer-v1 contract review",
+      "Nova-Lumina scale-explorer-v1 contract review",
     ]);
     expect(SCALE_EXPLORER_DEFINITION.reviewed_at).toBe("2026-09-02T09:12:28Z");
     expect(SCALE_EXPLORER_DEFINITION.updated_at).toBe("2026-09-02T09:12:28Z");

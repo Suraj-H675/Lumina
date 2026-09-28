@@ -18,7 +18,7 @@ test("empty compare offers a useful starting point", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Compare" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Nothing selected yet" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: /add an object to compare/i })).toBeEnabled();
-  await expect(page).toHaveTitle("Compare catalogue objects — Lumina");
+  await expect(page).toHaveTitle("Compare catalogue objects — Nova-Lumina");
 });
 
 test("an object page links into a one-object partial compare", async ({ page }) => {

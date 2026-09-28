@@ -9,7 +9,7 @@ import {
   type IdentificationCapabilitiesResponse,
   type IdentificationSolutionResponse,
   type IdentificationStatusResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 

@@ -565,7 +565,8 @@ def test_unavailable_docker_inspection_fails_closed(
 
 def _validation_harness(tmp_path: Path) -> Path:
     source = (
-        Path(__file__).resolve().parents[3] / "infra/docker/postgres/010-ensure-lumina-databases.sh"
+        Path(__file__).resolve().parents[3]
+        / "infra/docker/postgres/010-ensure-nova-lumina-databases.sh"
     ).read_text(encoding="utf-8")
     function_source = source.split("for secret_name", maxsplit=1)[0]
     harness = tmp_path / "validate-secret.sh"

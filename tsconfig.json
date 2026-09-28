@@ -1,4 +1,4 @@
 {
-  "extends": "@lumina/config-typescript/base.json",
+  "extends": "@nova-lumina/config-typescript/base.json",
   "files": []
 }

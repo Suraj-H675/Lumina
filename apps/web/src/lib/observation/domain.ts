@@ -1,6 +1,6 @@
 import * as Astronomy from "astronomy-engine";
 
-import type { EntityDetailResponse } from "@lumina/api-client";
+import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 /** The accepted Gaia DR3 astrometry vocabulary exposed by the public API. */
 export const RIGHT_ASCENSION_QUANTITY_CODE = "gaia_icrs_right_ascension";

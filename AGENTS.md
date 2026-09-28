@@ -14,11 +14,11 @@ If the best decision remains genuinely ambiguous after investigation, surface th
 
 ## Product direction
 
-Lumina is a public astronomy learning and exploration platform. Its current implementation combines reviewed scientific data, deterministic calculations, visual exploration, observation planning, learning, live-data surfaces, simulations, offline behaviour, and personal tools.
+Nova-Lumina is a public astronomy learning and exploration platform. Its current implementation combines reviewed scientific data, deterministic calculations, visual exploration, observation planning, learning, live-data surfaces, simulations, offline behaviour, and personal tools.
 
 The following are current constraints, not sacred architecture:
 
-- Lumina is free to use.
+- Nova-Lumina is free to use.
 - Required core functionality must not depend on a paid API or paid SDK.
 - The current infrastructure budget is zero unless the user changes it.
 - Scientific results must remain explainable and source/model bounded.

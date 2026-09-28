@@ -1,4 +1,4 @@
-import type { LaunchItemResponse, LaunchListResponse } from "@lumina/api-client";
+import type { LaunchItemResponse, LaunchListResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 
 import {

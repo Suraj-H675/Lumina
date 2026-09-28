@@ -13,7 +13,7 @@ import {
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { TelescopeBuilderMessages } from "../lib/i18n/messages/types";
-import type { TelescopeBuilderCalculationResponse } from "@lumina/api-client";
+import type { TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 type TelescopeBuilderNoScriptProps = Readonly<{
   initialState: TelescopeBuilderState;

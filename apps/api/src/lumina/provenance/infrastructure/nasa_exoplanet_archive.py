@@ -175,7 +175,7 @@ class NasaExoplanetArchiveAdapter(
         return NasaCountPayload(count=count)
 
     def normalize(self, request: object, payload: object) -> NormalizedPayload:
-        """Return the Lumina-owned normalized field without exposing the wire header."""
+        """Return the Nova-Lumina-owned normalized field without exposing the wire header."""
         if (
             type(request) is not NasaCountRequest
             or type(payload) is not NasaCountPayload

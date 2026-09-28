@@ -1,4 +1,4 @@
-"""Normalized astrometric solution contracts owned by Lumina."""
+"""Normalized astrometric solution contracts owned by Nova-Lumina."""
 
 from __future__ import annotations
 

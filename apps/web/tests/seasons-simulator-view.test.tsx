@@ -7,7 +7,7 @@ import { SeasonsSimulatorView } from "../src/components/seasons-simulator-view";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import { DEFAULT_SEASONS_STATE } from "../src/lib/simulations/seasons-simulator";
-import type { SeasonsCalculationResponse } from "@lumina/api-client";
+import type { SeasonsCalculationResponse } from "@nova-lumina/api-client";
 import { renderWithEnglishMessages as render } from "./i18n-render";
 
 const JUNE_RESULT: SeasonsCalculationResponse = {

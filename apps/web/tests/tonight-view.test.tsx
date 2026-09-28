@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock }),
 }));
 
-import type { EntityDetailResponse, EntitySummaryResponse } from "@lumina/api-client";
+import type { EntityDetailResponse, EntitySummaryResponse } from "@nova-lumina/api-client";
 
 import { TonightView } from "../src/components/tonight-view";
 import { COLLECTIONS_STORAGE_KEY } from "../src/lib/collections-model";

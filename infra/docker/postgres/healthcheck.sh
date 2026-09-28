@@ -1,5 +1,5 @@
 #!/bin/sh
-# Fail closed unless the PostgreSQL process and Lumina bootstrap structure are present.
+# Fail closed unless the PostgreSQL process and Nova-Lumina bootstrap structure are present.
 set -eu
 
 PGPASSWORD="$POSTGRES_PASSWORD" pg_isready -h 127.0.0.1 -U lumina_admin -d postgres \

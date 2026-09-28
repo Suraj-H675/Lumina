@@ -33,7 +33,7 @@ _RESOURCE_MAP = {
 
 
 def check_wheel() -> None:
-    with tempfile.TemporaryDirectory(prefix="lumina-wheel-check-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="nova-lumina-wheel-check-") as temporary:
         output = Path(temporary)
         subprocess.run(
             [

@@ -2,7 +2,7 @@ import {
   telescopeBuilderEndpoint,
   validateExactGenerated,
   type TelescopeBuilderCalculationResponse,
-} from "@lumina/api-client";
+} from "@nova-lumina/api-client";
 
 import rawTelescopeBuilderArtifact from "../../../../../data/seed/telescope-builder-v1.json";
 
@@ -153,7 +153,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+      "OpenStax textbook source; Nova-Lumina links to the source and does not redistribute its text.",
     citation: "OpenStax, “6.1 Telescopes”, accessed 2026-09-09.",
     claim_scope:
       "Aperture determines collecting area and telescope focal length/eyepiece relationships provide first-order visual context.",
@@ -169,7 +169,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "OpenStax textbook source; Lumina links to the source and does not redistribute its text.",
+      "OpenStax textbook source; Nova-Lumina links to the source and does not redistribute its text.",
     citation: "OpenStax, “4.5 Circular Apertures and Resolution”, accessed 2026-09-09.",
     claim_scope:
       "Theoretical Rayleigh resolution relationship 1.22 lambda divided by aperture diameter for a circular aperture, with ideal assumptions.",
@@ -185,7 +185,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+      "Sky & Telescope publication; Nova-Lumina links to the source and does not redistribute its text.",
     citation:
       "Sky & Telescope, “Pushing Limits: A Spring Sky Double Star Romp”, accessed 2026-09-09.",
     claim_scope:
@@ -203,7 +203,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+      "Celestron technical reference; Nova-Lumina links to the source and does not redistribute its text.",
     citation: "Celestron, “Astronomy Glossary of Terms”, accessed 2026-09-09.",
     claim_scope:
       "Supporting first-order magnification, focal-ratio, exit-pupil, AFOV/TFOV, modifier, and aperture-area relationships.",
@@ -220,7 +220,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "University educational source; Lumina links to the source and does not redistribute its text.",
+      "University educational source; Nova-Lumina links to the source and does not redistribute its text.",
     citation: "Western Washington University Astronomy 101, “Telescopes”, accessed 2026-09-09.",
     claim_scope:
       "Supporting educational context that aperture controls ideal light gathering/resolution, magnification uses focal lengths, focal ratio is focal length divided by aperture, and approximately 50x per inch is a visual rule of thumb under ideal conditions.",
@@ -236,7 +236,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Celestron technical reference; Lumina links to the source and does not redistribute its text.",
+      "Celestron technical reference; Nova-Lumina links to the source and does not redistribute its text.",
     citation:
       "Celestron, “What is Exit Pupil and Eye Relief for Sport Optics?”, accessed 2026-09-09.",
     claim_scope:
@@ -254,7 +254,7 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
     retrieved_at: "2026-09-09",
     data_date: "Not stated by source.",
     terms_or_licence:
-      "Sky & Telescope publication; Lumina links to the source and does not redistribute its text.",
+      "Sky & Telescope publication; Nova-Lumina links to the source and does not redistribute its text.",
     citation: "Sky & Telescope, “How to Choose Your Telescope Magnification”, accessed 2026-09-09.",
     claim_scope:
       "Independent reference for the default-style first-order magnification, approximate TFOV, exit-pupil, and non-guaranteed practical magnification relationships.",

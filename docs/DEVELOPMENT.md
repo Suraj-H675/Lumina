@@ -30,7 +30,7 @@ The development database binds to loopback by default. Runtime and migration rol
 ## API
 
 ```sh
-LUMINA_ENV=development uv run lumina-api
+LUMINA_ENV=development uv run nova-lumina-api
 ```
 
 Default local endpoints:
@@ -53,7 +53,7 @@ The server-only internal API origin and browser-visible public API origin are di
 ## Worker
 
 ```sh
-uv run lumina-worker
+uv run nova-lumina-worker
 ```
 
 The worker uses the same backend package and PostgreSQL job model. Stop it gracefully with SIGINT/SIGTERM.

@@ -43,4 +43,4 @@ ENV LUMINA_API_HOST=0.0.0.0
 
 EXPOSE 8000
 
-CMD ["lumina-api"]
+CMD ["nova-lumina-api"]

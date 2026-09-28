@@ -83,7 +83,7 @@ EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Gaia DR3 release; no per-row observation date is used by this artifact.",
         "terms_or_licence": (
-            "ESA Gaia archive data; Lumina retains source attribution and links to "
+            "ESA Gaia archive data; Nova-Lumina retains source attribution and links to "
             "the official documentation."
         ),
         "citation": (
@@ -116,7 +116,7 @@ EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
             "Gaia DR3 release; Gaia-published percentiles are retained as source values."
         ),
         "terms_or_licence": (
-            "ESA Gaia archive data; Lumina retains source attribution and links to "
+            "ESA Gaia archive data; Nova-Lumina retains source attribution and links to "
             "the official documentation."
         ),
         "citation": (
@@ -142,7 +142,7 @@ EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Gaia DR3 documentation release 1.3.",
         "terms_or_licence": (
-            "ESA Gaia documentation; Lumina links to the official release documentation."
+            "ESA Gaia documentation; Nova-Lumina links to the official release documentation."
         ),
         "citation": "ESA Gaia Data Release 3 Documentation, release 1.3, accessed 2026-09-09.",
         "claim_scope": (
@@ -164,7 +164,7 @@ EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Catalogue publication/update 2024-11-21 as reported by CDS/VizieR.",
         "terms_or_licence": (
-            "CDS/VizieR catalogue; Lumina links to and attributes the published catalogue."
+            "CDS/VizieR catalogue; Nova-Lumina links to and attributes the published catalogue."
         ),
         "citation": (
             "Hunt E.L. and Reffert S., “Improving the open cluster census. III.”, A&A "
@@ -173,7 +173,7 @@ EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "claim_scope": (
             "Pinned cluster membership rows and accepted-name/ID metadata for "
             "Pleiades, Hyades, Praesepe, and M 67; no membership is inferred by "
-            "Lumina."
+            "Nova-Lumina."
         ),
         "source_type": "catalogue",
     },
@@ -195,7 +195,7 @@ EXPECTED_SOURCE_METADATA: Final[dict[str, dict[str, str]]] = {
         "retrieved_at": "2026-09-09",
         "data_date": "Published 2018; no row data are imported from this page.",
         "terms_or_licence": (
-            "Official ESA educational page; Lumina links to the source and does not "
+            "Official ESA educational page; Nova-Lumina links to the source and does not "
             "redistribute its media."
         ),
         "citation": (
@@ -302,7 +302,7 @@ def _finite_optional_number(value: object) -> None:
 
 
 def stage_group_for_evolstage(value: object) -> StageGroup:
-    """Map Gaia's integer FLAME stage to the frozen Lumina educational group."""
+    """Map Gaia's integer FLAME stage to the frozen Nova-Lumina educational group."""
 
     if isinstance(value, bool) or not isinstance(value, int):
         raise HRDiagramExplorerModelError()

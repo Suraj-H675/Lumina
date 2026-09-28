@@ -19,7 +19,7 @@ import {
   validateSeasonsCalculationResult,
   validateSeasonsState,
 } from "../src/lib/simulations/seasons-simulator";
-import type { SeasonsCalculationResponse } from "@lumina/api-client";
+import type { SeasonsCalculationResponse } from "@nova-lumina/api-client";
 
 const JUNE_RESULT: SeasonsCalculationResponse = {
   model_version: "seasons-simulator-v1",

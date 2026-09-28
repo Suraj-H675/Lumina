@@ -4,7 +4,10 @@ import { join } from "node:path";
 
 import { defineConfig } from "@playwright/test";
 
-const coordinationFile = join(tmpdir(), `nova-lumina-status-e2e-${process.pid}-${randomUUID()}.json`);
+const coordinationFile = join(
+  tmpdir(),
+  `nova-lumina-status-e2e-${process.pid}-${randomUUID()}.json`,
+);
 
 export default defineConfig({
   testDir: "./tests/e2e",

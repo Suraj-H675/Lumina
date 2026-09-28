@@ -31,7 +31,7 @@ test("an unknown route uses the not-found experience", async ({ page }) => {
 
   await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /return to the lumina foundation home page/i }),
+    page.getByRole("link", { name: /return to the nova-lumina foundation home page/i }),
   ).toBeVisible();
 });
 

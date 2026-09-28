@@ -11,8 +11,8 @@
   "fetch_time_policy": "The reviewed retrieval timestamp is retained in the DataManifest.",
   "fixture_and_checksum_strategy": "Reviewed 110-row CSV plus exact SHA-256; acquisition raw bytes retained outside the repository only for review evidence.",
   "known_limitations": [
-    "SIMBAD is continuously maintained; Nova-Lumina pins the retrieval time and normalized bytes rather than a provider release number.",
-    "Coordinate quality and bibliography are retained as evidence and are not converted to a Nova-Lumina confidence score."
+    "SIMBAD is continuously maintained; Lumina pins the retrieval time and normalized bytes rather than a provider release number.",
+    "Coordinate quality and bibliography are retained as evidence and are not converted to a Lumina confidence score."
   ],
   "last_verified_at": "2026-08-30T08:19:30Z",
   "manifest_schema_version": 1,
@@ -34,7 +34,7 @@
   "official_documentation_url": "https://simbad.cds.unistra.fr/guide/",
   "purpose": "Offline ingestion of one reviewed Messier 1 through 110 SIMBAD snapshot.",
   "rate_or_fair_use_constraints": "Acquisition and verification only; runtime and CI make no provider requests.",
-  "refresh_schedule": "none; Nova-Lumina v1 snapshot is pinned.",
+  "refresh_schedule": "none; Lumina v1 snapshot is pinned.",
   "source_id": "cds-simbad",
   "source_name": "CDS SIMBAD",
   "source_schema_version": "SIMBAD4-1.8-2026-07",

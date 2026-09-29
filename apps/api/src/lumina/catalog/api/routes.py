@@ -141,18 +141,6 @@ def _source_payload(value: object) -> dict[str, object]:
     }
 
 
-def _measurement_payload(value: object) -> dict[str, object]:
-    return {
-        "id": _field(value, "id"),
-        "quantity": _quantity_payload(value),
-        "value": _dump(_field(value, "value")),
-        "unit": _unit_payload(value),
-        "original_value": _field(value, "original_value"),
-        "original_unit": _field(value, "original_unit"),
-        "source": _source_payload(value),
-    }
-
-
 def _selected_measurement_payload(value: object) -> dict[str, object]:
     return {
         "id": _field(value, "id"),

@@ -72,7 +72,6 @@ _OPERATION: Final = "batch_fetch"
 _MAX_JSON_DEPTH: Final = 16
 _MAX_JSON_OBJECT_KEYS: Final = 256
 _MAX_JSON_ARRAY_LENGTH: Final = 256
-_SCALE_TEXT_MAX_LENGTH: Final = 256
 _DATE_TEXT_MAX_LENGTH: Final = 32
 _TIME_TEXT_MAX_LENGTH: Final = 32
 _PRODUCT_ID_PATTERN: Final = re.compile(r"[A-Za-z0-9_-]{1,64}", re.ASCII)

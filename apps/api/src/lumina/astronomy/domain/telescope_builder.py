@@ -64,11 +64,6 @@ TelescopeWarningCode = Literal[
 
 _TELESCOPE_TYPES: Final = frozenset({"refractor", "reflector", "catadioptric"})
 _MODIFIER_KINDS: Final = frozenset({"none", "barlow", "reducer"})
-_WARNING_CODES: Final = (
-    "high_magnification_guideline",
-    "very_small_exit_pupil",
-    "exit_pupil_exceeds_reference_pupil",
-)
 _VALIDATION_FIXTURE_IDS: Final = frozenset(
     {
         "default",

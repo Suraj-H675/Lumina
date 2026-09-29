@@ -105,16 +105,6 @@ _COLUMNS: Final = (
     "coo_qual",
     "coo_bibcode",
 )
-_RAW_COLUMNS: Final = (
-    "requested_identifier",
-    "oid",
-    "main_id",
-    "otype",
-    "ra",
-    "dec",
-    "coo_qual",
-    "coo_bibcode",
-)
 
 
 class MessierV2ArtifactError(ValueError):

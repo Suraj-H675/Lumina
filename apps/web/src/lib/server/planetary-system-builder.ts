@@ -1,43 +1,31 @@
 import "server-only";
 
-import {
-  requestEndpoint,
-  type PlanetarySystemBuilderCalculationResponse,
-  type TransportOptions,
-} from "@nova-lumina/api-client";
+import type { PlanetarySystemBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   planetarySystemBuilderRequestEndpoint,
   validatePlanetarySystemBuilderCalculationResult,
   type PlanetarySystemBuilderState,
 } from "../simulations/planetary-system-builder";
-import { resolveWebApiOrigin } from "./api-origin";
+import {
+  loadSimulationCalculation,
+  type SimulationCalculationOutcome,
+  type SimulationLoaderOptions,
+} from "./simulation-calculation";
 
 export type PlanetarySystemBuilderCalculationOutcome =
-  | Readonly<{ data: PlanetarySystemBuilderCalculationResponse; kind: "ok" }>
-  | Readonly<{ kind: "unavailable" }>;
+  SimulationCalculationOutcome<PlanetarySystemBuilderCalculationResponse>;
 
-export type PlanetarySystemBuilderLoaderOptions = TransportOptions &
-  Readonly<{ environment?: string; origin?: string }>;
+export type PlanetarySystemBuilderLoaderOptions = SimulationLoaderOptions;
 
 export async function loadPlanetarySystemBuilderCalculation(
   state: PlanetarySystemBuilderState,
   options: PlanetarySystemBuilderLoaderOptions = {},
 ): Promise<PlanetarySystemBuilderCalculationOutcome> {
-  const configured = resolveWebApiOrigin(options.origin, options.environment);
-  if (!configured.valid) return { kind: "unavailable" };
-  const result = await requestEndpoint(
-    configured.origin,
-    planetarySystemBuilderRequestEndpoint(state),
-    {
-      ...(options.fetchImplementation === undefined
-        ? {}
-        : { fetchImplementation: options.fetchImplementation }),
-      ...(options.signal === undefined ? {} : { signal: options.signal }),
-      ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
-    },
+  return loadSimulationCalculation(
+    state,
+    options,
+    planetarySystemBuilderRequestEndpoint,
+    validatePlanetarySystemBuilderCalculationResult,
   );
-  if (result.kind !== "ok") return { kind: "unavailable" };
-  const validated = validatePlanetarySystemBuilderCalculationResult(state, result.data);
-  return validated === null ? { kind: "unavailable" } : { data: validated, kind: "ok" };
 }

@@ -1,39 +1,31 @@
 import "server-only";
 
-import {
-  requestEndpoint,
-  type EclipseSimulatorCalculationResponse,
-  type TransportOptions,
-} from "@nova-lumina/api-client";
+import type { EclipseSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   eclipseSimulatorRequestEndpoint,
   validateEclipseSimulatorCalculationResult,
   type EclipseSimulatorState,
 } from "../simulations/eclipse-simulator";
-import { resolveWebApiOrigin } from "./api-origin";
+import {
+  loadSimulationCalculation,
+  type SimulationCalculationOutcome,
+  type SimulationLoaderOptions,
+} from "./simulation-calculation";
 
 export type EclipseSimulatorCalculationOutcome =
-  | Readonly<{ data: EclipseSimulatorCalculationResponse; kind: "ok" }>
-  | Readonly<{ kind: "unavailable" }>;
+  SimulationCalculationOutcome<EclipseSimulatorCalculationResponse>;
 
-export type EclipseSimulatorLoaderOptions = TransportOptions &
-  Readonly<{ environment?: string; origin?: string }>;
+export type EclipseSimulatorLoaderOptions = SimulationLoaderOptions;
 
 export async function loadEclipseSimulatorCalculation(
   state: EclipseSimulatorState,
   options: EclipseSimulatorLoaderOptions = {},
 ): Promise<EclipseSimulatorCalculationOutcome> {
-  const configured = resolveWebApiOrigin(options.origin, options.environment);
-  if (!configured.valid) return { kind: "unavailable" };
-  const result = await requestEndpoint(configured.origin, eclipseSimulatorRequestEndpoint(state), {
-    ...(options.fetchImplementation === undefined
-      ? {}
-      : { fetchImplementation: options.fetchImplementation }),
-    ...(options.signal === undefined ? {} : { signal: options.signal }),
-    ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
-  });
-  if (result.kind !== "ok") return { kind: "unavailable" };
-  const validated = validateEclipseSimulatorCalculationResult(state, result.data);
-  return validated === null ? { kind: "unavailable" } : { data: validated, kind: "ok" };
+  return loadSimulationCalculation(
+    state,
+    options,
+    eclipseSimulatorRequestEndpoint,
+    validateEclipseSimulatorCalculationResult,
+  );
 }

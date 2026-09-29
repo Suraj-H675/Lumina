@@ -1,39 +1,31 @@
 import "server-only";
 
-import {
-  requestEndpoint,
-  type OrbitSandboxCalculationResponse,
-  type TransportOptions,
-} from "@nova-lumina/api-client";
+import type { OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   orbitSandboxRequestEndpoint,
   validateOrbitSandboxCalculationResult,
   type OrbitSandboxState,
 } from "../simulations/orbit-sandbox";
-import { resolveWebApiOrigin } from "./api-origin";
+import {
+  loadSimulationCalculation,
+  type SimulationCalculationOutcome,
+  type SimulationLoaderOptions,
+} from "./simulation-calculation";
 
 export type OrbitSandboxCalculationOutcome =
-  | Readonly<{ data: OrbitSandboxCalculationResponse; kind: "ok" }>
-  | Readonly<{ kind: "unavailable" }>;
+  SimulationCalculationOutcome<OrbitSandboxCalculationResponse>;
 
-export type OrbitSandboxLoaderOptions = TransportOptions &
-  Readonly<{ environment?: string; origin?: string }>;
+export type OrbitSandboxLoaderOptions = SimulationLoaderOptions;
 
 export async function loadOrbitSandboxCalculation(
   state: OrbitSandboxState,
   options: OrbitSandboxLoaderOptions = {},
 ): Promise<OrbitSandboxCalculationOutcome> {
-  const configured = resolveWebApiOrigin(options.origin, options.environment);
-  if (!configured.valid) return { kind: "unavailable" };
-  const result = await requestEndpoint(configured.origin, orbitSandboxRequestEndpoint(state), {
-    ...(options.fetchImplementation === undefined
-      ? {}
-      : { fetchImplementation: options.fetchImplementation }),
-    ...(options.signal === undefined ? {} : { signal: options.signal }),
-    ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
-  });
-  if (result.kind !== "ok") return { kind: "unavailable" };
-  const validated = validateOrbitSandboxCalculationResult(state, result.data);
-  return validated === null ? { kind: "unavailable" } : { data: validated, kind: "ok" };
+  return loadSimulationCalculation(
+    state,
+    options,
+    orbitSandboxRequestEndpoint,
+    validateOrbitSandboxCalculationResult,
+  );
 }

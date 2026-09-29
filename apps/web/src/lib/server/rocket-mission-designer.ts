@@ -1,43 +1,31 @@
 import "server-only";
 
-import {
-  requestEndpoint,
-  type RocketMissionDesignerCalculationResponse,
-  type TransportOptions,
-} from "@nova-lumina/api-client";
+import type { RocketMissionDesignerCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   rocketMissionDesignerRequestEndpoint,
   validateRocketMissionDesignerCalculationResult,
   type RocketMissionDesignerState,
 } from "../simulations/rocket-mission-designer";
-import { resolveWebApiOrigin } from "./api-origin";
+import {
+  loadSimulationCalculation,
+  type SimulationCalculationOutcome,
+  type SimulationLoaderOptions,
+} from "./simulation-calculation";
 
 export type RocketMissionDesignerCalculationOutcome =
-  | Readonly<{ data: RocketMissionDesignerCalculationResponse; kind: "ok" }>
-  | Readonly<{ kind: "unavailable" }>;
+  SimulationCalculationOutcome<RocketMissionDesignerCalculationResponse>;
 
-export type RocketMissionDesignerLoaderOptions = TransportOptions &
-  Readonly<{ environment?: string; origin?: string }>;
+export type RocketMissionDesignerLoaderOptions = SimulationLoaderOptions;
 
 export async function loadRocketMissionDesignerCalculation(
   state: RocketMissionDesignerState,
   options: RocketMissionDesignerLoaderOptions = {},
 ): Promise<RocketMissionDesignerCalculationOutcome> {
-  const configured = resolveWebApiOrigin(options.origin, options.environment);
-  if (!configured.valid) return { kind: "unavailable" };
-  const result = await requestEndpoint(
-    configured.origin,
-    rocketMissionDesignerRequestEndpoint(state),
-    {
-      ...(options.fetchImplementation === undefined
-        ? {}
-        : { fetchImplementation: options.fetchImplementation }),
-      ...(options.signal === undefined ? {} : { signal: options.signal }),
-      ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
-    },
+  return loadSimulationCalculation(
+    state,
+    options,
+    rocketMissionDesignerRequestEndpoint,
+    validateRocketMissionDesignerCalculationResult,
   );
-  if (result.kind !== "ok") return { kind: "unavailable" };
-  const validated = validateRocketMissionDesignerCalculationResult(state, result.data);
-  return validated === null ? { kind: "unavailable" } : { data: validated, kind: "ok" };
 }

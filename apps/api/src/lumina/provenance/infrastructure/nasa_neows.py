@@ -8,7 +8,7 @@ import re
 import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Final, Literal, Protocol
@@ -24,6 +24,7 @@ from lumina.provenance.domain.neows import (
     NasaNeowsEncounter,
     NasaNeowsNormalized,
     neows_object_id,
+    parse_neows_date,
 )
 from lumina.provenance.domain.provider import (
     ProviderAdapter,
@@ -57,7 +58,6 @@ from .manifests import find_repository_root, load_source_manifest
 SOURCE_MANIFEST_PATH: Final = "data/manifests/sources/nasa-neows.json"
 EXPECTED_CONTENT_TYPE: Final = NEOWS_CONTENT_TYPE
 _OPERATION: Final = "batch_fetch"
-_DATE_PATTERN: Final = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", re.ASCII)
 _NUMBER_PATTERN: Final = re.compile(
     r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?",
     re.ASCII,
@@ -84,8 +84,8 @@ class NasaNeowsRequest:
         if type(self.api_key) is not SecretStr or self.operation != _OPERATION:
             raise ProviderRequestRejected()
         try:
-            start = _parse_date(self.start_date)
-            end = _parse_date(self.end_date)
+            start = parse_neows_date(self.start_date)
+            end = parse_neows_date(self.end_date)
         except ValueError:
             raise ProviderRequestRejected() from None
         if end != start + timedelta(days=6) or not _valid_api_key(self.api_key.get_secret_value()):
@@ -310,12 +310,12 @@ class NasaNeowsAdapter(ProviderAdapter[NasaNeowsRequest, NasaNeowsPayload, NasaN
         """Select exactly one Earth event per feed bucket and canonicalize its values."""
         if type(request) is not NasaNeowsRequest or type(payload) is not NasaNeowsPayload:
             raise ProviderNormalizationFailed()
-        start = _parse_date(request.start_date)
-        end = _parse_date(request.end_date)
+        start = parse_neows_date(request.start_date)
+        end = parse_neows_date(request.end_date)
         encounters: list[NasaNeowsEncounter] = []
         seen_identity: set[tuple[str, str]] = set()
         for bucket_date, objects in sorted(payload.near_earth_objects.items()):
-            bucket = _parse_date(bucket_date)
+            bucket = parse_neows_date(bucket_date)
             if not start <= bucket <= end:
                 raise ProviderNormalizationFailed()
             for source_object in objects:
@@ -473,7 +473,7 @@ def _validate_wire_shape(value: object, depth: int = 0) -> None:
 def _validate_source_payload(payload: NasaNeowsPayload) -> None:
     object_count = 0
     for bucket_date, objects in payload.near_earth_objects.items():
-        _parse_date(bucket_date)
+        parse_neows_date(bucket_date)
         if len(objects) > MAX_NEOWS_ENCOUNTERS:
             raise ValueError("NeoWs object count exceeds the bound")
         object_ids: set[str] = set()
@@ -516,7 +516,7 @@ def _validate_source_payload(payload: NasaNeowsPayload) -> None:
             if len(source_object.close_approach_data) > _MAX_WIRE_LIST_LENGTH:
                 raise ValueError("NeoWs close-approach data exceeds the bound")
             for approach in source_object.close_approach_data:
-                _parse_date(approach.close_approach_date)
+                parse_neows_date(approach.close_approach_date)
                 _validate_text(
                     approach.close_approach_date_full,
                     maximum=_MAX_APPROACH_TIME_LENGTH,
@@ -538,15 +538,6 @@ def _validate_source_payload(payload: NasaNeowsPayload) -> None:
                     source_type="string",
                 )
                 _validate_text(approach.orbiting_body, maximum=64)
-
-
-def _parse_date(value: str) -> date:
-    if type(value) is not str or _DATE_PATTERN.fullmatch(value) is None:
-        raise ValueError("NeoWs date is invalid")
-    try:
-        return date.fromisoformat(value)
-    except ValueError:
-        raise ValueError("NeoWs date is invalid") from None
 
 
 def _parse_exact_integer(value: object) -> int:

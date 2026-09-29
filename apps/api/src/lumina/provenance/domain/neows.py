@@ -186,13 +186,13 @@ def neows_object_id(neo_reference_id: str) -> str:
 def neows_encounter_id(neo_reference_id: str, approach_date: str) -> str:
     """Build the public Nova-Lumina event identity from source ID and date."""
     _validate_neo_reference_id(neo_reference_id)
-    _parse_date(approach_date)
+    parse_neows_date(approach_date)
     return f"{neows_object_id(neo_reference_id)}-{approach_date}"
 
 
 def _validate_normalized(value: NasaNeowsNormalized) -> None:
-    start = _parse_date(value.window_start_date)
-    end = _parse_date(value.window_end_date)
+    start = parse_neows_date(value.window_start_date)
+    end = parse_neows_date(value.window_end_date)
     if end != start.fromordinal(start.toordinal() + 6):
         raise ValueError("NeoWs normalized window must contain seven calendar dates")
     if len(value.encounters) > MAX_NEOWS_ENCOUNTERS:
@@ -202,7 +202,7 @@ def _validate_normalized(value: NasaNeowsNormalized) -> None:
     for encounter in value.encounters:
         _validate_neo_reference_id(encounter.neo_reference_id)
         _validate_text(encounter.name, maximum=MAX_NEOWS_NAME_LENGTH)
-        approach_date = _parse_date(encounter.approach_date)
+        approach_date = parse_neows_date(encounter.approach_date)
         if not start <= approach_date <= end:
             raise ValueError("NeoWs encounter date is outside the normalized window")
         _validate_text(encounter.approach_time_text, maximum=MAX_NEOWS_APPROACH_TIME_LENGTH)
@@ -252,7 +252,7 @@ def _validate_epoch(value: str) -> None:
         raise ValueError("NeoWs provider epoch is invalid")
 
 
-def _parse_date(value: str) -> date:
+def parse_neows_date(value: str) -> date:
     if type(value) is not str or _DATE_PATTERN.fullmatch(value) is None:
         raise ValueError("NeoWs date is invalid")
     try:
@@ -310,4 +310,5 @@ __all__ = [
     "NEOWS_NORMALIZED_FIELDS",
     "neows_encounter_id",
     "neows_object_id",
+    "parse_neows_date",
 ]

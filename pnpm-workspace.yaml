@@ -3,7 +3,6 @@ packages:
   - "packages/*"
 
 overrides:
-  "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2"
   "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2"
 
 allowBuilds:

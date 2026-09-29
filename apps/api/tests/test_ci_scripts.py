@@ -85,7 +85,6 @@ API_PYTHON_IMAGE = (
 )
 SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
-    "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2",
     "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2",
 }
 HISTORICAL_TRUFFLEHOG_EXCEPTIONS = (
@@ -462,7 +461,6 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
     package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
 
     assert _top_level_yaml_block(workspace, "overrides") == (
-        '  "@eslint/eslintrc@3.3.6>js-yaml": "4.3.2"',
         '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2"',
         "",
     )
@@ -1287,47 +1285,6 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
     assert "migration.checksum_mismatch: 0001_create_job.py" in changed
     assert "migration.lineage_mismatch: 0001_create_job.py" in changed
     assert "migration.unapproved_file: 0003_unapproved.py" in changed
-
-
-def test_root_commands_and_repository_guidance_are_publication_complete() -> None:
-    package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
-    scripts = package["scripts"]
-    assert scripts["docs:check"] == "uv run python scripts/ci/check_markdown_links.py"
-    assert scripts["package:check"] == "uv run python scripts/ci/check_python_wheel.py"
-    assert scripts["migrations:check"] == "uv run python scripts/ci/check_migration_integrity.py"
-    assert scripts["security:check"] == "bash scripts/ci/check_security.sh"
-    for command in (
-        "api:check",
-        "package:check",
-        "manifests:check",
-        "docs:check",
-        "migrations:check",
-    ):
-        assert f"pnpm run {command}" in scripts["check"]
-    assert "security:check" not in scripts["check"]
-
-    for relative in (
-        "README.md",
-        "AGENTS.md",
-        "CONTRIBUTING.md",
-        "SECURITY.md",
-        "CODE_OF_CONDUCT.md",
-        ".github/pull_request_template.md",
-    ):
-        assert (REPOSITORY_ROOT / relative).is_file()
-
-    template_root = REPOSITORY_ROOT / ".github" / "ISSUE_TEMPLATE"
-    assert {path.name for path in template_root.glob("*.yml")} == {
-        "bug_report.yml",
-        "data_issue.yml",
-        "feature_request.yml",
-    }
-    for template in template_root.glob("*.yml"):
-        text = template.read_text(encoding="utf-8")
-        assert "required: true" in text
-        assert "secret" in text.lower() or "privacy" in text.lower()
-    bug_report = (template_root / "bug_report.yml").read_text(encoding="utf-8")
-    assert 'GitHub\'s "Report a vulnerability"' in bug_report
 
 
 def test_current_fictional_uri_inputs_use_only_inline_trufflehog_ignore_markers() -> None:

@@ -12,7 +12,6 @@
     "./transport": "./src/transport.ts"
   },
   "scripts": {
-    "format:check": "prettier --check package.json tsconfig.json eslint.config.mjs \"scripts/**/*.mjs\" \"src/**/*.ts\" \"tests/**/*.ts\"",
     "lint": "eslint .",
     "test": "vitest run",
     "typecheck": "tsc --project tsconfig.json --noEmit"
@@ -26,7 +25,6 @@
     "@nova-lumina/config-typescript": "workspace:*",
     "@types/node": "24.10.0",
     "eslint": "9.39.5",
-    "prettier": "3.9.6",
     "typescript": "6.0.3",
     "typescript-eslint": "8.65.0",
     "vitest": "4.1.11"

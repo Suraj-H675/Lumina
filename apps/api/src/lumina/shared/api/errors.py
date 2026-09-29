@@ -60,6 +60,21 @@ def error_response(
     return JSONResponse(status_code=status_code, content=payload.model_dump(mode="json"))
 
 
+def request_validation_error_response(
+    request: Request,
+    *,
+    details: dict[str, object] | None = None,
+) -> JSONResponse:
+    """Return the stable public envelope for rejected request input."""
+    return error_response(
+        request,
+        status_code=422,
+        code="request.validation_failed",
+        message="The request could not be validated.",
+        details=details,
+    )
+
+
 def _safe_validation_fields(errors: Sequence[Any]) -> list[dict[str, object]]:
     fields: list[dict[str, object]] = []
     for error in errors:
@@ -90,11 +105,8 @@ async def request_validation_exception_handler(
     """Normalize Pydantic validation failures without raw values or messages."""
     if not isinstance(exception, RequestValidationError):
         return await unhandled_exception_response(request)
-    return error_response(
+    return request_validation_error_response(
         request,
-        status_code=422,
-        code="request.validation_failed",
-        message="The request could not be validated.",
         details={"fields": _safe_validation_fields(exception.errors())},
     )
 

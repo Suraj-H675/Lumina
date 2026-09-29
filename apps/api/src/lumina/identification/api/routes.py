@@ -45,7 +45,11 @@ from lumina.jobs.domain.models import (
     JobIdempotencyConflict,
     JobStorageUnavailable,
 )
-from lumina.shared.api.errors import ErrorResponse, error_response
+from lumina.shared.api.errors import (
+    ErrorResponse,
+    error_response,
+    request_validation_error_response,
+)
 
 from .schemas import (
     FakeSolverResultResponse,
@@ -103,7 +107,7 @@ async def get_identification_capabilities(
     if not request.app.state.settings.identification_enabled:
         return _feature_unavailable(request)
     if request.query_params:
-        return _invalid(request)
+        return request_validation_error_response(request)
     settings = request.app.state.settings
     remote_processing = settings.enable_remote_astrometry
     return IdentificationCapabilitiesResponse(
@@ -131,7 +135,7 @@ async def create_identification_submission(
     if not request.app.state.settings.identification_enabled:
         return _feature_unavailable(request)
     if request.query_params:
-        return _invalid(request)
+        return request_validation_error_response(request)
     settings = request.app.state.settings
     if settings.enable_remote_astrometry:
         if not consent_remote_processing:
@@ -202,7 +206,7 @@ async def create_identification_submission(
             message="The uploaded image type is not supported.",
         )
     except (UploadMalformed, UploadDimensionsRejected, SubmissionValidationError):
-        return _invalid(request)
+        return request_validation_error_response(request)
     except SubmissionStateConflict:
         return _unavailable(request)
     except (
@@ -240,7 +244,7 @@ async def get_identification_submission(
     if not request.app.state.settings.identification_enabled:
         return _feature_unavailable(request)
     if request.query_params:
-        return _invalid(request)
+        return request_validation_error_response(request)
     service: IdentificationPublicReadService = request.app.state.identification_public_read_service
     try:
         status = await service.status(submission_id)
@@ -300,7 +304,7 @@ async def get_identification_solution(
         any(key != "cursor" for key in request.query_params)
         or len(request.query_params.getlist("cursor")) > 1
     ):
-        return _invalid(request)
+        return request_validation_error_response(request)
     service: IdentificationPublicReadService = request.app.state.identification_public_read_service
     try:
         page = await service.solution(submission_id, cursor=cursor)
@@ -319,7 +323,7 @@ async def get_identification_solution(
             message="A normalized astrometric solution is not available for this submission.",
         )
     except IdentificationReadValidationError:
-        return _invalid(request)
+        return request_validation_error_response(request)
     except (
         IdentificationPublicReadFailure,
         RemoteStateStorageFailure,
@@ -377,7 +381,7 @@ async def delete_identification_submission(request: Request, submission_id: UUID
     if not request.app.state.settings.identification_enabled:
         return _feature_unavailable(request)
     if request.query_params:
-        return _invalid(request)
+        return request_validation_error_response(request)
     service: DeleteSubmissionService = request.app.state.identification_delete_service
     try:
         await service.delete(submission_id)
@@ -393,15 +397,6 @@ async def delete_identification_submission(request: Request, submission_id: UUID
     except (SubmissionCleanupFailure, SubmissionStorageFailure, PrivateStorageError):
         return _unavailable(request)
     return Response(status_code=204)
-
-
-def _invalid(request: Request) -> JSONResponse:
-    return error_response(
-        request,
-        status_code=422,
-        code="request.validation_failed",
-        message="The request could not be validated.",
-    )
 
 
 def _feature_unavailable(request: Request) -> JSONResponse:

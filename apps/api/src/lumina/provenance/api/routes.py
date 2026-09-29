@@ -16,7 +16,11 @@ from lumina.provenance.domain.runtime import (
     ProviderStatusSnapshot,
     ProviderStorageFailure,
 )
-from lumina.shared.api.errors import ErrorResponse, error_response
+from lumina.shared.api.errors import (
+    ErrorResponse,
+    error_response,
+    request_validation_error_response,
+)
 
 from .schemas import (
     ProviderMetricsResponse,
@@ -84,22 +88,12 @@ async def provider_internal_sync(
         return _not_found(request)
 
     if request.query_params or await request.body():
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
 
     provider_code = request.headers.get(_PROVIDER_CODE_HEADER)
     registry: StaticProviderRegistry = request.app.state.provider_registry
     if provider_code is None or registry.resolve(provider_code) is None:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
 
     service: ProviderSyncService = request.app.state.provider_sync_service
     try:

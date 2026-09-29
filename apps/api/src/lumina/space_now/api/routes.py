@@ -12,7 +12,11 @@ from starlette.responses import JSONResponse
 from lumina.provenance.application.read import ProviderSnapshotReadError
 from lumina.provenance.domain.runtime import ProviderStorageFailure
 from lumina.satellites.domain.models import ObserverLocation
-from lumina.shared.api.errors import ErrorResponse, error_response
+from lumina.shared.api.errors import (
+    ErrorResponse,
+    error_response,
+    request_validation_error_response,
+)
 from lumina.space_now.application.launches import (
     LaunchListProjection,
     LaunchProjection,
@@ -158,12 +162,7 @@ _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES: Final = 61_440
 async def now_apod(request: Request) -> ApodResponse | JSONResponse:
     """Return the durable last-known-good APOD projection without fetching NASA."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: ApodReadService = request.app.state.apod_read_service
     try:
         projection = await service.read()
@@ -194,12 +193,7 @@ async def now_apod(request: Request) -> ApodResponse | JSONResponse:
 async def now_near_earth(request: Request) -> NearEarthResponse | JSONResponse:
     """Return the durable last-known-good NeoWs projection without fetching NASA."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: NearEarthReadService = request.app.state.near_earth_read_service
     try:
         projection = await service.read()
@@ -241,12 +235,7 @@ async def now_near_earth(request: Request) -> NearEarthResponse | JSONResponse:
 async def now_launches(request: Request) -> LaunchListResponse | JSONResponse:
     """Return the bounded durable LL2 launch projection without fetching upstream."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: LaunchReadService = request.app.state.launch_read_service
     try:
         projection = await service.read()
@@ -294,12 +283,7 @@ async def now_launches(request: Request) -> LaunchListResponse | JSONResponse:
 async def now_launch(launch_id: UUID, request: Request) -> LaunchDetailResponse | JSONResponse:
     """Return one launch from the same durable bounded LL2 snapshot."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: LaunchReadService = request.app.state.launch_read_service
     try:
         projection, launch = await service.read_one(str(launch_id))
@@ -337,12 +321,7 @@ async def now_launch(launch_id: UUID, request: Request) -> LaunchDetailResponse 
 async def now_satellites(request: Request) -> SatelliteListResponse | JSONResponse:
     """Return the durable selected-group satellite cache without fetching CelesTrak."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: SatelliteReadService = request.app.state.satellite_read_service
     try:
         projection = await service.read()
@@ -386,12 +365,7 @@ async def now_satellite_passes(
 ) -> SatellitePassResponse | JSONResponse:
     """Compute one local 24-hour pass window from cached elements and transient coordinates."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: SatellitePassService = request.app.state.satellite_pass_service
     try:
         observer = ObserverLocation(
@@ -443,12 +417,7 @@ async def now_satellite_passes(
 async def now_space_weather(request: Request) -> SpaceWeatherResponse | JSONResponse:
     """Return the durable SWPC projection without fetching NOAA."""
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: SpaceWeatherReadService = request.app.state.space_weather_read_service
     try:
         projection = await service.read()

@@ -12,7 +12,11 @@ from starlette.responses import JSONResponse
 from lumina.participate.application.read import ParticipateReadService
 from lumina.provenance.application.read import ProviderSnapshotReadError
 from lumina.provenance.domain.runtime import ProviderStorageFailure
-from lumina.shared.api.errors import ErrorResponse, error_response
+from lumina.shared.api.errors import (
+    ErrorResponse,
+    error_response,
+    request_validation_error_response,
+)
 
 from .schemas import ParticipateResponse
 
@@ -40,12 +44,7 @@ async def participate(request: Request) -> ParticipateResponse | JSONResponse:
     """Return reviewed Participate content plus durable cached project status."""
 
     if request.query_params:
-        return error_response(
-            request,
-            status_code=422,
-            code="request.validation_failed",
-            message="The request could not be validated.",
-        )
+        return request_validation_error_response(request)
     service: ParticipateReadService = request.app.state.participate_read_service
     try:
         projection = await service.read()

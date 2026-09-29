@@ -6,6 +6,12 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawRelativityArtifact from "../../../../../data/seed/relativity-visualizations-v1.json";
+import {
+  hasOnlyKeys,
+  isFiniteNumber as finite,
+  isNonEmptyString as nonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const RELATIVITY_VISUALIZATIONS_MODEL_VERSION = "relativity-visualizations-v1" as const;
 export const RELATIVITY_VISUALIZATIONS_SCHEMA_VERSION = 1 as const;
@@ -134,23 +140,6 @@ export class RelativityVisualizationsArtifactValidationError extends Error {
     super("RELATIVITY_VISUALIZATIONS_ARTIFACT_INVALID");
     this.name = "RelativityVisualizationsArtifactValidationError";
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
-function finite(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function nonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
 }
 
 function inRange(value: unknown, minimum: number, maximum: number): value is number {

@@ -6,6 +6,12 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawImpactArtifact from "../../../../../data/seed/impact-simulator-v1.json";
+import {
+  hasOnlyKeys,
+  isFiniteNumber as finite,
+  isNonEmptyString as nonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const IMPACT_SIMULATOR_MODEL_VERSION = "impact-simulator-v1" as const;
 export const IMPACT_SIMULATOR_SCHEMA_VERSION = 1 as const;
@@ -123,25 +129,8 @@ export class ImpactSimulatorArtifactValidationError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
-function finite(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
 function positive(value: unknown): value is number {
   return finite(value) && value > 0;
-}
-
-function nonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
 }
 
 function inRange(value: unknown, minimum: number, maximum: number): value is number {

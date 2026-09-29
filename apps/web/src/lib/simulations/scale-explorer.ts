@@ -8,6 +8,7 @@
  */
 
 import scaleExplorerArtifact from "../../../../../data/seed/scale-explorer-v1.json";
+import { hasOnlyKeys, isNonEmptyString, isRecord } from "./validation";
 
 export const SCALE_EXPLORER_MODEL_VERSION = "scale-explorer-v1" as const;
 export const SCALE_EXPLORER_SCHEMA_VERSION = 1 as const;
@@ -347,21 +348,8 @@ export class ScaleExplorerValidationError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
 function hasNoUnknownKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
   return Object.keys(value).every((key) => keys.includes(key));
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
 }
 
 function isNonEmptyStringArray(value: unknown): value is ReadonlyArray<string> {

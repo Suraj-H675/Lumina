@@ -5,6 +5,12 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawRadialVelocityArtifact from "../../../../../data/seed/radial-velocity-v1.json";
+import {
+  hasOnlyKeys,
+  isFiniteNumber as finite,
+  isNonEmptyString as nonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const RADIAL_VELOCITY_MODEL_VERSION = "radial-velocity-v1" as const;
 export const RADIAL_VELOCITY_SCHEMA_VERSION = 1 as const;
@@ -123,29 +129,12 @@ export class RadialVelocityArtifactValidationError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
-function finite(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
 function inRange(value: unknown, range: Readonly<{ min: number; max: number }>): value is number {
   return finite(value) && value >= range.min && value <= range.max;
 }
 
 function inHalfOpenAngle(value: unknown): value is number {
   return finite(value) && value >= 0 && value < 360;
-}
-
-function nonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
 }
 
 function failArtifact(): never {

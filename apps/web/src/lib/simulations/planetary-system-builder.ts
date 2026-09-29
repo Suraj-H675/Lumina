@@ -5,6 +5,12 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawBuilderArtifact from "../../../../../data/seed/planetary-system-builder-v1.json";
+import {
+  hasOnlyKeys,
+  isFiniteNumber as finite,
+  isNonEmptyString as nonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const PLANETARY_SYSTEM_BUILDER_MODEL_VERSION = "planetary-system-builder-v1" as const;
 export const PLANETARY_SYSTEM_BUILDER_SCHEMA_VERSION = 1 as const;
@@ -123,23 +129,6 @@ export class PlanetarySystemBuilderArtifactValidationError extends Error {
     super("PLANETARY_SYSTEM_BUILDER_ARTIFACT_INVALID");
     this.name = "PlanetarySystemBuilderArtifactValidationError";
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
-function finite(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function nonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
 }
 
 function inRange(value: unknown, minimum: number, maximum: number): value is number {

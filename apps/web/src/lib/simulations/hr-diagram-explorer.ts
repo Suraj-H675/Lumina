@@ -1,4 +1,5 @@
 import rawHrDiagramArtifact from "../../../../../data/seed/hr-diagram-explorer-v1.json";
+import { hasOnlyKeys, isFiniteNumber, isNonEmptyString, isRecord } from "./validation";
 
 export const HR_DIAGRAM_MODEL_VERSION = "hr-diagram-explorer-v1" as const;
 export const HR_DIAGRAM_SCHEMA_VERSION = 1 as const;
@@ -334,23 +335,6 @@ export class HRDiagramArtifactValidationError extends Error {
     super("HR_DIAGRAM_ARTIFACT_INVALID");
     this.name = "HRDiagramArtifactValidationError";
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 function isStringArray(value: unknown): value is ReadonlyArray<string> {

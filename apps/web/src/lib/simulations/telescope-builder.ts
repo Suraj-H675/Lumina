@@ -5,6 +5,7 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawTelescopeBuilderArtifact from "../../../../../data/seed/telescope-builder-v1.json";
+import { hasOnlyKeys, isFiniteNumber, isNonEmptyString, isRecord } from "./validation";
 
 export const TELESCOPE_BUILDER_MODEL_VERSION = "telescope-builder-v1" as const;
 export const TELESCOPE_BUILDER_SCHEMA_VERSION = 1 as const;
@@ -390,25 +391,8 @@ export class TelescopeBuilderArtifactValidationError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
-  const actual = Object.keys(value);
-  return actual.length === keys.length && actual.every((key) => keys.includes(key));
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
-}
-
 function isStringArray(value: unknown): value is ReadonlyArray<string> {
   return Array.isArray(value) && value.length > 0 && value.every(isNonEmptyString);
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 function failArtifact(): never {

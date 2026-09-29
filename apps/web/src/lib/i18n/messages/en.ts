@@ -1227,7 +1227,7 @@ export const enMessages = {
         fakeSolver:
           "The fake solver verifies workflow integrity only; a success state is not a sky identification.",
         noRemote: "No remote plate-solving service is contacted; remote processing is disabled.",
-        title: "Private by design in this phase",
+        title: "Private by design",
       },
       remote: {
         deletion:
@@ -3813,7 +3813,7 @@ export const enMessages = {
         assumptions: "Assumptions",
         equations: "Equations and relationships",
         futureMotion:
-          "No animation is required. If a future phase adds motion, it must be stoppable, honor reduced-motion preferences, and be labelled an orbital phase sweep rather than elapsed calendar time.",
+          "No animation is required. Any motion must be stoppable, honor reduced-motion preferences, and be labelled an orbital phase sweep rather than elapsed calendar time.",
         inputsAndValidity: "Inputs and validity domain",
         limitations: "Limitations and disclosures",
         reviewedSources: "Reviewed scientific sources",

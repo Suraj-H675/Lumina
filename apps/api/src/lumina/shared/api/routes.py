@@ -31,7 +31,7 @@ class ReadyResponse(BaseModel):
 
 
 class FeatureFlags(BaseModel):
-    """Environment-safe public feature flags for the current phase."""
+    """Environment-safe public feature flags."""
 
     model_config = ConfigDict(extra="forbid")
 

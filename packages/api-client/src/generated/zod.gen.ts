@@ -287,7 +287,7 @@ export const zFakeSolverResultResponse = z.object({
 /**
  * FeatureFlags
  *
- * Environment-safe public feature flags for the current phase.
+ * Environment-safe public feature flags.
  */
 export const zFeatureFlags = z.record(z.string(), z.never());
 

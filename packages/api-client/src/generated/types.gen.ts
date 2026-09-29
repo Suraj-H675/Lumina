@@ -671,7 +671,7 @@ export type FakeSolverResultResponse = {
 /**
  * FeatureFlags
  *
- * Environment-safe public feature flags for the current phase.
+ * Environment-safe public feature flags.
  */
 export type FeatureFlags = {
   [key: string]: never;

@@ -1066,7 +1066,7 @@
       },
       "FeatureFlags": {
         "additionalProperties": false,
-        "description": "Environment-safe public feature flags for the current phase.",
+        "description": "Environment-safe public feature flags.",
         "properties": {},
         "title": "FeatureFlags",
         "type": "object"

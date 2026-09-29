@@ -397,7 +397,7 @@ function DeleteCollectionButton({
 }
 
 // ---------------------------------------------------------------------------
-// Collection → Compare selection (temporary UI state, max 3, reuses 1B5)
+// Collection → Compare selection (temporary UI state, max 3)
 // ---------------------------------------------------------------------------
 
 function CompareSelectionPanel({

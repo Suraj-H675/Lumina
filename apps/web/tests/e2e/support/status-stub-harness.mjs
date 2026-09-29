@@ -27,33 +27,23 @@ const stellarLaboratoryFixtures = JSON.parse(
 const eclipseSimulatorFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/eclipse-simulator.json", import.meta.url), "utf8"),
 );
-const spectroscopyLabFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/spectroscopy-lab.json", import.meta.url), "utf8"),
-);
-const planetarySystemBuilderFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/planetary-system-builder.json", import.meta.url), "utf8"),
-);
-const rocketMissionDesignerFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/rocket-mission-designer.json", import.meta.url), "utf8"),
-);
-const impactSimulatorFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/impact-simulator.json", import.meta.url), "utf8"),
-);
-const blackHoleRelativityFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/black-hole-relativity.json", import.meta.url), "utf8"),
-);
-const relativityVisualizationsFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/relativity-visualizations.json", import.meta.url), "utf8"),
-);
-const participateFixture = JSON.parse(
-  readFileSync(
-    new URL(
-      "../../../../../packages/api-client/tests/fixtures/participate-response.json",
-      import.meta.url,
+
+function loadApiClientFixture(filename) {
+  return JSON.parse(
+    readFileSync(
+      new URL(`../../../../../packages/api-client/tests/fixtures/${filename}`, import.meta.url),
+      "utf8",
     ),
-    "utf8",
-  ),
-);
+  );
+}
+
+const spectroscopyLabFixtures = loadApiClientFixture("spectroscopy-lab.json");
+const planetarySystemBuilderFixtures = loadApiClientFixture("planetary-system-builder.json");
+const rocketMissionDesignerFixtures = loadApiClientFixture("rocket-mission-designer.json");
+const impactSimulatorFixtures = loadApiClientFixture("impact-simulator.json");
+const blackHoleRelativityFixtures = loadApiClientFixture("black-hole-relativity.json");
+const relativityVisualizationsFixtures = loadApiClientFixture("relativity-visualizations.json");
+const participateFixture = loadApiClientFixture("participate-response.json");
 const sockets = new Set();
 const apiPaths = new Set([
   "/api/v1/meta",

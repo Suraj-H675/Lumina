@@ -29,6 +29,7 @@ import {
   satellitePassEndpoint,
   satellitesEndpoint,
   validateExactGenerated,
+  type GeneratedValidator,
 } from "../src/contract";
 import { MAX_RESPONSE_BYTES, requestEndpoint } from "../src/transport";
 import type {
@@ -61,22 +62,75 @@ import type {
   SuggestCatalogEntitiesData,
 } from "../src/generated/types.gen";
 import {
+  zBlackHoleRelativityCalculationResponse,
   zEntityBrowsePageResponse,
   zEntitySummaryResponse,
-  zGetParticipateResponse,
   zGetCatalogEntityBySlugResponse,
+  zGetParticipateResponse,
+  zImpactSimulatorCalculationResponse,
   zListCatalogEntitiesResponse,
   zLiveResponse,
   zMetaResponse,
+  zPlanetarySystemBuilderCalculationResponse,
+  zRelativityVisualizationsCalculationResponse,
+  zRocketMissionDesignerCalculationResponse,
   zSearchCatalogEntitiesResponse,
+  zSpectroscopyCalculationResponse,
   zSuggestCatalogEntitiesResponse,
 } from "../src/generated/zod.gen";
-import { BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE } from "./fixtures/black-hole-relativity-response";
-import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
-import { IMPACT_SIMULATOR_DEFAULT_RESPONSE } from "./fixtures/impact-simulator-response";
-import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
-import { RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE } from "./fixtures/relativity-visualizations-response";
-import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
+
+function loadExactFixtureCase<T>(
+  filename: string,
+  key: string,
+  validator: GeneratedValidator<T>,
+): T {
+  const fixture: unknown = JSON.parse(
+    readFileSync(new URL(`./fixtures/${filename}`, import.meta.url), "utf8"),
+  );
+  if (fixture === null || typeof fixture !== "object" || Array.isArray(fixture)) {
+    throw new Error(`Fixture ${filename} is not an object.`);
+  }
+  const record = fixture as Record<string, unknown>;
+  if (!Object.hasOwn(record, key)) {
+    throw new Error(`Fixture ${filename} does not contain ${key}.`);
+  }
+  const result = validateExactGenerated(validator, record[key]);
+  if (!result.valid) {
+    throw new Error(`Fixture ${filename} case ${key} does not match the generated contract.`);
+  }
+  return result.data;
+}
+
+const BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE = loadExactFixtureCase(
+  "black-hole-relativity.json",
+  "default_static_radius_2",
+  zBlackHoleRelativityCalculationResponse,
+);
+const IMPACT_SIMULATOR_DEFAULT_RESPONSE = loadExactFixtureCase(
+  "impact-simulator.json",
+  "default_impact",
+  zImpactSimulatorCalculationResponse,
+);
+const PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE = loadExactFixtureCase(
+  "planetary-system-builder.json",
+  "default_system",
+  zPlanetarySystemBuilderCalculationResponse,
+);
+const RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE = loadExactFixtureCase(
+  "relativity-visualizations.json",
+  "default_beta_06",
+  zRelativityVisualizationsCalculationResponse,
+);
+const ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE = loadExactFixtureCase(
+  "rocket-mission-designer.json",
+  "default_vehicle",
+  zRocketMissionDesignerCalculationResponse,
+);
+const SPECTROSCOPY_DEFAULT_RESPONSE = loadExactFixtureCase(
+  "spectroscopy-lab.json",
+  "default_absorption",
+  zSpectroscopyCalculationResponse,
+);
 
 const participateFixture: unknown = JSON.parse(
   readFileSync(new URL("./fixtures/participate-response.json", import.meta.url), "utf8"),

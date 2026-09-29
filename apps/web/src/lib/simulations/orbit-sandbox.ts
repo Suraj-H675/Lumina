@@ -426,10 +426,7 @@ const ORBIT_ARTIFACT = rawOrbitArtifact as OrbitArtifact;
 
 export const ORBIT_DEFINITION = ORBIT_ARTIFACT.definition;
 export const ORBIT_SOURCES = ORBIT_ARTIFACT.sources;
-export const ORBIT_CONSTANTS = ORBIT_ARTIFACT.constants;
 export const ORBIT_PRESETS = ORBIT_ARTIFACT.presets;
-export const ORBIT_VALIDATION_FIXTURES = ORBIT_ARTIFACT.validation_fixtures;
-export const ORBIT_SCIENTIFIC_VALIDATION = ORBIT_ARTIFACT.scientific_validation;
 
 const defaultPreset = ORBIT_PRESETS["earth-low-orbit"]!;
 export const DEFAULT_ORBIT_SANDBOX_STATE: OrbitSandboxState = {

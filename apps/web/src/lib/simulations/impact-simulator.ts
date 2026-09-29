@@ -411,8 +411,6 @@ const IMPACT_SIMULATOR_ARTIFACT = rawImpactArtifact as ImpactSimulatorArtifact;
 
 export const IMPACT_SIMULATOR_DEFINITION = IMPACT_SIMULATOR_ARTIFACT.definition;
 export const IMPACT_SIMULATOR_SOURCES = IMPACT_SIMULATOR_ARTIFACT.sources;
-export const IMPACT_SIMULATOR_CONSTANTS = IMPACT_SIMULATOR_ARTIFACT.constants;
-export const IMPACT_SIMULATOR_TARGET_MATERIALS = IMPACT_SIMULATOR_ARTIFACT.target_materials;
 
 const defaultState = validateImpactSimulatorState({
   version: IMPACT_SIMULATOR_SHARE_SCHEMA_VERSION,

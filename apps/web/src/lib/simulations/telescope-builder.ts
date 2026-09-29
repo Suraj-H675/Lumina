@@ -23,7 +23,6 @@ export const TELESCOPE_WARNING_CODES = [
 export type TelescopeType = (typeof TELESCOPE_TYPES)[number];
 export type OpticalModifierKind = (typeof OPTICAL_MODIFIER_KINDS)[number];
 export type TelescopeWarningCode = (typeof TELESCOPE_WARNING_CODES)[number];
-export type TelescopeTargetFit = "fits" | "does_not_fit";
 
 export const TELESCOPE_WARNING_COPY: Readonly<Record<TelescopeWarningCode, string>> = {
   high_magnification_guideline:
@@ -860,7 +859,5 @@ export const TELESCOPE_SOURCES = TELESCOPE_BUILDER_ARTIFACT.sources;
 export const TELESCOPE_DEFINITION = TELESCOPE_BUILDER_ARTIFACT.definition;
 export const TELESCOPE_CONSTANTS = TELESCOPE_BUILDER_ARTIFACT.constants;
 export const TELESCOPE_PRESETS = TELESCOPE_BUILDER_ARTIFACT.presets;
-export const TELESCOPE_VALIDATION_FIXTURES = TELESCOPE_BUILDER_ARTIFACT.validation_fixtures;
-export const TELESCOPE_SCIENTIFIC_VALIDATION = TELESCOPE_BUILDER_ARTIFACT.scientific_validation;
 
 export { telescopeBuilderEndpoint };

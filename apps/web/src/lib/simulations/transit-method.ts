@@ -420,10 +420,7 @@ const TRANSIT_ARTIFACT = rawTransitArtifact as TransitArtifact;
 
 export const TRANSIT_DEFINITION = TRANSIT_ARTIFACT.definition;
 export const TRANSIT_SOURCES = TRANSIT_ARTIFACT.sources;
-export const TRANSIT_CONSTANTS = TRANSIT_ARTIFACT.constants;
 export const TRANSIT_PRESETS = TRANSIT_ARTIFACT.presets;
-export const TRANSIT_VALIDATION_FIXTURES = TRANSIT_ARTIFACT.validation_fixtures;
-export const TRANSIT_SCIENTIFIC_VALIDATION = TRANSIT_ARTIFACT.scientific_validation;
 
 const defaultPreset = TRANSIT_PRESETS["illustrative-central-transit"]!;
 export const DEFAULT_TRANSIT_METHOD_STATE: TransitMethodState = {

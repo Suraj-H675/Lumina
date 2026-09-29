@@ -455,8 +455,6 @@ const SPECTROSCOPY_ARTIFACT = rawSpectroscopyArtifact as SpectroscopyArtifact;
 
 export const SPECTROSCOPY_DEFINITION = SPECTROSCOPY_ARTIFACT.definition;
 export const SPECTROSCOPY_SOURCES = SPECTROSCOPY_ARTIFACT.sources;
-export const SPECTROSCOPY_CONSTANTS = SPECTROSCOPY_ARTIFACT.constants;
-export const SPECTROSCOPY_REPRESENTATIVE_LINES = SPECTROSCOPY_ARTIFACT.representative_lines;
 export const SPECTROSCOPY_PRESETS = SPECTROSCOPY_ARTIFACT.presets;
 
 const defaultPreset = SPECTROSCOPY_PRESETS["solar-like-absorption"]!;

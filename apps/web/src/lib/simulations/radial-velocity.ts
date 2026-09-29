@@ -420,10 +420,7 @@ const RADIAL_VELOCITY_ARTIFACT = rawRadialVelocityArtifact as RadialVelocityArti
 
 export const RADIAL_VELOCITY_DEFINITION = RADIAL_VELOCITY_ARTIFACT.definition;
 export const RADIAL_VELOCITY_SOURCES = RADIAL_VELOCITY_ARTIFACT.sources;
-export const RADIAL_VELOCITY_CONSTANTS = RADIAL_VELOCITY_ARTIFACT.constants;
 export const RADIAL_VELOCITY_PRESETS = RADIAL_VELOCITY_ARTIFACT.presets;
-export const RADIAL_VELOCITY_VALIDATION_FIXTURES = RADIAL_VELOCITY_ARTIFACT.validation_fixtures;
-export const RADIAL_VELOCITY_SCIENTIFIC_VALIDATION = RADIAL_VELOCITY_ARTIFACT.scientific_validation;
 
 const defaultPreset = RADIAL_VELOCITY_PRESETS["illustrative-circular-edge-on"]!;
 export const DEFAULT_RADIAL_VELOCITY_STATE: RadialVelocityState = {

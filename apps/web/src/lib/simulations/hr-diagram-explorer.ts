@@ -703,7 +703,6 @@ export const HR_DIAGRAM_DEFINITION = HR_DIAGRAM_ARTIFACT.definition;
 export const HR_DIAGRAM_SOURCES = HR_DIAGRAM_ARTIFACT.sources;
 export const HR_DIAGRAM_RECORDS = HR_DIAGRAM_ARTIFACT.stars;
 export const HR_DIAGRAM_VALIDATION_FIXTURES = HR_DIAGRAM_ARTIFACT.validation_fixtures;
-export const HR_DIAGRAM_CLUSTER_PROVENANCE = HR_DIAGRAM_ARTIFACT.cluster_provenance;
 
 /**
  * Verify the browser's imported star records against a reviewed byte-stable
@@ -886,14 +885,5 @@ export function displayUncertainty(
       cmdMagnitudeYFraction(record.mg_gspphot_mag_p16),
       cmdMagnitudeYFraction(record.mg_gspphot_mag_p84),
     ],
-  };
-}
-
-export function resetHRDiagramState(): HRDiagramState {
-  return {
-    ...DEFAULT_HR_DIAGRAM_STATE,
-    spectral_classes: [...DEFAULT_HR_DIAGRAM_STATE.spectral_classes],
-    stage_groups: [...DEFAULT_HR_DIAGRAM_STATE.stage_groups],
-    clusters: [...DEFAULT_HR_DIAGRAM_STATE.clusters],
   };
 }

@@ -324,7 +324,6 @@ const SOURCE_METADATA: Readonly<Record<string, Readonly<Record<string, string>>>
 export const SCALE_EXPLORER_SOURCES = SCALE_EXPLORER_ARTIFACT.sources;
 export const SCALE_EXPLORER_NODES = SCALE_EXPLORER_ARTIFACT.nodes;
 export const SCALE_EXPLORER_VALIDATION_FIXTURES = SCALE_EXPLORER_ARTIFACT.validation_fixtures;
-export const SCALE_EXPLORER_SCIENTIFIC_VALIDATION = SCALE_EXPLORER_ARTIFACT.scientific_validation;
 export const SCALE_EXPLORER_DEFINITION = SCALE_EXPLORER_ARTIFACT.definition;
 
 export const DEFAULT_SCALE_EXPLORER_STATE: ScaleExplorerState = {

@@ -146,7 +146,7 @@ describe("generated contract boundary", () => {
     ).toBe(true);
   });
 
-  it("exposes the Phase 1B2 summary, browse, and operation contracts", () => {
+  it("exposes the summary, browse, and operation contracts", () => {
     expectTypeOf<EntitySummaryResponse>().toEqualTypeOf<{
       id: string;
       slug: string;

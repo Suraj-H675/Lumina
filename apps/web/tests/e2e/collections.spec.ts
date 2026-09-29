@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Phase 1B6: browser-local collections. Deterministic identities come from the
+// Browser-local collections. Deterministic identities come from the
 // shared stub harness (the reviewed Gaia DR3 seed slice); collections
 // themselves are pure client state in localStorage under lumina.collections.v1.
 test.describe.configure({ mode: "serial" });

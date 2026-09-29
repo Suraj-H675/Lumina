@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Rocket / Mission Designer", () => {
+test.describe("Rocket / Mission Designer", () => {
   test("keeps canonical results, provenance, and limitations visible without JavaScript", async ({
     browser,
   }) => {

@@ -1,4 +1,4 @@
-"""Focused unit tests for the Phase 1A3 PostgreSQL ingestion adapter."""
+"""Focused unit tests for the PostgreSQL ingestion adapter."""
 
 from __future__ import annotations
 

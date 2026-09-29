@@ -1,4 +1,4 @@
-"""Phase 4D satellite cache, pass API, response bounds, and privacy contracts."""
+"""Satellite cache, pass API, response bounds, and privacy contracts."""
 
 from __future__ import annotations
 

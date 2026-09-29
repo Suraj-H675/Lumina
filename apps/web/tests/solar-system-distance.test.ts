@@ -8,7 +8,7 @@ import {
   solarSystemPosition,
 } from "../src/lib/visualizations/solar-system-distance";
 
-describe("Phase 5B Solar System reviewed distance artifact", () => {
+describe("Solar System reviewed distance artifact", () => {
   it("loads the exact nine-body closed model with NASA sources", () => {
     expect(SOLAR_SYSTEM_ARTIFACT.model_version).toBe("solar-system-distance-v1");
     expect(SOLAR_SYSTEM_BODIES.map((body) => body.id)).toEqual([

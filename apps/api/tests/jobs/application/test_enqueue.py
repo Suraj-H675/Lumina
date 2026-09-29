@@ -41,8 +41,8 @@ async def test_service_builds_one_validated_enqueue() -> None:
     store = RecordingStore()
     outcome = await _service(store).enqueue(
         job_type="system.noop",
-        payload={"message": "phase0b"},
-        idempotency_key="phase0b:no-op",
+        payload={"message": "job-fixture"},
+        idempotency_key="job-fixture:no-op",
         priority=-1,
     )
 

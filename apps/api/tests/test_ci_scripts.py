@@ -1,4 +1,4 @@
-"""Phase 0C4 repository acceptance and CI-script regression tests."""
+"""Repository acceptance and CI-script regression tests."""
 
 from __future__ import annotations
 
@@ -36,7 +36,6 @@ VERCEL_CONFIG_PATH = REPOSITORY_ROOT / "vercel.json"
 API_DOCKERFILE_PATH = REPOSITORY_ROOT / "Dockerfile.vercel"
 DOCKERIGNORE_PATH = REPOSITORY_ROOT / ".dockerignore"
 SECURITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_security.sh"
-DOC_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_doc_links.py"
 MIGRATION_SCRIPT = REPOSITORY_ROOT / "scripts" / "ci" / "check_migration_integrity.py"
 PNPM_WORKSPACE_PATH = REPOSITORY_ROOT / "pnpm-workspace.yaml"
 PNPM_LOCKFILE_PATH = REPOSITORY_ROOT / "pnpm-lock.yaml"
@@ -59,7 +58,6 @@ def _load_module(name: str, path: Path) -> ModuleType:
     return module
 
 
-_doc_checker = _load_module("lumina_ci_doc_checker", DOC_SCRIPT)
 _migration_checker = _load_module("lumina_ci_migration_checker", MIGRATION_SCRIPT)
 
 ACTION_PINS = {
@@ -111,6 +109,12 @@ HISTORICAL_TRUFFLEHOG_EXCEPTIONS = (
         "926d4f273332b8fe476ca5caa76de841dfc547ca",
         "packages/api-client/tests/transport.test.ts",
         33,
+    ),
+    (
+        "URI",
+        "155b5094925254030d60492567919fe43e497764",
+        "apps/web/scripts/measure-wwt-hardware.test.mjs",
+        138,
     ),
 )
 
@@ -588,7 +592,7 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
     web = _workflow_job(workflow, "web_e2e", "api_container")
     container = _workflow_job(workflow, "api_container", "security")
-    security = _workflow_job(workflow, "security", "phase0_acceptance")
+    security = _workflow_job(workflow, "security", "acceptance")
 
     assert workflow.count("persist-credentials: false") == 5
     assert workflow.count("fetch-depth: 1") == 4
@@ -597,7 +601,7 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     assert "persist-credentials: false" in security
     assert "fetch-depth: 1" in container
     assert "persist-credentials: false" in container
-    assert "actions/checkout@" not in _workflow_job(workflow, "phase0_acceptance", None)
+    assert "actions/checkout@" not in _workflow_job(workflow, "acceptance", None)
 
     temporary_directory_setup = 'echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"'
     assert "TMPDIR: ${{ runner.temp }}" not in workflow
@@ -636,7 +640,7 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     python = _workflow_job(workflow, "python_postgres", "web_e2e")
     web = _workflow_job(workflow, "web_e2e", "api_container")
     container = _workflow_job(workflow, "api_container", "security")
-    security = _workflow_job(workflow, "security", "phase0_acceptance")
+    security = _workflow_job(workflow, "security", "acceptance")
     clean_tree = (
         "          git diff --exit-code\n"
         "          git diff --cached --quiet\n"
@@ -673,7 +677,7 @@ def test_workflow_browser_scanner_and_cleanup_contracts_are_exact() -> None:
     assert 'Version 1.62.1"' in web
     assert "pnpm security:check" in security
     assert "git ls-files -- apps/web/next-env.d.ts" not in repository
-    acceptance = _workflow_job(workflow, "phase0_acceptance", None)
+    acceptance = _workflow_job(workflow, "acceptance", None)
     assert "needs: [repository, python_postgres, web_e2e, api_container, security]" in acceptance
     assert "needs.api_container.result" in acceptance
 
@@ -1100,88 +1104,6 @@ def test_security_signal_cleanup_removes_private_temporary_output(
     assert not Path(temporary_root).exists()
 
 
-def _doc_repository(tmp_path: Path) -> Path:
-    repository = tmp_path / "docs-repository"
-    _initialize_repository(repository)
-    (repository / ".gitignore").write_text("ignored.md\n", encoding="utf-8")
-    (repository / "docs").mkdir()
-    (repository / "docs" / "target.md").write_text("# Valid section\n", encoding="utf-8")
-    (repository / "README.md").write_text(
-        "[valid](docs/target.md#valid-section)\n", encoding="utf-8"
-    )
-    _commit_all(repository, "documentation")
-    return repository
-
-
-def _run_doc_checker(repository: Path) -> subprocess.CompletedProcess[str]:
-    return _run([sys.executable, str(DOC_SCRIPT)], cwd=repository, check=False)
-
-
-def test_doc_checker_validates_tracked_and_modified_markdown(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    valid = _run_doc_checker(repository)
-    assert valid.returncode == 0
-    assert "2 Markdown files checked" in valid.stdout
-
-    (repository / "tracked-broken.md").write_text(
-        "[tracked](docs/missing-tracked.md)\n", encoding="utf-8"
-    )
-    _commit_all(repository, "add tracked broken link")
-    tracked_broken = _run_doc_checker(repository)
-    assert tracked_broken.returncode == 1
-    assert "tracked-broken.md:1: doc.target_missing" in tracked_broken.stdout
-
-    (repository / "tracked-broken.md").write_text(
-        "[fixed](docs/target.md#valid-section)\n", encoding="utf-8"
-    )
-    _commit_all(repository, "fix tracked link")
-    (repository / "README.md").write_text("[broken](docs/missing.md)\n", encoding="utf-8")
-    broken = _run_doc_checker(repository)
-    assert broken.returncode == 1
-    assert "README.md:1: doc.target_missing" in broken.stdout
-
-
-def test_doc_checker_includes_untracked_excludes_ignored_and_deleted(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    deleted = repository / "deleted.md"
-    deleted.write_text("[broken](missing-deleted.md)\n", encoding="utf-8")
-    _commit_all(repository, "add deleted candidate")
-    deleted.unlink()
-    (repository / "ignored.md").write_text("[ignored](missing-ignored.md)\n", encoding="utf-8")
-    (repository / "new.md").write_text("[new](missing-new.md)\n", encoding="utf-8")
-
-    result = _run_doc_checker(repository)
-    assert result.returncode == 1
-    assert "new.md:1: doc.target_missing" in result.stdout
-    assert "ignored.md" not in result.stdout
-    assert "deleted.md" not in result.stdout
-
-
-def test_doc_checker_rejects_repository_and_symlink_escapes(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    outside = tmp_path / "outside.md"
-    outside.write_text("# Outside\n", encoding="utf-8")
-    (repository / "escape.md").write_text("[escape](../outside.md)\n", encoding="utf-8")
-    (repository / "linked.md").symlink_to(outside)
-
-    result = _run_doc_checker(repository)
-    assert result.returncode == 1
-    assert "escape.md:1: doc.target_escape" in result.stdout
-    assert "linked.md:0: doc.candidate_escape" in result.stdout
-
-
-def test_doc_checker_ignores_external_schemes(tmp_path: Path) -> None:
-    repository = _doc_repository(tmp_path)
-    (repository / "external.md").write_text(
-        "[web](https://example.invalid/a#b)\n"
-        "[mail](mailto:owner@example.invalid)\n"
-        "[custom](science-data:catalog-entry)\n",
-        encoding="utf-8",
-    )
-    result = _run_doc_checker(repository)
-    assert result.returncode == 0
-
-
 def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> None:
     diagnostics = _migration_checker.validate_migrations()
     assert diagnostics == ()
@@ -1354,7 +1276,7 @@ def test_migration_integrity_is_read_only_and_rejects_drift(tmp_path: Path) -> N
 def test_root_commands_and_repository_guidance_are_publication_complete() -> None:
     package = json.loads((REPOSITORY_ROOT / "package.json").read_bytes())
     scripts = package["scripts"]
-    assert scripts["docs:check"] == "uv run python scripts/ci/check_doc_links.py"
+    assert scripts["docs:check"] == "uv run python scripts/ci/check_markdown_links.py"
     assert scripts["package:check"] == "uv run python scripts/ci/check_python_wheel.py"
     assert scripts["migrations:check"] == "uv run python scripts/ci/check_migration_integrity.py"
     assert scripts["security:check"] == "bash scripts/ci/check_security.sh"
@@ -1375,7 +1297,6 @@ def test_root_commands_and_repository_guidance_are_publication_complete() -> Non
         "SECURITY.md",
         "CODE_OF_CONDUCT.md",
         ".github/pull_request_template.md",
-        "docs/README.md",
     ):
         assert (REPOSITORY_ROOT / relative).is_file()
 

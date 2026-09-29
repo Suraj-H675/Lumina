@@ -21,7 +21,7 @@ function renderExplorer(
   );
 }
 
-describe("Phase 5B Voyager 1 trajectory explorer", () => {
+describe("Voyager 1 trajectory explorer", () => {
   it("defaults to the latest pinned vector with both accessible plot descriptions", async () => {
     const { container } = renderExplorer();
     expect(

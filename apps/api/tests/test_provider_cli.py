@@ -1,4 +1,4 @@
-"""Safe operator CLI contracts for the fixed Phase 4A provider."""
+"""Safe operator CLI contracts for the provider runtime."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def test_enqueue_payload_is_fixed_and_safe() -> None:
     assert "secret" not in json.dumps(payload)
 
 
-def test_provider_sync_buckets_preserve_hourly_phase4a_and_add_five_minute_swpc() -> None:
+def test_provider_sync_buckets_preserve_hourly_defaults_and_add_five_minute_swpc() -> None:
     moment = datetime(2026, 9, 12, 14, 17, 42, 123456, tzinfo=UTC)
 
     assert cli._sync_bucket(moment, "nasa-neows") == "2026091214"

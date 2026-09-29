@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Impact Simulator", () => {
+test.describe("Impact Simulator", () => {
   test("keeps canonical science, uncertainty, provenance, and limitations visible without JavaScript", async ({
     browser,
   }) => {

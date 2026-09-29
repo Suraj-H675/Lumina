@@ -8,7 +8,7 @@ import {
   exoplanetSystemBySlug,
 } from "../src/lib/visualizations/exoplanet-systems";
 
-describe("Phase 5B exoplanet-system reviewed artifact", () => {
+describe("Exoplanet-system reviewed artifact", () => {
   it("loads the exact five host systems and ten pinned confirmed planets", () => {
     expect(EXOPLANET_SYSTEM_ARTIFACT.model_version).toBe("exoplanet-system-layout-v1");
     expect(

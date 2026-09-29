@@ -16,7 +16,7 @@ function renderExplorer(
   return render(<SolarSystemDistanceExplorer locale={DEFAULT_LOCALE} messages={messages} />);
 }
 
-describe("Phase 5B Solar System Distance Explorer", () => {
+describe("Solar System Distance Explorer", () => {
   it("renders the reviewed log-distance model accessibly without implying a current snapshot", async () => {
     const { container } = renderExplorer();
 

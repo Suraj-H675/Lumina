@@ -87,7 +87,7 @@ def test_challenges_cover_each_calendar_month_once() -> None:
     assert len({challenge["id"] for challenge in challenges}) == 12
 
 
-def test_activities_match_the_required_phase_8a_set() -> None:
+def test_activities_match_the_reviewed_activity_set() -> None:
     artifact = load_reviewed_participate_artifact(repository_root=_repository_root())
     activities = artifact["activities"]
     assert isinstance(activities, list)

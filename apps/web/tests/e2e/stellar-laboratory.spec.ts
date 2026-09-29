@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Stellar Laboratory", () => {
+test.describe("Stellar Laboratory", () => {
   test("renders the canonical result and approximation disclosures without JavaScript", async ({
     browser,
   }) => {

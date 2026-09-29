@@ -17,7 +17,6 @@ node_modules/
 apps/api/tests/
 apps/web/src/
 apps/web/tests/
-apps/web/scripts/
 docs/
 packages/
 var/

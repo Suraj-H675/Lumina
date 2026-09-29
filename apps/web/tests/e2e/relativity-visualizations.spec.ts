@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Relativity Visualizations", () => {
+test.describe("Relativity Visualizations", () => {
   test("keeps canonical SR lessons, frame semantics, light cones, provenance, and GR handoff visible without JavaScript", async ({
     browser,
   }) => {

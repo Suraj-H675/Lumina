@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Eclipse Simulator", () => {
+test.describe("Eclipse Simulator", () => {
   test("keeps canonical geometry, safety, and limits visible without JavaScript", async ({
     browser,
   }) => {

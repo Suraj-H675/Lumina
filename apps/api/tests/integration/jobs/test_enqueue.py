@@ -92,8 +92,8 @@ async def test_restricted_insert_uses_exact_server_defaults(
 ) -> None:
     outcome = await _service(database_runtime).enqueue(
         job_type="system.noop",
-        payload={"message": "phase0b"},
-        idempotency_key="defaults:phase0b",
+        payload={"message": "job-fixture"},
+        idempotency_key="defaults:job-fixture",
         priority=0,
         max_attempts=3,
     )
@@ -112,9 +112,9 @@ async def test_restricted_insert_uses_exact_server_defaults(
             outcome.id,
             "system.noop",
             "queued",
-            "defaults:phase0b",
+            "defaults:job-fixture",
             0,
-            {"message": "phase0b"},
+            {"message": "job-fixture"},
             None,
             0.0,
             0,
@@ -273,13 +273,13 @@ async def test_unsupported_persisted_type_returns_only_safe_conflict(
         "(id, job_type, idempotency_key, priority, payload, max_attempts) "
         "VALUES (:id, 'system.legacy', 'legacy:type', 0, "
         "CAST(:seed_payload AS jsonb), 5)",
-        {"id": uuid4(), "seed_payload": '{"message":"phase0b"}'},
+        {"id": uuid4(), "seed_payload": '{"message":"job-fixture"}'},
     )
 
     with pytest.raises(JobIdempotencyConflict) as failure:
         await _service(database_runtime).enqueue(
             job_type="system.noop",
-            payload={"message": "phase0b"},
+            payload={"message": "job-fixture"},
             idempotency_key="legacy:type",
         )
     assert str(failure.value) == "Job idempotency conflict."

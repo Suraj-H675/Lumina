@@ -16,8 +16,6 @@ of older `lumina` identifiers remain intentionally as compatibility contracts ra
 - persisted browser-storage/export identifiers used to read existing local user data;
 - applied migration history and frozen algorithm/schema/version identifiers;
 - content-addressed reviewed scientific artifacts whose exact bytes are part of their integrity contract;
-- historical quality-audit artifacts that record the application name observed when the evidence
-  was actually collected.
 
 Changing any of those requires an explicit compatibility/data migration. Do not rename them merely
 to make internal identifiers mirror the current product brand.
@@ -50,7 +48,7 @@ The modular-monolith boundary is currently appropriate because the domains share
 - personal browser persistence currently implemented with IndexedDB/Dexie;
 - calls to Nova-Lumina's public API.
 
-Browser-local persistence is a current implementation choice, not an invariant. Cross-device/cloud persistence can be introduced later if it provides enough product value and has an acceptable privacy/cost model.
+Browser-local persistence is a current implementation choice, not an invariant.
 
 ## API
 

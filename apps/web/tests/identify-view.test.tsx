@@ -104,7 +104,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("Phase 6A identify consent and deletion flow", () => {
+describe("Identify consent and deletion flow", () => {
   it("renders the authoritative privacy policy and requires explicit temporary-processing consent", async () => {
     const { container } = renderIdentify();
 

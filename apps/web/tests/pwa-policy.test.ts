@@ -19,7 +19,7 @@ function classify(
   });
 }
 
-describe("Phase 8B service-worker request policy", () => {
+describe("Service-worker request policy", () => {
   it.each([
     "/",
     "/learn",

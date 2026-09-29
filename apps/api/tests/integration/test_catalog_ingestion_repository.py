@@ -1,4 +1,4 @@
-"""Real PostgreSQL contracts for the Phase 1A3 deterministic ingestion repository."""
+"""Real PostgreSQL contracts for deterministic catalogue ingestion."""
 
 from __future__ import annotations
 

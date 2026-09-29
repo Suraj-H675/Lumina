@@ -12,7 +12,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("Phase 6C capture-check domain", () => {
+describe("Capture-check domain", () => {
   it("summarizes fixed RGB code endpoints and luma bins without a quality verdict", () => {
     const pixels = new Uint8ClampedArray([
       0, 0, 0, 255, 255, 255, 255, 255, 128, 128, 128, 255, 255, 0, 0, 255,

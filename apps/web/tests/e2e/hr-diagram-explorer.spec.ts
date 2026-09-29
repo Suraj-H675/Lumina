@@ -19,7 +19,7 @@ const M67_G_MAIN_SEQUENCE_STATE = {
   clusters: ["m67"],
 };
 
-test.describe("Phase 3B — H-R Diagram Explorer", () => {
+test.describe("H-R Diagram Explorer", () => {
   test("renders the complete curated data result and valid serialized view without JavaScript", async ({
     browser,
   }) => {

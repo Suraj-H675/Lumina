@@ -19,16 +19,16 @@ const PLANNER_P95_BUDGET_MS = 10;
 const TONIGHT_100_TARGET_P95_BUDGET_MS = 100;
 
 const selectedInstant = localInstantForNightTime(NIGHT, "22:00");
-if (selectedInstant === null) throw new Error("Phase 8D planner fixture instant is invalid.");
+if (selectedInstant === null) throw new Error("Performance fixture instant is invalid.");
 
 const source = {
   dataset: {
     code: ASTROMETRY_DATASET_CODE,
-    name: "Phase 8D performance fixture",
+    name: "Performance fixture",
     release_version: "dr3",
   },
   provider: { code: "esa-gaia", name: "ESA Gaia Archive" },
-  source_record_id: "phase-8d-performance",
+  source_record_id: "performance-fixture",
 } as const;
 
 const plannerCoordinate = {
@@ -38,7 +38,7 @@ const plannerCoordinate = {
   originalRightAscension: "172.5601297577743",
   rightAscensionDegrees: 172.5601297577743,
   source,
-  sourceKey: "phase-8d-performance",
+  sourceKey: "performance-fixture",
 } as const;
 
 function identity(slug: string) {
@@ -57,7 +57,7 @@ function detailFor(target: ReturnType<typeof identity>, index: number) {
         value,
       },
       selection: {
-        explanation: "Only reviewed measurement for this Phase 8D fixture.",
+        explanation: "Only reviewed measurement for this performance fixture.",
         rule: "single-reviewed-measurement",
         selected_at: "2026-08-27T00:00:00Z",
         version: "1",
@@ -104,14 +104,14 @@ function measureLatency(work: () => void, repetitions: number) {
   };
 }
 
-describe("Phase 8D deterministic compute performance", () => {
+describe("Deterministic compute performance", () => {
   it("keeps observation-planner p95 comfortably below the reviewed ceiling", () => {
     const latency = measureLatency(() => {
       const result = computeObservationPlan(plannerCoordinate, LOCATION, NIGHT, selectedInstant);
-      if (result === null) throw new Error("Phase 8D planner fixture returned no plan.");
+      if (result === null) throw new Error("Performance fixture returned no plan.");
     }, 100);
 
-    console.log("PHASE8D_PLANNER_LATENCY=" + JSON.stringify(latency));
+    console.log("PLANNER_LATENCY=" + JSON.stringify(latency));
     expect(latency.p95).toBeLessThanOrEqual(PLANNER_P95_BUDGET_MS);
   });
 
@@ -119,11 +119,11 @@ describe("Phase 8D deterministic compute performance", () => {
     const latency = measureLatency(() => {
       const result = analyzeTonightCollection(tonightTargets, LOCATION, NIGHT);
       if (result?.summary.scientificallyAnalyzedCount !== 100) {
-        throw new Error("Phase 8D Tonight fixture did not analyze all one hundred targets.");
+        throw new Error("Tonight performance fixture did not analyze all one hundred targets.");
       }
     }, 30);
 
-    console.log("PHASE8D_TONIGHT_100_LATENCY=" + JSON.stringify(latency));
+    console.log("TONIGHT_100_LATENCY=" + JSON.stringify(latency));
     expect(latency.p95).toBeLessThanOrEqual(TONIGHT_100_TARGET_P95_BUDGET_MS);
   });
 });

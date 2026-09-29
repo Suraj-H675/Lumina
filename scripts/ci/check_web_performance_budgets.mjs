@@ -5,7 +5,7 @@ const appRoot = process.cwd();
 const nextRoot = resolve(appRoot, ".next");
 const KIB = 1024;
 
-// Phase 8D baseline measured from the production build at b488339f and then
+// Baseline measured from the production build at b488339f and then
 // expanded to every canonical English page. Budgets intentionally keep roughly
 // 16–25% headroom so normal chunk movement does not create noise while
 // meaningful initial-client JS regressions fail CI.

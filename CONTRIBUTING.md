@@ -4,7 +4,7 @@ Nova-Lumina welcomes well-scoped improvements that preserve scientific correctne
 
 ## Before changing code
 
-- Read [README.md](README.md), [AGENTS.md](AGENTS.md), and the relevant file under [docs/](docs/README.md).
+- Read [README.md](README.md) and [AGENTS.md](AGENTS.md) before changing code.
 - Search for the existing behaviour and tests before introducing a new abstraction.
 - Verify current external APIs, libraries, data releases, and standards from authoritative sources when the change depends on them.
 - Do not assume an existing implementation or previous decision must be preserved.
@@ -35,8 +35,6 @@ Security-sensitive changes should run:
 pnpm security:check
 ```
 
-See [docs/TESTING.md](docs/TESTING.md).
-
 ## Change quality
 
 A strong change:
@@ -51,7 +49,7 @@ A strong change:
 
 ## Data and scientific changes
 
-Do not hand-wave scientific values. Include the authoritative source, release/version, retrieval context, units, uncertainty/limitations, and attribution required by the owning artifact or manifest contract. See [docs/DATA_AND_PROVENANCE.md](docs/DATA_AND_PROVENANCE.md).
+Do not hand-wave scientific values. Include the authoritative source, release/version, retrieval context, units, uncertainty/limitations, and attribution required by the owning artifact or manifest contract. See [Data and provenance](docs/DATA_AND_PROVENANCE.md).
 
 ## Privacy and security
 

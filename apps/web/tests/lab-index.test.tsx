@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Lab section navigation", () => {
-  it("lists implemented labs including the current Phase 7 surfaces", () => {
+  it("lists implemented labs", () => {
     const markup = renderToStaticMarkup(<LabPage messages={enMessages.labIndex} />);
 
     expect(markup).toContain('href="/lab/scale-explorer"');

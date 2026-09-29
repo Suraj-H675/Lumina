@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 import { assertStatusStubClean, setParticipateStubMode } from "./support/status-stub-control";
 
-test.describe("Phase 8A — Participate", () => {
+test.describe("Participate", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({}, testInfo) => {

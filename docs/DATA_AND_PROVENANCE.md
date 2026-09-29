@@ -10,7 +10,6 @@ Nova-Lumina should be able to explain where externally sourced scientific inform
 - `data/seed/` — reviewed deterministic input/output artifacts used by scientific/catalogue features.
 - `data/reviews/` — explicit review evidence tied to data products.
 - `data/sky/` — immutable metadata describing browser-delivered sky-context products.
-- `data/audits/` — quality/evidence artifacts that are still part of the active acceptance process.
 - `apps/web/public/data/` — immutable data that must be fetched directly by the browser at runtime.
 
 ## Source-of-truth rule

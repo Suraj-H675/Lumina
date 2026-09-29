@@ -1,4 +1,4 @@
-"""Scientific acceptance tests for the pinned Phase 2E context products."""
+"""Scientific acceptance tests for the pinned IAU context products."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def _constellation_document() -> dict[str, object]:
     )
 
 
-def test_phase_2e_artifacts_are_exactly_pinned_and_join_phase_2d() -> None:
+def test_iau_artifacts_are_exactly_pinned_and_join_bright_star_context() -> None:
     named, constellations = validate_iau_context_artifacts()
     named_bytes = (_REPOSITORY_ROOT / NAMED_ANCHOR_ARTIFACT_PATH).read_bytes()
     constellation_bytes = (_REPOSITORY_ROOT / CONSTELLATION_ARTIFACT_PATH).read_bytes()

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 3B — Scale Explorer", () => {
+test.describe("Scale Explorer", () => {
   test("publishes the root canonical URL for valid representations and noindexes invalid state", async ({
     page,
   }) => {

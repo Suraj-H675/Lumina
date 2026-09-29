@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Spectroscopy Lab", () => {
+test.describe("Spectroscopy Lab", () => {
   test("keeps canonical spectrum metadata and provenance visible without JavaScript", async ({
     browser,
   }) => {

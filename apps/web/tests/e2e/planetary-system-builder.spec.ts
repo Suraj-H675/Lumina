@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Planetary System Builder", () => {
+test.describe("Planetary System Builder", () => {
   test("keeps canonical results, provenance, and limitations visible without JavaScript", async ({
     browser,
   }) => {

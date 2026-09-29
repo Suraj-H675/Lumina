@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 3B — Seasons Simulator", () => {
+test.describe("Seasons Simulator", () => {
   test("keeps the canonical model result and disclosures readable without JavaScript", async ({
     browser,
   }) => {

@@ -729,7 +729,7 @@ def _compile_and_probe(output: Path, workspace: Path) -> None:
     compiled.mkdir()
     _run(
         (
-            str(CLIENT_ROOT.parent.parent / "node_modules" / ".bin" / "tsc"),
+            str(CLIENT_ROOT / "node_modules" / ".bin" / "tsc"),
             "--ignoreConfig",
             "--strict",
             "--target",

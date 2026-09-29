@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 5B — Solar System Distance Explorer", () => {
+test.describe("Solar System Distance Explorer", () => {
   test("renders the reviewed model without external astronomy-data traffic", async ({ page }) => {
     const externalRequests: string[] = [];
     page.on("request", (request) => {

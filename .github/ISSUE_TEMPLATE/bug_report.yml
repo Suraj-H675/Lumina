@@ -10,10 +10,10 @@ body:
         Report security vulnerabilities privately through GitHub's "Report a vulnerability"
         security-advisory form instead of this public form. See SECURITY.md for the policy.
   - type: input
-    id: phase
+    id: area
     attributes:
-      label: Roadmap phase or area
-      description: Identify the active phase, package, page, command, or service when known.
+      label: Product or code area
+      description: Identify the affected package, page, command, or service when known.
     validations:
       required: true
   - type: textarea

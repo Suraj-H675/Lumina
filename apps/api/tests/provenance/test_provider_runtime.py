@@ -1,4 +1,4 @@
-"""Deterministic Phase 4A provider transport, adapter, and sync contracts."""
+"""Deterministic provider transport, adapter, and sync contracts."""
 
 from __future__ import annotations
 

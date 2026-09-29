@@ -232,7 +232,7 @@ async function readInteractionLatency(page: Page): Promise<number> {
   });
 }
 
-test.describe("Phase 8D — Core Web Vitals lab guards", () => {
+test.describe("Core Web Vitals lab guards", () => {
   test("representative cold routes stay within LCP and CLS regression ceilings", async ({
     browser,
   }) => {

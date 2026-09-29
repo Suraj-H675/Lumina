@@ -20,7 +20,7 @@ const BARLOW_STATE = {
   optical_modifier_factor: 2,
 };
 
-test.describe("Phase 3B — Telescope Builder", () => {
+test.describe("Telescope Builder", () => {
   test("renders canonical default and valid share results without JavaScript", async ({
     browser,
   }) => {

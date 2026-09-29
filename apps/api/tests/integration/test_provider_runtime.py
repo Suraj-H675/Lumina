@@ -1,4 +1,4 @@
-"""Disposable PostgreSQL contracts for the Phase 4A provider runtime path."""
+"""Disposable PostgreSQL contracts for the provider runtime path."""
 
 from __future__ import annotations
 

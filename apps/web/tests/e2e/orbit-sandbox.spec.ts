@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const SHORT_STATE_DURATION_S = 100;
 
-test.describe("Phase 7 — Orbit Sandbox", () => {
+test.describe("Orbit Sandbox", () => {
   test("renders the canonical server result and failure disclosures without JavaScript", async ({
     browser,
   }) => {

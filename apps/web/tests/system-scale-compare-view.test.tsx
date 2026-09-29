@@ -15,7 +15,7 @@ function renderExplorer(
   return render(<SystemScaleCompareExplorer locale={DEFAULT_LOCALE} messages={messages} />);
 }
 
-describe("Phase 5B System Scale Compare", () => {
+describe("System Scale Compare", () => {
   it("renders three distinct default definitions without ranking them", async () => {
     const { container } = renderExplorer();
     expect(

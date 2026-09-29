@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 5B — Exoplanet System Layouts", () => {
+test.describe("Exoplanet System Layouts", () => {
   test("renders the pinned Kepler-186 system without runtime archive traffic", async ({ page }) => {
     const externalRequests: string[] = [];
     page.on("request", (request) => {

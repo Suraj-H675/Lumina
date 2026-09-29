@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 5B — System Scale Compare", () => {
+test.describe("System Scale Compare", () => {
   test("renders the three reviewed default quantities without external runtime traffic", async ({
     page,
   }) => {

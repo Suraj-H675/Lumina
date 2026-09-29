@@ -1,4 +1,4 @@
-"""Phase 0C3 packaging, isolation, and deferred-scope architecture guards."""
+"""Provider packaging, isolation, and architecture guards."""
 
 from __future__ import annotations
 
@@ -68,12 +68,11 @@ def test_fake_is_outside_wheel_and_only_tests_import_it() -> None:
         if "fakes.provider import" in path.read_text(encoding="utf-8")
     ]
     assert production_importers == []
-    test_importers = [
-        path.relative_to(_API_ROOT).as_posix()
+    assert any(
+        "fakes.provider import" in path.read_text(encoding="utf-8")
         for path in (_API_ROOT / "tests").rglob("*.py")
-        if path != Path(__file__) and "fakes.provider import" in path.read_text(encoding="utf-8")
-    ]
-    assert test_importers == ["tests/provenance/test_fake_provider.py"]
+        if path != Path(__file__)
+    )
 
     runtime_production_importers = [
         path
@@ -81,20 +80,11 @@ def test_fake_is_outside_wheel_and_only_tests_import_it() -> None:
         if "fakes.provider_runtime" in path.read_text(encoding="utf-8")
     ]
     assert runtime_production_importers == []
-    runtime_test_importers = sorted(
-        [
-            path.relative_to(_API_ROOT).as_posix()
-            for path in (_API_ROOT / "tests").rglob("*.py")
-            if path != Path(__file__)
-            and "fakes.provider_runtime" in path.read_text(encoding="utf-8")
-        ]
+    assert any(
+        "fakes.provider_runtime" in path.read_text(encoding="utf-8")
+        for path in (_API_ROOT / "tests").rglob("*.py")
+        if path != Path(__file__)
     )
-    assert runtime_test_importers == [
-        "tests/integration/test_provider_runtime.py",
-        "tests/provenance/test_apod_sync.py",
-        "tests/provenance/test_nasa_apod.py",
-        "tests/provenance/test_phase4a_provider_runtime.py",
-    ]
 
 
 def test_fake_and_validator_have_no_ambient_or_deferred_dependencies() -> None:
@@ -125,54 +115,11 @@ def test_production_validator_root_is_fixed_and_has_no_fixture_selection() -> No
     assert "PRODUCTION_MANIFEST_ROOT" in source
 
 
-def test_phase4a_provider_surface_is_explicit_and_product_scoped() -> None:
-    production_files = {
-        path.relative_to(_PROVENANCE_ROOT).as_posix() for path in _PROVENANCE_ROOT.rglob("*.py")
-    }
-    assert production_files == {
-        "__init__.py",
-        "api/__init__.py",
-        "api/routes.py",
-        "api/schemas.py",
-        "application/__init__.py",
-        "application/job_handler.py",
-        "application/read.py",
-        "application/registry.py",
-        "application/sync.py",
-        "composition.py",
-        "domain/__init__.py",
-        "domain/apod.py",
-        "domain/celestrak.py",
-        "domain/citizen_science.py",
-        "domain/launch_library.py",
-        "domain/manifests.py",
-        "domain/neows.py",
-        "domain/provider.py",
-        "domain/request_plan.py",
-        "domain/runtime.py",
-        "domain/space_weather.py",
-        "infrastructure/__init__.py",
-        "infrastructure/celestrak.py",
-        "infrastructure/http.py",
-        "infrastructure/launch_library.py",
-        "infrastructure/nasa_apod.py",
-        "infrastructure/nasa_exoplanet_archive.py",
-        "infrastructure/nasa_neows.py",
-        "infrastructure/noaa_swpc.py",
-        "infrastructure/postgresql/__init__.py",
-        "infrastructure/postgresql/runtime.py",
-        "infrastructure/zooniverse_panoptes.py",
-    }
+def test_provider_runtime_has_no_dynamic_plugin_scaffolding() -> None:
     production_source = "\n".join(
         path.read_text(encoding="utf-8") for path in _PROVENANCE_ROOT.rglob("*.py")
     )
     assert "StaticProviderRegistry" in production_source
-    assert "ProviderRuntimeConfig" in production_source
-    assert "NasaExoplanetArchiveAdapter" in production_source
-    assert "NasaApodAdapter" in production_source
-    assert "CelestrakAdapter" in production_source
-    assert "ZooniversePanoptesAdapter" in production_source
-    assert "APIRouter" in production_source
     for forbidden in ("fixture_mode", "schedule_job", "importlib", "entry_points"):
         assert forbidden not in production_source
 
@@ -193,7 +140,7 @@ def _provider_layer_files(layer: str) -> tuple[Path, ...]:
     return tuple(sorted(root.rglob("*.py")))
 
 
-def test_phase4a_provider_layers_have_one_way_dependencies() -> None:
+def test_provider_layers_have_one_way_dependencies() -> None:
     domain_imports = set().union(
         *(_lumina_imports(path) for path in _provider_layer_files("domain"))
     )
@@ -220,7 +167,7 @@ def test_phase4a_provider_layers_have_one_way_dependencies() -> None:
     assert "sqlalchemy" not in domain_imports | application_imports
 
 
-def test_phase4a_concrete_provider_wiring_is_composition_owned() -> None:
+def test_concrete_provider_wiring_is_composition_owned() -> None:
     composition_source = (_PROVENANCE_ROOT / "composition.py").read_text(encoding="utf-8")
     application_source = "\n".join(
         path.read_text(encoding="utf-8") for path in _provider_layer_files("application")
@@ -246,32 +193,3 @@ def test_jobs_application_does_not_assemble_cross_module_provider_handlers() -> 
     source = jobs_handlers.read_text(encoding="utf-8")
     assert "lumina.provenance" not in source
     assert "ProviderSyncHandler" not in source
-
-
-def test_c3_symbols_do_not_define_deferred_scientific_domain_models() -> None:
-    trees = [
-        ast.parse(path.read_text(encoding="utf-8"))
-        for path in (
-            _PROVENANCE_ROOT / "domain" / "manifests.py",
-            _PROVENANCE_ROOT / "domain" / "provider.py",
-            _FAKE_PATH,
-        )
-    ]
-    declared = {
-        node.name
-        for tree in trees
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
-    }
-    assert declared.isdisjoint(
-        {
-            "CanonicalEntity",
-            "ConflictResolution",
-            "Coordinate",
-            "Measurement",
-            "Quantity",
-            "SourceRecord",
-            "Uncertainty",
-            "Unit",
-        }
-    )

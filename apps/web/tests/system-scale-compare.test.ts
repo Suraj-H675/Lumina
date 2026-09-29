@@ -11,7 +11,7 @@ import {
   systemComparePosition,
 } from "../src/lib/visualizations/system-scale-compare";
 
-describe("Phase 5B System Scale Compare reviewed composition", () => {
+describe("System Scale Compare reviewed composition", () => {
   it("loads the exact 68-item cross-model inventory with closed category counts", () => {
     expect(SYSTEM_COMPARE_ARTIFACT.model_version).toBe("system-scale-compare-v1");
     expect(SYSTEM_COMPARE_ITEMS).toHaveLength(68);

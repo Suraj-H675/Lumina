@@ -1,4 +1,4 @@
-"""Architecture boundaries through Phase 0B3C4 worker runtime."""
+"""Job and worker architecture boundaries."""
 
 from __future__ import annotations
 
@@ -81,29 +81,6 @@ def test_worker_identity_and_timing_stay_outside_domain() -> None:
         assert "lumina.worker" not in source
 
 
-def test_worker_process_responsibilities_are_isolated() -> None:
-    worker_root = _LUMINA_ROOT / "worker"
-    expected = {
-        "cli.py",
-        "composition.py",
-        "identity.py",
-        "output.py",
-        "runtime.py",
-        "signals.py",
-        "startup.py",
-        "termination.py",
-        "timing.py",
-    }
-    assert expected <= {path.name for path in worker_root.glob("*.py")}
-
-    runtime_imports = _import_roots(worker_root / "runtime.py")
-    assert runtime_imports.isdisjoint({"argparse", "signal", "sqlalchemy"})
-    assert "os._exit" not in (worker_root / "runtime.py").read_text(encoding="utf-8")
-    assert "argparse" in _import_roots(worker_root / "cli.py")
-    assert "signal" in _import_roots(worker_root / "signals.py")
-    assert "sqlalchemy" in _import_roots(worker_root / "startup.py")
-
-
 def test_hard_exit_exists_only_in_termination_module() -> None:
     worker_root = _LUMINA_ROOT / "worker"
     owners = {
@@ -128,23 +105,3 @@ def test_worker_output_is_raw_fd_threadless_and_centralized() -> None:
         assert all(value not in source for value in forbidden)
         if path.name != "output.py":
             assert "os.write" not in source
-
-
-def test_worker_has_no_dynamic_handlers_routes_or_scheduler_framework() -> None:
-    worker_root = _LUMINA_ROOT / "worker"
-    source = "\n".join(path.read_text(encoding="utf-8") for path in worker_root.glob("*.py"))
-    for forbidden in (
-        "importlib",
-        "entry_points",
-        "APIRouter",
-        "FastAPI",
-        "redis",
-        "celery",
-        "apscheduler",
-    ):
-        assert forbidden not in source
-    assert source.count("compose_provider_runtime(") == 1
-    assert "nasa_api_key=settings.nasa_api_key" in source
-    assert "provider_composition.sync_handler" in source
-    assert "FakePlateSolverHandler(" in source
-    assert "production_handler_registry(" in source

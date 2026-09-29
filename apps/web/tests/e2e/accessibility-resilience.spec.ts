@@ -21,12 +21,12 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
   ).toBe(true);
 }
 
-test.describe("Phase 8D — accessibility and low-end audit", () => {
+test.describe("Accessibility and constrained-device resilience", () => {
   test("core product surfaces reflow at the 200% presentation target", async ({ browser }) => {
     const context = await browser.newContext({
       hasTouch: true,
       // A 640 CSS-pixel viewport plus 200% zoom exercises the 320 CSS-pixel
-      // reflow target used elsewhere in the certified Phase 8B/Scale suites.
+      // reflow target used elsewhere in the offline/scale suites.
       viewport: { width: 640, height: 900 },
     });
     const page = await context.newPage();

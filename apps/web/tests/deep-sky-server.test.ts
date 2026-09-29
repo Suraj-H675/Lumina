@@ -91,7 +91,7 @@ function coordinateDetail(entityType: "galaxy" | "star" = "galaxy"): EntityDetai
   };
 }
 
-describe("Phase 5A deep-sky server projection", () => {
+describe("Deep-sky server projection", () => {
   it("combines the fixed deep-sky type reads deterministically and preserves partial failure", async () => {
     const { implementation, requests } = fetchRecording((path) => {
       if (path === "/api/v1/catalog/entities?entity_type=galaxy&limit=60") {

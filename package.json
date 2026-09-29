@@ -16,7 +16,7 @@
     "catalog:artifact-check": "uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1 --validate-only && uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1 --validate-only && uv run nova-lumina-catalog ingest --slice simbad-messier-j2000-v2 --validate-only",
     "catalog:data-check": "uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1 && uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1 && uv run nova-lumina-catalog data-check --slice simbad-messier-j2000-v2",
     "dev": "pnpm --filter @nova-lumina/web dev",
-    "docs:check": "uv run python scripts/ci/check_doc_links.py",
+    "docs:check": "uv run python scripts/ci/check_markdown_links.py",
     "format": "prettier --write . '!packages/api-client/openapi/openapi.json'",
     "format:check": "prettier --check . '!packages/api-client/openapi/openapi.json'",
     "lint": "pnpm --filter @nova-lumina/api-client lint && pnpm --filter @nova-lumina/web lint",
@@ -28,12 +28,9 @@
     "sky-context:artifact-check": "uv run python scripts/data/validate_iau_context.py",
     "test": "pnpm --filter @nova-lumina/api-client test && pnpm --filter @nova-lumina/web test",
     "test:e2e": "pnpm --filter @nova-lumina/web test:e2e",
-    "typecheck": "pnpm run typecheck:root && pnpm --filter @nova-lumina/api-client typecheck && pnpm --filter @nova-lumina/web typecheck",
-    "typecheck:root": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "pnpm --filter @nova-lumina/api-client typecheck && pnpm --filter @nova-lumina/web typecheck"
   },
   "devDependencies": {
-    "@nova-lumina/config-typescript": "workspace:*",
-    "prettier": "3.9.6",
-    "typescript": "6.0.3"
+    "prettier": "3.9.6"
   }
 }

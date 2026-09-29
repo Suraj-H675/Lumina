@@ -1,4 +1,4 @@
-"""Independent reference and edge tests for the Phase 4D SGP4 pass engine."""
+"""Independent reference and edge tests for the SGP4 pass engine."""
 
 from __future__ import annotations
 

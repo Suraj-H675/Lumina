@@ -1,4 +1,4 @@
-"""Guarded PostgreSQL evidence for Phase 0B3C3 one-job execution."""
+"""Guarded PostgreSQL tests for one-job execution."""
 
 from __future__ import annotations
 

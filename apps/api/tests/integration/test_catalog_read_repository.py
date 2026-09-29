@@ -35,7 +35,7 @@ _FICTIONAL_ENTITY_ROWS = tuple(
     (
         UUID(f"97000000-0000-4000-8000-{index:012d}"),
         "galaxy",
-        f"Phase 1B2 fixture galaxy {index}",
+        f"Fixture galaxy {index}",
         f"fixture-navigation-{index:02d}",
     )
     for index in range(1, 8)

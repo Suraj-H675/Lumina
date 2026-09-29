@@ -9,7 +9,7 @@ import {
   voyagerSampleYear,
 } from "../src/lib/visualizations/voyager-1";
 
-describe("Phase 5B Voyager 1 reviewed artifact", () => {
+describe("Voyager 1 reviewed artifact", () => {
   it("loads eight NASA milestones and fifty ordered annual Horizons vectors", () => {
     expect(VOYAGER_ARTIFACT.model_version).toBe("voyager-1-trajectory-v1");
     expect(VOYAGER_MILESTONES).toHaveLength(8);

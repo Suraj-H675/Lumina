@@ -80,7 +80,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("Phase 5A deep-sky atlas activation boundary", () => {
+describe("Deep-sky atlas activation boundary", () => {
   it("renders useful credited content without loading WWT until explicit activation", async () => {
     const { container } = renderAtlas();
 

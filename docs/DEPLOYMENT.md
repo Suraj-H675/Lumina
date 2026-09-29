@@ -310,8 +310,8 @@ At minimum verify the deployed release against:
 - provider status/freshness for every provider actually enabled;
 - the deployed build SHA reported by the API status surface.
 
-The remaining human/device quality evidence in `docs/QUALITY_STATUS.md` is still required for claims
-that exceed automated deployment readiness.
+Manual accessibility, device, and field-performance claims still require real observation; automated
+deployment readiness is not evidence that those observations occurred.
 
 ## Secrets and rollback
 

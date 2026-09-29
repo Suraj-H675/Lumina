@@ -167,11 +167,11 @@ jobs:
             scripts/ci
           bash -n scripts/ci/check_security.sh
           docker compose --env-file .env -p "$candidate_project" up -d --wait db
-          # Phase 1B3 contract: pg_trgm is OWNER-PROVISIONED between B2 and B3.
-          # Replay the accepted historical lineage to exactly B2 without the
-          # extension, install pg_trgm 1.6 in public as the database owner, then
-          # upgrade to head so the B3 migration verifies the exact tuple and
-          # the Phase 2A0 astrometry vocabulary is present.
+          # pg_trgm is owner-provisioned between the accepted B2 and B3 revisions.
+          # Replay the historical lineage to exactly B2 without the extension,
+          # install pg_trgm 1.6 in public as the database owner, then upgrade to
+          # head so the B3 migration verifies the exact tuple and the reviewed
+          # astrometry vocabulary is present.
           uv run alembic upgrade b7f3a2c81d4e
           test "$(
             docker compose --env-file .env -p "$candidate_project" exec -T db \
@@ -480,8 +480,8 @@ jobs:
           git diff --cached --quiet
           test -z "$(git ls-files --others --exclude-standard)"
 
-  phase0_acceptance:
-    name: Phase 0 acceptance
+  acceptance:
+    name: Acceptance
     if: always()
     needs: [repository, python_postgres, web_e2e, api_container, security]
     runs-on: ubuntu-24.04

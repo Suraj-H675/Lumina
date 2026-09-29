@@ -10,7 +10,7 @@ import {
   validateFieldOfViewDeg,
 } from "../src/lib/wwt/atlas";
 
-describe("Phase 5A WWT atlas domain", () => {
+describe("WWT atlas domain", () => {
   it("keeps an exact closed four-band layer inventory with HTTPS credits and reviewed hosts", () => {
     expect(ATLAS_LAYERS.map((layer) => layer.id)).toEqual([
       "visible-dss2",
@@ -48,7 +48,7 @@ describe("Phase 5A WWT atlas domain", () => {
     expect(() => degreesToRadians(Number.NaN)).toThrow(RangeError);
   });
 
-  it("validates transient observer coordinates against the shared Phase 4D altitude envelope", () => {
+  it("validates transient observer coordinates against the shared satellite altitude envelope", () => {
     expect(validateAtlasObserver({ latitude: 0, longitude: 0, elevationM: 0 })).toEqual({
       latitude: 0,
       longitude: 0,

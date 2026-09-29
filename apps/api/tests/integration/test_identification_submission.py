@@ -1,4 +1,4 @@
-"""Guarded PostgreSQL contracts for Phase 6A private submission metadata."""
+"""Guarded PostgreSQL contracts for private identification submission metadata."""
 
 from __future__ import annotations
 

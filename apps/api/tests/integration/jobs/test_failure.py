@@ -1,4 +1,4 @@
-"""Guarded real-PostgreSQL evidence for Phase 0B3C1 failure transitions."""
+"""Guarded real-PostgreSQL tests for job failure transitions."""
 
 from __future__ import annotations
 

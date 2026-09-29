@@ -113,7 +113,7 @@ def migrated_test_database(
     }:
         state = _pg_trgm_state(integration_settings, postgres_admin_sync_url)
         if state is None or tuple(state) != _PG_TRGM_CONTRACT:
-            pytest.fail("Existing guarded test database has an invalid Phase 1B3 contract.")
+            pytest.fail("Existing guarded test database has an invalid catalogue contract.")
         if revision == _CURRENT_HEAD:
             return
     elif revision == "b7f3a2c81d4e":

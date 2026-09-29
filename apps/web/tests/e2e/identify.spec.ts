@@ -27,7 +27,7 @@ const image = {
   name: "night-field.png",
 };
 
-test.describe("Phase 6 — private identification", () => {
+test.describe("Private identification", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({}, testInfo) => {

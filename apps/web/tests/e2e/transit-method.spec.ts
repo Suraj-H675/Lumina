@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Transit Method Lab", () => {
+test.describe("Transit Method Lab", () => {
   test("renders the canonical result and model disclosures without JavaScript", async ({
     browser,
   }) => {

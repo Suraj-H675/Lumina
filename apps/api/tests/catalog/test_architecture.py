@@ -1,4 +1,4 @@
-"""Phase 1A3 catalogue-ingestion architecture boundaries."""
+"""Catalogue-ingestion architecture boundaries."""
 
 from __future__ import annotations
 

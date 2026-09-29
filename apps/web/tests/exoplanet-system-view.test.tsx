@@ -15,7 +15,7 @@ function renderExplorer(
   return render(<ExoplanetSystemExplorer locale={DEFAULT_LOCALE} messages={messages} />);
 }
 
-describe("Phase 5B Exoplanet System Explorer", () => {
+describe("Exoplanet System Explorer", () => {
   it("defaults to the five-planet Kepler-186 layout with honest model wording", async () => {
     const { container } = renderExplorer();
     expect(

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 3A — Your First Night Sky", () => {
+test.describe("Your First Night Sky", () => {
   test("renders the complete path and remains usable at a narrow mobile width", async ({
     page,
   }) => {

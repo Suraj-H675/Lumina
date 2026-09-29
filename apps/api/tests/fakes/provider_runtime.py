@@ -1,4 +1,4 @@
-"""Deterministic Phase 4A transport scenarios; never imported by production code."""
+"""Deterministic provider transport scenarios; never imported by production code."""
 
 from __future__ import annotations
 

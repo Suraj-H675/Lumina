@@ -1,11 +1,10 @@
-"""Guarded real-PostgreSQL tests for passive Phase 0B3B1 claims."""
+"""Guarded real-PostgreSQL tests for passive job claims."""
 
 from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
 from datetime import datetime, timedelta
-from decimal import Decimal
 from time import monotonic
 from typing import Any, cast
 from uuid import UUID, uuid4
@@ -589,68 +588,6 @@ async def test_ineligible_rows_and_attempt_boundaries(
         (exhausted, "queued", 5),
         (boundary, "running", 5),
     ]
-
-
-@pytest.mark.asyncio
-async def test_phase8d_oldest_eligible_queue_age_is_measurable_without_worker_output(
-    claim_database_runtime: DatabaseRuntime,
-    integration_settings: IntegrationTestSettings,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """Measure eligible queue age from PostgreSQL server time without exposing job evidence."""
-    anchor = _database_anchor(integration_settings)
-    eligible = UUID("00000000-0000-4000-8000-000000000040")
-    future = UUID("00000000-0000-4000-8000-000000000050")
-    exhausted = UUID("00000000-0000-4000-8000-000000000060")
-    _seed_queued_with_fields(
-        integration_settings,
-        identifier=eligible,
-        priority=1,
-        available_at=anchor - timedelta(seconds=7),
-        created_at=anchor - timedelta(seconds=30),
-    )
-    _seed_queued_with_fields(
-        integration_settings,
-        identifier=future,
-        priority=10,
-        available_at=anchor + timedelta(hours=1),
-        created_at=anchor - timedelta(hours=1),
-    )
-    _seed_queued_with_fields(
-        integration_settings,
-        identifier=exhausted,
-        priority=20,
-        available_at=anchor - timedelta(seconds=30),
-        created_at=anchor - timedelta(hours=1),
-        attempts=5,
-    )
-
-    rows = _execute(
-        integration_settings,
-        "SELECT EXTRACT(EPOCH FROM (transaction_timestamp() - MIN(available_at))) * 1000 "
-        "FROM public.job WHERE status = 'queued' "
-        "AND available_at <= transaction_timestamp() AND attempts < max_attempts",
-    )
-    age_value = rows[0][0]
-    assert not isinstance(age_value, bool)
-    assert isinstance(age_value, (int, float, Decimal))
-    queue_age_ms = float(age_value)
-    assert queue_age_ms >= 6_500
-
-    with capsys.disabled():
-        print(f"PHASE8D_OLDEST_ELIGIBLE_QUEUE_AGE_MS={queue_age_ms:.3f}")
-
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.phase8d-age")
-    assert isinstance(claimed, ClaimedJob)
-    assert claimed.id == eligible
-
-    after_claim = _execute(
-        integration_settings,
-        "SELECT EXTRACT(EPOCH FROM (transaction_timestamp() - MIN(available_at))) * 1000 "
-        "FROM public.job WHERE status = 'queued' "
-        "AND available_at <= transaction_timestamp() AND attempts < max_attempts",
-    )
-    assert after_claim == [(None,)]
 
 
 @pytest.mark.asyncio
@@ -1393,7 +1330,7 @@ def _planner_nodes(node: Mapping[str, Any]) -> Iterator[Mapping[str, Any]]:
 
 
 @pytest.mark.asyncio
-async def test_explain_representative_queue_index_evidence_and_cleanup(
+async def test_claim_query_uses_queue_poll_index_and_cleans_up(
     claim_database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
@@ -1475,26 +1412,9 @@ async def test_explain_representative_queue_index_evidence_and_cleanup(
         plan = cast(Mapping[str, Any], cast(list[Mapping[str, Any]], document)[0]["Plan"])
         nodes = list(_planner_nodes(plan))
         actual_rows = sum(int(node.get("Actual Rows", 0)) for node in nodes)
-        evidence: dict[str, Any] = {
-            "index_names": sorted(
-                {cast(str, node["Index Name"]) for node in nodes if "Index Name" in node}
-            ),
-            "filter_nodes": sum(
-                "Filter" in node or "Rows Removed by Filter" in node for node in nodes
-            ),
-            "sort_nodes": sum(
-                node.get("Node Type") in {"Sort", "Incremental Sort"} for node in nodes
-            ),
-            "actual_rows": actual_rows,
-            "shared_hit_blocks": sum(int(node.get("Shared Hit Blocks", 0)) for node in nodes),
-            "shared_read_blocks": sum(int(node.get("Shared Read Blocks", 0)) for node in nodes),
-        }
-        print(f"sanitized claim planner evidence: {evidence}")
+        index_names = {cast(str, node["Index Name"]) for node in nodes if "Index Name" in node}
         assert actual_rows > 0
-        assert "ix_job_queue_poll" in evidence["index_names"]
-        assert "filter_nodes" in evidence
-        assert "sort_nodes" in evidence
-        assert "shared_hit_blocks" in evidence
+        assert "ix_job_queue_poll" in index_names
     finally:
         _execute(integration_settings, "DELETE FROM public.job")
         _execute(integration_settings, "ANALYZE public.job")

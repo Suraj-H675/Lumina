@@ -1,4 +1,4 @@
-"""Validate the immutable Phase 2E IAU sky-context products without network access."""
+"""Validate the immutable IAU sky-context products without network access."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def main() -> int:
         print(str(error))
         return 1
     print(
-        "Phase 2E IAU sky-context validation passed: "
+        "IAU sky-context validation passed: "
         f"{len(named.rows)} named anchors, {NAMED_ANCHOR_ARTIFACT_BYTES} bytes, "
         f"sha256:{NAMED_ANCHOR_ARTIFACT_SHA256}; "
         f"{len(constellations.constellations)} constellations, "

@@ -1,4 +1,4 @@
-"""Real-PostgreSQL verification for the Phase 2G semantic and ACL correction."""
+"""Real-PostgreSQL verification for catalogue semantic and ACL corrections."""
 
 from __future__ import annotations
 

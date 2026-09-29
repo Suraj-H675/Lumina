@@ -1,4 +1,4 @@
-"""HTTP contracts for the Phase 6A private identification surface."""
+"""HTTP contracts for the private identification surface."""
 
 from __future__ import annotations
 

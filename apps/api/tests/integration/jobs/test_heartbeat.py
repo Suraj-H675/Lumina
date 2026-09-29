@@ -1,4 +1,4 @@
-"""Guarded real-PostgreSQL tests for Phase 0B3B2 owner heartbeats."""
+"""Guarded real-PostgreSQL tests for job-owner heartbeats."""
 
 from __future__ import annotations
 

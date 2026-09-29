@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { surveyComparisonField } from "../src/lib/identification/survey-comparison";
 
-describe("Phase 6C survey-comparison domain", () => {
+describe("Survey-comparison domain", () => {
   it("uses the solved diameter when it is inside the certified atlas range", () => {
     expect(surveyComparisonField(2.5)).toEqual({ field_of_view_deg: 5, was_clamped: false });
   });

@@ -1,4 +1,4 @@
-"""HTTP contract tests for Phase 1B2 catalogue navigation routes."""
+"""HTTP contract tests for catalogue navigation routes."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Isolated tests for the Phase 0B1 environment contract."""
+"""Isolated tests for the application environment contract."""
 
 from __future__ import annotations
 
@@ -262,7 +262,7 @@ def test_job_settings_accept_documented_overrides() -> None:
     assert settings.worker_poll_seconds == 7
 
 
-def test_phase6a_storage_settings_accept_bounded_overrides(tmp_path: Path) -> None:
+def test_storage_settings_accept_bounded_overrides(tmp_path: Path) -> None:
     root = tmp_path / "private"
     settings = _settings(
         {
@@ -291,18 +291,18 @@ def test_phase6a_storage_settings_accept_bounded_overrides(tmp_path: Path) -> No
         ("LUMINA_UPLOAD_RETENTION_HOURS", 169),
     ],
 )
-def test_phase6a_storage_setting_bounds(name: str, value: int) -> None:
+def test_storage_setting_bounds(name: str, value: int) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", name: value})
 
 
 @pytest.mark.parametrize("value", [True, 1.0, " 24", "24 ", "+24", "1e2", ""])
-def test_phase6a_integer_settings_reject_coercion(value: object) -> None:
+def test_storage_integer_settings_reject_coercion(value: object) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", "LUMINA_UPLOAD_RETENTION_HOURS": value})
 
 
-def test_phase6a_rejects_unimplemented_s3_backend() -> None:
+def test_storage_rejects_unimplemented_s3_backend() -> None:
     with pytest.raises(ValidationError, match="filesystem private storage"):
         _settings({"LUMINA_ENV": "test", "LUMINA_STORAGE_BACKEND": "s3"})
 
@@ -586,7 +586,7 @@ def test_unsafe_build_commit_is_rejected(build_commit: str) -> None:
         _settings({"LUMINA_ENV": "test", "LUMINA_BUILD_COMMIT": build_commit})
 
 
-def test_phase6b_remote_astrometry_requires_secret_key_only_when_enabled() -> None:
+def test_remote_astrometry_requires_secret_key_only_when_enabled() -> None:
     disabled = _settings({"LUMINA_ENV": "test"})
     assert disabled.enable_remote_astrometry is False
     assert disabled.astrometry_api_key is None
@@ -610,7 +610,7 @@ def test_phase6b_remote_astrometry_requires_secret_key_only_when_enabled() -> No
 
 
 @pytest.mark.parametrize("value", ["yes", "1", "TRUE", "False", 1, 0, None, ""])
-def test_phase6b_remote_enable_rejects_boolean_coercion(value: object) -> None:
+def test_remote_astrometry_enable_rejects_boolean_coercion(value: object) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", "LUMINA_ENABLE_REMOTE_ASTROMETRY": value})
 
@@ -627,7 +627,7 @@ def test_phase6b_remote_enable_rejects_boolean_coercion(value: object) -> None:
         " https://nova.astrometry.net/api",
     ],
 )
-def test_phase6b_astrometry_api_url_is_locked_to_reviewed_https_nova(value: str) -> None:
+def test_astrometry_api_url_is_locked_to_reviewed_https_nova(value: str) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", "LUMINA_ASTROMETRY_API_URL": value})
 
@@ -640,7 +640,7 @@ def test_phase6b_astrometry_api_url_is_locked_to_reviewed_https_nova(value: str)
         "LUMINA_ASTROMETRY_ALLOW_COMMERCIAL_USE",
     ],
 )
-def test_phase6b_remote_privacy_flags_cannot_be_relaxed(name: str) -> None:
+def test_remote_astrometry_privacy_flags_cannot_be_relaxed(name: str) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", name: "y"})
 
@@ -655,13 +655,13 @@ def test_phase6b_remote_privacy_flags_cannot_be_relaxed(name: str) -> None:
         ("LUMINA_ASTROMETRY_TIMEOUT_SECONDS", 3_601),
     ],
 )
-def test_phase6b_remote_timing_bounds(name: str, value: int) -> None:
+def test_remote_astrometry_timing_bounds(name: str, value: int) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", name: value})
 
 
 @pytest.mark.parametrize("value", [True, 1.0, " 5", "5 ", "+5", "1e2", ""])
-def test_phase6b_remote_timing_requires_exact_integers(value: object) -> None:
+def test_remote_astrometry_timing_requires_exact_integers(value: object) -> None:
     with pytest.raises(ValidationError):
         _settings({"LUMINA_ENV": "test", "LUMINA_ASTROMETRY_POLL_SECONDS": value})
 
@@ -670,7 +670,7 @@ def test_phase6b_remote_timing_requires_exact_integers(value: object) -> None:
     "value",
     [" leading", "trailing ", "key\nline", "key\x7f", "clé", "x" * 257, 42, False],
 )
-def test_phase6b_astrometry_key_rejects_malformed_values_without_echo(value: object) -> None:
+def test_astrometry_key_rejects_malformed_values_without_echo(value: object) -> None:
     with pytest.raises(ValidationError) as captured:
         _settings({"LUMINA_ENV": "test", "LUMINA_ASTROMETRY_API_KEY": value})
     assert str(value) not in str(captured.value)

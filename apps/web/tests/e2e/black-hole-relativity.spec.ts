@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 7 — Black-Hole / Relativity Lab", () => {
+test.describe("Black-Hole / Relativity Lab", () => {
   test("keeps canonical landmarks, static-clock semantics, provenance, and limits visible without JavaScript", async ({
     browser,
   }) => {

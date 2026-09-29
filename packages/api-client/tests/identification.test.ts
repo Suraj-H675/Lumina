@@ -21,7 +21,7 @@ function jsonResponse(value: unknown, status = 200): Response {
   });
 }
 
-describe("Phase 6A identification transport", () => {
+describe("Identification transport", () => {
   it("rejects incoherent advertised solver capabilities", () => {
     const base = {
       accepted_media_types: ["image/jpeg", "image/png"],

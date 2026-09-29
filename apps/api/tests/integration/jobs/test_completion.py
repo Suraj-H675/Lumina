@@ -1,4 +1,4 @@
-"""Guarded real-PostgreSQL tests for Phase 0B3B3 successful completion."""
+"""Guarded real-PostgreSQL tests for successful job completion."""
 
 from __future__ import annotations
 

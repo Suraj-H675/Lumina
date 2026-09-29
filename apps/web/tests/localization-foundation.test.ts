@@ -17,7 +17,7 @@ import {
 } from "../src/lib/i18n/format";
 import { enMessages } from "../src/lib/i18n/messages/en";
 
-describe("Phase 8C localization foundation", () => {
+describe("Localization foundation", () => {
   it("publishes only locales with an authored dictionary", () => {
     expect(DEFAULT_LOCALE).toBe("en");
     expect(PUBLISHED_LOCALES).toEqual(["en"]);

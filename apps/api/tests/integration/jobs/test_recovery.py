@@ -1,4 +1,4 @@
-"""Guarded real-PostgreSQL evidence for Phase 0B3C2 stale recovery."""
+"""Guarded real-PostgreSQL tests for stale-job recovery."""
 
 from __future__ import annotations
 

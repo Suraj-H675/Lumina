@@ -1,4 +1,4 @@
-"""Guarded real-PostgreSQL and subprocess evidence for the C4 worker."""
+"""Guarded real-PostgreSQL and subprocess worker tests."""
 
 from __future__ import annotations
 

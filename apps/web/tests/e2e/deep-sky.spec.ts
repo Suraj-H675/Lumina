@@ -25,7 +25,7 @@ async function stubApprovedWwtNetwork(page: Page): Promise<void> {
   await page.route("https://web.wwtassets.org/**", (route) => route.abort("failed"));
 }
 
-test.describe("Phase 5A — deep-sky atlas", () => {
+test.describe("Deep-sky atlas", () => {
   test("renders canonical M31 science and keeps WWT dormant until explicit activation", async ({
     page,
   }) => {

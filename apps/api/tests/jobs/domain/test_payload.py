@@ -19,14 +19,14 @@ def test_valid_json_object_is_canonical_and_secret_safe_in_repr() -> None:
     payload = validate_json_object(
         {
             "z": [None, True, 3, 1.25],
-            "a": {"message": "phase0b"},
+            "a": {"message": "job-fixture"},
         },
         max_bytes=1_024,
     )
 
-    assert payload.database_json == '{"a":{"message":"phase0b"},"z":[null,true,3,1.25]}'
+    assert payload.database_json == '{"a":{"message":"job-fixture"},"z":[null,true,3,1.25]}'
     assert payload.utf8_size == len(payload.database_json.encode("utf-8"))
-    assert "phase0b" not in repr(payload)
+    assert "job-fixture" not in repr(payload)
 
 
 @pytest.mark.parametrize("value", [None, True, 1, 1.5, "text", [], [1, 2]])

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 5B — Voyager 1 mission and trajectory", () => {
+test.describe("Voyager 1 mission and trajectory", () => {
   test("renders sourced mission history and pinned trajectory without external runtime traffic", async ({
     page,
   }) => {

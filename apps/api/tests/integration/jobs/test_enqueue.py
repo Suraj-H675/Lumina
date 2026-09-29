@@ -27,7 +27,12 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
-from ..migration_lifecycle import run_migration_operation
+from ..migration_lifecycle import (
+    execute_integration_sql as _rows,
+)
+from ..migration_lifecycle import (
+    run_migration_operation,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -55,22 +60,6 @@ def _service(runtime: DatabaseRuntime, *, wait_timeout_ms: int = 5_000) -> Enque
         payload_max_bytes=61_440,
         default_max_attempts=5,
     )
-
-
-def _rows(
-    settings: IntegrationTestSettings,
-    statement: str,
-    parameters: dict[str, object] | None = None,
-) -> list[tuple[object, ...]]:
-    sync_url = make_url(settings.test_database_sync_url.get_secret_value())
-
-    def query(connection: Connection) -> list[tuple[object, ...]]:
-        result = connection.execute(text(statement), parameters or {})
-        rows = [tuple(row) for row in result.all()] if result.returns_rows else []
-        connection.commit()
-        return rows
-
-    return run_migration_operation(sync_url, query)
 
 
 @pytest.mark.asyncio

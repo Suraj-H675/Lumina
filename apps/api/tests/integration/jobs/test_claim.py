@@ -43,7 +43,12 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 from ..database_safety import require_local_test_database
-from ..migration_lifecycle import open_migration_connection, run_migration_operation
+from ..migration_lifecycle import (
+    execute_integration_sql as _execute,
+)
+from ..migration_lifecycle import (
+    open_migration_connection,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -54,23 +59,6 @@ def clean_claim_job_rows(integration_settings: IntegrationTestSettings) -> Itera
         yield
     finally:
         _execute(integration_settings, "DELETE FROM public.job")
-
-
-def _execute(
-    settings: IntegrationTestSettings,
-    statement: str,
-    parameters: dict[str, object] | None = None,
-) -> list[tuple[object, ...]]:
-    """Execute fixture DML only through the guarded local lumina_test helper."""
-    sync_url = make_url(settings.test_database_sync_url.get_secret_value())
-
-    def operation(connection: Connection) -> list[tuple[object, ...]]:
-        result = connection.execute(text(statement), parameters or {})
-        rows = [tuple(row) for row in result.all()] if result.returns_rows else []
-        connection.commit()
-        return rows
-
-    return run_migration_operation(sync_url, operation)
 
 
 def _seed_queued_fixture(

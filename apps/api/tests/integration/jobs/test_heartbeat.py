@@ -35,7 +35,12 @@ from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from ..database_safety import require_local_test_database
-from ..migration_lifecycle import open_migration_connection, run_migration_operation
+from ..migration_lifecycle import (
+    execute_integration_sql as _guarded_execute,
+)
+from ..migration_lifecycle import (
+    open_migration_connection,
+)
 
 _FIXTURE_OWNER = "worker.heartbeat.fixture"
 _FOREIGN_OWNER = "worker.heartbeat.foreign"
@@ -48,23 +53,6 @@ _ROW_COLUMNS = (
     "attempts, max_attempts, available_at, claimed_by, claimed_at, heartbeat_at, "
     "completed_at, error_code, error_message, created_at"
 )
-
-
-def _guarded_execute(
-    settings: IntegrationTestSettings,
-    statement: str,
-    parameters: dict[str, object] | None = None,
-) -> list[tuple[object, ...]]:
-    """Execute fixture SQL only through the guarded local test migration role."""
-    sync_url = make_url(settings.test_database_sync_url.get_secret_value())
-
-    def operation(connection: Connection) -> list[tuple[object, ...]]:
-        result = connection.execute(text(statement), parameters or {})
-        rows = [tuple(row) for row in result.all()] if result.returns_rows else []
-        connection.commit()
-        return rows
-
-    return run_migration_operation(sync_url, operation)
 
 
 def _guarded_setup(

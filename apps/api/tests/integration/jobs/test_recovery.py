@@ -41,14 +41,15 @@ from lumina.shared.infrastructure.database.runtime import (
     DatabaseRuntime,
 )
 from sqlalchemy import Connection, event, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
     async_sessionmaker,
 )
 
-from ..migration_lifecycle import run_migration_operation
+from ..migration_lifecycle import (
+    execute_integration_sql as _guarded_execute,
+)
 
 _OWNER = "worker.recovery.fixture"
 _FOREIGN_OWNER = "worker.recovery.foreign"
@@ -61,22 +62,6 @@ _ROW_COLUMNS = (
     "attempts, max_attempts, available_at, claimed_by, claimed_at, heartbeat_at, "
     "completed_at, error_code, error_message, created_at"
 )
-
-
-def _guarded_execute(
-    settings: IntegrationTestSettings,
-    statement: str,
-    parameters: dict[str, object] | None = None,
-) -> list[tuple[object, ...]]:
-    sync_url = make_url(settings.test_database_sync_url.get_secret_value())
-
-    def operation(connection: Connection) -> list[tuple[object, ...]]:
-        result = connection.execute(text(statement), parameters or {})
-        rows = [tuple(row) for row in result.all()] if result.returns_rows else []
-        connection.commit()
-        return rows
-
-    return run_migration_operation(sync_url, operation)
 
 
 def _database_anchor(settings: IntegrationTestSettings) -> datetime:

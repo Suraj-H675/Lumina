@@ -34,10 +34,10 @@ from lumina.jobs.infrastructure.postgresql.heartbeat import PostgreSqlHeartbeatJ
 from lumina.settings import IntegrationTestSettings
 from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
 from lumina.worker.timing import EventLoopExecutionTiming, ExecutionTask
-from sqlalchemy import Connection, text
-from sqlalchemy.engine import make_url
 
-from ..migration_lifecycle import run_migration_operation
+from ..migration_lifecycle import (
+    execute_integration_sql as _guarded_execute,
+)
 
 _OWNER = "worker.integration.12345678-1234-4234-9234-123456789abc"
 _FOREIGN_OWNER = "worker.integration.foreign"
@@ -52,22 +52,6 @@ def _noop_production_registry() -> StaticHandlerRegistry:
         identification_solve=identification_solve,
         identification_solve_validator=identification_solve.validate_payload,
     )
-
-
-def _guarded_execute(
-    settings: IntegrationTestSettings,
-    statement: str,
-    parameters: dict[str, object] | None = None,
-) -> list[tuple[object, ...]]:
-    sync_url = make_url(settings.test_database_sync_url.get_secret_value())
-
-    def operation(connection: Connection) -> list[tuple[object, ...]]:
-        result = connection.execute(text(statement), parameters or {})
-        rows = [tuple(row) for row in result.all()] if result.returns_rows else []
-        connection.commit()
-        return rows
-
-    return run_migration_operation(sync_url, operation)
 
 
 @pytest.fixture(autouse=True)

@@ -54,6 +54,23 @@ def run_migration_operation[Result](
         return operation(connection)
 
 
+def execute_integration_sql(
+    settings: IntegrationTestSettings,
+    statement: str,
+    parameters: dict[str, object] | None = None,
+) -> list[tuple[object, ...]]:
+    """Execute fixture SQL through the guarded local test migration role."""
+    sync_url = make_url(settings.test_database_sync_url.get_secret_value())
+
+    def operation(connection: Connection) -> list[tuple[object, ...]]:
+        result = connection.execute(text(statement), parameters or {})
+        rows = [tuple(row) for row in result.all()] if result.returns_rows else []
+        connection.commit()
+        return rows
+
+    return run_migration_operation(sync_url, operation)
+
+
 def integration_migration_identity(
     settings: IntegrationTestSettings,
     *,

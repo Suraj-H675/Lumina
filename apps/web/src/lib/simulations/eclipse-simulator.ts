@@ -6,6 +6,7 @@ import {
 
 import rawEclipseArtifact from "../../../../../data/seed/eclipse-simulator-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -152,20 +153,12 @@ export function encodeEclipseSimulatorState(value: unknown): string {
 }
 
 export function decodeEclipseSimulatorState(value: unknown): EclipseSimulatorState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > ECLIPSE_SIMULATOR_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateEclipseSimulatorState(decoded);
-    return state !== null && encodeEclipseSimulatorState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<EclipseSimulatorState>(
+    value,
+    ECLIPSE_SIMULATOR_SHARE_STATE_MAX_CHARS,
+    validateEclipseSimulatorState,
+    encodeEclipseSimulatorState,
+  );
 }
 
 export function eclipseSimulatorRequestEndpoint(state: EclipseSimulatorState) {

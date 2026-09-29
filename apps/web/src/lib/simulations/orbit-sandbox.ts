@@ -6,6 +6,7 @@ import {
 
 import rawOrbitArtifact from "../../../../../data/seed/orbit-sandbox-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -164,20 +165,12 @@ export function encodeOrbitSandboxState(value: unknown): string {
 }
 
 export function decodeOrbitSandboxState(value: unknown): OrbitSandboxState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > ORBIT_SANDBOX_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateOrbitSandboxState(decoded);
-    return state !== null && encodeOrbitSandboxState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<OrbitSandboxState>(
+    value,
+    ORBIT_SANDBOX_SHARE_STATE_MAX_CHARS,
+    validateOrbitSandboxState,
+    encodeOrbitSandboxState,
+  );
 }
 
 function exactEcho(state: OrbitSandboxState, result: OrbitSandboxCalculationResponse): boolean {

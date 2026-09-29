@@ -7,6 +7,7 @@ import {
 
 import rawBlackHoleArtifact from "../../../../../data/seed/black-hole-relativity-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -155,20 +156,12 @@ export function encodeBlackHoleRelativityState(value: unknown): string {
 }
 
 export function decodeBlackHoleRelativityState(value: unknown): BlackHoleRelativityState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > BLACK_HOLE_RELATIVITY_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateBlackHoleRelativityState(decoded);
-    return state !== null && encodeBlackHoleRelativityState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<BlackHoleRelativityState>(
+    value,
+    BLACK_HOLE_RELATIVITY_SHARE_STATE_MAX_CHARS,
+    validateBlackHoleRelativityState,
+    encodeBlackHoleRelativityState,
+  );
 }
 
 export function blackHoleRelativityRequestEndpoint(state: BlackHoleRelativityState) {

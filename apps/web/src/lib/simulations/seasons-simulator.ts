@@ -5,7 +5,13 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawSeasonsArtifact from "../../../../../data/seed/seasons-simulator-v1.json";
-import { hasOnlyKeys, isFiniteNumber, isNonEmptyString, isRecord } from "./validation";
+import {
+  decodeCanonicalJsonState,
+  hasOnlyKeys,
+  isFiniteNumber,
+  isNonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const SEASONS_MODEL_VERSION = "seasons-simulator-v1" as const;
 export const SEASONS_SCHEMA_VERSION = 1 as const;
@@ -632,20 +638,12 @@ export function encodeSeasonsState(value: unknown): string {
 }
 
 export function decodeSeasonsState(value: unknown): SeasonsState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > SEASONS_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateSeasonsState(decoded);
-    return state !== null && encodeSeasonsState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<SeasonsState>(
+    value,
+    SEASONS_SHARE_STATE_MAX_CHARS,
+    validateSeasonsState,
+    encodeSeasonsState,
+  );
 }
 
 function isSeasonsPolarState(value: unknown): value is SeasonsPolarState {

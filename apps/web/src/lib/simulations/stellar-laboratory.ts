@@ -6,6 +6,7 @@ import {
 
 import rawStellarLaboratoryArtifact from "../../../../../data/seed/stellar-laboratory-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -124,20 +125,12 @@ export function encodeStellarLaboratoryState(value: unknown): string {
 }
 
 export function decodeStellarLaboratoryState(value: unknown): StellarLaboratoryState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > STELLAR_LABORATORY_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateStellarLaboratoryState(decoded);
-    return state !== null && encodeStellarLaboratoryState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<StellarLaboratoryState>(
+    value,
+    STELLAR_LABORATORY_SHARE_STATE_MAX_CHARS,
+    validateStellarLaboratoryState,
+    encodeStellarLaboratoryState,
+  );
 }
 
 export function stellarLaboratoryRequestEndpoint(state: StellarLaboratoryState) {

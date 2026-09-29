@@ -7,6 +7,7 @@ import {
 
 import rawImpactArtifact from "../../../../../data/seed/impact-simulator-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -172,20 +173,12 @@ export function encodeImpactSimulatorState(value: unknown): string {
 }
 
 export function decodeImpactSimulatorState(value: unknown): ImpactSimulatorState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > IMPACT_SIMULATOR_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateImpactSimulatorState(decoded);
-    return state !== null && encodeImpactSimulatorState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<ImpactSimulatorState>(
+    value,
+    IMPACT_SIMULATOR_SHARE_STATE_MAX_CHARS,
+    validateImpactSimulatorState,
+    encodeImpactSimulatorState,
+  );
 }
 
 export function impactSimulatorRequestEndpoint(state: ImpactSimulatorState) {

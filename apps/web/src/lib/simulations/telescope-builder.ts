@@ -5,7 +5,13 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawTelescopeBuilderArtifact from "../../../../../data/seed/telescope-builder-v1.json";
-import { hasOnlyKeys, isFiniteNumber, isNonEmptyString, isRecord } from "./validation";
+import {
+  decodeCanonicalJsonState,
+  hasOnlyKeys,
+  isFiniteNumber,
+  isNonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const TELESCOPE_BUILDER_MODEL_VERSION = "telescope-builder-v1" as const;
 export const TELESCOPE_BUILDER_SCHEMA_VERSION = 1 as const;
@@ -546,20 +552,12 @@ export function encodeTelescopeBuilderState(value: unknown): string {
 }
 
 export function decodeTelescopeBuilderState(value: unknown): TelescopeBuilderState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > TELESCOPE_BUILDER_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateTelescopeBuilderState(decoded);
-    return state !== null && encodeTelescopeBuilderState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<TelescopeBuilderState>(
+    value,
+    TELESCOPE_BUILDER_SHARE_STATE_MAX_CHARS,
+    validateTelescopeBuilderState,
+    encodeTelescopeBuilderState,
+  );
 }
 
 function validOutputNumber(value: unknown): value is number {

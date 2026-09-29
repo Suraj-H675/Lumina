@@ -15,6 +15,24 @@ export function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
+export function decodeCanonicalJsonState<State>(
+  value: unknown,
+  maximumCharacters: number,
+  validate: (value: unknown) => State | null,
+  encode: (value: State) => string,
+): State | null {
+  if (typeof value !== "string" || value.length === 0 || value.length > maximumCharacters) {
+    return null;
+  }
+  try {
+    const decoded: unknown = JSON.parse(value);
+    const state = validate(decoded);
+    return state !== null && encode(state) === value ? state : null;
+  } catch {
+    return null;
+  }
+}
+
 export type SimulationArtifactSource = Readonly<{
   id: string;
   title: string;

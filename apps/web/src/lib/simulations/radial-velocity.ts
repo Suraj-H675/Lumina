@@ -6,6 +6,7 @@ import {
 
 import rawRadialVelocityArtifact from "../../../../../data/seed/radial-velocity-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -165,20 +166,12 @@ export function encodeRadialVelocityState(value: unknown): string {
 }
 
 export function decodeRadialVelocityState(value: unknown): RadialVelocityState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > RADIAL_VELOCITY_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateRadialVelocityState(decoded);
-    return state !== null && encodeRadialVelocityState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<RadialVelocityState>(
+    value,
+    RADIAL_VELOCITY_SHARE_STATE_MAX_CHARS,
+    validateRadialVelocityState,
+    encodeRadialVelocityState,
+  );
 }
 
 function exactEcho(state: RadialVelocityState, result: RadialVelocityCalculationResponse): boolean {

@@ -6,6 +6,7 @@ import {
 
 import rawBuilderArtifact from "../../../../../data/seed/planetary-system-builder-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -200,20 +201,12 @@ export function encodePlanetarySystemBuilderState(value: unknown): string {
 export function decodePlanetarySystemBuilderState(
   value: unknown,
 ): PlanetarySystemBuilderState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > PLANETARY_SYSTEM_BUILDER_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validatePlanetarySystemBuilderState(decoded);
-    return state !== null && encodePlanetarySystemBuilderState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<PlanetarySystemBuilderState>(
+    value,
+    PLANETARY_SYSTEM_BUILDER_SHARE_STATE_MAX_CHARS,
+    validatePlanetarySystemBuilderState,
+    encodePlanetarySystemBuilderState,
+  );
 }
 
 export function planetarySystemBuilderRequestEndpoint(state: PlanetarySystemBuilderState) {

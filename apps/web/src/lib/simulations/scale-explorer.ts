@@ -8,7 +8,7 @@
  */
 
 import scaleExplorerArtifact from "../../../../../data/seed/scale-explorer-v1.json";
-import { hasOnlyKeys, isNonEmptyString, isRecord } from "./validation";
+import { decodeCanonicalJsonState, hasOnlyKeys, isNonEmptyString, isRecord } from "./validation";
 
 export const SCALE_EXPLORER_MODEL_VERSION = "scale-explorer-v1" as const;
 export const SCALE_EXPLORER_SCHEMA_VERSION = 1 as const;
@@ -457,20 +457,12 @@ export function encodeScaleExplorerState(value: unknown): string {
 
 /** Decode only the bounded canonical URL state emitted by the encoder. */
 export function decodeScaleExplorerState(value: unknown): ScaleExplorerState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > SCALE_EXPLORER_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const state = validateScaleExplorerState(JSON.parse(value) as unknown);
-    if (state === null || encodeScaleExplorerState(state) !== value) return null;
-    return state;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<ScaleExplorerState>(
+    value,
+    SCALE_EXPLORER_STATE_MAX_CHARS,
+    validateScaleExplorerState,
+    encodeScaleExplorerState,
+  );
 }
 
 /** Return the reviewed Python-calculated characteristic size without recomputing it in the browser. */

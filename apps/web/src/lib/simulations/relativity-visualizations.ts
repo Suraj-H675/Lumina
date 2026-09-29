@@ -7,6 +7,7 @@ import {
 
 import rawRelativityArtifact from "../../../../../data/seed/relativity-visualizations-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -183,20 +184,12 @@ export function encodeRelativityVisualizationsState(value: unknown): string {
 export function decodeRelativityVisualizationsState(
   value: unknown,
 ): RelativityVisualizationsState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > RELATIVITY_VISUALIZATIONS_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateRelativityVisualizationsState(decoded);
-    return state !== null && encodeRelativityVisualizationsState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<RelativityVisualizationsState>(
+    value,
+    RELATIVITY_VISUALIZATIONS_SHARE_STATE_MAX_CHARS,
+    validateRelativityVisualizationsState,
+    encodeRelativityVisualizationsState,
+  );
 }
 
 export function relativityVisualizationsRequestEndpoint(state: RelativityVisualizationsState) {

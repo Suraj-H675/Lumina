@@ -6,6 +6,7 @@ import {
 
 import rawSpectroscopyArtifact from "../../../../../data/seed/spectroscopy-lab-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -215,20 +216,12 @@ export function encodeSpectroscopyState(value: unknown): string {
 }
 
 export function decodeSpectroscopyState(value: unknown): SpectroscopyState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > SPECTROSCOPY_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateSpectroscopyState(decoded);
-    return state !== null && encodeSpectroscopyState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<SpectroscopyState>(
+    value,
+    SPECTROSCOPY_SHARE_STATE_MAX_CHARS,
+    validateSpectroscopyState,
+    encodeSpectroscopyState,
+  );
 }
 
 export function spectroscopyRequestEndpoint(state: SpectroscopyState) {

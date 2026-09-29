@@ -7,6 +7,7 @@ import {
 
 import rawRocketArtifact from "../../../../../data/seed/rocket-mission-designer-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -226,20 +227,12 @@ export function encodeRocketMissionDesignerState(value: unknown): string {
 export function decodeRocketMissionDesignerState(
   value: unknown,
 ): RocketMissionDesignerState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > ROCKET_MISSION_DESIGNER_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateRocketMissionDesignerState(decoded);
-    return state !== null && encodeRocketMissionDesignerState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<RocketMissionDesignerState>(
+    value,
+    ROCKET_MISSION_DESIGNER_SHARE_STATE_MAX_CHARS,
+    validateRocketMissionDesignerState,
+    encodeRocketMissionDesignerState,
+  );
 }
 
 export function rocketMissionDesignerRequestEndpoint(state: RocketMissionDesignerState) {

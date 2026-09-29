@@ -1,5 +1,11 @@
 import rawHrDiagramArtifact from "../../../../../data/seed/hr-diagram-explorer-v1.json";
-import { hasOnlyKeys, isFiniteNumber, isNonEmptyString, isRecord } from "./validation";
+import {
+  decodeCanonicalJsonState,
+  hasOnlyKeys,
+  isFiniteNumber,
+  isNonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const HR_DIAGRAM_MODEL_VERSION = "hr-diagram-explorer-v1" as const;
 export const HR_DIAGRAM_SCHEMA_VERSION = 1 as const;
@@ -765,19 +771,12 @@ export function encodeHRDiagramState(value: unknown): string {
 }
 
 export function decodeHRDiagramState(value: unknown): HRDiagramState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > HR_DIAGRAM_SHARE_STATE_MAX_CHARS
-  )
-    return null;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (!validateHRDiagramState(parsed) || encodeHRDiagramState(parsed) !== value) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<HRDiagramState>(
+    value,
+    HR_DIAGRAM_SHARE_STATE_MAX_CHARS,
+    (decoded) => (validateHRDiagramState(decoded) ? decoded : null),
+    encodeHRDiagramState,
+  );
 }
 
 export function filterHRDiagramRecords(state: HRDiagramState): ReadonlyArray<HRDiagramRecord> {

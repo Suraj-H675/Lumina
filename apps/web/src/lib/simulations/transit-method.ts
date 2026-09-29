@@ -6,6 +6,7 @@ import {
 
 import rawTransitArtifact from "../../../../../data/seed/transit-method-v1.json";
 import {
+  decodeCanonicalJsonState,
   hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
@@ -148,20 +149,12 @@ export function encodeTransitMethodState(value: unknown): string {
 }
 
 export function decodeTransitMethodState(value: unknown): TransitMethodState | null {
-  if (
-    typeof value !== "string" ||
-    value.length === 0 ||
-    value.length > TRANSIT_METHOD_SHARE_STATE_MAX_CHARS
-  ) {
-    return null;
-  }
-  try {
-    const decoded: unknown = JSON.parse(value);
-    const state = validateTransitMethodState(decoded);
-    return state !== null && encodeTransitMethodState(state) === value ? state : null;
-  } catch {
-    return null;
-  }
+  return decodeCanonicalJsonState<TransitMethodState>(
+    value,
+    TRANSIT_METHOD_SHARE_STATE_MAX_CHARS,
+    validateTransitMethodState,
+    encodeTransitMethodState,
+  );
 }
 
 function exactEcho(state: TransitMethodState, result: TransitMethodCalculationResponse): boolean {

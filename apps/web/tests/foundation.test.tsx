@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import GlobalError from "../src/app/global-error";
@@ -110,7 +111,7 @@ describe("Nova-Lumina route boundaries", () => {
   it("renders route and global errors without leaking raw error details", () => {
     const reset = vi.fn();
     const rawError = new Error("private diagnostic detail");
-    const { rerender } = render(
+    const { unmount } = render(
       <RouteError
         error={rawError}
         messages={enMessages.routeBoundaries.routeError}
@@ -123,9 +124,14 @@ describe("Nova-Lumina route boundaries", () => {
     screen.getByRole("button", { name: "Try again" }).click();
     expect(reset).toHaveBeenCalledOnce();
 
-    rerender(<GlobalError error={rawError} reset={reset} />);
-    expect(screen.getByRole("heading", { level: 1, name: "Something went wrong" })).toBeVisible();
-    expect(screen.queryByText(/private diagnostic detail/i)).not.toBeInTheDocument();
+    unmount();
+    const globalDocument = new DOMParser().parseFromString(
+      renderToStaticMarkup(<GlobalError error={rawError} reset={reset} />),
+      "text/html",
+    );
+    expect(globalDocument.querySelector("h1")?.textContent).toBe("Something went wrong");
+    expect(globalDocument.querySelector('[role="alert"]')).not.toBeNull();
+    expect(globalDocument.body.textContent).not.toMatch(/private diagnostic detail/i);
   });
 
   it("injects specialized route-boundary messages without exposing diagnostic details", () => {

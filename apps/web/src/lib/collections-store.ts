@@ -390,11 +390,7 @@ export function useCollectionsStatus(): CollectionsStatus {
   );
 }
 
-/**
- * Imperative reads for non-render contexts (tests today; any future
- * non-React caller). They never touch storage directly — only the hydrated
- * canonical state.
- */
+/** Imperative reads of the hydrated canonical state for non-render contexts. */
 export function getCollectionsSnapshot(): CollectionsData {
   return state;
 }

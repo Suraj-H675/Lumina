@@ -68,7 +68,7 @@ _DATABASE_FAILURES = {
     DatabaseFailureKind.OPERATION: JobFailureDatabaseOperationFailure,
 }
 _MAX_RECONCILIATION_CONNECTION_ATTEMPTS = 3
-_NON_RETRYABLE_DELAY_PLACEHOLDER = 0
+_NON_RETRYABLE_DELAY_SECONDS = 0
 
 _FAIL_SQL = text(
     "WITH owned AS MATERIALIZED ("
@@ -345,7 +345,7 @@ class PostgreSqlFailureJobStore:
         delay = (
             request.retry_delay_seconds
             if request.retry_delay_seconds is not None
-            else _NON_RETRYABLE_DELAY_PLACEHOLDER
+            else _NON_RETRYABLE_DELAY_SECONDS
         )
         returned = (
             (

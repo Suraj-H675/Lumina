@@ -304,13 +304,7 @@ export function SaveToCollectionsButton({
         <button
           aria-label={accessibleName}
           className={iconButtonClassName}
-          onClick={(event) => {
-            // Card-level stopPropagation is unnecessary (the card link is a
-            // sibling, not an ancestor), but prevent default anyway in case a
-            // future layout nests the button inside a link.
-            event.preventDefault();
-            setOpen(true);
-          }}
+          onClick={() => setOpen(true)}
           title={accessibleName}
           type="button"
         >

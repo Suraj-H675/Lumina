@@ -7,24 +7,15 @@ application layer can apply its deterministic review policy without a second dat
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum, auto
 from typing import TypeVar, cast
 from uuid import UUID
 
 from sqlalchemy import RowMapping, text
-from sqlalchemy.exc import (
-    DBAPIError,
-    IntegrityError,
-    OperationalError,
-    ProgrammingError,
-    SQLAlchemyError,
-)
-from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 from sqlalchemy.sql.elements import TextClause
 
@@ -47,19 +38,17 @@ from lumina.catalog.domain.read import (
     CatalogReadUnavailable,
     CatalogReadValidationRejected,
 )
+from lumina.catalog.infrastructure.postgresql.read_lifecycle import (
+    OPERATION_TIMEOUT_SQL,
+    PROCESS_CONTROL_ERRORS,
+    DatabasePhase,
+    classify_database_failure,
+    rollback_close_or_invalidate,
+)
 
 _SET_REPEATABLE_READ_SQL = text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
 _SET_READ_ONLY_SQL = text("SET TRANSACTION READ ONLY")
-_TIMEOUT_SQL = text(
-    "SELECT "
-    "set_config('statement_timeout', :timeout, true), "
-    "set_config('lock_timeout', :timeout, true)"
-)
 _OPERATION_WAIT_TIMEOUT = "5000ms"
-_LOCK_TIMEOUT_SQLSTATE = "55P03"
-_QUERY_CANCELLED_SQLSTATE = "57014"
-_CONNECTION_SQLSTATE_CLASS = "08"
-_PROCESS_CONTROL_ERRORS = (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
 
 _PROVIDER_SQL = text(
     "SELECT provider.id AS provider_id, provider.code AS provider_code, "
@@ -225,12 +214,6 @@ class _SliceScope:
         }
 
 
-class _DatabasePhase(Enum):
-    CONNECTION = auto()
-    OPERATION = auto()
-    EXIT = auto()
-
-
 Result = TypeVar("Result")
 
 
@@ -293,7 +276,7 @@ class PostgreSqlCatalogDataQualityRepository:
     ) -> Result:
         """Run one source-fact read in a bounded immutable snapshot and release it safely."""
         session: AsyncSession | None = None
-        phase = _DatabasePhase.CONNECTION
+        phase = DatabasePhase.CONNECTION
         known_failure: CatalogDataInconsistent | CatalogReadValidationRejected | None = None
         safe_failure: type[RuntimeError] | None = None
         completed = False
@@ -302,23 +285,23 @@ class PostgreSqlCatalogDataQualityRepository:
             session = self._session_factory()
             await session.begin()
             connection = await session.connection()
-            phase = _DatabasePhase.OPERATION
+            phase = DatabasePhase.OPERATION
             await connection.execute(_SET_REPEATABLE_READ_SQL)
             await connection.execute(_SET_READ_ONLY_SQL)
-            await connection.execute(_TIMEOUT_SQL, {"timeout": _OPERATION_WAIT_TIMEOUT})
+            await connection.execute(OPERATION_TIMEOUT_SQL, {"timeout": _OPERATION_WAIT_TIMEOUT})
             result = await operation(connection)
             completed = True
-            phase = _DatabasePhase.EXIT
-        except _PROCESS_CONTROL_ERRORS:
+            phase = DatabasePhase.EXIT
+        except PROCESS_CONTROL_ERRORS:
             if session is not None:
-                await _rollback_close_or_invalidate(session)
+                await rollback_close_or_invalidate(session)
             raise
         except (CatalogDataInconsistent, CatalogReadValidationRejected) as error:
             known_failure = error
         except OSError:
             safe_failure = CatalogReadUnavailable
         except SQLAlchemyError as error:
-            safe_failure = _classify_database_failure(error, phase)
+            safe_failure = classify_database_failure(error, phase)
         except (KeyError, TypeError, ValueError):
             known_failure = CatalogDataInconsistent()
         except Exception:
@@ -326,8 +309,8 @@ class PostgreSqlCatalogDataQualityRepository:
 
         try:
             if session is not None:
-                await _rollback_close_or_invalidate(session)
-        except _PROCESS_CONTROL_ERRORS:
+                await rollback_close_or_invalidate(session)
+        except PROCESS_CONTROL_ERRORS:
             raise
         except BaseException:
             safe_failure = CatalogReadOperationFailure
@@ -350,81 +333,6 @@ async def _rows(
         list[RowMapping],
         (await connection.execute(statement, parameters)).mappings().all(),
     )
-
-
-async def _rollback_close_or_invalidate(session: AsyncSession) -> None:
-    """Rollback and quarantine a session whose cleanup cannot be confirmed."""
-    rollback_failed = False
-    interruption: BaseException | None = None
-    try:
-        if session.in_transaction():
-            await session.rollback()
-    except _PROCESS_CONTROL_ERRORS as error:
-        rollback_failed = True
-        interruption = error
-    except BaseException:
-        rollback_failed = True
-
-    if rollback_failed:
-        try:
-            await session.invalidate()
-        except _PROCESS_CONTROL_ERRORS as error:
-            interruption = interruption or error
-        except BaseException:
-            pass
-
-    close_failed = False
-    try:
-        await session.close()
-    except _PROCESS_CONTROL_ERRORS as error:
-        close_failed = True
-        interruption = interruption or error
-    except BaseException:
-        close_failed = True
-    if close_failed and not rollback_failed:
-        try:
-            await session.invalidate()
-        except _PROCESS_CONTROL_ERRORS as error:
-            interruption = interruption or error
-        except BaseException:
-            pass
-    if close_failed:
-        try:
-            await session.close()
-        except _PROCESS_CONTROL_ERRORS as error:
-            interruption = interruption or error
-        except BaseException:
-            pass
-    if interruption is not None:
-        raise interruption
-
-
-def _classify_database_failure(
-    error: SQLAlchemyError,
-    phase: _DatabasePhase,
-) -> type[RuntimeError]:
-    sqlstate = _database_sqlstate(error) if isinstance(error, DBAPIError) else None
-    if isinstance(error, DBAPIError) and (
-        error.connection_invalidated
-        or (sqlstate is not None and sqlstate.startswith(_CONNECTION_SQLSTATE_CLASS))
-        or sqlstate in {_LOCK_TIMEOUT_SQLSTATE, _QUERY_CANCELLED_SQLSTATE}
-    ):
-        return CatalogReadUnavailable
-    if phase is _DatabasePhase.CONNECTION and isinstance(
-        error,
-        OperationalError | SQLAlchemyTimeoutError,
-    ):
-        return CatalogReadUnavailable
-    if isinstance(error, IntegrityError):
-        return CatalogDataInconsistent
-    if isinstance(error, ProgrammingError):
-        return CatalogReadOperationFailure
-    return CatalogReadOperationFailure
-
-
-def _database_sqlstate(error: DBAPIError) -> str | None:
-    sqlstate = getattr(error.orig, "sqlstate", None)
-    return sqlstate if isinstance(sqlstate, str) else None
 
 
 def _scope_from_slice(slice: ReviewedSliceContract) -> _SliceScope:

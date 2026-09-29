@@ -569,7 +569,7 @@ async def test_same_fact_key_mismatch_has_fact_precedence_and_deduplicates_its_e
         source_manifest,
         data_manifest,
         provider_record_id="same-key",
-        measurements=(_measurement(value=Decimal("1.23"), original_value="1.23"),),
+        measurements=(_measurement(original_value="1.230"),),
     )
 
     first_conflict = await store.ingest(changed)

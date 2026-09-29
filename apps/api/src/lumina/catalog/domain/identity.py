@@ -102,21 +102,6 @@ def normalize_alias(
     return normalized
 
 
-def validate_alias_display(value: str) -> str:
-    """Validate and return an alias display value without changing its spelling.
-
-    Display aliases are curated source-facing text.  Unlike normalized aliases, they are not
-    case-folded or whitespace-collapsed; leading and trailing Unicode whitespace is rejected so
-    the reviewed display string remains unambiguous.
-    """
-
-    if type(value) is not str or not value or len(value) > _MAX_ALIAS_CODEPOINTS:
-        raise CatalogIdentityValidationError()
-    if _contains_category_c(value) or value[0].isspace() or value[-1].isspace():
-        raise CatalogIdentityValidationError()
-    return value
-
-
 def validate_public_slug(value: str) -> str:
     """Validate and return a stable lowercase ASCII kebab-case public slug."""
 

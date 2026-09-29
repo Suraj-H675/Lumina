@@ -1044,26 +1044,6 @@ def _measurement_matches(row: RowMapping, incoming: _ResolvedMeasurement) -> boo
     )
 
 
-def _measurement_sets_match(
-    persisted: tuple[RowMapping, ...],
-    incoming: tuple[_ResolvedMeasurement, ...],
-) -> bool:
-    """Compare the complete immutable fact set before accepting a replay or commit recovery."""
-    persisted_by_key: dict[str, RowMapping] = {}
-    for row in persisted:
-        key = _required_text(row, "source_fact_key")
-        if key in persisted_by_key:
-            raise CatalogDatabaseStateFailure()
-        persisted_by_key[key] = row
-    incoming_by_key = {item.measurement.source_fact_key: item for item in incoming}
-    if tuple(sorted(persisted_by_key)) != tuple(sorted(incoming_by_key)):
-        return False
-    return all(
-        _measurement_matches(persisted_by_key[key], incoming_by_key[key])
-        for key in sorted(incoming_by_key)
-    )
-
-
 def _measurement_row_matches_insert(row: RowMapping, incoming: _ResolvedMeasurement) -> bool:
     value = row.get("value_numeric")
     measurement = incoming.measurement

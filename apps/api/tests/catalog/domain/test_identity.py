@@ -11,7 +11,6 @@ from lumina.catalog.domain.identity import (
     ALIAS_NORMALIZATION_VERSION,
     CatalogIdentityValidationError,
     normalize_alias,
-    validate_alias_display,
     validate_public_slug,
 )
 
@@ -95,34 +94,6 @@ def test_normalization_rejects_invalid_types_empty_overlength_and_category_c(
 ) -> None:
     with pytest.raises(CatalogIdentityValidationError):
         normalize_alias(raw, version=ALIAS_NORMALIZATION_VERSION)  # type: ignore[arg-type]
-
-
-@pytest.mark.parametrize("value", ["V376 Peg", "Café — M31?", "51 Pegasi", "α Centauri"])
-def test_display_alias_validation_preserves_reviewed_spelling(value: str) -> None:
-    assert validate_alias_display(value) == value
-
-
-@pytest.mark.parametrize(
-    "value",
-    [
-        1,
-        b"V376 Peg",
-        "",
-        "a" * 256,
-        " V376 Peg",
-        "V376 Peg ",
-        "\u00a0V376 Peg",
-        "V376 Peg\u2003",
-        "line\nfeed",
-        "zero\u200bwidth",
-        "private\ue000use",
-        "surrogate\ud800",
-        "unassigned\u0378",
-    ],
-)
-def test_display_alias_validation_rejects_invalid_values(value: object) -> None:
-    with pytest.raises(CatalogIdentityValidationError):
-        validate_alias_display(value)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("value", ["a", "51-pegasi", "hd-209458", "k2-18", "a" * 100])

@@ -32,9 +32,7 @@ from lumina.catalog.infrastructure.postgresql.ingestion import (
     PostgreSqlCatalogIngestionStore,
     _classify_database_failure,
     _DatabasePhase,
-    _measurement_sets_match,
     _postgres_jsonb_text_bytes,
-    _ResolvedMeasurement,
     _stored_evidence,
 )
 from lumina.provenance.domain.manifests import DataManifest, SourceManifest
@@ -275,41 +273,6 @@ def test_stored_evidence_reduces_before_postgresql_jsonb_text_exceeds_its_bound(
         incoming=incoming,
     )
     assert len(_postgres_jsonb_text_bytes(stored)) <= 8_192
-
-
-def test_whole_measurement_set_requires_exact_decimal_and_original_text() -> None:
-    incoming = _ResolvedMeasurement(
-        identifier=_MEASUREMENT_ID,
-        measurement=NormalizedMeasurement(
-            source_fact_key="fixture.mass:primary",
-            quantity_code="fixture.quantity.mass",
-            unit_code="fixture.unit.kg",
-            value_numeric=Decimal("1.2300"),
-            original_value="1.2300",
-            original_unit="kg source spelling",
-        ),
-        quantity_id=_QUANTITY_ID,
-        unit_id=_UNIT_ID,
-    )
-    persisted = cast(
-        RowMapping,
-        {
-            "id": _MEASUREMENT_ID,
-            "source_fact_key": "fixture.mass:primary",
-            "quantity_id": _QUANTITY_ID,
-            "unit_id": _UNIT_ID,
-            "quantity_code": "fixture.quantity.mass",
-            "unit_code": "fixture.unit.kg",
-            "value_numeric": Decimal("1.2300"),
-            "original_value": "1.2300",
-            "original_unit": "kg source spelling",
-        },
-    )
-
-    assert _measurement_sets_match((persisted,), (incoming,))
-    altered_original = dict(persisted)
-    altered_original["original_value"] = "1.230"
-    assert not _measurement_sets_match((cast(RowMapping, altered_original),), (incoming,))
 
 
 @pytest.mark.parametrize(

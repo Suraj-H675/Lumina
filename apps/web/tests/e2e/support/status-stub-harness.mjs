@@ -704,22 +704,15 @@ const controlPaths = new Set([
   "/__control/clear-violations",
   "/__control/mode",
 ]);
-const shutdownFixture = process.env.LUMINA_E2E_SHUTDOWN_FIXTURE === "1";
 
 class ProductionBuildRequiredError extends Error {}
 
 async function requireProductionBuild() {
-  if (shutdownFixture) return;
   try {
     await access(join(process.cwd(), ".next", "BUILD_ID"));
   } catch {
     throw new ProductionBuildRequiredError();
   }
-}
-
-if (shutdownFixture) {
-  controlPaths.add("/__control/release-child");
-  controlPaths.add("/__control/shutdown-state");
 }
 const maximumViolations = 100;
 const violationCounts = new Map();
@@ -735,8 +728,7 @@ let identificationPollCount = 0;
 let identificationDeleted = false;
 const identificationSubmissionId = "71000000-0000-4000-8000-000000000001";
 let webProcess;
-let shutdownPhase = "running";
-let childShutdownBarrierReached = false;
+let shutdownStarted = false;
 let requestedExitCode = 0;
 let shutdownPromise;
 
@@ -2029,46 +2021,6 @@ const stub = http.createServer(async (request, response) => {
       sendJson(response, 200, { clean: true });
       return;
     }
-    if (path === "/__control/shutdown-state" || path === "/__control/release-child") {
-      try {
-        if (!(await controlBodyIsEmpty(request))) {
-          recordViolation("malformed-control");
-          sendFailure(response, 400);
-          return;
-        }
-      } catch {
-        recordViolation("malformed-control");
-        sendFailure(response, 400);
-        return;
-      }
-      if (path === "/__control/shutdown-state") {
-        sendJson(response, 200, {
-          child_shutdown_barrier: childShutdownBarrierReached,
-          phase: shutdownPhase,
-        });
-        return;
-      }
-      if (
-        shutdownPhase !== "waiting-for-web-child" ||
-        !childShutdownBarrierReached ||
-        webProcess === undefined ||
-        !webProcess.connected
-      ) {
-        recordViolation("malformed-control");
-        sendFailure(response, 409);
-        return;
-      }
-      webProcess.send({ operation: "release-shutdown" }, (error) => {
-        if (error === null || error === undefined) {
-          sendJson(response, 200, { released: true });
-        } else {
-          recordViolation("malformed-control");
-          sendFailure(response, 409);
-        }
-      });
-      return;
-    }
-
     if (path === "/__control/apod-mode") {
       try {
         if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
@@ -2744,7 +2696,6 @@ async function stopWebProcess() {
     webProcess.signalCode === null ||
     processGroupIsRunning(webProcess)
   ) {
-    shutdownPhase = "waiting-for-web-child";
     signalProcessGroup(webProcess, "SIGTERM");
     if (await waitForProcessGroupSettlement(webProcess, 2_500)) return;
     signalProcessGroup(webProcess, "SIGKILL");
@@ -2760,46 +2711,27 @@ async function performShutdown() {
   } catch {
     cleanupFailed = true;
   }
-  shutdownPhase = "closing-stub";
   try {
     await closeStub();
   } catch {
     cleanupFailed = true;
   }
-  shutdownPhase = "evaluating-violations";
   const hasUnresolvedViolations = violationTotal !== 0;
   try {
     await unlink(coordinationFile);
   } catch (error) {
     if (error?.code !== "ENOENT") cleanupFailed = true;
   }
-  shutdownPhase = "settled";
   process.exitCode = requestedExitCode !== 0 || cleanupFailed || hasUnresolvedViolations ? 1 : 0;
 }
 
 function shutdown(exitCode = 0) {
   if (exitCode !== 0) requestedExitCode = 1;
-  shutdownPromise ??= performShutdown();
+  if (!shutdownStarted) {
+    shutdownStarted = true;
+    shutdownPromise = performShutdown();
+  }
   return shutdownPromise;
-}
-
-function waitForFixtureChildReady(child) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => settle(new Error("fixture child did not become ready")), 2_500);
-    const onExit = () => settle(new Error("fixture child exited before readiness"));
-    const onMessage = (message) => {
-      if (message?.operation === "fixture-ready") settle();
-    };
-    const settle = (error) => {
-      clearTimeout(timer);
-      child.off("exit", onExit);
-      child.off("message", onMessage);
-      if (error === undefined) resolve();
-      else reject(error);
-    };
-    child.once("exit", onExit);
-    child.on("message", onMessage);
-  });
 }
 
 process.once("SIGINT", () => void shutdown());
@@ -2814,36 +2746,19 @@ try {
   if (address === null || typeof address === "string") throw new Error("stub did not bind TCP");
   const apiOrigin = `http://127.0.0.1:${address.port}`;
 
-  const fixtureScript = `
-process.once("SIGTERM", () => process.send?.({ operation: "shutdown-barrier" }));
-process.on("message", (message) => {
-  if (message?.operation === "release-shutdown") process.exit(0);
-});
-process.send?.({ operation: "fixture-ready" });
-setInterval(() => undefined, 1_000);
-`;
-  webProcess = shutdownFixture
-    ? spawn(process.execPath, ["--input-type=module", "--eval", fixtureScript], {
-        detached: true,
-        stdio: ["ignore", "ignore", "ignore", "ipc"],
-      })
-    : spawn("pnpm", ["exec", "next", "start", "--hostname", "127.0.0.1"], {
-        detached: true,
-        env: {
-          ...process.env,
-          LUMINA_WEB_API_ORIGIN: apiOrigin,
-          LUMINA_WEB_PUBLIC_API_ORIGIN: apiOrigin,
-        },
-        stdio: "inherit",
-      });
-  webProcess.on("message", (message) => {
-    if (message?.operation === "shutdown-barrier") childShutdownBarrierReached = true;
+  webProcess = spawn("pnpm", ["exec", "next", "start", "--hostname", "127.0.0.1"], {
+    detached: true,
+    env: {
+      ...process.env,
+      LUMINA_WEB_API_ORIGIN: apiOrigin,
+      LUMINA_WEB_PUBLIC_API_ORIGIN: apiOrigin,
+    },
+    stdio: "inherit",
   });
   webProcess.once("exit", (code, signal) => {
-    if (shutdownPhase === "running") void shutdown(code === 0 && signal === null ? 0 : 1);
+    if (!shutdownStarted) void shutdown(code === 0 && signal === null ? 0 : 1);
   });
   webProcess.once("error", () => void shutdown(1));
-  if (shutdownFixture) await waitForFixtureChildReady(webProcess);
 
   const handle = await open(coordinationFile, "wx", 0o600);
   try {

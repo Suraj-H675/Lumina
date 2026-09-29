@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import pkgutil
 import unicodedata
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -26,7 +25,7 @@ from lumina.provenance.domain.launch_library import (
     Ll2Status,
     Ll2Vehicle,
 )
-from lumina.provenance.domain.manifests import SourceManifest, parse_manifest_json
+from lumina.provenance.domain.manifests import SourceManifest
 from lumina.provenance.domain.provider import (
     ProviderNormalizationFailed,
     ProviderPayloadInvalid,
@@ -46,6 +45,7 @@ from lumina.provenance.domain.runtime import (
 )
 
 from .http import FixedHttpRequest
+from .manifests import find_repository_root, load_source_manifest
 
 SOURCE_MANIFEST_PATH: Final = "data/manifests/sources/launch-library-2.json"
 EXPECTED_CONTENT_TYPE: Final = LL2_CONTENT_TYPE
@@ -61,14 +61,7 @@ _MAX_MISSION_AGENCIES: Final = 32
 _ALLOWED_DESCRIPTION_CONTROLS: Final = frozenset({"\t", "\n", "\r"})
 
 
-def _find_repository_root(start: Path) -> Path | None:
-    for parent in (start, *start.parents):
-        if (parent / SOURCE_MANIFEST_PATH).is_file():
-            return parent
-    return None
-
-
-REPOSITORY_ROOT: Final = _find_repository_root(Path(__file__).resolve())
+REPOSITORY_ROOT: Final = find_repository_root(Path(__file__).resolve(), SOURCE_MANIFEST_PATH)
 
 
 @dataclass(frozen=True, slots=True)
@@ -502,28 +495,11 @@ def _reject_json_constant(_value: str) -> None:
 def load_launch_library_source_manifest(
     repository_root: Path | None = REPOSITORY_ROOT,
 ) -> SourceManifest:
-    manifest_bytes: bytes | None = None
-    if repository_root is not None:
-        try:
-            manifest_bytes = (repository_root / SOURCE_MANIFEST_PATH).read_bytes()
-        except OSError:
-            manifest_bytes = None
-    if manifest_bytes is None:
-        try:
-            manifest_bytes = pkgutil.get_data(
-                "lumina", "data/manifests/sources/launch-library-2.json"
-            )
-        except (ImportError, OSError):
-            raise ValueError("Launch Library 2 source manifest is unavailable") from None
-    if manifest_bytes is None:
-        raise ValueError("Launch Library 2 source manifest is unavailable")
-    try:
-        manifest = parse_manifest_json(manifest_bytes)
-    except ValueError:
-        raise ValueError("Launch Library 2 source manifest is unavailable") from None
-    if not isinstance(manifest, SourceManifest):
-        raise ValueError("Launch Library 2 source manifest is unavailable")
-    return manifest
+    return load_source_manifest(
+        repository_root,
+        manifest_path=SOURCE_MANIFEST_PATH,
+        unavailable_message="Launch Library 2 source manifest is unavailable",
+    )
 
 
 __all__ = [

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import pkgutil
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
@@ -19,7 +18,7 @@ from lumina.provenance.domain.citizen_science import (
     PanoptesProjectStatus,
     PanoptesSourceEvidence,
 )
-from lumina.provenance.domain.manifests import SourceManifest, parse_manifest_json
+from lumina.provenance.domain.manifests import SourceManifest
 from lumina.provenance.domain.provider import (
     ProviderBatchAdapter,
     ProviderNormalizationFailed,
@@ -47,6 +46,7 @@ from lumina.provenance.domain.runtime import (
 )
 
 from .http import FixedHttpRequest
+from .manifests import find_repository_root, load_source_manifest
 
 SOURCE_MANIFEST_PATH: Final = "data/manifests/sources/zooniverse-panoptes.json"
 _OPERATION: Final = "batch_fetch"
@@ -56,14 +56,7 @@ _IDENTITY_BY_COMPONENT: Final = {
 }
 
 
-def _find_repository_root(start: Path) -> Path | None:
-    for parent in (start, *start.parents):
-        if (parent / SOURCE_MANIFEST_PATH).is_file():
-            return parent
-    return None
-
-
-REPOSITORY_ROOT: Final = _find_repository_root(Path(__file__).resolve())
+REPOSITORY_ROOT: Final = find_repository_root(Path(__file__).resolve(), SOURCE_MANIFEST_PATH)
 
 
 @dataclass(frozen=True, slots=True)
@@ -332,30 +325,11 @@ def load_zooniverse_panoptes_source_manifest(
     repository_root: Path | None = REPOSITORY_ROOT,
 ) -> SourceManifest:
     """Load the reviewed Zooniverse Panoptes documentary manifest."""
-
-    manifest_bytes: bytes | None = None
-    if repository_root is not None:
-        try:
-            manifest_bytes = (repository_root / SOURCE_MANIFEST_PATH).read_bytes()
-        except OSError:
-            manifest_bytes = None
-    if manifest_bytes is None:
-        try:
-            manifest_bytes = pkgutil.get_data(
-                "lumina",
-                "data/manifests/sources/zooniverse-panoptes.json",
-            )
-        except (ImportError, OSError):
-            raise ValueError("Zooniverse Panoptes source manifest is unavailable") from None
-    if manifest_bytes is None:
-        raise ValueError("Zooniverse Panoptes source manifest is unavailable")
-    try:
-        manifest = parse_manifest_json(manifest_bytes)
-    except ValueError:
-        raise ValueError("Zooniverse Panoptes source manifest is unavailable") from None
-    if not isinstance(manifest, SourceManifest):
-        raise ValueError("Zooniverse Panoptes source manifest is unavailable")
-    return manifest
+    return load_source_manifest(
+        repository_root,
+        manifest_path=SOURCE_MANIFEST_PATH,
+        unavailable_message="Zooniverse Panoptes source manifest is unavailable",
+    )
 
 
 __all__ = [

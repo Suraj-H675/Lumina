@@ -43,6 +43,12 @@ from lumina.provenance.domain.runtime import (
     LL2_USER_AGENT,
     RawProviderResponse,
 )
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import (
+    reject_json_constant as _reject_json_constant,
+)
 
 from .http import FixedHttpRequest
 from .manifests import find_repository_root, load_source_manifest
@@ -477,19 +483,6 @@ def _parse_utc(value: str) -> datetime:
 
 def _launch_sort_key(value: Ll2Launch) -> tuple[datetime, str]:
     return _parse_utc(value.net_utc), value.launch_id
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("duplicate JSON key")
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(_value: str) -> None:
-    raise ValueError("non-finite JSON number")
 
 
 def load_launch_library_source_manifest(

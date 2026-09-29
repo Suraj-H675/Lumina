@@ -26,6 +26,12 @@ from lumina.identification.domain.nova import (
 )
 from lumina.identification.domain.remote_raster import SanitizedRemoteRaster
 from lumina.identification.domain.uploads import UploadMediaType
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import (
+    reject_json_constant as _reject_json_constant,
+)
 
 _NOVA_ORIGIN = "https://nova.astrometry.net"
 _NOVA_API_URL = "https://nova.astrometry.net/api"
@@ -350,19 +356,6 @@ def _decode_object(body: bytes) -> dict[str, object]:
     if type(decoded) is not dict:
         raise RemoteAstrometryProtocolError()
     return cast(dict[str, object], decoded)
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("duplicate JSON key")
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(_value: str) -> None:
-    raise ValueError("non-finite JSON number")
 
 
 def _validate_json_shape(value: object, depth: int = 0) -> None:

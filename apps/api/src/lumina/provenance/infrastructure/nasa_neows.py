@@ -44,6 +44,12 @@ from lumina.provenance.domain.runtime import (
     NEOWS_USER_AGENT,
     RawProviderResponse,
 )
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import (
+    reject_json_constant as _reject_json_constant,
+)
 
 from .http import FixedHttpRequest, _valid_api_key
 from .manifests import find_repository_root, load_source_manifest
@@ -398,15 +404,6 @@ class NasaNeowsAdapter(ProviderAdapter[NasaNeowsRequest, NasaNeowsPayload, NasaN
         return normalized
 
 
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("duplicate JSON key")
-        result[key] = value
-    return result
-
-
 def _redact_quarantine_body(body: bytes, secret: str) -> bytes:
     """Keep NeoWs invalid-response evidence useful without retaining the NASA key."""
     secret_bytes = secret.encode("ascii")
@@ -456,10 +453,6 @@ def _normalized_contains_secret(value: NasaNeowsNormalized, secret: str) -> bool
             )
         )
     return any(secret in candidate for candidate in strings)
-
-
-def _reject_json_constant(_value: str) -> None:
-    raise ValueError("non-finite JSON number")
 
 
 def _validate_wire_shape(value: object, depth: int = 0) -> None:

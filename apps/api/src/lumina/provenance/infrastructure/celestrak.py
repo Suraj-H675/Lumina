@@ -45,6 +45,12 @@ from lumina.provenance.domain.runtime import (
     CELESTRAK_VISUAL_MAX_RESPONSE_BYTES,
     RawProviderResponse,
 )
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import (
+    reject_json_constant as _reject_json_constant,
+)
 
 from .http import FixedHttpRequest
 from .manifests import find_repository_root, load_source_manifest
@@ -304,19 +310,6 @@ def _number(value: Mapping[str, object], key: str) -> float:
     if type(result) not in {int, float}:
         raise ValueError("CelesTrak OMM number is invalid")
     return float(cast(int | float, result))
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("duplicate JSON key")
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(_value: str) -> None:
-    raise ValueError("non-finite JSON number")
 
 
 def load_celestrak_source_manifest(

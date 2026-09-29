@@ -38,6 +38,12 @@ from lumina.provenance.domain.runtime import (
     MAX_RESPONSE_BYTES,
     RawProviderResponse,
 )
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import (
+    reject_json_constant as _reject_json_constant,
+)
 
 from .http import FixedHttpRequest
 from .manifests import find_repository_root, load_source_manifest
@@ -310,19 +316,6 @@ def _text_contains_secret(value: str, secret: str) -> bool:
     if secret in value:
         return True
     return secret in unquote(value) or secret in unquote_plus(value)
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("duplicate JSON key")
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(_value: str) -> None:
-    raise ValueError("non-finite JSON number")
 
 
 def _parse_content_date(value: str) -> date:

@@ -4741,7 +4741,7 @@ export const enMessages = {
     eyebrow: "Mission Control",
     findSatellitePasses: "Find satellite passes",
     intro:
-      "A small live-and-reviewed home for what is happening in space now: one source-labelled launch event, a bounded upcoming mission board, reviewed discoveries, and your authored learning progress. Nova-Lumina is still under construction, so unavailable data stays visibly unavailable rather than being replaced with guesses.",
+      "A small live-and-reviewed home for what is happening in space now: one source-labelled launch event, a bounded upcoming mission board, reviewed discoveries, and your authored learning progress. Unavailable data stays visibly unavailable rather than being replaced with guesses.",
     metadataDescription:
       "Nova-Lumina Mission Control combines a cache-backed current launch event, bounded mission board, reviewed discoveries, and authored learning without hiding source freshness or uncertainty.",
     metadataTitle: "Mission Control",

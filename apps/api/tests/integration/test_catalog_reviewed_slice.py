@@ -1,7 +1,7 @@
 """Real PostgreSQL acceptance for the immutable reviewed Gaia source slice.
 
-The first test records the Phase 1A5 empty-selection milestone.  The second deliberately adds
-valid later selection history and proves that permanent source-slice verification is unchanged.
+The first test proves the reviewed seed leaves canonical selection unset. The later selection
+test proves that permanent source-slice verification is unchanged by valid selection history.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ from .migration_lifecycle import (
     run_migration_operation,
 )
 
-_PHASE_1A5_HEAD = "f2a6c8d9e0b1"
+_REVIEWED_SEED_REVISION = "f2a6c8d9e0b1"
 
 
 def _ensure_reviewed_seed_migration(settings: IntegrationTestSettings) -> None:
@@ -53,7 +53,7 @@ def _ensure_reviewed_seed_migration(settings: IntegrationTestSettings) -> None:
         lambda connection: run_alembic(
             connection,
             identity,
-            _PHASE_1A5_HEAD,
+            _REVIEWED_SEED_REVISION,
             downgrade=False,
         ),
     )
@@ -149,7 +149,7 @@ async def _ingest_astrometry_and_replay(runtime: DatabaseRuntime) -> tuple[int, 
 
 
 @pytest.mark.asyncio
-async def test_initial_ingestion_and_replay_leave_the_phase_1a5_milestone_unselected(
+async def test_initial_ingestion_and_replay_leave_reviewed_measurements_unselected(
     database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:

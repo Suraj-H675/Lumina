@@ -864,12 +864,6 @@ export function loadLearningContent(): LearningContent {
   return LOADED_LEARNING_CONTENT;
 }
 
-export function getLearningLesson(content: LearningContent, slug: string): LearningLesson {
-  const lesson = content.lessons.find((entry) => entry.slug === slug);
-  if (lesson === undefined) throw new Error("Requested learning lesson was not found");
-  return lesson;
-}
-
 export function getSourcesForIds(
   content: LearningContent,
   sourceIds: ReadonlyArray<string>,

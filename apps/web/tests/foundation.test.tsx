@@ -37,11 +37,11 @@ function renderHome() {
 }
 
 describe("Nova-Lumina Mission Control home", () => {
-  it("renders Mission Control while keeping the construction state honest", () => {
+  it("renders Mission Control while keeping unavailable data honest", () => {
     renderHome();
 
     expect(screen.getByRole("heading", { level: 1, name: "Mission Control" })).toBeVisible();
-    expect(screen.getByText(/Nova-Lumina is still under construction/i)).toBeVisible();
+    expect(screen.getByText(/Unavailable data stays visibly unavailable/i)).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: "Current mission event" })).toBeVisible();
     expect(screen.getByRole("heading", { level: 2, name: /Hubble and Webb probe/i })).toBeVisible();
   });

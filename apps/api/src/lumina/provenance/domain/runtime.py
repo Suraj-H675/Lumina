@@ -35,8 +35,6 @@ APOD_PATH: Final = "/planetary/apod"
 APOD_FORMAT: Final = "json"
 APOD_USER_AGENT: Final = "Nova-Lumina/0.0 nasa-apod-sync"
 APOD_CONTENT_TYPE: Final = "application/json"
-APOD_OFFICIAL_HOST: Final = "apod.nasa.gov"
-APOD_OFFICIAL_PATH: Final = "/apod/"
 
 NEOWS_PROVIDER_CODE: Final = "nasa-neows"
 NEOWS_ADAPTER_ID: Final = "nasa-neows-feed"
@@ -550,7 +548,6 @@ class ProviderRuntimeState:
     updated_at: datetime
 
 
-type NormalizedScalar = str | int | float | bool | None
 type NormalizedJsonValue = (
     None | bool | int | float | str | list[NormalizedJsonValue] | dict[str, NormalizedJsonValue]
 )
@@ -719,8 +716,6 @@ __all__ = [
     "APOD_FORMAT",
     "APOD_FRESH_TTL",
     "APOD_HOST",
-    "APOD_OFFICIAL_HOST",
-    "APOD_OFFICIAL_PATH",
     "APOD_PATH",
     "APOD_PROVIDER_CODE",
     "APOD_SOURCE_SCHEMA_VERSION",
@@ -832,7 +827,6 @@ __all__ = [
     "ProviderStatusSnapshot",
     "ProviderSyncOutcome",
     "RawProviderResponse",
-    "NormalizedScalar",
     "RuntimeCounters",
     "SOURCE_SCHEMA_VERSION",
     "STALE_IF_ERROR_GRACE",

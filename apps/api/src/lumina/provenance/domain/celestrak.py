@@ -18,7 +18,6 @@ CELESTRAK_MAX_GROUP_RECORDS: Final = 256
 CELESTRAK_MAX_SATELLITES: Final = 384
 CELESTRAK_NORMALIZED_FIELDS: Final = ("satellites", "snapshot_latest_epoch_utc")
 CELESTRAK_ELEMENT_WARNING_HOURS: Final = 24.0
-CELESTRAK_ELEMENT_REFUSAL_HOURS: Final = 72.0
 
 _OBJECT_ID_PATTERN: Final = re.compile(r"[0-9A-Z-]{1,32}", re.ASCII)
 _ALLOWED_GROUPS: Final = frozenset(CELESTRAK_GROUPS)
@@ -383,7 +382,6 @@ def _required_number(value: Mapping[str, object], key: str) -> float:
 
 
 __all__ = [
-    "CELESTRAK_ELEMENT_REFUSAL_HOURS",
     "CELESTRAK_ELEMENT_WARNING_HOURS",
     "CELESTRAK_GROUPS",
     "CELESTRAK_MAX_GROUP_RECORDS",

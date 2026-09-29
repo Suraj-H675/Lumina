@@ -58,10 +58,6 @@ MESSIER_V2_STATE_SHA256: Final = "01e62570fbdc51db2b605c6756a2328cf0516f12faccbe
 RIGHT_ASCENSION_QUANTITY: Final = "icrs_right_ascension_j2000"
 DECLINATION_QUANTITY: Final = "icrs_declination_j2000"
 COORDINATE_ROLE: Final = "provider_record_catalogue_anchor"
-COORDINATE_ROLE_DESCRIPTION: Final = (
-    "Reviewed ICRS J2000 catalogue anchor/reference position of the resolved SIMBAD provider "
-    "record; not an asserted geometric target centre."
-)
 TARGET_SCOPES: Final = frozenset(
     {"object", "extended", "compound", "region", "system", "apparent_group"}
 )
@@ -414,7 +410,6 @@ __all__ = [
     "ARTIFACT_PATH",
     "ARTIFACT_SHA256",
     "COORDINATE_ROLE",
-    "COORDINATE_ROLE_DESCRIPTION",
     "DECLINATION_QUANTITY",
     "EXPECTED_DATASET",
     "EXPECTED_PROVIDER",

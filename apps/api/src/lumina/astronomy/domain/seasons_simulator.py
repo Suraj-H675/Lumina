@@ -30,8 +30,6 @@ CIRCULAR_ECCENTRICITY: Final = 0.0
 EXAGGERATED_ECCENTRICITY: Final = 0.10
 
 ANGLE_ABSOLUTE_TOLERANCE: Final = 1e-9
-DAY_LENGTH_ABSOLUTE_TOLERANCE: Final = 1e-9
-DIMENSIONLESS_RELATIVE_TOLERANCE: Final = 1e-12
 
 SeasonsEccentricityPreset = Literal["circular", "earth", "exaggerated"]
 SeasonsPolarState = Literal["none", "polar_day", "polar_night", "horizon_all_day"]
@@ -690,8 +688,6 @@ def load_reviewed_seasons_artifact(*, repository_root: Path) -> dict[str, object
 __all__ = [
     "ANGLE_ABSOLUTE_TOLERANCE",
     "CIRCULAR_ECCENTRICITY",
-    "DAY_LENGTH_ABSOLUTE_TOLERANCE",
-    "DIMENSIONLESS_RELATIVE_TOLERANCE",
     "EARTH_ECCENTRICITY",
     "EARTH_OBLIQUITY_J2000_DEG",
     "EARTH_PERIHELION_LONGITUDE_DEG",

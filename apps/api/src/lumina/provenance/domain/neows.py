@@ -47,7 +47,6 @@ NEOWS_ENCOUNTER_FIELDS: Final = (
     "provider_epoch_ms",
     "relative_velocity_km_s",
 )
-NEOWS_UNCERTAINTY_STATUS: Final = "not_provided_by_source"
 MAX_NEOWS_ENCOUNTERS: Final = 256
 NEOWS_PUBLIC_ENCOUNTER_LIMIT: Final = 32
 MAX_NEOWS_NAME_LENGTH: Final = 512
@@ -309,7 +308,6 @@ __all__ = [
     "NasaNeowsNormalized",
     "NEOWS_ENCOUNTER_FIELDS",
     "NEOWS_NORMALIZED_FIELDS",
-    "NEOWS_UNCERTAINTY_STATUS",
     "neows_encounter_id",
     "neows_object_id",
 ]

@@ -9,7 +9,7 @@ implement this contract, but must not weaken it.
 
 ## Public deployment profile
 
-The recommended first public profile is:
+The current production profile is:
 
 - Next.js web application on an HTTPS Node-capable host;
 - the production FastAPI image from `Dockerfile.vercel` on an HTTPS container-capable web
@@ -248,13 +248,13 @@ unavailable state instead of claiming current provider data.
 
 ## Identification
 
-The first public profile keeps identification disabled. The current implementation supports private
-uploads on filesystem storage only. Enabling it on an ephemeral web service would lose uploads, and
-API/worker processes would need shared persistent storage.
+The current production profile keeps identification disabled. The only supported live identification
+mode uses remote Astrometry.net, while private uploads currently use filesystem storage only. Enabling
+it on an ephemeral web service would lose uploads, and API/worker processes would need shared
+persistent storage.
 
 Do not enable identification until the deployment provides a reviewed shared persistent-storage
-design. Remote Astrometry.net additionally requires its server API key and the worker's polling and
-retention lifecycle.
+design, an Astrometry.net server API key, and the worker's polling and retention lifecycle.
 
 ## Container artifact
 

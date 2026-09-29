@@ -163,14 +163,6 @@ export function parseObserverLocationInputs(
   return validateObserverLocation({ latitude: parsedLatitude, longitude: parsedLongitude });
 }
 
-/** Keeps browser geolocation failures mapped to the accepted planner copy. */
-export function observerGeolocationErrorMessage(code: number): string {
-  if (code === 1) return "Location permission was denied. You can enter coordinates manually.";
-  if (code === 2) return "Your browser could not determine a location. Try manual coordinates.";
-  if (code === 3) return "Location lookup timed out. Try again or enter coordinates manually.";
-  return "Location lookup was unavailable. Enter coordinates manually instead.";
-}
-
 /** Returns the stable local source identity used when pairing RA with Dec. */
 function sourceKey(source: CatalogueSourceReference): string {
   return [

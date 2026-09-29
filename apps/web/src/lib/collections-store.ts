@@ -7,7 +7,6 @@ import {
   EMPTY_COLLECTIONS_DATA,
   addObjectsMutation,
   collectionsContainingSlug,
-  collectionContainsSlug,
   createCollectionMutation,
   createCollectionWithObjectsMutation,
   deleteCollectionMutation,
@@ -405,19 +404,7 @@ export function getCollectionsStatusSnapshot(): CollectionsStatus {
   return status;
 }
 
-/** True when the slug is already saved in ANY local collection (star glyphs). */
-export function useIsObjectSavedAnywhere(slug: string): boolean {
-  const data = useCollectionsData();
-  return collectionsContainingSlug(data, slug).length > 0;
-}
-
 export function useCollectionsContaining(slug: string): Array<LocalCollection> {
   const data = useCollectionsData();
   return collectionsContainingSlug(data, slug);
-}
-
-export function useCollectionContains(collectionId: string, slug: string): boolean {
-  const data = useCollectionsData();
-  const collection = data.collections.find((entry) => entry.id === collectionId);
-  return collection !== undefined && collectionContainsSlug(collection, slug);
 }

@@ -47,7 +47,6 @@ export type PwaStatusMessages = SiteShellMessages["pwa"];
 
 export type NotFoundMessages = RouteBoundaryMessages["notFound"];
 export type RouteErrorMessages = RouteBoundaryMessages["routeError"];
-export type GlobalErrorMessages = RouteBoundaryMessages["globalError"];
 
 export type CollectionStateMessages = Pick<CollectionsMessages, "failures" | "shared">;
 export type CollectionSaveMessages = Pick<CollectionsMessages, "failures" | "save" | "validation">;

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 import { loadLearningContent } from "./content";
-import { evaluateQuiz, type QuizEvaluation } from "./quiz";
+import type { QuizEvaluation } from "./quiz";
 import {
   EMPTY_LEARNING_PROGRESS,
   LEARNING_PROGRESS_STORAGE_KEY,
@@ -279,17 +279,6 @@ export function recordLearningQuizAttempt(
   }
 }
 
-export function recordLearningQuizAnswers(
-  pathSlug: string,
-  lessonSlug: string,
-  answers: unknown,
-): LearningProgressStoreResult {
-  const content = loadLearningContent();
-  const quiz = content.quizzes.find((entry) => entry.lesson_slug === lessonSlug);
-  if (content.path.slug !== pathSlug || quiz === undefined) return invalidContentResult();
-  return recordLearningQuizAttempt(pathSlug, lessonSlug, evaluateQuiz(quiz, answers));
-}
-
 export function getLearningProgressSnapshot(): LearningProgressData {
   return state;
 }
@@ -297,10 +286,6 @@ export function getLearningProgressSnapshot(): LearningProgressData {
 export function getLearningProgressStatusSnapshot(): LearningProgressStatus {
   ensureLearningProgressHydrated();
   return status;
-}
-
-export function getLearningPathProgress(pathSlug: string): LearningPathProgress | null {
-  return state.paths.find((path) => path.path_slug === pathSlug) ?? null;
 }
 
 export function useLearningProgressData(): LearningProgressData {

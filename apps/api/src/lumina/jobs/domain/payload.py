@@ -9,9 +9,6 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import cast
 
-type JsonScalar = str | int | float | bool | None
-type JsonValue = JsonScalar | list[JsonValue] | dict[str, JsonValue]
-
 _MAX_NESTING_DEPTH = 32
 _INVALID_MESSAGE = "Job payload must be a valid JSON object."
 _SIZE_MESSAGE = "Job payload exceeds the configured size limit."

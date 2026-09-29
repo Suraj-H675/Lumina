@@ -35,7 +35,7 @@ async function installAndCacheVisitedLesson(page: Page): Promise<void> {
   ).toBeVisible();
 }
 
-test.describe("PWA/offline foundation", () => {
+test.describe("PWA/offline behavior", () => {
   test("reloads a visited approved lesson offline and exposes its Nova-Lumina cache time", async ({
     context,
     page,

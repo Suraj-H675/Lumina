@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("Mission Control home loads with an honest construction-state message", async ({ page }) => {
+test("Mission Control home loads with honest availability framing", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/$/u);
@@ -30,9 +30,7 @@ test("an unknown route uses the not-found experience", async ({ page }) => {
   await page.goto("/not-a-nova-lumina-route");
 
   await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /return to the nova-lumina foundation home page/i }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /return to nova-lumina home/i })).toBeVisible();
 });
 
 test("the locale route seam keeps English canonical and draft locale prefixes fail closed", async ({

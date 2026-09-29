@@ -103,9 +103,10 @@ describe("Nova-Lumina route boundaries", () => {
 
     rerender(<NotFound messages={enMessages.routeBoundaries.notFound} />);
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: /return to the nova-lumina foundation home page/i }),
-    ).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /return to nova-lumina home/i })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   it("renders route and global errors without leaking raw error details", () => {

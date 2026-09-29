@@ -4994,7 +4994,7 @@ export const enMessages = {
       applicationVersionLabel: "Application version",
       heading: "Reported contract",
     },
-    eyebrow: "Foundation status",
+    eyebrow: "System status",
     provider: {
       acknowledgmentAndUsage: "Acknowledgment and usage",
       cache: {
@@ -5048,7 +5048,7 @@ export const enMessages = {
       },
       unavailable: "Provider status unavailable.",
     },
-    returnHome: "Return to the Nova-Lumina foundation home page",
+    returnHome: "Return to Nova-Lumina home",
     states: {
       availableUnconfirmed: {
         detail:
@@ -5057,7 +5057,7 @@ export const enMessages = {
       },
       notReady: {
         detail:
-          "The API returned a not-ready response. The foundation remains usable, but its required dependency is not ready.",
+          "The API returned a not-ready response. The rest of Nova-Lumina remains available, but this required dependency is not ready.",
         heading: "API available, dependency not ready",
       },
       ready: {
@@ -5066,7 +5066,7 @@ export const enMessages = {
       },
       unavailable: {
         detail:
-          "This page could not reach the API within its bounded requests. The Nova-Lumina foundation page remains available.",
+          "This page could not reach the API within its bounded requests. The Nova-Lumina home page remains available.",
         heading: "API unavailable",
       },
     },
@@ -5074,8 +5074,7 @@ export const enMessages = {
   },
   routeBoundaries: {
     globalError: {
-      description:
-        "Nova-Lumina could not load. Try again, or return to the foundation home page later.",
+      description: "Nova-Lumina could not load. Try again, or return to the home page later.",
       retry: "Try again",
       title: "Something went wrong",
     },
@@ -5095,12 +5094,12 @@ export const enMessages = {
     },
     notFound: {
       code: "404",
-      description: "This address is not part of the Nova-Lumina foundation yet.",
-      returnHome: "Return to the Nova-Lumina foundation home page",
+      description: "This address is not part of Nova-Lumina.",
+      returnHome: "Return to Nova-Lumina home",
       title: "Page not found",
     },
     routeError: {
-      description: "Try again. If the problem continues, return to the foundation home page.",
+      description: "Try again. If the problem continues, return to the home page.",
       retry: "Try again",
       title: "This part of Nova-Lumina could not load",
     },

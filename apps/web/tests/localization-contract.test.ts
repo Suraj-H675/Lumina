@@ -18,7 +18,7 @@ import {
 } from "../src/lib/i18n/format";
 import { enMessages } from "../src/lib/i18n/messages/en";
 
-describe("Localization foundation", () => {
+describe("Localization contract", () => {
   it("publishes only locales with an authored dictionary", () => {
     expect(DEFAULT_LOCALE).toBe("en");
     expect(PUBLISHED_LOCALES).toEqual(["en"]);
@@ -114,7 +114,7 @@ describe("Localization foundation", () => {
 
   it("keeps generic route-boundary copy in the typed English dictionary", () => {
     expect(enMessages.routeBoundaries.notFound.title).toBe("Page not found");
-    expect(enMessages.routeBoundaries.notFound.returnHome).toMatch(/return to the nova-lumina/i);
+    expect(enMessages.routeBoundaries.notFound.returnHome).toBe("Return to Nova-Lumina home");
     expect(enMessages.routeBoundaries.routeError.title).toMatch(/could not load/i);
     expect(enMessages.routeBoundaries.routeError.retry).toBe("Try again");
     expect(enMessages.routeBoundaries.globalError.title).toBe("Something went wrong");

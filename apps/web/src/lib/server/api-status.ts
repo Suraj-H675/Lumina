@@ -22,13 +22,13 @@ export type ProviderStatus = Readonly<
   { kind: "available"; data: ProviderStatusListResponse } | { kind: "unavailable" }
 >;
 
-export type FoundationStatus = Readonly<{
+export type ApiStatus = Readonly<{
   kind: "available-unconfirmed" | "not-ready" | "ready" | "unavailable";
   meta: SafeMetaDetails | null;
   provider: ProviderStatus;
 }>;
 
-export type FoundationStatusOptions = TransportOptions &
+export type ApiStatusOptions = TransportOptions &
   Readonly<{
     environment?: string;
     origin?: string;
@@ -46,9 +46,7 @@ function provesAvailability(result: ApiTransportResult<unknown>): boolean {
   return result.kind !== "unavailable";
 }
 
-export async function loadFoundationStatus(
-  options: FoundationStatusOptions = {},
-): Promise<FoundationStatus> {
+export async function loadApiStatus(options: ApiStatusOptions = {}): Promise<ApiStatus> {
   const configured = resolveWebApiOrigin(options.origin, options.environment);
   if (!configured.valid) {
     return { kind: "unavailable", meta: null, provider: { kind: "unavailable" } };

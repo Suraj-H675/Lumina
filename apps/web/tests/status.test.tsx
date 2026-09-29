@@ -14,11 +14,7 @@ import { StatusView } from "../src/app/status/status-view";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { StatusMessages } from "../src/lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../src/lib/server/api-origin";
-import {
-  loadFoundationStatus,
-  type FoundationStatus,
-  type ProviderStatus,
-} from "../src/lib/server/foundation-status";
+import { loadApiStatus, type ApiStatus, type ProviderStatus } from "../src/lib/server/api-status";
 import { SiteShell } from "../src/components/site-shell";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";
 
@@ -162,7 +158,7 @@ function controlledFetch(readyStatus = 200): typeof fetch {
   });
 }
 
-function renderStatus(status: FoundationStatus, messages: StatusMessages = enMessages.status) {
+function renderStatus(status: ApiStatus, messages: StatusMessages = enMessages.status) {
   return render(
     <SiteShell {...EN_SHELL_PROPS}>
       <StatusView messages={messages} status={status} />
@@ -358,10 +354,10 @@ describe("status stub harness shutdown", () => {
   );
 });
 
-describe("foundation state mapping", () => {
+describe("API status state mapping", () => {
   it("reports ready only after liveness and readiness both succeed", async () => {
     await expect(
-      loadFoundationStatus({ fetchImplementation: controlledFetch(), origin }),
+      loadApiStatus({ fetchImplementation: controlledFetch(), origin }),
     ).resolves.toEqual({
       kind: "ready",
       meta: { api_version: "v1", application_version: "0.0.0" },
@@ -371,7 +367,7 @@ describe("foundation state mapping", () => {
 
   it("reports not-ready only for readiness HTTP 503 while liveness succeeds", async () => {
     await expect(
-      loadFoundationStatus({ fetchImplementation: controlledFetch(503), origin }),
+      loadApiStatus({ fetchImplementation: controlledFetch(503), origin }),
     ).resolves.toEqual({
       kind: "not-ready",
       meta: { api_version: "v1", application_version: "0.0.0" },
@@ -383,7 +379,7 @@ describe("foundation state mapping", () => {
     "reports available-unconfirmed for readiness HTTP %i",
     async (readinessStatus) => {
       await expect(
-        loadFoundationStatus({
+        loadApiStatus({
           fetchImplementation: controlledFetch(readinessStatus),
           origin,
         }),
@@ -403,7 +399,7 @@ describe("foundation state mapping", () => {
       );
     });
 
-    await expect(loadFoundationStatus({ fetchImplementation, origin })).resolves.toEqual({
+    await expect(loadApiStatus({ fetchImplementation, origin })).resolves.toEqual({
       kind: "available-unconfirmed",
       meta: { api_version: "v1", application_version: "0.0.0" },
       provider: availableProvider,
@@ -412,7 +408,7 @@ describe("foundation state mapping", () => {
 
   it("reports unavailable when all independent requests fail", async () => {
     const sentinel = "PRIVATE-TRANSPORT-SENTINEL";
-    const status = await loadFoundationStatus({
+    const status = await loadApiStatus({
       fetchImplementation: vi.fn<typeof fetch>().mockRejectedValue(new Error(sentinel)),
       origin,
     });
@@ -430,7 +426,7 @@ describe("foundation state mapping", () => {
         : Promise.resolve(apiResponse(path));
     });
 
-    await expect(loadFoundationStatus({ fetchImplementation, origin })).resolves.toEqual({
+    await expect(loadApiStatus({ fetchImplementation, origin })).resolves.toEqual({
       kind: "ready",
       meta: null,
       provider: availableProvider,
@@ -445,7 +441,7 @@ describe("foundation state mapping", () => {
         : Promise.resolve(apiResponse(path));
     });
 
-    await expect(loadFoundationStatus({ fetchImplementation, origin })).resolves.toEqual({
+    await expect(loadApiStatus({ fetchImplementation, origin })).resolves.toEqual({
       kind: "available-unconfirmed",
       meta: { api_version: "v1", application_version: "0.0.0" },
       provider: availableProvider,
@@ -463,7 +459,7 @@ describe("foundation state mapping", () => {
         );
       });
     });
-    const status = loadFoundationStatus({ fetchImplementation, origin, timeoutMs: 25 });
+    const status = loadApiStatus({ fetchImplementation, origin, timeoutMs: 25 });
 
     await vi.advanceTimersByTimeAsync(25);
 
@@ -477,14 +473,14 @@ describe("foundation state mapping", () => {
   it("treats invalid or unset production origins as unavailable without fetching", async () => {
     const fetchImplementation = vi.fn<typeof fetch>();
     await expect(
-      loadFoundationStatus({ environment: "production", fetchImplementation }),
+      loadApiStatus({ environment: "production", fetchImplementation }),
     ).resolves.toEqual({
       kind: "unavailable",
       meta: null,
       provider: unavailableProvider,
     });
     await expect(
-      loadFoundationStatus({
+      loadApiStatus({
         environment: "production",
         fetchImplementation,
         origin: "https://user:secret@example.test", // trufflehog:ignore
@@ -499,7 +495,7 @@ describe("foundation state mapping", () => {
 });
 
 describe("honest status view", () => {
-  it.each<FoundationStatus>([
+  it.each<ApiStatus>([
     {
       kind: "ready",
       meta: { api_version: "v1", application_version: "0.0.0" },
@@ -513,9 +509,10 @@ describe("honest status view", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "Nova-Lumina API status" })).toBeVisible();
     expect(screen.getByRole("status")).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "Return to the Nova-Lumina foundation home page" }),
-    ).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Return to Nova-Lumina home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect((await axe(container)).violations).toHaveLength(0);
   });
 

@@ -2,12 +2,12 @@ import Link from "next/link";
 
 import { formatMessageTemplate } from "../../lib/i18n/format";
 import type { StatusMessages } from "../../lib/i18n/messages/types";
-import type { FoundationStatus, ProviderStatus } from "../../lib/server/foundation-status";
+import type { ApiStatus, ProviderStatus } from "../../lib/server/api-status";
 
 export function StatusView({
   messages,
   status,
-}: Readonly<{ messages: StatusMessages; status: FoundationStatus }>) {
+}: Readonly<{ messages: StatusMessages; status: ApiStatus }>) {
   const copy = statusStateMessages(status.kind, messages);
   return (
     <article className="max-w-3xl space-y-10">
@@ -233,7 +233,7 @@ function TimestampField({
   );
 }
 
-function statusStateMessages(kind: FoundationStatus["kind"], messages: StatusMessages) {
+function statusStateMessages(kind: ApiStatus["kind"], messages: StatusMessages) {
   switch (kind) {
     case "available-unconfirmed":
       return messages.states.availableUnconfirmed;

@@ -7,7 +7,7 @@ import {
   setStatusStubMode,
 } from "./support/status-stub-control";
 
-test.describe("honest API foundation status", () => {
+test.describe("honest API status", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({}, testInfo) => {
@@ -36,9 +36,10 @@ test.describe("honest API foundation status", () => {
     await page.goto("/status");
 
     await expect(page.getByRole("heading", { level: 2, name: "API unavailable" })).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Return to the Nova-Lumina foundation home page" }),
-    ).toHaveAttribute("href", "/");
+    await expect(page.getByRole("link", { name: "Return to Nova-Lumina home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   test("switches the same reserved stub into a controlled ready state", async ({

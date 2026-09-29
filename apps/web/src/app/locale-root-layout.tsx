@@ -8,11 +8,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Nova-Lumina — Foundation",
+    default: "Nova-Lumina",
     template: "%s — Nova-Lumina",
   },
   description:
-    "Nova-Lumina is a free, scientifically grounded platform for exploring space. Its first public capability is a provenance-first astronomical catalogue you can search and browse.",
+    "Nova-Lumina is a free, public, scientifically grounded platform for learning about and exploring space through reviewed data, deterministic models, observation tools, and source-aware current information.",
 };
 
 export const viewport: Viewport = {

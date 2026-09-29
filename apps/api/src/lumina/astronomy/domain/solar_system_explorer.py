@@ -282,14 +282,6 @@ def build_solar_system_distance_artifact(
     }
 
 
-def write_solar_system_distance_artifact(*, repository_root: Path) -> Path:
-    path = repository_root / SOLAR_SYSTEM_ARTIFACT_PATH
-    payload = build_solar_system_distance_artifact()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return path
-
-
 def load_solar_system_distance_artifact(*, repository_root: Path) -> dict[str, object]:
     path = repository_root / SOLAR_SYSTEM_ARTIFACT_PATH
     try:

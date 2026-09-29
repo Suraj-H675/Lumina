@@ -286,13 +286,6 @@ def build_system_scale_compare_artifact(*, repository_root: Path) -> dict[str, o
     }
 
 
-def write_system_scale_compare_artifact(*, repository_root: Path) -> Path:
-    path = repository_root / SYSTEM_COMPARE_ARTIFACT_PATH
-    payload = build_system_scale_compare_artifact(repository_root=repository_root)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return path
-
-
 def load_system_scale_compare_artifact(*, repository_root: Path) -> dict[str, object]:
     path = repository_root / SYSTEM_COMPARE_ARTIFACT_PATH
     try:

@@ -295,13 +295,6 @@ def build_exoplanet_system_artifact(*, repository_root: Path) -> dict[str, objec
     }
 
 
-def write_exoplanet_system_artifact(*, repository_root: Path) -> Path:
-    path = repository_root / EXOPLANET_ARTIFACT_PATH
-    payload = build_exoplanet_system_artifact(repository_root=repository_root)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return path
-
-
 def load_exoplanet_system_artifact(*, repository_root: Path) -> dict[str, object]:
     path = repository_root / EXOPLANET_ARTIFACT_PATH
     try:

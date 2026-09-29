@@ -267,13 +267,6 @@ def build_voyager_trajectory_artifact(*, repository_root: Path) -> dict[str, obj
     }
 
 
-def write_voyager_trajectory_artifact(*, repository_root: Path) -> Path:
-    path = repository_root / VOYAGER_ARTIFACT_PATH
-    payload = build_voyager_trajectory_artifact(repository_root=repository_root)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    return path
-
-
 def load_voyager_trajectory_artifact(*, repository_root: Path) -> dict[str, object]:
     path = repository_root / VOYAGER_ARTIFACT_PATH
     try:

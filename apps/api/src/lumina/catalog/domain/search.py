@@ -18,7 +18,6 @@ from lumina.catalog.domain.read import (
     CatalogDataInconsistent,
     CatalogReadValidationRejected,
     PublicEntitySummary,
-    _refresh_model,
     validate_entity_type_filter,
     validate_limit,
     validate_public_entity_summary,
@@ -27,8 +26,6 @@ from lumina.catalog.domain.read import (
 CANONICAL_NAME_FUZZY_THRESHOLD: Final = 0.25
 ALIAS_FUZZY_THRESHOLD: Final = 0.33
 FUZZY_MIN_NORMALIZED_LENGTH: Final = 3
-NUMERIC_ONLY_FUZZY_ELIGIBLE: Final = False
-SEARCH_RANKING_VERSION: Final = 1
 MIN_NORMALIZED_QUERY_LENGTH: Final = 2
 MAX_NORMALIZED_QUERY_LENGTH: Final = 255
 MAX_QUERY_UTF8_BYTES: Final = 1_020
@@ -200,7 +197,3 @@ def validate_search_slice(value: object) -> SearchSlice:
     if keys != sorted(keys):
         raise CatalogDataInconsistent()
     return SearchSlice(items=tuple(results))
-
-
-def refresh_public_summary(value: object) -> PublicEntitySummary:
-    return _refresh_model(PublicEntitySummary, value)

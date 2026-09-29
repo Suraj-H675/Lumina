@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final
 
 SYSTEM_COMPARE_MODEL_VERSION: Final = "system-scale-compare-v1"
 SYSTEM_COMPARE_SCHEMA_VERSION: Final = 1
@@ -21,8 +21,6 @@ SYSTEM_COMPARE_GENERATED_AT: Final = "2026-09-15T11:15:00Z"
 SOLAR_ARTIFACT_PATH: Final = "data/seed/solar-system-distance-v1.json"
 EXOPLANET_ARTIFACT_PATH: Final = "data/seed/exoplanet-system-layout-v1.json"
 VOYAGER_ARTIFACT_PATH: Final = "data/seed/voyager-1-trajectory-v1.json"
-
-CompareKind = Literal["solar-mean-distance", "exoplanet-semimajor-axis", "voyager-radius"]
 
 
 class SystemScaleCompareModelError(ValueError):

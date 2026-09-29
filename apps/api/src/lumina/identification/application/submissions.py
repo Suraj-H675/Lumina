@@ -254,14 +254,6 @@ class SubmitIdentificationService:
             raise SubmissionCleanupFailure() from None
 
 
-class ReadIdentificationStatusService:
-    def __init__(self, repository: SubmissionRepository) -> None:
-        self._repository = repository
-
-    async def read(self, submission_id: UUID) -> IdentificationSubmissionStatus:
-        return await self._repository.read_status(submission_id)
-
-
 class DeleteSubmissionService:
     def __init__(
         self,

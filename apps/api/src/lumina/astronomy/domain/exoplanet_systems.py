@@ -16,7 +16,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final
 from urllib.parse import urlparse
 
 EXOPLANET_SYSTEM_MODEL_VERSION: Final = "exoplanet-system-layout-v1"
@@ -26,8 +26,6 @@ EXOPLANET_RAW_PATH: Final = "data/seed/nasa-exoplanet-archive-known-host-systems
 EXOPLANET_ARTIFACT_PATH: Final = "data/seed/exoplanet-system-layout-v1.json"
 EXOPLANET_RAW_SHA256: Final = "74a1dde951b63b630653c94c36880cfd9b015faa2c600315f5e06fa22596c9db"
 EXOPLANET_GENERATED_AT: Final = "2026-09-15T10:20:00Z"
-
-ScaleMode = Literal["linear", "log"]
 
 _ARCHIVE_QUERY: Final = (
     "select pl_name,hostname,sy_pnum,pl_orbsmax,pl_orbsmaxerr1,pl_orbsmaxerr2,"

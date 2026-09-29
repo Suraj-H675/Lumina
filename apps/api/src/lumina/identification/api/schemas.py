@@ -12,69 +12,40 @@ from lumina.identification.domain.public_read import (
     IdentificationPublicState,
     IdentificationRemoteCondition,
 )
-from lumina.identification.domain.submissions import FAKE_SOLVER_VERSION
-
 AnnotationName = Annotated[str, Field(min_length=1, max_length=128)]
 
 
 class FakeSolverResultResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    outcome: Literal["fixture_solved"] = "fixture_solved"
-    solver_type: Literal["fake"] = "fake"
-    solver_version: Literal["synthetic-fixture-v1"] = FAKE_SOLVER_VERSION
-    synthetic: Literal[True] = True
+    outcome: Literal["fixture_solved"]
+    solver_type: Literal["fake"]
+    solver_version: Literal["synthetic-fixture-v1"]
+    synthetic: Literal[True]
 
 
 class IdentificationCapabilitiesResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    solver_type: Literal["fake", "nova"]
-    remote_processing: bool
-    accepted_media_types: tuple[Literal["image/jpeg", "image/png"], ...] = (
-        "image/jpeg",
-        "image/png",
-    )
+    solver_type: Literal["nova"]
+    remote_processing: Literal[True]
+    accepted_media_types: tuple[Literal["image/jpeg", "image/png"], ...]
     max_bytes: int = Field(ge=1, le=100 * 1024 * 1024)
     max_pixels: int = Field(ge=1, le=100_000_000)
-    min_dimension_px: Literal[32] = 32
+    min_dimension_px: Literal[32]
     retention_hours: int = Field(ge=1, le=168)
-    deletion_supported: Literal[True] = True
-
-    @model_validator(mode="after")
-    def validate_solver_mode(self) -> Self:
-        if (self.solver_type == "nova") is not self.remote_processing:
-            raise ValueError("Identification capability mode is incoherent.")
-        return self
+    deletion_supported: Literal[True]
 
 
 class IdentificationCreateResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     submission_id: UUID
-    job_id: UUID | None
-    status: Literal["queued", "submitting"]
-    solver_type: Literal["fake", "nova"]
-    remote_processing: bool
+    job_id: None
+    status: Literal["submitting"]
+    solver_type: Literal["nova"]
+    remote_processing: Literal[True]
     retention_hours: int = Field(ge=1, le=168)
-
-    @model_validator(mode="after")
-    def validate_solver_mode(self) -> Self:
-        fake = (
-            self.solver_type == "fake"
-            and not self.remote_processing
-            and self.status == "queued"
-            and self.job_id is not None
-        )
-        nova = (
-            self.solver_type == "nova"
-            and self.remote_processing
-            and self.status == "submitting"
-            and self.job_id is None
-        )
-        if not (fake or nova):
-            raise ValueError("Identification creation mode is incoherent.")
-        return self
 
 
 class IdentificationStatusResponse(BaseModel):

@@ -9,10 +9,7 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum, auto
 from typing import Protocol
 
-from lumina.identification.application.fake_solver import (
-    DisabledIdentificationHandler,
-    FakePlateSolverHandler,
-)
+from lumina.identification.application.disabled import DisabledIdentificationHandler
 from lumina.identification.application.remote_polling import RemoteSolvePollingService
 from lumina.identification.application.submissions import RetentionCleanupService
 from lumina.identification.domain.uploads import UploadValidationPolicy
@@ -213,10 +210,10 @@ async def run_worker_process(
             session_factory,
             nasa_api_key=settings.nasa_api_key,
         )
-        identification_handler: FakePlateSolverHandler | DisabledIdentificationHandler
+        identification_handler = DisabledIdentificationHandler()
         identification_retention_cleanup = None
         remote_identification = None
-        if settings.identification_enabled:
+        if settings.enable_remote_astrometry:
             identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
             identification_repository = PostgreSqlIdentificationSubmissionRepository(
                 session_factory,
@@ -225,10 +222,6 @@ async def run_worker_process(
             identification_solutions = PostgreSqlSolutionRepository(
                 session_factory,
                 operation_wait_timeout_ms=operation_timeout,
-            )
-            identification_handler = FakePlateSolverHandler(
-                identification_repository,
-                identification_store,
             )
             identification_retention_cleanup = RetentionCleanupService(
                 identification_repository,
@@ -261,8 +254,6 @@ async def run_worker_process(
                     identification_solutions,
                     poll_seconds=settings.astrometry_poll_seconds,
                 )
-        else:
-            identification_handler = DisabledIdentificationHandler()
         registry = production_handler_registry(
             provider_sync=provider_composition.sync_handler,
             provider_sync_validator=provider_composition.sync_handler.validate_payload,

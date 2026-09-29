@@ -22,7 +22,7 @@ function jsonResponse(value: unknown, status = 200): Response {
 }
 
 describe("Identification transport", () => {
-  it("rejects incoherent advertised solver capabilities", () => {
+  it("accepts only the supported Nova identification capability", () => {
     const base = {
       accepted_media_types: ["image/jpeg", "image/png"],
       deletion_supported: true,
@@ -34,13 +34,6 @@ describe("Identification transport", () => {
     expect(
       identificationCapabilitiesEndpoint.validator.safeParse({
         ...base,
-        remote_processing: false,
-        solver_type: "fake",
-      }).success,
-    ).toBe(true);
-    expect(
-      identificationCapabilitiesEndpoint.validator.safeParse({
-        ...base,
         remote_processing: true,
         solver_type: "nova",
       }).success,
@@ -48,49 +41,20 @@ describe("Identification transport", () => {
     expect(
       identificationCapabilitiesEndpoint.validator.safeParse({
         ...base,
-        remote_processing: true,
+        remote_processing: false,
         solver_type: "fake",
       }).success,
     ).toBe(false);
   });
-  it("uploads with browser-owned multipart boundaries and validates the generated response", async () => {
+
+  it("sends explicit Nova consent and accepts only the coherent remote creation shape", async () => {
     const fetchImplementation = vi.fn<typeof fetch>((_input, init) => {
       expect(init?.method).toBe("POST");
       expect(init?.headers).toEqual({ Accept: "application/json" });
       expect(init?.body).toBeInstanceOf(FormData);
       const form = init?.body as FormData;
-      expect(form.get("consent_remote_processing")).toBe("false");
-      expect(form.get("file")).toBeInstanceOf(Blob);
-      return Promise.resolve(
-        jsonResponse(
-          {
-            job_id: jobId,
-            remote_processing: false,
-            retention_hours: 24,
-            solver_type: "fake",
-            status: "queued",
-            submission_id: submissionId,
-          },
-          202,
-        ),
-      );
-    });
-
-    const result = await createIdentificationSubmission(
-      "http://127.0.0.1:8000",
-      new Blob(["private-image"], { type: "image/png" }),
-      "night.png",
-      { fetchImplementation },
-    );
-
-    expect(result).toMatchObject({ kind: "ok", status: 202 });
-    expect(fetchImplementation).toHaveBeenCalledOnce();
-  });
-
-  it("sends explicit Nova consent and accepts only the coherent remote creation shape", async () => {
-    const fetchImplementation = vi.fn<typeof fetch>((_input, init) => {
-      const form = init?.body as FormData;
       expect(form.get("consent_remote_processing")).toBe("true");
+      expect(form.get("file")).toBeInstanceOf(Blob);
       return Promise.resolve(
         jsonResponse(
           {
@@ -130,7 +94,7 @@ describe("Identification transport", () => {
       new Blob(["x"], { type: "image/png" }),
       "night.png",
       {
-        consentRemoteProcessing: mode.remote_processing,
+        consentRemoteProcessing: true,
         fetchImplementation: vi.fn(() =>
           Promise.resolve(
             jsonResponse(
@@ -155,15 +119,16 @@ describe("Identification transport", () => {
       new Blob(["x"], { type: "image/png" }),
       "night.png",
       {
+        consentRemoteProcessing: true,
         fetchImplementation: vi.fn(() =>
           Promise.resolve(
             jsonResponse(
               {
-                job_id: jobId,
-                remote_processing: false,
+                job_id: null,
+                remote_processing: true,
                 retention_hours: 24,
-                solver_type: "fake",
-                status: "queued",
+                solver_type: "nova",
+                status: "submitting",
                 submission_id: submissionId,
                 storage_key: "must-not-leak",
               },

@@ -335,10 +335,6 @@ class AppSettings(BaseSettings):
         default=_REPOSITORY_ROOT / "var" / "storage",
         validation_alias="LUMINA_STORAGE_LOCAL_ROOT",
     )
-    enable_identification: bool | None = Field(
-        default=None,
-        validation_alias="LUMINA_ENABLE_IDENTIFICATION",
-    )
     upload_max_bytes: int = Field(
         default=25 * 1024 * 1024,
         ge=1,
@@ -413,8 +409,6 @@ class AppSettings(BaseSettings):
             raise ValueError("Only filesystem private storage is currently supported")
         if self.enable_remote_astrometry and self.astrometry_api_key is None:
             raise ValueError("Remote Astrometry.net requires a configured server API key")
-        if self.enable_remote_astrometry and not self.identification_enabled:
-            raise ValueError("Remote Astrometry.net requires identification to be enabled")
         if self.env in {"staging", "production"} and self.database_tls_mode == "disable":
             raise ValueError("Staging and production require verified database TLS")
         if self.env in {"staging", "production"} and any(
@@ -447,13 +441,6 @@ class AppSettings(BaseSettings):
     @classmethod
     def validate_remote_astrometry_enabled(cls, value: object) -> bool:
         return _parse_strict_boolean(value, field="Remote Astrometry.net enable setting")
-
-    @field_validator("enable_identification", mode="before")
-    @classmethod
-    def validate_identification_enabled(cls, value: object) -> bool | None:
-        if value is None:
-            return None
-        return _parse_strict_boolean(value, field="Identification enable setting")
 
     @field_validator("astrometry_api_url")
     @classmethod
@@ -522,13 +509,6 @@ class AppSettings(BaseSettings):
         """Resolve the documentation default for the selected environment."""
         if self.enable_api_docs is not None:
             return self.enable_api_docs
-        return self.env in {"development", "test"}
-
-    @property
-    def identification_enabled(self) -> bool:
-        """Default private-upload identification off in public environments unless opted in."""
-        if self.enable_identification is not None:
-            return self.enable_identification
         return self.env in {"development", "test"}
 
     @property

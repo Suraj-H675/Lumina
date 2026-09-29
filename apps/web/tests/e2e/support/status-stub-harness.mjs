@@ -699,7 +699,6 @@ const controlPaths = new Set([
   "/__control/participate-mode",
   "/__control/launch-mode",
   "/__control/satellite-mode",
-  "/__control/identification-mode",
   "/__control/identification-condition",
   "/__control/assert-clean",
   "/__control/clear-violations",
@@ -731,12 +730,10 @@ let neowsMode = "fresh";
 let participateMode = "fresh";
 let launchMode = "fresh";
 let satelliteMode = "fresh";
-let identificationMode = "fake";
 let identificationCondition = "none";
 let identificationPollCount = 0;
 let identificationDeleted = false;
 const identificationSubmissionId = "71000000-0000-4000-8000-000000000001";
-const identificationJobId = "72000000-0000-4000-8000-000000000001";
 let webProcess;
 let shutdownPhase = "running";
 let childShutdownBarrierReached = false;
@@ -2200,35 +2197,6 @@ const stub = http.createServer(async (request, response) => {
       return;
     }
 
-    if (path === "/__control/identification-mode") {
-      try {
-        if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
-          throw new Error("control request media type is invalid");
-        }
-        const body = await readControlBody(request);
-        if (
-          body === null ||
-          typeof body !== "object" ||
-          Array.isArray(body) ||
-          Object.keys(body).length !== 1 ||
-          !["fake", "nova"].includes(body.mode)
-        ) {
-          recordViolation("malformed-control");
-          sendFailure(response, 400);
-          return;
-        }
-        identificationMode = body.mode;
-        identificationCondition = "none";
-        identificationPollCount = 0;
-        identificationDeleted = false;
-        sendJson(response, 200, { mode: identificationMode });
-      } catch {
-        recordViolation("malformed-control");
-        sendFailure(response, 400);
-      }
-      return;
-    }
-
     if (path === "/__control/identification-condition") {
       try {
         if (request.headers["content-type"]?.split(";", 1)[0]?.trim() !== "application/json") {
@@ -2247,6 +2215,8 @@ const stub = http.createServer(async (request, response) => {
           return;
         }
         identificationCondition = body.condition;
+        identificationPollCount = 0;
+        identificationDeleted = false;
         sendJson(response, 200, { condition: identificationCondition });
       } catch {
         recordViolation("malformed-control");
@@ -2360,8 +2330,8 @@ const stub = http.createServer(async (request, response) => {
   if (isIdentificationPath) {
     if (path === "/api/v1/identification/capabilities") {
       sendJson(response, 200, {
-        solver_type: identificationMode,
-        remote_processing: identificationMode === "nova",
+        solver_type: "nova",
+        remote_processing: true,
         accepted_media_types: ["image/jpeg", "image/png"],
         max_bytes: 26214400,
         max_pixels: 50000000,
@@ -2379,22 +2349,20 @@ const stub = http.createServer(async (request, response) => {
         }
         const body = await readBoundedApiBody(request, 1_048_576);
         const formText = body.toString("latin1");
-        const expectedConsent = identificationMode === "nova" ? "true" : "false";
         if (
           body.length === 0 ||
-          !formText.includes(`name="consent_remote_processing"\r\n\r\n${expectedConsent}\r\n`)
+          !formText.includes('name="consent_remote_processing"\r\n\r\ntrue\r\n')
         ) {
           throw new Error("identification form is incomplete");
         }
         identificationPollCount = 0;
         identificationDeleted = false;
-        const nova = identificationMode === "nova";
         sendJson(response, 202, {
           submission_id: identificationSubmissionId,
-          job_id: nova ? null : identificationJobId,
-          status: nova ? "submitting" : "queued",
-          solver_type: nova ? "nova" : "fake",
-          remote_processing: nova,
+          job_id: null,
+          status: "submitting",
+          solver_type: "nova",
+          remote_processing: true,
           retention_hours: 24,
         });
       } catch {
@@ -2406,7 +2374,6 @@ const stub = http.createServer(async (request, response) => {
     if (identificationSolutionMatch !== null) {
       if (
         identificationSolutionMatch[1] !== identificationSubmissionId ||
-        identificationMode !== "nova" ||
         identificationDeleted ||
         identificationPollCount < 2
       ) {
@@ -2474,9 +2441,9 @@ const stub = http.createServer(async (request, response) => {
       if (identificationDeleted) {
         sendJson(response, 200, {
           submission_id: identificationSubmissionId,
-          job_id: identificationMode === "nova" ? null : identificationJobId,
+          job_id: null,
           status: "deleted",
-          progress: identificationMode === "nova" ? null : 1,
+          progress: null,
           result: null,
           remote_condition: null,
           error_code: null,
@@ -2484,14 +2451,13 @@ const stub = http.createServer(async (request, response) => {
           created_at: "2026-09-15T12:00:00Z",
           completed_at: "2026-09-15T12:00:01Z",
           deleted_at: "2026-09-15T12:00:02Z",
-          solver_type: identificationMode === "nova" ? "nova" : "fake",
-          remote_processing: identificationMode === "nova",
+          solver_type: "nova",
+          remote_processing: true,
           retention_hours: 24,
         });
         return;
       }
-      const nova = identificationMode === "nova";
-      if (nova && identificationCondition !== "none") {
+      if (identificationCondition !== "none") {
         sendJson(response, 200, {
           submission_id: identificationSubmissionId,
           job_id: null,
@@ -2515,26 +2481,18 @@ const stub = http.createServer(async (request, response) => {
       const succeeded = identificationPollCount >= 2;
       sendJson(response, 200, {
         submission_id: identificationSubmissionId,
-        job_id: nova ? null : identificationJobId,
-        status: succeeded ? "succeeded" : nova ? "solving" : "running",
-        progress: nova ? null : succeeded ? 1 : 0.5,
-        result:
-          succeeded && !nova
-            ? {
-                outcome: "fixture_solved",
-                solver_type: "fake",
-                solver_version: "synthetic-fixture-v1",
-                synthetic: true,
-              }
-            : null,
+        job_id: null,
+        status: succeeded ? "succeeded" : "solving",
+        progress: null,
+        result: null,
         remote_condition: null,
         error_code: null,
-        solution_available: succeeded && nova,
+        solution_available: succeeded,
         created_at: "2026-09-15T12:00:00Z",
         completed_at: succeeded ? "2026-09-15T12:00:01Z" : null,
         deleted_at: null,
-        solver_type: nova ? "nova" : "fake",
-        remote_processing: nova,
+        solver_type: "nova",
+        remote_processing: true,
         retention_hours: 24,
       });
       return;

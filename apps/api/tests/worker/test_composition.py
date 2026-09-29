@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from typing import Any, NoReturn, cast
 
 import pytest
-from lumina.identification.application.fake_solver import DisabledIdentificationHandler
+from lumina.identification.application.disabled import DisabledIdentificationHandler
 from lumina.identification.infrastructure.wcs import normalize_nova_solution
 from lumina.jobs.application.handlers import SystemNoopHandler
 from lumina.settings import AppSettings
@@ -224,7 +224,6 @@ def _settings() -> AppSettings:
             upload_max_bytes=25 * 1024 * 1024,
             upload_max_pixels=50_000_000,
             upload_retention_hours=24,
-            identification_enabled=True,
             enable_remote_astrometry=False,
             astrometry_api_url="https://nova.astrometry.net/api",
             astrometry_api_key=None,
@@ -293,12 +292,6 @@ def _patch_pre_readiness_dependencies(
                 AssertionError(f"unexpected remote construction: {_name}")
             ),
         )
-    fake_identification = SystemNoopHandler()
-    monkeypatch.setattr(
-        composition,
-        "FakePlateSolverHandler",
-        lambda *args, **kwargs: fake_identification,
-    )
     monkeypatch.setattr(
         composition,
         "production_handler_registry",
@@ -323,7 +316,6 @@ async def test_disabled_identification_requires_no_private_storage_or_solver_com
         "PostgreSqlIdentificationSubmissionRepository",
         "PostgreSqlSolutionRepository",
         "RetentionCleanupService",
-        "FakePlateSolverHandler",
     ):
         monkeypatch.setattr(composition, name, forbidden)
 
@@ -341,7 +333,6 @@ async def test_disabled_identification_requires_no_private_storage_or_solver_com
 
     def settings() -> AppSettings:
         value = cast(Any, _settings())
-        value.identification_enabled = False
         return cast(AppSettings, value)
 
     assert await run_worker_process(output, settings_loader=settings) == 0

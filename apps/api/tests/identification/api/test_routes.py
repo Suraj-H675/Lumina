@@ -16,10 +16,7 @@ from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
 from lumina.identification.api.routes import router as identification_router
 from lumina.identification.api.schemas import IdentificationStatusResponse
-from lumina.identification.application.submissions import (
-    StartedRemoteIdentification,
-    SubmittedIdentification,
-)
+from lumina.identification.application.submissions import StartedRemoteIdentification
 from lumina.identification.domain.public_read import (
     IdentificationPublicState,
     IdentificationSolutionNotReady,
@@ -61,6 +58,8 @@ def _app(tmp_path: Path, **overrides: object) -> FastAPI:
             "postgresql+asyncpg://route_test:nonsecret@127.0.0.1:1/lumina_route_test"
         ),
         "LUMINA_STORAGE_LOCAL_ROOT": str(tmp_path / "private-storage"),
+        "LUMINA_ENABLE_REMOTE_ASTROMETRY": True,
+        "LUMINA_ASTROMETRY_API_KEY": "server-secret-sentinel",
     }
     values.update(overrides)
     return create_app(AppSettings.model_validate(values))
@@ -78,24 +77,6 @@ def _request(
             return await client.request(method, path, **kwargs)
 
     return anyio.run(send)
-
-
-@dataclass
-class SubmitSpy:
-    failure: BaseException | None = None
-    calls: list[tuple[bytes, object, str | None]] = field(default_factory=list)
-
-    async def submit(
-        self,
-        content: bytes,
-        *,
-        original_filename: object,
-        declared_media_type: str | None,
-    ) -> SubmittedIdentification:
-        self.calls.append((content, original_filename, declared_media_type))
-        if self.failure is not None:
-            raise self.failure
-        return SubmittedIdentification(_SUBMISSION_ID, _JOB_ID)
 
 
 @dataclass
@@ -224,8 +205,8 @@ def test_capabilities_exposes_only_safe_authoritative_policy(tmp_path: Path) -> 
 
     assert response.status_code == 200
     assert response.json() == {
-        "solver_type": "fake",
-        "remote_processing": False,
+        "solver_type": "nova",
+        "remote_processing": True,
         "accepted_media_types": ["image/jpeg", "image/png"],
         "max_bytes": 123456,
         "max_pixels": 654321,
@@ -234,7 +215,16 @@ def test_capabilities_exposes_only_safe_authoritative_policy(tmp_path: Path) -> 
         "deletion_supported": True,
     }
     serialized = response.text.lower()
-    for forbidden in ("storage", "database", "queue", "credential", "path"):
+    for forbidden in (
+        "storage",
+        "database",
+        "queue",
+        "credential",
+        "path",
+        "api_key",
+        "external",
+        "nova.astrometry.net",
+    ):
         assert forbidden not in serialized
 
 
@@ -262,7 +252,10 @@ def test_disabled_identification_fails_closed_for_every_public_route(
     kwargs: dict[str, object],
 ) -> None:
     storage_root = tmp_path / "private-storage"
-    app = _app(tmp_path, LUMINA_ENABLE_IDENTIFICATION=False)
+    app = _app(
+        tmp_path,
+        LUMINA_ENABLE_REMOTE_ASTROMETRY=False,
+    )
 
     assert not storage_root.exists()
 
@@ -270,23 +263,6 @@ def test_disabled_identification_fails_closed_for_every_public_route(
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "request.not_found"
-
-
-def test_capabilities_advertises_nova_only_when_explicitly_enabled(tmp_path: Path) -> None:
-    app = _app(
-        tmp_path,
-        LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
-        LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
-    )
-
-    response = _request(app, "GET", "/api/v1/identification/capabilities")
-
-    assert response.status_code == 200
-    assert response.json()["solver_type"] == "nova"
-    assert response.json()["remote_processing"] is True
-    serialized = response.text.lower()
-    for forbidden in ("api_key", "credential", "external", "nova.astrometry.net"):
-        assert forbidden not in serialized
 
 
 def test_capabilities_rejects_query_parameters(tmp_path: Path) -> None:
@@ -299,61 +275,10 @@ def test_capabilities_rejects_query_parameters(tmp_path: Path) -> None:
     assert response.json()["error"]["code"] == "request.validation_failed"
 
 
-def test_create_returns_coherent_queued_pair_without_private_metadata(tmp_path: Path) -> None:
-    app = _app(tmp_path)
-    service = SubmitSpy()
-    app.state.identification_submit_service = service
-    content = b"bounded-fixture"
-
-    response = _request(
-        app,
-        "POST",
-        "/api/v1/identification/submissions",
-        files={"file": ("night.png", content, "image/png")},
-        data={"consent_remote_processing": "false"},
-    )
-
-    assert response.status_code == 202
-    assert response.json() == {
-        "submission_id": str(_SUBMISSION_ID),
-        "job_id": str(_JOB_ID),
-        "status": "queued",
-        "solver_type": "fake",
-        "remote_processing": False,
-        "retention_hours": 24,
-    }
-    assert service.calls == [(content, "night.png", "image/png")]
-    assert "filename" not in response.text.lower()
-    assert "sha256" not in response.text.lower()
-    assert "storage" not in response.text.lower()
-
-
-def test_remote_processing_consent_is_rejected_before_submission(tmp_path: Path) -> None:
-    app = _app(tmp_path)
-    service = SubmitSpy()
-    app.state.identification_submit_service = service
-
-    response = _request(
-        app,
-        "POST",
-        "/api/v1/identification/submissions",
-        files={"file": ("night.png", b"fixture", "image/png")},
-        data={"consent_remote_processing": "true"},
-    )
-
-    assert response.status_code == 422
-    assert response.json()["error"]["code"] == "feature.not_available"
-    assert service.calls == []
-
-
 def test_enabled_remote_solver_requires_explicit_consent_before_reading_upload(
     tmp_path: Path,
 ) -> None:
-    app = _app(
-        tmp_path,
-        LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
-        LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
-    )
+    app = _app(tmp_path)
     remote = RemoteStartSpy()
     app.state.identification_remote_start_service = remote
 
@@ -373,15 +298,9 @@ def test_enabled_remote_solver_requires_explicit_consent_before_reading_upload(
 def test_enabled_remote_solver_starts_only_after_consent_without_provider_ids(
     tmp_path: Path,
 ) -> None:
-    app = _app(
-        tmp_path,
-        LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
-        LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
-    )
+    app = _app(tmp_path)
     remote = RemoteStartSpy()
-    fake = SubmitSpy()
     app.state.identification_remote_start_service = remote
-    app.state.identification_submit_service = fake
     content = b"remote-bounded-fixture"
 
     response = _request(
@@ -402,7 +321,6 @@ def test_enabled_remote_solver_starts_only_after_consent_without_provider_ids(
         "retention_hours": 24,
     }
     assert remote.calls == [(content, "night.png", "image/png")]
-    assert fake.calls == []
     serialized = response.text.lower()
     for forbidden in ("api_key", "external_job", "external_submission", "filename", "storage"):
         assert forbidden not in serialized
@@ -410,14 +328,15 @@ def test_enabled_remote_solver_starts_only_after_consent_without_provider_ids(
 
 def test_file_byte_limit_is_enforced_after_multipart_parsing(tmp_path: Path) -> None:
     app = _app(tmp_path, LUMINA_UPLOAD_MAX_BYTES=8)
-    service = SubmitSpy()
-    app.state.identification_submit_service = service
+    service = RemoteStartSpy()
+    app.state.identification_remote_start_service = service
 
     response = _request(
         app,
         "POST",
         "/api/v1/identification/submissions",
         files={"file": ("night.png", b"123456789", "image/png")},
+        data={"consent_remote_processing": "true"},
     )
 
     assert response.status_code == 413
@@ -427,14 +346,15 @@ def test_file_byte_limit_is_enforced_after_multipart_parsing(tmp_path: Path) -> 
 
 def test_asgi_body_bound_rejects_large_multipart_before_route_service(tmp_path: Path) -> None:
     app = _app(tmp_path, LUMINA_UPLOAD_MAX_BYTES=8)
-    service = SubmitSpy()
-    app.state.identification_submit_service = service
+    service = RemoteStartSpy()
+    app.state.identification_remote_start_service = service
 
     response = _request(
         app,
         "POST",
         "/api/v1/identification/submissions",
         files={"file": ("night.png", b"x" * 70_000, "image/png")},
+        data={"consent_remote_processing": "true"},
     )
 
     assert response.status_code == 413
@@ -458,13 +378,14 @@ def test_create_maps_only_safe_fixed_failures(
     code: str,
 ) -> None:
     app = _app(tmp_path)
-    app.state.identification_submit_service = SubmitSpy(failure=failure)
+    app.state.identification_remote_start_service = RemoteStartSpy(failure=failure)
 
     response = _request(
         app,
         "POST",
         "/api/v1/identification/submissions",
         files={"file": ("PRIVATE-NAME.png", b"PRIVATE-BYTES", "image/png")},
+        data={"consent_remote_processing": "true"},
     )
 
     assert response.status_code == status_code
@@ -473,7 +394,7 @@ def test_create_maps_only_safe_fixed_failures(
     assert "PRIVATE-BYTES" not in response.text
 
 
-def test_status_returns_only_validated_synthetic_result_and_safe_job_state(tmp_path: Path) -> None:
+def test_status_preserves_legacy_synthetic_result_without_private_state(tmp_path: Path) -> None:
     app = _app(tmp_path)
     service = PublicReadSpy(_status())
     app.state.identification_public_read_service = service

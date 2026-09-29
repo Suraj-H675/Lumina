@@ -653,19 +653,19 @@ export type FakeSolverResultResponse = {
   /**
    * Outcome
    */
-  outcome?: "fixture_solved";
+  outcome: "fixture_solved";
   /**
    * Solver Type
    */
-  solver_type?: "fake";
+  solver_type: "fake";
   /**
    * Solver Version
    */
-  solver_version?: "synthetic-fixture-v1";
+  solver_version: "synthetic-fixture-v1";
   /**
    * Synthetic
    */
-  synthetic?: true;
+  synthetic: true;
 };
 
 /**
@@ -772,11 +772,11 @@ export type IdentificationCapabilitiesResponse = {
   /**
    * Accepted Media Types
    */
-  accepted_media_types?: Array<"image/jpeg" | "image/png">;
+  accepted_media_types: Array<"image/jpeg" | "image/png">;
   /**
    * Deletion Supported
    */
-  deletion_supported?: true;
+  deletion_supported: true;
   /**
    * Max Bytes
    */
@@ -788,11 +788,11 @@ export type IdentificationCapabilitiesResponse = {
   /**
    * Min Dimension Px
    */
-  min_dimension_px?: 32;
+  min_dimension_px: 32;
   /**
    * Remote Processing
    */
-  remote_processing: boolean;
+  remote_processing: true;
   /**
    * Retention Hours
    */
@@ -800,7 +800,7 @@ export type IdentificationCapabilitiesResponse = {
   /**
    * Solver Type
    */
-  solver_type: "fake" | "nova";
+  solver_type: "nova";
 };
 
 /**
@@ -810,11 +810,11 @@ export type IdentificationCreateResponse = {
   /**
    * Job Id
    */
-  job_id: string | null;
+  job_id: null;
   /**
    * Remote Processing
    */
-  remote_processing: boolean;
+  remote_processing: true;
   /**
    * Retention Hours
    */
@@ -822,11 +822,11 @@ export type IdentificationCreateResponse = {
   /**
    * Solver Type
    */
-  solver_type: "fake" | "nova";
+  solver_type: "nova";
   /**
    * Status
    */
-  status: "queued" | "submitting";
+  status: "submitting";
   /**
    * Submission Id
    */

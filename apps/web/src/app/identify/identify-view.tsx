@@ -43,9 +43,7 @@ type UploadErrorReason =
   | "validationFailed";
 
 type ActiveSubmission = Readonly<{
-  jobId: string | null;
   previewUrl: string | null;
-  solverType: "fake" | "nova";
   sourceImage: File | null;
   submissionId: string;
   status: IdentificationStatusResponse | null;
@@ -100,6 +98,10 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
       );
       if (cancelled) return;
       if (result.kind === "ok") {
+        if (result.data.solver_type !== "nova" || result.data.remote_processing !== true) {
+          setState({ ...state, pollingWarning: true });
+          return;
+        }
         let previewUrl = state.active.previewUrl;
         const terminalWithoutSolution =
           TERMINAL.has(result.data.status) &&
@@ -138,7 +140,6 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
   useEffect(() => {
     if (
       state.kind !== "active" ||
-      state.active.solverType !== "nova" ||
       state.active.previewUrl === null ||
       state.active.status?.status !== "succeeded" ||
       state.active.status.solution_available !== true ||
@@ -197,20 +198,18 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
     }
     setState({ kind: "uploading" });
     const result = await createIdentificationSubmission(apiOrigin, file, file.name, {
-      consentRemoteProcessing: capabilities.remote_processing,
+      consentRemoteProcessing: true,
     });
     if (result.kind !== "ok") {
       setState({ kind: "error", reason: uploadFailureReason(result) });
       return;
     }
-    const previewUrl = result.data.solver_type === "nova" ? URL.createObjectURL(file) : null;
+    const previewUrl = URL.createObjectURL(file);
     previewUrlRef.current = previewUrl;
     setState({
       active: {
-        jobId: result.data.job_id,
         previewUrl,
-        solverType: result.data.solver_type,
-        sourceImage: result.data.solver_type === "nova" ? file : null,
+        sourceImage: file,
         status: null,
         submissionId: result.data.submission_id,
       },
@@ -275,19 +274,15 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
     <div className="space-y-10">
       <header className="max-w-4xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {capabilities.remote_processing
-            ? messages.header.remoteEyebrow
-            : messages.header.localEyebrow}
+          {messages.header.remoteEyebrow}
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
           {messages.header.title}
         </h1>
         <p className="text-lg leading-8 text-[var(--muted)]">
-          {capabilities.remote_processing
-            ? formatMessageTemplate(messages.header.remoteDescription, {
-                service: NOVA_SERVICE_NAME,
-              })
-            : messages.header.localDescription}
+          {formatMessageTemplate(messages.header.remoteDescription, {
+            service: NOVA_SERVICE_NAME,
+          })}
         </p>
       </header>
 
@@ -335,14 +330,10 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
               type="checkbox"
             />
             <span>
-              {capabilities.remote_processing
-                ? formatMessageTemplate(messages.upload.consentRemote, {
-                    provider: ASTROMETRY_PROVIDER_NAME,
-                    service: NOVA_SERVICE_NAME,
-                  })
-                : formatMessageTemplate(messages.upload.consentLocal, {
-                    provider: ASTROMETRY_PROVIDER_NAME,
-                  })}
+              {formatMessageTemplate(messages.upload.consentRemote, {
+                provider: ASTROMETRY_PROVIDER_NAME,
+                service: NOVA_SERVICE_NAME,
+              })}
             </span>
           </label>
 
@@ -352,12 +343,8 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
             type="submit"
           >
             {state.kind === "uploading"
-              ? capabilities.remote_processing
-                ? messages.upload.actions.uploadingRemote
-                : messages.upload.actions.uploadingLocal
-              : capabilities.remote_processing
-                ? messages.upload.actions.startRemote
-                : messages.upload.actions.startLocal}
+              ? messages.upload.actions.uploadingRemote
+              : messages.upload.actions.startRemote}
           </button>
         </form>
         <noscript>
@@ -369,7 +356,6 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
         deleteConfirm={deleteConfirm}
         locale={locale}
         messages={messages}
-        remoteProcessing={capabilities.remote_processing}
         onCancelDelete={() => setDeleteConfirm(false)}
         onConfirmDelete={() => void deleteActive()}
         onRequestDelete={() => setDeleteConfirm(true)}
@@ -377,7 +363,6 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
       />
 
       {state.kind === "active" &&
-      state.active.solverType === "nova" &&
       state.active.status?.status === "succeeded" &&
       state.active.status.solution_available ? (
         solutionState.kind === "idle" ? (
@@ -442,40 +427,29 @@ function PrivacyNotice({
       className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7"
     >
       <h2 className="text-2xl font-semibold" id="identify-privacy-heading">
-        {capabilities.remote_processing ? messages.remote.title : messages.local.title}
+        {messages.remote.title}
       </h2>
       <ul className="list-disc space-y-2 pl-5 leading-7 text-[var(--muted)]">
-        {capabilities.remote_processing ? (
-          <>
-            <li>
-              {formatMessageTemplate(messages.remote.sentToProvider, {
-                service: NOVA_SERVICE_NAME,
-              })}
-            </li>
-            <li>
-              {formatMessageTemplate(messages.remote.privateMode, {
-                service: NOVA_SERVICE_NAME,
-              })}
-            </li>
-            <li>
-              {formatMessageTemplate(messages.remote.deletion, {
-                provider: ASTROMETRY_PROVIDER_NAME,
-              })}
-            </li>
-            <li>{messages.remote.unsolved}</li>
-          </>
-        ) : (
-          <>
-            <li>{messages.local.noRemote}</li>
-            <li>{messages.local.deletion}</li>
-            <li>{messages.local.fakeSolver}</li>
-          </>
-        )}
         <li>
-          {formatMessageTemplate(
-            capabilities.remote_processing ? messages.retentionRemote : messages.retentionLocal,
-            { hours: formatLocaleNumber(capabilities.retention_hours, locale) },
-          )}
+          {formatMessageTemplate(messages.remote.sentToProvider, {
+            service: NOVA_SERVICE_NAME,
+          })}
+        </li>
+        <li>
+          {formatMessageTemplate(messages.remote.privateMode, {
+            service: NOVA_SERVICE_NAME,
+          })}
+        </li>
+        <li>
+          {formatMessageTemplate(messages.remote.deletion, {
+            provider: ASTROMETRY_PROVIDER_NAME,
+          })}
+        </li>
+        <li>{messages.remote.unsolved}</li>
+        <li>
+          {formatMessageTemplate(messages.retentionRemote, {
+            hours: formatLocaleNumber(capabilities.retention_hours, locale),
+          })}
         </li>
       </ul>
     </section>
@@ -489,7 +463,6 @@ function StatusPanel({
   onCancelDelete,
   onConfirmDelete,
   onRequestDelete,
-  remoteProcessing,
   state,
 }: Readonly<{
   deleteConfirm: boolean;
@@ -498,22 +471,13 @@ function StatusPanel({
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
   onRequestDelete: () => void;
-  remoteProcessing: boolean;
   state: UiState;
 }>) {
   if (state.kind === "idle") return null;
   if (state.kind === "uploading") {
     return (
-      <StatusMessage
-        title={
-          remoteProcessing
-            ? messages.status.uploading.remoteTitle
-            : messages.status.uploading.localTitle
-        }
-      >
-        {remoteProcessing
-          ? messages.status.uploading.remoteDescription
-          : messages.status.uploading.localDescription}
+      <StatusMessage title={messages.status.uploading.remoteTitle}>
+        {messages.status.uploading.remoteDescription}
       </StatusMessage>
     );
   }
@@ -545,27 +509,15 @@ function StatusPanel({
         <h2 className="text-2xl font-semibold" id="identify-status-heading">
           {messages.status.heading}
         </h2>
-        {state.active.jobId === null ? (
-          <p className="text-sm text-[var(--muted)]">
-            {messages.status.providerIdentifiersPrivate}
-          </p>
-        ) : (
-          <p className="text-sm text-[var(--muted)]">
-            {messages.status.jobIdLabel} <code>{state.active.jobId}</code>
-          </p>
-        )}
+        <p className="text-sm text-[var(--muted)]">{messages.status.providerIdentifiersPrivate}</p>
       </div>
       {status === null ? (
-        <p role="status">
-          {state.active.solverType === "nova"
-            ? messages.status.initialRemote
-            : messages.status.initialLocal}
-        </p>
+        <p role="status">{messages.status.initialRemote}</p>
       ) : (
         <div className="space-y-3">
           <p role="status">
             <strong>{messages.status.labels.statusLabel}</strong>{" "}
-            {statusLabel(status.status, status.solver_type, messages.status.labels)}
+            {statusLabel(status.status, messages.status.labels)}
           </p>
           {status.progress === null || status.progress === undefined ? null : (
             <p>
@@ -576,25 +528,21 @@ function StatusPanel({
               })}
             </p>
           )}
-          {status.solver_type === "nova" && status.remote_condition === "provider_unavailable" ? (
+          {status.remote_condition === "provider_unavailable" ? (
             <p role="status">
               {formatMessageTemplate(messages.status.remoteConditions.unavailable, {
                 provider: ASTROMETRY_PROVIDER_NAME,
               })}
             </p>
           ) : null}
-          {status.solver_type === "nova" &&
-          status.remote_condition === "provider_busy" &&
-          status.status !== "failed" ? (
+          {status.remote_condition === "provider_busy" && status.status !== "failed" ? (
             <p role="status">
               {formatMessageTemplate(messages.status.remoteConditions.busyRetry, {
                 provider: ASTROMETRY_PROVIDER_NAME,
               })}
             </p>
           ) : null}
-          {status.solver_type === "nova" &&
-          status.remote_condition === "provider_busy" &&
-          status.status === "failed" ? (
+          {status.remote_condition === "provider_busy" && status.status === "failed" ? (
             <p role="alert">
               {formatMessageTemplate(messages.status.remoteConditions.busyFailed, {
                 provider: ASTROMETRY_PROVIDER_NAME,
@@ -602,21 +550,12 @@ function StatusPanel({
             </p>
           ) : null}
           {status.status === "succeeded" ? (
-            status.solver_type === "nova" ? (
-              <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="font-semibold">{messages.status.results.remoteSuccessTitle}</p>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  {messages.status.results.remoteSuccessDescription}
-                </p>
-              </div>
-            ) : (
-              <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="font-semibold">{messages.status.results.fakeSuccessTitle}</p>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  {messages.status.results.fakeSuccessDescription}
-                </p>
-              </div>
-            )
+            <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
+              <p className="font-semibold">{messages.status.results.remoteSuccessTitle}</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                {messages.status.results.remoteSuccessDescription}
+              </p>
+            </div>
           ) : null}
           {status.status === "unsolved" ? (
             <p role="status">
@@ -630,11 +569,7 @@ function StatusPanel({
           ) : null}
           {(status.status === "failed" || status.status === "dead_letter") &&
           status.remote_condition !== "provider_busy" ? (
-            <p role="alert">
-              {status.solver_type === "nova"
-                ? messages.status.results.remoteFailure
-                : messages.status.results.fakeFailure}
-            </p>
+            <p role="alert">{messages.status.results.remoteFailure}</p>
           ) : null}
         </div>
       )}
@@ -645,11 +580,9 @@ function StatusPanel({
       ) : null}
       <div className="space-y-3 border-t border-[var(--border)] pt-5">
         <p className="text-sm leading-6 text-[var(--muted)]">
-          {state.active.solverType === "nova"
-            ? formatMessageTemplate(messages.status.deletion.remoteDescription, {
-                provider: ASTROMETRY_PROVIDER_NAME,
-              })
-            : messages.status.deletion.localDescription}
+          {formatMessageTemplate(messages.status.deletion.remoteDescription, {
+            provider: ASTROMETRY_PROVIDER_NAME,
+          })}
         </p>
         {deleteConfirm ? (
           <div
@@ -717,18 +650,16 @@ function uploadFailureReason(
 
 function statusLabel(
   value: IdentificationStatusResponse["status"],
-  solverType: IdentificationStatusResponse["solver_type"],
   labels: IdentifyMessages["status"]["labels"],
 ): string {
-  if (value === "succeeded")
-    return solverType === "fake" ? labels.fakeSucceeded : labels.remoteSucceeded;
+  if (value === "succeeded") return labels.remoteSucceeded;
   const mappedLabels: Record<
     Exclude<IdentificationStatusResponse["status"], "succeeded">,
     string
   > = {
     created: labels.stateCreated,
     queued: labels.stateQueued,
-    running: labels.stateRunningFake,
+    running: labels.stateRunning,
     submitting: labels.stateSubmittingRemote,
     waiting_for_solver: labels.stateWaitingRemote,
     solving: labels.stateRemoteRunning,

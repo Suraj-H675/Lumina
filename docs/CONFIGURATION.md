@@ -66,7 +66,6 @@ scripts.
 ## Optional provider and identification settings
 
 - `LUMINA_NASA_API_KEY` — optional server-only registered NASA key. `DEMO_KEY` is rejected.
-- `LUMINA_ENABLE_IDENTIFICATION` — explicit private-upload/identification enable override.
 - `LUMINA_STORAGE_BACKEND` — currently validated to the filesystem backend only.
 - `LUMINA_STORAGE_LOCAL_ROOT`
 - `LUMINA_UPLOAD_MAX_BYTES`
@@ -81,7 +80,7 @@ scripts.
 - `LUMINA_ASTROMETRY_POLL_SECONDS`
 - `LUMINA_ASTROMETRY_TIMEOUT_SECONDS`
 
-Remote Astrometry.net requires both identification and a server API key. Privacy flags remain fixed
+Remote Astrometry.net requires a server API key and is the only supported live identification mode. Privacy flags remain fixed
 to the reviewed private/non-modifiable/non-commercial values in the current contract.
 
 ## Web server

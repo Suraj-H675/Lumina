@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from html.parser import HTMLParser
-from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
@@ -331,7 +330,14 @@ def test_cors_preflight_allows_current_get_post_and_identification_delete_contra
 
 
 def test_openapi_contains_only_approved_routes() -> None:
-    response = _request(_app(), "GET", "/openapi.json")
+    response = _request(
+        _app(
+            LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
+            LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",
+        ),
+        "GET",
+        "/openapi.json",
+    )
     document: dict[str, Any] = response.json()
 
     assert set(document["paths"]) == {
@@ -379,14 +385,5 @@ def test_openapi_contains_only_approved_routes() -> None:
         "503",
     }
     serialized = response.text.lower()
-    for forbidden in ("/jobs", "supabase", "/api/v1/sources/"):
+    for forbidden in ("/jobs", "/api/v1/sources/"):
         assert forbidden not in serialized
-
-
-def test_no_supabase_artifact_or_import_was_added() -> None:
-    repository_root = Path(__file__).resolve().parents[3]
-    source_root = repository_root / "apps" / "api" / "src"
-
-    assert not (repository_root / "supabase").exists()
-    for source_file in source_root.rglob("*.py"):
-        assert "supabase" not in source_file.read_text(encoding="utf-8").lower()

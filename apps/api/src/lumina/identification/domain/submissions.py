@@ -69,8 +69,8 @@ class CreateIdentificationSubmission:
     height: int
     sha256: str = field(repr=False)
     retention_until: datetime
-    solver_type: IdentificationSolverType = IdentificationSolverType.FAKE
-    consent_remote_processing: bool = False
+    solver_type: IdentificationSolverType
+    consent_remote_processing: bool
 
     def __post_init__(self) -> None:
         if (
@@ -88,16 +88,8 @@ class CreateIdentificationSubmission:
             or self.width * self.height > 100_000_000
             or type(self.sha256) is not str
             or _SHA256.fullmatch(self.sha256) is None
-            or type(self.solver_type) is not IdentificationSolverType
-            or type(self.consent_remote_processing) is not bool
-            or (
-                self.solver_type is IdentificationSolverType.FAKE
-                and self.consent_remote_processing is not False
-            )
-            or (
-                self.solver_type is IdentificationSolverType.NOVA
-                and self.consent_remote_processing is not True
-            )
+            or self.solver_type is not IdentificationSolverType.NOVA
+            or self.consent_remote_processing is not True
         ):
             raise SubmissionValidationError()
         object.__setattr__(self, "retention_until", _utc(self.retention_until))
@@ -120,8 +112,8 @@ class IdentificationSubmission:
     retention_until: datetime
     deleted_at: datetime | None
     created_at: datetime
-    solver_type: IdentificationSolverType = IdentificationSolverType.FAKE
-    consent_remote_processing: bool = False
+    solver_type: IdentificationSolverType
+    consent_remote_processing: bool
 
     @property
     def deleted(self) -> bool:

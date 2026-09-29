@@ -18,7 +18,6 @@ from lumina.identification.domain.submissions import (
     SubmissionStateConflict,
     sanitize_original_filename,
 )
-from lumina.jobs.domain.models import EnqueueJobOutcome, JobType
 
 _DEFAULT_RETENTION = timedelta(hours=24)
 
@@ -29,8 +28,6 @@ class SubmissionRepository(Protocol):
     async def read(self, submission_id: UUID) -> IdentificationSubmission: ...
 
     async def read_status(self, submission_id: UUID) -> IdentificationSubmissionStatus: ...
-
-    async def attach_job(self, submission_id: UUID, job_id: UUID) -> IdentificationSubmission: ...
 
     async def scrub_deleted(
         self,
@@ -47,18 +44,6 @@ class SubmissionRepository(Protocol):
         limit: int,
         terminal_retention: timedelta,
     ) -> tuple[IdentificationSubmission, ...]: ...
-
-
-class IdentificationJobEnqueue(Protocol):
-    async def enqueue(
-        self,
-        *,
-        job_type: str | JobType,
-        payload: object,
-        idempotency_key: str | None = None,
-        priority: int = 0,
-        max_attempts: int | None = None,
-    ) -> EnqueueJobOutcome: ...
 
 
 class SolutionPurger(Protocol):
@@ -104,8 +89,6 @@ class CreateSubmissionService:
         *,
         original_filename: object,
         declared_media_type: str | None,
-        solver_type: IdentificationSolverType = IdentificationSolverType.FAKE,
-        consent_remote_processing: bool = False,
     ) -> CreatedSubmission:
         filename = sanitize_original_filename(original_filename)
         stored = self._uploads.store(content, declared_media_type=declared_media_type)
@@ -124,8 +107,8 @@ class CreateSubmissionService:
             height=stored.height,
             sha256=stored.sha256,
             retention_until=now + self._provisional_retention,
-            solver_type=solver_type,
-            consent_remote_processing=consent_remote_processing,
+            solver_type=IdentificationSolverType.NOVA,
+            consent_remote_processing=True,
         )
         try:
             submission = await self._repository.create(command)
@@ -179,8 +162,6 @@ class StartRemoteIdentificationService:
             content,
             original_filename=original_filename,
             declared_media_type=declared_media_type,
-            solver_type=IdentificationSolverType.NOVA,
-            consent_remote_processing=True,
         )
         try:
             await self._remote_state.create(
@@ -194,64 +175,6 @@ class StartRemoteIdentificationService:
                 raise SubmissionCleanupFailure() from None
             raise
         return StartedRemoteIdentification(submission_id=created.submission.id)
-
-
-@dataclass(frozen=True, slots=True)
-class SubmittedIdentification:
-    submission_id: UUID
-    job_id: UUID
-
-
-class SubmitIdentificationService:
-    """Store one private upload, enqueue the fixed fake solve, and attach it safely."""
-
-    def __init__(
-        self,
-        create: CreateSubmissionService,
-        enqueue: IdentificationJobEnqueue,
-        repository: SubmissionRepository,
-        delete: DeleteSubmissionService,
-    ) -> None:
-        self._create = create
-        self._enqueue = enqueue
-        self._repository = repository
-        self._delete = delete
-
-    async def submit(
-        self,
-        content: bytes,
-        *,
-        original_filename: object,
-        declared_media_type: str | None,
-    ) -> SubmittedIdentification:
-        created = await self._create.create(
-            content,
-            original_filename=original_filename,
-            declared_media_type=declared_media_type,
-        )
-        submission_id = created.submission.id
-        try:
-            enqueued = await self._enqueue.enqueue(
-                job_type=JobType.IDENTIFICATION_SOLVE,
-                payload={"submission_id": str(submission_id)},
-                idempotency_key=f"identification.solve:{submission_id}",
-                max_attempts=2,
-            )
-        except BaseException:
-            await self._cleanup_failed_submit(submission_id)
-            raise
-        try:
-            await self._repository.attach_job(submission_id, enqueued.id)
-        except BaseException:
-            await self._cleanup_failed_submit(submission_id)
-            raise
-        return SubmittedIdentification(submission_id=submission_id, job_id=enqueued.id)
-
-    async def _cleanup_failed_submit(self, submission_id: UUID) -> None:
-        try:
-            await self._delete.delete(submission_id)
-        except BaseException:
-            raise SubmissionCleanupFailure() from None
 
 
 class DeleteSubmissionService:

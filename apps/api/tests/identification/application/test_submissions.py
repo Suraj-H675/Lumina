@@ -16,7 +16,6 @@ from lumina.identification.application.submissions import (
     RetentionCleanupService,
     StartRemoteIdentificationService,
     SubmissionCleanupFailure,
-    SubmitIdentificationService,
 )
 from lumina.identification.application.uploads import StoreValidatedUploadService
 from lumina.identification.domain.storage import (
@@ -32,7 +31,6 @@ from lumina.identification.domain.submissions import (
     SubmissionStorageFailure,
 )
 from lumina.identification.domain.uploads import UploadMediaType, UploadValidationPolicy
-from lumina.jobs.domain.models import EnqueueJobOutcome, JobStatus, JobType
 
 _NOW = datetime(2026, 9, 15, 12, tzinfo=UTC)
 _SUBMISSION_ID = UUID("61000000-0000-4000-8000-000000000001")
@@ -97,8 +95,8 @@ def _submission(
         height=8,
         sha256=None if deleted else "a" * 64,
         retention_until=_NOW + timedelta(hours=24),
-        solver_type=IdentificationSolverType.FAKE,
-        consent_remote_processing=False,
+        solver_type=IdentificationSolverType.NOVA,
+        consent_remote_processing=True,
         deleted_at=deleted_at,
         created_at=_NOW,
     )
@@ -109,9 +107,7 @@ class FakeRepository:
     current: IdentificationSubmission | None = None
     create_failure: bool = False
     scrub_failures: int = 0
-    attach_failure: bool = False
     created_command: CreateIdentificationSubmission | None = None
-    attached_job_id: UUID | None = None
     due: tuple[IdentificationSubmission, ...] = ()
     terminal_retention: timedelta = timedelta(hours=24)
 
@@ -145,28 +141,6 @@ class FakeRepository:
     async def read_status(self, submission_id: UUID) -> IdentificationSubmissionStatus:
         raise AssertionError(submission_id)
 
-    async def attach_job(self, submission_id: UUID, job_id: UUID) -> IdentificationSubmission:
-        assert submission_id == _SUBMISSION_ID
-        assert self.current is not None
-        if self.attach_failure:
-            raise SubmissionStateConflict()
-        self.attached_job_id = job_id
-        self.current = IdentificationSubmission(
-            id=self.current.id,
-            job_id=job_id,
-            storage_object_key=self.current.storage_object_key,
-            original_filename=self.current.original_filename,
-            media_type=self.current.media_type,
-            byte_size=self.current.byte_size,
-            width=self.current.width,
-            height=self.current.height,
-            sha256=self.current.sha256,
-            retention_until=self.current.retention_until,
-            deleted_at=self.current.deleted_at,
-            created_at=self.current.created_at,
-        )
-        return self.current
-
     async def scrub_deleted(
         self,
         submission_id: UUID,
@@ -193,6 +167,8 @@ class FakeRepository:
             retention_until=self.current.retention_until,
             deleted_at=deleted_at,
             created_at=self.current.created_at,
+            solver_type=self.current.solver_type,
+            consent_remote_processing=self.current.consent_remote_processing,
         )
         return self.current
 
@@ -364,6 +340,8 @@ async def test_retention_cleanup_is_bounded_and_scrubs_each_removed_object() -> 
         retention_until=_NOW,
         deleted_at=None,
         created_at=_NOW - timedelta(days=1),
+        solver_type=IdentificationSolverType.NOVA,
+        consent_remote_processing=True,
     )
     store = MemoryPrivateStore(objects={"e" * 32: b"one", "f" * 32: b"two"})
 
@@ -388,6 +366,8 @@ async def test_retention_cleanup_is_bounded_and_scrubs_each_removed_object() -> 
                 retention_until=_NOW,
                 deleted_at=deleted_at,
                 created_at=_NOW - timedelta(days=1),
+                solver_type=IdentificationSolverType.NOVA,
+                consent_remote_processing=True,
             )
 
     repository = CleanupRepository(due=(first, second))
@@ -413,131 +393,6 @@ async def test_retention_cleanup_passes_configured_terminal_duration() -> None:
     )
 
     assert await service.cleanup() == 0
-
-
-@dataclass
-class FakeEnqueue:
-    failure: BaseException | None = None
-    calls: list[dict[str, object]] = field(default_factory=list)
-    job_id: UUID = UUID("62000000-0000-4000-8000-000000000001")
-
-    async def enqueue(
-        self,
-        *,
-        job_type: str | JobType,
-        payload: object,
-        idempotency_key: str | None = None,
-        priority: int = 0,
-        max_attempts: int | None = None,
-    ) -> EnqueueJobOutcome:
-        self.calls.append(
-            {
-                "job_type": job_type,
-                "payload": payload,
-                "idempotency_key": idempotency_key,
-                "priority": priority,
-                "max_attempts": max_attempts,
-            }
-        )
-        if self.failure is not None:
-            raise self.failure
-        return EnqueueJobOutcome(id=self.job_id, status=JobStatus.QUEUED, replayed=False)
-
-
-def _submit_service(
-    store: MemoryPrivateStore,
-    repository: FakeRepository,
-    enqueue: FakeEnqueue,
-) -> SubmitIdentificationService:
-    create = CreateSubmissionService(
-        _uploads(store),
-        repository,
-        store,
-        now=lambda: _NOW,
-        uuid_factory=lambda: _SUBMISSION_ID,
-    )
-    delete = DeleteSubmissionService(repository, store, now=lambda: _NOW)
-    return SubmitIdentificationService(create, enqueue, repository, delete)
-
-
-@pytest.mark.asyncio
-async def test_submit_enqueues_only_fixed_fake_solver_payload_then_attaches_job() -> None:
-    store = MemoryPrivateStore()
-    repository = FakeRepository()
-    enqueue = FakeEnqueue()
-
-    result = await _submit_service(store, repository, enqueue).submit(
-        _png(),
-        original_filename="night.png",
-        declared_media_type="image/png",
-    )
-
-    assert result.submission_id == _SUBMISSION_ID
-    assert result.job_id == enqueue.job_id
-    assert repository.attached_job_id == enqueue.job_id
-    assert enqueue.calls == [
-        {
-            "job_type": JobType.IDENTIFICATION_SOLVE,
-            "payload": {"submission_id": str(_SUBMISSION_ID)},
-            "idempotency_key": f"identification.solve:{_SUBMISSION_ID}",
-            "priority": 0,
-            "max_attempts": 2,
-        }
-    ]
-    assert len(store.objects) == 1
-
-
-@pytest.mark.asyncio
-async def test_submit_enqueue_failure_deletes_private_object_and_scrubs_metadata() -> None:
-    store = MemoryPrivateStore()
-    repository = FakeRepository()
-    enqueue = FakeEnqueue(failure=RuntimeError("private-enqueue-error"))
-
-    with pytest.raises(RuntimeError, match="private-enqueue-error"):
-        await _submit_service(store, repository, enqueue).submit(
-            _png(),
-            original_filename="night.png",
-            declared_media_type="image/png",
-        )
-
-    assert store.objects == {}
-    assert repository.current is not None and repository.current.deleted
-
-
-@pytest.mark.asyncio
-async def test_submit_attach_failure_deletes_upload_so_orphan_job_cannot_solve() -> None:
-    store = MemoryPrivateStore()
-    repository = FakeRepository(attach_failure=True)
-    enqueue = FakeEnqueue()
-
-    with pytest.raises(SubmissionStateConflict):
-        await _submit_service(store, repository, enqueue).submit(
-            _png(),
-            original_filename="night.png",
-            declared_media_type="image/png",
-        )
-
-    assert len(enqueue.calls) == 1
-    assert store.objects == {}
-    assert repository.current is not None and repository.current.deleted
-
-
-@pytest.mark.asyncio
-async def test_submit_cleanup_failure_replaces_private_operation_error() -> None:
-    store = MemoryPrivateStore()
-    repository = FakeRepository(attach_failure=True, scrub_failures=1)
-    enqueue = FakeEnqueue()
-
-    with pytest.raises(SubmissionCleanupFailure) as failure:
-        await _submit_service(store, repository, enqueue).submit(
-            _png(),
-            original_filename="night.png",
-            declared_media_type="image/png",
-        )
-
-    assert failure.value.__cause__ is None
-    assert "night.png" not in repr(failure.value)
-    assert store.objects == {}
 
 
 @dataclass

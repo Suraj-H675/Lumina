@@ -92,7 +92,7 @@ The repository keeps permanent correctness, scientific-integrity, accessibility,
 The current deployment intentionally leaves two credential/infrastructure-dependent capabilities disabled:
 
 - NASA APOD and NeoWs require a registered NASA API key before they can be enabled and verified.
-- Image identification requires shared persistent private storage; remote solving additionally requires Astrometry.net credentials and the worker lifecycle.
+- Image identification requires shared persistent private storage, Astrometry.net credentials, and the worker lifecycle.
 
 Automated checks do not substitute for real accessibility, device, or field-performance observation.
 Do not represent unperformed manual review as completed evidence.

@@ -1,4 +1,4 @@
-"""Filesystem-backed private object store for development identification uploads."""
+"""Filesystem-backed private object store for identification uploads."""
 
 from __future__ import annotations
 

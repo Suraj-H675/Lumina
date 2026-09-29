@@ -61,12 +61,6 @@ _FAKE_RESULT = {
     "synthetic": True,
 }
 _LEGACY_FAKE_RESULT = {**_FAKE_RESULT, "solver_version": LEGACY_FAKE_SOLVER_VERSION}
-_ATTACH_SQL = text(
-    "UPDATE public.identification_submission SET job_id = :job_id "
-    "WHERE id = :id AND deleted_at IS NULL AND job_id IS NULL RETURNING "
-    "id, job_id, storage_object_key, original_filename, mime_type, byte_size, width, height, "
-    "sha256, retention_until, solver_type, consent_remote_processing, deleted_at, created_at"
-)
 _SCRUB_SQL = text(
     "UPDATE public.identification_submission SET storage_object_key = NULL, "
     "original_filename = NULL, sha256 = NULL, deleted_at = :deleted_at "
@@ -179,34 +173,6 @@ class PostgreSqlIdentificationSubmissionRepository:
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
             raise
         except (SubmissionNotFound, SubmissionStorageFailure):
-            raise
-        except (OSError, SQLAlchemyError, TypeError, ValueError):
-            raise SubmissionStorageFailure() from None
-
-    async def attach_job(self, submission_id: UUID, job_id: UUID) -> IdentificationSubmission:
-        _validate_uuid(submission_id)
-        _validate_uuid(job_id)
-        try:
-            async with self._session_factory() as session, session.begin():
-                connection = await session.connection()
-                await self._set_timeouts(connection)
-                row = (
-                    (
-                        await connection.execute(
-                            _ATTACH_SQL,
-                            {"id": submission_id, "job_id": job_id},
-                        )
-                    )
-                    .mappings()
-                    .one_or_none()
-                )
-                if row is None:
-                    await self._raise_missing_or_conflict(connection, submission_id)
-                assert row is not None
-                return _submission(row)
-        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
-            raise
-        except (SubmissionNotFound, SubmissionStateConflict, SubmissionStorageFailure):
             raise
         except (OSError, SQLAlchemyError, TypeError, ValueError):
             raise SubmissionStorageFailure() from None

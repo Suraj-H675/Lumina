@@ -9,6 +9,7 @@ import pytest
 from lumina.identification.domain.storage import PrivateObjectKey
 from lumina.identification.domain.submissions import (
     CreateIdentificationSubmission,
+    IdentificationSolverType,
     SubmissionValidationError,
     sanitize_original_filename,
 )
@@ -28,6 +29,8 @@ def _command(**overrides: object) -> CreateIdentificationSubmission:
         "height": 80,
         "sha256": "b" * 64,
         "retention_until": _NOW + timedelta(hours=24),
+        "solver_type": IdentificationSolverType.NOVA,
+        "consent_remote_processing": True,
     }
     values.update(overrides)
     return CreateIdentificationSubmission(**values)  # type: ignore[arg-type]
@@ -65,6 +68,8 @@ def test_create_submission_is_redacted_and_requires_uuid4() -> None:
         {"sha256": "A" * 64},
         {"media_type": "image/png"},
         {"storage_object_key": "a" * 32},
+        {"solver_type": IdentificationSolverType.FAKE, "consent_remote_processing": False},
+        {"consent_remote_processing": False},
     ],
 )
 def test_create_submission_rejects_malformed_private_metadata(overrides: dict[str, object]) -> None:

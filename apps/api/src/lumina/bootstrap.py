@@ -45,7 +45,6 @@ from lumina.identification.application.submissions import (
     CreateSubmissionService,
     DeleteSubmissionService,
     StartRemoteIdentificationService,
-    SubmitIdentificationService,
 )
 from lumina.identification.application.uploads import StoreValidatedUploadService
 from lumina.identification.domain.uploads import UploadValidationPolicy
@@ -55,8 +54,6 @@ from lumina.identification.infrastructure.postgresql import (
 )
 from lumina.identification.infrastructure.remote_postgresql import PostgreSqlRemoteSolveRepository
 from lumina.identification.infrastructure.solution_postgresql import PostgreSqlSolutionRepository
-from lumina.jobs.application.enqueue import EnqueueJobService
-from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobStore
 from lumina.participate.api.routes import router as participate_router
 from lumina.participate.application.read import ParticipateReadService
 from lumina.provenance.api.routes import router as provider_router
@@ -99,11 +96,10 @@ def create_app(settings: AppSettings) -> FastAPI:
         database_runtime.session_factory,
         nasa_api_key=settings.nasa_api_key,
     )
-    identification_submit = None
     identification_remote_start = None
     identification_public_read = None
     identification_delete = None
-    if settings.identification_enabled:
+    if settings.enable_remote_astrometry:
         identification_store = FilesystemPrivateObjectStore(settings.storage_local_root)
         identification_repository = PostgreSqlIdentificationSubmissionRepository(
             database_runtime.session_factory,
@@ -137,20 +133,6 @@ def create_app(settings: AppSettings) -> FastAPI:
             identification_store,
             now=lambda: datetime.now(UTC),
             solutions=identification_solutions,
-        )
-        identification_enqueue = EnqueueJobService(
-            PostgreSqlEnqueueJobStore(
-                database_runtime.session_factory,
-                wait_timeout_ms=settings.job_enqueue_wait_timeout_ms,
-            ),
-            payload_max_bytes=settings.job_payload_max_bytes,
-            default_max_attempts=settings.job_default_max_attempts,
-        )
-        identification_submit = SubmitIdentificationService(
-            identification_create,
-            identification_enqueue,
-            identification_repository,
-            identification_delete,
         )
         identification_remote_start = StartRemoteIdentificationService(
             identification_create,
@@ -205,7 +187,6 @@ def create_app(settings: AppSettings) -> FastAPI:
         provider_composition.snapshot_reader,
         SkyfieldSatellitePassEngine(),
     )
-    application.state.identification_submit_service = identification_submit
     application.state.identification_remote_start_service = identification_remote_start
     application.state.identification_public_read_service = identification_public_read
     application.state.identification_delete_service = identification_delete
@@ -228,7 +209,7 @@ def create_app(settings: AppSettings) -> FastAPI:
         ("POST", "/api/v1/now/satellites/passes"): 4_096,
         ("POST", "/api/v1/providers/internal-sync"): 1,
     }
-    if settings.identification_enabled:
+    if settings.enable_remote_astrometry:
         body_limits[("POST", "/api/v1/identification/submissions")] = (
             settings.upload_max_bytes + 65_536
         )
@@ -253,6 +234,6 @@ def create_app(settings: AppSettings) -> FastAPI:
     application.include_router(provider_router)
     application.include_router(participate_router)
     application.include_router(space_now_router)
-    if settings.identification_enabled:
+    if settings.enable_remote_astrometry:
         application.include_router(identification_router)
     return application

@@ -37,6 +37,8 @@ def _with_openapi_application[Result](consumer: Callable[[bytes], Result]) -> Re
         {
             "LUMINA_DATABASE_URL": _INERT_DATABASE_URL,
             "LUMINA_ENABLE_API_DOCS": False,
+            "LUMINA_ENABLE_REMOTE_ASTROMETRY": True,
+            "LUMINA_ASTROMETRY_API_KEY": "openapi-export-fixture-key",
             "LUMINA_ENV": "test",
             "LUMINA_LOG_LEVEL": "CRITICAL",
         }

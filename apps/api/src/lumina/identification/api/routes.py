@@ -13,7 +13,6 @@ from lumina.identification.application.submissions import (
     DeleteSubmissionService,
     StartRemoteIdentificationService,
     SubmissionCleanupFailure,
-    SubmitIdentificationService,
 )
 from lumina.identification.application.uploads import UploadStorageIntegrityError
 from lumina.identification.domain.public_read import (
@@ -36,14 +35,6 @@ from lumina.identification.domain.uploads import (
     UploadTooLarge,
     UploadTypeMismatch,
     UploadTypeUnsupported,
-)
-from lumina.jobs.domain.models import (
-    JobDatabaseOperationFailure,
-    JobDatabaseProgrammingFailure,
-    JobDatabaseStateFailure,
-    JobEnqueueContention,
-    JobIdempotencyConflict,
-    JobStorageUnavailable,
 )
 from lumina.shared.api.errors import (
     ErrorResponse,
@@ -85,14 +76,6 @@ _DELETE_ERRORS: dict[int, dict[str, Any]] = {
     422: {"model": ErrorResponse, "description": "The submission identifier is invalid."},
     503: {"model": ErrorResponse, "description": "Identification deletion is unavailable."},
 }
-_JOB_ERRORS = (
-    JobStorageUnavailable,
-    JobEnqueueContention,
-    JobDatabaseStateFailure,
-    JobDatabaseProgrammingFailure,
-    JobDatabaseOperationFailure,
-    JobIdempotencyConflict,
-)
 
 
 @router.get(
@@ -104,18 +87,19 @@ async def get_identification_capabilities(
     request: Request,
 ) -> IdentificationCapabilitiesResponse | JSONResponse:
     """Expose only safe upload, solver-mode, and retention policy facts."""
-    if not request.app.state.settings.identification_enabled:
+    if not request.app.state.settings.enable_remote_astrometry:
         return _feature_unavailable(request)
     if request.query_params:
         return request_validation_error_response(request)
-    settings = request.app.state.settings
-    remote_processing = settings.enable_remote_astrometry
     return IdentificationCapabilitiesResponse(
-        solver_type="nova" if remote_processing else "fake",
-        remote_processing=remote_processing,
-        max_bytes=settings.upload_max_bytes,
-        max_pixels=settings.upload_max_pixels,
-        retention_hours=settings.upload_retention_hours,
+        solver_type="nova",
+        remote_processing=True,
+        accepted_media_types=("image/jpeg", "image/png"),
+        max_bytes=request.app.state.settings.upload_max_bytes,
+        max_pixels=request.app.state.settings.upload_max_pixels,
+        min_dimension_px=32,
+        retention_hours=request.app.state.settings.upload_retention_hours,
+        deletion_supported=True,
     )
 
 
@@ -131,26 +115,18 @@ async def create_identification_submission(
     file: Annotated[UploadFile, File()],
     consent_remote_processing: Annotated[bool, Form()] = False,
 ) -> IdentificationCreateResponse | JSONResponse:
-    """Accept one bounded private raster for the configured identification solver."""
-    if not request.app.state.settings.identification_enabled:
+    """Accept one bounded private raster for consented remote plate solving."""
+    if not request.app.state.settings.enable_remote_astrometry:
         return _feature_unavailable(request)
     if request.query_params:
         return request_validation_error_response(request)
     settings = request.app.state.settings
-    if settings.enable_remote_astrometry:
-        if not consent_remote_processing:
-            return error_response(
-                request,
-                status_code=422,
-                code="identification.remote_consent_required",
-                message="Remote image processing requires explicit consent.",
-            )
-    elif consent_remote_processing:
+    if not consent_remote_processing:
         return error_response(
             request,
             status_code=422,
-            code="feature.not_available",
-            message="Remote image processing is not available.",
+            code="identification.remote_consent_required",
+            message="Remote image processing requires explicit consent.",
         )
     try:
         content = await file.read(settings.upload_max_bytes + 1)
@@ -167,26 +143,10 @@ async def create_identification_submission(
         )
 
     try:
-        if settings.enable_remote_astrometry:
-            remote_service: StartRemoteIdentificationService = (
-                request.app.state.identification_remote_start_service
-            )
-            started = await remote_service.start(
-                content,
-                original_filename=file.filename,
-                declared_media_type=file.content_type,
-            )
-            return IdentificationCreateResponse(
-                submission_id=started.submission_id,
-                job_id=None,
-                status="submitting",
-                solver_type="nova",
-                remote_processing=True,
-                retention_hours=settings.upload_retention_hours,
-            )
-
-        service: SubmitIdentificationService = request.app.state.identification_submit_service
-        submitted = await service.submit(
+        remote_service: StartRemoteIdentificationService = (
+            request.app.state.identification_remote_start_service
+        )
+        started = await remote_service.start(
             content,
             original_filename=file.filename,
             declared_media_type=file.content_type,
@@ -215,16 +175,15 @@ async def create_identification_submission(
         UploadStorageIntegrityError,
         PrivateStorageError,
         RemoteStateStorageFailure,
-        *_JOB_ERRORS,
     ):
         return _unavailable(request)
 
     return IdentificationCreateResponse(
-        submission_id=submitted.submission_id,
-        job_id=submitted.job_id,
-        status="queued",
-        solver_type="fake",
-        remote_processing=False,
+        submission_id=started.submission_id,
+        job_id=None,
+        status="submitting",
+        solver_type="nova",
+        remote_processing=True,
         retention_hours=settings.upload_retention_hours,
     )
 
@@ -240,8 +199,8 @@ async def get_identification_submission(
     response: Response,
     submission_id: UUID,
 ) -> IdentificationStatusResponse | JSONResponse:
-    """Return only safe lifecycle state and a validated synthetic result."""
-    if not request.app.state.settings.identification_enabled:
+    """Return safe lifecycle state and any compatible persisted result."""
+    if not request.app.state.settings.enable_remote_astrometry:
         return _feature_unavailable(request)
     if request.query_params:
         return request_validation_error_response(request)
@@ -262,7 +221,17 @@ async def get_identification_submission(
         SolutionStorageFailure,
     ):
         return _unavailable(request)
-    result = FakeSolverResultResponse() if status.fake_result is not None else None
+    legacy_result = status.fake_result
+    result = (
+        FakeSolverResultResponse(
+            outcome=legacy_result.outcome,
+            solver_type=legacy_result.solver_type,
+            solver_version=legacy_result.solver_version,
+            synthetic=legacy_result.synthetic,
+        )
+        if legacy_result is not None
+        else None
+    )
     response.headers["Cache-Control"] = "private, no-store"
     return IdentificationStatusResponse(
         submission_id=status.submission_id,
@@ -298,7 +267,7 @@ async def get_identification_solution(
     ] = None,
 ) -> IdentificationSolutionResponse | JSONResponse:
     """Return one bounded page of a stored normalized remote astrometric solution."""
-    if not request.app.state.settings.identification_enabled:
+    if not request.app.state.settings.enable_remote_astrometry:
         return _feature_unavailable(request)
     if (
         any(key != "cursor" for key in request.query_params)
@@ -378,7 +347,7 @@ async def get_identification_solution(
 )
 async def delete_identification_submission(request: Request, submission_id: UUID) -> Response:
     """Delete private bytes and scrub private metadata; repeat deletion is safe."""
-    if not request.app.state.settings.identification_enabled:
+    if not request.app.state.settings.enable_remote_astrometry:
         return _feature_unavailable(request)
     if request.query_params:
         return request_validation_error_response(request)

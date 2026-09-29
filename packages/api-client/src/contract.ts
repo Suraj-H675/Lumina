@@ -162,24 +162,16 @@ export const metaEndpoint = {
   validator: zMetaResponse,
 } satisfies ApiEndpoint<MetaResponse, MetadataApiV1MetaGetData["url"]>;
 
-const identificationCapabilitiesValidator = zGetIdentificationCapabilitiesResponse.superRefine(
-  (value, context) => {
-    if ((value.solver_type === "nova") !== value.remote_processing) {
-      context.addIssue({ code: "custom", message: "incoherent identification mode" });
-    }
-  },
-);
-
 export const identificationCapabilitiesEndpoint = {
   method: "GET",
   path: "/api/v1/identification/capabilities" satisfies GetIdentificationCapabilitiesData["url"],
-  validator: identificationCapabilitiesValidator,
+  validator: zGetIdentificationCapabilitiesResponse,
 } satisfies ApiEndpoint<
   IdentificationCapabilitiesResponse,
   GetIdentificationCapabilitiesData["url"]
 >;
 
-const fakeIdentificationStates = new Set([
+const legacyFakeIdentificationStates = new Set([
   "queued",
   "running",
   "succeeded",
@@ -201,11 +193,11 @@ const novaIdentificationStates = new Set([
 
 export const identificationStatusValidator = zGetIdentificationSubmissionResponse.superRefine(
   (value, context) => {
-    const fake =
+    const legacyFake =
       value.solver_type === "fake" &&
       !value.remote_processing &&
       value.job_id !== null &&
-      fakeIdentificationStates.has(value.status) &&
+      legacyFakeIdentificationStates.has(value.status) &&
       !value.solution_available &&
       value.remote_condition === null &&
       (value.status === "succeeded") === (value.result !== null);
@@ -230,7 +222,7 @@ export const identificationStatusValidator = zGetIdentificationSubmissionRespons
       (value.error_code === "provider_busy") ===
         (value.remote_condition === "provider_busy" && value.status === "failed") &&
       value.solution_available === (value.status === "succeeded");
-    if (!(fake || nova)) {
+    if (!(legacyFake || nova)) {
       context.addIssue({ code: "custom", message: "incoherent identification status" });
     }
   },

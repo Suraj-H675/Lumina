@@ -30,16 +30,15 @@ vi.mock("@nova-lumina/api-client", () => ({
 import { IdentifyView } from "../src/app/identify/identify-view";
 
 const submissionId = "71000000-0000-4000-8000-000000000001";
-const jobId = "72000000-0000-4000-8000-000000000001";
 const capabilities: IdentificationCapabilitiesResponse = {
   accepted_media_types: ["image/jpeg", "image/png"] as Array<"image/jpeg" | "image/png">,
   deletion_supported: true as const,
   max_bytes: 25 * 1024 * 1024,
   max_pixels: 50_000_000,
   min_dimension_px: 32 as const,
-  remote_processing: false as const,
+  remote_processing: true as const,
   retention_hours: 24,
-  solver_type: "fake" as const,
+  solver_type: "nova" as const,
 };
 const remoteSolutionBase = {
   calibration: {
@@ -62,12 +61,6 @@ const remoteSolutionBase = {
     image_width: 100,
     source_sha256: "a".repeat(64),
   },
-};
-
-const remoteCapabilities: IdentificationCapabilitiesResponse = {
-  ...capabilities,
-  remote_processing: true,
-  solver_type: "nova" as const,
 };
 
 function renderIdentify(
@@ -111,12 +104,10 @@ describe("Identify consent and deletion flow", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Identify an astronomical image" }),
     ).toBeVisible();
-    expect(screen.getByText(/No remote plate-solving service is contacted/i)).toBeVisible();
-    expect(screen.getByText(/configured retention period is 24 hours/i)).toBeVisible();
+    expect(screen.getByText(/Remote processing requires your consent/i)).toBeVisible();
+    expect(screen.getByText(/configured local retention period is 24 hours/i)).toBeVisible();
     expect(screen.getByText(/25 MiB and 50,000,000 pixels/i)).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Start private infrastructure check" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Start remote plate solve" })).toBeDisabled();
     expect((await axe(container)).violations).toHaveLength(0);
   });
 
@@ -144,7 +135,7 @@ describe("Identify consent and deletion flow", () => {
       },
     };
 
-    renderIdentify(remoteCapabilities, messages);
+    renderIdentify(capabilities, messages);
 
     expect(screen.getByRole("heading", { level: 1, name: "Fixture identify title" })).toBeVisible();
     expect(screen.getByText("Fixture remote Identify")).toBeVisible();
@@ -170,51 +161,10 @@ describe("Identify consent and deletion flow", () => {
       target: { files: [new File(["private"], "private.txt", { type: "text/plain" })] },
     });
     await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: "Start private infrastructure check" }));
+    await user.click(screen.getByRole("button", { name: "Start remote plate solve" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("Choose a JPEG or PNG image.");
     expect(fake.create).not.toHaveBeenCalled();
-  });
-
-  it("uploads a private image, exposes only the opaque job id, and requires two-step deletion", async () => {
-    fake.create.mockResolvedValue({
-      data: {
-        job_id: jobId,
-        remote_processing: false,
-        retention_hours: 24,
-        solver_type: "fake",
-        status: "queued",
-        submission_id: submissionId,
-      },
-      kind: "ok",
-      status: 202,
-    });
-    fake.delete.mockResolvedValue({ data: null, kind: "ok", status: 204 });
-    const user = userEvent.setup();
-    renderIdentify();
-
-    const file = new File(["private-image"], "night.png", { type: "image/png" });
-    await user.upload(screen.getByLabelText("JPEG or PNG image"), file);
-    await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: "Start private infrastructure check" }));
-
-    expect(fake.create).toHaveBeenCalledWith("http://127.0.0.1:8000", file, "night.png", {
-      consentRemoteProcessing: false,
-    });
-    const statusRegion = screen.getByRole("region", {
-      name: "Identification infrastructure status",
-    });
-    expect(within(statusRegion).getByText(new RegExp(jobId))).toBeVisible();
-    expect(document.body.textContent).not.toContain(submissionId);
-
-    await user.click(within(statusRegion).getByRole("button", { name: "Delete temporary upload" }));
-    expect(within(statusRegion).getByRole("button", { name: "Confirm delete" })).toBeVisible();
-    await user.click(within(statusRegion).getByRole("button", { name: "Confirm delete" }));
-
-    await waitFor(() =>
-      expect(fake.delete).toHaveBeenCalledWith("http://127.0.0.1:8000", submissionId),
-    );
-    expect(screen.getByRole("status", { name: "Temporary submission deleted" })).toBeVisible();
   });
 
   it("requires explicit third-party consent before starting a Nova solve", async () => {
@@ -231,7 +181,7 @@ describe("Identify consent and deletion flow", () => {
       status: 202,
     });
     const user = userEvent.setup();
-    renderIdentify(remoteCapabilities);
+    renderIdentify();
 
     expect(screen.getByText(/third-party Astrometry.net Nova service/i)).toBeVisible();
     expect(screen.getByText(/remote deletion and retention/i)).toBeVisible();
@@ -288,7 +238,7 @@ describe("Identify consent and deletion flow", () => {
       status: 200,
     });
     const user = userEvent.setup();
-    renderIdentify(remoteCapabilities);
+    renderIdentify();
 
     await user.upload(
       screen.getByLabelText("JPEG or PNG image"),
@@ -341,7 +291,7 @@ describe("Identify consent and deletion flow", () => {
       status: 200,
     });
     const user = userEvent.setup();
-    const view = renderIdentify(remoteCapabilities);
+    const view = renderIdentify();
 
     await user.upload(
       screen.getByLabelText("JPEG or PNG image"),
@@ -391,7 +341,7 @@ describe("Identify consent and deletion flow", () => {
       status: 200,
     });
     const user = userEvent.setup();
-    renderIdentify(remoteCapabilities);
+    renderIdentify();
 
     await user.upload(
       screen.getByLabelText("JPEG or PNG image"),
@@ -481,7 +431,7 @@ describe("Identify consent and deletion flow", () => {
       });
     fake.delete.mockResolvedValue({ data: null, kind: "ok", status: 204 });
     const user = userEvent.setup();
-    renderIdentify(remoteCapabilities);
+    renderIdentify();
 
     await user.upload(
       screen.getByLabelText("JPEG or PNG image"),
@@ -586,7 +536,7 @@ describe("Identify consent and deletion flow", () => {
         status: 200,
       });
     const user = userEvent.setup();
-    renderIdentify(remoteCapabilities);
+    renderIdentify();
 
     await user.upload(
       screen.getByLabelText("JPEG or PNG image"),
@@ -603,68 +553,4 @@ describe("Identify consent and deletion flow", () => {
     expect(screen.queryByText("Orion Nebula")).not.toBeInTheDocument();
   });
 
-  it("polls the generated status endpoint and labels fake success as non-astrometric", async () => {
-    fake.create.mockResolvedValue({
-      data: {
-        job_id: jobId,
-        remote_processing: false,
-        retention_hours: 24,
-        solver_type: "fake",
-        status: "queued",
-        submission_id: submissionId,
-      },
-      kind: "ok",
-      status: 202,
-    });
-    fake.request.mockResolvedValue({
-      data: {
-        completed_at: "2026-09-15T12:00:01Z",
-        created_at: "2026-09-15T12:00:00Z",
-        deleted_at: null,
-        error_code: null,
-        job_id: jobId,
-        progress: 1,
-        remote_condition: null,
-        remote_processing: false,
-        result: {
-          outcome: "fixture_solved",
-          solver_type: "fake",
-          solver_version: "synthetic-fixture-v1",
-          synthetic: true,
-        },
-        retention_hours: 24,
-        solution_available: false,
-        solver_type: "fake",
-        status: "succeeded",
-        submission_id: submissionId,
-      },
-      kind: "ok",
-      status: 200,
-    });
-    const user = userEvent.setup();
-    const messages: IdentifyMessages = {
-      ...enMessages.identify,
-      status: {
-        ...enMessages.identify.status,
-        heading: "Fixture identification status",
-        labels: {
-          ...enMessages.identify.status.labels,
-          fakeSucceeded: "Fixture fake solver completed",
-        },
-      },
-    };
-    renderIdentify(capabilities, messages);
-
-    await user.upload(
-      screen.getByLabelText("JPEG or PNG image"),
-      new File(["private"], "night.png", { type: "image/png" }),
-    );
-    await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: "Start private infrastructure check" }));
-    await waitFor(() => expect(fake.request).toHaveBeenCalledOnce(), { timeout: 2_500 });
-    expect(screen.getByRole("region", { name: "Fixture identification status" })).toBeVisible();
-    expect(screen.getByText("Fixture fake solver completed", { exact: true })).toBeVisible();
-    expect(screen.getByText(/This is not an astrometric solution/i)).toBeVisible();
-    expect(screen.queryByText(/RA\/Dec/i)).toBeVisible();
-  });
 });

@@ -39,7 +39,6 @@ LUMINA_CORS_ORIGINS=https://<public-web-origin>
 LUMINA_BUILD_COMMIT=<deployed git sha>
 LUMINA_DATABASE_TLS_MODE=verify-full
 LUMINA_DATABASE_URL=postgresql+asyncpg://<runtime-role>:<password>@<host>:<port>/<database>
-LUMINA_ENABLE_IDENTIFICATION=false
 LUMINA_ENABLE_REMOTE_ASTROMETRY=false
 ```
 

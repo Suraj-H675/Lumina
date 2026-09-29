@@ -1148,9 +1148,6 @@ export const enMessages = {
       title: "Capture checks",
     },
     header: {
-      localDescription:
-        "This local mode exercises Nova-Lumina's private upload, job, retention, and deletion workflow. The solver is a deterministic test fixture: it does not identify the sky and does not return astrometric coordinates.",
-      localEyebrow: "Identify · local privacy workflow",
       remoteDescription:
         "Nova-Lumina can send one explicitly consented image to {service} for private plate solving, then normalize the returned astrometric calibration, WCS, and annotations.",
       remoteEyebrow: "Identify · remote plate solving",
@@ -1217,18 +1214,10 @@ export const enMessages = {
     },
     metadata: {
       description:
-        "Upload an astronomical image for Nova-Lumina's private identification workflow. Remote plate solving is used only when explicitly enabled and consented to.",
+        "Upload an astronomical image for Nova-Lumina's explicitly consented private plate-solving workflow.",
       title: "Identify an astronomical image",
     },
     privacy: {
-      local: {
-        deletion:
-          "Deletion removes the private object and scrubs filename/hash metadata from the temporary record.",
-        fakeSolver:
-          "The fake solver verifies workflow integrity only; a success state is not a sky identification.",
-        noRemote: "No remote plate-solving service is contacted; remote processing is disabled.",
-        title: "Private by design",
-      },
       remote: {
         deletion:
           "Deleting here removes Nova-Lumina's local temporary object and scrubs identifying local metadata. {provider} controls any provider-side retention or deletion limitations.",
@@ -1240,8 +1229,6 @@ export const enMessages = {
         unsolved:
           "A remote solve can finish without finding an astrometric solution; Nova-Lumina reports that separately from processing failure.",
       },
-      retentionLocal:
-        "The configured retention period is {hours} hours. Terminal jobs are eligible for cleanup after the retention policy; abandoned uploads are also bounded.",
       retentionRemote:
         "The configured local retention period is {hours} hours. Terminal jobs are eligible for cleanup after the retention policy; abandoned uploads are also bounded.",
     },
@@ -1353,18 +1340,14 @@ export const enMessages = {
         confirmGroupLabel: "Confirm temporary submission deletion",
         deleteUpload: "Delete temporary upload",
         keepSubmission: "Keep submission",
-        localDescription: "Deletion is available before or after the fake job finishes.",
         remoteDescription:
           "Local deletion is available before or after the remote solve finishes; it does not promise deletion from {provider}.",
       },
       errorTitle: "Upload not started",
       eyebrow: "Temporary job",
       heading: "Identification infrastructure status",
-      initialLocal: "Queued. Waiting for the first private status update…",
       initialRemote: "Submitting. Waiting for the first private remote-solve status update…",
-      jobIdLabel: "Job ID:",
       labels: {
-        fakeSucceeded: "Fake solver completed",
         progressLabel: "Progress:",
         remoteSucceeded: "Remote solver completed",
         stateCreated: "Created",
@@ -1375,7 +1358,7 @@ export const enMessages = {
         stateFetchingResults: "Fetching normalized results",
         stateQueued: "Queued",
         stateRemoteRunning: "Remote solver running",
-        stateRunningFake: "Running fake solver",
+        stateRunning: "Running",
         stateSubmittingRemote: "Submitting to remote solver",
         stateUnsolved: "No astrometric solution",
         stateWaitingRemote: "Waiting for remote solver",
@@ -1395,10 +1378,6 @@ export const enMessages = {
       },
       results: {
         expired: "The remote solve did not finish within Nova-Lumina's configured timeout.",
-        fakeFailure: "The fake identification job could not complete safely.",
-        fakeSuccessDescription:
-          "The deterministic fake solver completed the private workflow. This is not an astrometric solution and contains no RA/Dec, WCS, orientation, scale, or detected objects.",
-        fakeSuccessTitle: "Infrastructure check completed.",
         remoteFailure: "The remote plate-solving workflow could not complete safely.",
         remoteSuccessDescription:
           "Nova-Lumina stored a normalized plate calibration, WCS, and bounded annotations. The WCS-backed result and browser-local image overlay load below; provider credentials and provider identifiers remain private.",
@@ -1414,8 +1393,6 @@ export const enMessages = {
         unavailableTitle: "Solution temporarily unavailable",
       },
       uploading: {
-        localDescription: "Validating and storing the bounded image before the fake job is queued.",
-        localTitle: "Uploading privately",
         remoteDescription:
           "Validating the bounded image and creating a consented remote solve before provider processing begins.",
         remoteTitle: "Preparing remote plate solve",
@@ -1434,15 +1411,11 @@ export const enMessages = {
     },
     upload: {
       actions: {
-        startLocal: "Start private infrastructure check",
         startRemote: "Start remote plate solve",
-        uploadingLocal: "Uploading privately…",
         uploadingRemote: "Uploading for remote solve…",
       },
       bound:
         "Current bound: {maxBytes} and {maxPixels} pixels; each dimension must be at least {minDimension}px.",
-      consentLocal:
-        "I understand that Nova-Lumina will temporarily store and process this image on the server for this identification job. No remote {provider} service is contacted in this mode, and I can delete the temporary submission below.",
       consentRemote:
         "I explicitly consent to Nova-Lumina temporarily storing this image and sending its bytes to the third-party {service} service for private plate solving. Deleting the submission below removes Nova-Lumina's local temporary copy and identifying metadata; remote deletion and retention remain subject to {provider}'s service limitations.",
       description:

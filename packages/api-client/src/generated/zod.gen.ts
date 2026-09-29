@@ -278,10 +278,10 @@ export const zErrorResponse = z.object({
  * FakeSolverResultResponse
  */
 export const zFakeSolverResultResponse = z.object({
-  outcome: z.literal("fixture_solved").optional().default("fixture_solved"),
-  solver_type: z.literal("fake").optional().default("fake"),
-  solver_version: z.literal("synthetic-fixture-v1").optional().default("synthetic-fixture-v1"),
-  synthetic: z.literal(true).optional().default(true),
+  outcome: z.literal("fixture_solved"),
+  solver_type: z.literal("fake"),
+  solver_version: z.literal("synthetic-fixture-v1"),
+  synthetic: z.literal(true),
 });
 
 /**
@@ -330,28 +330,25 @@ export const zIdentificationCalibrationResponse = z.object({
  * IdentificationCapabilitiesResponse
  */
 export const zIdentificationCapabilitiesResponse = z.object({
-  accepted_media_types: z
-    .array(z.enum(["image/jpeg", "image/png"]))
-    .optional()
-    .default(["image/jpeg", "image/png"]),
-  deletion_supported: z.literal(true).optional().default(true),
+  accepted_media_types: z.array(z.enum(["image/jpeg", "image/png"])),
+  deletion_supported: z.literal(true),
   max_bytes: z.int().gte(1).lte(104857600),
   max_pixels: z.int().gte(1).lte(100000000),
-  min_dimension_px: z.literal(32).optional().default(32),
-  remote_processing: z.boolean(),
+  min_dimension_px: z.literal(32),
+  remote_processing: z.literal(true),
   retention_hours: z.int().gte(1).lte(168),
-  solver_type: z.enum(["fake", "nova"]),
+  solver_type: z.literal("nova"),
 });
 
 /**
  * IdentificationCreateResponse
  */
 export const zIdentificationCreateResponse = z.object({
-  job_id: z.uuid().nullable(),
-  remote_processing: z.boolean(),
+  job_id: z.null(),
+  remote_processing: z.literal(true),
   retention_hours: z.int().gte(1).lte(168),
-  solver_type: z.enum(["fake", "nova"]),
-  status: z.enum(["queued", "submitting"]),
+  solver_type: z.literal("nova"),
+  status: z.literal("submitting"),
   submission_id: z.uuid(),
 });
 

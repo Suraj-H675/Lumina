@@ -1,12 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import {
-  setIdentificationStubCondition,
-  setIdentificationStubMode,
-} from "./support/status-stub-control";
-
-const jobId = "72000000-0000-4000-8000-000000000001";
+import { setIdentificationStubCondition } from "./support/status-stub-control";
 const WWT_HOSTS = new Set([
   "web.wwtassets.org",
   "cdn.worldwidetelescope.org",
@@ -31,7 +26,7 @@ test.describe("Private identification", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({}, testInfo) => {
-    await setIdentificationStubMode(testInfo, "fake");
+    await setIdentificationStubCondition(testInfo, "none");
   });
   test("keeps the authoritative privacy and retention policy useful without JavaScript", async ({
     browser,
@@ -44,8 +39,8 @@ test.describe("Private identification", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Identify an astronomical image" }),
     ).toBeVisible();
-    await expect(page.getByText(/No remote plate-solving service is contacted/i)).toBeVisible();
-    await expect(page.getByText(/configured retention period is 24 hours/i)).toBeVisible();
+    await expect(page.getByText(/Remote processing requires your consent/i)).toBeVisible();
+    await expect(page.getByText(/configured local retention period is 24 hours/i)).toBeVisible();
     await expect(
       page.getByText(
         /JavaScript is required to upload, poll this temporary job, and request deletion/i,
@@ -55,51 +50,9 @@ test.describe("Private identification", () => {
     await context.close();
   });
 
-  test("runs the fake private job to synthetic success and deletes it explicitly", async ({
-    page,
-  }) => {
-    const remoteRequests: string[] = [];
-    const statusRequests: string[] = [];
-    page.on("request", (request) => {
-      const url = new URL(request.url());
-      if (!["127.0.0.1", "localhost"].includes(url.hostname)) remoteRequests.push(request.url());
-      if (
-        request.method() === "GET" &&
-        /\/api\/v1\/identification\/submissions\/[0-9a-f-]{36}$/u.test(url.pathname)
-      ) {
-        statusRequests.push(request.url());
-      }
-    });
-
-    await page.goto("/identify");
-    await page.getByLabel("JPEG or PNG image").setInputFiles(image);
-    await page.getByRole("checkbox").check();
-    await page.getByRole("button", { name: "Start private infrastructure check" }).click();
-
-    await expect(page.getByText(new RegExp(jobId))).toBeVisible();
-    await expect(page.getByRole("status").filter({ hasText: "Fake solver completed" })).toBeVisible(
-      {
-        timeout: 4_000,
-      },
-    );
-    await expect(page.getByText(/This is not an astrometric solution/i)).toBeVisible();
-    await expect(
-      page.getByText(/No RA\/Dec, WCS, orientation, scale, or detected objects/i),
-    ).toBeVisible();
-    expect(statusRequests.length).toBeGreaterThanOrEqual(1);
-
-    await page.getByRole("button", { name: "Delete temporary upload" }).click();
-    await expect(page.getByRole("button", { name: "Confirm delete" })).toBeVisible();
-    await page.getByRole("button", { name: "Confirm delete" }).click();
-    await expect(page.getByRole("status", { name: "Temporary submission deleted" })).toBeVisible();
-
-    expect(remoteRequests).toEqual([]);
-  });
-
   test("shows truthful Nova capacity and outage states without browser-direct provider traffic", async ({
     page,
   }, testInfo) => {
-    await setIdentificationStubMode(testInfo, "nova");
     await setIdentificationStubCondition(testInfo, "busy");
     const novaBrowserRequests: string[] = [];
     const solutionRequests: string[] = [];
@@ -129,8 +82,7 @@ test.describe("Private identification", () => {
 
   test("requires explicit Nova consent and keeps provider identifiers private", async ({
     page,
-  }, testInfo) => {
-    await setIdentificationStubMode(testInfo, "nova");
+  }) => {
     const novaBrowserRequests: string[] = [];
     const solutionRequests: string[] = [];
     const identificationRequests: string[] = [];
@@ -156,7 +108,7 @@ test.describe("Private identification", () => {
     await start.click();
 
     await expect(page.getByText(/provider identifiers are kept private/i)).toBeVisible();
-    await expect(page.getByText(new RegExp(jobId))).toHaveCount(0);
+    await expect(page.getByText(/Job ID:/i)).toHaveCount(0);
     await expect(
       page.getByRole("status").filter({ hasText: "Remote solver completed" }),
     ).toBeVisible({
@@ -215,8 +167,7 @@ test.describe("Private identification", () => {
 
   test("opens reviewed survey context only after explicit activation", async ({
     page,
-  }, testInfo) => {
-    await setIdentificationStubMode(testInfo, "nova");
+  }) => {
     const wwtRequests: Array<{ body: string | null; url: string }> = [];
     await page.route("https://cdn.worldwidetelescope.org/**", async (route) => {
       if (route.request().url() === DSS_ROOT_TILE) {
@@ -257,8 +208,7 @@ test.describe("Private identification", () => {
 
   test("keeps the local solved image available when WebGL survey rendering is unavailable", async ({
     page,
-  }, testInfo) => {
-    await setIdentificationStubMode(testInfo, "nova");
+  }) => {
     await page.route("https://cdn.worldwidetelescope.org/**", async (route) => {
       if (route.request().url() === DSS_ROOT_TILE) {
         await route.fulfill({ body: ONE_PIXEL_PNG, contentType: "image/png", status: 200 });
@@ -312,7 +262,7 @@ test.describe("Private identification", () => {
       name: "private.txt",
     });
     await page.getByRole("checkbox").check();
-    await page.getByRole("button", { name: "Start private infrastructure check" }).click();
+    await page.getByRole("button", { name: "Start remote plate solve" }).click();
 
     await expect(page.getByRole("alert", { name: "Upload not started" })).toContainText(
       "Choose a JPEG or PNG image.",
@@ -330,7 +280,7 @@ test.describe("Private identification", () => {
         () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
       ),
     ).toBe(true);
-    const submit = page.getByRole("button", { name: "Start private infrastructure check" });
+    const submit = page.getByRole("button", { name: "Start remote plate solve" });
     expect((await submit.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);

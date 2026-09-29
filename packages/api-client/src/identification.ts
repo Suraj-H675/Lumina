@@ -22,7 +22,7 @@ export const IDENTIFICATION_SOLUTION_MAX_RESPONSE_BYTES = 1_048_576;
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 type UploadOptions = Readonly<{
-  consentRemoteProcessing?: boolean;
+  consentRemoteProcessing: true;
   fetchImplementation?: typeof fetch;
   signal?: AbortSignal;
   timeoutMs?: number;
@@ -73,21 +73,6 @@ async function readBoundedJson(
   }
 }
 
-function coherentCreateResponse(value: IdentificationCreateResponse): boolean {
-  const fake =
-    value.solver_type === "fake" &&
-    !value.remote_processing &&
-    value.status === "queued" &&
-    typeof value.job_id === "string" &&
-    UUID_V4.test(value.job_id);
-  const nova =
-    value.solver_type === "nova" &&
-    value.remote_processing &&
-    value.status === "submitting" &&
-    value.job_id === null;
-  return fake || nova;
-}
-
 function timeoutValue(value: number | undefined, maximum: number): number | null {
   const resolved = value ?? maximum;
   return Number.isInteger(resolved) && resolved >= 1 && resolved <= maximum ? resolved : null;
@@ -125,15 +110,13 @@ export async function createIdentificationSubmission(
   origin: string,
   file: Blob,
   filename: string,
-  options: UploadOptions = {},
+  options: UploadOptions,
 ): Promise<ApiTransportResult<IdentificationCreateResponse>> {
   const normalized = normalizeApiOrigin(origin);
   const timeoutMs = timeoutValue(options.timeoutMs, IDENTIFICATION_UPLOAD_TIMEOUT_MS);
-  const consentRemoteProcessing = options.consentRemoteProcessing ?? false;
   if (
     !normalized.valid ||
     timeoutMs === null ||
-    typeof consentRemoteProcessing !== "boolean" ||
     !(file instanceof Blob) ||
     typeof filename !== "string" ||
     filename.length === 0
@@ -142,7 +125,7 @@ export async function createIdentificationSubmission(
   }
   const body = new FormData();
   body.append("file", file, filename);
-  body.append("consent_remote_processing", consentRemoteProcessing ? "true" : "false");
+  body.append("consent_remote_processing", "true");
   const outcome = await runTimed(timeoutMs, options.signal, async (signal, controller) => {
     const response = await (options.fetchImplementation ?? fetch)(
       new URL("/api/v1/identification/submissions", `${normalized.origin}/`),
@@ -162,7 +145,7 @@ export async function createIdentificationSubmission(
     try {
       const raw = await readBoundedJson(response, controller, MAX_RESPONSE_BYTES);
       const parsed = validateExactGenerated(zIdentificationCreateResponse, raw);
-      return parsed.valid && coherentCreateResponse(parsed.data)
+      return parsed.valid
         ? ({ data: parsed.data, kind: "ok", status: response.status } as const)
         : ({ kind: "malformed-response" } as const);
     } catch {

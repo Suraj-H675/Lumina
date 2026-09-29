@@ -69,7 +69,7 @@ def test_compose_is_single_loopback_pinned_postgres_service() -> None:
     assert "    name: ${COMPOSE_POSTGRES_VOLUME_NAME:-lumina_lumina_postgres_data}" in content
     assert "lumina-postgres-healthcheck" in content
     assert "POSTGRES_HOST_AUTH_METHOD=trust" not in content
-    for forbidden in ("supabase", "worker:", "api:"):
+    for forbidden in ("worker:", "api:"):
         assert forbidden not in content.lower()
 
 

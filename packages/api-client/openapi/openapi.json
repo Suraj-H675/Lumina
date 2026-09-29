@@ -1038,29 +1038,31 @@
         "properties": {
           "outcome": {
             "const": "fixture_solved",
-            "default": "fixture_solved",
             "title": "Outcome",
             "type": "string"
           },
           "solver_type": {
             "const": "fake",
-            "default": "fake",
             "title": "Solver Type",
             "type": "string"
           },
           "solver_version": {
             "const": "synthetic-fixture-v1",
-            "default": "synthetic-fixture-v1",
             "title": "Solver Version",
             "type": "string"
           },
           "synthetic": {
             "const": true,
-            "default": true,
             "title": "Synthetic",
             "type": "boolean"
           }
         },
+        "required": [
+          "outcome",
+          "solver_type",
+          "solver_version",
+          "synthetic"
+        ],
         "title": "FakeSolverResultResponse",
         "type": "object"
       },
@@ -1225,10 +1227,6 @@
         "additionalProperties": false,
         "properties": {
           "accepted_media_types": {
-            "default": [
-              "image/jpeg",
-              "image/png"
-            ],
             "items": {
               "enum": [
                 "image/jpeg",
@@ -1241,7 +1239,6 @@
           },
           "deletion_supported": {
             "const": true,
-            "default": true,
             "title": "Deletion Supported",
             "type": "boolean"
           },
@@ -1259,11 +1256,11 @@
           },
           "min_dimension_px": {
             "const": 32,
-            "default": 32,
             "title": "Min Dimension Px",
             "type": "integer"
           },
           "remote_processing": {
+            "const": true,
             "title": "Remote Processing",
             "type": "boolean"
           },
@@ -1274,10 +1271,7 @@
             "type": "integer"
           },
           "solver_type": {
-            "enum": [
-              "fake",
-              "nova"
-            ],
+            "const": "nova",
             "title": "Solver Type",
             "type": "string"
           }
@@ -1285,9 +1279,12 @@
         "required": [
           "solver_type",
           "remote_processing",
+          "accepted_media_types",
           "max_bytes",
           "max_pixels",
-          "retention_hours"
+          "min_dimension_px",
+          "retention_hours",
+          "deletion_supported"
         ],
         "title": "IdentificationCapabilitiesResponse",
         "type": "object"
@@ -1296,18 +1293,11 @@
         "additionalProperties": false,
         "properties": {
           "job_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Job Id"
+            "title": "Job Id",
+            "type": "null"
           },
           "remote_processing": {
+            "const": true,
             "title": "Remote Processing",
             "type": "boolean"
           },
@@ -1318,18 +1308,12 @@
             "type": "integer"
           },
           "solver_type": {
-            "enum": [
-              "fake",
-              "nova"
-            ],
+            "const": "nova",
             "title": "Solver Type",
             "type": "string"
           },
           "status": {
-            "enum": [
-              "queued",
-              "submitting"
-            ],
+            "const": "submitting",
             "title": "Status",
             "type": "string"
           },
@@ -7501,7 +7485,7 @@
     },
     "/api/v1/identification/submissions": {
       "post": {
-        "description": "Accept one bounded private raster for the configured identification solver.",
+        "description": "Accept one bounded private raster for consented remote plate solving.",
         "operationId": "create_identification_submission",
         "requestBody": {
           "content": {
@@ -7628,7 +7612,7 @@
         ]
       },
       "get": {
-        "description": "Return only safe lifecycle state and a validated synthetic result.",
+        "description": "Return safe lifecycle state and any compatible persisted result.",
         "operationId": "get_identification_submission",
         "parameters": [
           {

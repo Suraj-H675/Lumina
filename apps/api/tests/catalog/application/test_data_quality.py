@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -196,12 +195,3 @@ async def test_changed_original_lexeme_fails_the_source_fact_gate() -> None:
         await ReviewedSliceDataQualityService(
             _Repository(invalid), build_reviewed_gaia_commands
         ).check(REVIEWED_SLICE_ID)
-
-
-def test_permanent_service_never_mentions_the_value_selection_relation() -> None:
-    source = Path("apps/api/src/lumina/catalog/application/data_quality.py").read_text(
-        encoding="utf-8"
-    )
-
-    assert "canonical_measurement" not in source
-    assert "selection_state" not in source

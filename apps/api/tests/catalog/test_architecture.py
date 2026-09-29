@@ -86,5 +86,10 @@ def test_permanent_reviewed_slice_gate_does_not_depend_on_value_selection_state(
         ),
     )
 
-    assert all("canonical_measurement" not in source for source in sources)
-    assert all("selection_state" not in source for source in sources)
+    for forbidden in (
+        "canonical_measurement",
+        "selection_state",
+        "selection_rule",
+        "selection_version",
+    ):
+        assert all(forbidden not in source for source in sources)

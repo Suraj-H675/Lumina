@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
-from pathlib import Path
 from typing import cast
 from uuid import UUID
 
@@ -319,13 +318,3 @@ async def test_rejects_a_source_record_outside_the_exact_reviewed_source_identif
         await repository.load_slice_state(_slice())
 
     assert session.closed is True
-
-
-def test_repository_source_never_queries_a_value_selection_relation_or_label() -> None:
-    source = Path(
-        "apps/api/src/lumina/catalog/infrastructure/postgresql/data_quality.py"
-    ).read_text(encoding="utf-8")
-
-    assert "canonical_measurement" not in source
-    assert "selection_rule" not in source
-    assert "selection_version" not in source

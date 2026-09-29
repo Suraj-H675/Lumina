@@ -14,3 +14,46 @@ export function isFiniteNumber(value: unknown): value is number {
 export function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
+
+export type SimulationArtifactSource = Readonly<{
+  id: string;
+  title: string;
+  organization_or_authors: string;
+  url: string;
+  accessed_at: string;
+  dataset_or_release: string;
+  record_reference: string;
+  retrieved_at: string;
+  data_date: string;
+  terms_or_licence: string;
+  citation: string;
+  claim_scope: string;
+  source_type: string;
+}>;
+
+const SIMULATION_ARTIFACT_SOURCE_KEYS = [
+  "id",
+  "title",
+  "organization_or_authors",
+  "url",
+  "accessed_at",
+  "dataset_or_release",
+  "record_reference",
+  "retrieved_at",
+  "data_date",
+  "terms_or_licence",
+  "citation",
+  "claim_scope",
+  "source_type",
+] as const satisfies ReadonlyArray<keyof SimulationArtifactSource>;
+
+export function isSimulationArtifactSource(value: unknown): value is SimulationArtifactSource {
+  if (!isRecord(value) || !hasOnlyKeys(value, SIMULATION_ARTIFACT_SOURCE_KEYS)) return false;
+  if (!SIMULATION_ARTIFACT_SOURCE_KEYS.every((key) => isNonEmptyString(value[key]))) return false;
+  try {
+    const url = new URL(value.url as string);
+    return url.protocol === "https:" && !url.username && !url.password && !url.port;
+  } catch {
+    return false;
+  }
+}

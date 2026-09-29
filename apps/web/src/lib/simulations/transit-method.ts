@@ -5,7 +5,14 @@ import {
 } from "@nova-lumina/api-client";
 
 import rawTransitArtifact from "../../../../../data/seed/transit-method-v1.json";
-import { hasOnlyKeys, isFiniteNumber, isNonEmptyString, isRecord } from "./validation";
+import {
+  isSimulationArtifactSource,
+  type SimulationArtifactSource,
+  hasOnlyKeys,
+  isFiniteNumber,
+  isNonEmptyString,
+  isRecord,
+} from "./validation";
 
 export const TRANSIT_METHOD_MODEL_VERSION = "transit-method-v1" as const;
 export const TRANSIT_METHOD_SCHEMA_VERSION = 1 as const;
@@ -24,21 +31,7 @@ export type TransitMethodState = Readonly<{
   inclination_deg: number;
 }>;
 
-export type TransitSource = Readonly<{
-  id: string;
-  title: string;
-  organization_or_authors: string;
-  url: string;
-  accessed_at: string;
-  dataset_or_release: string;
-  record_reference: string;
-  retrieved_at: string;
-  data_date: string;
-  terms_or_licence: string;
-  citation: string;
-  claim_scope: string;
-  source_type: string;
-}>;
+export type TransitSource = SimulationArtifactSource;
 
 type TransitDefinition = Readonly<{
   slug: "transit-method";
@@ -310,30 +303,7 @@ export function buildTransitLightCurveVisual(resultValue: unknown): TransitLight
 }
 
 function validateSource(source: unknown): void {
-  if (!isRecord(source)) failArtifact();
-  const keys = [
-    "id",
-    "title",
-    "organization_or_authors",
-    "url",
-    "accessed_at",
-    "dataset_or_release",
-    "record_reference",
-    "retrieved_at",
-    "data_date",
-    "terms_or_licence",
-    "citation",
-    "claim_scope",
-    "source_type",
-  ];
-  if (!hasOnlyKeys(source, keys)) failArtifact();
-  for (const key of keys) if (!isNonEmptyString(source[key])) failArtifact();
-  try {
-    const url = new URL(source.url as string);
-    if (url.protocol !== "https:" || url.username || url.password || url.port) failArtifact();
-  } catch {
-    failArtifact();
-  }
+  if (!isSimulationArtifactSource(source)) failArtifact();
 }
 
 export function validateTransitMethodArtifact(value: unknown): asserts value is TransitArtifact {

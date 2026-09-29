@@ -7,6 +7,8 @@ import {
 
 import rawRocketArtifact from "../../../../../data/seed/rocket-mission-designer-v1.json";
 import {
+  isSimulationArtifactSource,
+  type SimulationArtifactSource,
   hasOnlyKeys,
   isFiniteNumber as finite,
   isNonEmptyString as nonEmptyString,
@@ -51,21 +53,7 @@ export type RocketMissionDesignerState = Readonly<{
   stages: ReadonlyArray<RocketMissionDesignerStageState>;
 }>;
 
-export type RocketMissionDesignerSource = Readonly<{
-  id: string;
-  title: string;
-  organization_or_authors: string;
-  url: string;
-  accessed_at: string;
-  dataset_or_release: string;
-  record_reference: string;
-  retrieved_at: string;
-  data_date: string;
-  terms_or_licence: string;
-  citation: string;
-  claim_scope: string;
-  source_type: string;
-}>;
+export type RocketMissionDesignerSource = SimulationArtifactSource;
 
 type RocketMissionDesignerDefinition = Readonly<{
   slug: "rocket-mission-designer";
@@ -372,30 +360,7 @@ function failArtifact(): never {
 }
 
 function validateSource(source: unknown): void {
-  if (!isRecord(source)) failArtifact();
-  const keys = [
-    "id",
-    "title",
-    "organization_or_authors",
-    "url",
-    "accessed_at",
-    "dataset_or_release",
-    "record_reference",
-    "retrieved_at",
-    "data_date",
-    "terms_or_licence",
-    "citation",
-    "claim_scope",
-    "source_type",
-  ];
-  if (!hasOnlyKeys(source, keys)) failArtifact();
-  for (const key of keys) if (!nonEmptyString(source[key])) failArtifact();
-  try {
-    const url = new URL(source.url as string);
-    if (url.protocol !== "https:" || url.username || url.password || url.port) failArtifact();
-  } catch {
-    failArtifact();
-  }
+  if (!isSimulationArtifactSource(source)) failArtifact();
 }
 
 export function validateRocketMissionDesignerArtifact(

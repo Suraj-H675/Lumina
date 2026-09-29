@@ -31,51 +31,6 @@ _HOST_LABEL_PATTERN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?
 _BUILD_COMMIT_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 _WORKER_ID_PREFIX_PATTERN = re.compile(r"[a-z][a-z0-9_.-]{0,90}", re.ASCII)
 _PROVIDER_TRIGGER_TOKEN_PATTERN = re.compile(r"[0-9a-f]{64}", re.ASCII)
-_ALLOWED_ENVIRONMENT_KEYS = frozenset(
-    {
-        "LUMINA_ENV",
-        "LUMINA_LOG_LEVEL",
-        "LUMINA_API_HOST",
-        "LUMINA_API_PORT",
-        "LUMINA_CORS_ORIGINS",
-        "LUMINA_ENABLE_API_DOCS",
-        "LUMINA_BUILD_COMMIT",
-        "LUMINA_DATABASE_URL",
-        "LUMINA_DATABASE_TLS_MODE",
-        "LUMINA_NASA_API_KEY",
-        "LUMINA_PROVIDER_TRIGGER_TOKEN",
-        "LUMINA_DATABASE_SYNC_URL",
-        "LUMINA_CATALOG_OPERATOR_DATABASE_URL",
-        "LUMINA_TEST_DATABASE_URL",
-        "LUMINA_TEST_DATABASE_SYNC_URL",
-        "LUMINA_TEST_CATALOG_OPERATOR_DATABASE_URL",
-        "LUMINA_JOB_PAYLOAD_MAX_BYTES",
-        "LUMINA_JOB_DEFAULT_MAX_ATTEMPTS",
-        "LUMINA_JOB_ENQUEUE_WAIT_TIMEOUT_MS",
-        "LUMINA_JOB_OPERATION_WAIT_TIMEOUT_MS",
-        "LUMINA_JOB_RESULT_MAX_BYTES",
-        "LUMINA_JOB_STALE_SECONDS",
-        "LUMINA_WORKER_ID_PREFIX",
-        "LUMINA_JOB_HEARTBEAT_SECONDS",
-        "LUMINA_JOB_HANDLER_TIMEOUT_SECONDS",
-        "LUMINA_JOB_CANCELLATION_GRACE_SECONDS",
-        "LUMINA_WORKER_POLL_SECONDS",
-        "LUMINA_STORAGE_BACKEND",
-        "LUMINA_STORAGE_LOCAL_ROOT",
-        "LUMINA_ENABLE_IDENTIFICATION",
-        "LUMINA_UPLOAD_MAX_BYTES",
-        "LUMINA_UPLOAD_MAX_PIXELS",
-        "LUMINA_UPLOAD_RETENTION_HOURS",
-        "LUMINA_ENABLE_REMOTE_ASTROMETRY",
-        "LUMINA_ASTROMETRY_API_URL",
-        "LUMINA_ASTROMETRY_API_KEY",
-        "LUMINA_ASTROMETRY_PUBLICLY_VISIBLE",
-        "LUMINA_ASTROMETRY_ALLOW_MODIFICATIONS",
-        "LUMINA_ASTROMETRY_ALLOW_COMMERCIAL_USE",
-        "LUMINA_ASTROMETRY_POLL_SECONDS",
-        "LUMINA_ASTROMETRY_TIMEOUT_SECONDS",
-    }
-)
 
 
 class UnknownNovaLuminaSettingError(ValueError):
@@ -724,6 +679,25 @@ class IntegrationTestSettings(BaseSettings):
             raise ValueError("Test database URLs must use the dedicated test roles")
         if operator.database != "lumina_test" or operator.database != runtime.database:
             raise ValueError("Test catalogue operator URL must target lumina_test")
+
+
+def _settings_environment_keys() -> frozenset[str]:
+    keys: set[str] = set()
+    for settings_type in (
+        AppSettings,
+        MigrationSettings,
+        CatalogOperatorSettings,
+        IntegrationTestSettings,
+    ):
+        for field in settings_type.model_fields.values():
+            alias = field.validation_alias
+            if not isinstance(alias, str) or not alias.startswith("LUMINA_"):
+                raise RuntimeError("Nova-Lumina settings require one explicit environment alias")
+            keys.add(alias)
+    return frozenset(keys)
+
+
+_ALLOWED_ENVIRONMENT_KEYS = _settings_environment_keys()
 
 
 def _reject_unknown_lumina_keys(values: Mapping[str, object]) -> None:

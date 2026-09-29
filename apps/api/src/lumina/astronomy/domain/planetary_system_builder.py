@@ -8,7 +8,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal
-from urllib.parse import urlparse
+
+from lumina.astronomy.domain.reviewed_source import validate_reviewed_source
 
 PLANETARY_SYSTEM_BUILDER_MODEL_VERSION: Final = "planetary-system-builder-v1"
 PLANETARY_SYSTEM_BUILDER_SCHEMA_VERSION: Final = 1
@@ -450,38 +451,14 @@ def _string(value: object) -> str:
 
 
 def _validate_source(value: object) -> str:
-    source = _mapping(value)
-    _exact_keys(
-        source,
-        frozenset(
-            {
-                "id",
-                "title",
-                "organization_or_authors",
-                "url",
-                "accessed_at",
-                "dataset_or_release",
-                "record_reference",
-                "retrieved_at",
-                "data_date",
-                "terms_or_licence",
-                "citation",
-                "claim_scope",
-                "source_type",
-            }
-        ),
+    return validate_reviewed_source(
+        value,
+        source_ids=_SOURCE_IDS,
+        source_urls=_SOURCE_URLS,
+        error_type=PlanetarySystemBuilderModelError,
+        reject_whitespace_only=True,
+        reject_url_auth=False,
     )
-    source_id = _string(source["id"])
-    if source_id not in _SOURCE_URLS:
-        raise PlanetarySystemBuilderModelError()
-    url = _string(source["url"])
-    parsed = urlparse(url)
-    if parsed.scheme != "https" or not parsed.hostname or url != _SOURCE_URLS[source_id]:
-        raise PlanetarySystemBuilderModelError()
-    for key, item in source.items():
-        if key not in {"id", "url"}:
-            _string(item)
-    return source_id
 
 
 def _planet_from_mapping(value: object) -> PlanetarySystemPlanetInput:

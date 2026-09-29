@@ -13,7 +13,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal
-from urllib.parse import urlparse
+
+from lumina.astronomy.domain.reviewed_source import validate_reviewed_source
 
 ORBIT_SANDBOX_MODEL_VERSION: Final = "orbit-sandbox-v1"
 ORBIT_SANDBOX_SCHEMA_VERSION: Final = 1
@@ -457,34 +458,13 @@ def _exact_keys(value: Mapping[str, object], expected: frozenset[str]) -> None:
 
 
 def _validate_source(value: object) -> str:
-    source = _mapping(value)
-    required = frozenset(
-        {
-            "id",
-            "title",
-            "organization_or_authors",
-            "url",
-            "accessed_at",
-            "dataset_or_release",
-            "record_reference",
-            "retrieved_at",
-            "data_date",
-            "terms_or_licence",
-            "citation",
-            "claim_scope",
-            "source_type",
-        }
+    return validate_reviewed_source(
+        value,
+        source_ids=_SOURCE_IDS,
+        source_urls=_SOURCE_URLS,
+        error_type=OrbitSandboxModelError,
+        reject_whitespace_only=False,
     )
-    _exact_keys(source, required)
-    source_id = _string(source["id"])
-    if source_id not in _SOURCE_IDS or _string(source["url"]) != _SOURCE_URLS[source_id]:
-        raise OrbitSandboxModelError()
-    parsed = urlparse(_string(source["url"]))
-    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
-        raise OrbitSandboxModelError()
-    for key in required - {"id", "url"}:
-        _string(source[key])
-    return source_id
 
 
 def load_reviewed_orbit_artifact(*, repository_root: Path) -> dict[str, object]:

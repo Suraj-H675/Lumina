@@ -8,7 +8,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal, cast
-from urllib.parse import urlparse
+
+from lumina.astronomy.domain.reviewed_source import validate_reviewed_source
 
 IMPACT_SIMULATOR_MODEL_VERSION: Final = "impact-simulator-v1"
 IMPACT_SIMULATOR_SCHEMA_VERSION: Final = 1
@@ -348,41 +349,13 @@ def _string(value: object) -> str:
 
 
 def _validate_source(value: object) -> str:
-    source = _mapping(value)
-    required = frozenset(
-        {
-            "id",
-            "title",
-            "organization_or_authors",
-            "url",
-            "accessed_at",
-            "dataset_or_release",
-            "record_reference",
-            "retrieved_at",
-            "data_date",
-            "terms_or_licence",
-            "citation",
-            "claim_scope",
-            "source_type",
-        }
+    return validate_reviewed_source(
+        value,
+        source_ids=_SOURCE_IDS,
+        source_urls=_SOURCE_URLS,
+        error_type=ImpactSimulatorModelError,
+        reject_whitespace_only=True,
     )
-    _exact_keys(source, required)
-    source_id = _string(source["id"])
-    if source_id not in _SOURCE_URLS:
-        raise ImpactSimulatorModelError()
-    url = _string(source["url"])
-    parsed = urlparse(url)
-    if (
-        url != _SOURCE_URLS[source_id]
-        or parsed.scheme != "https"
-        or not parsed.hostname
-        or parsed.username
-        or parsed.password
-    ):
-        raise ImpactSimulatorModelError()
-    for key in required - {"id", "url"}:
-        _string(source[key])
-    return source_id
 
 
 def _input_from_mapping(value: object) -> ImpactSimulatorInput:

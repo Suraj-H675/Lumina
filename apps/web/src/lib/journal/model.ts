@@ -119,7 +119,7 @@ function isBoundedText(value: unknown, maximum: number, allowEmpty = false): val
   return (allowEmpty || length > 0) && length <= maximum;
 }
 
-function isCanonicalUtcTimestamp(value: unknown): value is string {
+export function isCanonicalUtcTimestamp(value: unknown): value is string {
   if (typeof value !== "string") return false;
   const parsed = new Date(value);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;

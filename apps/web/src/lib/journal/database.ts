@@ -6,6 +6,7 @@ import {
   MAX_JOURNAL_ATTACHMENTS,
   MAX_JOURNAL_ENTRIES,
   createJournalEntry,
+  isCanonicalUtcTimestamp as isCanonicalTimestamp,
   isUuidV4,
   validateJournalEntry,
   type JournalEntry,
@@ -292,12 +293,6 @@ export async function putValidatedJournalEntry(entry: JournalEntry): Promise<voi
 
 function isJournalMimeType(value: string): value is JournalImageMimeType {
   return (JOURNAL_MIME_TYPES as ReadonlyArray<string>).includes(value);
-}
-
-function isCanonicalTimestamp(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  const parsed = new Date(value);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
 }
 
 function isBlobLike(value: unknown): value is Blob {

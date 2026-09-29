@@ -10,6 +10,7 @@ import {
 } from "./database";
 import {
   MAX_JOURNAL_ENTRIES,
+  isCanonicalUtcTimestamp as canonicalTimestamp,
   journalEntryWithImportProvenance,
   validateJournalEntry,
   type JournalEntry,
@@ -89,12 +90,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function hasOnlyKeys(value: Record<string, unknown>, keys: ReadonlyArray<string>): boolean {
   return Object.keys(value).every((key) => keys.includes(key));
-}
-
-function canonicalTimestamp(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  const parsed = new Date(value);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
 }
 
 function ownedArrayBuffer(bytes: Uint8Array): ArrayBuffer {

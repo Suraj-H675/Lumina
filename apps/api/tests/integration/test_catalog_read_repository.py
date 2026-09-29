@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
-import pytest_asyncio
 from lumina.catalog.application.read import CatalogOperatorReadService, CatalogReadService
 from lumina.catalog.domain.identity import ALIAS_NORMALIZATION_VERSION, normalize_alias
 from lumina.catalog.domain.read import (
@@ -102,23 +101,11 @@ def fictional_browse_entities(integration_settings: IntegrationTestSettings) -> 
         _fixture_operation(integration_settings, cleanup)
 
 
-@pytest_asyncio.fixture
-async def catalog_read_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    """Use the least-privilege test runtime without mutating the guarded test database."""
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 @pytest.mark.asyncio
 async def test_unknown_entity_is_a_read_only_absence(
-    catalog_read_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
-    repository = PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
+    repository = PostgreSqlCatalogReadRepository(database_runtime.session_factory)
 
     result = await repository.get_entity_detail(
         entity_id=UUID("00000000-0000-4000-8000-000000000404")
@@ -129,10 +116,10 @@ async def test_unknown_entity_is_a_read_only_absence(
 
 @pytest.mark.asyncio
 async def test_all_seeded_public_slugs_resolve_without_measurement_or_source_rows(
-    catalog_read_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
     """Slug navigation is independent of the optional measurement/source graph."""
-    repository = PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
+    repository = PostgreSqlCatalogReadRepository(database_runtime.session_factory)
     service = CatalogReadService(repository)
 
     for entity_id, entity_type, canonical_name, slug in _ENTITY_ROWS:
@@ -146,11 +133,9 @@ async def test_all_seeded_public_slugs_resolve_without_measurement_or_source_row
 
 @pytest.mark.asyncio
 async def test_valid_unknown_public_slug_is_a_typed_absence(
-    catalog_read_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
-    service = CatalogReadService(
-        PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
-    )
+    service = CatalogReadService(PostgreSqlCatalogReadRepository(database_runtime.session_factory))
 
     with pytest.raises(CatalogEntityNotFound):
         await service.get_entity_by_slug("fixture-valid-but-absent")
@@ -158,12 +143,10 @@ async def test_valid_unknown_public_slug_is_a_typed_absence(
 
 @pytest.mark.asyncio
 async def test_fictional_entities_browse_in_deterministic_keyset_pages(
-    catalog_read_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     fictional_browse_entities: None,
 ) -> None:
-    service = CatalogReadService(
-        PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
-    )
+    service = CatalogReadService(PostgreSqlCatalogReadRepository(database_runtime.session_factory))
     expected_fixture_slugs = sorted(row[3] for row in _FICTIONAL_ENTITY_ROWS)
     fixture_slugs = {row[3] for row in _FICTIONAL_ENTITY_ROWS}
 
@@ -183,12 +166,10 @@ async def test_fictional_entities_browse_in_deterministic_keyset_pages(
 
 @pytest.mark.asyncio
 async def test_fictional_entities_support_singular_filter_limits_and_empty_final_pages(
-    catalog_read_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     fictional_browse_entities: None,
 ) -> None:
-    service = CatalogReadService(
-        PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
-    )
+    service = CatalogReadService(PostgreSqlCatalogReadRepository(database_runtime.session_factory))
     expected = sorted(row[3] for row in _FICTIONAL_ENTITY_ROWS)
     fixture_slugs = set(expected)
 
@@ -223,12 +204,10 @@ async def test_fictional_entities_support_singular_filter_limits_and_empty_final
 
 @pytest.mark.asyncio
 async def test_browse_cursor_filter_scope_is_independent_and_fails_closed(
-    catalog_read_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     fictional_browse_entities: None,
 ) -> None:
-    service = CatalogReadService(
-        PostgreSqlCatalogReadRepository(catalog_read_runtime.session_factory)
-    )
+    service = CatalogReadService(PostgreSqlCatalogReadRepository(database_runtime.session_factory))
     first = await service.list_entities(entity_type="galaxy", limit=1)
     assert first.next_cursor is not None
 

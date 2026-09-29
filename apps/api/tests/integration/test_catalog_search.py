@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import Callable, Iterator
 from typing import Final
 from uuid import UUID
 
 import pytest
-import pytest_asyncio
 from lumina.catalog.application.search import CatalogSearchService
 from lumina.catalog.domain.identity import ALIAS_NORMALIZATION_VERSION, normalize_alias
 from lumina.catalog.domain.read import CatalogEntityType, CatalogReadValidationRejected
 from lumina.catalog.domain.search import SearchMatchReason, SearchResult
 from lumina.catalog.infrastructure.postgresql.search import PostgreSqlCatalogSearchRepository
 from lumina.settings import IntegrationTestSettings
-from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
+from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
 from sqlalchemy import URL, Connection, create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
@@ -152,21 +151,9 @@ def fixture_search_entities(integration_settings: IntegrationTestSettings) -> It
         _fixture_operation(integration_settings, cleanup)
 
 
-@pytest_asyncio.fixture
-async def search_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    """Use the least-privilege test runtime without mutating the guarded test database."""
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 @pytest.fixture
-def search_service(search_runtime: DatabaseRuntime) -> CatalogSearchService:
-    return CatalogSearchService(PostgreSqlCatalogSearchRepository(search_runtime.session_factory))
+def search_service(database_runtime: DatabaseRuntime) -> CatalogSearchService:
+    return CatalogSearchService(PostgreSqlCatalogSearchRepository(database_runtime.session_factory))
 
 
 def _slugs(service_result: tuple[SearchResult, ...]) -> list[str]:

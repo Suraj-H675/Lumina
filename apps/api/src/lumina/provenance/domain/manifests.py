@@ -22,6 +22,12 @@ from pydantic import (
     field_validator,
 )
 
+from lumina.shared.strict_json import DuplicateJsonKey
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import reject_json_constant as _reject_json_constant
+
 _TOKEN_PATTERN = re.compile(r"[A-Za-z0-9._-]{1,128}", re.ASCII)
 _FIELD_PATH_SEGMENT_PATTERN = re.compile(r"[A-Za-z0-9_.-]{1,128}", re.ASCII)
 _UTC_TIMESTAMP_PATTERN = re.compile(
@@ -50,23 +56,6 @@ class ManifestContractError(ValueError):
     def __repr__(self) -> str:
         """Keep raw manifest values and parser exceptions out of diagnostics."""
         return f"ManifestContractError(code={self.code!r}, field_path={self.field_path!r})"
-
-
-class _DuplicateJsonKey(ValueError):
-    """Internal sentinel that deliberately retains no duplicate key value."""
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise _DuplicateJsonKey()
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(_value: str) -> None:
-    raise ValueError("non-finite JSON number")
 
 
 def _validate_token(value: str) -> str:
@@ -350,7 +339,7 @@ def parse_manifest_json(content: bytes | str) -> Manifest:
             object_pairs_hook=_object_without_duplicate_keys,
             parse_constant=_reject_json_constant,
         )
-    except _DuplicateJsonKey as error:
+    except DuplicateJsonKey as error:
         raise ManifestContractError("manifest.json_duplicate_key") from error
     except (json.JSONDecodeError, ValueError) as error:
         raise ManifestContractError("manifest.json_invalid") from error

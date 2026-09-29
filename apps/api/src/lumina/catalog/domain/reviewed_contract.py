@@ -15,6 +15,10 @@ from lumina.provenance.domain.manifests import (
     parse_manifest_json,
     serialize_manifest,
 )
+from lumina.shared.strict_json import (
+    object_without_duplicate_keys as _object_without_duplicate_keys,
+)
+from lumina.shared.strict_json import reject_json_constant as _reject_json_constant
 
 
 class ReviewedSliceError(RuntimeError):
@@ -44,26 +48,8 @@ class ReviewedSlicePolicyRejected(ReviewedSliceError):
     safe_message = "The reviewed catalogue slice does not satisfy its data policy."
 
 
-class _DuplicateJsonKey(ValueError):
-    pass
-
-
 def _reject() -> NoReturn:
     raise ReviewedSliceValidationRejected()
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise _DuplicateJsonKey()
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(value: str) -> NoReturn:
-    del value
-    _reject()
 
 
 def canonical_json_bytes(value: object) -> bytes:

@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import NoReturn
 
 
+class DuplicateJsonKey(ValueError):
+    """Strict-JSON duplicate-key sentinel that never retains the key value."""
+
+
 def object_without_duplicate_keys(
     pairs: list[tuple[str, object]],
 ) -> dict[str, object]:
@@ -12,7 +16,7 @@ def object_without_duplicate_keys(
     result: dict[str, object] = {}
     for key, value in pairs:
         if key in result:
-            raise ValueError("duplicate JSON key")
+            raise DuplicateJsonKey("duplicate JSON key")
         result[key] = value
     return result
 

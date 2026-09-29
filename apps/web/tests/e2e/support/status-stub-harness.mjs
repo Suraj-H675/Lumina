@@ -24,9 +24,7 @@ const radialVelocityFixtures = JSON.parse(
 const stellarLaboratoryFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/stellar-laboratory.json", import.meta.url), "utf8"),
 );
-const eclipseSimulatorFixtures = JSON.parse(
-  readFileSync(new URL("../fixtures/eclipse-simulator.json", import.meta.url), "utf8"),
-);
+const eclipseSimulatorFixtures = loadApiClientFixture("eclipse-simulator.json");
 
 function loadApiClientFixture(filename) {
   return JSON.parse(

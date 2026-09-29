@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  getLearningPath,
   loadLearningContent,
   validateLearningContent,
   type LearningContent,
@@ -10,7 +9,7 @@ import {
 describe("learning content contract", () => {
   it("loads a complete published Your First Night Sky path", () => {
     const content = loadLearningContent();
-    const path = getLearningPath(content, "your-first-night-sky");
+    const path = content.path;
 
     expect(path.status).toBe("published");
     expect(path.title).toBe("Your First Night Sky");

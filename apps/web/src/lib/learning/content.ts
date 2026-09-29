@@ -864,24 +864,10 @@ export function loadLearningContent(): LearningContent {
   return LOADED_LEARNING_CONTENT;
 }
 
-export function getLearningPath(content: LearningContent, slug: string): LearningPath {
-  if (content.path.slug !== slug) throw new Error("Requested learning path was not found");
-  return content.path;
-}
-
 export function getLearningLesson(content: LearningContent, slug: string): LearningLesson {
   const lesson = content.lessons.find((entry) => entry.slug === slug);
   if (lesson === undefined) throw new Error("Requested learning lesson was not found");
   return lesson;
-}
-
-export function getQuizForLesson(content: LearningContent, lessonSlug: string): LearningQuiz {
-  const lesson = getLearningLesson(content, lessonSlug);
-  const quizId = lesson.knowledge_check_ids[0];
-  if (quizId === undefined) throw new Error("Learning lesson has no knowledge check");
-  const quiz = content.quizzes.find((entry) => entry.id === quizId);
-  if (quiz === undefined) throw new Error("Learning knowledge check was not found");
-  return quiz;
 }
 
 export function getSourcesForIds(

@@ -34,13 +34,6 @@ export function objectTitle(detail: EntityDetailResponse): string {
   return detail.canonical_name;
 }
 
-export function objectMetaLine(detail: EntityDetailResponse): string {
-  const count = detail.quantities.length;
-  const base = entityTypeLabel(detail.entity_type);
-  if (count === 0) return base;
-  return `${base} · ${count} ${count === 1 ? "measured quantity" : "measured quantities"}`;
-}
-
 export type ObjectProvenanceRow = Readonly<{
   datasetName: string;
   providerName: string;

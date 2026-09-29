@@ -7,7 +7,6 @@ import {
   catalogEntityBySlugEndpoint,
   catalogEntityDetailEndpoint,
   catalogSearchEndpoint,
-  catalogSuggestEndpoint,
   requestEndpoint,
   type ApiEndpoint,
   type CatalogSearchResponse,
@@ -22,8 +21,6 @@ import { resolveWebApiOrigin } from "./api-origin";
 export const EXPLORE_BROWSE_LIMIT = 60;
 /** Public maximum search results; the committed /explore page always asks for the full tier list. */
 export const SEARCH_RESULT_LIMIT = 50;
-/** Public suggestion bound used by the explore typeahead. */
-export const SUGGESTION_LIMIT = 5;
 
 /**
  * Queries shorter than the accepted public minimum never reach the API. The server stays the sole
@@ -83,11 +80,6 @@ export type CatalogueSearchOutcome =
   | Readonly<{ kind: "empty-query" }>
   | Readonly<{ kind: "invalid-query" }>
   | Readonly<{ items: CatalogSearchResponse["items"]; kind: "ok" }>
-  | Readonly<{ kind: "unavailable" }>;
-
-export type CatalogueSuggestOutcome =
-  | Readonly<{ kind: "empty-query" }>
-  | Readonly<{ items: Array<EntitySummaryResponse>; kind: "ok" }>
   | Readonly<{ kind: "unavailable" }>;
 
 export type ObjectBySlugOutcome =
@@ -193,31 +185,6 @@ export async function searchCatalogue(
     default:
       return { kind: "unavailable" };
   }
-}
-
-export async function suggestCatalogue(
-  rawQuery: string,
-  options: CatalogueSearchOptions = {},
-): Promise<CatalogueSuggestOutcome> {
-  const query = rawQuery.trim();
-  if (query.length < MIN_QUERY_LENGTH) return { kind: "empty-query" };
-
-  const origin = resolveOriginOrUnreachable(options);
-  if (origin === null) return { kind: "unavailable" };
-
-  const parameters = new URLSearchParams({
-    q: query,
-    ...(options.entityType === undefined ? {} : { entity_type: options.entityType }),
-    limit: String(options.limit ?? SUGGESTION_LIMIT),
-  });
-
-  const result = await requestEndpoint(
-    origin,
-    endpointWithQuery(catalogSuggestEndpoint, parameters),
-    transportOptions(options),
-  );
-  if (result.kind !== "ok") return { kind: "unavailable" };
-  return { items: result.data.items, kind: "ok" };
 }
 
 export async function loadObjectBySlug(

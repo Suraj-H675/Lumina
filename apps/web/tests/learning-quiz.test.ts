@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { getQuizForLesson, loadLearningContent } from "../src/lib/learning/content";
+import { loadLearningContent } from "../src/lib/learning/content";
 import { evaluateQuiz } from "../src/lib/learning/quiz";
+
+function quizForLesson(lessonSlug: string) {
+  const quiz = loadLearningContent().quizzes.find((entry) => entry.lesson_slug === lessonSlug);
+  if (quiz === undefined) throw new Error("Test fixture quiz was not found");
+  return quiz;
+}
 
 describe("learning quiz evaluation", () => {
   it("scores the same submitted answers deterministically", () => {
-    const quiz = getQuizForLesson(loadLearningContent(), "read-the-moon");
+    const quiz = quizForLesson("read-the-moon");
     const answers = {
       "moon-light": "a",
       "moon-half-lit": "b",
@@ -26,7 +32,7 @@ describe("learning quiz evaluation", () => {
   });
 
   it("returns authored feedback and passes only at the fixed mastery threshold", () => {
-    const quiz = getQuizForLesson(loadLearningContent(), "read-the-moon");
+    const quiz = quizForLesson("read-the-moon");
     const evaluation = evaluateQuiz(quiz, {
       "moon-light": "a",
       "moon-half-lit": "a",
@@ -42,7 +48,7 @@ describe("learning quiz evaluation", () => {
   });
 
   it("treats missing, unknown, and non-string answers as incorrect", () => {
-    const quiz = getQuizForLesson(loadLearningContent(), "start-with-the-sky");
+    const quiz = quizForLesson("start-with-the-sky");
     const evaluation = evaluateQuiz(quiz, {
       "start-definition": "a",
       "unknown-question": "a",

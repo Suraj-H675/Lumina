@@ -4,12 +4,7 @@ import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 vi.mock("server-only", () => ({}));
 
-import {
-  loadExploreCatalogue,
-  loadObjectBySlug,
-  searchCatalogue,
-  suggestCatalogue,
-} from "../src/lib/server/catalog";
+import { loadExploreCatalogue, loadObjectBySlug, searchCatalogue } from "../src/lib/server/catalog";
 
 const K2_18_ID = "403d0e71-8d81-5c52-abad-c4666c1b5cd6";
 
@@ -234,34 +229,6 @@ describe("searchCatalogue", () => {
       fetchImplementation: malformed.implementation,
     });
     expect(outcomeMalformed).toEqual({ kind: "unavailable" });
-  });
-});
-
-describe("suggestCatalogue", () => {
-  it("calls the accepted suggest endpoint only for valid query lengths", async () => {
-    const short = await suggestCatalogue("k", {
-      fetchImplementation: fetchRecording(() => undefined).implementation,
-    });
-    expect(short).toEqual({ kind: "empty-query" });
-
-    const { implementation, requests } = fetchRecording((path) =>
-      path === "/api/v1/search/suggest?q=k2&limit=5"
-        ? jsonResponse({ items: [summaries.k2_18] })
-        : undefined,
-    );
-
-    const outcome = await suggestCatalogue("  k2 ", { fetchImplementation: implementation });
-
-    expect(outcome).toEqual({ items: [summaries.k2_18], kind: "ok" });
-    expect(requests).toEqual([{ path: "/api/v1/search/suggest?q=k2&limit=5" }]);
-  });
-
-  it("maps any failure to an unavailable suggestion state", async () => {
-    const outcome = await suggestCatalogue("k2", {
-      fetchImplementation: fetchRecording(() => new Response(null, { status: 503 })).implementation,
-    });
-
-    expect(outcome).toEqual({ kind: "unavailable" });
   });
 });
 

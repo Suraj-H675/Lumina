@@ -254,9 +254,3 @@ export function loadReviewedDiscoveries(): ReviewedDiscoveryBundle {
   cached ??= validateReviewedDiscoveries(rawReviewedDiscoveries as unknown);
   return cached;
 }
-
-export function latestReviewedDiscovery(): ReviewedDiscovery {
-  const first = loadReviewedDiscoveries().entries[0];
-  if (first === undefined) fail("reviewed discovery bundle is empty");
-  return first;
-}

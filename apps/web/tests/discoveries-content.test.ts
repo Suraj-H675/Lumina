@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   DiscoveryContentValidationError,
-  latestReviewedDiscovery,
   loadReviewedDiscoveries,
   validateReviewedDiscoveries,
 } from "../src/lib/discoveries/content";
@@ -18,7 +17,7 @@ describe("reviewed discovery content", () => {
       "2026-09-07",
       "2026-07-06",
     ]);
-    expect(latestReviewedDiscovery().id).toBe("hubble-webb-small-tnos-2026");
+    expect(bundle.entries[0]?.id).toBe("hubble-webb-small-tnos-2026");
   });
 
   it("keeps confirmation state and primary source provenance explicit", () => {

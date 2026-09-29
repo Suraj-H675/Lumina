@@ -5,7 +5,6 @@ import type { EntityDetailResponse } from "@nova-lumina/api-client";
 import {
   entityTypeLabel,
   formatMeasurementValue,
-  objectMetaLine,
   objectProvenanceRows,
   objectTitle,
 } from "../src/lib/catalog-display";
@@ -80,21 +79,6 @@ describe("entityTypeLabel", () => {
 describe("objectTitle", () => {
   it("uses the canonical name as identity", () => {
     expect(objectTitle(starDetail())).toBe("51 Pegasi");
-  });
-});
-
-describe("objectMetaLine", () => {
-  it("states the type and how many measured quantities exist", () => {
-    expect(objectMetaLine(starDetail({ quantities: [quantityEntry()] }))).toBe(
-      "Star · 1 measured quantity",
-    );
-    expect(objectMetaLine(starDetail({ quantities: [quantityEntry(), quantityEntry()] }))).toBe(
-      "Star · 2 measured quantities",
-    );
-  });
-
-  it("stays honest when nothing is measured yet", () => {
-    expect(objectMetaLine(starDetail({ quantities: [] }))).toBe("Star");
   });
 });
 

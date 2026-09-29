@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable, Callable
 from typing import TypeVar, cast
 from uuid import UUID
@@ -27,15 +26,15 @@ from lumina.catalog.domain.search import (
     SearchSlice,
     escape_prefix,
 )
+from lumina.catalog.infrastructure.postgresql.read_lifecycle import (
+    OPERATION_TIMEOUT_SQL,
+    PROCESS_CONTROL_ERRORS,
+    rollback_close_or_invalidate,
+)
 
 _Result = TypeVar("_Result")
-_PROCESS_CONTROL_ERRORS = (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
 _SET_READ_COMMITTED_SQL = text("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
 _SET_READ_ONLY_SQL = text("SET TRANSACTION READ ONLY")
-_TIMEOUT_SQL = text(
-    "SELECT set_config('statement_timeout', :timeout, true), "
-    "set_config('lock_timeout', :timeout, true)"
-)
 
 
 def _canonical_sql(*, fuzzy: bool) -> str:
@@ -240,10 +239,10 @@ class PostgreSqlCatalogSearchRepository:
             connection = await session.connection()
             await connection.execute(_SET_READ_COMMITTED_SQL)
             await connection.execute(_SET_READ_ONLY_SQL)
-            await connection.execute(_TIMEOUT_SQL, {"timeout": _OPERATION_WAIT_TIMEOUT})
+            await connection.execute(OPERATION_TIMEOUT_SQL, {"timeout": _OPERATION_WAIT_TIMEOUT})
             result = await operation(connection)
             return result
-        except _PROCESS_CONTROL_ERRORS:
+        except PROCESS_CONTROL_ERRORS:
             raise
         except OSError:
             raise CatalogReadUnavailable() from None
@@ -253,19 +252,7 @@ class PostgreSqlCatalogSearchRepository:
             raise CatalogDataInconsistent() from None
         finally:
             if session is not None:
-                try:
-                    if session.in_transaction():
-                        await session.rollback()
-                except _PROCESS_CONTROL_ERRORS:
-                    raise
-                except BaseException:
-                    try:
-                        await session.invalidate()
-                    except _PROCESS_CONTROL_ERRORS:
-                        raise
-                    except BaseException:
-                        pass
-                await session.close()
+                await rollback_close_or_invalidate(session)
 
 
 def _merge(result_sets: list[list[RowMapping]]) -> SearchSlice:

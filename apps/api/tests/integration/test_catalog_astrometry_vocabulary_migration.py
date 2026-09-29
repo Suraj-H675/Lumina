@@ -7,7 +7,7 @@ from uuid import UUID
 
 import pytest
 from lumina.settings import IntegrationTestSettings
-from sqlalchemy import URL, Connection, create_engine, text
+from sqlalchemy import Connection, create_engine, text
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
@@ -30,10 +30,6 @@ _FIXTURE_DATASET_ID = UUID("d5000000-0000-4000-8000-000000000001")
 _FIXTURE_SOURCE_RECORD_ID = UUID("d6000000-0000-4000-8000-000000000001")
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
 def _revision(connection: Connection) -> str:
     return str(connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one())
 
@@ -44,7 +40,7 @@ def _run(
     *,
     downgrade: bool,
 ) -> None:
-    sync_url = _sync_url(settings)
+    sync_url = historical_sync_url(settings)
     identity = historical_migration_identity(settings)
     run_migration_operation(
         sync_url,
@@ -55,7 +51,7 @@ def _run(
 def _execute(
     settings: IntegrationTestSettings, statement: str, parameters: dict[str, object]
 ) -> None:
-    engine = create_engine(_sync_url(settings), poolclass=NullPool)
+    engine = create_engine(historical_sync_url(settings), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             connection.execute(text(statement), parameters)
@@ -159,7 +155,7 @@ def at_b3(
     """Put only the active test database at B3, then restore the repository head."""
     del historical_test_database_with_pg_trgm
     _cleanup_fixture_state(integration_settings)
-    sync_url = _sync_url(integration_settings)
+    sync_url = historical_sync_url(integration_settings)
     current = run_migration_operation(sync_url, _revision)
     if current == _REVISION:
         _run(integration_settings, _PARENT_REVISION, downgrade=True)
@@ -181,7 +177,7 @@ def at_b3(
 
 def _vocabulary_counts(settings: IntegrationTestSettings) -> tuple[int, int, int, int]:
     return run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: tuple(
             connection.execute(
                 text(
@@ -253,12 +249,12 @@ def _shape_snapshot(settings: IntegrationTestSettings) -> tuple[object, ...]:
         )
         return columns, constraints, indexes, privileges, extensions
 
-    return run_migration_operation(_sync_url(settings), query)
+    return run_migration_operation(historical_sync_url(settings), query)
 
 
 def _create_measurement_dependency(settings: IntegrationTestSettings, quantity_id: UUID) -> None:
     entity_id = run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: connection.execute(
             text("SELECT id FROM public.entity LIMIT 1")
         ).scalar_one(),
@@ -325,9 +321,11 @@ def test_upgrade_adds_only_exact_vocabulary_and_preserves_shape_acl_extensions(
 
     assert before_shape == after_shape
     assert after_counts == (1, 2, 2, 2)
-    assert run_migration_operation(_sync_url(integration_settings), _revision) == _REVISION
+    assert (
+        run_migration_operation(historical_sync_url(integration_settings), _revision) == _REVISION
+    )
     unit = run_migration_operation(
-        _sync_url(integration_settings),
+        historical_sync_url(integration_settings),
         lambda connection: tuple(
             connection.execute(
                 text("SELECT id, code, symbol, name FROM public.unit WHERE id = :unit_id"),
@@ -336,7 +334,7 @@ def test_upgrade_adds_only_exact_vocabulary_and_preserves_shape_acl_extensions(
         ),
     )
     quantities = run_migration_operation(
-        _sync_url(integration_settings),
+        historical_sync_url(integration_settings),
         lambda connection: tuple(
             tuple(row)
             for row in connection.execute(
@@ -381,7 +379,10 @@ def test_upgrade_fails_closed_on_unit_collision(
         RuntimeError, match="Gaia DR3 astrometry vocabulary migration precondition failed"
     ):
         _run(integration_settings, _REVISION, downgrade=False)
-    assert run_migration_operation(_sync_url(integration_settings), _revision) == _PARENT_REVISION
+    assert (
+        run_migration_operation(historical_sync_url(integration_settings), _revision)
+        == _PARENT_REVISION
+    )
 
 
 @pytest.mark.parametrize(
@@ -410,7 +411,10 @@ def test_upgrade_fails_closed_on_quantity_collision(
         RuntimeError, match="Gaia DR3 astrometry vocabulary migration precondition failed"
     ):
         _run(integration_settings, _REVISION, downgrade=False)
-    assert run_migration_operation(_sync_url(integration_settings), _revision) == _PARENT_REVISION
+    assert (
+        run_migration_operation(historical_sync_url(integration_settings), _revision)
+        == _PARENT_REVISION
+    )
 
 
 def test_clean_downgrade_and_reupgrade_are_exact(
@@ -421,7 +425,10 @@ def test_clean_downgrade_and_reupgrade_are_exact(
     _run(integration_settings, _REVISION, downgrade=False)
     _run(integration_settings, _PARENT_REVISION, downgrade=True)
     assert _vocabulary_counts(integration_settings) == (0, 0, 0, 0)
-    assert run_migration_operation(_sync_url(integration_settings), _revision) == _PARENT_REVISION
+    assert (
+        run_migration_operation(historical_sync_url(integration_settings), _revision)
+        == _PARENT_REVISION
+    )
     _run(integration_settings, _REVISION, downgrade=False)
     assert _vocabulary_counts(integration_settings) == (1, 2, 2, 2)
 
@@ -439,7 +446,9 @@ def test_downgrade_blocks_measurement_dependency(
         RuntimeError, match="Gaia DR3 astrometry vocabulary migration precondition failed"
     ):
         _run(integration_settings, _PARENT_REVISION, downgrade=True)
-    assert run_migration_operation(_sync_url(integration_settings), _revision) == _REVISION
+    assert (
+        run_migration_operation(historical_sync_url(integration_settings), _revision) == _REVISION
+    )
 
 
 def test_downgrade_blocks_unexpected_degree_compatibility_pair(
@@ -469,4 +478,6 @@ def test_downgrade_blocks_unexpected_degree_compatibility_pair(
         RuntimeError, match="Gaia DR3 astrometry vocabulary migration precondition failed"
     ):
         _run(integration_settings, _PARENT_REVISION, downgrade=True)
-    assert run_migration_operation(_sync_url(integration_settings), _revision) == _REVISION
+    assert (
+        run_migration_operation(historical_sync_url(integration_settings), _revision) == _REVISION
+    )

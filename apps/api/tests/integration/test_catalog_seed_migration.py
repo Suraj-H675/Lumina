@@ -66,16 +66,6 @@ _FIXTURE_CANONICAL_ID = UUID("c6000000-0000-4000-8000-000000000001")
 _FIXTURE_COMPATIBILITY_UNIT_ID = UUID("c7000000-0000-4000-8000-000000000001")
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
-def _revision(connection: Connection) -> str | None:
-    return connection.execute(
-        text("SELECT version_num FROM public.alembic_version")
-    ).scalar_one_or_none()
-
-
 def _run_upgrade(settings: IntegrationTestSettings, revision: str = _REVISION) -> None:
     sync_url = historical_sync_url(settings)
     identity = historical_migration_identity(settings)

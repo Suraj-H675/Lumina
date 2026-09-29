@@ -35,10 +35,6 @@ _PG_TRGM_STATE_SQL: Final = text(
 _REVISION_SQL: Final = text("SELECT version_num FROM public.alembic_version")
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
 def _admin_test_url(
     settings: IntegrationTestSettings,
     postgres_admin_sync_url: URL,
@@ -56,7 +52,7 @@ def _execute_committed_operation(
     statement: TextClause,
 ) -> None:
     run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: _execute_committed(connection, statement),
     )
 
@@ -64,7 +60,7 @@ def _execute_committed_operation(
 def _run_upgrade(settings: IntegrationTestSettings, revision: str) -> None:
     identity = historical_migration_identity(settings)
     run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: run_alembic(connection, identity, revision, downgrade=False),
     )
 
@@ -72,14 +68,14 @@ def _run_upgrade(settings: IntegrationTestSettings, revision: str) -> None:
 def _run_downgrade(settings: IntegrationTestSettings, revision: str) -> None:
     identity = historical_migration_identity(settings)
     run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: run_alembic(connection, identity, revision, downgrade=True),
     )
 
 
 def _revision(settings: IntegrationTestSettings) -> str | None:
     revision = run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: connection.execute(_REVISION_SQL).scalar_one(),
     )
     return None if revision is None else str(revision)
@@ -137,7 +133,7 @@ def b3_test_database(
 
 def _assert_no_unexpected_index(settings: IntegrationTestSettings) -> None:
     result = run_migration_operation(
-        _sync_url(settings),
+        historical_sync_url(settings),
         lambda connection: connection.execute(_UNEXPECTED_INDEX_SQL).scalar_one(),
     )
     if result:
@@ -145,7 +141,7 @@ def _assert_no_unexpected_index(settings: IntegrationTestSettings) -> None:
 
 
 def _drop_unexpected_index_if_owned(settings: IntegrationTestSettings) -> None:
-    engine = create_engine(_sync_url(settings), poolclass=NullPool)
+    engine = create_engine(historical_sync_url(settings), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             connection.execute(_DROP_UNEXPECTED_INDEX_SQL)
@@ -201,7 +197,7 @@ def test_b3_rejects_unexpected_index(
 ) -> None:
     _require_b3_baseline(integration_settings, postgres_admin_sync_url)
     _assert_no_unexpected_index(integration_settings)
-    engine = create_engine(_sync_url(integration_settings), poolclass=NullPool)
+    engine = create_engine(historical_sync_url(integration_settings), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             connection.execute(text("CREATE INDEX ix_unexpected_entity ON public.entity (slug)"))

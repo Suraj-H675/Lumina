@@ -113,10 +113,6 @@ _MEASUREMENT_ID = UUID("87000000-0000-4000-8000-000000000001")
 _FETCHED_AT = datetime(2026, 8, 11, 12, 0, tzinfo=UTC)
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
 def _runtime_url(settings: IntegrationTestSettings) -> URL:
     return historical_runtime_url(settings).set(drivername="postgresql+psycopg")
 

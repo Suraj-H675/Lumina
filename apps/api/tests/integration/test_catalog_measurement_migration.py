@@ -158,10 +158,6 @@ _CANONICAL_B = UUID("70000000-0000-4000-8000-000000000002")
 _SELECTED_AT = datetime(2026, 1, 15, 10, 30, tzinfo=timezone(timedelta(hours=5, minutes=30)))
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
 def _head() -> str:
     script = ScriptDirectory.from_config(migration_config())
     heads = script.get_heads()
@@ -173,39 +169,11 @@ def _revision(connection: Connection) -> str | None:
     return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
 
 
-def _ensure_b2(settings: IntegrationTestSettings) -> None:
-    revision = run_migration_operation(
-        historical_sync_url(settings),
-        lambda connection: connection.execute(
-            text("SELECT version_num FROM public.alembic_version")
-        ).scalar_one(),
-    )
-    if revision != "b7f3a2c81d4e":
-        pytest.fail("History database is not at accepted B2.")
-
-
 def _run_rolled_back_at_phase(
     settings: IntegrationTestSettings,
     operation: Callable[[Connection], None],
 ) -> None:
     """Execute a transaction-only operation at the fixture-established phase."""
-
-    def execute(connection: Connection) -> None:
-        transaction = connection.begin()
-        try:
-            operation(connection)
-        finally:
-            transaction.rollback()
-
-    run_migration_operation(historical_sync_url(settings), execute)
-
-
-def _run_rolled_back(
-    settings: IntegrationTestSettings,
-    operation: Callable[[Connection], None],
-    historical_test_database: None,
-) -> None:
-    _ensure_b2(settings)
 
     def execute(connection: Connection) -> None:
         transaction = connection.begin()

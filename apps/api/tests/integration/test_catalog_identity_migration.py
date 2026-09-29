@@ -132,10 +132,6 @@ _EXPECTED_INDEXES = {
 }
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
 def _revision(connection: Connection) -> str | None:
     return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
 

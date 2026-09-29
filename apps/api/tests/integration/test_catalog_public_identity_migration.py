@@ -129,10 +129,6 @@ _IDENTITY_CONSTRAINT_NAMES = {
 }
 
 
-def _sync_url(settings: IntegrationTestSettings) -> URL:
-    return historical_sync_url(settings)
-
-
 def _runtime_url(settings: IntegrationTestSettings) -> URL:
     return historical_runtime_url(settings).set(drivername="postgresql+psycopg")
 

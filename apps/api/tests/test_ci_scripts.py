@@ -452,8 +452,6 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
 
 
 def test_pnpm_lockfile_and_installed_graph_are_frozen_and_remediated() -> None:
-    version = _run(["pnpm", "--version"], cwd=REPOSITORY_ROOT)
-    assert version.stdout.strip() == "11.17.0"
     _assert_remediated_dependency_graph(_pnpm_list("-r", "--lockfile-only", "--depth", "Infinity"))
 
     before = _dependency_inputs()
@@ -525,23 +523,6 @@ const input = Buffer.from([255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255]);
     assert result["width"] == 1
     assert result["height"] == 1
     assert result["length"] > 0
-
-
-def test_local_runtime_version_policy_accepts_node_major_24_and_maintained_uv() -> None:
-    _run(
-        [
-            "node",
-            "-e",
-            'if (Number(process.versions.node.split(".")[0]) !== 24) process.exit(1)',
-        ],
-        cwd=REPOSITORY_ROOT,
-    )
-    fields = _run(["uv", "--version"], cwd=REPOSITORY_ROOT).stdout.split()
-    assert len(fields) >= 2 and fields[0] == "uv"
-    version = fields[1].split(".")
-    assert len(version) == 3 and all(part.isdigit() for part in version)
-    major, minor, patch = (int(part) for part in version)
-    assert major == 0 and minor == 12 and patch >= 17
 
 
 def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:

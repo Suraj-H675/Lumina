@@ -351,7 +351,7 @@ def test_api_container_definition_is_pinned_non_root_and_runtime_complete() -> N
     ignored = set(dockerignore.splitlines())
     assert ".env" in ignored
     assert ".env.*" in ignored
-    assert "!.env.example" in ignored
+    assert "!.env.example" not in ignored
     assert ".git/" in ignored
     assert ".venv/" in ignored
     assert "node_modules/" in ignored

@@ -5,8 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator, Mapping
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from hashlib import sha256
-from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -48,16 +46,6 @@ _CATALOG_TABLES = (
     "source_record",
     *_PHASE_1A2_TABLES,
 )
-_PROTECTED_HASHES = {
-    "0001_create_job.py": "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
-    "0002_grant_job_runtime_dml.py": (
-        "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
-    ),
-    "d502b5935120_create_catalog_identity_provenance.py": (
-        "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
-    ),
-}
-
 _EXPECTED_COLUMNS = {
     "quantity": [
         ("id", "uuid", False, "<none>", "<none>"),
@@ -393,13 +381,6 @@ def test_repository_head_and_phase1a2_lineage_are_exact() -> None:
     assert current_head == "a2b3c4d5e6f7"
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _PHASE_1A2_PARENT
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
-
-
-def test_protected_phase0_migrations_are_byte_for_byte_unchanged() -> None:
-    root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
-    assert {
-        name: sha256((root / name).read_bytes()).hexdigest() for name in _PROTECTED_HASHES
-    } == _PROTECTED_HASHES
 
 
 def test_phase1a2_catalogue_is_exact_and_has_no_deferred_schema(

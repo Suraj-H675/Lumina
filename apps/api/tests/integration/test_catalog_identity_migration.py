@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Mapping
 from datetime import UTC, datetime, timedelta, timezone
-from hashlib import sha256
-from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -31,16 +29,6 @@ _PHASE_1A3_HEAD = "a1a3c0f17c5e"
 _PHASE_1A5_HEAD = "f2a6c8d9e0b1"
 _PHASE_0_HEAD = "0002_grant_job_runtime_dml"
 _TABLES = ("provider", "entity", "dataset", "source_record")
-_PROTECTED_HASHES = {
-    "0001_create_job.py": "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
-    "0002_grant_job_runtime_dml.py": (
-        "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
-    ),
-    "d502b5935120_create_catalog_identity_provenance.py": (
-        "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
-    ),
-}
-
 _PROVIDER_A = UUID("10000000-0000-4000-8000-000000000001")
 _PROVIDER_B = UUID("10000000-0000-4000-8000-000000000002")
 _DATASET_A = UUID("20000000-0000-4000-8000-000000000001")
@@ -372,13 +360,6 @@ def test_phase1a1_retains_its_accepted_parent_below_phase1a3_head() -> None:
     assert script.get_revision(_REVISION).down_revision == _PHASE_0_HEAD
     assert script.get_revision(_PHASE_1A2_HEAD).down_revision == _REVISION
     assert script.get_revision(_PHASE_1A3_HEAD).down_revision == _PHASE_1A2_HEAD
-
-
-def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
-    root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
-    assert {
-        name: sha256((root / name).read_bytes()).hexdigest() for name in _PROTECTED_HASHES
-    } == _PROTECTED_HASHES
 
 
 def test_catalog_columns_constraints_indexes_and_collations_are_exact(

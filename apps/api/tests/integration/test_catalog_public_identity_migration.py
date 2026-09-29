@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from hashlib import sha256
-from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -30,25 +28,6 @@ _PARENT_REVISION = "c4b9e2d7a6f1"
 _REVISION = "b7f3a2c81d4e"
 _HISTORICAL_B2 = _REVISION
 _SAFE_ERROR = "Phase 1B1 public identity migration precondition failed."
-_PROTECTED_HASHES = {
-    "0001_create_job.py": "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
-    "0002_grant_job_runtime_dml.py": (
-        "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
-    ),
-    "d502b5935120_create_catalog_identity_provenance.py": (
-        "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
-    ),
-    "e4c9f1a7b362_add_measurement_provenance.py": (
-        "336a59a593c1f1d5fcfd4b32c3b8405bb290b1f13c9a6fee094e8170249c8c2d"
-    ),
-    "a1a3c0f17c5e_add_deterministic_catalog_ingestion.py": (
-        "26b5dad738a93d9776a62155c638402319b35365896ab515cb018413274cfda5"
-    ),
-    "c4b9e2d7a6f1_seed_gaia_dr3_slice.py": (
-        "ae89acabb3e241e49d6874a429ca2de0319aaa25ed5e2ba1185866df6cbfdf7a"
-    ),
-}
-
 _ENTITY_ROWS = (
     (UUID("26f4b667-ecd9-524d-8121-29508723715a"), "star", "HD 209458", "hd-209458"),
     (UUID("bbfe8678-81ca-5e70-ac95-c597d7655540"), "star", "Kepler-186", "kepler-186"),
@@ -300,14 +279,10 @@ def _with_fixture_graph(
     run_migration_operation(historical_sync_url(settings), run)
 
 
-def test_lineage_and_protected_history_are_exact() -> None:
+def test_lineage_is_exact() -> None:
     script = ScriptDirectory.from_config(migration_config())
     assert script.get_heads() == ["a2b3c4d5e6f7"]
     assert script.get_revision(_REVISION).down_revision == _PARENT_REVISION
-    root = Path(__file__).resolve().parents[4] / "migrations" / "versions"
-    assert {
-        name: sha256((root / name).read_bytes()).hexdigest() for name in _PROTECTED_HASHES
-    } == _PROTECTED_HASHES
 
 
 def test_source_record_candidate_key_is_exact_at_current_head(

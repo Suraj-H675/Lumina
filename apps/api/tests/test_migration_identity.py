@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from hashlib import sha256
+from pathlib import Path
+
 import pytest
 from lumina.shared.infrastructure.database.migration_identity import (
     MigrationIdentityError,
@@ -10,6 +13,25 @@ from lumina.shared.infrastructure.database.migration_identity import (
 )
 from pydantic import SecretStr
 from sqlalchemy import URL
+
+_PROTECTED_MIGRATION_HASHES = {
+    "0001_create_job.py": "d805d2f626f9c9f248c87202a1fd6351f1682c4dd0c930aaca1ec662aad6892b",
+    "0002_grant_job_runtime_dml.py": (
+        "8d9de0d1bfc4b4785ad4234028fbba754437c85e4f6adc267193d6044966b889"
+    ),
+    "d502b5935120_create_catalog_identity_provenance.py": (
+        "f95087a60d2365ea52af9c8026b3c7dbf3b780a1f11673f53308e7b6b8400f7b"
+    ),
+    "e4c9f1a7b362_add_measurement_provenance.py": (
+        "336a59a593c1f1d5fcfd4b32c3b8405bb290b1f13c9a6fee094e8170249c8c2d"
+    ),
+    "a1a3c0f17c5e_add_deterministic_catalog_ingestion.py": (
+        "26b5dad738a93d9776a62155c638402319b35365896ab515cb018413274cfda5"
+    ),
+    "c4b9e2d7a6f1_seed_gaia_dr3_slice.py": (
+        "ae89acabb3e241e49d6874a429ca2de0319aaa25ed5e2ba1185866df6cbfdf7a"
+    ),
+}
 
 
 def _migration_url(**changes: object) -> URL:
@@ -36,6 +58,13 @@ def _runtime_url(**changes: object) -> URL:
     }
     values.update(changes)
     return URL.create(**values)  # type: ignore[arg-type]
+
+
+def test_protected_migrations_are_byte_for_byte_unchanged() -> None:
+    root = Path(__file__).resolve().parents[3] / "migrations" / "versions"
+    assert {
+        name: sha256((root / name).read_bytes()).hexdigest() for name in _PROTECTED_MIGRATION_HASHES
+    } == _PROTECTED_MIGRATION_HASHES
 
 
 def test_valid_identity_pairs_one_target_without_revealing_secrets() -> None:

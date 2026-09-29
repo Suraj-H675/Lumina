@@ -8,13 +8,39 @@ retains the published reference epoch as evidence for downstream consumers.
 from __future__ import annotations
 
 import hashlib
-import json
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Final, NoReturn
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+from lumina.catalog.domain.reviewed_contract import (
+    checked_relative_path as _checked_relative_path,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    load_manifest as _load_manifest,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    parse_canonical_object as _parse_canonical_object,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    read_regular_repository_file as _read_regular_file,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    require_int as _require_int,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    require_list as _require_list,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    require_object as _require_object,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    require_string as _require_string,
+)
+from lumina.catalog.domain.reviewed_contract import (
+    require_uuid as _require_uuid,
+)
 from lumina.catalog.domain.reviewed_slice import (
     MAX_ARTIFACT_BYTES,
     REPOSITORY_ROOT,
@@ -30,10 +56,7 @@ from lumina.catalog.domain.reviewed_slice import (
 )
 from lumina.provenance.domain.manifests import (
     DataManifest,
-    ManifestContractError,
     SourceManifest,
-    parse_manifest_json,
-    serialize_manifest,
 )
 
 ASTROMETRY_SLICE_ID: Final = "gaia-dr3-exoplanet-host-astrometry-v1"
@@ -161,125 +184,6 @@ class AstrometrySlice:
 
 def _reject() -> NoReturn:
     raise ReviewedSliceValidationRejected()
-
-
-def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError()
-        result[key] = value
-    return result
-
-
-def _reject_json_constant(value: str) -> NoReturn:
-    del value
-    _reject()
-
-
-def _canonical_json_bytes(value: object) -> bytes:
-    try:
-        return (
-            json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False) + "\n"
-        ).encode("utf-8")
-    except (TypeError, UnicodeError, ValueError):
-        _reject()
-
-
-def _checked_relative_path(value: object) -> str:
-    if type(value) is not str or not value or value != value.strip() or not value.isascii():
-        _reject()
-    path = PurePosixPath(value)
-    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
-        _reject()
-    return value
-
-
-def _read_regular_file(root: Path, relative_path: str, *, maximum_bytes: int) -> bytes:
-    relative_path = _checked_relative_path(relative_path)
-    root = root.resolve()
-    path = root.joinpath(*PurePosixPath(relative_path).parts)
-    try:
-        if path.is_symlink() or not path.is_file():
-            _reject()
-        path.resolve(strict=True).relative_to(root)
-        if path.stat().st_size > maximum_bytes:
-            _reject()
-        with path.open("rb") as handle:
-            content = handle.read(maximum_bytes + 1)
-    except (OSError, ValueError):
-        _reject()
-    if len(content) > maximum_bytes:
-        _reject()
-    return content
-
-
-def _parse_canonical_object(content: bytes) -> dict[str, object]:
-    try:
-        decoded = json.loads(
-            content.decode("utf-8"),
-            object_pairs_hook=_object_without_duplicate_keys,
-            parse_constant=_reject_json_constant,
-        )
-    except (UnicodeDecodeError, ValueError, json.JSONDecodeError):
-        _reject()
-    if type(decoded) is not dict or _canonical_json_bytes(decoded) != content:
-        _reject()
-    return decoded
-
-
-def _require_object(value: object, fields: frozenset[str]) -> dict[str, object]:
-    if type(value) is not dict or set(value) != fields:
-        _reject()
-    return value
-
-
-def _require_string(value: object) -> str:
-    if type(value) is not str or not value:
-        _reject()
-    return value
-
-
-def _require_int(value: object) -> int:
-    if type(value) is not int:
-        _reject()
-    return value
-
-
-def _require_uuid(value: object) -> UUID:
-    try:
-        parsed = UUID(_require_string(value))
-    except ValueError:
-        _reject()
-    if str(parsed) != value:
-        _reject()
-    return parsed
-
-
-def _require_list(value: object, length: int) -> list[object]:
-    if type(value) is not list or len(value) != length:
-        _reject()
-    return value
-
-
-def _load_manifest(
-    root: Path,
-    path: str,
-    expected: type[SourceManifest] | type[DataManifest],
-    approved_sha256: str,
-) -> object:
-    content = _read_regular_file(root, path, maximum_bytes=32_768)
-    try:
-        manifest = parse_manifest_json(content)
-    except ManifestContractError:
-        _reject()
-    if (
-        type(manifest) is not expected
-        or serialize_manifest(manifest) != content
-        or hashlib.sha256(content).hexdigest() != approved_sha256
-    ):
-        _reject()
-    return manifest
 
 
 def _parse_entities(value: object) -> tuple[ReviewedEntity, ...]:

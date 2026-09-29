@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
@@ -61,6 +63,7 @@ import type {
 import {
   zEntityBrowsePageResponse,
   zEntitySummaryResponse,
+  zGetParticipateResponse,
   zGetCatalogEntityBySlugResponse,
   zListCatalogEntitiesResponse,
   zLiveResponse,
@@ -71,10 +74,14 @@ import {
 import { BLACK_HOLE_RELATIVITY_DEFAULT_RESPONSE } from "./fixtures/black-hole-relativity-response";
 import { PLANETARY_SYSTEM_BUILDER_DEFAULT_RESPONSE } from "./fixtures/planetary-system-builder-response";
 import { IMPACT_SIMULATOR_DEFAULT_RESPONSE } from "./fixtures/impact-simulator-response";
-import { PARTICIPATE_FRESH_RESPONSE } from "./fixtures/participate-response";
 import { ROCKET_MISSION_DESIGNER_DEFAULT_RESPONSE } from "./fixtures/rocket-mission-designer-response";
 import { RELATIVITY_VISUALIZATIONS_DEFAULT_RESPONSE } from "./fixtures/relativity-visualizations-response";
 import { SPECTROSCOPY_DEFAULT_RESPONSE } from "./fixtures/spectroscopy-lab-response";
+
+const participateFixture: unknown = JSON.parse(
+  readFileSync(new URL("./fixtures/participate-response.json", import.meta.url), "utf8"),
+);
+const PARTICIPATE_FRESH_RESPONSE = zGetParticipateResponse.parse(participateFixture);
 
 describe("generated contract boundary", () => {
   it("keeps request methods and paths tied to generated operation types", () => {

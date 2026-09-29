@@ -46,7 +46,13 @@ const relativityVisualizationsFixtures = JSON.parse(
   readFileSync(new URL("../fixtures/relativity-visualizations.json", import.meta.url), "utf8"),
 );
 const participateFixture = JSON.parse(
-  readFileSync(new URL("../fixtures/participate.json", import.meta.url), "utf8"),
+  readFileSync(
+    new URL(
+      "../../../../../packages/api-client/tests/fixtures/participate-response.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
 );
 const sockets = new Set();
 const apiPaths = new Set([

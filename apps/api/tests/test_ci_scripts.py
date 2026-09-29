@@ -612,10 +612,26 @@ def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
     assert workflow.count("cache: false") == 4
     assert workflow.count('cache: "pnpm"') == 3
     assert workflow.count('cache-dependency-path: "pnpm-lock.yaml"') == 3
+    pnpm_setup = (
+        "pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9\n"
+        "        with:\n"
+        "          run_install: false\n"
+        "          cache: false"
+    )
+    assert workflow.count(pnpm_setup) == 4
+    assert 'version: "11.17.0"' not in workflow
+    expected_node = "expected_node=\"$(tr -d '[:space:]' < .node-version)\""
+    expected_pnpm = (
+        'expected_pnpm="$(node -p \'require("./package.json").packageManager.split("@").at(-1)\')"'
+    )
     for node_job in (repository, python, web, security):
         assert "pnpm/action-setup@" in node_job
         assert "actions/setup-node@" in node_job
         assert "pnpm install --frozen-lockfile" in node_job
+        assert expected_node in node_job
+        assert expected_pnpm in node_job
+        assert 'test "$(node --version)" = "v${expected_node}"' in node_job
+        assert 'test "$(pnpm --version)" = "$expected_pnpm"' in node_job
     assert "pnpm/action-setup@" not in container
     assert "actions/setup-node@" not in container
 

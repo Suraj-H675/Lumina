@@ -29,7 +29,6 @@ jobs:
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
-          version: "11.17.0"
           run_install: false
           cache: false
 
@@ -42,8 +41,10 @@ jobs:
 
       - name: Verify Node and pnpm versions
         run: |
-          test "$(node --version)" = "v24.16.0"
-          test "$(pnpm --version)" = "11.17.0"
+          expected_node="$(tr -d '[:space:]' < .node-version)"
+          expected_pnpm="$(node -p 'require("./package.json").packageManager.split("@").at(-1)')"
+          test "$(node --version)" = "v${expected_node}"
+          test "$(pnpm --version)" = "$expected_pnpm"
 
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
@@ -98,7 +99,6 @@ jobs:
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
-          version: "11.17.0"
           run_install: false
           cache: false
 
@@ -109,8 +109,10 @@ jobs:
 
       - name: Verify Node and pnpm versions
         run: |
-          test "$(node --version)" = "v24.16.0"
-          test "$(pnpm --version)" = "11.17.0"
+          expected_node="$(tr -d '[:space:]' < .node-version)"
+          expected_pnpm="$(node -p 'require("./package.json").packageManager.split("@").at(-1)')"
+          test "$(node --version)" = "v${expected_node}"
+          test "$(pnpm --version)" = "$expected_pnpm"
 
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
@@ -273,7 +275,6 @@ jobs:
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
-          version: "11.17.0"
           run_install: false
           cache: false
 
@@ -286,8 +287,10 @@ jobs:
 
       - name: Verify Node and pnpm versions
         run: |
-          test "$(node --version)" = "v24.16.0"
-          test "$(pnpm --version)" = "11.17.0"
+          expected_node="$(tr -d '[:space:]' < .node-version)"
+          expected_pnpm="$(node -p 'require("./package.json").packageManager.split("@").at(-1)')"
+          test "$(node --version)" = "v${expected_node}"
+          test "$(pnpm --version)" = "$expected_pnpm"
 
       - name: Build and run Chromium E2E
         run: |
@@ -443,7 +446,6 @@ jobs:
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
-          version: "11.17.0"
           run_install: false
           cache: false
 
@@ -456,8 +458,10 @@ jobs:
 
       - name: Verify Node and pnpm versions
         run: |
-          test "$(node --version)" = "v24.16.0"
-          test "$(pnpm --version)" = "11.17.0"
+          expected_node="$(tr -d '[:space:]' < .node-version)"
+          expected_pnpm="$(node -p 'require("./package.json").packageManager.split("@").at(-1)')"
+          test "$(node --version)" = "v${expected_node}"
+          test "$(pnpm --version)" = "$expected_pnpm"
 
       - name: Restore exact dependencies
         run: pnpm install --frozen-lockfile

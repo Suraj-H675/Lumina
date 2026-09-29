@@ -30,6 +30,9 @@ from lumina.jobs.domain.models import (
     JobType,
 )
 from lumina.jobs.domain.payload import JobPayloadTooLarge
+from lumina.jobs.infrastructure.postgresql.lifecycle import OPERATION_TIMEOUT_SQL
+
+_TIMEOUT_SQL = OPERATION_TIMEOUT_SQL
 
 _PERSISTED_TYPE_PATTERN = re.compile(r"[a-z][a-z0-9_.-]{0,127}", re.ASCII)
 _DATABASE_PAYLOAD_LIMIT = 65_536
@@ -39,11 +42,6 @@ _STATE_SQLSTATE_CLASSES = frozenset({"23"})
 _PROGRAMMING_SQLSTATE_CLASSES = frozenset({"0A", "2F", "3F", "42"})
 _CONNECTION_SQLSTATE_CLASS = "08"
 
-_TIMEOUT_SQL = text(
-    "SELECT "
-    "set_config('statement_timeout', :timeout, true), "
-    "set_config('lock_timeout', :timeout, true)"
-)
 _PAYLOAD_SIZE_SQL = text("SELECT octet_length(convert_to(CAST(:payload AS jsonb)::text, 'UTF8'))")
 _INSERT_SQL = text(
     "INSERT INTO public.job "

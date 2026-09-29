@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 import math
 from collections.abc import Awaitable, Sequence
@@ -13,14 +12,7 @@ from enum import Enum, auto
 from uuid import UUID
 
 from sqlalchemy import RowMapping, text
-from sqlalchemy.exc import (
-    DBAPIError,
-    IntegrityError,
-    OperationalError,
-    ProgrammingError,
-    SQLAlchemyError,
-)
-from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 from lumina.jobs.domain.failure import (
@@ -41,22 +33,43 @@ from lumina.jobs.domain.failure import (
 )
 from lumina.jobs.domain.heartbeat import JobOwnershipLost
 from lumina.jobs.domain.models import JobStatus
+from lumina.jobs.infrastructure.postgresql.database_errors import (
+    DatabaseFailureKind,
+    DatabasePhase,
+    classify_database_failure,
+)
+from lumina.jobs.infrastructure.postgresql.lifecycle import (
+    BACKEND_PID_SQL,
+    OPERATION_TIMEOUT_SQL,
+    PROCESS_CONTROL_ERRORS,
+    DeferredResult,
+    cleanup_step_deadlines,
+    commit_deadlines,
+    deadline_after_ms,
+    deadline_expired,
+    invalidate_connection,
+    next_cleanup_step_deadline,
+    run_until_deadline,
+    transaction_is_inactive,
+    work_deadline,
+)
 
-_LOCK_TIMEOUT_SQLSTATE = "55P03"
-_QUERY_CANCELLED_SQLSTATE = "57014"
-_STATE_SQLSTATE_CLASSES = frozenset({"23"})
-_PROGRAMMING_SQLSTATE_CLASSES = frozenset({"0A", "2F", "3F", "42"})
-_CONNECTION_SQLSTATE_CLASS = "08"
-_PROCESS_CONTROL_ERRORS = (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
+_DatabasePhase = DatabasePhase
+
+_BACKEND_PID_SQL = BACKEND_PID_SQL
+
+_TIMEOUT_SQL = OPERATION_TIMEOUT_SQL
+
+_DATABASE_FAILURES = {
+    DatabaseFailureKind.STORAGE_UNAVAILABLE: JobFailureStorageUnavailable,
+    DatabaseFailureKind.CONTENTION: JobFailureContention,
+    DatabaseFailureKind.STATE: JobFailureDatabaseStateFailure,
+    DatabaseFailureKind.PROGRAMMING: JobFailureDatabaseProgrammingFailure,
+    DatabaseFailureKind.OPERATION: JobFailureDatabaseOperationFailure,
+}
 _MAX_RECONCILIATION_CONNECTION_ATTEMPTS = 3
 _NON_RETRYABLE_DELAY_PLACEHOLDER = 0
 
-_BACKEND_PID_SQL = text("SELECT pg_backend_pid()")
-_TIMEOUT_SQL = text(
-    "SELECT "
-    "set_config('statement_timeout', :timeout, true), "
-    "set_config('lock_timeout', :timeout, true)"
-)
 _FAIL_SQL = text(
     "WITH owned AS MATERIALIZED ("
     "SELECT id, available_at AS prior_available_at, "
@@ -154,11 +167,6 @@ _RECONCILE_SQL = text(
 )
 
 
-class _DatabasePhase(Enum):
-    CONNECTION = auto()
-    OPERATION = auto()
-
-
 class _ReconciliationOutcome(Enum):
     EXACT_TRANSITION = auto()
     EXACT_UNCHANGED_RUNNING = auto()
@@ -186,12 +194,6 @@ class _FailureCommitEvidence:
 class _MutationResult:
     outcome: FailJobOutcome
     evidence: _FailureCommitEvidence
-
-
-@dataclass(frozen=True, repr=False, slots=True)
-class _DeferredResult[Result]:
-    value: Result | None = None
-    error: BaseException | None = None
 
 
 class _FreshReconciliationConnectionUnavailable(RuntimeError):
@@ -238,7 +240,7 @@ class PostgreSqlFailureJobStore:
                 validated,
                 primary_backend_pid=primary_backend_pid,
             )
-        except _PROCESS_CONTROL_ERRORS:
+        except PROCESS_CONTROL_ERRORS:
             if not await self._cleanup_before_mutation(session, connection):
                 raise JobFailureDatabaseOperationFailure() from None
             raise
@@ -270,12 +272,12 @@ class PostgreSqlFailureJobStore:
                 raise safe_failure() from None
             raise JobFailureDatabaseOperationFailure() from None
 
-        post_update_deadline = _new_post_update_deadline(self._operation_wait_timeout_ms)
-        work_deadline = _post_update_work_deadline(
+        post_update_deadline = deadline_after_ms(self._operation_wait_timeout_ms)
+        post_update_work_deadline = work_deadline(
             post_update_deadline,
             self._operation_wait_timeout_ms,
         )
-        commit_deadline, commit_settlement_deadline = _commit_deadlines(work_deadline)
+        commit_deadline, commit_settlement_deadline = commit_deadlines(post_update_work_deadline)
         commit = await _run_until_deadline(
             session.commit(),
             deadline=commit_deadline,
@@ -284,7 +286,7 @@ class PostgreSqlFailureJobStore:
         if commit.error is None:
             closed = await _run_until_deadline(
                 session.close(),
-                deadline=work_deadline,
+                deadline=post_update_work_deadline,
                 settlement_deadline=post_update_deadline,
             )
             if closed.error is not None:
@@ -300,7 +302,7 @@ class PostgreSqlFailureJobStore:
         quarantined = await self._quarantine_post_update_session(
             session,
             connection,
-            deadline=work_deadline,
+            deadline=post_update_work_deadline,
             settlement_deadline=post_update_deadline,
         )
         if not quarantined:
@@ -308,10 +310,10 @@ class PostgreSqlFailureJobStore:
         reconciliation = await _run_until_deadline(
             self._reconcile(
                 mutation.evidence,
-                deadline=work_deadline,
+                deadline=post_update_work_deadline,
                 settlement_deadline=post_update_deadline,
             ),
-            deadline=work_deadline,
+            deadline=post_update_work_deadline,
             settlement_deadline=post_update_deadline,
         )
         if reconciliation.error is not None or reconciliation.value is None:
@@ -381,7 +383,7 @@ class PostgreSqlFailureJobStore:
         settlement_deadline: float,
     ) -> _ReconciliationOutcome:
         for _ in range(_MAX_RECONCILIATION_CONNECTION_ATTEMPTS):
-            if _deadline_expired(deadline):
+            if deadline_expired(deadline):
                 raise _PostUpdateDeadlineExpired
             session = self._session_factory()
             connection: AsyncConnection | None = None
@@ -460,19 +462,19 @@ class PostgreSqlFailureJobStore:
         connection: AsyncConnection | None,
     ) -> bool:
         """Bound all cleanup under one deadline and quarantine uncertain resources."""
-        deadline = _new_lifecycle_deadline(self._operation_wait_timeout_ms)
-        transaction_inactive = _transaction_is_inactive(session)
+        deadline = deadline_after_ms(self._operation_wait_timeout_ms)
+        transaction_inactive = transaction_is_inactive(session)
         if not transaction_inactive:
-            rollback_deadline, rollback_settlement = _cleanup_step_deadlines(deadline)
+            rollback_deadline, rollback_settlement = cleanup_step_deadlines(deadline)
             rollback = await _run_until_deadline(
                 session.rollback(),
                 deadline=rollback_deadline,
                 settlement_deadline=rollback_settlement,
             )
-            transaction_inactive = rollback.error is None and _transaction_is_inactive(session)
+            transaction_inactive = rollback.error is None and transaction_is_inactive(session)
 
         if transaction_inactive:
-            close_deadline, close_settlement = _cleanup_step_deadlines(deadline)
+            close_deadline, close_settlement = cleanup_step_deadlines(deadline)
             closed = await _run_until_deadline(
                 session.close(),
                 deadline=close_deadline,
@@ -494,9 +496,9 @@ class PostgreSqlFailureJobStore:
         *,
         deadline: float,
     ) -> bool:
-        connection_deadline, connection_settlement = _cleanup_step_deadlines(deadline)
+        connection_deadline, connection_settlement = cleanup_step_deadlines(deadline)
         connection_invalidated = await _run_until_deadline(
-            _invalidate_connection(connection),
+            invalidate_connection(connection),
             deadline=connection_deadline,
             settlement_deadline=connection_settlement,
         )
@@ -504,7 +506,7 @@ class PostgreSqlFailureJobStore:
             await _bounded_close_after_quarantine(session, deadline=deadline)
             return True
 
-        session_deadline, session_settlement = _cleanup_step_deadlines(deadline)
+        session_deadline, session_settlement = cleanup_step_deadlines(deadline)
         session_invalidated = await _run_until_deadline(
             session.invalidate(),
             deadline=session_deadline,
@@ -514,7 +516,7 @@ class PostgreSqlFailureJobStore:
             await _bounded_close_after_quarantine(session, deadline=deadline)
             return True
 
-        pool_deadline, pool_settlement = _cleanup_step_deadlines(deadline)
+        pool_deadline, pool_settlement = cleanup_step_deadlines(deadline)
         pool_replaced = await _run_until_deadline(
             _detach_connection_pool(session, connection),
             deadline=pool_deadline,
@@ -566,13 +568,13 @@ class PostgreSqlFailureJobStore:
         deadline: float,
         settlement_deadline: float,
     ) -> bool:
-        connection_deadline = _next_cleanup_step_deadline(deadline)
+        connection_deadline = next_cleanup_step_deadline(deadline)
         connection_invalidated = await _run_until_deadline(
-            _invalidate_connection(connection),
+            invalidate_connection(connection),
             deadline=connection_deadline,
             settlement_deadline=connection_deadline,
         )
-        session_deadline = _next_cleanup_step_deadline(deadline)
+        session_deadline = next_cleanup_step_deadline(deadline)
         invalidated = await _run_until_deadline(
             session.invalidate(),
             deadline=session_deadline,
@@ -583,7 +585,7 @@ class PostgreSqlFailureJobStore:
         ) or invalidated.error is None
         pool_detached = False
         if not invalidation_confirmed:
-            detachment_deadline = _next_cleanup_step_deadline(deadline)
+            detachment_deadline = next_cleanup_step_deadline(deadline)
             detached = await _run_until_deadline(
                 _detach_connection_pool(session, connection),
                 deadline=detachment_deadline,
@@ -725,74 +727,13 @@ async def _run_until_deadline[Result](
     *,
     deadline: float,
     settlement_deadline: float,
-) -> _DeferredResult[Result]:
-    """Settle, cancel, and observe one post-update operation by an absolute deadline."""
-    if _deadline_expired(deadline):
-        _close_unstarted_awaitable(operation)
-        return _DeferredResult(error=_PostUpdateDeadlineExpired())
-    task = asyncio.create_task(_await_operation(operation))
-    while True:
-        remaining = deadline - asyncio.get_running_loop().time()
-        if remaining <= 0:
-            await _cancel_and_observe(task, deadline=settlement_deadline)
-            return _DeferredResult(error=_PostUpdateDeadlineExpired())
-        try:
-            value = await asyncio.wait_for(asyncio.shield(task), timeout=remaining)
-            return _DeferredResult(value=value)
-        except TimeoutError:
-            await _cancel_and_observe(task, deadline=settlement_deadline)
-            return _DeferredResult(error=_PostUpdateDeadlineExpired())
-        except _PROCESS_CONTROL_ERRORS as interruption:
-            if not task.done():
-                continue
-            return _completed_task_result(task, fallback=interruption)
-        except BaseException as error:
-            return _DeferredResult(error=error)
-
-
-async def _cancel_and_observe(
-    task: asyncio.Task[object],
-    *,
-    deadline: float,
-) -> None:
-    task.cancel()
-    while not task.done():
-        remaining = deadline - asyncio.get_running_loop().time()
-        if remaining <= 0:
-            task.add_done_callback(_consume_task_exception)
-            return
-        try:
-            await asyncio.wait_for(asyncio.shield(task), timeout=remaining)
-        except TimeoutError:
-            task.add_done_callback(_consume_task_exception)
-            return
-        except _PROCESS_CONTROL_ERRORS:
-            continue
-        except BaseException:
-            break
-    _consume_task_exception(task)
-
-
-def _completed_task_result[Result](
-    task: asyncio.Task[Result],
-    *,
-    fallback: BaseException,
-) -> _DeferredResult[Result]:
-    if task.cancelled():
-        return _DeferredResult(error=fallback)
-    try:
-        return _DeferredResult(value=task.result())
-    except BaseException as error:
-        return _DeferredResult(error=error)
-
-
-def _consume_task_exception(task: asyncio.Task[object]) -> None:
-    with suppress(BaseException):
-        task.exception()
-
-
-async def _await_operation[Result](operation: Awaitable[Result]) -> Result:
-    return await operation
+) -> DeferredResult[Result]:
+    return await run_until_deadline(
+        operation,
+        deadline=deadline,
+        settlement_deadline=settlement_deadline,
+        deadline_error=_PostUpdateDeadlineExpired,
+    )
 
 
 async def _bounded_close_after_quarantine(
@@ -800,72 +741,12 @@ async def _bounded_close_after_quarantine(
     *,
     deadline: float,
 ) -> None:
-    close_deadline, close_settlement = _cleanup_step_deadlines(deadline)
+    close_deadline, close_settlement = cleanup_step_deadlines(deadline)
     await _run_until_deadline(
         session.close(),
         deadline=close_deadline,
         settlement_deadline=close_settlement,
     )
-
-
-def _transaction_is_inactive(session: AsyncSession) -> bool:
-    try:
-        transaction = session.in_transaction()
-        return transaction is None or transaction is False
-    except BaseException:
-        return False
-
-
-def _new_lifecycle_deadline(operation_wait_timeout_ms: int) -> float:
-    return asyncio.get_running_loop().time() + operation_wait_timeout_ms / 1_000
-
-
-def _cleanup_step_deadlines(lifecycle_deadline: float) -> tuple[float, float]:
-    now = asyncio.get_running_loop().time()
-    remaining = max(0.0, lifecycle_deadline - now)
-    return now + remaining / 3, now + (remaining * 2) / 3
-
-
-def _new_post_update_deadline(operation_wait_timeout_ms: int) -> float:
-    return asyncio.get_running_loop().time() + operation_wait_timeout_ms / 1_000
-
-
-def _post_update_work_deadline(
-    post_update_deadline: float,
-    operation_wait_timeout_ms: int,
-) -> float:
-    total_seconds = operation_wait_timeout_ms / 1_000
-    settlement_reserve = min(0.05, total_seconds / 10)
-    return post_update_deadline - settlement_reserve
-
-
-def _commit_deadlines(post_update_work_deadline: float) -> tuple[float, float]:
-    now = asyncio.get_running_loop().time()
-    remaining = max(0.0, post_update_work_deadline - now)
-    return now + remaining / 3, now + remaining / 2
-
-
-def _deadline_expired(deadline: float) -> bool:
-    return asyncio.get_running_loop().time() >= deadline
-
-
-def _close_unstarted_awaitable(operation: Awaitable[object]) -> None:
-    close = getattr(operation, "close", None)
-    if callable(close):
-        with suppress(BaseException):
-            close()
-
-
-async def _invalidate_connection(connection: AsyncConnection | None) -> bool:
-    if connection is None:
-        return False
-    invalidate = getattr(connection, "invalidate", None)
-    if not callable(invalidate):
-        return False
-    outcome = invalidate()
-    if inspect.isawaitable(outcome):
-        await outcome
-    return True
 
 
 async def _detach_connection_pool(
@@ -898,11 +779,6 @@ async def _detach_connection_pool(
     return False
 
 
-def _next_cleanup_step_deadline(deadline: float) -> float:
-    now = asyncio.get_running_loop().time()
-    return now + max(0.0, deadline - now) / 2
-
-
 def _timestamp_is_aware(value: object) -> bool:
     try:
         return (
@@ -931,41 +807,10 @@ def _classify_database_failure(
     *,
     timeout_installed: bool,
 ) -> type[RuntimeError]:
-    sqlstate = _database_sqlstate(error) if isinstance(error, DBAPIError) else None
-    if isinstance(error, DBAPIError) and (
-        error.connection_invalidated
-        or (sqlstate is not None and sqlstate.startswith(_CONNECTION_SQLSTATE_CLASS))
-    ):
-        return JobFailureStorageUnavailable
-    if (
-        isinstance(error, DBAPIError)
-        and timeout_installed
-        and (
-            sqlstate == _LOCK_TIMEOUT_SQLSTATE
-            or (sqlstate == _QUERY_CANCELLED_SQLSTATE and _is_configured_statement_timeout(error))
+    return _DATABASE_FAILURES[
+        classify_database_failure(
+            error,
+            phase,
+            timeout_installed=timeout_installed,
         )
-    ):
-        return JobFailureContention
-    if isinstance(error, IntegrityError):
-        return JobFailureDatabaseStateFailure
-    if sqlstate is not None and sqlstate[:2] in _STATE_SQLSTATE_CLASSES:
-        return JobFailureDatabaseStateFailure
-    if isinstance(error, ProgrammingError):
-        return JobFailureDatabaseProgrammingFailure
-    if sqlstate is not None and sqlstate[:2] in _PROGRAMMING_SQLSTATE_CLASSES:
-        return JobFailureDatabaseProgrammingFailure
-    if phase is _DatabasePhase.CONNECTION and isinstance(
-        error,
-        OperationalError | SQLAlchemyTimeoutError,
-    ):
-        return JobFailureStorageUnavailable
-    return JobFailureDatabaseOperationFailure
-
-
-def _is_configured_statement_timeout(error: DBAPIError) -> bool:
-    return "statement timeout" in str(error.orig).lower()
-
-
-def _database_sqlstate(error: DBAPIError) -> str | None:
-    sqlstate = getattr(error.orig, "sqlstate", None)
-    return sqlstate if isinstance(sqlstate, str) else None
+    ]

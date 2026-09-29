@@ -2,18 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
-from enum import Enum, auto
-
 from sqlalchemy import RowMapping, text
-from sqlalchemy.exc import (
-    DBAPIError,
-    IntegrityError,
-    OperationalError,
-    ProgrammingError,
-    SQLAlchemyError,
-)
-from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 from lumina.jobs.domain.heartbeat import (
@@ -27,19 +17,28 @@ from lumina.jobs.domain.heartbeat import (
     JobHeartbeatValidationError,
     JobOwnershipLost,
 )
-
-_LOCK_TIMEOUT_SQLSTATE = "55P03"
-_QUERY_CANCELLED_SQLSTATE = "57014"
-_STATE_SQLSTATE_CLASSES = frozenset({"23"})
-_PROGRAMMING_SQLSTATE_CLASSES = frozenset({"0A", "2F", "3F", "42"})
-_CONNECTION_SQLSTATE_CLASS = "08"
-_PROCESS_CONTROL_ERRORS = (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
-
-_TIMEOUT_SQL = text(
-    "SELECT "
-    "set_config('statement_timeout', :timeout, true), "
-    "set_config('lock_timeout', :timeout, true)"
+from lumina.jobs.infrastructure.postgresql.database_errors import (
+    DatabaseFailureKind,
+    DatabasePhase,
+    classify_database_failure,
 )
+from lumina.jobs.infrastructure.postgresql.lifecycle import (
+    OPERATION_TIMEOUT_SQL,
+    PROCESS_CONTROL_ERRORS,
+)
+
+_DatabasePhase = DatabasePhase
+
+_TIMEOUT_SQL = OPERATION_TIMEOUT_SQL
+
+_DATABASE_FAILURES = {
+    DatabaseFailureKind.STORAGE_UNAVAILABLE: JobHeartbeatStorageUnavailable,
+    DatabaseFailureKind.CONTENTION: JobHeartbeatContention,
+    DatabaseFailureKind.STATE: JobHeartbeatDatabaseStateFailure,
+    DatabaseFailureKind.PROGRAMMING: JobHeartbeatDatabaseProgrammingFailure,
+    DatabaseFailureKind.OPERATION: JobHeartbeatDatabaseOperationFailure,
+}
+
 _HEARTBEAT_SQL = text(
     "UPDATE public.job "
     "SET heartbeat_at = transaction_timestamp() "
@@ -49,12 +48,6 @@ _HEARTBEAT_SQL = text(
     "AND attempts = :expected_attempt "
     "RETURNING heartbeat_at"
 )
-
-
-class _DatabasePhase(Enum):
-    CONNECTION = auto()
-    OPERATION = auto()
-    EXIT = auto()
 
 
 class PostgreSqlHeartbeatJobStore:
@@ -89,7 +82,7 @@ class PostgreSqlHeartbeatJobStore:
             await session.commit()
             await session.close()
             return recorded
-        except _PROCESS_CONTROL_ERRORS:
+        except PROCESS_CONTROL_ERRORS:
             await _rollback_close_or_invalidate(session)
             raise
         except JobOwnershipLost:
@@ -153,7 +146,7 @@ async def _rollback_close_or_invalidate(session: AsyncSession) -> None:
     try:
         if session.in_transaction():
             await session.rollback()
-    except _PROCESS_CONTROL_ERRORS as error:
+    except PROCESS_CONTROL_ERRORS as error:
         cleanup_failed = True
         process_control = error
     except BaseException:
@@ -161,7 +154,7 @@ async def _rollback_close_or_invalidate(session: AsyncSession) -> None:
 
     try:
         await session.close()
-    except _PROCESS_CONTROL_ERRORS as error:
+    except PROCESS_CONTROL_ERRORS as error:
         cleanup_failed = True
         process_control = process_control or error
     except BaseException:
@@ -170,13 +163,13 @@ async def _rollback_close_or_invalidate(session: AsyncSession) -> None:
     if cleanup_failed:
         try:
             await session.invalidate()
-        except _PROCESS_CONTROL_ERRORS as error:
+        except PROCESS_CONTROL_ERRORS as error:
             process_control = process_control or error
         except BaseException:
             pass
         try:
             await session.close()
-        except _PROCESS_CONTROL_ERRORS as error:
+        except PROCESS_CONTROL_ERRORS as error:
             process_control = process_control or error
         except BaseException:
             pass
@@ -205,41 +198,10 @@ def _classify_database_failure(
     *,
     timeout_installed: bool,
 ) -> type[RuntimeError]:
-    sqlstate = _database_sqlstate(error) if isinstance(error, DBAPIError) else None
-    if isinstance(error, DBAPIError) and (
-        error.connection_invalidated
-        or (sqlstate is not None and sqlstate.startswith(_CONNECTION_SQLSTATE_CLASS))
-    ):
-        return JobHeartbeatStorageUnavailable
-    if (
-        isinstance(error, DBAPIError)
-        and timeout_installed
-        and (
-            sqlstate == _LOCK_TIMEOUT_SQLSTATE
-            or (sqlstate == _QUERY_CANCELLED_SQLSTATE and _is_configured_statement_timeout(error))
+    return _DATABASE_FAILURES[
+        classify_database_failure(
+            error,
+            phase,
+            timeout_installed=timeout_installed,
         )
-    ):
-        return JobHeartbeatContention
-    if isinstance(error, IntegrityError):
-        return JobHeartbeatDatabaseStateFailure
-    if sqlstate is not None and sqlstate[:2] in _STATE_SQLSTATE_CLASSES:
-        return JobHeartbeatDatabaseStateFailure
-    if isinstance(error, ProgrammingError):
-        return JobHeartbeatDatabaseProgrammingFailure
-    if sqlstate is not None and sqlstate[:2] in _PROGRAMMING_SQLSTATE_CLASSES:
-        return JobHeartbeatDatabaseProgrammingFailure
-    if phase is _DatabasePhase.CONNECTION and isinstance(
-        error,
-        OperationalError | SQLAlchemyTimeoutError,
-    ):
-        return JobHeartbeatStorageUnavailable
-    return JobHeartbeatDatabaseOperationFailure
-
-
-def _is_configured_statement_timeout(error: DBAPIError) -> bool:
-    return "statement timeout" in str(error.orig).lower()
-
-
-def _database_sqlstate(error: DBAPIError) -> str | None:
-    sqlstate = getattr(error.orig, "sqlstate", None)
-    return sqlstate if isinstance(sqlstate, str) else None
+    ]

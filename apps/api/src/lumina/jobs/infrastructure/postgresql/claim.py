@@ -3,22 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Coroutine
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any
 from uuid import UUID
 
 from sqlalchemy import RowMapping, text
-from sqlalchemy.exc import (
-    DBAPIError,
-    IntegrityError,
-    OperationalError,
-    ProgrammingError,
-    SQLAlchemyError,
-)
-from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 from lumina.jobs.domain.models import (
@@ -34,21 +25,33 @@ from lumina.jobs.domain.models import (
     PersistedJobTypeName,
 )
 from lumina.jobs.domain.payload import PersistedJobPayload, PersistedJobPayloadInvalid
+from lumina.jobs.infrastructure.postgresql.database_errors import (
+    DatabaseFailureKind,
+    DatabasePhase,
+    classify_database_failure,
+)
+from lumina.jobs.infrastructure.postgresql.lifecycle import (
+    BACKEND_PID_SQL,
+    OPERATION_TIMEOUT_SQL,
+    PROCESS_CONTROL_ERRORS,
+    run_deferring_process_control,
+)
 
-_LOCK_TIMEOUT_SQLSTATE = "55P03"
-_QUERY_CANCELLED_SQLSTATE = "57014"
-_STATE_SQLSTATE_CLASSES = frozenset({"23"})
-_PROGRAMMING_SQLSTATE_CLASSES = frozenset({"0A", "2F", "3F", "42"})
-_CONNECTION_SQLSTATE_CLASS = "08"
-_PROCESS_CONTROL_ERRORS = (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
+_DatabasePhase = DatabasePhase
+
+_BACKEND_PID_SQL = BACKEND_PID_SQL
+
+_TIMEOUT_SQL = OPERATION_TIMEOUT_SQL
+
+_DATABASE_FAILURES = {
+    DatabaseFailureKind.STORAGE_UNAVAILABLE: JobClaimStorageUnavailable,
+    DatabaseFailureKind.CONTENTION: JobClaimContention,
+    DatabaseFailureKind.STATE: JobClaimDatabaseStateFailure,
+    DatabaseFailureKind.PROGRAMMING: JobClaimDatabaseProgrammingFailure,
+    DatabaseFailureKind.OPERATION: JobClaimDatabaseOperationFailure,
+}
 _MAX_RECONCILIATION_CONNECTION_ATTEMPTS = 3
 
-_BACKEND_PID_SQL = text("SELECT pg_backend_pid()")
-_TIMEOUT_SQL = text(
-    "SELECT "
-    "set_config('statement_timeout', :timeout, true), "
-    "set_config('lock_timeout', :timeout, true)"
-)
 _CLAIM_SQL = text(
     "WITH candidate AS ("
     "SELECT id FROM public.job "
@@ -73,12 +76,6 @@ _RECONCILE_SQL = text(
 )
 
 
-class _DatabasePhase(Enum):
-    CONNECTION = auto()
-    OPERATION = auto()
-    EXIT = auto()
-
-
 class _ReconciliationOutcome(Enum):
     EXACT_CLAIM = auto()
     QUEUED_UNCHANGED = auto()
@@ -94,12 +91,6 @@ class _ClaimEvidence:
     claimed_at: datetime
     heartbeat_at: datetime
     primary_backend_pid: int
-
-
-@dataclass(frozen=True, repr=False, slots=True)
-class _DeferredResult[Result]:
-    value: Result | None = None
-    error: BaseException | None = None
 
 
 class _FreshReconciliationConnectionUnavailable(RuntimeError):
@@ -134,7 +125,7 @@ class PostgreSqlClaimJobStore:
             timeout_installed = True
             primary_backend_pid = await self._backend_pid(connection)
             outcome = await self._claim_with_connection(connection, claimed_by=claimed_by)
-        except _PROCESS_CONTROL_ERRORS:
+        except PROCESS_CONTROL_ERRORS:
             await self._cleanup_before_mutation(session)
             raise
         except (JobClaimDatabaseStateFailure, PersistedJobPayloadInvalid):
@@ -167,13 +158,13 @@ class PostgreSqlClaimJobStore:
             heartbeat_at=outcome.heartbeat_at,
             primary_backend_pid=primary_backend_pid,
         )
-        commit = await _run_deferring_process_control(session.commit())
+        commit = await run_deferring_process_control(session.commit())
         if commit.error is None:
             await self._close_after_confirmed_commit(session)
             return outcome
 
         await self._discard_failed_session(session)
-        reconciliation = await _run_deferring_process_control(self._reconcile(evidence))
+        reconciliation = await run_deferring_process_control(self._reconcile(evidence))
         if reconciliation.error is not None or reconciliation.value is None:
             raise JobClaimOutcomeUnknown() from None
         if reconciliation.value is _ReconciliationOutcome.EXACT_CLAIM:
@@ -193,7 +184,7 @@ class PostgreSqlClaimJobStore:
         try:
             await session.commit()
             await session.close()
-        except _PROCESS_CONTROL_ERRORS:
+        except PROCESS_CONTROL_ERRORS:
             await self._cleanup_before_mutation(session)
             raise
         except OSError:
@@ -267,7 +258,7 @@ class PostgreSqlClaimJobStore:
             raise _FreshReconciliationConnectionUnavailable
 
     async def _cleanup_before_mutation(self, session: AsyncSession) -> None:
-        cleanup = await _run_deferring_process_control(self._rollback_and_close(session))
+        cleanup = await run_deferring_process_control(self._rollback_and_close(session))
         if cleanup.error is not None:
             await self._discard_failed_session(session)
 
@@ -277,35 +268,14 @@ class PostgreSqlClaimJobStore:
         await session.close()
 
     async def _close_after_confirmed_commit(self, session: AsyncSession) -> None:
-        close = await _run_deferring_process_control(session.close())
+        close = await run_deferring_process_control(session.close())
         if close.error is not None:
             await self._discard_failed_session(session)
 
     async def _discard_failed_session(self, session: AsyncSession) -> None:
-        invalidated = await _run_deferring_process_control(session.invalidate())
+        invalidated = await run_deferring_process_control(session.invalidate())
         if invalidated.error is not None:
-            await _run_deferring_process_control(session.close())
-
-
-async def _run_deferring_process_control[Result](
-    operation: Coroutine[Any, Any, Result],
-) -> _DeferredResult[Result]:
-    """Let an in-flight lifecycle operation settle despite caller cancellation."""
-    task = asyncio.create_task(operation)
-    while True:
-        try:
-            return _DeferredResult(value=await asyncio.shield(task))
-        except _PROCESS_CONTROL_ERRORS as interruption:
-            if not task.done():
-                continue
-            if task.cancelled():
-                return _DeferredResult(error=interruption)
-            try:
-                return _DeferredResult(value=task.result())
-            except BaseException as error:
-                return _DeferredResult(error=error)
-        except BaseException as error:
-            return _DeferredResult(error=error)
+            await run_deferring_process_control(session.close())
 
 
 def _claimed_job(row: RowMapping) -> ClaimedJob:
@@ -391,42 +361,10 @@ def _classify_database_failure(
     *,
     timeout_installed: bool,
 ) -> type[RuntimeError]:
-    sqlstate = _database_sqlstate(error) if isinstance(error, DBAPIError) else None
-    if isinstance(error, DBAPIError) and (
-        error.connection_invalidated
-        or (sqlstate is not None and sqlstate.startswith(_CONNECTION_SQLSTATE_CLASS))
-    ):
-        return JobClaimStorageUnavailable
-    if (
-        isinstance(error, DBAPIError)
-        and timeout_installed
-        and (
-            sqlstate == _LOCK_TIMEOUT_SQLSTATE
-            or (sqlstate == _QUERY_CANCELLED_SQLSTATE and _is_configured_statement_timeout(error))
+    return _DATABASE_FAILURES[
+        classify_database_failure(
+            error,
+            phase,
+            timeout_installed=timeout_installed,
         )
-    ):
-        return JobClaimContention
-    if isinstance(error, IntegrityError):
-        return JobClaimDatabaseStateFailure
-    if sqlstate is not None and sqlstate[:2] in _STATE_SQLSTATE_CLASSES:
-        return JobClaimDatabaseStateFailure
-    if isinstance(error, ProgrammingError):
-        return JobClaimDatabaseProgrammingFailure
-    if sqlstate is not None and sqlstate[:2] in _PROGRAMMING_SQLSTATE_CLASSES:
-        return JobClaimDatabaseProgrammingFailure
-    if phase is _DatabasePhase.CONNECTION and isinstance(
-        error,
-        OperationalError | SQLAlchemyTimeoutError,
-    ):
-        return JobClaimStorageUnavailable
-    return JobClaimDatabaseOperationFailure
-
-
-def _is_configured_statement_timeout(error: DBAPIError) -> bool:
-    message = str(error.orig).lower()
-    return "statement timeout" in message
-
-
-def _database_sqlstate(error: DBAPIError) -> str | None:
-    sqlstate = getattr(error.orig, "sqlstate", None)
-    return sqlstate if isinstance(sqlstate, str) else None
+    ]

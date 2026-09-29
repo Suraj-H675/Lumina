@@ -223,10 +223,6 @@ function attachStorageListener(): void {
   window.addEventListener("storage", handleStorageEvent);
 }
 
-// ---------------------------------------------------------------------------
-// Semantic API (handoff §32 naming, repository conventions applied)
-// ---------------------------------------------------------------------------
-
 function guardReady(): StoreResult | null {
   if (status === "corrupted") {
     return {

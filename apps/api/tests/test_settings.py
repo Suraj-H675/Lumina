@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 import lumina.settings as settings_module
@@ -35,6 +36,18 @@ def test_default_dotenv_location_is_repository_root() -> None:
     repository_root = Path(__file__).resolve().parents[3]
 
     assert repository_root / ".env" == settings_module._REPOSITORY_ENV_FILE
+
+
+def test_env_example_advertises_only_supported_lumina_settings() -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    advertised = frozenset(
+        re.findall(
+            r"LUMINA_[A-Z0-9_]+",
+            (repository_root / ".env.example").read_text(encoding="utf-8"),
+        )
+    )
+
+    assert advertised <= settings_module._ALLOWED_ENVIRONMENT_KEYS
 
 
 def test_repository_style_dotenv_is_read_as_utf8(

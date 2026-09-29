@@ -15,6 +15,7 @@ from .migration_lifecycle import (
     historical_sync_url,
     normalize_historical_database_to_b2,
     open_migration_connection,
+    public_table_names,
     run_alembic,
     run_migration_operation,
 )
@@ -154,17 +155,7 @@ _EXPECTED_INDEXES = {
 
 
 def _table_names(url: URL) -> set[str]:
-    def query(connection: Connection) -> set[str]:
-        return set(
-            connection.execute(
-                text(
-                    "SELECT table_name FROM information_schema.tables "
-                    "WHERE table_schema = 'public' ORDER BY table_name"
-                )
-            ).scalars()
-        )
-
-    return run_migration_operation(url, query)
+    return run_migration_operation(url, public_table_names)
 
 
 def _revision(url: URL) -> str | None:

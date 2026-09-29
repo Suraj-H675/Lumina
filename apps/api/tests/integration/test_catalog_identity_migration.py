@@ -21,6 +21,9 @@ from .migration_lifecycle import (
     run_alembic,
     run_migration_operation,
 )
+from .migration_lifecycle import (
+    public_table_names as _table_names,
+)
 
 _REVISION = "d502b5935120"
 _HISTORICAL_B2 = "b7f3a2c81d4e"
@@ -135,17 +138,6 @@ def _sync_url(settings: IntegrationTestSettings) -> URL:
 
 def _revision(connection: Connection) -> str | None:
     return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
-
-
-def _table_names(connection: Connection) -> set[str]:
-    return set(
-        connection.execute(
-            text(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = 'public' ORDER BY table_name"
-            )
-        ).scalars()
-    )
 
 
 _ACCEPTED_HISTORICAL_REVISIONS = frozenset(

@@ -25,6 +25,9 @@ from .migration_lifecycle import (
     run_alembic,
     run_migration_operation,
 )
+from .migration_lifecycle import (
+    public_table_names as _table_names,
+)
 
 _PHASE_1A1_HEAD = "d502b5935120"
 _PHASE_1A2_HEAD = "e4c9f1a7b362"
@@ -168,17 +171,6 @@ def _head() -> str:
 
 def _revision(connection: Connection) -> str | None:
     return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
-
-
-def _table_names(connection: Connection) -> set[str]:
-    return set(
-        connection.execute(
-            text(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = 'public' ORDER BY table_name"
-            )
-        ).scalars()
-    )
 
 
 def _ensure_b2(settings: IntegrationTestSettings) -> None:

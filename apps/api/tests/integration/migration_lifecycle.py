@@ -71,6 +71,18 @@ def execute_integration_sql(
     return run_migration_operation(sync_url, operation)
 
 
+def public_table_names(connection: Connection) -> set[str]:
+    """Return the exact public-table set visible on a guarded test connection."""
+    return set(
+        connection.execute(
+            text(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema = 'public' ORDER BY table_name"
+            )
+        ).scalars()
+    )
+
+
 def integration_migration_identity(
     settings: IntegrationTestSettings,
     *,

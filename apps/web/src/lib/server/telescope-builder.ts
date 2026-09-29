@@ -2,12 +2,12 @@ import "server-only";
 
 import {
   requestEndpoint,
-  telescopeBuilderEndpoint,
   type TelescopeBuilderCalculationResponse,
   type TransportOptions,
 } from "@nova-lumina/api-client";
 
 import {
+  telescopeBuilderEndpointForState,
   validateTelescopeBuilderCalculationResult,
   type TelescopeBuilderState,
 } from "../simulations/telescope-builder";
@@ -24,20 +24,6 @@ export type TelescopeBuilderLoaderOptions = TransportOptions &
     origin?: string;
   }>;
 
-function endpointWithState(state: TelescopeBuilderState) {
-  const query = new URLSearchParams({
-    aperture_mm: String(state.aperture_mm),
-    telescope_focal_length_mm: String(state.telescope_focal_length_mm),
-    telescope_type: state.telescope_type,
-    eyepiece_focal_length_mm: String(state.eyepiece_focal_length_mm),
-    eyepiece_apparent_field_deg: String(state.eyepiece_apparent_field_deg),
-    optical_modifier_kind: state.optical_modifier_kind,
-    optical_modifier_factor: String(state.optical_modifier_factor),
-    target_angular_size_arcmin: String(state.target_angular_size_arcmin),
-  });
-  return { ...telescopeBuilderEndpoint, path: `${telescopeBuilderEndpoint.path}?${query}` };
-}
-
 export async function loadTelescopeBuilderCalculation(
   state: TelescopeBuilderState,
   options: TelescopeBuilderLoaderOptions = {},
@@ -45,7 +31,7 @@ export async function loadTelescopeBuilderCalculation(
   const configured = resolveWebApiOrigin(options.origin, options.environment);
   if (!configured.valid) return { kind: "unavailable" };
 
-  const result = await requestEndpoint(configured.origin, endpointWithState(state), {
+  const result = await requestEndpoint(configured.origin, telescopeBuilderEndpointForState(state), {
     ...(options.fetchImplementation === undefined
       ? {}
       : { fetchImplementation: options.fetchImplementation }),

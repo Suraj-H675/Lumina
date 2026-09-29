@@ -2,12 +2,12 @@ import "server-only";
 
 import {
   requestEndpoint,
-  seasonsSimulatorEndpoint,
   type SeasonsCalculationResponse,
   type TransportOptions,
 } from "@nova-lumina/api-client";
 
 import {
+  seasonsEndpointForState,
   validateSeasonsCalculationResult,
   type SeasonsState,
 } from "../simulations/seasons-simulator";
@@ -22,16 +22,6 @@ export type SeasonsLoaderOptions = TransportOptions &
     origin?: string;
   }>;
 
-function endpointWithState(state: SeasonsState) {
-  const query = new URLSearchParams({
-    axial_tilt_deg: String(state.axial_tilt_deg),
-    orbital_position_deg: String(state.orbital_position_deg),
-    latitude_deg: String(state.latitude_deg),
-    eccentricity_preset: state.eccentricity_preset,
-  });
-  return { ...seasonsSimulatorEndpoint, path: `${seasonsSimulatorEndpoint.path}?${query}` };
-}
-
 export async function loadSeasonsCalculation(
   state: SeasonsState,
   options: SeasonsLoaderOptions = {},
@@ -39,7 +29,7 @@ export async function loadSeasonsCalculation(
   const configured = resolveWebApiOrigin(options.origin, options.environment);
   if (!configured.valid) return { kind: "unavailable" };
 
-  const result = await requestEndpoint(configured.origin, endpointWithState(state), {
+  const result = await requestEndpoint(configured.origin, seasonsEndpointForState(state), {
     ...(options.fetchImplementation === undefined
       ? {}
       : { fetchImplementation: options.fetchImplementation }),

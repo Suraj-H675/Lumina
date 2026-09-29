@@ -15,6 +15,7 @@ import {
   canonicalizeSeasonsOrbitalPosition,
   decodeSeasonsState,
   encodeSeasonsState,
+  seasonsEndpointForState,
   validateSeasonsArtifact,
   validateSeasonsCalculationResult,
   validateSeasonsState,
@@ -147,6 +148,12 @@ describe("Seasons Simulator reviewed artifact and state boundary", () => {
     );
     expect(decodeSeasonsState(encodeSeasonsState(DEFAULT_SEASONS_STATE))).toEqual(
       DEFAULT_SEASONS_STATE,
+    );
+  });
+
+  it("builds the canonical API endpoint from the validated state", () => {
+    expect(seasonsEndpointForState(DEFAULT_SEASONS_STATE).path).toBe(
+      "/api/v1/simulations/seasons?axial_tilt_deg=23.43928&orbital_position_deg=90&latitude_deg=40&eccentricity_preset=earth",
     );
   });
 

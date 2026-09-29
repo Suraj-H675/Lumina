@@ -607,6 +607,20 @@ export function validateTelescopeBuilderCalculationResult(
   return result;
 }
 
+export function telescopeBuilderEndpointForState(state: TelescopeBuilderState) {
+  const query = new URLSearchParams({
+    aperture_mm: String(state.aperture_mm),
+    telescope_focal_length_mm: String(state.telescope_focal_length_mm),
+    telescope_type: state.telescope_type,
+    eyepiece_focal_length_mm: String(state.eyepiece_focal_length_mm),
+    eyepiece_apparent_field_deg: String(state.eyepiece_apparent_field_deg),
+    optical_modifier_kind: state.optical_modifier_kind,
+    optical_modifier_factor: String(state.optical_modifier_factor),
+    target_angular_size_arcmin: String(state.target_angular_size_arcmin),
+  });
+  return { ...telescopeBuilderEndpoint, path: `${telescopeBuilderEndpoint.path}?${query}` };
+}
+
 export type TelescopeBuilderVisualTransform = Readonly<{
   opticalTrain: Readonly<{
     aperture_x_percent: number;

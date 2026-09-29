@@ -13,6 +13,7 @@ import {
   buildTelescopeBuilderVisualTransform,
   decodeTelescopeBuilderState,
   encodeTelescopeBuilderState,
+  telescopeBuilderEndpointForState,
   validateTelescopeBuilderArtifact,
   validateTelescopeBuilderCalculationResult,
   validateTelescopeBuilderState,
@@ -66,6 +67,12 @@ describe("Telescope Builder reviewed model boundary", () => {
     expect(
       decodeTelescopeBuilderState(encodeTelescopeBuilderState(DEFAULT_TELESCOPE_BUILDER_STATE)),
     ).toEqual(DEFAULT_TELESCOPE_BUILDER_STATE);
+  });
+
+  it("builds the canonical API endpoint from the validated state", () => {
+    expect(telescopeBuilderEndpointForState(DEFAULT_TELESCOPE_BUILDER_STATE).path).toBe(
+      "/api/v1/simulations/telescope-builder?aperture_mm=100&telescope_focal_length_mm=1000&telescope_type=refractor&eyepiece_focal_length_mm=20&eyepiece_apparent_field_deg=50&optical_modifier_kind=none&optical_modifier_factor=1&target_angular_size_arcmin=30",
+    );
   });
 
   it("rejects malformed, additive, and noncanonical share state while deferring derived validity to the API", () => {

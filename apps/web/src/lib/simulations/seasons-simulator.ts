@@ -704,6 +704,16 @@ export function validateSeasonsCalculationResult(
   return result;
 }
 
+export function seasonsEndpointForState(state: SeasonsState) {
+  const query = new URLSearchParams({
+    axial_tilt_deg: String(state.axial_tilt_deg),
+    orbital_position_deg: String(state.orbital_position_deg),
+    latitude_deg: String(state.latitude_deg),
+    eccentricity_preset: state.eccentricity_preset,
+  });
+  return { ...seasonsSimulatorEndpoint, path: `${seasonsSimulatorEndpoint.path}?${query}` };
+}
+
 export type SeasonsVisualTransform = Readonly<{
   orbit: Readonly<{
     earth_x_percent: number;

@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  requestEndpoint,
-  telescopeBuilderEndpoint,
-  type TelescopeBuilderCalculationResponse,
-} from "@nova-lumina/api-client";
+import { requestEndpoint, type TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,
@@ -29,6 +25,7 @@ import {
   buildTelescopeBuilderVisualTransform,
   decodeTelescopeBuilderState,
   encodeTelescopeBuilderState,
+  telescopeBuilderEndpointForState,
   validateTelescopeBuilderCalculationResult,
   validateTelescopeBuilderState,
   type OpticalModifierKind,
@@ -154,20 +151,6 @@ function draftsForState(state: TelescopeBuilderState): DraftState {
     optical_modifier_factor: String(state.optical_modifier_factor),
     target_angular_size_arcmin: String(state.target_angular_size_arcmin),
   };
-}
-
-function endpointForState(state: TelescopeBuilderState) {
-  const query = new URLSearchParams({
-    aperture_mm: String(state.aperture_mm),
-    telescope_focal_length_mm: String(state.telescope_focal_length_mm),
-    telescope_type: state.telescope_type,
-    eyepiece_focal_length_mm: String(state.eyepiece_focal_length_mm),
-    eyepiece_apparent_field_deg: String(state.eyepiece_apparent_field_deg),
-    optical_modifier_kind: state.optical_modifier_kind,
-    optical_modifier_factor: String(state.optical_modifier_factor),
-    target_angular_size_arcmin: String(state.target_angular_size_arcmin),
-  });
-  return { ...telescopeBuilderEndpoint, path: `${telescopeBuilderEndpoint.path}?${query}` };
 }
 
 function replaceBrowserState(state: TelescopeBuilderState | null): void {
@@ -625,9 +608,13 @@ export function TelescopeBuilderView({
       }
       void (async () => {
         try {
-          const response = await requestEndpoint(apiOrigin, endpointForState(nextState), {
-            signal: controller.signal,
-          });
+          const response = await requestEndpoint(
+            apiOrigin,
+            telescopeBuilderEndpointForState(nextState),
+            {
+              signal: controller.signal,
+            },
+          );
           if (generation !== generationRef.current) return;
           if (response.kind === "http-error" && response.status === 422) {
             if (options.reportInvalidState === true) setInvalidNotice(true);

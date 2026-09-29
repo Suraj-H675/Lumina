@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  requestEndpoint,
-  seasonsSimulatorEndpoint,
-  type SeasonsCalculationResponse,
-} from "@nova-lumina/api-client";
+import { requestEndpoint, type SeasonsCalculationResponse } from "@nova-lumina/api-client";
 
 import {
   formatLocaleFixedNumber,
@@ -25,6 +21,7 @@ import {
   canonicalizeSeasonsOrbitalPosition,
   decodeSeasonsState,
   encodeSeasonsState,
+  seasonsEndpointForState,
   validateSeasonsCalculationResult,
   validateSeasonsState,
   type SeasonsEccentricityPreset,
@@ -116,16 +113,6 @@ function formatDayLength(
 function formatFlux(value: number, locale: PublishedLocale): string {
   const difference = (value - 1) * 100;
   return `${formatLocaleFixedNumber(value, 4, locale)}× (${difference >= 0 ? "+" : ""}${formatLocaleFixedNumber(difference, 1, locale)}%)`;
-}
-
-function endpointForState(state: SeasonsState) {
-  const query = new URLSearchParams({
-    axial_tilt_deg: String(state.axial_tilt_deg),
-    orbital_position_deg: String(state.orbital_position_deg),
-    latitude_deg: String(state.latitude_deg),
-    eccentricity_preset: state.eccentricity_preset,
-  });
-  return { ...seasonsSimulatorEndpoint, path: `${seasonsSimulatorEndpoint.path}?${query}` };
 }
 
 function draftsForState(state: SeasonsState): Record<NumericField, string> {
@@ -588,7 +575,7 @@ export function SeasonsSimulatorView({
       }
       void (async () => {
         try {
-          const response = await requestEndpoint(apiOrigin, endpointForState(nextState), {
+          const response = await requestEndpoint(apiOrigin, seasonsEndpointForState(nextState), {
             signal: controller.signal,
           });
           if (generation !== generationRef.current) return;

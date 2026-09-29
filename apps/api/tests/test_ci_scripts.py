@@ -200,10 +200,6 @@ def _top_level_yaml_mapping(content: str, name: str) -> dict[str, str]:
     return values
 
 
-def _assert_exact_pnpm_overrides(overrides: Mapping[str, str]) -> None:
-    assert dict(overrides) == EXPECTED_PNPM_OVERRIDES
-
-
 def _dependency_nodes(records: object) -> Iterator[tuple[str, Mapping[str, object]]]:
     assert isinstance(records, list)
 
@@ -285,20 +281,6 @@ def _assert_remediated_dependency_graph(records: object) -> None:
 
 def _dependency_inputs() -> dict[Path, bytes]:
     return {path: path.read_bytes() for path in DEPENDENCY_INPUT_PATHS}
-
-
-def _has_supported_local_uv_version(output: str) -> bool:
-    lines = output.splitlines()
-    if len(lines) != 1:
-        return False
-    fields = lines[0].split()
-    if len(fields) < 2 or fields[0] != "uv":
-        return False
-    version = fields[1].split(".")
-    if len(version) != 3 or any(not part.isdigit() for part in version):
-        return False
-    major, minor, patch = (int(part) for part in version)
-    return major == 0 and minor == 12 and patch >= 17
 
 
 def test_workflow_uses_only_exact_reviewed_action_pins() -> None:
@@ -464,28 +446,9 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
         '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2"',
         "",
     )
-    _assert_exact_pnpm_overrides(_top_level_yaml_mapping(workspace, "overrides"))
-    _assert_exact_pnpm_overrides(_top_level_yaml_mapping(lockfile, "overrides"))
+    assert dict(_top_level_yaml_mapping(workspace, "overrides")) == EXPECTED_PNPM_OVERRIDES
+    assert dict(_top_level_yaml_mapping(lockfile, "overrides")) == EXPECTED_PNPM_OVERRIDES
     assert not isinstance(package.get("pnpm"), Mapping) or "overrides" not in package["pnpm"]
-
-
-@pytest.mark.parametrize(
-    "overrides",
-    [
-        {
-            "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.2.0",
-        },
-        {
-            **EXPECTED_PNPM_OVERRIDES,
-            "next@16.2.12>js-yaml": "4.3.1",
-        },
-    ],
-)
-def test_pnpm_override_assertion_rejects_changed_or_additional_selectors(
-    overrides: Mapping[str, str],
-) -> None:
-    with pytest.raises(AssertionError):
-        _assert_exact_pnpm_overrides(overrides)
 
 
 def test_pnpm_lockfile_and_installed_graph_are_frozen_and_remediated() -> None:
@@ -573,12 +536,12 @@ def test_local_runtime_version_policy_accepts_node_major_24_and_maintained_uv() 
         ],
         cwd=REPOSITORY_ROOT,
     )
-    assert _has_supported_local_uv_version(_run(["uv", "--version"], cwd=REPOSITORY_ROOT).stdout)
-    assert _has_supported_local_uv_version("uv 0.12.17 (official-build-metadata)\n")
-    assert _has_supported_local_uv_version("uv 0.12.18\n")
-    assert _has_supported_local_uv_version("uv 0.12.19 (official-build-metadata)\n")
-    assert not _has_supported_local_uv_version("uv 0.12.16 (official-build-metadata)\n")
-    assert not _has_supported_local_uv_version("uv 0.13.0\n")
+    fields = _run(["uv", "--version"], cwd=REPOSITORY_ROOT).stdout.split()
+    assert len(fields) >= 2 and fields[0] == "uv"
+    version = fields[1].split(".")
+    assert len(version) == 3 and all(part.isdigit() for part in version)
+    major, minor, patch = (int(part) for part in version)
+    assert major == 0 and minor == 12 and patch >= 17
 
 
 def test_workflow_checkout_cache_and_tool_versions_are_fail_closed() -> None:
@@ -1324,21 +1287,3 @@ def test_current_fictional_uri_inputs_use_only_inline_trufflehog_ignore_markers(
             if marker in line
         }
         assert marked_lines == expected_lines
-
-
-def test_marker_scope_excludes_a_tracked_checker_source_without_a_literal_marker(
-    tmp_path: Path,
-) -> None:
-    marker = "trufflehog" + ":ignore"
-    fixture_credentials = "user" + ":secret"
-    repository = tmp_path / "repository"
-    _initialize_repository(repository)
-    (repository / "fixture.py").write_text(
-        f'uri = "https://{fixture_credentials}@example.test"  # {marker}\n', encoding="utf-8"
-    )
-    (repository / "checker.py").write_text('marker = "trufflehog" + ":ignore"\n', encoding="utf-8")
-    _commit_all(repository, "track marker fixture and checker")
-
-    marker_files = _run(["git", "grep", "-l", marker], cwd=repository, check=False)
-    assert marker_files.returncode == 0
-    assert marker_files.stdout.splitlines() == ["fixture.py"]

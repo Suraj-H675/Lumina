@@ -165,9 +165,7 @@ test.describe("Private identification", () => {
     expect(novaBrowserRequests).toEqual([]);
   });
 
-  test("opens reviewed survey context only after explicit activation", async ({
-    page,
-  }) => {
+  test("opens reviewed survey context only after explicit activation", async ({ page }) => {
     const wwtRequests: Array<{ body: string | null; url: string }> = [];
     await page.route("https://cdn.worldwidetelescope.org/**", async (route) => {
       if (route.request().url() === DSS_ROOT_TILE) {

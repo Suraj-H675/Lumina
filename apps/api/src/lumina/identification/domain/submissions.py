@@ -7,14 +7,14 @@ import unicodedata
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Final
+from typing import Final, Literal
 from uuid import UUID
 
 from lumina.identification.domain.storage import PrivateObjectKey
 from lumina.identification.domain.uploads import UploadMediaType
 
 _SHA256 = re.compile(r"[0-9a-f]{64}", re.ASCII)
-FAKE_SOLVER_VERSION: Final = "synthetic-fixture-v1"
+FAKE_SOLVER_VERSION: Final[Literal["synthetic-fixture-v1"]] = "synthetic-fixture-v1"
 LEGACY_FAKE_SOLVER_VERSION: Final = "phase6a-fixture-v1"
 
 
@@ -135,10 +135,10 @@ class IdentificationSubmissionState(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class FakeSolverResult:
-    outcome: str = "fixture_solved"
-    solver_type: str = "fake"
-    solver_version: str = FAKE_SOLVER_VERSION
-    synthetic: bool = True
+    outcome: Literal["fixture_solved"] = "fixture_solved"
+    solver_type: Literal["fake"] = "fake"
+    solver_version: Literal["synthetic-fixture-v1"] = FAKE_SOLVER_VERSION
+    synthetic: Literal[True] = True
 
     def __post_init__(self) -> None:
         if (

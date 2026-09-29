@@ -552,5 +552,4 @@ describe("Identify consent and deletion flow", () => {
     expect(screen.getAllByText("Rigel").length).toBeGreaterThan(0);
     expect(screen.queryByText("Orion Nebula")).not.toBeInTheDocument();
   });
-
 });

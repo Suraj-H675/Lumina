@@ -18,6 +18,10 @@ build/
 coverage/
 htmlcov/
 *.egg-info/
+.next/
+playwright-report/
+test-results/
+next-env.d.ts
 
 # Local environment files
 .env

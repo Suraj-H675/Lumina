@@ -4,7 +4,6 @@ const { loadNowLaunchMock } = vi.hoisted(() => ({
   loadNowLaunchMock: vi.fn(),
 }));
 
-vi.mock("server-only", () => ({}));
 vi.mock("../src/lib/server/space-now", () => ({
   loadNowLaunch: loadNowLaunchMock,
   loadNowLaunches: vi.fn(),

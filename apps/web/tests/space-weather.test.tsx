@@ -4,8 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { SpaceWeatherResponse } from "@nova-lumina/api-client";
 
-vi.mock("server-only", () => ({}));
-
 import { createSpaceWeatherMetadata } from "../src/app/now/space-weather/route-page";
 import { SpaceWeatherView } from "../src/app/now/space-weather/space-weather-view";
 import { SiteShell } from "../src/components/site-shell";

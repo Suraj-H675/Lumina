@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
+import { describe, expect, it } from "vitest";
 
 import { loadEclipseSimulatorCalculation } from "../src/lib/server/eclipse-simulator";
 import { DEFAULT_ECLIPSE_SIMULATOR_STATE } from "../src/lib/simulations/eclipse-simulator";

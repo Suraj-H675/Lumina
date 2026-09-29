@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
+import { describe, expect, it } from "vitest";
 
 import { loadTransitMethodCalculation } from "../src/lib/server/transit-method";
 import { DEFAULT_TRANSIT_METHOD_STATE } from "../src/lib/simulations/transit-method";

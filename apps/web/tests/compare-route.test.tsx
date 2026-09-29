@@ -4,8 +4,6 @@ const { loadCompareMock } = vi.hoisted(() => ({
   loadCompareMock: vi.fn(),
 }));
 
-vi.mock("server-only", () => ({}));
-
 vi.mock("../src/lib/server/compare", () => ({
   loadCompareObjectsPerRequest: loadCompareMock,
 }));

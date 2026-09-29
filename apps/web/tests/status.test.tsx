@@ -3,8 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProviderStatusResponse } from "@nova-lumina/api-client";
 
-vi.mock("server-only", () => ({}));
-
 import { StatusView } from "../src/app/status/status-view";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { StatusMessages } from "../src/lib/i18n/messages/types";

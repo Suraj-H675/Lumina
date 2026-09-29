@@ -1,8 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
-
-vi.mock("server-only", () => ({}));
 
 import { loadOrbitSandboxCalculation } from "../src/lib/server/orbit-sandbox";
 import { DEFAULT_ORBIT_SANDBOX_STATE } from "../src/lib/simulations/orbit-sandbox";

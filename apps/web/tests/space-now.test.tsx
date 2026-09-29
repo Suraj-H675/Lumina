@@ -4,8 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { ApodResponse } from "@nova-lumina/api-client";
 
-vi.mock("server-only", () => ({}));
-
 import { SpaceNowView } from "../src/app/now/space-now-view";
 import { SiteShell } from "../src/components/site-shell";
 import { EN_SHELL_PROPS } from "./i18n-test-fixture";

@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
+import { describe, expect, it } from "vitest";
 
 import { loadRadialVelocityCalculation } from "../src/lib/server/radial-velocity";
 import { DEFAULT_RADIAL_VELOCITY_STATE } from "../src/lib/simulations/radial-velocity";

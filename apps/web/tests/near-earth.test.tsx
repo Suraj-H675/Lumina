@@ -4,8 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { NearEarthResponse } from "@nova-lumina/api-client";
 
-vi.mock("server-only", () => ({}));
-
 import { NearEarthView } from "../src/app/now/near-earth/near-earth-view";
 import { createNearEarthMetadata } from "../src/app/now/near-earth/route-page";
 import { SiteShell } from "../src/components/site-shell";

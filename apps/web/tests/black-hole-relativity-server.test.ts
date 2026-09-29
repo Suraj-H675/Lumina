@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
+import { describe, expect, it } from "vitest";
 
 import { loadBlackHoleRelativityCalculation } from "../src/lib/server/black-hole-relativity";
 import { DEFAULT_BLACK_HOLE_RELATIVITY_STATE } from "../src/lib/simulations/black-hole-relativity";

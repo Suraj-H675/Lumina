@@ -5,8 +5,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { ParticipateResponse } from "@nova-lumina/api-client";
 
-vi.mock("server-only", () => ({}));
-
 import { ParticipateView } from "../src/components/participate-view";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";

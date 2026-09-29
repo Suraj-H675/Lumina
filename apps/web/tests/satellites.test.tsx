@@ -5,8 +5,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { SatelliteListResponse, SatellitePassResponse } from "@nova-lumina/api-client";
 
-vi.mock("server-only", () => ({}));
-
 import { POST } from "../src/app/api/satellite-passes/route";
 import { SatellitePassFinder } from "../src/app/now/satellites/satellite-pass-finder";
 import { createSatellitesMetadata } from "../src/app/now/satellites/route-page";

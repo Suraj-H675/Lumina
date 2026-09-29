@@ -1,8 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { EntityDetailResponse } from "@nova-lumina/api-client";
-
-vi.mock("server-only", () => ({}));
 
 import { loadCompareObjects } from "../src/lib/server/compare";
 

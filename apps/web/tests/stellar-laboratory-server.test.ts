@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("server-only", () => ({}));
-
 import { loadStellarLaboratoryCalculation } from "../src/lib/server/stellar-laboratory";
 import { DEFAULT_STELLAR_LABORATORY_STATE } from "../src/lib/simulations/stellar-laboratory";
 import { STELLAR_LABORATORY_DEFAULT_RESULT } from "./stellar-laboratory-fixture";

@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
+import { describe, expect, it } from "vitest";
 
 import { loadPlanetarySystemBuilderCalculation } from "../src/lib/server/planetary-system-builder";
 import { DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE } from "../src/lib/simulations/planetary-system-builder";

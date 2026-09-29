@@ -74,3 +74,19 @@ export function formatLocaleFixedNumber(
     useGrouping: false,
   });
 }
+
+export function formatLocaleScientificNumber(
+  value: number,
+  locale: PublishedLocale,
+  fractionDigits = 6,
+  maximumSignificantDigits = fractionDigits + 1,
+): string {
+  if (value === 0) {
+    return formatLocaleNumber(0, locale, { useGrouping: false });
+  }
+  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
+    const [mantissa, exponent] = value.toExponential(fractionDigits).split("e");
+    return `${formatLocaleFixedNumber(Number(mantissa), fractionDigits, locale)}e${exponent}`;
+  }
+  return formatLocaleNumber(value, locale, { maximumSignificantDigits });
+}

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { requestEndpoint, type RadialVelocityCalculationResponse } from "@nova-lumina/api-client";
 
 import {
-  formatLocaleFixedNumber,
+  formatLocaleScientificNumber,
   formatLocaleNumber,
   formatMessageTemplate,
 } from "../lib/i18n/format";
@@ -99,12 +99,7 @@ function stateFromBrowser(): Readonly<{ state: RadialVelocityState; invalid: boo
 }
 
 function format(value: number, locale: PublishedLocale, digits = 6): string {
-  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
-    const [mantissa, exponent] = value.toExponential(digits).split("e");
-    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
-  }
-  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 2 });
+  return formatLocaleScientificNumber(value, locale, digits, digits + 2);
 }
 
 function NumericInput({

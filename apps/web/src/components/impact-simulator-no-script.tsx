@@ -1,10 +1,6 @@
 import type { ImpactSimulatorCalculationResponse } from "@nova-lumina/api-client";
 
-import {
-  formatLocaleFixedNumber,
-  formatLocaleNumber,
-  formatMessageTemplate,
-} from "../lib/i18n/format";
+import { formatLocaleScientificNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { ImpactSimulatorMessages } from "../lib/i18n/messages/types";
 import {
@@ -22,15 +18,7 @@ type ImpactSimulatorNoScriptProps = Readonly<{
 }>;
 
 function numeric(value: number, locale: PublishedLocale, unit = ""): string {
-  let formatted: string;
-  if (value === 0) {
-    formatted = formatLocaleNumber(0, locale, { useGrouping: false });
-  } else if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
-    const [mantissa, exponent] = value.toExponential(5).split("e");
-    formatted = `${formatLocaleFixedNumber(Number(mantissa), 5, locale)}e${exponent}`;
-  } else {
-    formatted = formatLocaleNumber(value, locale, { maximumSignificantDigits: 7 });
-  }
+  const formatted = formatLocaleScientificNumber(value, locale, 5, 7);
   return unit ? `${formatted} ${unit}` : formatted;
 }
 

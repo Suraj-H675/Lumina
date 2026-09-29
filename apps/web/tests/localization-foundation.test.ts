@@ -13,6 +13,7 @@ import {
   formatLocaleFixedNumber,
   formatLocaleList,
   formatLocaleNumber,
+  formatLocaleScientificNumber,
   formatMessageTemplate,
 } from "../src/lib/i18n/format";
 import { enMessages } from "../src/lib/i18n/messages/en";
@@ -54,6 +55,13 @@ describe("Localization foundation", () => {
     expect(formatLocaleFixedNumber(1.15, 1, "en")).toBe("1.1");
     expect(formatLocaleFixedNumber(9.95, 1, "en")).toBe("9.9");
     expect(formatLocaleFixedNumber(12.97155, 3, "en")).toBe("12.972");
+  });
+
+  it("uses stable locale-aware scientific notation outside the ordinary display range", () => {
+    expect(formatLocaleScientificNumber(0, "en")).toBe("0");
+    expect(formatLocaleScientificNumber(1_000_000, "en", 2)).toBe("1.00e+6");
+    expect(formatLocaleScientificNumber(0.0001, "en", 2)).toBe("1.00e-4");
+    expect(formatLocaleScientificNumber(1234.567, "en", 2, 5)).toBe("1,234.6");
   });
 
   it("formats semantic message templates without concatenating authored values into message keys", () => {

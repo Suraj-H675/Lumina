@@ -8,11 +8,7 @@ import {
   type RelativityVisualizationsCalculationResponse,
 } from "@nova-lumina/api-client";
 
-import {
-  formatLocaleFixedNumber,
-  formatLocaleNumber,
-  formatMessageTemplate,
-} from "../lib/i18n/format";
+import { formatLocaleScientificNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { RelativityVisualizationsMessages } from "../lib/i18n/messages/types";
 import {
@@ -59,12 +55,7 @@ function stateFromBrowser(): Readonly<{ state: RelativityVisualizationsState; in
 }
 
 function format(value: number, locale: PublishedLocale, digits = 6): string {
-  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
-    const [mantissa, exponent] = value.toExponential(digits).split("e");
-    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
-  }
-  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
+  return formatLocaleScientificNumber(value, locale, digits);
 }
 
 function SourceList({

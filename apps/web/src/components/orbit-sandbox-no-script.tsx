@@ -1,8 +1,8 @@
 import type { OrbitSandboxCalculationResponse } from "@nova-lumina/api-client";
 
 import {
-  formatLocaleFixedNumber,
   formatLocaleNumber,
+  formatLocaleScientificNumber,
   formatMessageTemplate,
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
@@ -28,15 +28,7 @@ function numeric(
   unit = "",
 ): string {
   if (value === null) return notApplicable;
-  let formatted: string;
-  if (value === 0) {
-    formatted = formatLocaleNumber(0, locale, { useGrouping: false });
-  } else if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
-    const [mantissa, exponent] = value.toExponential(6).split("e");
-    formatted = `${formatLocaleFixedNumber(Number(mantissa), 6, locale)}e${exponent}`;
-  } else {
-    formatted = formatLocaleNumber(value, locale, { maximumSignificantDigits: 8 });
-  }
+  const formatted = formatLocaleScientificNumber(value, locale, 6, 8);
   return unit ? `${formatted} ${unit}` : formatted;
 }
 

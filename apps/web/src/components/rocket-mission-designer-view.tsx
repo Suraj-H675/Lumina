@@ -8,7 +8,7 @@ import {
 } from "@nova-lumina/api-client";
 
 import {
-  formatLocaleFixedNumber,
+  formatLocaleScientificNumber,
   formatLocaleNumber,
   formatMessageTemplate,
 } from "../lib/i18n/format";
@@ -92,12 +92,7 @@ function stateFromBrowser(): Readonly<{ state: RocketMissionDesignerState; inval
 }
 
 function format(value: number, locale: PublishedLocale, digits = 6): string {
-  if (value === 0) return formatLocaleNumber(0, locale, { useGrouping: false });
-  if (Math.abs(value) >= 1e6 || Math.abs(value) < 1e-3) {
-    const [mantissa, exponent] = value.toExponential(digits).split("e");
-    return `${formatLocaleFixedNumber(Number(mantissa), digits, locale)}e${exponent}`;
-  }
-  return formatLocaleNumber(value, locale, { maximumSignificantDigits: digits + 1 });
+  return formatLocaleScientificNumber(value, locale, digits);
 }
 
 function SourceList({ messages }: Readonly<{ messages: RocketMissionDesignerMessages["model"] }>) {

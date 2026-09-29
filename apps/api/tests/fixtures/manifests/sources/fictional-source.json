@@ -3,7 +3,7 @@
   "adapter_version": "fixture-v1",
   "attribution_text": "Fictional test-only content created for Nova-Lumina contract tests; it is not scientific data.",
   "authentication_method": "None; this fictional test-only provider performs no network access.",
-  "cache_ttl": "Not executed in Phase 0C3; test-only documentary value.",
+  "cache_ttl": "Not applicable; this test-only provider performs no network access.",
   "capabilities": ["batch_fetch", "lookup"],
   "contact_or_user_agent_requirement": null,
   "endpoint_or_base_url": null,

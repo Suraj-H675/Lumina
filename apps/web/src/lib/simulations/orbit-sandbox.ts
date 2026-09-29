@@ -6,7 +6,7 @@ import {
 
 import rawOrbitArtifact from "../../../../../data/seed/orbit-sandbox-v1.json";
 import {
-  isSimulationArtifactSource,
+  hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
   isFiniteNumber,
@@ -317,10 +317,6 @@ export function buildOrbitVisualTransform(resultValue: unknown): OrbitVisualTran
   };
 }
 
-function validateSource(source: unknown): void {
-  if (!isSimulationArtifactSource(source)) failArtifact();
-}
-
 export function validateOrbitSandboxArtifact(value: unknown): asserts value is OrbitArtifact {
   if (!isRecord(value)) failArtifact();
   if (
@@ -354,13 +350,7 @@ export function validateOrbitSandboxArtifact(value: unknown): asserts value is O
   ) {
     failArtifact();
   }
-  value.sources.forEach(validateSource);
-  const sourceIds = value.sources.map((source) => (source as Record<string, unknown>).id);
-  if (new Set(sourceIds).size !== sourceIds.length) failArtifact();
-  if (
-    definition.references.length !== sourceIds.length ||
-    !definition.references.every((id) => typeof id === "string" && sourceIds.includes(id))
-  ) {
+  if (!hasSimulationArtifactSourceReferences(value.sources, definition.references)) {
     failArtifact();
   }
   if (value.constants.MAX_TRAJECTORY_POINTS !== ORBIT_SANDBOX_MAX_TRAJECTORY_POINTS) failArtifact();

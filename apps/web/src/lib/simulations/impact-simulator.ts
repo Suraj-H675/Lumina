@@ -7,7 +7,7 @@ import {
 
 import rawImpactArtifact from "../../../../../data/seed/impact-simulator-v1.json";
 import {
-  isSimulationArtifactSource,
+  hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
   isFiniteNumber as finite,
@@ -260,10 +260,6 @@ function failArtifact(): never {
   throw new ImpactSimulatorArtifactValidationError();
 }
 
-function validateSource(source: unknown): void {
-  if (!isSimulationArtifactSource(source)) failArtifact();
-}
-
 export function validateImpactSimulatorArtifact(
   value: unknown,
 ): asserts value is ImpactSimulatorArtifact {
@@ -313,14 +309,12 @@ export function validateImpactSimulatorArtifact(
   ) {
     failArtifact();
   }
-  value.sources.forEach(validateSource);
-  const sourceIds = value.sources.map((source) => (source as Record<string, unknown>).id);
   if (
-    sourceIds.length !== EXPECTED_SOURCE_IDS.size ||
-    sourceIds.some((id) => typeof id !== "string" || !EXPECTED_SOURCE_IDS.has(id)) ||
-    new Set(sourceIds).size !== sourceIds.length ||
-    definition.references.length !== sourceIds.length ||
-    !definition.references.every((id) => typeof id === "string" && sourceIds.includes(id))
+    !hasSimulationArtifactSourceReferences(
+      value.sources,
+      definition.references,
+      EXPECTED_SOURCE_IDS,
+    )
   ) {
     failArtifact();
   }

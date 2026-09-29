@@ -7,7 +7,7 @@ import {
 
 import rawBlackHoleArtifact from "../../../../../data/seed/black-hole-relativity-v1.json";
 import {
-  isSimulationArtifactSource,
+  hasSimulationArtifactSourceReferences,
   type SimulationArtifactSource,
   hasOnlyKeys,
   isFiniteNumber as finite,
@@ -248,10 +248,6 @@ function failArtifact(): never {
   throw new BlackHoleRelativityArtifactValidationError();
 }
 
-function validateSource(source: unknown): void {
-  if (!isSimulationArtifactSource(source)) failArtifact();
-}
-
 export function validateBlackHoleRelativityArtifact(
   value: unknown,
 ): asserts value is BlackHoleRelativityArtifact {
@@ -301,14 +297,12 @@ export function validateBlackHoleRelativityArtifact(
   ) {
     failArtifact();
   }
-  value.sources.forEach(validateSource);
-  const sourceIds = value.sources.map((source) => (source as Record<string, unknown>).id);
   if (
-    sourceIds.length !== EXPECTED_SOURCE_IDS.size ||
-    sourceIds.some((id) => typeof id !== "string" || !EXPECTED_SOURCE_IDS.has(id)) ||
-    new Set(sourceIds).size !== sourceIds.length ||
-    definition.references.length !== sourceIds.length ||
-    !definition.references.every((id) => typeof id === "string" && sourceIds.includes(id))
+    !hasSimulationArtifactSourceReferences(
+      value.sources,
+      definition.references,
+      EXPECTED_SOURCE_IDS,
+    )
   ) {
     failArtifact();
   }

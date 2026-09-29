@@ -57,3 +57,30 @@ export function isSimulationArtifactSource(value: unknown): value is SimulationA
     return false;
   }
 }
+
+export function hasSimulationArtifactSourceReferences(
+  sources: unknown,
+  references: unknown,
+  expectedSourceIds?: ReadonlySet<string>,
+): sources is ReadonlyArray<SimulationArtifactSource> {
+  if (
+    !Array.isArray(sources) ||
+    !sources.every(isSimulationArtifactSource) ||
+    !Array.isArray(references)
+  ) {
+    return false;
+  }
+  const sourceIds = sources.map((source) => source.id);
+  if (new Set(sourceIds).size !== sourceIds.length) return false;
+  if (
+    expectedSourceIds !== undefined &&
+    (sourceIds.length !== expectedSourceIds.size ||
+      sourceIds.some((id) => !expectedSourceIds.has(id)))
+  ) {
+    return false;
+  }
+  return (
+    references.length === sourceIds.length &&
+    references.every((id) => typeof id === "string" && sourceIds.includes(id))
+  );
+}

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 from lumina.settings import IntegrationTestSettings, load_integration_test_settings
+from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
 from pydantic import SecretStr
 from sqlalchemy import URL, Connection, create_engine, text
 from sqlalchemy.engine import make_url
@@ -44,6 +46,17 @@ _PG_TRGM_STATE_SQL = text(
 def integration_settings() -> IntegrationTestSettings:
     """Load the four-URL contract only when `LUMINA_ENV=test` is explicit."""
     return load_integration_test_settings()
+
+
+@pytest_asyncio.fixture
+async def database_runtime(
+    integration_settings: IntegrationTestSettings,
+) -> AsyncIterator[DatabaseRuntime]:
+    runtime = create_database_runtime(integration_settings.test_database_url)
+    try:
+        yield runtime
+    finally:
+        await runtime.engine.dispose()
 
 
 def _pg_trgm_state(

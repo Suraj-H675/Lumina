@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from datetime import datetime, timedelta
 from time import monotonic
 from typing import Any, cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.domain.models import (
@@ -55,17 +54,6 @@ def clean_claim_job_rows(integration_settings: IntegrationTestSettings) -> Itera
         yield
     finally:
         _execute(integration_settings, "DELETE FROM public.job")
-
-
-@pytest_asyncio.fixture
-async def claim_database_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
 
 
 def _execute(
@@ -266,7 +254,7 @@ async def _synchronized_claims(
     ],
 )
 async def test_each_postgresql_jsonb_form_is_claimed_passively_and_redacted(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     payload_json: str,
     expected: object,
@@ -279,7 +267,7 @@ async def test_each_postgresql_jsonb_form_is_claimed_passively_and_redacted(
         payload_json=payload_json,
     )
 
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.fixture")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.fixture")
 
     assert isinstance(claimed, ClaimedJob)
     assert claimed.id == identifier
@@ -299,7 +287,7 @@ async def test_each_postgresql_jsonb_form_is_claimed_passively_and_redacted(
 
 @pytest.mark.asyncio
 async def test_jsonb_null_is_sql_non_null_and_not_an_absent_claim(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_queued_fixture(integration_settings, payload_json="null")
@@ -309,8 +297,8 @@ async def test_jsonb_null_is_sql_non_null_and_not_an_absent_claim(
         {"id": identifier},
     ) == [(True, "null")]
 
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.null")
-    no_job = await _claim_service(claim_database_runtime).claim(claimed_by="worker.empty")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.null")
+    no_job = await _claim_service(database_runtime).claim(claimed_by="worker.empty")
 
     assert isinstance(claimed, ClaimedJob)
     assert claimed.id == identifier
@@ -320,7 +308,7 @@ async def test_jsonb_null_is_sql_non_null_and_not_an_absent_claim(
 
 @pytest.mark.asyncio
 async def test_payload_above_reduced_enqueue_limit_remains_claimable(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -333,7 +321,7 @@ async def test_payload_above_reduced_enqueue_limit_remains_claimable(
     )
     monkeypatch.setenv("LUMINA_JOB_PAYLOAD_MAX_BYTES", "1")
 
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.large")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.large")
 
     assert isinstance(claimed, ClaimedJob)
     assert claimed.id == identifier
@@ -343,7 +331,7 @@ async def test_payload_above_reduced_enqueue_limit_remains_claimable(
 
 @pytest.mark.asyncio
 async def test_postgresql_integer_outside_signed_64_bit_remains_claimable(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_queued_fixture(
@@ -351,7 +339,7 @@ async def test_postgresql_integer_outside_signed_64_bit_remains_claimable(
         payload_json="9223372036854775808",
     )
 
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.integer")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.integer")
 
     assert isinstance(claimed, ClaimedJob)
     assert claimed.id == identifier
@@ -360,7 +348,7 @@ async def test_postgresql_integer_outside_signed_64_bit_remains_claimable(
 
 @pytest.mark.asyncio
 async def test_equivalent_jsonb_object_texts_map_without_enqueue_representation(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     first_id = _seed_queued_fixture(
@@ -374,8 +362,8 @@ async def test_equivalent_jsonb_object_texts_map_without_enqueue_representation(
         priority=1,
     )
 
-    first = await _claim_service(claim_database_runtime).claim(claimed_by="worker.first")
-    second = await _claim_service(claim_database_runtime).claim(claimed_by="worker.second")
+    first = await _claim_service(database_runtime).claim(claimed_by="worker.first")
+    second = await _claim_service(database_runtime).claim(claimed_by="worker.second")
 
     assert isinstance(first, ClaimedJob)
     assert isinstance(second, ClaimedJob)
@@ -387,11 +375,11 @@ async def test_equivalent_jsonb_object_texts_map_without_enqueue_representation(
 
 @pytest.mark.asyncio
 async def test_application_enqueued_noop_object_claims_unchanged(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
     enqueue = EnqueueJobService(
         PostgreSqlEnqueueJobStore(
-            claim_database_runtime.session_factory,
+            database_runtime.session_factory,
             wait_timeout_ms=5_000,
         ),
         payload_max_bytes=61_440,
@@ -404,7 +392,7 @@ async def test_application_enqueued_noop_object_claims_unchanged(
         max_attempts=3,
     )
 
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.application")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.application")
 
     assert isinstance(claimed, ClaimedJob)
     assert claimed.id == outcome.id
@@ -416,7 +404,7 @@ async def test_application_enqueued_noop_object_claims_unchanged(
 
 @pytest.mark.asyncio
 async def test_claim_dml_does_not_change_constraints(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     constraint_query = (
@@ -429,7 +417,7 @@ async def test_claim_dml_does_not_change_constraints(
         payload_json='["guarded-lumina-test-fixture"]',
     )
 
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.constraints")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.constraints")
 
     assert isinstance(claimed, ClaimedJob)
     assert _execute(integration_settings, constraint_query) == before
@@ -437,14 +425,14 @@ async def test_claim_dml_does_not_change_constraints(
 
 @pytest.mark.asyncio
 async def test_one_job_has_one_concurrent_winner_and_one_typed_empty_outcome(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_queued_fixture(integration_settings, payload_json="{}")
-    baseline = _pool_checked_out(claim_database_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
     outcomes, backend_pids = await _synchronized_claims(
-        claim_database_runtime,
+        database_runtime,
         integration_settings,
         owners=["worker.concurrent.a", "worker.concurrent.b"],
     )
@@ -459,15 +447,15 @@ async def test_one_job_has_one_concurrent_winner_and_one_typed_empty_outcome(
         "SELECT status, attempts FROM public.job WHERE id = :id",
         {"id": identifier},
     ) == [("running", 1)]
-    await _assert_runtime_released(claim_database_runtime, baseline)
+    await _assert_runtime_released(database_runtime, baseline)
 
 
 @pytest.mark.asyncio
 async def test_multiple_concurrent_claimers_receive_distinct_once_incremented_rows(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    baseline = _pool_checked_out(claim_database_runtime)
+    baseline = _pool_checked_out(database_runtime)
     identifiers = {
         _seed_queued_fixture(
             integration_settings,
@@ -478,7 +466,7 @@ async def test_multiple_concurrent_claimers_receive_distinct_once_incremented_ro
     }
 
     outcomes, backend_pids = await _synchronized_claims(
-        claim_database_runtime,
+        database_runtime,
         integration_settings,
         owners=[f"worker.multiple.{index}" for index in range(4)],
     )
@@ -493,12 +481,12 @@ async def test_multiple_concurrent_claimers_receive_distinct_once_incremented_ro
         integration_settings,
         "SELECT id, attempts FROM public.job ORDER BY id",
     ) == sorted((identifier, 1) for identifier in identifiers)
-    await _assert_runtime_released(claim_database_runtime, baseline)
+    await _assert_runtime_released(database_runtime, baseline)
 
 
 @pytest.mark.asyncio
 async def test_skip_locked_claims_next_candidate_without_waiting(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     first = _seed_queued_fixture(
@@ -511,7 +499,7 @@ async def test_skip_locked_claims_next_candidate_without_waiting(
         payload_json="{}",
         priority=1,
     )
-    async with claim_database_runtime.engine.connect() as locking_connection:
+    async with database_runtime.engine.connect() as locking_connection:
         transaction = await locking_connection.begin()
         try:
             locked = (
@@ -523,7 +511,7 @@ async def test_skip_locked_claims_next_candidate_without_waiting(
             assert locked == first
             started = monotonic()
             outcome = await asyncio.wait_for(
-                _claim_service(claim_database_runtime, timeout_ms=500).claim(
+                _claim_service(database_runtime, timeout_ms=500).claim(
                     claimed_by="worker.skip-locked"
                 ),
                 timeout=2,
@@ -535,14 +523,14 @@ async def test_skip_locked_claims_next_candidate_without_waiting(
     assert isinstance(outcome, ClaimedJob)
     assert outcome.id == second
     assert elapsed < 2
-    later = await _claim_service(claim_database_runtime).claim(claimed_by="worker.after-lock")
+    later = await _claim_service(database_runtime).claim(claimed_by="worker.after-lock")
     assert isinstance(later, ClaimedJob)
     assert later.id == first
 
 
 @pytest.mark.asyncio
 async def test_ineligible_rows_and_attempt_boundaries(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
@@ -573,8 +561,8 @@ async def test_ineligible_rows_and_attempt_boundaries(
         attempts=4,
     )
 
-    outcome = await _claim_service(claim_database_runtime).claim(claimed_by="worker.boundary")
-    no_more = await _claim_service(claim_database_runtime).claim(claimed_by="worker.ineligible")
+    outcome = await _claim_service(database_runtime).claim(claimed_by="worker.boundary")
+    no_more = await _claim_service(database_runtime).claim(claimed_by="worker.ineligible")
 
     assert isinstance(outcome, ClaimedJob)
     assert outcome.id == boundary
@@ -592,7 +580,7 @@ async def test_ineligible_rows_and_attempt_boundaries(
 
 @pytest.mark.asyncio
 async def test_seeded_attempt_increments_exactly_once(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
@@ -606,7 +594,7 @@ async def test_seeded_attempt_increments_exactly_once(
         attempts=2,
     )
 
-    outcome = await _claim_service(claim_database_runtime).claim(claimed_by="worker.attempt")
+    outcome = await _claim_service(database_runtime).claim(claimed_by="worker.attempt")
 
     assert isinstance(outcome, ClaimedJob)
     assert outcome.attempts == 3
@@ -620,7 +608,7 @@ async def test_seeded_attempt_increments_exactly_once(
 @pytest.mark.asyncio
 @pytest.mark.parametrize("reason", ["future", "max_attempts"])
 async def test_only_future_or_max_attempt_rows_returns_typed_no_eligible(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     reason: str,
 ) -> None:
@@ -636,14 +624,14 @@ async def test_only_future_or_max_attempt_rows_returns_typed_no_eligible(
         attempts=5 if reason == "max_attempts" else 0,
     )
 
-    outcome = await _claim_service(claim_database_runtime).claim(claimed_by=f"worker.only-{reason}")
+    outcome = await _claim_service(database_runtime).claim(claimed_by=f"worker.only-{reason}")
 
     assert isinstance(outcome, NoEligibleJob)
 
 
 @pytest.mark.asyncio
 async def test_non_queued_rows_are_ineligible(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
@@ -657,7 +645,7 @@ async def test_non_queued_rows_are_ineligible(
         {"id": uuid4(), "anchor": anchor},
     )
 
-    outcome = await _claim_service(claim_database_runtime).claim(claimed_by="worker.nonqueued")
+    outcome = await _claim_service(database_runtime).claim(claimed_by="worker.nonqueued")
 
     assert isinstance(outcome, NoEligibleJob)
 
@@ -673,7 +661,7 @@ async def test_non_queued_rows_are_ineligible(
     ],
 )
 async def test_each_claim_ordering_tie_break_independently(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     variant: str,
     expected: UUID,
@@ -702,9 +690,7 @@ async def test_each_claim_ordering_tie_break_independently(
             created_at=created_at,
         )
 
-    outcome = await _claim_service(claim_database_runtime).claim(
-        claimed_by=f"worker.order.{variant}"
-    )
+    outcome = await _claim_service(database_runtime).claim(claimed_by=f"worker.order.{variant}")
 
     assert isinstance(outcome, ClaimedJob)
     assert outcome.id == expected
@@ -712,12 +698,12 @@ async def test_each_claim_ordering_tie_break_independently(
 
 @pytest.mark.asyncio
 async def test_internal_claim_rollback_restores_row_and_leaves_it_claimable(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
     identifier = uuid4()
-    baseline = _pool_checked_out(claim_database_runtime)
+    baseline = _pool_checked_out(database_runtime)
     _seed_queued_with_fields(
         integration_settings,
         identifier=identifier,
@@ -726,8 +712,8 @@ async def test_internal_claim_rollback_restores_row_and_leaves_it_claimable(
         created_at=anchor - timedelta(seconds=1),
         attempts=2,
     )
-    store = _claim_store(claim_database_runtime)
-    async with claim_database_runtime.engine.connect() as connection:
+    store = _claim_store(database_runtime)
+    async with database_runtime.engine.connect() as connection:
         transaction = await connection.begin()
         await store._install_timeouts(connection)
         provisional = await store._claim_with_connection(
@@ -736,7 +722,7 @@ async def test_internal_claim_rollback_restores_row_and_leaves_it_claimable(
         )
         assert isinstance(provisional, ClaimedJob)
         await transaction.rollback()
-    await _assert_runtime_released(claim_database_runtime, baseline)
+    await _assert_runtime_released(database_runtime, baseline)
 
     assert _execute(
         integration_settings,
@@ -744,11 +730,11 @@ async def test_internal_claim_rollback_restores_row_and_leaves_it_claimable(
         "FROM public.job WHERE id = :id",
         {"id": identifier},
     ) == [("queued", None, None, None, 2)]
-    claimed = await _claim_service(claim_database_runtime).claim(claimed_by="worker.after-rollback")
+    claimed = await _claim_service(database_runtime).claim(claimed_by="worker.after-rollback")
     assert isinstance(claimed, ClaimedJob)
     assert claimed.id == identifier
     assert claimed.attempts == 3
-    await _assert_runtime_released(claim_database_runtime, baseline)
+    await _assert_runtime_released(database_runtime, baseline)
 
 
 @pytest.mark.asyncio
@@ -1331,11 +1317,11 @@ def _planner_nodes(node: Mapping[str, Any]) -> Iterator[Mapping[str, Any]]:
 
 @pytest.mark.asyncio
 async def test_claim_query_uses_queue_poll_index_and_cleans_up(
-    claim_database_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
-    baseline = _pool_checked_out(claim_database_runtime)
+    baseline = _pool_checked_out(database_runtime)
     try:
         _execute(
             integration_settings,
@@ -1394,9 +1380,9 @@ async def test_claim_query_uses_queue_poll_index_and_cleans_up(
             )
         _execute(integration_settings, "ANALYZE public.job")
 
-        store = _claim_store(claim_database_runtime)
+        store = _claim_store(database_runtime)
         explain = text("EXPLAIN (ANALYZE, BUFFERS, COSTS OFF, FORMAT JSON) " + _CLAIM_SQL.text)
-        async with claim_database_runtime.engine.connect() as connection:
+        async with database_runtime.engine.connect() as connection:
             transaction = await connection.begin()
             try:
                 await store._install_timeouts(connection)
@@ -1419,4 +1405,4 @@ async def test_claim_query_uses_queue_poll_index_and_cleans_up(
         _execute(integration_settings, "DELETE FROM public.job")
         _execute(integration_settings, "ANALYZE public.job")
     assert _execute(integration_settings, "SELECT count(*) FROM public.job") == [(0,)]
-    await _assert_runtime_released(claim_database_runtime, baseline)
+    await _assert_runtime_released(database_runtime, baseline)

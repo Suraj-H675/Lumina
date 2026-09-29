@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 from time import monotonic
 from typing import Any, cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.heartbeat import HeartbeatJobService
 from lumina.jobs.domain.heartbeat import (
     HeartbeatJobRequest,
@@ -147,17 +146,6 @@ def clean_heartbeat_rows(
         _guarded_cleanup(integration_settings)
 
 
-@pytest_asyncio.fixture
-async def heartbeat_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 def _store(
     runtime: DatabaseRuntime,
     *,
@@ -209,7 +197,7 @@ def _serialized_error(
 
 @pytest.mark.asyncio
 async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
-    heartbeat_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
@@ -218,9 +206,9 @@ async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
-    baseline = _pool_checked_out(heartbeat_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
-    recorded = await _service(heartbeat_runtime).heartbeat(
+    recorded = await _service(database_runtime).heartbeat(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
         expected_attempt=2,
@@ -231,7 +219,7 @@ async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
     after_row = _row_snapshot(integration_settings, identifier)
-    await _assert_pool_released(heartbeat_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
     heartbeat_index = 13
     assert isinstance(recorded, HeartbeatRecorded)
     assert recorded.job_id == identifier
@@ -248,25 +236,25 @@ async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
 
 @pytest.mark.asyncio
 async def test_repeated_correct_owner_heartbeat_succeeds_in_fresh_transactions(
-    heartbeat_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
-    baseline = _pool_checked_out(heartbeat_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
-    first = await _service(heartbeat_runtime).heartbeat(
+    first = await _service(database_runtime).heartbeat(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
         expected_attempt=2,
     )
-    await _assert_pool_released(heartbeat_runtime, baseline)
-    second = await _service(heartbeat_runtime).heartbeat(
+    await _assert_pool_released(database_runtime, baseline)
+    second = await _service(database_runtime).heartbeat(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
         expected_attempt=2,
     )
 
-    await _assert_pool_released(heartbeat_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
     assert first.job_id == second.job_id == identifier
     assert second.heartbeat_at >= first.heartbeat_at
     assert _row_snapshot(integration_settings, identifier)[13] == second.heartbeat_at
@@ -274,7 +262,7 @@ async def test_repeated_correct_owner_heartbeat_succeeds_in_fresh_transactions(
 
 @pytest.mark.asyncio
 async def test_equal_postgresql_transaction_timestamp_is_accepted_deliberately(
-    heartbeat_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
@@ -283,10 +271,10 @@ async def test_equal_postgresql_transaction_timestamp_is_accepted_deliberately(
         owner=JobOwnerToken(_FIXTURE_OWNER),
         expected_attempt=ExpectedJobAttempt(2),
     )
-    store = _store(heartbeat_runtime)
-    baseline = _pool_checked_out(heartbeat_runtime)
+    store = _store(database_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
-    async with heartbeat_runtime.engine.connect() as connection:
+    async with database_runtime.engine.connect() as connection:
         transaction = await connection.begin()
         await store._install_timeouts(connection)
         first = await store._heartbeat_with_connection(connection, request)
@@ -294,7 +282,7 @@ async def test_equal_postgresql_transaction_timestamp_is_accepted_deliberately(
         assert first.heartbeat_at == second.heartbeat_at
         await transaction.rollback()
 
-    await _assert_pool_released(heartbeat_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
 
 
 @pytest.mark.asyncio
@@ -309,7 +297,7 @@ async def test_equal_postgresql_transaction_timestamp_is_accepted_deliberately(
     ],
 )
 async def test_existing_rejections_are_indistinguishable_and_write_nothing(
-    heartbeat_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     case: str,
     status: str,
@@ -325,17 +313,17 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         owner=seed_owner,
     )
     before = _row_snapshot(integration_settings, identifier)
-    baseline = _pool_checked_out(heartbeat_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost) as failure:
-        await _service(heartbeat_runtime).heartbeat(
+        await _service(database_runtime).heartbeat(
             job_id=identifier,
             owner=request_owner,
             expected_attempt=2,
         )
 
     after = _row_snapshot(integration_settings, identifier)
-    await _assert_pool_released(heartbeat_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
     assert after == before
     assert failure.value.args == ("Job heartbeat ownership was lost.",)
     assert failure.value.__cause__ is None
@@ -356,7 +344,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
 
 @pytest.mark.asyncio
 async def test_missing_identifier_is_the_same_ownership_loss_and_writes_nothing(
-    heartbeat_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     caplog: pytest.LogCaptureFixture,
     capsys: pytest.CaptureFixture[str],
@@ -364,17 +352,17 @@ async def test_missing_identifier_is_the_same_ownership_loss_and_writes_nothing(
     sentinel = _guarded_setup(integration_settings, status="running")
     before = _row_snapshot(integration_settings, sentinel)
     missing = uuid4()
-    baseline = _pool_checked_out(heartbeat_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost) as failure:
-        await _service(heartbeat_runtime).heartbeat(
+        await _service(database_runtime).heartbeat(
             job_id=missing,
             owner=_FOREIGN_OWNER,
             expected_attempt=2,
         )
 
     assert _row_snapshot(integration_settings, sentinel) == before
-    await _assert_pool_released(heartbeat_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
     serialized = _serialized_error(failure.value, caplog, capsys)
     for evidence in (
         str(missing),
@@ -388,9 +376,9 @@ async def test_missing_identifier_is_the_same_ownership_loss_and_writes_nothing(
 
 @pytest.mark.asyncio
 async def test_runtime_acl_and_public_capability_are_heartbeat_only_for_this_operation(
-    heartbeat_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
-    async with heartbeat_runtime.engine.connect() as connection:
+    async with database_runtime.engine.connect() as connection:
         privileges = (
             await connection.execute(
                 text(

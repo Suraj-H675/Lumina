@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator
 from datetime import datetime, timedelta
 from typing import cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.failure import FailJobService
@@ -140,17 +139,6 @@ def clean_failure_rows(
         _cleanup(integration_settings)
 
 
-@pytest_asyncio.fixture
-async def failure_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 def _failure_store(
     runtime: DatabaseRuntime,
     *,
@@ -204,7 +192,7 @@ def _claim_service(runtime: DatabaseRuntime) -> ClaimJobService:
 
 @pytest.mark.asyncio
 async def test_retryable_failure_requeues_with_exact_fields_and_postgresql_schedule(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, attempts=2, max_attempts=5)
@@ -214,7 +202,7 @@ async def test_retryable_failure_requeues_with_exact_fields_and_postgresql_sched
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
 
-    outcome = await _failure_service(failure_runtime).fail(
+    outcome = await _failure_service(database_runtime).fail(
         job_id=identifier,
         owner=_OWNER,
         expected_attempt=2,
@@ -249,7 +237,7 @@ async def test_retryable_failure_requeues_with_exact_fields_and_postgresql_sched
     ],
 )
 async def test_terminal_failures_preserve_exact_historical_fields(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     attempts: int,
     max_attempts: int,
@@ -263,7 +251,7 @@ async def test_terminal_failures_preserve_exact_historical_fields(
     )
     before = _row(integration_settings, identifier)
 
-    outcome = await _failure_service(failure_runtime).fail(
+    outcome = await _failure_service(database_runtime).fail(
         job_id=identifier,
         owner=_OWNER,
         expected_attempt=attempts,
@@ -289,7 +277,7 @@ async def test_terminal_failures_preserve_exact_historical_fields(
     [(_FOREIGN_OWNER, 2), (_OWNER, 1), (_OWNER, 3)],
 )
 async def test_owner_or_attempt_mismatch_is_indistinguishable_and_writes_nothing(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     owner: str,
     attempt: int,
@@ -300,7 +288,7 @@ async def test_owner_or_attempt_mismatch_is_indistinguishable_and_writes_nothing
     before = _row(integration_settings, identifier)
 
     with pytest.raises(JobOwnershipLost) as failure:
-        await _failure_service(failure_runtime).fail(
+        await _failure_service(database_runtime).fail(
             job_id=identifier,
             owner=owner,
             expected_attempt=attempt,
@@ -342,32 +330,32 @@ async def _requeue_and_reclaim_same_owner(
 
 @pytest.mark.asyncio
 async def test_same_owner_old_attempt_operations_cannot_mutate_attempt_two(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, attempts=1, max_attempts=3)
     claimed = await _requeue_and_reclaim_same_owner(
-        failure_runtime,
+        database_runtime,
         integration_settings,
         identifier,
     )
     before = _row(integration_settings, identifier)
 
     with pytest.raises(JobOwnershipLost):
-        await _heartbeat_service(failure_runtime).heartbeat(
+        await _heartbeat_service(database_runtime).heartbeat(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=1,
         )
     with pytest.raises(JobOwnershipLost):
-        await _completion_service(failure_runtime).complete(
+        await _completion_service(database_runtime).complete(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=1,
             result={},
         )
     with pytest.raises(JobOwnershipLost):
-        await _failure_service(failure_runtime).fail(
+        await _failure_service(database_runtime).fail(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=1,
@@ -375,13 +363,13 @@ async def test_same_owner_old_attempt_operations_cannot_mutate_attempt_two(
         )
     assert _row(integration_settings, identifier) == before
 
-    heartbeat = await _heartbeat_service(failure_runtime).heartbeat(
+    heartbeat = await _heartbeat_service(database_runtime).heartbeat(
         job_id=identifier,
         owner=_OWNER,
         expected_attempt=claimed.attempts,
     )
     assert heartbeat.job_id == identifier
-    current_failure = await _failure_service(failure_runtime).fail(
+    current_failure = await _failure_service(database_runtime).fail(
         job_id=identifier,
         owner=_OWNER,
         expected_attempt=claimed.attempts,
@@ -392,17 +380,17 @@ async def test_same_owner_old_attempt_operations_cannot_mutate_attempt_two(
 
 @pytest.mark.asyncio
 async def test_same_owner_current_attempt_completion_succeeds_after_reclaim(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, attempts=1, max_attempts=3)
     claimed = await _requeue_and_reclaim_same_owner(
-        failure_runtime,
+        database_runtime,
         integration_settings,
         identifier,
     )
 
-    completed = await _completion_service(failure_runtime).complete(
+    completed = await _completion_service(database_runtime).complete(
         job_id=identifier,
         owner=_OWNER,
         expected_attempt=claimed.attempts,
@@ -484,7 +472,7 @@ class _FirstAckLossFactory:
     ],
 )
 async def test_lost_commit_acknowledgement_reconciles_exact_transition_once(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     attempts: int,
     max_attempts: int,
@@ -496,7 +484,7 @@ async def test_lost_commit_acknowledgement_reconciles_exact_transition_once(
         attempts=attempts,
         max_attempts=max_attempts,
     )
-    factory = _FirstAckLossFactory(failure_runtime.session_factory)
+    factory = _FirstAckLossFactory(database_runtime.session_factory)
     updates = 0
     reconciliations = 0
 
@@ -514,10 +502,10 @@ async def test_lost_commit_acknowledgement_reconciles_exact_transition_once(
         elif str(clause_element) == _RECONCILE_SQL.text:
             reconciliations += 1
 
-    event.listen(failure_runtime.engine.sync_engine, "before_execute", record_statement)
+    event.listen(database_runtime.engine.sync_engine, "before_execute", record_statement)
     try:
         outcome = await _failure_service(
-            failure_runtime,
+            database_runtime,
             factory=cast(async_sessionmaker[AsyncSession], factory),
             timeout_ms=500,
         ).fail(
@@ -534,7 +522,7 @@ async def test_lost_commit_acknowledgement_reconciles_exact_transition_once(
         assert updates == 1
         assert reconciliations == 1
     finally:
-        event.remove(failure_runtime.engine.sync_engine, "before_execute", record_statement)
+        event.remove(database_runtime.engine.sync_engine, "before_execute", record_statement)
 
 
 @pytest.mark.asyncio
@@ -546,7 +534,7 @@ async def test_lost_commit_acknowledgement_reconciles_exact_transition_once(
     ],
 )
 async def test_reconciliation_distinguishes_exact_unchanged_from_private_result_mismatch(
-    failure_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     restored_result: str | None,
     expected_error: type[RuntimeError],
@@ -572,10 +560,10 @@ async def test_reconciliation_distinguishes_exact_unchanged_from_private_result_
             },
         )
 
-    factory = _FirstAckLossFactory(failure_runtime.session_factory, restore_running)
+    factory = _FirstAckLossFactory(database_runtime.session_factory, restore_running)
     with pytest.raises(expected_error):
         await _failure_service(
-            failure_runtime,
+            database_runtime,
             factory=cast(async_sessionmaker[AsyncSession], factory),
             timeout_ms=500,
         ).fail(

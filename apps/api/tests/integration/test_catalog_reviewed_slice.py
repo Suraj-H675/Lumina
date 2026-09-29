@@ -6,12 +6,11 @@ valid later selection history and proves that permanent source-slice verificatio
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.catalog.application.data_quality import ReviewedSliceDataQualityService
 from lumina.catalog.application.ingest import CatalogIngestionService
 from lumina.catalog.application.read import CatalogReadService
@@ -33,7 +32,7 @@ from lumina.catalog.infrastructure.postgresql.data_quality import (
 from lumina.catalog.infrastructure.postgresql.ingestion import PostgreSqlCatalogIngestionStore
 from lumina.catalog.infrastructure.postgresql.read import PostgreSqlCatalogReadRepository
 from lumina.settings import IntegrationTestSettings
-from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
+from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
@@ -117,17 +116,6 @@ def reviewed_slice_rows(integration_settings: IntegrationTestSettings) -> Iterat
         _clean_reviewed_runtime_rows(integration_settings)
 
 
-@pytest_asyncio.fixture
-async def reviewed_slice_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 async def _ingest_and_replay(runtime: DatabaseRuntime) -> None:
     service = ReviewedSliceIngestionService(
         build_reviewed_gaia_commands,
@@ -162,16 +150,16 @@ async def _ingest_astrometry_and_replay(runtime: DatabaseRuntime) -> tuple[int, 
 
 @pytest.mark.asyncio
 async def test_initial_ingestion_and_replay_leave_the_phase_1a5_milestone_unselected(
-    reviewed_slice_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    await _ingest_and_replay(reviewed_slice_runtime)
+    await _ingest_and_replay(database_runtime)
     source = load_reviewed_slice(REVIEWED_SLICE_ID)
     read_service = CatalogReadService(
-        PostgreSqlCatalogReadRepository(reviewed_slice_runtime.session_factory)
+        PostgreSqlCatalogReadRepository(database_runtime.session_factory)
     )
     quality = await ReviewedSliceDataQualityService(
-        PostgreSqlCatalogDataQualityRepository(reviewed_slice_runtime.session_factory),
+        PostgreSqlCatalogDataQualityRepository(database_runtime.session_factory),
         build_reviewed_gaia_commands,
     ).check(REVIEWED_SLICE_ID)
     engine = create_engine(integration_settings.test_database_sync_url.get_secret_value())
@@ -210,19 +198,19 @@ async def test_initial_ingestion_and_replay_leave_the_phase_1a5_milestone_unsele
 
 @pytest.mark.asyncio
 async def test_astrometry_coexists_with_photometry_and_is_exposed_by_generic_reads(
-    reviewed_slice_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
-    await _ingest_and_replay(reviewed_slice_runtime)
-    source_records, measurements = await _ingest_astrometry_and_replay(reviewed_slice_runtime)
+    await _ingest_and_replay(database_runtime)
+    source_records, measurements = await _ingest_astrometry_and_replay(database_runtime)
     assert source_records == 5
     assert measurements == 10
 
     photometry_quality = ReviewedSliceDataQualityService(
-        PostgreSqlCatalogDataQualityRepository(reviewed_slice_runtime.session_factory),
+        PostgreSqlCatalogDataQualityRepository(database_runtime.session_factory),
         build_reviewed_gaia_commands,
     )
     astrometry_quality = ReviewedSliceDataQualityService(
-        PostgreSqlCatalogDataQualityRepository(reviewed_slice_runtime.session_factory),
+        PostgreSqlCatalogDataQualityRepository(database_runtime.session_factory),
         build_reviewed_gaia_astrometry_commands,
         slice_loader=load_astrometry_slice,
         expected_state_sha256=ASTROMETRY_STATE_SHA256,
@@ -240,7 +228,7 @@ async def test_astrometry_coexists_with_photometry_and_is_exposed_by_generic_rea
 
     source = load_astrometry_slice(ASTROMETRY_SLICE_ID)
     read_service = CatalogReadService(
-        PostgreSqlCatalogReadRepository(reviewed_slice_runtime.session_factory)
+        PostgreSqlCatalogReadRepository(database_runtime.session_factory)
     )
     for entity in source.entities:
         detail = await read_service.get_entity_detail(entity.id)
@@ -263,12 +251,12 @@ async def test_astrometry_coexists_with_photometry_and_is_exposed_by_generic_rea
 
 @pytest.mark.asyncio
 async def test_valid_current_and_historical_selection_do_not_change_permanent_source_fingerprint(
-    reviewed_slice_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    await _ingest_and_replay(reviewed_slice_runtime)
+    await _ingest_and_replay(database_runtime)
     service = ReviewedSliceDataQualityService(
-        PostgreSqlCatalogDataQualityRepository(reviewed_slice_runtime.session_factory),
+        PostgreSqlCatalogDataQualityRepository(database_runtime.session_factory),
         build_reviewed_gaia_commands,
     )
     before = await service.check(REVIEWED_SLICE_ID)

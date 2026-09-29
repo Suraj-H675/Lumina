@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.catalog.domain.identity import (
     ALIAS_NORMALIZATION_VERSION,
     normalize_alias,
@@ -30,7 +29,7 @@ from lumina.catalog.domain.ingestion import (
 from lumina.catalog.infrastructure.postgresql.ingestion import PostgreSqlCatalogIngestionStore
 from lumina.provenance.domain.manifests import DataManifest, SourceManifest
 from lumina.settings import IntegrationTestSettings
-from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
+from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
 from sqlalchemy import Connection, text
 from sqlalchemy.engine import make_url
 
@@ -212,17 +211,6 @@ def catalog_rows(integration_settings: IntegrationTestSettings) -> Iterator[None
         _migration_operation(integration_settings, _clean_catalog)
 
 
-@pytest_asyncio.fixture
-async def catalog_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 def _measurement(
     *,
     fact_key: str = "fixture.mass:primary",
@@ -314,14 +302,14 @@ def _rows(
 
 @pytest.mark.asyncio
 async def test_insert_persists_source_lexemes_and_never_selects_a_canonical_value(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
     prepared = _prepared(source_manifest, data_manifest, provider_record_id="inserted")
 
-    outcome = await _store(catalog_runtime).ingest(prepared)
+    outcome = await _store(database_runtime).ingest(prepared)
 
     assert outcome.status is CatalogIngestionStatus.INSERTED
     assert outcome.inserted_measurement_count == 1
@@ -339,12 +327,12 @@ async def test_insert_persists_source_lexemes_and_never_selects_a_canonical_valu
 
 @pytest.mark.asyncio
 async def test_unknown_entity_rolls_back_all_rows(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     prepared = _prepared(
         source_manifest,
         data_manifest,
@@ -373,14 +361,14 @@ async def test_unknown_entity_rolls_back_all_rows(
     ],
 )
 async def test_unknown_or_incompatible_vocabulary_rolls_back_all_rows(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
     provider_record_id: str,
     measurement: NormalizedMeasurement,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     prepared = _prepared(
         source_manifest,
         data_manifest,
@@ -396,13 +384,13 @@ async def test_unknown_or_incompatible_vocabulary_rolls_back_all_rows(
 
 @pytest.mark.asyncio
 async def test_equal_replay_is_idempotent_and_reports_persisted_fact_count(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
     first = _prepared(source_manifest, data_manifest, provider_record_id="replay")
     replay = _prepared(source_manifest, data_manifest, provider_record_id="replay")
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
 
     inserted = await store.ingest(first)
     replayed = await store.ingest(replay)
@@ -416,12 +404,12 @@ async def test_equal_replay_is_idempotent_and_reports_persisted_fact_count(
 
 @pytest.mark.asyncio
 async def test_provider_metadata_mismatch_is_persisted_once_and_replayed_as_the_same_conflict(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     await store.ingest(
         _prepared(source_manifest, data_manifest, provider_record_id="provider-metadata")
     )
@@ -454,12 +442,12 @@ async def test_provider_metadata_mismatch_is_persisted_once_and_replayed_as_the_
 
 @pytest.mark.asyncio
 async def test_dataset_metadata_mismatch_is_persisted_once_without_a_source_record(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     await store.ingest(
         _prepared(source_manifest, data_manifest, provider_record_id="dataset-metadata")
     )
@@ -489,12 +477,12 @@ async def test_dataset_metadata_mismatch_is_persisted_once_without_a_source_reco
 
 @pytest.mark.asyncio
 async def test_unresolved_record_rejects_changed_content_before_resolution_and_insertion(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     unresolved = _prepared(
         source_manifest,
         data_manifest,
@@ -533,12 +521,12 @@ async def test_unresolved_record_rejects_changed_content_before_resolution_and_i
 
 @pytest.mark.asyncio
 async def test_existing_source_record_cannot_be_remapped_to_a_different_entity(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     inserted = await store.ingest(
         _prepared(source_manifest, data_manifest, provider_record_id="entity-remap")
     )
@@ -570,12 +558,12 @@ async def test_existing_source_record_cannot_be_remapped_to_a_different_entity(
 
 @pytest.mark.asyncio
 async def test_same_fact_key_mismatch_has_fact_precedence_and_deduplicates_its_evidence(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     await store.ingest(_prepared(source_manifest, data_manifest, provider_record_id="same-key"))
     changed = _prepared(
         source_manifest,
@@ -601,12 +589,12 @@ async def test_same_fact_key_mismatch_has_fact_precedence_and_deduplicates_its_e
 
 @pytest.mark.asyncio
 async def test_changed_whole_fact_set_has_one_content_conflict_and_no_partial_fact_insert(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     inserted = await store.ingest(
         _prepared(source_manifest, data_manifest, provider_record_id="whole-set")
     )
@@ -641,12 +629,12 @@ async def test_changed_whole_fact_set_has_one_content_conflict_and_no_partial_fa
 
 @pytest.mark.asyncio
 async def test_competing_measurements_are_reported_without_canonical_mutation(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     first_prepared = _prepared(source_manifest, data_manifest, provider_record_id="first")
     await store.ingest(first_prepared)
     second = await store.ingest(
@@ -692,12 +680,12 @@ async def test_competing_measurements_are_reported_without_canonical_mutation(
 
 @pytest.mark.asyncio
 async def test_concurrent_equal_records_converge_without_duplicate_source_facts(
-    catalog_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     source_manifest: SourceManifest,
     data_manifest: DataManifest,
 ) -> None:
-    store = _store(catalog_runtime)
+    store = _store(database_runtime)
     left = _prepared(source_manifest, data_manifest, provider_record_id="concurrent")
     right = _prepared(source_manifest, data_manifest, provider_record_id="concurrent")
 

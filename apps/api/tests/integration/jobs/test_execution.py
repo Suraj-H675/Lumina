@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 from typing import cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.enqueue import EnqueueJobService
@@ -33,7 +32,7 @@ from lumina.jobs.infrastructure.postgresql.enqueue import PostgreSqlEnqueueJobSt
 from lumina.jobs.infrastructure.postgresql.failure import PostgreSqlFailureJobStore
 from lumina.jobs.infrastructure.postgresql.heartbeat import PostgreSqlHeartbeatJobStore
 from lumina.settings import IntegrationTestSettings
-from lumina.shared.infrastructure.database.runtime import DatabaseRuntime, create_database_runtime
+from lumina.shared.infrastructure.database.runtime import DatabaseRuntime
 from lumina.worker.timing import EventLoopExecutionTiming, ExecutionTask
 from sqlalchemy import Connection, text
 from sqlalchemy.engine import make_url
@@ -80,17 +79,6 @@ def clean_execution_rows(
         yield
     finally:
         _guarded_execute(integration_settings, "DELETE FROM public.job")
-
-
-@pytest_asyncio.fixture
-async def execution_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
 
 
 def _seed(
@@ -291,12 +279,12 @@ class RecordingHeartbeat:
 
 @pytest.mark.asyncio
 async def test_successful_noop_claims_and_completes_without_payload_echo(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     enqueue = EnqueueJobService(
         PostgreSqlEnqueueJobStore(
-            execution_runtime.session_factory,
+            database_runtime.session_factory,
             wait_timeout_ms=5_000,
         ),
         payload_max_bytes=61_440,
@@ -309,7 +297,7 @@ async def test_successful_noop_claims_and_completes_without_payload_echo(
     )
 
     outcome = await _executor(
-        execution_runtime,
+        database_runtime,
         registry=_noop_production_registry(),
     ).execute()
     row = _row(integration_settings, enqueued.id)
@@ -334,7 +322,7 @@ async def test_successful_noop_claims_and_completes_without_payload_echo(
     ],
 )
 async def test_unsupported_and_incompatible_claims_use_canonical_terminal_failures(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     job_type: str,
     payload: str,
@@ -348,7 +336,7 @@ async def test_unsupported_and_incompatible_claims_use_canonical_terminal_failur
     )
 
     await _executor(
-        execution_runtime,
+        database_runtime,
         registry=_noop_production_registry(),
     ).execute()
     row = _row(integration_settings, identifier)
@@ -369,7 +357,7 @@ async def test_unsupported_and_incompatible_claims_use_canonical_terminal_failur
     ],
 )
 async def test_fixture_handler_terminal_failures_persist_only_fixed_catalog(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     error: BaseException,
     code: str,
@@ -382,7 +370,7 @@ async def test_fixture_handler_terminal_failures_persist_only_fixed_catalog(
     )
     registry = StaticHandlerRegistry({"fixture.handler": FixtureHandler(error=error)})
 
-    await _executor(execution_runtime, registry=registry).execute()
+    await _executor(database_runtime, registry=registry).execute()
     row = _row(integration_settings, identifier)
 
     assert row[0] == "failed"
@@ -392,7 +380,7 @@ async def test_fixture_handler_terminal_failures_persist_only_fixed_catalog(
 
 @pytest.mark.asyncio
 async def test_retryable_handler_requeues_with_accepted_deterministic_backoff(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed(
@@ -412,7 +400,7 @@ async def test_retryable_handler_requeues_with_accepted_deterministic_backoff(
         {"fixture.handler": FixtureHandler(error=RetryableHandlerFailure())}
     )
 
-    await _executor(execution_runtime, registry=registry).execute()
+    await _executor(database_runtime, registry=registry).execute()
     after = cast(
         datetime,
         _guarded_execute(
@@ -431,7 +419,7 @@ async def test_retryable_handler_requeues_with_accepted_deterministic_backoff(
 
 @pytest.mark.asyncio
 async def test_invalid_result_persists_only_fixed_invalid_result_failure(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed(
@@ -443,7 +431,7 @@ async def test_invalid_result_persists_only_fixed_invalid_result_failure(
     invalid = {"secret": object()}
     registry = StaticHandlerRegistry({"fixture.handler": FixtureHandler(result=invalid)})
 
-    await _executor(execution_runtime, registry=registry).execute()
+    await _executor(database_runtime, registry=registry).execute()
     row = _row(integration_settings, identifier)
 
     assert row[0] == "failed"
@@ -453,7 +441,7 @@ async def test_invalid_result_persists_only_fixed_invalid_result_failure(
 
 @pytest.mark.asyncio
 async def test_blocked_handler_heartbeats_then_times_out_with_exact_attempt(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed(
@@ -464,10 +452,10 @@ async def test_blocked_handler_heartbeats_then_times_out_with_exact_attempt(
     )
     handler = BlockingFixtureHandler()
     timing = ControlledTiming()
-    _, accepted_heartbeat, _, _ = _capabilities(execution_runtime)
+    _, accepted_heartbeat, _, _ = _capabilities(database_runtime)
     heartbeat = RecordingHeartbeat(accepted_heartbeat)
     executor = _executor(
-        execution_runtime,
+        database_runtime,
         registry=StaticHandlerRegistry({"fixture.handler": handler}),
         heartbeat=heartbeat,
         timing=timing,
@@ -492,7 +480,7 @@ async def test_blocked_handler_heartbeats_then_times_out_with_exact_attempt(
 
 @pytest.mark.asyncio
 async def test_real_heartbeat_ownership_loss_cancels_without_terminal_mutation(
-    execution_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed(
@@ -502,10 +490,10 @@ async def test_real_heartbeat_ownership_loss_cancels_without_terminal_mutation(
     )
     handler = BlockingFixtureHandler()
     timing = ControlledTiming()
-    _, accepted_heartbeat, _, _ = _capabilities(execution_runtime)
+    _, accepted_heartbeat, _, _ = _capabilities(database_runtime)
     heartbeat = RecordingHeartbeat(accepted_heartbeat)
     executor = _executor(
-        execution_runtime,
+        database_runtime,
         registry=StaticHandlerRegistry({"fixture.handler": handler}),
         heartbeat=heartbeat,
         timing=timing,

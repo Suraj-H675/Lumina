@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import Iterator
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.enqueue import EnqueueJobService
 from lumina.jobs.domain.models import (
     EnqueueJob,
@@ -45,17 +44,6 @@ def clean_job_rows(integration_settings: IntegrationTestSettings) -> Iterator[No
         yield
     finally:
         run_migration_operation(sync_url, clean)
-
-
-@pytest_asyncio.fixture
-async def database_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
 
 
 def _service(runtime: DatabaseRuntime, *, wait_timeout_ms: int = 5_000) -> EnqueueJobService:

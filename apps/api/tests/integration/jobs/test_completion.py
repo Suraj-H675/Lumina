@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator
 from datetime import datetime, timedelta
 from time import monotonic
 from typing import Any, cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.domain.completion import (
     CompleteJobRequest,
@@ -152,17 +151,6 @@ def clean_completion_rows(
         _guarded_cleanup(integration_settings)
 
 
-@pytest_asyncio.fixture
-async def completion_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 def _store(
     runtime: DatabaseRuntime,
     *,
@@ -220,7 +208,7 @@ def _serialized_error(
 
 @pytest.mark.asyncio
 async def test_correct_owner_completes_with_postgresql_time_and_exact_field_changes(
-    completion_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
@@ -229,9 +217,9 @@ async def test_correct_owner_completes_with_postgresql_time_and_exact_field_chan
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
-    baseline = _pool_checked_out(completion_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
-    completed = await _service(completion_runtime).complete(
+    completed = await _service(database_runtime).complete(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
         expected_attempt=2,
@@ -243,7 +231,7 @@ async def test_correct_owner_completes_with_postgresql_time_and_exact_field_chan
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
     after = _row_snapshot(integration_settings, identifier)
-    await _assert_pool_released(completion_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
     assert isinstance(completed, SuccessfulJobCompletion)
     assert completed.job_id == identifier
     assert completed.completed_at == after[14]
@@ -271,7 +259,7 @@ async def test_correct_owner_completes_with_postgresql_time_and_exact_field_chan
     ],
 )
 async def test_existing_rejections_are_indistinguishable_and_write_nothing(
-    completion_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     case: str,
     status: str,
@@ -287,10 +275,10 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         owner=seed_owner,
     )
     before = _row_snapshot(integration_settings, identifier)
-    baseline = _pool_checked_out(completion_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost) as failure:
-        await _service(completion_runtime).complete(
+        await _service(database_runtime).complete(
             job_id=identifier,
             owner=request_owner,
             expected_attempt=2,
@@ -298,7 +286,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         )
 
     assert _row_snapshot(integration_settings, identifier) == before
-    await _assert_pool_released(completion_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
     assert failure.value.args == ("Job heartbeat ownership was lost.",)
     assert failure.value.__cause__ is None
     assert failure.value.__context__ is None
@@ -316,16 +304,16 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
 
 @pytest.mark.asyncio
 async def test_missing_and_second_completion_are_the_same_ownership_loss(
-    completion_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
     missing = uuid4()
     sentinel_before = _row_snapshot(integration_settings, identifier)
-    baseline = _pool_checked_out(completion_runtime)
+    baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost):
-        await _service(completion_runtime).complete(
+        await _service(database_runtime).complete(
             job_id=missing,
             owner=_FIXTURE_OWNER,
             expected_attempt=2,
@@ -333,7 +321,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
         )
     assert _row_snapshot(integration_settings, identifier) == sentinel_before
 
-    await _service(completion_runtime).complete(
+    await _service(database_runtime).complete(
         job_id=identifier,
         owner=_FIXTURE_OWNER,
         expected_attempt=2,
@@ -341,7 +329,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
     )
     completed_snapshot = _row_snapshot(integration_settings, identifier)
     with pytest.raises(JobOwnershipLost):
-        await _service(completion_runtime).complete(
+        await _service(database_runtime).complete(
             job_id=identifier,
             owner=_FIXTURE_OWNER,
             expected_attempt=2,
@@ -349,14 +337,14 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
         )
 
     assert _row_snapshot(integration_settings, identifier) == completed_snapshot
-    await _assert_pool_released(completion_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
 
 
 @pytest.mark.asyncio
 async def test_runtime_acl_and_adapter_capability_are_completion_scoped(
-    completion_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
 ) -> None:
-    async with completion_runtime.engine.connect() as connection:
+    async with database_runtime.engine.connect() as connection:
         privileges = (
             await connection.execute(
                 text(
@@ -395,12 +383,12 @@ async def test_runtime_acl_and_adapter_capability_are_completion_scoped(
 
 @pytest.mark.asyncio
 async def test_postgresql_textually_oversized_result_is_rejected_before_update(
-    completion_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
     before = _row_snapshot(integration_settings, identifier)
-    baseline = _pool_checked_out(completion_runtime)
+    baseline = _pool_checked_out(database_runtime)
     result = {f"k{index:04}": 0 for index in range(5_600)}
     validated = validate_job_result(result, max_bytes=65_536)
     assert validated.utf8_size <= 65_536
@@ -418,11 +406,11 @@ async def test_postgresql_textually_oversized_result_is_rejected_before_update(
         if str(clause_element) == _COMPLETE_SQL.text:
             observed_updates += 1
 
-    event.listen(completion_runtime.engine.sync_engine, "before_execute", record_update)
+    event.listen(database_runtime.engine.sync_engine, "before_execute", record_update)
     try:
         with pytest.raises(JobResultTooLarge) as failure:
             await _service(
-                completion_runtime,
+                database_runtime,
                 result_max_bytes=65_536,
             ).complete(
                 job_id=identifier,
@@ -431,12 +419,12 @@ async def test_postgresql_textually_oversized_result_is_rejected_before_update(
                 result=result,
             )
     finally:
-        event.remove(completion_runtime.engine.sync_engine, "before_execute", record_update)
+        event.remove(database_runtime.engine.sync_engine, "before_execute", record_update)
 
     assert failure.value.args == ("Job result exceeds the database size limit.",)
     assert observed_updates == 0
     assert _row_snapshot(integration_settings, identifier) == before
-    await _assert_pool_released(completion_runtime, baseline)
+    await _assert_pool_released(database_runtime, baseline)
 
 
 @pytest.mark.asyncio

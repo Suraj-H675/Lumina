@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import Iterator
 from datetime import datetime, timedelta
 from typing import Any, cast
 from uuid import UUID, uuid4
 
 import pytest
-import pytest_asyncio
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.failure import FailJobService
@@ -40,7 +39,6 @@ from lumina.jobs.infrastructure.postgresql.recovery import (
 from lumina.settings import IntegrationTestSettings
 from lumina.shared.infrastructure.database.runtime import (
     DatabaseRuntime,
-    create_database_runtime,
 )
 from sqlalchemy import Connection, event, text
 from sqlalchemy.engine import make_url
@@ -216,17 +214,6 @@ def clean_recovery_rows(
         _cleanup(integration_settings)
 
 
-@pytest_asyncio.fixture
-async def recovery_runtime(
-    integration_settings: IntegrationTestSettings,
-) -> AsyncIterator[DatabaseRuntime]:
-    runtime = create_database_runtime(integration_settings.test_database_url)
-    try:
-        yield runtime
-    finally:
-        await runtime.engine.dispose()
-
-
 def _recovery_service(
     runtime: DatabaseRuntime,
     *,
@@ -281,14 +268,14 @@ def _failure_service(runtime: DatabaseRuntime) -> FailJobService:
 
 @pytest.mark.asyncio
 async def test_non_exhausted_stale_attempt_requeues_with_exact_field_policy(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_running(integration_settings, attempts=2, max_attempts=5)
     before = _row(integration_settings, identifier)
     server_before = _database_anchor(integration_settings)
 
-    result = await _recovery_service(recovery_runtime).recover()
+    result = await _recovery_service(database_runtime).recover()
 
     server_after = _database_anchor(integration_settings)
     row = _row(integration_settings, identifier)
@@ -306,14 +293,14 @@ async def test_non_exhausted_stale_attempt_requeues_with_exact_field_policy(
 
 @pytest.mark.asyncio
 async def test_exhausted_stale_attempt_dead_letters_and_preserves_history(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_running(integration_settings, attempts=3, max_attempts=3)
     before = _row(integration_settings, identifier)
     server_before = _database_anchor(integration_settings)
 
-    result = await _recovery_service(recovery_runtime).recover()
+    result = await _recovery_service(database_runtime).recover()
 
     server_after = _database_anchor(integration_settings)
     row = _row(integration_settings, identifier)
@@ -331,18 +318,18 @@ async def test_exhausted_stale_attempt_dead_letters_and_preserves_history(
     assert row[17] == before[17]
 
     for operation in (
-        _heartbeat_service(recovery_runtime).heartbeat(
+        _heartbeat_service(database_runtime).heartbeat(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=3,
         ),
-        _completion_service(recovery_runtime).complete(
+        _completion_service(database_runtime).complete(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=3,
             result={},
         ),
-        _failure_service(recovery_runtime).fail(
+        _failure_service(database_runtime).fail(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=3,
@@ -352,7 +339,7 @@ async def test_exhausted_stale_attempt_dead_letters_and_preserves_history(
         with pytest.raises(JobOwnershipLost):
             await operation
     assert isinstance(
-        await _claim_service(recovery_runtime).claim(claimed_by=_FOREIGN_OWNER),
+        await _claim_service(database_runtime).claim(claimed_by=_FOREIGN_OWNER),
         NoEligibleJob,
     )
     assert _row(integration_settings, identifier) == row
@@ -360,7 +347,7 @@ async def test_exhausted_stale_attempt_dead_letters_and_preserves_history(
 
 @pytest.mark.asyncio
 async def test_recent_heartbeat_prevents_recovery_but_null_heartbeat_uses_claim_time(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
@@ -371,7 +358,7 @@ async def test_recent_heartbeat_prevents_recovery_but_null_heartbeat_uses_claim_
     )
     null_heartbeat = _seed_running_without_heartbeat(integration_settings)
 
-    result = await _recovery_service(recovery_runtime).recover()
+    result = await _recovery_service(database_runtime).recover()
 
     assert result == RecoverStaleJobsResult(requeued_count=1, dead_lettered_count=0)
     assert _row(integration_settings, recent)[2] == "running"
@@ -380,11 +367,11 @@ async def test_recent_heartbeat_prevents_recovery_but_null_heartbeat_uses_claim_
 
 @pytest.mark.asyncio
 async def test_exact_postgresql_cutoff_equality_is_eligible(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_running(integration_settings)
-    async with recovery_runtime.engine.connect() as connection:
+    async with database_runtime.engine.connect() as connection:
         transaction = await connection.begin()
         await connection.execute(_TIMEOUT_SQL, {"timeout": "5000ms"})
         await connection.execute(
@@ -512,14 +499,14 @@ class _BarrierFactory:
 @pytest.mark.asyncio
 @pytest.mark.parametrize("row_count", [1, 150])
 async def test_concurrent_recoverers_never_recover_a_row_twice_and_skip_locked_work(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     row_count: int,
 ) -> None:
     identifiers = {_seed_running(integration_settings) for _ in range(row_count)}
-    factory = _BarrierFactory(recovery_runtime.session_factory, parties=2)
+    factory = _BarrierFactory(database_runtime.session_factory, parties=2)
     service = _recovery_service(
-        recovery_runtime,
+        database_runtime,
         factory=cast(async_sessionmaker[AsyncSession], factory),
     )
 
@@ -542,7 +529,7 @@ async def test_concurrent_recoverers_never_recover_a_row_twice_and_skip_locked_w
 
 @pytest.mark.asyncio
 async def test_explicitly_locked_stale_row_is_skipped_for_next_stale_row(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
@@ -554,14 +541,14 @@ async def test_explicitly_locked_stale_row_is_skipped_for_next_stale_row(
         integration_settings,
         heartbeat_at=anchor - timedelta(minutes=10),
     )
-    async with recovery_runtime.engine.connect() as locking_connection:
+    async with database_runtime.engine.connect() as locking_connection:
         transaction = await locking_connection.begin()
         await locking_connection.execute(
             text("SELECT id FROM public.job WHERE id = :id FOR UPDATE"),
             {"id": oldest},
         )
         result = await asyncio.wait_for(
-            _recovery_service(recovery_runtime, timeout_ms=500).recover(),
+            _recovery_service(database_runtime, timeout_ms=500).recover(),
             timeout=2,
         )
         assert result.total_count == 1
@@ -569,14 +556,14 @@ async def test_explicitly_locked_stale_row_is_skipped_for_next_stale_row(
         assert _row(integration_settings, oldest)[2] == "running"
         await transaction.rollback()
 
-    later = await _recovery_service(recovery_runtime).recover()
+    later = await _recovery_service(database_runtime).recover()
     assert later.total_count == 1
     assert _row(integration_settings, oldest)[2] == "queued"
 
 
 @pytest.mark.asyncio
 async def test_fixed_batch_100_then_one_and_full_ordering_contract(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     anchor = _database_anchor(integration_settings)
@@ -603,7 +590,7 @@ async def test_fixed_batch_100_then_one_and_full_ordering_contract(
             heartbeat_at=shared_lease,
         )
 
-    first = await _recovery_service(recovery_runtime).recover()
+    first = await _recovery_service(database_runtime).recover()
 
     assert first.total_count == 100
     assert _guarded_execute(
@@ -615,14 +602,14 @@ async def test_fixed_batch_100_then_one_and_full_ordering_contract(
         "SELECT count(*), min(attempts), max(attempts) FROM public.job WHERE status = 'queued'",
     ) == [(100, 1, 1)]
 
-    second = await _recovery_service(recovery_runtime).recover()
+    second = await _recovery_service(database_runtime).recover()
     assert second.total_count == 1
     assert _row(integration_settings, largest_id)[2] == "queued"
 
 
 @pytest.mark.asyncio
 async def test_heartbeat_wins_first_refreshes_lease_and_recovery_skips_locked_row(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_running(integration_settings)
@@ -640,9 +627,9 @@ async def test_heartbeat_wins_first_refreshes_lease_and_recovery_skips_locked_ro
         if str(clause_element) == _RECOVER_SQL.text:
             loop.call_soon_threadsafe(reached_recovery.set)
 
-    event.listen(recovery_runtime.engine.sync_engine, "before_execute", record_recovery)
+    event.listen(database_runtime.engine.sync_engine, "before_execute", record_recovery)
     try:
-        async with recovery_runtime.engine.connect() as heartbeat_connection:
+        async with database_runtime.engine.connect() as heartbeat_connection:
             transaction = await heartbeat_connection.begin()
             refreshed = (
                 await heartbeat_connection.execute(
@@ -655,13 +642,13 @@ async def test_heartbeat_wins_first_refreshes_lease_and_recovery_skips_locked_ro
                     {"id": identifier, "owner": _OWNER},
                 )
             ).scalar_one()
-            recovery = asyncio.create_task(_recovery_service(recovery_runtime).recover())
+            recovery = asyncio.create_task(_recovery_service(database_runtime).recover())
             await asyncio.wait_for(reached_recovery.wait(), timeout=1)
             result = await asyncio.wait_for(recovery, timeout=2)
             assert result.total_count == 0
             await transaction.commit()
     finally:
-        event.remove(recovery_runtime.engine.sync_engine, "before_execute", record_recovery)
+        event.remove(database_runtime.engine.sync_engine, "before_execute", record_recovery)
 
     row = _row(integration_settings, identifier)
     assert row[2] == "running"
@@ -728,7 +715,7 @@ class _PausedCommitFactory:
 
 @pytest.mark.asyncio
 async def test_recovery_wins_first_and_delayed_heartbeat_loses_indistinguishably(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_running(integration_settings)
@@ -749,21 +736,21 @@ async def test_recovery_wins_first_and_delayed_heartbeat_loses_indistinguishably
             loop.call_soon_threadsafe(heartbeat_statement_started.set)
 
     factory = _PausedCommitFactory(
-        recovery_runtime.session_factory,
+        database_runtime.session_factory,
         commit_started,
         allow_commit,
     )
-    event.listen(recovery_runtime.engine.sync_engine, "before_execute", record_heartbeat)
+    event.listen(database_runtime.engine.sync_engine, "before_execute", record_heartbeat)
     try:
         recovery = asyncio.create_task(
             _recovery_service(
-                recovery_runtime,
+                database_runtime,
                 factory=cast(async_sessionmaker[AsyncSession], factory),
             ).recover()
         )
         await asyncio.wait_for(commit_started.wait(), timeout=1)
         heartbeat = asyncio.create_task(
-            _heartbeat_service(recovery_runtime).heartbeat(
+            _heartbeat_service(database_runtime).heartbeat(
                 job_id=identifier,
                 owner=_OWNER,
                 expected_attempt=1,
@@ -776,7 +763,7 @@ async def test_recovery_wins_first_and_delayed_heartbeat_loses_indistinguishably
             await asyncio.wait_for(heartbeat, timeout=2)
     finally:
         allow_commit.set()
-        event.remove(recovery_runtime.engine.sync_engine, "before_execute", record_heartbeat)
+        event.remove(database_runtime.engine.sync_engine, "before_execute", record_heartbeat)
 
     assert recovered.total_count == 1
     assert _row(integration_settings, identifier)[2] == "queued"
@@ -832,13 +819,13 @@ async def _claim_stale_recover_and_reclaim_same_owner(
 
 @pytest.mark.asyncio
 async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_two(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     caplog: pytest.LogCaptureFixture,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     identifier, first_claim, second_claim = await _claim_stale_recover_and_reclaim_same_owner(
-        recovery_runtime,
+        database_runtime,
         integration_settings,
     )
     assert first_claim.attempts == 1
@@ -858,7 +845,7 @@ async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_t
 
     operations = (
         (
-            _heartbeat_service(recovery_runtime).heartbeat(
+            _heartbeat_service(database_runtime).heartbeat(
                 job_id=identifier,
                 owner=_OWNER,
                 expected_attempt=1,
@@ -866,7 +853,7 @@ async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_t
             _HEARTBEAT_SQL.text,
         ),
         (
-            _completion_service(recovery_runtime).complete(
+            _completion_service(database_runtime).complete(
                 job_id=identifier,
                 owner=_OWNER,
                 expected_attempt=1,
@@ -875,7 +862,7 @@ async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_t
             _COMPLETE_SQL.text,
         ),
         (
-            _failure_service(recovery_runtime).fail(
+            _failure_service(database_runtime).fail(
                 job_id=identifier,
                 owner=_OWNER,
                 expected_attempt=1,
@@ -886,7 +873,7 @@ async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_t
     )
     failures: list[JobOwnershipLost] = []
     event.listen(
-        recovery_runtime.engine.sync_engine,
+        database_runtime.engine.sync_engine,
         "before_execute",
         record_lifecycle_statement,
     )
@@ -899,7 +886,7 @@ async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_t
             assert statements[-1] == expected_last_statement
     finally:
         event.remove(
-            recovery_runtime.engine.sync_engine,
+            database_runtime.engine.sync_engine,
             "before_execute",
             record_lifecycle_statement,
         )
@@ -928,19 +915,19 @@ async def test_same_owner_delayed_attempt_one_operations_cannot_mutate_attempt_t
 @pytest.mark.asyncio
 @pytest.mark.parametrize("operation_name", ["heartbeat", "completion", "failure"])
 async def test_same_owner_current_attempt_two_lifecycle_operations_succeed(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
     operation_name: str,
 ) -> None:
     identifier, first_claim, second_claim = await _claim_stale_recover_and_reclaim_same_owner(
-        recovery_runtime,
+        database_runtime,
         integration_settings,
     )
     assert first_claim.attempts == 1
     assert second_claim.attempts == 2
 
     if operation_name == "heartbeat":
-        heartbeat_outcome = await _heartbeat_service(recovery_runtime).heartbeat(
+        heartbeat_outcome = await _heartbeat_service(database_runtime).heartbeat(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=second_claim.attempts,
@@ -948,7 +935,7 @@ async def test_same_owner_current_attempt_two_lifecycle_operations_succeed(
         assert heartbeat_outcome.job_id == identifier
         assert _row(integration_settings, identifier)[2] == "running"
     elif operation_name == "completion":
-        completion_outcome = await _completion_service(recovery_runtime).complete(
+        completion_outcome = await _completion_service(database_runtime).complete(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=second_claim.attempts,
@@ -957,7 +944,7 @@ async def test_same_owner_current_attempt_two_lifecycle_operations_succeed(
         assert completion_outcome.job_id == identifier
         assert _row(integration_settings, identifier)[2] == "succeeded"
     else:
-        failure_outcome = await _failure_service(recovery_runtime).fail(
+        failure_outcome = await _failure_service(database_runtime).fail(
             job_id=identifier,
             owner=_OWNER,
             expected_attempt=second_claim.attempts,
@@ -969,13 +956,13 @@ async def test_same_owner_current_attempt_two_lifecycle_operations_succeed(
 
 @pytest.mark.asyncio
 async def test_runtime_recovery_uses_existing_acl_and_preserves_prohibited_columns(
-    recovery_runtime: DatabaseRuntime,
+    database_runtime: DatabaseRuntime,
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _seed_running(integration_settings)
     before = _row(integration_settings, identifier)
 
-    result = await _recovery_service(recovery_runtime).recover()
+    result = await _recovery_service(database_runtime).recover()
 
     after = _row(integration_settings, identifier)
     assert result.total_count == 1
@@ -983,7 +970,7 @@ async def test_runtime_recovery_uses_existing_acl_and_preserves_prohibited_colum
     assert after[3:6] == before[3:6]
     assert after[8:10] == before[8:10]
     assert after[17] == before[17]
-    async with recovery_runtime.engine.connect() as connection:
+    async with database_runtime.engine.connect() as connection:
         privileges = (
             await connection.execute(
                 text(

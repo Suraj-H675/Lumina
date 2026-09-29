@@ -2,7 +2,9 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
+const { fetchMock, pushMock } = vi.hoisted(() => ({ fetchMock: vi.fn(), pushMock: vi.fn() }));
+
+vi.stubGlobal("fetch", fetchMock);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
@@ -29,9 +31,14 @@ const KEPLER_452 = {
 
 let collectionId: string;
 
-function renderDetail(id: string, messages: CollectionsMessages = enMessages.collections) {
+function renderDetail(
+  id: string,
+  messages: CollectionsMessages = enMessages.collections,
+  apiOrigin?: string,
+) {
   return render(
     <CollectionDetailView
+      {...(apiOrigin === undefined ? {} : { apiOrigin })}
       collectionId={id}
       entityTypeMessages={enMessages.entityTypes}
       locale={DEFAULT_LOCALE}
@@ -56,6 +63,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  fetchMock.mockReset();
   pushMock.mockReset();
 });
 
@@ -70,6 +78,25 @@ function persisted(): {
 }
 
 describe("CollectionDetailView", () => {
+  it("uses the shared single debounce for add-object suggestions", async () => {
+    fetchMock.mockResolvedValue({
+      json: () => Promise.resolve({ items: [] }),
+      ok: true,
+      status: 200,
+    });
+    renderDetail(collectionId, enMessages.collections, "http://127.0.0.1:8765");
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByRole("combobox", { name: /find an object to save in this collection/i }),
+      "ke",
+    );
+    await new Promise((resolve) => setTimeout(resolve, 220));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/api/v1/search/suggest?q=ke");
+  });
+
   it("shows the collection with its saved objects and local-only disclosure", () => {
     store.addObjectToCollection(collectionId, K2_18);
     renderDetail(collectionId);

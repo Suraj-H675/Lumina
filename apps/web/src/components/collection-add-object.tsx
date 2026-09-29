@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 
 import type { EntitySummaryResponse } from "@nova-lumina/api-client";
 
@@ -39,7 +39,6 @@ export function AddObjectToCollectionControl({
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [announcement, setAnnouncement] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const { load, reset, state } = useSuggestCatalogue(
     apiOrigin === undefined ? {} : { origin: apiOrigin },
@@ -47,21 +46,6 @@ export function AddObjectToCollectionControl({
   const baseId = useId();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const data = useCollectionsData();
-
-  // Debounce the query before it drives requests, mirroring the shared hook's
-  // bounded window with real timers.
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 180);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [query]);
-
-  useEffect(() => {
-    const trimmed = debouncedQuery.trim();
-    if (trimmed.length === 0) return;
-    load(trimmed);
-  }, [debouncedQuery, load]);
 
   // List visibility is DERIVED (query + focus + results), never set in an effect.
   const open = query.trim().length > 0 && inputFocused;
@@ -90,9 +74,13 @@ export function AddObjectToCollectionControl({
     (value: string) => {
       setQuery(value);
       setActiveIndex(null);
-      if (value.trim().length === 0) reset();
+      if (value.trim().length === 0) {
+        reset();
+        return;
+      }
+      load(value);
     },
-    [reset],
+    [load, reset],
   );
 
   const addToCollection = useCallback(

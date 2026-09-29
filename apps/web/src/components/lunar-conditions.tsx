@@ -2,24 +2,12 @@
 
 import { useMemo } from "react";
 
-import {
-  formatLocaleDateTime,
-  formatLocaleNumber,
-  formatMessageTemplate,
-} from "../lib/i18n/format";
+import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { ObservationConditionsMessages } from "../lib/i18n/messages/types";
 import type { ObservationPlan } from "../lib/observation/domain";
 import { computeLunarConditions, type LunarConditions } from "../lib/observation/lunar";
-
-function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
-  return formatLocaleDateTime(instant, locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-    timeZoneName: "short",
-  });
-}
+import { formatObservationTime } from "../lib/observation/presentation";
 
 function formatAngle(value: number, locale: PublishedLocale): string {
   return `${formatLocaleNumber(value, locale, {
@@ -143,7 +131,7 @@ export function LunarConditionsSection({
                     ? messages.horizonPosition.below
                     : messages.horizonPosition.above,
                 separation: formatAngle(lunar.selected.targetSeparationDegrees, locale),
-                time: formatTime(plan.selected.instant, timeZone, locale),
+                time: formatObservationTime(plan.selected.instant, timeZone, locale),
               })}
             </p>
           </div>

@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useCallback, useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
 import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
@@ -20,11 +12,7 @@ import { ObservationConditions } from "./observation-conditions";
 import { SaveObservationPlanButton } from "./save-observation-plan-button";
 import { SkyFinder } from "./sky-finder";
 import { formatCoordinateDisclosure } from "../lib/i18n/coordinate-disclosure";
-import {
-  formatLocaleDateTime,
-  formatLocaleNumber,
-  formatMessageTemplate,
-} from "../lib/i18n/format";
+import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type {
   CatalogueSearchMessages,
@@ -48,6 +36,13 @@ import {
   type ObserverLocation,
   type TargetEvent,
 } from "../lib/observation/domain";
+import {
+  formatObservationDateLabel,
+  formatObservationShortTime,
+  formatObservationTime,
+  useBrowserDate,
+  useBrowserTimeZone,
+} from "../lib/observation/presentation";
 
 export type ObservationPlannerProps = Readonly<{
   apiOrigin?: string;
@@ -67,50 +62,6 @@ const EMPTY_TIME = "22:00";
 
 function localTimeString(instant: Date): string {
   return `${String(instant.getHours()).padStart(2, "0")}:${String(instant.getMinutes()).padStart(2, "0")}`;
-}
-
-function useBrowserDate(initialDate: string | undefined): string {
-  return useSyncExternalStore(
-    () => () => undefined,
-    () => initialDate ?? localDateString(new Date()),
-    () => initialDate ?? "",
-  );
-}
-
-function useBrowserTimeZone(): string {
-  return useSyncExternalStore(
-    () => () => undefined,
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-    () => "UTC",
-  );
-}
-
-function formatDateLabel(nightDate: string, timeZone: string, locale: PublishedLocale): string {
-  const instant = localInstantForNightTime(nightDate, "12:00");
-  if (instant === null) return nightDate;
-  return formatLocaleDateTime(instant, locale, {
-    day: "numeric",
-    month: "short",
-    timeZone,
-    year: "numeric",
-  });
-}
-
-function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
-  return formatLocaleDateTime(instant, locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-    timeZoneName: "short",
-  });
-}
-
-function formatShortTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
-  return formatLocaleDateTime(instant, locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-  });
 }
 
 function formatAltitude(altitude: number, locale: PublishedLocale): string {
@@ -133,7 +84,9 @@ function formatNightEvent(
   locale: PublishedLocale,
   unavailableMessage: string,
 ): string {
-  return event.kind === "time" ? formatTime(event.instant, timeZone, locale) : unavailableMessage;
+  return event.kind === "time"
+    ? formatObservationTime(event.instant, timeZone, locale)
+    : unavailableMessage;
 }
 
 function formatTargetEvent(
@@ -143,7 +96,7 @@ function formatTargetEvent(
   messages: ObservationPlannerMessages["results"]["events"],
 ): string {
   if (event.kind === "time" && event.instant !== undefined)
-    return formatTime(event.instant, timeZone, locale);
+    return formatObservationTime(event.instant, timeZone, locale);
   if (event.kind === "circumpolar") return messages.circumpolar;
   if (event.kind === "never-rises") return messages.neverRises;
   if (event.kind === "not-during-night") return messages.notDuringNight;
@@ -250,19 +203,19 @@ function AltitudeChart({
     plan.selected.instant.getTime() >= plan.plotStart.getTime() &&
     plan.selected.instant.getTime() <= plan.plotEnd.getTime();
   const maxSample = plan.maxDuringDarkness;
-  const firstLabel = formatShortTime(plan.plotStart, timeZone, locale);
-  const middleLabel = formatShortTime(
+  const firstLabel = formatObservationShortTime(plan.plotStart, timeZone, locale);
+  const middleLabel = formatObservationShortTime(
     new Date((plan.plotStart.getTime() + plan.plotEnd.getTime()) / 2),
     timeZone,
     locale,
   );
-  const lastLabel = formatShortTime(plan.plotEnd, timeZone, locale);
+  const lastLabel = formatObservationShortTime(plan.plotEnd, timeZone, locale);
   const accessibleSummary =
     maxSample === null
       ? messages.accessibleNoDarkness
       : formatMessageTemplate(messages.accessibleHighest, {
           altitude: formatAltitude(maxSample.altitude, locale),
-          time: formatTime(maxSample.instant, timeZone, locale),
+          time: formatObservationTime(maxSample.instant, timeZone, locale),
         });
 
   return (
@@ -425,7 +378,7 @@ function PlannerResults({
         <h2 className="text-2xl font-semibold tracking-tight" id="planner-results-heading">
           {highest !== null && highest.altitude > 0
             ? formatMessageTemplate(messages.results.highestHeading, {
-                time: formatTime(highest.instant, timeZone, locale),
+                time: formatObservationTime(highest.instant, timeZone, locale),
               })
             : messages.results.belowHorizonHeading}
         </h2>
@@ -899,7 +852,7 @@ export function ObservationPlanner({
             {activeNightDate !== "" && isValidNightDate(activeNightDate) ? (
               <p className="text-sm text-[var(--muted)]">
                 {formatMessageTemplate(messages.night.summary, {
-                  date: formatDateLabel(activeNightDate, timeZone, locale),
+                  date: formatObservationDateLabel(activeNightDate, timeZone, locale),
                 })}
               </p>
             ) : null}

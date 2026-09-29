@@ -2,15 +2,11 @@
 
 import { useId, useMemo } from "react";
 
-import {
-  formatCountMessage,
-  formatLocaleDateTime,
-  formatLocaleNumber,
-  formatMessageTemplate,
-} from "../lib/i18n/format";
+import { formatCountMessage, formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { ObservationConditionsMessages } from "../lib/i18n/messages/types";
 import type { ObservationPlan } from "../lib/observation/domain";
+import { formatObservationShortTime, formatObservationTime } from "../lib/observation/presentation";
 import {
   WEATHER_PROVIDER_LICENSE_URL,
   WEATHER_PROVIDER_NAME,
@@ -28,23 +24,6 @@ import {
 } from "../lib/weather/use-observation-weather";
 
 import { LunarConditionsSection } from "./lunar-conditions";
-
-function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
-  return formatLocaleDateTime(instant, locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-    timeZoneName: "short",
-  });
-}
-
-function formatShortTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
-  return formatLocaleDateTime(instant, locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-  });
-}
 
 function formatPercent(
   value: number | null,
@@ -143,13 +122,13 @@ function CloudCoverTimeline({
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
   const barWidth = plotWidth / points.length;
-  const firstLabel = formatShortTime(points[0]!.instant, timeZone, locale);
-  const lastLabel = formatShortTime(points.at(-1)!.instant, timeZone, locale);
+  const firstLabel = formatObservationShortTime(points[0]!.instant, timeZone, locale);
+  const lastLabel = formatObservationShortTime(points.at(-1)!.instant, timeZone, locale);
   const summary = points
     .map((point) =>
       formatMessageTemplate(messages.point, {
         cloudCover: formatPercent(point.cloudCover, locale, unavailableValue),
-        time: formatShortTime(point.instant, timeZone, locale),
+        time: formatObservationShortTime(point.instant, timeZone, locale),
       }),
     )
     .join("; ");
@@ -298,7 +277,7 @@ function WeatherAttribution({
       ? formatMessageTemplate(messages.provider, { provider: WEATHER_PROVIDER_NAME })
       : formatMessageTemplate(messages.providerRetrieved, {
           provider: WEATHER_PROVIDER_NAME,
-          time: formatTime(fetchedAt, timeZone, locale),
+          time: formatObservationTime(fetchedAt, timeZone, locale),
         });
   return (
     <div className="space-y-2 text-xs leading-5 text-[var(--muted)]">
@@ -406,7 +385,7 @@ function LoadedWeather({
         <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
           <h4 className="text-base font-semibold text-[var(--foreground)]">
             {formatMessageTemplate(messages.selectedTitle, {
-              time: formatTime(selectedHour.instant, timeZone, locale),
+              time: formatObservationTime(selectedHour.instant, timeZone, locale),
             })}
           </h4>
           <p className="mt-1 text-sm text-[var(--muted)]">

@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import {
   useCollectionsData,
@@ -34,8 +27,6 @@ import type {
 import {
   coordinateDisclosureForProfile,
   isValidNightDate,
-  localDateString,
-  localInstantForNightTime,
   parseObserverLocationInputs,
   computeNightBoundaries,
   coordinateProfileForSource,
@@ -44,6 +35,12 @@ import {
   type ObserverLocation,
   type TargetEvent,
 } from "../lib/observation/domain";
+import {
+  formatObservationDateLabel,
+  formatObservationTime,
+  useBrowserDate,
+  useBrowserTimeZone,
+} from "../lib/observation/presentation";
 import {
   analyzeTonightCollection,
   fallbackTonightCollectionId,
@@ -103,42 +100,6 @@ const SECONDARY_BUTTON_CLASS =
   "inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]";
 const INPUT_CLASS =
   "min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]";
-
-function useBrowserDate(initialDate: string | undefined): string {
-  return useSyncExternalStore(
-    () => () => undefined,
-    () => initialDate ?? localDateString(new Date()),
-    () => initialDate ?? "",
-  );
-}
-
-function useBrowserTimeZone(): string {
-  return useSyncExternalStore(
-    () => () => undefined,
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-    () => "UTC",
-  );
-}
-
-function formatDateLabel(nightDate: string, timeZone: string, locale: PublishedLocale): string {
-  const instant = localInstantForNightTime(nightDate, "12:00");
-  if (instant === null) return nightDate;
-  return formatLocaleDateTime(instant, locale, {
-    day: "numeric",
-    month: "short",
-    timeZone,
-    year: "numeric",
-  });
-}
-
-function formatTime(instant: Date, timeZone: string, locale: PublishedLocale): string {
-  return formatLocaleDateTime(instant, locale, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-    timeZoneName: "short",
-  });
-}
 
 function formatAltitude(
   altitude: number,
@@ -210,7 +171,7 @@ function formatNightEvent(
   messages: TonightMessages["events"],
 ): string {
   return event.kind === "time"
-    ? formatTime(event.instant, timeZone, locale)
+    ? formatObservationTime(event.instant, timeZone, locale)
     : messages.statusUnavailable;
 }
 
@@ -221,7 +182,7 @@ function formatTargetEvent(
   messages: TonightMessages["events"],
 ): string {
   if (event.kind === "time" && event.instant !== undefined)
-    return formatTime(event.instant, timeZone, locale);
+    return formatObservationTime(event.instant, timeZone, locale);
   if (event.kind === "circumpolar") return messages.statusCircumpolar;
   if (event.kind === "never-rises") return messages.statusNeverRises;
   if (event.kind === "not-during-night") return messages.statusNotDuringNight;
@@ -528,7 +489,7 @@ function NightSetup({
         {isValidNightDate(activeNightDate) ? (
           <p className="pt-2 text-sm text-[var(--muted)]">
             {formatMessageTemplate(messages.selectedNight, {
-              date: formatDateLabel(activeNightDate, timeZone, locale),
+              date: formatObservationDateLabel(activeNightDate, timeZone, locale),
             })}
           </p>
         ) : null}
@@ -571,7 +532,7 @@ function NightSummary({
       <p className="text-sm leading-6 text-[var(--muted)]">
         {formatMessageTemplate(messages.nightAndCollection, {
           collectionName,
-          date: formatDateLabel(nightDate, timeZone, locale),
+          date: formatObservationDateLabel(nightDate, timeZone, locale),
         })}
       </p>
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -777,7 +738,7 @@ function WeatherLine({
         {formatMessageTemplate(messages.peakSummary, {
           cloudCover: formatWeatherPercent(hour.cloudCover, locale, messages),
           precipitation: formatWeatherPercent(hour.precipitationProbability, locale, messages),
-          time: formatTime(hour.instant, timeZone, locale),
+          time: formatObservationTime(hour.instant, timeZone, locale),
         })}
       </p>
       <details className="rounded-md border border-[var(--border)] px-3 py-2">
@@ -857,7 +818,7 @@ function TargetRow({
           <p className="text-sm leading-6 text-[var(--foreground)]">
             {formatMessageTemplate(messages.target.highestAltitude, {
               altitude: formatAltitude(target.peak.altitude, locale, messages.target),
-              time: formatTime(target.peak.instant, timeZone, locale),
+              time: formatObservationTime(target.peak.instant, timeZone, locale),
             })}
           </p>
           <p className="text-sm text-[var(--muted)]">

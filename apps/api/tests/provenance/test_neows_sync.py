@@ -15,6 +15,7 @@ from lumina.provenance.application.registry import ProviderRegistration, StaticP
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_neows_runtime_config
 from lumina.provenance.domain.neows import NasaNeowsCodec
+from lumina.provenance.domain.provider import ProviderFetchUnavailable
 from lumina.provenance.domain.runtime import (
     NEOWS_MAX_RESPONSE_BYTES,
     NEOWS_PROVIDER_CODE,
@@ -30,7 +31,6 @@ from lumina.provenance.domain.runtime import (
     ProviderSyncOutcome,
     RawProviderResponse,
 )
-from lumina.provenance.infrastructure.http import ProviderTransportUnavailable
 from lumina.provenance.infrastructure.nasa_neows import NasaNeowsAdapter
 from pydantic import SecretStr
 
@@ -154,7 +154,7 @@ def _service(
 @pytest.mark.asyncio
 async def test_neows_retries_reuse_one_frozen_window_across_utc_midnight() -> None:
     clock = _Clock(_START)
-    transport = _ReplayTransport([ProviderTransportUnavailable(), _raw_fixture(), _raw_fixture()])
+    transport = _ReplayTransport([ProviderFetchUnavailable(), _raw_fixture(), _raw_fixture()])
     adapter = NasaNeowsAdapter(
         transport,
         api_key=_KEY,

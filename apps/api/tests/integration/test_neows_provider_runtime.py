@@ -15,6 +15,7 @@ from lumina.provenance.application.registry import ProviderRegistration, StaticP
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_neows_runtime_config
 from lumina.provenance.domain.neows import NasaNeowsCodec
+from lumina.provenance.domain.provider import ProviderFetchUnavailable
 from lumina.provenance.domain.runtime import (
     NEOWS_MAX_RESPONSE_BYTES,
     NEOWS_PROVIDER_CODE,
@@ -23,10 +24,7 @@ from lumina.provenance.domain.runtime import (
     ProviderSyncOutcome,
     RawProviderResponse,
 )
-from lumina.provenance.infrastructure.http import (
-    FixedHttpRequest,
-    ProviderTransportUnavailable,
-)
+from lumina.provenance.infrastructure.http import FixedHttpRequest
 from lumina.provenance.infrastructure.nasa_neows import NasaNeowsAdapter
 from lumina.provenance.infrastructure.postgresql.runtime import PostgreSqlProviderRuntimeStore
 from lumina.settings import IntegrationTestSettings
@@ -190,7 +188,7 @@ async def test_neows_postgresql_cache_preserves_nested_payload_through_outage_an
     neows_context: _Context,
 ) -> None:
     transport = _ReplayTransport(
-        [_fixture_raw(), *(ProviderTransportUnavailable() for _ in range(6))], []
+        [_fixture_raw(), *(ProviderFetchUnavailable() for _ in range(6))], []
     )
     service = _service(neows_context, transport)
     await neows_context.store.set_enabled(

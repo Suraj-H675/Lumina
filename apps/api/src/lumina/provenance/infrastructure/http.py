@@ -63,13 +63,6 @@ _NASA_CSV_MEDIA_TYPE: Final = "text/plain"
 _HTTPX_API_KEY_PATTERN: Final = re.compile(r"([?&]api_key=)[^&\s\"]*", re.ASCII)
 
 
-# Compatibility aliases keep transport-focused test fixtures readable while the
-# application imports the provider-neutral domain names directly.
-ProviderTransportError = ProviderFetchError
-ProviderTransportTimeout = ProviderFetchTimeout
-ProviderTransportUnavailable = ProviderFetchUnavailable
-
-
 @dataclass(frozen=True, repr=False, slots=True)
 class FixedHttpRequest:
     """A provider-owned request with no caller-controlled URL or headers."""
@@ -263,16 +256,16 @@ class BoundedHttpTransport:
         try:
             if attempt_deadline is not None:
                 if attempt_deadline <= self._monotonic():
-                    raise ProviderTransportTimeout()
+                    raise ProviderFetchTimeout()
                 async with self._timeout_at(attempt_deadline):
                     return await self._request_unbounded(request)
             return await self._request_unbounded(request)
         except TimeoutError:
-            raise ProviderTransportTimeout() from None
-        except ProviderTransportError:
+            raise ProviderFetchTimeout() from None
+        except ProviderFetchError:
             raise
         except (OSError, ValueError):
-            raise ProviderTransportUnavailable() from None
+            raise ProviderFetchUnavailable() from None
 
     async def _request_unbounded(self, request: FixedHttpRequest) -> RawProviderResponse:
         """Perform one request; the caller owns the total attempt deadline."""
@@ -299,7 +292,7 @@ class BoundedHttpTransport:
                 ) as response:
                     headers = {key.lower(): value for key, value in response.headers.items()}
                     if headers.get("content-encoding", "identity").lower() != "identity":
-                        raise ProviderTransportUnavailable()
+                        raise ProviderFetchUnavailable()
                     content_length = _content_length(
                         headers.get("content-length"), request.max_response_bytes
                     )
@@ -392,7 +385,7 @@ def _content_length(value: str | None, maximum: int) -> int | None:
     if value is None:
         return None
     if not value.isascii() or not value.isdecimal() or (len(value) > 1 and value.startswith("0")):
-        raise ProviderTransportUnavailable()
+        raise ProviderFetchUnavailable()
     significant = value.lstrip("0") or "0"
     maximum_text = str(maximum)
     if len(significant) > len(maximum_text) or (
@@ -440,7 +433,4 @@ def _valid_api_key(value: str) -> bool:
 __all__ = [
     "BoundedHttpTransport",
     "FixedHttpRequest",
-    "ProviderTransportError",
-    "ProviderTransportTimeout",
-    "ProviderTransportUnavailable",
 ]

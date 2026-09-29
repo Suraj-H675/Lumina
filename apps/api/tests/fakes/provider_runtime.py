@@ -5,12 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Final
 
+from lumina.provenance.domain.provider import ProviderFetchTimeout, ProviderFetchUnavailable
 from lumina.provenance.domain.runtime import MAX_RESPONSE_BYTES, RawProviderResponse
-from lumina.provenance.infrastructure.http import (
-    FixedHttpRequest,
-    ProviderTransportTimeout,
-    ProviderTransportUnavailable,
-)
+from lumina.provenance.infrastructure.http import FixedHttpRequest
 
 VALID_COUNT_BODY: Final = b"count(pl_name)\n6360\n"
 
@@ -73,11 +70,11 @@ class DeterministicNasaTransport:
         return outcome
 
 
-def timeout() -> ProviderTransportTimeout:
+def timeout() -> ProviderFetchTimeout:
     """Return a safe deterministic timeout failure."""
-    return ProviderTransportTimeout()
+    return ProviderFetchTimeout()
 
 
-def unavailable() -> ProviderTransportUnavailable:
+def unavailable() -> ProviderFetchUnavailable:
     """Return a safe deterministic network failure."""
-    return ProviderTransportUnavailable()
+    return ProviderFetchUnavailable()

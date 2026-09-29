@@ -28,7 +28,11 @@ from lumina.provenance.composition import (
     nasa_runtime_config,
     production_provider_registry,
 )
-from lumina.provenance.domain.provider import ProviderPayloadInvalid
+from lumina.provenance.domain.provider import (
+    ProviderFetchTimeout,
+    ProviderFetchUnavailable,
+    ProviderPayloadInvalid,
+)
 from lumina.provenance.domain.runtime import (
     APOD_CONTENT_TYPE,
     APOD_HOST,
@@ -50,12 +54,7 @@ from lumina.provenance.domain.runtime import (
     ProviderSyncOutcome,
     RawProviderResponse,
 )
-from lumina.provenance.infrastructure.http import (
-    BoundedHttpTransport,
-    FixedHttpRequest,
-    ProviderTransportTimeout,
-    ProviderTransportUnavailable,
-)
+from lumina.provenance.infrastructure.http import BoundedHttpTransport, FixedHttpRequest
 from lumina.provenance.infrastructure.nasa_exoplanet_archive import (
     NasaCountCodec,
     NasaCountRequest,
@@ -584,7 +583,7 @@ async def test_bounded_transport_maps_httpx_timeout_to_safe_category() -> None:
         params=(("query", "select count(pl_name) from ps where default_flag=1"), ("format", "csv")),
     )
 
-    with pytest.raises(ProviderTransportTimeout) as captured:
+    with pytest.raises(ProviderFetchTimeout) as captured:
         await transport.request(request)
     assert str(captured.value) == "provider.timeout"
     assert "private timeout evidence" not in repr(captured.value)
@@ -653,7 +652,7 @@ async def test_slow_drip_is_bounded_by_attempt_deadline_not_read_inactivity() ->
         monotonic=clock,
     )
 
-    with pytest.raises(ProviderTransportTimeout):
+    with pytest.raises(ProviderFetchTimeout):
         await transport.request(request, attempt_deadline=5.0)
 
     assert stream.chunks == 5
@@ -731,9 +730,9 @@ async def test_later_attempt_receives_only_remaining_cycle_budget() -> None:
             self.attempt_deadlines.append(attempt_deadline)
             if len(self.requests) == 1:
                 clock.value = 75.0
-                raise ProviderTransportTimeout()
+                raise ProviderFetchTimeout()
             clock.value = 90.0
-            raise ProviderTransportUnavailable()
+            raise ProviderFetchUnavailable()
 
     transport = TruncatedRetryTransport([])
     store = _StoreDouble()
@@ -760,7 +759,7 @@ async def test_retry_sleeps_consume_the_single_request_cycle_budget() -> None:
             self.requests.append(request)
             self.attempt_deadlines.append(attempt_deadline)
             clock.value = attempt_deadline or clock.value
-            raise ProviderTransportTimeout()
+            raise ProviderFetchTimeout()
 
     async def sleeper(delay: float) -> None:
         delays.append(delay)
@@ -798,7 +797,7 @@ async def test_attempt_total_timeout_can_retry_and_succeed_without_circuit_failu
             if len(self.requests) == 1:
                 assert attempt_deadline is not None
                 clock.value = attempt_deadline
-                raise ProviderTransportTimeout()
+                raise ProviderFetchTimeout()
             return response()
 
     transport = TimeoutThenSuccessTransport([])

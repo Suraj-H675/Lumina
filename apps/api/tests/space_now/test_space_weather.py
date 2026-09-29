@@ -37,7 +37,7 @@ from lumina.provenance.domain.space_weather import (
     SwpcSourceEvidence,
 )
 from lumina.settings import AppSettings
-from lumina.space_now.api.routes import _SPACE_WEATHER_PUBLIC_RESPONSE_MAX_BYTES
+from lumina.space_now.api.routes import _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
 from lumina.space_now.application.read import SpaceWeatherReadService
 
 _ROOT = __import__("pathlib").Path(__file__).resolve().parents[4]
@@ -319,7 +319,7 @@ def test_public_space_weather_response_keeps_complete_notifications_within_trans
     )
 
     assert response.status_code == 200
-    assert len(response.content) <= _SPACE_WEATHER_PUBLIC_RESPONSE_MAX_BYTES
+    assert len(response.content) <= _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
     public_notifications = response.json()["latest_notifications"]
     assert 0 < len(public_notifications) < 12
     assert all(notification["message"] == "x" * 16_384 for notification in public_notifications)

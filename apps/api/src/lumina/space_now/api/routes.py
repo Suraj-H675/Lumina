@@ -147,8 +147,6 @@ _SPACE_WEATHER_ERROR_RESPONSES: dict[int, dict[str, Any]] = {
     },
 }
 _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES: Final = 61_440
-# Kept as a compatibility alias for the existing SWPC boundary tests.
-_SPACE_WEATHER_PUBLIC_RESPONSE_MAX_BYTES: Final = _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
 
 
 @router.get(

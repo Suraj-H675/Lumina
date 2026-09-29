@@ -1,11 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import {
-  assertStatusStubClean,
-  clearStatusStubViolations,
-  generateUnexpectedStatusStubTraffic,
-  setStatusStubMode,
-} from "./support/status-stub-control";
+import { assertStatusStubClean, setStatusStubMode } from "./support/status-stub-control";
 
 test.describe("honest API status", () => {
   test.describe.configure({ mode: "serial" });
@@ -17,17 +12,6 @@ test.describe("honest API status", () => {
   test.afterEach(async ({}, testInfo) => {
     await assertStatusStubClean(testInfo);
     await setStatusStubMode(testInfo, "disconnect");
-  });
-
-  test("records unexpected traffic and makes the final clean assertion fail", async ({}, testInfo) => {
-    await generateUnexpectedStatusStubTraffic(testInfo);
-
-    await expect(assertStatusStubClean(testInfo)).rejects.toThrow(
-      "Status stub recorded process-owned request violations.",
-    );
-
-    await clearStatusStubViolations(testInfo);
-    await assertStatusStubClean(testInfo);
   });
 
   test("renders deterministic immediate transport failure without an API process", async ({

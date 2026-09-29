@@ -701,7 +701,6 @@ const controlPaths = new Set([
   "/__control/satellite-mode",
   "/__control/identification-condition",
   "/__control/assert-clean",
-  "/__control/clear-violations",
   "/__control/mode",
 ]);
 
@@ -2002,23 +2001,6 @@ const stub = http.createServer(async (request, response) => {
           violations: violationSnapshot(),
         });
       }
-      return;
-    }
-    if (path === "/__control/clear-violations") {
-      try {
-        if (!(await controlBodyIsEmpty(request))) {
-          recordViolation("malformed-control");
-          sendFailure(response, 400);
-          return;
-        }
-      } catch {
-        recordViolation("malformed-control");
-        sendFailure(response, 400);
-        return;
-      }
-      violationCounts.clear();
-      violationTotal = 0;
-      sendJson(response, 200, { clean: true });
       return;
     }
     if (path === "/__control/apod-mode") {

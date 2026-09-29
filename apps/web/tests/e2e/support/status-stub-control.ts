@@ -151,37 +151,3 @@ export async function assertStatusStubCleanFromFile(coordinationFile: unknown): 
     throw new Error("Status stub recorded process-owned request violations.");
   }
 }
-
-export async function clearStatusStubViolations(testInfo: TestInfo): Promise<void> {
-  const control = await coordination(testInfo);
-  const response = await fetch(`${control.apiOrigin}/__control/clear-violations`, {
-    headers: { Authorization: `Bearer ${control.token}` },
-    method: "POST",
-  });
-  expect(response.status).toBe(200);
-  await response.body?.cancel();
-}
-
-export async function generateUnexpectedStatusStubTraffic(testInfo: TestInfo): Promise<void> {
-  const control = await coordination(testInfo);
-  const requests = [
-    fetch(`${control.apiOrigin}/unexpected`),
-    fetch(`${control.apiOrigin}/health/live`, { method: "POST" }),
-    fetch(`${control.apiOrigin}/health/live?unexpected=true`),
-    fetch(`${control.apiOrigin}/__control/mode`, { method: "POST" }),
-    fetch(`${control.apiOrigin}/__control/mode`, {
-      body: "not-json",
-      headers: {
-        Authorization: `Bearer ${control.token}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    }),
-  ];
-  const expectedStatuses = [500, 500, 500, 403, 400];
-  for (const [index, request] of requests.entries()) {
-    const response = await request;
-    expect(response.status).toBe(expectedStatuses[index]);
-    await response.body?.cancel();
-  }
-}

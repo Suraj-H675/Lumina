@@ -12,6 +12,7 @@ from lumina.identification.domain.public_read import (
     IdentificationPublicState,
     IdentificationRemoteCondition,
 )
+
 AnnotationName = Annotated[str, Field(min_length=1, max_length=128)]
 
 

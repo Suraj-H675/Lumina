@@ -1,0 +1,118 @@
+.state {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 52rem;
+  padding-block: clamp(3rem, 8vw, 7rem);
+  position: relative;
+}
+
+.state::before {
+  background: linear-gradient(90deg, var(--accent), transparent);
+  content: "";
+  height: 1px;
+  width: 4.5rem;
+}
+
+.code {
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 7vw, 5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 16ch;
+}
+
+.description {
+  color: var(--muted-strong);
+  font-size: clamp(1rem, 1.4vw, 1.08rem);
+  line-height: 1.75;
+  margin: 0;
+  max-width: 42rem;
+}
+
+.action {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--foreground);
+  display: inline-flex;
+  font-weight: 600;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+  width: fit-content;
+}
+
+.action:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+.loading {
+  padding-block: clamp(2.5rem, 7vw, 5rem);
+}
+
+.loadingRail {
+  background: var(--border);
+  height: 1px;
+  max-width: 28rem;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.loadingRail::after {
+  animation: route-state-scan 1.4s ease-in-out infinite;
+  background: var(--accent);
+  content: "";
+  inset-block: 0;
+  left: 0;
+  position: absolute;
+  transform: translateX(-110%);
+  width: 38%;
+}
+
+.global {
+  align-content: center;
+  margin-inline: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-inline: clamp(1.25rem, 5vw, 4rem);
+  width: min(100%, 64rem);
+}
+
+@keyframes route-state-scan {
+  to {
+    transform: translateX(365%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingRail::after {
+    animation: none;
+    transform: none;
+    width: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  .state::before,
+  .loadingRail::after {
+    background: CanvasText;
+  }
+}

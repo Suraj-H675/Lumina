@@ -130,6 +130,7 @@ describe("Nova-Lumina route boundaries", () => {
       renderToStaticMarkup(<GlobalError error={rawError} reset={reset} />),
       "text/html",
     );
+    expect(globalDocument.title).toBe("Something went wrong — Nova-Lumina");
     expect(globalDocument.querySelector("h1")?.textContent).toBe("Something went wrong");
     expect(globalDocument.querySelector('[role="alert"]')).not.toBeNull();
     expect(globalDocument.body.textContent).not.toMatch(/private diagnostic detail/i);

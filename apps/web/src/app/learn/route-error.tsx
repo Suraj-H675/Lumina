@@ -1,6 +1,7 @@
 "use client";
 
 import type { RouteErrorMessages } from "../../lib/i18n/messages/types";
+import styles from "../../components/route-state.module.css";
 
 type LearningErrorProps = Readonly<{
   error: Error & { digest?: string };
@@ -10,14 +11,12 @@ type LearningErrorProps = Readonly<{
 
 export default function LearningError({ messages, reset }: LearningErrorProps) {
   return (
-    <section aria-labelledby="learning-error-heading" className="max-w-2xl space-y-4" role="alert">
-      <h1 id="learning-error-heading">{messages.title}</h1>
-      <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
-      <button
-        className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-        onClick={reset}
-        type="button"
-      >
+    <section aria-labelledby="learning-error-heading" className={styles.state} role="alert">
+      <h1 className={styles.title} id="learning-error-heading">
+        {messages.title}
+      </h1>
+      <p className={styles.description}>{messages.description}</p>
+      <button className={styles.action} onClick={reset} type="button">
         {messages.retry}
       </button>
     </section>

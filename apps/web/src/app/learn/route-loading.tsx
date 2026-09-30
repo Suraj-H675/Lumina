@@ -1,11 +1,10 @@
+import styles from "../../components/route-state.module.css";
+
 export default function LearningLoading({ message }: Readonly<{ message: string }>) {
   return (
-    <div className="space-y-4" role="status">
-      <p className="text-sm text-[var(--muted)]">{message}</p>
-      <div
-        aria-hidden="true"
-        className="h-10 max-w-2xl animate-pulse rounded-md bg-[var(--surface)] motion-reduce:animate-none"
-      />
+    <div className={`${styles.state} ${styles.loading}`} role="status">
+      <p className={styles.description}>{message}</p>
+      <div aria-hidden="true" className={styles.loadingRail} />
     </div>
   );
 }

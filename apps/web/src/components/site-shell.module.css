@@ -174,9 +174,14 @@
   right: 0;
   display: grid;
   width: min(38rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 5.75rem);
+  max-height: calc(100dvh - 5.75rem);
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--border-strong);
   border-radius: 0.5rem;
   background: #090c11;

@@ -116,23 +116,6 @@ pre,
   transform: translateY(0);
 }
 
-.global-error-content {
-  color: #e8edf8;
-  font-family: var(--font-ui);
-  line-height: 1.5;
-  margin: 0 auto;
-  max-width: 48rem;
-  padding: 3rem 1.5rem;
-}
-
-.global-error-content button {
-  background: #0d1326;
-  border: 1px solid #39456e;
-  color: #e8edf8;
-  min-height: 2.75rem;
-  padding: 0 1rem;
-}
-
 @media (prefers-contrast: more) {
   :root {
     --muted: #d4d9dc;

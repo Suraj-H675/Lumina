@@ -1,4 +1,8 @@
-export function jsonOk(body: unknown): { json: () => Promise<unknown>; ok: boolean; status: number } {
+export function jsonOk(body: unknown): {
+  json: () => Promise<unknown>;
+  ok: boolean;
+  status: number;
+} {
   return { json: () => Promise.resolve(body), ok: true, status: 200 };
 }
 

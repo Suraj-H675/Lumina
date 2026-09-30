@@ -9,10 +9,7 @@ import { SavedObservationPlanView } from "../src/components/saved-observation-pl
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { SavedObservationPlanMessages } from "../src/lib/i18n/messages/types";
-import {
-  getSavedObservationPlan,
-  putSavedObservationPlan,
-} from "../src/lib/journal/database";
+import { getSavedObservationPlan, putSavedObservationPlan } from "../src/lib/journal/database";
 import { savedObservationPlanFixture } from "./saved-observation-plan-fixture";
 import { resetPersonalDatabase } from "./support/personal-database";
 

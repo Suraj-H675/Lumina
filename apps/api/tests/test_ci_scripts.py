@@ -273,7 +273,7 @@ def _assert_remediated_dependency_graph(records: object) -> None:
     ]
     assert next_nodes
     assert all(
-        node.get("version") == "16.3.4"
+        node.get("version") == "16.3.6"
         and _direct_dependency_version(node, "postcss") == "8.5.23"
         and _direct_dependency_version(node, "sharp") == "0.35.4"
         for node in next_nodes
@@ -486,7 +486,7 @@ def test_installed_next_sharp_is_the_remediated_virtual_store_copy_and_transform
     next_nodes = [node for name, node in _dependency_nodes(records) if name == "next"]
     assert len(next_nodes) == 1
     next_node = next_nodes[0]
-    assert next_node.get("version") == "16.3.4"
+    assert next_node.get("version") == "16.3.6"
     dependencies = next_node.get("dependencies")
     assert isinstance(dependencies, Mapping)
     sharp = dependencies.get("sharp")

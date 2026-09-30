@@ -14,7 +14,6 @@
     "build": "pnpm --filter @nova-lumina/web build",
     "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run provider-scheduler:check && pnpm run api:check && pnpm run package:check && pnpm run manifests:check && pnpm run catalog:artifact-check && pnpm run sky-context:artifact-check && pnpm run docs:check && pnpm run migrations:check",
     "catalog:artifact-check": "uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-photometry-v1 --validate-only && uv run nova-lumina-catalog ingest --slice gaia-dr3-exoplanet-host-astrometry-v1 --validate-only && uv run nova-lumina-catalog ingest --slice simbad-messier-j2000-v2 --validate-only",
-    "catalog:data-check": "uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-photometry-v1 && uv run nova-lumina-catalog data-check --slice gaia-dr3-exoplanet-host-astrometry-v1 && uv run nova-lumina-catalog data-check --slice simbad-messier-j2000-v2",
     "dev": "pnpm --filter @nova-lumina/web dev",
     "docs:check": "uv run python scripts/ci/check_markdown_links.py",
     "format": "prettier --write . '!packages/api-client/openapi/openapi.json'",

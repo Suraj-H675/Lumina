@@ -9,6 +9,7 @@ import { addObjectsToCollection, useCollectionsData } from "../lib/collections-s
 import { formatCountMessage, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { CollectionsMessages, EntityTypeMessages } from "../lib/i18n/messages/types";
+import styles from "./collections-experience.module.css";
 import { useSuggestCatalogue } from "./use-suggest-catalogue";
 
 type AddObjectToCollectionControlProps = Readonly<{
@@ -148,12 +149,12 @@ export function AddObjectToCollectionControl({
   }, []);
 
   return (
-    <div onBlur={dismissOnBlur} ref={containerRef}>
+    <div className={styles.searchShell} onBlur={dismissOnBlur} ref={containerRef}>
       <label className="sr-only" htmlFor={inputId}>
         {messages.addObject.inputLabel}
       </label>
-      <div className="flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 focus-within:border-[var(--border-strong)]">
-        <span aria-hidden="true" className="text-[var(--muted)]">
+      <div className={styles.searchField}>
+        <span aria-hidden="true" className={styles.searchPlus}>
           +
         </span>
         <input
@@ -162,7 +163,7 @@ export function AddObjectToCollectionControl({
           aria-controls={listboxId}
           aria-expanded={open && suggestions.length > 0}
           autoComplete="off"
-          className="min-h-11 w-full bg-transparent py-2 text-base text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+          className={styles.searchInput}
           id={inputId}
           onBlur={() => setInputFocused(false)}
           onChange={(event) => handleInputChange(event.target.value)}
@@ -180,15 +181,11 @@ export function AddObjectToCollectionControl({
           : announcement}
       </p>
       {open && suggestions.length > 0 ? (
-        <ul
-          className="absolute z-20 mt-1 w-[calc(100%-3rem)] overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface)] p-1 shadow-xl sm:w-full"
-          id={listboxId}
-          role="listbox"
-        >
+        <ul className={styles.suggestions} id={listboxId} role="listbox">
           {suggestions.map((suggestion, index) => (
             <li
               aria-selected={index === activeIndex}
-              className="cursor-pointer rounded-sm px-3 py-2.5 hover:bg-[var(--surface-hover)]"
+              className={styles.suggestion}
               id={`${baseId}-option-${suggestion.slug}`}
               key={suggestion.slug}
               onClick={() => addToCollection(suggestion)}
@@ -198,10 +195,8 @@ export function AddObjectToCollectionControl({
               }}
               role="option"
             >
-              <span className="block font-medium text-[var(--foreground)]">
-                {suggestion.canonical_name}
-              </span>
-              <span className="block text-xs text-[var(--muted)]">
+              <span className={styles.suggestionName}>{suggestion.canonical_name}</span>
+              <span className={styles.suggestionType}>
                 {entityTypeMessages[suggestion.entity_type]}
               </span>
             </li>

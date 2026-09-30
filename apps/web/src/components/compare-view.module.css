@@ -1,0 +1,593 @@
+.page {
+  display: grid;
+  gap: 5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.69rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.7rem, 8vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.058em;
+  line-height: 0.86;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.body {
+  display: grid;
+  gap: 4.5rem;
+  min-width: 0;
+}
+
+.emptyCompare {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+}
+
+.emptyCopy {
+  border-top: 1px dashed var(--border-strong);
+  border-bottom: 1px dashed var(--border);
+  padding: 1.3rem 0 1.45rem;
+}
+
+.emptyCopy h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.55rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.emptyCopy p {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.27fr) minmax(0, 0.73fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  min-width: 0;
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 3vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: -0.038em;
+  line-height: 1;
+}
+
+.sectionDescription {
+  max-width: 23rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.selection {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.slotList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  border-left: 1px solid var(--border);
+  padding: 0;
+  list-style: none;
+}
+
+.slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.75rem;
+  min-width: 0;
+  min-height: 6.5rem;
+  align-items: center;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 0.8rem 0.9rem 1rem;
+}
+
+.slotIdentity {
+  min-width: 0;
+}
+
+.slotName,
+.identityName {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slotName[href]:hover,
+.identityName:hover {
+  color: var(--accent-strong);
+}
+
+.slotMeta,
+.identityMeta {
+  display: block;
+  min-width: 0;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeButton {
+  display: inline-flex;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.removeButton:hover {
+  color: var(--foreground);
+}
+
+.addSlot,
+.fullSlot {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 1rem;
+}
+
+.fullSlot {
+  display: flex;
+  min-height: 6.5rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.partial {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.77rem;
+  line-height: 1.6;
+}
+
+.searchShell {
+  position: relative;
+  min-width: 0;
+}
+
+.searchField {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  min-width: 0;
+  align-items: center;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.searchPlus {
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.9rem;
+}
+
+.searchInput,
+.dialogInput {
+  min-width: 0;
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.searchInput::placeholder,
+.dialogInput::placeholder {
+  color: var(--muted);
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  display: grid;
+  margin: 0;
+  border: 1px solid var(--border);
+  background: var(--background-raised);
+  padding: 0.35rem;
+  list-style: none;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.32);
+}
+
+.suggestion {
+  min-width: 0;
+  cursor: pointer;
+  padding: 0.7rem 0.8rem;
+}
+
+.suggestion:hover,
+.suggestion[aria-selected="true"] {
+  background: var(--surface-hover);
+}
+
+.suggestionName {
+  display: block;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionType {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.saveAction,
+.dialogButton {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  border-bottom: 1px solid var(--accent);
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.saveAction:hover,
+.dialogButton:hover {
+  border-bottom-color: var(--accent-strong);
+}
+
+.saveAction:disabled,
+.dialogButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.identityList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.identityItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 0 0.95rem;
+}
+
+.identityName {
+  font-size: 1.3rem;
+  text-decoration: none;
+}
+
+.scienceWrap {
+  min-width: 0;
+}
+
+.scienceTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.scienceTable th,
+.scienceTable td {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scienceTable thead th {
+  border-bottom: 1px solid var(--border-strong);
+  padding: 0 1rem 0.75rem 0;
+  text-align: left;
+  vertical-align: bottom;
+}
+
+.scienceTable thead th:first-child {
+  width: 14rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.columnName {
+  display: block;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.columnMeta {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.61rem;
+  font-weight: 400;
+}
+
+.scienceTable tbody th,
+.scienceTable tbody td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 1rem 1rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.scienceTable tbody th {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 560;
+  line-height: 1.5;
+}
+
+.value {
+  display: block;
+}
+
+.valueNumber {
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.valueUnit {
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+}
+
+.valueMeta,
+.valueOriginal {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.unavailable {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.mobileQuantities {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobileQuantity {
+  border-top: 1px solid var(--border-strong);
+  padding: 1rem 0 1.3rem;
+}
+
+.mobileQuantityTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.mobileCellList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0;
+  min-width: 0;
+  margin: 0.8rem 0 0;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  padding: 0;
+  list-style: none;
+}
+
+.mobileCell {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem;
+}
+
+.mobileCellName {
+  margin: 0 0 0.5rem;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 0.74rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyScience {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.footerLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--link);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.22rem;
+}
+
+.dialogField {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dialogLabel {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.dialogInput {
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--background-raised);
+  padding: 0 0.65rem;
+}
+
+.dialogHint,
+.dialogStatus {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.dialogStatus {
+  min-height: 1.2rem;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+@media (max-width: 64rem) {
+  .hero,
+  .emptyCompare,
+  .section {
+    grid-template-columns: 1fr;
+  }
+
+  .intro,
+  .sectionDescription {
+    max-width: 42rem;
+  }
+
+  .scienceTable {
+    display: none;
+  }
+
+  .mobileQuantities {
+    display: grid;
+    gap: 1.8rem;
+  }
+}
+
+@media (max-width: 40rem) {
+  .page,
+  .body {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.6rem, 20vw, 5.3rem);
+  }
+
+  .slotList,
+  .mobileCellList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slot {
+    min-height: 5.6rem;
+  }
+}

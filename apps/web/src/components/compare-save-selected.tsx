@@ -18,6 +18,7 @@ import {
 import { formatCountMessage, formatLocaleList, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { CollectionSaveMessages } from "../lib/i18n/messages/types";
+import styles from "./compare-view.module.css";
 import { ModalDialog } from "./modal-dialog";
 
 type CompareSaveSelectedProps = Readonly<{
@@ -27,11 +28,8 @@ type CompareSaveSelectedProps = Readonly<{
   messages: CollectionSaveMessages;
 }>;
 
-const inputClassName =
-  "min-h-11 w-full rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)] outline-none focus:border-[var(--border-strong)] placeholder:text-[var(--muted)]";
-
-const buttonClassName =
-  "inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
+const inputClassName = styles.dialogInput;
+const buttonClassName = styles.dialogButton;
 
 /**
  * Save the currently compared OBJECTS into a local collection (never a
@@ -101,7 +99,7 @@ export function CompareSaveSelected({ identities, locale, messages }: CompareSav
     <>
       <button
         aria-haspopup="dialog"
-        className={buttonClassName}
+        className={styles.saveAction}
         onClick={() => setOpen(true)}
         type="button"
       >
@@ -130,8 +128,8 @@ export function CompareSaveSelected({ identities, locale, messages }: CompareSav
             </p>
           ) : (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium" htmlFor="compare-save-target">
+              <div className={styles.dialogField}>
+                <label className={styles.dialogLabel} htmlFor="compare-save-target">
                   {messages.save.compare.collectionLabel}
                 </label>
                 <select
@@ -150,8 +148,8 @@ export function CompareSaveSelected({ identities, locale, messages }: CompareSav
                 </select>
               </div>
               {chosenId === "__create__" ? (
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium" htmlFor="compare-save-new-name">
+                <div className={styles.dialogField}>
+                  <label className={styles.dialogLabel} htmlFor="compare-save-new-name">
                     {messages.save.compare.newCollectionNameLabel}
                   </label>
                   <input
@@ -163,12 +161,12 @@ export function CompareSaveSelected({ identities, locale, messages }: CompareSav
                     type="text"
                     value={newName}
                   />
-                  <p className="text-sm text-[var(--muted)]">
+                  <p className={styles.dialogHint}>
                     {problem ?? collectionRenameNameHint(messages.validation)}
                   </p>
                 </div>
               ) : null}
-              <p aria-live="polite" className="min-h-6 text-sm text-[var(--muted)]" role="status">
+              <p aria-live="polite" className={styles.dialogStatus} role="status">
                 {message ||
                   formatMessageTemplate(messages.save.compare.willSave, {
                     objects: formatLocaleList(
@@ -177,7 +175,7 @@ export function CompareSaveSelected({ identities, locale, messages }: CompareSav
                     ),
                   })}
               </p>
-              <div className="flex justify-end border-t border-[var(--border)] pt-4">
+              <div className={styles.dialogActions}>
                 <button
                   className={buttonClassName}
                   disabled={chosenId === "" || (chosenId === "__create__" && problem !== null)}

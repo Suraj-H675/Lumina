@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import { formatMessageTemplate } from "../lib/i18n/format";
+import styles from "./compare-view.module.css";
 
 type CompareRemoveButtonProps = Readonly<{
   /** Human identity used in the accessible name (canonical name or slot label). */
@@ -41,7 +42,7 @@ export function CompareRemoveButton({
   return (
     <button
       aria-label={formatMessageTemplate(removeAction, { displayName })}
-      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+      className={styles.removeButton}
       onClick={remove}
       type="button"
     >

@@ -26,6 +26,7 @@ import {
   CorruptedStoragePanel,
   StorageUnavailableNote,
 } from "./collection-state-blocks";
+import styles from "./collections-experience.module.css";
 import { ModalDialog } from "./modal-dialog";
 import { AddObjectToCollectionControl } from "./collection-add-object";
 
@@ -36,14 +37,9 @@ import { AddObjectToCollectionControl } from "./collection-add-object";
  * launch 2–3 saved objects into the Compare experience.
  */
 
-const primaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
-
-const dangerButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[#fda4af] transition-colors hover:border-[#fda4af]";
-
-const secondaryLinkClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
+const primaryButtonClassName = styles.secondaryAction;
+const dangerButtonClassName = styles.dangerAction;
+const secondaryLinkClassName = styles.secondaryAction;
 
 type CollectionDetailViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
@@ -73,7 +69,7 @@ export function CollectionDetailView({
 
   if (status === "loading") {
     return (
-      <div className="space-y-6">
+      <div className={styles.detailPage}>
         <BackToCollectionsLink messages={messages} />
         <CollectionLoadingNote messages={messages.shared} />
       </div>
@@ -82,7 +78,7 @@ export function CollectionDetailView({
 
   if (status === "unavailable" || status === "corrupted") {
     return (
-      <div className="space-y-6">
+      <div className={styles.detailPage}>
         <BackToCollectionsLink messages={messages} />
         <StorageUnavailableNote context="page" messages={messages.shared} />
         {status === "corrupted" ? <CorruptedStoragePanel compact messages={messages} /> : null}
@@ -92,100 +88,113 @@ export function CollectionDetailView({
 
   if (collection === undefined) {
     return (
-      <div className="max-w-xl space-y-6">
+      <div className={styles.detailPage}>
         <BackToCollectionsLink messages={messages} />
-        <section aria-labelledby="missing-collection-heading">
-          <h1 className="text-2xl font-semibold tracking-tight" id="missing-collection-heading">
-            {messages.detail.missingTitle}
-          </h1>
-          <p className="mt-3 leading-7 text-[var(--muted)]">{messages.detail.missingDescription}</p>
-          <p className="mt-6">
+        <section aria-labelledby="missing-collection-heading" className={styles.statusPanel}>
+          <h1 id="missing-collection-heading">{messages.detail.missingTitle}</h1>
+          <p>{messages.detail.missingDescription}</p>
+          <div className={styles.actionRow}>
             <Link className={secondaryLinkClassName} href="/collections">
               {messages.detail.goToCollections}
             </Link>
-          </p>
+          </div>
         </section>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
-      <header className="space-y-3">
-        <BackToCollectionsLink messages={messages} />
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{collection.name}</h1>
-        <p className="text-lg text-[var(--muted)]">
-          {formatMessageTemplate(messages.detail.savedSummary, {
-            countText: formatCountMessage(
-              messages.detail.objectCount,
-              collection.items.length,
-              locale,
-            ),
-          })}
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <RenameCollectionButton collection={collection} messages={messages} />
-          <DeleteCollectionButton
-            collection={{
-              id: collection.id,
-              itemCount: collection.items.length,
-              name: collection.name,
-            }}
-            locale={locale}
-            messages={messages}
-          />
+    <div className={styles.detailPage}>
+      <BackToCollectionsLink messages={messages} />
+      <header className={styles.detailHero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.overview.eyebrow}</p>
+          <h1 className={styles.detailTitle}>{collection.name}</h1>
+        </div>
+        <div className={styles.detailAside}>
+          <p className={styles.detailSummary}>
+            {formatMessageTemplate(messages.detail.savedSummary, {
+              countText: formatCountMessage(
+                messages.detail.objectCount,
+                collection.items.length,
+                locale,
+              ),
+            })}
+          </p>
+          <div className={styles.actionRow}>
+            <RenameCollectionButton collection={collection} messages={messages} />
+            <DeleteCollectionButton
+              collection={{
+                id: collection.id,
+                itemCount: collection.items.length,
+                name: collection.name,
+              }}
+              locale={locale}
+              messages={messages}
+            />
+          </div>
         </div>
       </header>
 
       <CompareSelectionPanel items={collection.items} locale={locale} messages={messages} />
 
-      <section aria-labelledby="add-object-heading" className="space-y-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 id="add-object-heading">{messages.detail.addHeading}</h2>
-          <span className="text-sm text-[var(--muted)]">{messages.detail.addDescription}</span>
+      <section aria-labelledby="add-object-heading" className={styles.collectionsSection}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.detail.addHeading}</p>
+          <h2 className={styles.sectionTitle} id="add-object-heading">
+            {messages.detail.addHeading}
+          </h2>
+          <p className={styles.sectionDescription}>{messages.detail.addDescription}</p>
         </div>
-        <AddObjectToCollectionControl
-          {...(apiOrigin === undefined ? {} : { apiOrigin })}
-          collectionId={collection.id}
-          entityTypeMessages={entityTypeMessages}
-          locale={locale}
-          messages={messages}
-        />
+        <div className={styles.sectionBody}>
+          <AddObjectToCollectionControl
+            {...(apiOrigin === undefined ? {} : { apiOrigin })}
+            collectionId={collection.id}
+            entityTypeMessages={entityTypeMessages}
+            locale={locale}
+            messages={messages}
+          />
+        </div>
       </section>
 
-      <section aria-labelledby="saved-items-heading" className="space-y-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 id="saved-items-heading">{messages.detail.savedHeading}</h2>
-          <span className="text-sm text-[var(--muted)]">{messages.detail.savedDescription}</span>
+      <section aria-labelledby="saved-items-heading" className={styles.collectionsSection}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.detail.savedHeading}</p>
+          <h2 className={styles.sectionTitle} id="saved-items-heading">
+            {messages.detail.savedHeading}
+          </h2>
+          <p className={styles.sectionDescription}>{messages.detail.savedDescription}</p>
         </div>
-        {collection.items.length === 0 ? (
-          <div className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-8">
-            <h3 className="text-lg font-semibold">{messages.detail.emptyTitle}</h3>
-            <p className="mt-2 leading-7 text-[var(--muted)]">{messages.detail.emptyDescription}</p>
-            <p className="mt-4">
-              <Link className={secondaryLinkClassName} href="/explore">
-                {messages.detail.exploreCatalogue}
-              </Link>
-            </p>
-          </div>
-        ) : (
-          <ul
-            aria-label={formatMessageTemplate(messages.detail.objectsListLabel, {
-              collectionName: collection.name,
-            })}
-            className="grid list-none gap-3 p-0 md:grid-cols-2"
-          >
-            {collection.items.map((item) => (
-              <SavedObjectRow
-                collectionId={collection.id}
-                entityTypeMessages={entityTypeMessages}
-                item={item}
-                key={item.slug}
-                messages={messages}
-              />
-            ))}
-          </ul>
-        )}
+        <div className={styles.sectionBody}>
+          {collection.items.length === 0 ? (
+            <div className={styles.emptyState}>
+              <h3>{messages.detail.emptyTitle}</h3>
+              <p>{messages.detail.emptyDescription}</p>
+              <div className={styles.actionRow}>
+                <Link className={secondaryLinkClassName} href="/explore">
+                  {messages.detail.exploreCatalogue}
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <ul
+              aria-label={formatMessageTemplate(messages.detail.objectsListLabel, {
+                collectionName: collection.name,
+              })}
+              className={styles.savedList}
+            >
+              {collection.items.map((item) => (
+                <SavedObjectRow
+                  collectionId={collection.id}
+                  entityTypeMessages={entityTypeMessages}
+                  item={item}
+                  key={item.slug}
+                  messages={messages}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
     </div>
   );
@@ -193,10 +202,7 @@ export function CollectionDetailView({
 
 function BackToCollectionsLink({ messages }: Readonly<{ messages: CollectionsMessages }>) {
   return (
-    <Link
-      className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-[var(--muted)] underline decoration-[var(--border-strong)] underline-offset-4 transition-colors hover:text-[var(--foreground)]"
-      href="/collections"
-    >
+    <Link className={styles.backLink} href="/collections">
       {messages.detail.backToCollections}
     </Link>
   );
@@ -276,30 +282,26 @@ function RenameCollectionButton({
               submit();
             }}
           >
-            <div className="space-y-2">
-              <label className="block text-sm font-medium" htmlFor="rename-collection-name">
+            <div className={styles.dialogField}>
+              <label className={styles.dialogLabel} htmlFor="rename-collection-name">
                 {messages.validation.nameLabel}
               </label>
               <input
                 aria-describedby="rename-collection-name-hint"
                 aria-invalid={invalid || storeProblem !== null ? true : undefined}
                 autoComplete="off"
-                className="min-h-11 w-full rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
+                className={styles.dialogInput}
                 id="rename-collection-name"
                 maxLength={80}
                 onChange={(event) => setName(event.target.value)}
                 type="text"
                 value={name}
               />
-              <p
-                aria-live="polite"
-                className="text-sm text-[var(--muted)]"
-                id="rename-collection-name-hint"
-              >
+              <p aria-live="polite" className={styles.dialogHint} id="rename-collection-name-hint">
                 {hint}
               </p>
             </div>
-            <div className="mt-4 flex justify-end gap-2 border-t border-[var(--border)] pt-4">
+            <div className={styles.dialogActions}>
               <button
                 className={primaryButtonClassName}
                 onClick={() => setOpen(false)}
@@ -377,7 +379,7 @@ function DeleteCollectionButton({
                 {failure}
               </p>
             ) : null}
-            <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
+            <div className={styles.dialogActions}>
               <button
                 className={primaryButtonClassName}
                 onClick={() => setOpen(false)}
@@ -431,72 +433,70 @@ function CompareSelectionPanel({
   }, [router, selectedSlugs]);
 
   return (
-    <section aria-labelledby="compare-selection-heading" className="space-y-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 id="compare-selection-heading">{messages.detail.compareHeading}</h2>
-        <span className="text-sm text-[var(--muted)]">
+    <section aria-labelledby="compare-selection-heading" className={styles.collectionsSection}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.detail.compareHeading}</p>
+        <h2 className={styles.sectionTitle} id="compare-selection-heading">
+          {messages.detail.compareHeading}
+        </h2>
+        <p className={styles.sectionDescription}>
           {formatMessageTemplate(messages.detail.compareDescription, {
             max: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
           })}
-        </span>
+        </p>
       </div>
 
-      {items.length < 2 ? (
-        <p className="text-sm leading-6 text-[var(--muted)]">{messages.detail.compareEmpty}</p>
-      ) : (
-        <>
-          <ul
-            aria-label={messages.detail.selectObjectsLabel}
-            className="grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-3"
-          >
-            {items.map((item) => {
-              const checked = selectedSlugs.includes(item.slug);
-              const blocked = !checked && atMaximum;
-              return (
-                <li className="min-w-0" key={item.slug}>
-                  <label
-                    className={`flex min-h-11 items-center gap-2 rounded-sm border px-3 py-2 ${
-                      blocked
-                        ? "cursor-not-allowed border-[var(--border)] opacity-60"
-                        : "cursor-pointer border-[var(--border)] hover:border-[var(--border-strong)]"
-                    }`}
-                  >
-                    <input
-                      checked={checked}
-                      className="h-4 w-4 accent-[var(--accent)]"
-                      disabled={blocked}
-                      onChange={(event) => toggle(item.slug, event.target.checked)}
-                      type="checkbox"
-                    />
-                    <span className="truncate text-sm font-medium">{item.canonical_name}</span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              className={primaryButtonClassName}
-              disabled={selectedSlugs.length < 2}
-              onClick={launchCompare}
-              type="button"
-            >
-              {selectedSlugs.length > 0
-                ? formatMessageTemplate(messages.detail.compareSelectedWithCount, {
-                    count: formatLocaleNumber(selectedSlugs.length, locale),
-                  })
-                : messages.detail.compareSelected}
-            </button>
+      <div className={styles.sectionBody}>
+        {items.length < 2 ? (
+          <p className={styles.sectionDescription}>{messages.detail.compareEmpty}</p>
+        ) : (
+          <>
+            <ul aria-label={messages.detail.selectObjectsLabel} className={styles.compareOptions}>
+              {items.map((item) => {
+                const checked = selectedSlugs.includes(item.slug);
+                const blocked = !checked && atMaximum;
+                return (
+                  <li className={styles.compareOptionItem} key={item.slug}>
+                    <label
+                      className={styles.compareOption}
+                      data-blocked={blocked ? "true" : "false"}
+                    >
+                      <input
+                        checked={checked}
+                        disabled={blocked}
+                        onChange={(event) => toggle(item.slug, event.target.checked)}
+                        type="checkbox"
+                      />
+                      <span className={styles.compareOptionName}>{item.canonical_name}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className={styles.actionRow}>
+              <button
+                className={styles.primaryAction}
+                disabled={selectedSlugs.length < 2}
+                onClick={launchCompare}
+                type="button"
+              >
+                {selectedSlugs.length > 0
+                  ? formatMessageTemplate(messages.detail.compareSelectedWithCount, {
+                      count: formatLocaleNumber(selectedSlugs.length, locale),
+                    })
+                  : messages.detail.compareSelected}
+              </button>
+            </div>
             {atMaximum ? (
-              <span className="text-sm text-[var(--muted)]" role="status">
+              <p className={styles.compareStatus} role="status">
                 {formatMessageTemplate(messages.detail.compareMaximumReached, {
                   max: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
                 })}
-              </span>
+              </p>
             ) : null}
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </section>
   );
 }
@@ -525,17 +525,13 @@ function SavedObjectRow({
   }, [collectionId, item.slug, messages]);
 
   return (
-    <li className="list-none">
-      <div className="flex h-full flex-col justify-between gap-3 rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-4 sm:flex-row sm:items-center">
-        <Link className="min-w-0 flex-1 no-underline" href={`/objects/${item.slug}`}>
-          <span className="block truncate text-lg font-semibold tracking-tight text-[var(--foreground)] underline-offset-4 hover:underline">
-            {item.canonical_name}
-          </span>
-          <span className="block text-sm text-[var(--muted)]">
-            {entityTypeMessages[item.entity_type]}
-          </span>
+    <li className={styles.savedItem}>
+      <div className={styles.savedRow}>
+        <Link className={styles.savedLink} href={`/objects/${item.slug}`}>
+          <span className={styles.savedName}>{item.canonical_name}</span>
+          <span className={styles.savedType}>{entityTypeMessages[item.entity_type]}</span>
           {failure !== null ? (
-            <span className="mt-1 block text-xs text-[#fda4af]" role="alert">
+            <span className={styles.failure} role="alert">
               {failure}
             </span>
           ) : null}
@@ -544,7 +540,7 @@ function SavedObjectRow({
           aria-label={formatMessageTemplate(messages.detail.removeObjectLabel, {
             objectName: item.canonical_name,
           })}
-          className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+          className={styles.removeButton}
           onClick={handleRemove}
           type="button"
         >

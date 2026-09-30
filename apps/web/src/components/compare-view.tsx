@@ -13,6 +13,7 @@ import type {
 import { CompareAddObject } from "./compare-add-object";
 import { CompareRemoveButton } from "./compare-remove-button";
 import { CompareSaveSelected } from "./compare-save-selected";
+import styles from "./compare-view.module.css";
 
 type CompareViewProps = Readonly<{
   /** Public API origin resolved on the server; suggestions stay off without it. */
@@ -82,19 +83,13 @@ function CellValue({
   messages: CompareMessages["cells"];
 }>) {
   if (cell.kind !== "value") {
-    return (
-      <span className="text-sm text-[var(--muted)] italic">
-        {unavailableText(cell.kind, messages)}
-      </span>
-    );
+    return <span className={styles.unavailable}>{unavailableText(cell.kind, messages)}</span>;
   }
   return (
-    <span className="block">
-      <span className="font-mono text-lg tracking-tight text-[var(--foreground)]">
-        {formatMeasurementValue(cell.measurement.value)}
-      </span>{" "}
-      <span className="text-sm text-[var(--accent)]">{cell.measurement.unitSymbol}</span>
-      <span className="mt-0.5 block text-xs text-[var(--muted)]">
+    <span className={styles.value}>
+      <span className={styles.valueNumber}>{formatMeasurementValue(cell.measurement.value)}</span>{" "}
+      <span className={styles.valueUnit}>{cell.measurement.unitSymbol}</span>
+      <span className={styles.valueMeta}>
         {cell.measurementCount === 1
           ? formatMessageTemplate(messages.measurementDetails.one, {
               sourceLabel: cell.measurement.sourceLabel,
@@ -104,7 +99,7 @@ function CellValue({
               sourceLabel: cell.measurement.sourceLabel,
             })}
       </span>
-      <span className="mt-0.5 block text-xs text-[var(--muted)]">
+      <span className={styles.valueOriginal}>
         {formatMessageTemplate(messages.original, {
           originalUnit: cell.measurement.originalUnit,
           originalValue: cell.measurement.originalValue,
@@ -124,13 +119,16 @@ function EmptyCompare({
   messages: CompareMessages;
 }>) {
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8">
-        <h2 className="text-xl font-semibold">{messages.empty.title}</h2>
-        <p className="mt-2 leading-7 text-[var(--muted)]">{messages.empty.description}</p>
+    <div className={styles.emptyCompare}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.empty.addHeading}</p>
+        <h2 className={styles.sectionTitle}>{messages.empty.title}</h2>
+        <p className={styles.sectionDescription}>{messages.empty.description}</p>
       </div>
-      <section aria-labelledby="compare-add-heading" className="space-y-3">
-        <h2 id="compare-add-heading">{messages.empty.addHeading}</h2>
+      <section aria-labelledby="compare-add-heading" className={styles.emptyCopy}>
+        <h2 className="sr-only" id="compare-add-heading">
+          {messages.empty.addHeading}
+        </h2>
         <CompareAddObject
           {...(apiOrigin === undefined ? {} : { apiOrigin })}
           locale={locale}
@@ -191,112 +189,102 @@ export function CompareView({
   const partialCopy = loadedCount === 1 && !atMaximum ? messages.selection.partial : null;
 
   return (
-    <div className="space-y-10">
+    <div className={styles.body}>
       {/* B. Object selector */}
-      <section aria-labelledby="compare-selection-heading" className="space-y-4">
-        <h2 className="sr-only" id="compare-selection-heading">
-          {messages.selection.heading}
-        </h2>
-        <ul
-          aria-label={messages.selection.ariaLabel}
-          className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {identities.map((identity, index) => (
-            <li
-              className="flex h-full items-center justify-between gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2"
-              key={selectedSlugs[index] ?? identity.heading}
-            >
-              <span className="min-w-0">
-                {identity.href !== null ? (
-                  <Link
-                    className="block truncate font-semibold text-[var(--foreground)] underline-offset-4 hover:underline"
-                    href={identity.href}
-                  >
-                    {identity.heading}
-                  </Link>
-                ) : (
-                  <span className="block truncate font-semibold text-[var(--muted)]">
-                    {identity.heading}
-                  </span>
-                )}
-                <span className="block truncate text-sm text-[var(--muted)]">{identity.meta}</span>
-              </span>
-              {selectedSlugs[index] !== undefined ? (
-                <CompareRemoveButton
-                  displayName={identity.heading}
-                  removeAction={messages.removeAction}
-                  removeSlug={selectedSlugs[index] as string}
-                  slugs={selectedSlugs}
+      <section aria-labelledby="compare-selection-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.selection.heading}</p>
+          <h2 className={styles.sectionTitle} id="compare-selection-heading">
+            {messages.selection.heading}
+          </h2>
+        </div>
+        <div className={styles.selection}>
+          <ul aria-label={messages.selection.ariaLabel} className={styles.slotList}>
+            {identities.map((identity, index) => (
+              <li className={styles.slot} key={selectedSlugs[index] ?? identity.heading}>
+                <span className={styles.slotIdentity}>
+                  {identity.href !== null ? (
+                    <Link className={styles.slotName} href={identity.href}>
+                      {identity.heading}
+                    </Link>
+                  ) : (
+                    <span className={styles.slotName}>{identity.heading}</span>
+                  )}
+                  <span className={styles.slotMeta}>{identity.meta}</span>
+                </span>
+                {selectedSlugs[index] !== undefined ? (
+                  <CompareRemoveButton
+                    displayName={identity.heading}
+                    removeAction={messages.removeAction}
+                    removeSlug={selectedSlugs[index] as string}
+                    slugs={selectedSlugs}
+                  />
+                ) : null}
+              </li>
+            ))}
+            {!atMaximum ? (
+              <li className={styles.addSlot}>
+                <CompareAddObject
+                  {...(apiOrigin === undefined ? {} : { apiOrigin })}
+                  locale={locale}
+                  messages={messages.add}
+                  selectedSlugs={selectedSlugs}
                 />
-              ) : null}
-            </li>
-          ))}
-          {!atMaximum ? (
-            <li className="h-full rounded-md border border-dashed border-[var(--border-strong)] px-4 py-2">
-              <CompareAddObject
-                {...(apiOrigin === undefined ? {} : { apiOrigin })}
-                locale={locale}
-                messages={messages.add}
-                selectedSlugs={selectedSlugs}
-              />
-            </li>
-          ) : (
-            <li className="flex h-full items-center rounded-md border border-dashed border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)]">
-              {formatMessageTemplate(messages.selection.full, {
-                count: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
-              })}
-            </li>
-          )}
-        </ul>
-        {partialCopy !== null ? (
-          <p className="text-[var(--muted)]" role="status">
-            {partialCopy}
-          </p>
-        ) : null}
+              </li>
+            ) : (
+              <li className={styles.fullSlot}>
+                {formatMessageTemplate(messages.selection.full, {
+                  count: formatLocaleNumber(COMPARE_MAX_OBJECTS, locale),
+                })}
+              </li>
+            )}
+          </ul>
+          {partialCopy !== null ? (
+            <p className={styles.partial} role="status">
+              {partialCopy}
+            </p>
+          ) : null}
+          <CompareSaveSelected
+            identities={saveableIdentities}
+            locale={locale}
+            messages={collectionSaveMessages}
+          />
+        </div>
       </section>
 
-      {/* Collections integration: save the compared objects (identity only). */}
-      <CompareSaveSelected
-        identities={saveableIdentities}
-        locale={locale}
-        messages={collectionSaveMessages}
-      />
-
       {loadedCount === 0 ? (
-        <section aria-labelledby="compare-data-heading" className="space-y-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-            <h2 id="compare-data-heading">{messages.comparison.heading}</h2>
-            <span className="text-sm text-[var(--muted)]">{messages.comparison.emptySummary}</span>
+        <section aria-labelledby="compare-data-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>{messages.comparison.heading}</p>
+            <h2 className={styles.sectionTitle} id="compare-data-heading">
+              {messages.comparison.heading}
+            </h2>
+            <p className={styles.sectionDescription}>{messages.comparison.emptySummary}</p>
           </div>
-          <p className="leading-7 text-[var(--muted)]">{messages.comparison.emptyDescription}</p>
+          <p className={styles.emptyScience}>{messages.comparison.emptyDescription}</p>
         </section>
       ) : (
         <>
           {/* C. Identity comparison */}
-          <section aria-labelledby="compare-identity-heading" className="space-y-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-              <h2 id="compare-identity-heading">{messages.comparison.identityHeading}</h2>
-              <span className="text-sm text-[var(--muted)]">
-                {messages.comparison.identitySummary}
-              </span>
+          <section aria-labelledby="compare-identity-heading" className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionEyebrow}>{messages.comparison.identityHeading}</p>
+              <h2 className={styles.sectionTitle} id="compare-identity-heading">
+                {messages.comparison.identityHeading}
+              </h2>
+              <p className={styles.sectionDescription}>{messages.comparison.identitySummary}</p>
             </div>
-            <ul
-              aria-label={messages.comparison.identityAriaLabel}
-              className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
-            >
+            <ul aria-label={messages.comparison.identityAriaLabel} className={styles.identityList}>
               {identities.map((identity, index) =>
                 identity.href === null ? null : (
                   <li
-                    className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3"
+                    className={styles.identityItem}
                     key={selectedSlugs[index] ?? identity.heading}
                   >
-                    <Link
-                      className="font-semibold text-[var(--foreground)] underline-offset-4 hover:underline"
-                      href={identity.href}
-                    >
+                    <Link className={styles.identityName} href={identity.href}>
                       {identity.heading}
                     </Link>
-                    <span className="block text-sm text-[var(--muted)]">{identity.meta}</span>
+                    <span className={styles.identityMeta}>{identity.meta}</span>
                   </li>
                 ),
               )}
@@ -304,99 +292,72 @@ export function CompareView({
           </section>
 
           {/* D/E. Scientific comparison with per-value provenance */}
-          <section aria-labelledby="compare-data-heading" className="space-y-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-              <h2 id="compare-data-heading">{messages.comparison.heading}</h2>
-              <span className="text-sm text-[var(--muted)]">
-                {messages.comparison.scienceSummary}
-              </span>
+          <section aria-labelledby="compare-data-heading" className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionEyebrow}>{messages.comparison.heading}</p>
+              <h2 className={styles.sectionTitle} id="compare-data-heading">
+                {messages.comparison.heading}
+              </h2>
+              <p className={styles.sectionDescription}>{messages.comparison.scienceSummary}</p>
             </div>
 
-            {/* Desktop matrix */}
-            <table className="hidden w-full border-collapse lg:table">
-              <caption className="sr-only">{messages.comparison.tableCaption}</caption>
-              <thead>
-                <tr>
-                  <th
-                    className="w-56 border-b border-[var(--border)] pb-2 pr-4 text-left text-sm font-medium text-[var(--muted)]"
-                    scope="col"
-                  >
-                    {messages.comparison.quantityHeading}
-                  </th>
-                  {identities.map((identity, index) => (
-                    <th
-                      className="border-b border-[var(--border)] pb-2 pr-4 text-left"
-                      key={selectedSlugs[index] ?? `column-${index}`}
-                      scope="col"
-                    >
-                      <span className="font-semibold text-[var(--foreground)]">
-                        {identity.heading}
-                      </span>
-                      <span className="block text-xs font-normal text-[var(--muted)]">
-                        {identity.meta}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr className="align-top" key={row.quantityCode}>
-                    <th
-                      className="border-b border-[var(--border)] py-4 pr-4 text-left align-top text-sm font-medium text-[var(--muted)]"
-                      scope="row"
-                    >
-                      {row.quantityName}
-                    </th>
-                    {row.cells.map((cell, index) => (
-                      <td
-                        className="border-b border-[var(--border)] py-4 pr-6"
-                        key={selectedSlugs[index] ?? `cell-${index}`}
-                      >
-                        <CellValue cell={cell} locale={locale} messages={messages.cells} />
-                      </td>
+            <div className={styles.scienceWrap}>
+              <table className={styles.scienceTable}>
+                <caption className="sr-only">{messages.comparison.tableCaption}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{messages.comparison.quantityHeading}</th>
+                    {identities.map((identity, index) => (
+                      <th key={selectedSlugs[index] ?? `column-${index}`} scope="col">
+                        <span className={styles.columnName}>{identity.heading}</span>
+                        <span className={styles.columnMeta}>{identity.meta}</span>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.quantityCode}>
+                      <th scope="row">{row.quantityName}</th>
+                      {row.cells.map((cell, index) => (
+                        <td key={selectedSlugs[index] ?? `cell-${index}`}>
+                          <CellValue cell={cell} locale={locale} messages={messages.cells} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-            {/* Mobile / tablet: quantity-by-quantity stacked sections */}
-            <ul
-              aria-label={messages.comparison.quantityListAriaLabel}
-              className="list-none space-y-8 p-0 lg:hidden"
-            >
-              {rows.map((row) => (
-                <li className="space-y-3" key={row.quantityCode}>
-                  <h3 className="border-b border-[var(--border)] pb-1 text-lg font-semibold">
-                    {row.quantityName}
-                  </h3>
-                  <ul className="grid list-none gap-3 p-0 sm:grid-cols-2">
-                    {row.cells.map((cell, index) => (
-                      <li
-                        className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3"
-                        data-testid={`mobile-cell-${row.quantityCode}-${index}`}
-                        key={selectedSlugs[index] ?? `mobile-${index}`}
-                      >
-                        <p className="text-sm font-semibold text-[var(--foreground)]">
-                          {identities[index]?.heading}
-                        </p>
-                        <CellValue cell={cell} locale={locale} messages={messages.cells} />
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ul>
+              <ul
+                aria-label={messages.comparison.quantityListAriaLabel}
+                className={styles.mobileQuantities}
+              >
+                {rows.map((row) => (
+                  <li className={styles.mobileQuantity} key={row.quantityCode}>
+                    <h3 className={styles.mobileQuantityTitle}>{row.quantityName}</h3>
+                    <ul className={styles.mobileCellList}>
+                      {row.cells.map((cell, index) => (
+                        <li
+                          className={styles.mobileCell}
+                          data-testid={`mobile-cell-${row.quantityCode}-${index}`}
+                          key={selectedSlugs[index] ?? `mobile-${index}`}
+                        >
+                          <p className={styles.mobileCellName}>{identities[index]?.heading}</p>
+                          <CellValue cell={cell} locale={locale} messages={messages.cells} />
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
         </>
       )}
 
-      <footer className="border-t border-[var(--border)] pt-6">
-        <Link
-          className="inline-flex min-h-11 items-center gap-2 font-medium text-[var(--link)] underline"
-          href="/explore"
-        >
+      <footer className={styles.footer}>
+        <Link className={styles.footerLink} href="/explore">
           {messages.footerBackToExplore}
         </Link>
       </footer>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CompareView } from "../../components/compare-view";
+import styles from "../../components/compare-view.module.css";
 import { buildCompareModel } from "../../lib/compare-model";
 import { compareSelectionFromSearchParams } from "../../lib/compare-url";
 import { formatMessageTemplate } from "../../lib/i18n/format";
@@ -93,15 +94,13 @@ export default async function ComparePage({
   const model = buildCompareModel(states);
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-3xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       <CompareView

@@ -24,6 +24,7 @@ import {
   CorruptedStoragePanel,
   StorageUnavailableNote,
 } from "./collection-state-blocks";
+import styles from "./collections-experience.module.css";
 import { ModalDialog } from "./modal-dialog";
 
 /**
@@ -32,14 +33,9 @@ import { ModalDialog } from "./modal-dialog";
  * locally through the one canonical store.
  */
 
-const inputClassName =
-  "min-h-11 w-full rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)] outline-none focus:border-[var(--border-strong)] placeholder:text-[var(--muted)]";
-
-const primaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] bg-[var(--surface-hover)] px-4 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--accent)]";
-
-const secondaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
+const inputClassName = styles.dialogInput;
+const primaryButtonClassName = styles.primaryAction;
+const secondaryButtonClassName = styles.secondaryAction;
 
 export function CollectionsOverview({
   locale,
@@ -61,87 +57,81 @@ export function CollectionsOverview({
   );
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-3xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.overview.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.overview.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.overview.intro}</p>
+    <div className={styles.overviewPage}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.overview.eyebrow}</p>
+          <h1 className={styles.title}>{messages.overview.title}</h1>
+        </div>
+        <div className={styles.heroAside}>
+          <p className={styles.intro}>{messages.overview.intro}</p>
+          <div className={styles.actionRow}>
+            <button
+              aria-haspopup="dialog"
+              className={primaryButtonClassName}
+              onClick={() => setCreateOpen(true)}
+              type="button"
+            >
+              {messages.overview.createAction}
+            </button>
+            <Link className={secondaryButtonClassName} href="/explore">
+              {messages.overview.exploreObjects}
+            </Link>
+          </div>
+        </div>
       </header>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          aria-haspopup="dialog"
-          className={primaryButtonClassName}
-          onClick={() => setCreateOpen(true)}
-          type="button"
-        >
-          {messages.overview.createAction}
-        </button>
-        <Link className={secondaryButtonClassName} href="/explore">
-          {messages.overview.exploreObjects}
-        </Link>
-      </div>
-
-      <section aria-labelledby="your-collections-heading" className="space-y-4">
-        <h2 id="your-collections-heading" className="sr-only">
-          {messages.overview.sectionLabel}
-        </h2>
-        {status === "loading" ? (
-          <CollectionLoadingNote messages={messages.shared} />
-        ) : status === "unavailable" ? (
-          <StorageUnavailableNote context="page" messages={messages.shared} />
-        ) : status === "corrupted" ? (
-          <CorruptedStoragePanel messages={messages} />
-        ) : data.collections.length === 0 ? (
-          <div className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-8">
-            <h3 className="text-lg font-semibold">{messages.overview.emptyTitle}</h3>
-            <p className="mt-2 leading-7 text-[var(--muted)]">
-              {messages.overview.emptyDescription}
-            </p>
-            <p className="mt-4 flex flex-wrap gap-3">
-              <button
-                aria-haspopup="dialog"
-                className={primaryButtonClassName}
-                onClick={() => setCreateOpen(true)}
-                type="button"
-              >
-                {messages.overview.createFirstAction}
-              </button>
-              <Link className={secondaryButtonClassName} href="/explore">
-                {messages.overview.browseObjects}
-              </Link>
-            </p>
-          </div>
-        ) : (
-          <ul
-            aria-label={messages.overview.sectionLabel}
-            className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {data.collections.map((collection) => (
-              <li className="list-none min-w-0" key={collection.id}>
-                <Link
-                  className="flex h-full min-h-11 min-w-0 flex-col justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-4 no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
-                  href={`/collections/${collection.id}`}
+      <section aria-labelledby="your-collections-heading" className={styles.collectionsSection}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.overview.eyebrow}</p>
+          <h2 className={styles.sectionTitle} id="your-collections-heading">
+            {messages.overview.sectionLabel}
+          </h2>
+        </div>
+        <div className={styles.sectionBody}>
+          {status === "loading" ? (
+            <CollectionLoadingNote messages={messages.shared} />
+          ) : status === "unavailable" ? (
+            <StorageUnavailableNote context="page" messages={messages.shared} />
+          ) : status === "corrupted" ? (
+            <CorruptedStoragePanel messages={messages} />
+          ) : data.collections.length === 0 ? (
+            <div className={styles.emptyState}>
+              <h3>{messages.overview.emptyTitle}</h3>
+              <p>{messages.overview.emptyDescription}</p>
+              <div className={styles.actionRow}>
+                <button
+                  aria-haspopup="dialog"
+                  className={primaryButtonClassName}
+                  onClick={() => setCreateOpen(true)}
+                  type="button"
                 >
-                  <span className="block truncate text-lg font-semibold tracking-tight text-[var(--foreground)]">
-                    {collection.name}
-                  </span>
-                  <span className="text-sm text-[var(--muted)]">
-                    {formatCountMessage(
-                      messages.overview.objectCount,
-                      collection.items.length,
-                      locale,
-                    )}
-                  </span>
+                  {messages.overview.createFirstAction}
+                </button>
+                <Link className={secondaryButtonClassName} href="/explore">
+                  {messages.overview.browseObjects}
                 </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+              </div>
+            </div>
+          ) : (
+            <ul aria-label={messages.overview.sectionLabel} className={styles.collectionList}>
+              {data.collections.map((collection) => (
+                <li className={styles.collectionItem} key={collection.id}>
+                  <Link className={styles.collectionLink} href={`/collections/${collection.id}`}>
+                    <span className={styles.collectionName}>{collection.name}</span>
+                    <span className={styles.collectionCount}>
+                      {formatCountMessage(
+                        messages.overview.objectCount,
+                        collection.items.length,
+                        locale,
+                      )}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
 
       {createOpen ? (
@@ -213,8 +203,8 @@ function CreateCollectionDialog({ messages, onClose, onCreated }: CreateCollecti
           handleSubmit();
         }}
       >
-        <div className="space-y-2">
-          <label className="block text-sm font-medium" htmlFor="create-collection-name">
+        <div className={styles.dialogField}>
+          <label className={styles.dialogLabel} htmlFor="create-collection-name">
             {messages.validation.nameLabel}
           </label>
           <input
@@ -229,15 +219,11 @@ function CreateCollectionDialog({ messages, onClose, onCreated }: CreateCollecti
             type="text"
             value={name}
           />
-          <p
-            aria-live="polite"
-            className="text-sm text-[var(--muted)]"
-            id="create-collection-name-hint"
-          >
+          <p aria-live="polite" className={styles.dialogHint} id="create-collection-name-hint">
             {hint}
           </p>
         </div>
-        <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
+        <div className={styles.dialogActions}>
           <button className={secondaryButtonClassName} onClick={onClose} type="button">
             {messages.detail.cancelAction}
           </button>

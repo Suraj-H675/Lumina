@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 import { loadCompareObjects } from "../src/lib/server/compare";
+import { jsonResponse } from "./support/http";
 
 const K2_18_ID = "403d0e71-8d81-5c52-abad-c4666c1b5cd6";
 const KEPLER_452_ID = "bfd42670-3013-598e-8eb5-5a1c084dd1a0";
@@ -32,13 +33,6 @@ function detailFor(summary: {
     id: summary.id,
     quantities: [],
   };
-}
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    headers: { "content-type": "application/json" },
-    status,
-  });
 }
 
 const notFound = (): Response =>

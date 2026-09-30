@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 import { loadExploreCatalogue, loadObjectBySlug, searchCatalogue } from "../src/lib/server/catalog";
+import { jsonResponse } from "./support/http";
 
 const K2_18_ID = "403d0e71-8d81-5c52-abad-c4666c1b5cd6";
 
@@ -20,13 +21,6 @@ const summaries = {
     slug: "k2-18",
   },
 } as const;
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    headers: { "content-type": "application/json" },
-    status,
-  });
-}
 
 type RecordedRequest = Readonly<{ path: string }>;
 

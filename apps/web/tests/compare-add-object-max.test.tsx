@@ -16,16 +16,13 @@ vi.mock("next/navigation", () => ({
 import { CompareAddObject } from "../src/components/compare-add-object";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
+import { jsonOk } from "./support/http";
 
 const COMBOBOX = { name: /add an object to compare/i };
 const DEFAULT_ADD_PROPS = {
   locale: DEFAULT_LOCALE,
   messages: enMessages.compare.add,
 } as const;
-
-function jsonOk(body: unknown): { json: () => Promise<unknown>; ok: boolean; status: number } {
-  return { json: () => Promise.resolve(body), ok: true, status: 200 };
-}
 
 function okSuggestions(items: Array<{ canonical_name: string; slug: string }>) {
   return {

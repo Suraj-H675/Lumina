@@ -11,6 +11,7 @@ import {
   MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
   MESSIER_V2_RELEASE,
 } from "../src/lib/observation/domain";
+import { jsonResponse } from "./support/http";
 
 const M31: EntitySummaryResponse = {
   canonical_name: "Messier 31",
@@ -24,13 +25,6 @@ const M42: EntitySummaryResponse = {
   id: "6d4bdbe9-2fdb-5f42-b56a-922f0789bd10",
   slug: "messier-42",
 };
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    headers: { "content-type": "application/json" },
-    status,
-  });
-}
-
 function fetchRecording(handler: (path: string) => Response | undefined): {
   implementation: typeof fetch;
   requests: Array<string>;

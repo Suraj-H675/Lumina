@@ -16,15 +16,12 @@ vi.mock("next/navigation", () => ({
 import { CatalogueSearchBox } from "../src/components/catalogue-search-box";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
+import { jsonOk } from "./support/http";
 
 const DEFAULT_SEARCH_PROPS = {
   locale: DEFAULT_LOCALE,
   messages: enMessages.catalogueSearch,
 } as const;
-
-function jsonOk(body: unknown): { json: () => Promise<unknown>; ok: boolean; status: number } {
-  return { json: () => Promise.resolve(body), ok: true, status: 200 };
-}
 
 type SuggestBody = Readonly<{
   items: Array<{ canonical_name: string; entity_type: string; id: string; slug: string }>;

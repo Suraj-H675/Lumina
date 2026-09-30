@@ -8,6 +8,7 @@ import {
   TonightCatalogueLoadAborted,
 } from "../src/lib/tonight/catalogue-loader";
 import type { TonightDetailCandidate, TonightTargetIdentity } from "../src/lib/tonight/domain";
+import { jsonResponse } from "./support/http";
 
 const ORIGIN = "http://127.0.0.1:8000";
 const TEST_ENTITY_ID = "00000000-0000-5000-8000-000000000001";
@@ -33,13 +34,6 @@ function detailFor(item: TonightTargetIdentity): EntityDetailResponse {
     id: TEST_ENTITY_ID,
     quantities: [],
   };
-}
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    headers: { "content-type": "application/json" },
-    status,
-  });
 }
 
 afterEach(() => {

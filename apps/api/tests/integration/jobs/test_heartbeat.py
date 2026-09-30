@@ -41,6 +41,7 @@ from ..migration_lifecycle import (
 from ..migration_lifecycle import (
     open_migration_connection,
 )
+from .support import job_row
 
 _FIXTURE_OWNER = "worker.heartbeat.fixture"
 _FOREIGN_OWNER = "worker.heartbeat.foreign"
@@ -48,11 +49,6 @@ _FIXTURE_TYPE = "system.heartbeat_fixture"
 _FIXTURE_IDEMPOTENCY = "heartbeat-fixture-key"
 _FIXTURE_PAYLOAD = '{"fixture":"HEARTBEAT-PAYLOAD-EVIDENCE"}'
 _FIXTURE_RESULT = '{"fixture":"HEARTBEAT-RESULT-EVIDENCE"}'
-_ROW_COLUMNS = (
-    "id, job_type, status, idempotency_key, priority, payload, result, progress, "
-    "attempts, max_attempts, available_at, claimed_by, claimed_at, heartbeat_at, "
-    "completed_at, error_code, error_message, created_at"
-)
 
 
 def _guarded_setup(
@@ -107,19 +103,6 @@ def _guarded_setup(
 def _guarded_cleanup(settings: IntegrationTestSettings) -> None:
     """Remove only heartbeat test fixtures through the guarded migration role."""
     _guarded_execute(settings, "DELETE FROM public.job")
-
-
-def _row_snapshot(
-    settings: IntegrationTestSettings,
-    identifier: UUID,
-) -> tuple[object, ...]:
-    rows = _guarded_execute(
-        settings,
-        f"SELECT {_ROW_COLUMNS} FROM public.job WHERE id = :id",
-        {"id": identifier},
-    )
-    assert len(rows) == 1
-    return rows[0]
 
 
 @pytest.fixture(autouse=True)
@@ -189,7 +172,7 @@ async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
-    before_row = _row_snapshot(integration_settings, identifier)
+    before_row = job_row(integration_settings, identifier)
     server_before = cast(
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
@@ -206,7 +189,7 @@ async def test_correct_owner_uses_postgresql_time_and_changes_only_heartbeat(
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
-    after_row = _row_snapshot(integration_settings, identifier)
+    after_row = job_row(integration_settings, identifier)
     await _assert_pool_released(database_runtime, baseline)
     heartbeat_index = 13
     assert isinstance(recorded, HeartbeatRecorded)
@@ -245,7 +228,7 @@ async def test_repeated_correct_owner_heartbeat_succeeds_in_fresh_transactions(
     await _assert_pool_released(database_runtime, baseline)
     assert first.job_id == second.job_id == identifier
     assert second.heartbeat_at >= first.heartbeat_at
-    assert _row_snapshot(integration_settings, identifier)[13] == second.heartbeat_at
+    assert job_row(integration_settings, identifier)[13] == second.heartbeat_at
 
 
 @pytest.mark.asyncio
@@ -300,7 +283,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         status=status,
         owner=seed_owner,
     )
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost) as failure:
@@ -310,7 +293,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
             expected_attempt=2,
         )
 
-    after = _row_snapshot(integration_settings, identifier)
+    after = job_row(integration_settings, identifier)
     await _assert_pool_released(database_runtime, baseline)
     assert after == before
     assert failure.value.args == ("Job heartbeat ownership was lost.",)
@@ -338,7 +321,7 @@ async def test_missing_identifier_is_the_same_ownership_loss_and_writes_nothing(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     sentinel = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, sentinel)
+    before = job_row(integration_settings, sentinel)
     missing = uuid4()
     baseline = _pool_checked_out(database_runtime)
 
@@ -349,7 +332,7 @@ async def test_missing_identifier_is_the_same_ownership_loss_and_writes_nothing(
             expected_attempt=2,
         )
 
-    assert _row_snapshot(integration_settings, sentinel) == before
+    assert job_row(integration_settings, sentinel) == before
     await _assert_pool_released(database_runtime, baseline)
     serialized = _serialized_error(failure.value, caplog, capsys)
     for evidence in (
@@ -403,7 +386,7 @@ async def test_row_lock_timeout_is_bounded_resets_settings_and_fresh_call_succee
 ) -> None:
     runtime = create_database_runtime(integration_settings.test_database_url)
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(runtime)
     sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
     require_local_test_database(sync_url)
@@ -451,7 +434,7 @@ async def test_row_lock_timeout_is_bounded_resets_settings_and_fresh_call_succee
                     await asyncio.wait_for(task, timeout=2)
                 assert monotonic() - started < 2
                 await _assert_pool_released(runtime, baseline)
-                assert _row_snapshot(integration_settings, identifier) == before
+                assert job_row(integration_settings, identifier) == before
             finally:
                 blocking_transaction.rollback()
 
@@ -533,7 +516,7 @@ async def test_pool_release_for_malformed_mapping_and_safe_database_failure(
 ) -> None:
     runtime = create_database_runtime(integration_settings.test_database_url)
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(runtime)
     request = HeartbeatJobRequest(
         job_id=identifier,
@@ -548,7 +531,7 @@ async def test_pool_release_for_malformed_mapping_and_safe_database_failure(
         with pytest.raises(JobHeartbeatDatabaseStateFailure) as mapping_failure:
             await malformed.heartbeat(request)
         await _assert_pool_released(runtime, baseline)
-        assert _row_snapshot(integration_settings, identifier) == before
+        assert job_row(integration_settings, identifier) == before
 
         failing = _SafeDatabaseFailureStore(
             runtime.session_factory,
@@ -557,7 +540,7 @@ async def test_pool_release_for_malformed_mapping_and_safe_database_failure(
         with pytest.raises(JobHeartbeatDatabaseProgrammingFailure) as database_failure:
             await failing.heartbeat(request)
         await _assert_pool_released(runtime, baseline)
-        assert _row_snapshot(integration_settings, identifier) == before
+        assert job_row(integration_settings, identifier) == before
 
         serialized = _serialized_error(mapping_failure.value, caplog, capsys)
         serialized += _serialized_error(database_failure.value, caplog, capsys)
@@ -590,7 +573,7 @@ async def test_cancellation_cleans_up_without_unobserved_task_or_checkout(
 ) -> None:
     runtime = create_database_runtime(integration_settings.test_database_url)
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(runtime)
     sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
     require_local_test_database(sync_url)
@@ -634,7 +617,7 @@ async def test_cancellation_cleans_up_without_unobserved_task_or_checkout(
                 with pytest.raises(asyncio.CancelledError):
                     await asyncio.wait_for(task, timeout=2)
                 await _assert_pool_released(runtime, baseline)
-                assert _row_snapshot(integration_settings, identifier) == before
+                assert job_row(integration_settings, identifier) == before
             finally:
                 blocking_transaction.rollback()
 

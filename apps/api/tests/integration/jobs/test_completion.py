@@ -45,6 +45,7 @@ from ..migration_lifecycle import (
 from ..migration_lifecycle import (
     open_migration_connection,
 )
+from .support import job_row
 
 _FIXTURE_OWNER = "worker.completion.fixture"
 _FOREIGN_OWNER = "worker.completion.foreign"
@@ -55,11 +56,6 @@ _NEW_RESULT = {
     "summary": "COMPLETION-NEW-RESULT-EVIDENCE",
     "nested": [True, None, {"unicode": "प्रकाश"}],
 }
-_ROW_COLUMNS = (
-    "id, job_type, status, idempotency_key, priority, payload, result, progress, "
-    "attempts, max_attempts, available_at, claimed_by, claimed_at, heartbeat_at, "
-    "completed_at, error_code, error_message, created_at"
-)
 
 
 def _guarded_setup(
@@ -113,19 +109,6 @@ def _guarded_setup(
 
 def _guarded_cleanup(settings: IntegrationTestSettings) -> None:
     _guarded_execute(settings, "DELETE FROM public.job")
-
-
-def _row_snapshot(
-    settings: IntegrationTestSettings,
-    identifier: UUID,
-) -> tuple[object, ...]:
-    rows = _guarded_execute(
-        settings,
-        f"SELECT {_ROW_COLUMNS} FROM public.job WHERE id = :id",
-        {"id": identifier},
-    )
-    assert len(rows) == 1
-    return rows[0]
 
 
 @pytest.fixture(autouse=True)
@@ -200,7 +183,7 @@ async def test_correct_owner_completes_with_postgresql_time_and_exact_field_chan
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     server_before = cast(
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
@@ -218,7 +201,7 @@ async def test_correct_owner_completes_with_postgresql_time_and_exact_field_chan
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
-    after = _row_snapshot(integration_settings, identifier)
+    after = job_row(integration_settings, identifier)
     await _assert_pool_released(database_runtime, baseline)
     assert isinstance(completed, SuccessfulJobCompletion)
     assert completed.job_id == identifier
@@ -262,7 +245,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
         status=status,
         owner=seed_owner,
     )
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost) as failure:
@@ -273,7 +256,7 @@ async def test_existing_rejections_are_indistinguishable_and_write_nothing(
             result=_NEW_RESULT,
         )
 
-    assert _row_snapshot(integration_settings, identifier) == before
+    assert job_row(integration_settings, identifier) == before
     await _assert_pool_released(database_runtime, baseline)
     assert failure.value.args == ("Job heartbeat ownership was lost.",)
     assert failure.value.__cause__ is None
@@ -297,7 +280,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
     missing = uuid4()
-    sentinel_before = _row_snapshot(integration_settings, identifier)
+    sentinel_before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(database_runtime)
 
     with pytest.raises(JobOwnershipLost):
@@ -307,7 +290,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
             expected_attempt=2,
             result=_NEW_RESULT,
         )
-    assert _row_snapshot(integration_settings, identifier) == sentinel_before
+    assert job_row(integration_settings, identifier) == sentinel_before
 
     await _service(database_runtime).complete(
         job_id=identifier,
@@ -315,7 +298,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
         expected_attempt=2,
         result=_NEW_RESULT,
     )
-    completed_snapshot = _row_snapshot(integration_settings, identifier)
+    completed_snapshot = job_row(integration_settings, identifier)
     with pytest.raises(JobOwnershipLost):
         await _service(database_runtime).complete(
             job_id=identifier,
@@ -324,7 +307,7 @@ async def test_missing_and_second_completion_are_the_same_ownership_loss(
             result={"different": "SECOND-COMPLETION-EVIDENCE"},
         )
 
-    assert _row_snapshot(integration_settings, identifier) == completed_snapshot
+    assert job_row(integration_settings, identifier) == completed_snapshot
     await _assert_pool_released(database_runtime, baseline)
 
 
@@ -375,7 +358,7 @@ async def test_postgresql_textually_oversized_result_is_rejected_before_update(
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(database_runtime)
     result = {f"k{index:04}": 0 for index in range(5_600)}
     validated = validate_job_result(result, max_bytes=65_536)
@@ -411,7 +394,7 @@ async def test_postgresql_textually_oversized_result_is_rejected_before_update(
 
     assert failure.value.args == ("Job result exceeds the database size limit.",)
     assert observed_updates == 0
-    assert _row_snapshot(integration_settings, identifier) == before
+    assert job_row(integration_settings, identifier) == before
     await _assert_pool_released(database_runtime, baseline)
 
 
@@ -421,7 +404,7 @@ async def test_row_lock_timeout_resets_settings_and_fresh_completion_succeeds(
 ) -> None:
     runtime = create_database_runtime(integration_settings.test_database_url)
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(runtime)
     sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
     require_local_test_database(sync_url)
@@ -470,7 +453,7 @@ async def test_row_lock_timeout_resets_settings_and_fresh_completion_succeeds(
                     await asyncio.wait_for(task, timeout=2)
                 assert monotonic() - started < 2
                 await _assert_pool_released(runtime, baseline)
-                assert _row_snapshot(integration_settings, identifier) == before
+                assert job_row(integration_settings, identifier) == before
             finally:
                 blocking_transaction.rollback()
 
@@ -530,7 +513,7 @@ async def test_malformed_returned_mapping_rolls_back_and_releases_pool(
 ) -> None:
     runtime = create_database_runtime(integration_settings.test_database_url)
     identifier = _guarded_setup(integration_settings, status="running")
-    before = _row_snapshot(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     baseline = _pool_checked_out(runtime)
     request = CompleteJobRequest(
         job_id=identifier,
@@ -545,7 +528,7 @@ async def test_malformed_returned_mapping_rolls_back_and_releases_pool(
         )
         with pytest.raises(JobCompletionDatabaseStateFailure):
             await store.complete(request)
-        assert _row_snapshot(integration_settings, identifier) == before
+        assert job_row(integration_settings, identifier) == before
         await _assert_pool_released(runtime, baseline)
     finally:
         await runtime.engine.dispose()
@@ -660,7 +643,7 @@ async def test_lost_commit_acknowledgement_reconciles_exact_persisted_completion
             expected_attempt=2,
             result=_NEW_RESULT,
         )
-        row = _row_snapshot(integration_settings, identifier)
+        row = job_row(integration_settings, identifier)
         assert completed.completed_at == row[14]
         assert row[2] == "succeeded"
         assert row[6] == _NEW_RESULT
@@ -836,7 +819,7 @@ async def test_fresh_backend_exhaustion_is_unknown_without_second_mutation(
                 result=_NEW_RESULT,
             )
 
-        row = _row_snapshot(integration_settings, identifier)
+        row = job_row(integration_settings, identifier)
         assert row[2] == "succeeded"
         assert row[6] == _NEW_RESULT
         assert updates == 1
@@ -956,7 +939,7 @@ async def test_post_update_cancellation_settles_commit_without_unobserved_task(
         allow_commit.set()
         completed = await asyncio.wait_for(task, timeout=2)
         assert completed.job_id == identifier
-        assert _row_snapshot(integration_settings, identifier)[2] == "succeeded"
+        assert job_row(integration_settings, identifier)[2] == "succeeded"
         await _assert_pool_released(runtime, baseline)
         pending_after = {
             pending
@@ -1003,7 +986,7 @@ async def test_ambiguous_commit_definitely_running_becomes_operation_failure(
                 expected_attempt=2,
                 result=_NEW_RESULT,
             )
-        row = _row_snapshot(integration_settings, identifier)
+        row = job_row(integration_settings, identifier)
         assert row[2] == "running"
         assert row[6] is None
         assert row[14] is None

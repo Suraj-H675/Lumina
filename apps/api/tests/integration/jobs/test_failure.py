@@ -48,17 +48,13 @@ from ..migration_lifecycle import (
 from ..migration_lifecycle import (
     open_migration_connection,
 )
+from .support import job_row
 
 _OWNER = "worker.failure.fixture"
 _FOREIGN_OWNER = "worker.failure.foreign"
 _FIXTURE_TYPE = "system.failure_fixture"
 _PAYLOAD = '{"fixture":"FAILURE-PAYLOAD-EVIDENCE"}'
 _RESULT = '{"fixture":"FAILURE-RESULT-EVIDENCE"}'
-_ROW_COLUMNS = (
-    "id, job_type, status, idempotency_key, priority, payload, result, progress, "
-    "attempts, max_attempts, available_at, claimed_by, claimed_at, heartbeat_at, "
-    "completed_at, error_code, error_message, created_at"
-)
 
 
 def _guarded_setup(
@@ -101,16 +97,6 @@ def _guarded_setup(
         },
     )
     return identifier
-
-
-def _row(settings: IntegrationTestSettings, identifier: UUID) -> tuple[object, ...]:
-    rows = _guarded_execute(
-        settings,
-        f"SELECT {_ROW_COLUMNS} FROM public.job WHERE id = :id",
-        {"id": identifier},
-    )
-    assert len(rows) == 1
-    return rows[0]
 
 
 def _cleanup(settings: IntegrationTestSettings) -> None:
@@ -185,7 +171,7 @@ async def test_retryable_failure_requeues_with_exact_fields_and_postgresql_sched
     integration_settings: IntegrationTestSettings,
 ) -> None:
     identifier = _guarded_setup(integration_settings, attempts=2, max_attempts=5)
-    before = _row(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     server_before = cast(
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
@@ -202,7 +188,7 @@ async def test_retryable_failure_requeues_with_exact_fields_and_postgresql_sched
         datetime,
         _guarded_execute(integration_settings, "SELECT transaction_timestamp()")[0][0],
     )
-    row = _row(integration_settings, identifier)
+    row = job_row(integration_settings, identifier)
     assert isinstance(outcome, RetryScheduled)
     assert outcome.available_at == row[10]
     assert server_before + timedelta(seconds=4) <= outcome.available_at
@@ -238,7 +224,7 @@ async def test_terminal_failures_preserve_exact_historical_fields(
         attempts=attempts,
         max_attempts=max_attempts,
     )
-    before = _row(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
 
     outcome = await _failure_service(database_runtime).fail(
         job_id=identifier,
@@ -247,7 +233,7 @@ async def test_terminal_failures_preserve_exact_historical_fields(
         reason=reason,
     )
 
-    row = _row(integration_settings, identifier)
+    row = job_row(integration_settings, identifier)
     assert isinstance(outcome, TerminalFailureRecorded)
     assert outcome.status is expected_status
     assert outcome.completed_at == row[14]
@@ -274,7 +260,7 @@ async def test_owner_or_attempt_mismatch_is_indistinguishable_and_writes_nothing
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     identifier = _guarded_setup(integration_settings, attempts=2)
-    before = _row(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
 
     with pytest.raises(JobOwnershipLost) as failure:
         await _failure_service(database_runtime).fail(
@@ -284,7 +270,7 @@ async def test_owner_or_attempt_mismatch_is_indistinguishable_and_writes_nothing
             reason=FailureReason.HANDLER_RETRYABLE,
         )
 
-    assert _row(integration_settings, identifier) == before
+    assert job_row(integration_settings, identifier) == before
     captured = capsys.readouterr()
     serialized = (
         str(failure.value) + repr(failure.value) + captured.out + captured.err + caplog.text
@@ -328,7 +314,7 @@ async def test_same_owner_old_attempt_operations_cannot_mutate_attempt_two(
         integration_settings,
         identifier,
     )
-    before = _row(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
 
     with pytest.raises(JobOwnershipLost):
         await _heartbeat_service(database_runtime).heartbeat(
@@ -350,7 +336,7 @@ async def test_same_owner_old_attempt_operations_cannot_mutate_attempt_two(
             expected_attempt=1,
             reason=FailureReason.HANDLER_NON_RETRYABLE,
         )
-    assert _row(integration_settings, identifier) == before
+    assert job_row(integration_settings, identifier) == before
 
     heartbeat = await _heartbeat_service(database_runtime).heartbeat(
         job_id=identifier,
@@ -387,7 +373,7 @@ async def test_same_owner_current_attempt_completion_succeeds_after_reclaim(
     )
 
     assert completed.job_id == identifier
-    assert _row(integration_settings, identifier)[2] == "succeeded"
+    assert job_row(integration_settings, identifier)[2] == "succeeded"
 
 
 class _CommitAcknowledgementLost(OperationalError):
@@ -507,7 +493,7 @@ async def test_lost_commit_acknowledgement_reconciles_exact_transition_once(
             assert isinstance(outcome, RetryScheduled)
         else:
             assert isinstance(outcome, TerminalFailureRecorded)
-        assert _row(integration_settings, identifier)[2] == expected_status
+        assert job_row(integration_settings, identifier)[2] == expected_status
         assert updates == 1
         assert reconciliations == 1
     finally:
@@ -529,7 +515,7 @@ async def test_reconciliation_distinguishes_exact_unchanged_from_private_result_
     expected_error: type[RuntimeError],
 ) -> None:
     identifier = _guarded_setup(integration_settings, attempts=2)
-    before = _row(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
 
     async def restore_running() -> None:
         _guarded_execute(
@@ -562,7 +548,7 @@ async def test_reconciliation_distinguishes_exact_unchanged_from_private_result_
             reason=FailureReason.HANDLER_RETRYABLE,
         )
 
-    assert _row(integration_settings, identifier)[2] == "running"
+    assert job_row(integration_settings, identifier)[2] == "running"
 
 
 @pytest.mark.asyncio
@@ -571,7 +557,7 @@ async def test_row_lock_timeout_is_bounded_and_rolls_back(
 ) -> None:
     runtime = create_database_runtime(integration_settings.test_database_url)
     identifier = _guarded_setup(integration_settings, attempts=2)
-    before = _row(integration_settings, identifier)
+    before = job_row(integration_settings, identifier)
     sync_url = make_url(integration_settings.test_database_sync_url.get_secret_value())
     require_local_test_database(sync_url)
     reached_update = asyncio.Event()
@@ -616,7 +602,7 @@ async def test_row_lock_timeout_is_bounded_and_rolls_back(
                 await asyncio.wait_for(reached_update.wait(), timeout=1)
                 with pytest.raises(JobFailureContention):
                     await asyncio.wait_for(task, timeout=2)
-                assert _row(integration_settings, identifier) == before
+                assert job_row(integration_settings, identifier) == before
             finally:
                 transaction.rollback()
 

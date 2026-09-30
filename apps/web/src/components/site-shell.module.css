@@ -1,0 +1,354 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background: color-mix(in srgb, var(--background-raised) 94%, transparent);
+}
+
+@supports (backdrop-filter: blur(1rem)) {
+  .header {
+    background: color-mix(in srgb, var(--background-raised) 88%, transparent);
+    backdrop-filter: blur(1rem) saturate(115%);
+  }
+}
+
+.headerInner {
+  display: flex;
+  min-height: 4.75rem;
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--foreground);
+  font-size: 0.98rem;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  color: var(--accent);
+}
+
+.brandMark svg {
+  width: 100%;
+  height: 100%;
+}
+
+.brandWordmark {
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.primaryList {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.primaryLink {
+  position: relative;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: 0 0.78rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 560;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.primaryLink::after {
+  position: absolute;
+  right: 0.78rem;
+  bottom: 0.3rem;
+  left: 0.78rem;
+  height: 1px;
+  background: var(--accent);
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.3);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.primaryLink:hover {
+  color: var(--foreground);
+}
+
+.primaryLink[data-active="true"] {
+  color: var(--foreground);
+}
+
+.primaryLink[data-active="true"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.navigator {
+  position: relative;
+}
+
+.navigatorSummary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  color: var(--muted-strong);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 650;
+  list-style: none;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.navigatorSummary::-webkit-details-marker {
+  display: none;
+}
+
+.navigatorSummary:hover,
+.navigator[open] .navigatorSummary {
+  border-color: var(--border-strong);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.navigatorSummary::after {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  content: "";
+  transform: translateY(-0.12rem) rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.navigator[open] .navigatorSummary::after {
+  transform: translateY(0.08rem) rotate(225deg);
+}
+
+.navigatorPanel {
+  position: absolute;
+  top: calc(100% + 0.7rem);
+  right: 0;
+  display: grid;
+  width: min(38rem, calc(100vw - 2rem));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  background: #090c11;
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.42);
+}
+
+.navGroup {
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.navGroup:nth-child(odd) {
+  border-right: 1px solid var(--border);
+}
+
+.navGroup:last-child {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.navGroup:last-child .navGroupList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.5rem;
+}
+
+.navGroupTitle {
+  margin: 0 0 0.45rem;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.navGroupList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menuLink {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  color: var(--muted-strong);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.menuLink::after {
+  color: var(--border-strong);
+  content: "↗";
+  font-size: 0.8rem;
+}
+
+.menuLink:hover,
+.menuLink[data-active="true"] {
+  border-bottom-color: var(--border);
+  color: var(--foreground);
+}
+
+.menuLink[data-active="true"]::after {
+  color: var(--accent);
+  content: "•";
+}
+
+.main {
+  width: 100%;
+  max-width: var(--content-width);
+  flex: 1;
+  margin: 0 auto;
+  padding: 3.5rem 1rem 5rem;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  background: var(--background-raised);
+}
+
+.footerInner {
+  display: flex;
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: 1.6rem 1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.footerInner p {
+  margin: 0;
+}
+
+.footerLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--link);
+  text-underline-offset: 0.25rem;
+}
+
+@media (min-width: 42rem) {
+  .headerInner,
+  .main,
+  .footerInner {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .primaryList {
+    display: flex;
+    align-items: center;
+  }
+
+  .main {
+    padding-top: 4.5rem;
+  }
+}
+
+@media (max-width: 34rem) {
+  .headerInner {
+    min-height: 4.25rem;
+    gap: 0.75rem;
+  }
+
+  .brandMark {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .navigatorPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .navGroup:nth-child(odd) {
+    border-right: 0;
+  }
+
+  .navGroup:last-child .navGroupList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .header {
+    background: var(--background-raised);
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .header {
+    background: Canvas;
+    backdrop-filter: none;
+  }
+
+  .navigatorPanel {
+    background: Canvas;
+  }
+}

@@ -1,0 +1,119 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.item:nth-child(3n) {
+  border-right: 0;
+}
+
+.card {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 8.5rem;
+  align-items: stretch;
+  background: transparent;
+  transition: background-color 170ms ease;
+}
+
+.card:hover {
+  background: color-mix(in srgb, var(--surface) 68%, transparent);
+}
+
+.objectLink {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 1.1rem 1.35rem;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.name {
+  max-width: 16ch;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+.type {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.save {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 0.6rem 0 0;
+}
+
+.state {
+  max-width: 42rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 0;
+}
+
+.state h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.state p {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 58rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .item:nth-child(3n) {
+    border-right: 1px solid var(--border);
+  }
+
+  .item:nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 36rem) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .item,
+  .item:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .card {
+    min-height: 7.4rem;
+  }
+}

@@ -5,6 +5,7 @@ import { PwaStatus } from "./pwa-status";
 import { SiteNav } from "./site-nav";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { SiteShellMessages } from "../lib/i18n/messages/types";
+import styles from "./site-shell.module.css";
 
 type SiteShellProps = Readonly<{
   children: ReactNode;
@@ -14,39 +15,33 @@ type SiteShellProps = Readonly<{
 
 export function SiteShell({ children, locale, messages }: SiteShellProps) {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className={styles.shell}>
       <a className="skip-link" href="#main-content">
         {messages.skipToMainContent}
       </a>
       <PwaStatus locale={locale} messages={messages.pwa} />
-      <header className="border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_72%,transparent)]">
-        <div className="mx-auto flex w-full max-w-[var(--content-width)] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
-          <Link
-            className="inline-flex min-h-11 items-center gap-2 text-lg font-semibold tracking-tight text-[var(--foreground)]"
-            href="/"
-          >
-            <span aria-hidden="true" className="text-[var(--accent)]">
-              ✦
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <Link className={styles.brand} href="/">
+            <span aria-hidden="true" className={styles.brandMark}>
+              <svg fill="none" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="8.5" stroke="currentColor" strokeWidth="1.25" />
+                <path d="M16 2.5v6M16 23.5v6M2.5 16h6M23.5 16h6" stroke="currentColor" />
+                <circle cx="16" cy="16" fill="currentColor" r="1.75" />
+              </svg>
             </span>
-            Nova-Lumina
+            <span className={styles.brandWordmark}>Nova-Lumina</span>
           </Link>
           <SiteNav messages={messages.navigation} />
         </div>
       </header>
-      <main
-        className="mx-auto w-full max-w-[var(--content-width)] flex-1 px-4 py-10 sm:px-6 sm:py-14"
-        id="main-content"
-        tabIndex={-1}
-      >
+      <main className={styles.main} id="main-content" tabIndex={-1}>
         {children}
       </main>
-      <footer className="border-t border-[var(--border)] bg-[var(--background-raised)]">
-        <div className="mx-auto flex w-full max-w-[var(--content-width)] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-[var(--muted)] sm:px-6">
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
           <p>{messages.footerTagline}</p>
-          <Link
-            className="inline-flex min-h-11 items-center text-[var(--link)] underline"
-            href="/explore"
-          >
+          <Link className={styles.footerLink} href="/explore">
             {messages.exploreCatalogue}
           </Link>
         </div>

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#05070f",
+  themeColor: "#050608",
 };
 
 type RootLayoutProps = Readonly<{

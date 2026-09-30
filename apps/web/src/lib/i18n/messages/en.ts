@@ -4718,6 +4718,9 @@ export const enMessages = {
     metadataDescription:
       "Nova-Lumina Mission Control combines a cache-backed current launch event, bounded mission board, reviewed discoveries, and authored learning without hiding source freshness or uncertainty.",
     metadataTitle: "Mission Control",
+    openSpaceLab: "Open Space Lab",
+    pathwaysAriaLabel: "Ways to explore Nova-Lumina",
+    planObservation: "Plan an observation",
     missionBoard: {
       description:
         "Mission-bearing, nonterminal records from the same bounded Launch Library 2 snapshot. This is not a catalogue of every active spacecraft mission.",
@@ -5082,6 +5085,14 @@ export const enMessages = {
     footerTagline: "Nova-Lumina — a free, scientifically grounded way to explore space.",
     navigation: {
       ariaLabel: "Primary",
+      groups: {
+        currentAndSystem: "Current & system",
+        explore: "Explore",
+        learnAndExperiment: "Learn & experiment",
+        observe: "Observe",
+        personal: "Personal",
+      },
+      menuLabel: "Navigate",
       observationPlannerAriaLabel: "Observation planner",
       items: {
         collections: "Collections",

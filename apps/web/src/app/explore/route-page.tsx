@@ -18,6 +18,7 @@ import type {
 } from "../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin } from "../../lib/server/api-origin";
 import { loadExploreCatalogue, searchCatalogue } from "../../lib/server/catalog";
+import styles from "./explore-page.module.css";
 
 export function createExploreMetadata(messages: ExploreMessages): Metadata {
   return {
@@ -61,57 +62,50 @@ export default async function ExplorePage({
   const committed = query.length > 0;
 
   return (
-    <div className="space-y-10">
-      <header className="mx-auto max-w-2xl space-y-6 text-center">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
-        <div className="flex flex-wrap justify-center gap-3 pt-1">
-          <Link
-            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
-            href="/explore/deep-sky"
-          >
-            {messages.header.deepSkyAction}
-          </Link>
-          <Link
-            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
-            href="/explore/solar-system"
-          >
-            {messages.header.solarSystemAction}
-          </Link>
-          <Link
-            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
-            href="/explore/exoplanet-systems"
-          >
-            {messages.header.exoplanetSystemsAction}
-          </Link>
-          <Link
-            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
-            href="/explore/missions/voyager-1"
-          >
-            {messages.header.voyagerAction}
-          </Link>
-          <Link
-            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--link)] no-underline hover:bg-[var(--surface-hover)]"
-            href="/explore/system-compare"
-          >
-            {messages.header.systemCompareAction}
-          </Link>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.introBlock}>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+          <p className={styles.intro}>{messages.header.intro}</p>
         </div>
+        <nav aria-label={messages.header.title} className={styles.modeNav}>
+          {(
+            [
+              ["/explore/deep-sky", messages.header.deepSkyAction],
+              ["/explore/solar-system", messages.header.solarSystemAction],
+              ["/explore/exoplanet-systems", messages.header.exoplanetSystemsAction],
+              ["/explore/missions/voyager-1", messages.header.voyagerAction],
+              ["/explore/system-compare", messages.header.systemCompareAction],
+            ] as const
+          ).map(([href, label], index) => (
+            <Link className={styles.modeLink} href={href} key={href}>
+              <span aria-hidden="true" className={styles.modeIndex}>
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span>{label}</span>
+              <span aria-hidden="true" className={styles.modeArrow}>
+                →
+              </span>
+            </Link>
+          ))}
+        </nav>
       </header>
 
-      <div className="relative mx-auto max-w-2xl">
-        <CatalogueSearchBox
-          {...(apiOrigin === undefined ? {} : { apiOrigin })}
-          initialQuery={query}
-          locale={locale}
-          messages={catalogueSearchMessages}
-        />
-      </div>
+      <section className={styles.searchStage}>
+        <div className={styles.searchContext}>
+          <p className={styles.searchLabel}>{catalogueSearchMessages.inputLabel}</p>
+          <p className={styles.searchHint}>{messages.browse.summary}</p>
+        </div>
+        <div className={styles.searchControl}>
+          <CatalogueSearchBox
+            {...(apiOrigin === undefined ? {} : { apiOrigin })}
+            initialQuery={query}
+            locale={locale}
+            messages={catalogueSearchMessages}
+          />
+        </div>
+      </section>
 
       {committed ? (
         <ExploreSearchSection
@@ -156,11 +150,11 @@ async function ExploreSearchSection({
 
   if (outcome.kind === "ok") {
     return (
-      <section aria-labelledby="results-heading" className="space-y-4">
+      <section aria-labelledby="results-heading" className={styles.catalogueSection}>
         <h2 className="sr-only" id="results-heading">
           {messages.heading}
         </h2>
-        <p className="text-sm text-[var(--muted)]">
+        <p className={styles.resultsMeta}>
           {formatCountMessage(messages.summary, outcome.items.length, locale, { query })}
         </p>
         <ExploreResultsView
@@ -175,7 +169,7 @@ async function ExploreSearchSection({
     );
   }
   return (
-    <section aria-labelledby="results-heading" className="space-y-4">
+    <section aria-labelledby="results-heading" className={styles.catalogueSection}>
       <h2 className="sr-only" id="results-heading">
         {messages.heading}
       </h2>
@@ -209,10 +203,12 @@ async function ExploreBrowseSection({
   const outcome = await loadExploreCatalogue(cursor === undefined ? {} : { cursor });
 
   return (
-    <section aria-labelledby="browse-heading" className="space-y-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 id="browse-heading">{messages.heading}</h2>
-        <span className="text-sm text-[var(--muted)]">{messages.summary}</span>
+    <section aria-labelledby="browse-heading" className={styles.catalogueSection}>
+      <div className={styles.catalogueHeader}>
+        <h2 className={styles.catalogueTitle} id="browse-heading">
+          {messages.heading}
+        </h2>
+        <span className={styles.catalogueSummary}>{messages.summary}</span>
       </div>
       {outcome.kind === "ok" ? (
         outcome.items.length === 0 ? (
@@ -234,9 +230,9 @@ async function ExploreBrowseSection({
               messages={messages}
             />
             {outcome.nextCursor !== null ? (
-              <nav aria-label={messages.paginationAriaLabel} className="flex justify-end">
+              <nav aria-label={messages.paginationAriaLabel} className={styles.pagination}>
                 <Link
-                  className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 text-sm font-semibold text-[var(--foreground)] no-underline hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+                  className={styles.nextLink}
                   href={`/explore?cursor=${encodeURIComponent(outcome.nextCursor)}`}
                 >
                   {messages.nextPage}

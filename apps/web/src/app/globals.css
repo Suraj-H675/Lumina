@@ -1,19 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #05070f;
-  --background-raised: #090d1c;
-  --surface: #0d1326;
-  --surface-hover: #131b33;
-  --foreground: #e8edf8;
-  --muted: #9aa7c4;
-  --border: #222b47;
-  --border-strong: #39456e;
-  --accent: #7dd3fc;
-  --accent-strong: #38bdf8;
-  --link: #93c5fd;
-  --focus: #fbbf24;
-  --content-width: 72rem;
+  color-scheme: dark;
+  --background: #050608;
+  --background-raised: #090c11;
+  --surface: #0c1118;
+  --surface-raised: #111923;
+  --surface-hover: #151f2b;
+  --foreground: #f1f3ef;
+  --muted: #9ba6af;
+  --muted-strong: #bdc5ca;
+  --border: #242c34;
+  --border-strong: #3d4852;
+  --accent: #e6c879;
+  --accent-strong: #f0d996;
+  --link: #9fc6e2;
+  --focus: #f4d77f;
+  --success: #8fc7a8;
+  --warning: #e6c879;
+  --danger: #ef9b8f;
+  --content-width: 88rem;
+  --reading-width: 46rem;
+  --font-ui: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-data: "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace;
 }
 
 * {
@@ -23,26 +33,26 @@
 html {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
+  font-family: var(--font-ui);
+  scroll-padding-top: 6rem;
   overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  /* A single restrained depth cue behind content; purely decorative and static. */
   background:
-    radial-gradient(110rem 55rem at 85% -18rem, rgba(56, 96, 170, 0.16), transparent 60%),
-    radial-gradient(90rem 48rem at -20% -22rem, rgba(125, 211, 252, 0.07), transparent 55%),
-    var(--background);
+    radial-gradient(72rem 42rem at 72% -18rem, rgba(137, 173, 199, 0.09), transparent 68%),
+    linear-gradient(180deg, rgba(14, 18, 24, 0.55) 0, rgba(5, 6, 8, 0) 24rem), var(--background);
   color: var(--foreground);
   margin: 0;
   min-width: 20rem;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 76%, black);
+  color: #11120f;
 }
 
 a,
@@ -77,6 +87,20 @@ button {
   cursor: pointer;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+code,
+kbd,
+pre,
+.font-mono {
+  font-family: var(--font-data);
+}
+
 .skip-link {
   background: var(--foreground);
   color: var(--background);
@@ -94,14 +118,7 @@ button {
 
 .global-error-content {
   color: #e8edf8;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.5;
   margin: 0 auto;
   max-width: 48rem;
@@ -118,11 +135,23 @@ button {
 
 @media (prefers-contrast: more) {
   :root {
-    --muted: #ccd6ec;
-    --border: #55628f;
-    --border-strong: #8b97c2;
-    --link: #bfdbfe;
-    --accent: #bae6fd;
+    --muted: #d4d9dc;
+    --muted-strong: #eef1f2;
+    --border: #69747d;
+    --border-strong: #aeb7bd;
+    --link: #c4e3f7;
+    --accent: #f5dda0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
@@ -131,15 +160,20 @@ button {
     --background: Canvas;
     --background-raised: Canvas;
     --surface: Canvas;
+    --surface-raised: Canvas;
     --surface-hover: Canvas;
     --foreground: CanvasText;
     --muted: CanvasText;
+    --muted-strong: CanvasText;
     --border: ButtonText;
     --border-strong: ButtonText;
     --accent: LinkText;
     --accent-strong: LinkText;
     --link: LinkText;
     --focus: Highlight;
+    --success: CanvasText;
+    --warning: CanvasText;
+    --danger: CanvasText;
   }
 
   html,

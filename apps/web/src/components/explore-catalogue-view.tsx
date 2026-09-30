@@ -9,6 +9,7 @@ import type {
   ExploreMessages,
 } from "../lib/i18n/messages/types";
 import { SaveToCollectionsButton } from "./save-to-collections";
+import styles from "./explore-catalogue-view.module.css";
 
 /** Browse grid for the discovery state; order is the backend's canonical order. */
 export function EntityCardGrid({
@@ -25,26 +26,16 @@ export function EntityCardGrid({
   messages: ExploreMessages["browse"];
 }>) {
   return (
-    <ul
-      aria-label={messages.objectsAriaLabel}
-      className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
-    >
+    <ul aria-label={messages.objectsAriaLabel} className={styles.grid}>
       {items.map((entity) => (
-        <li className="flex list-none" key={entity.id}>
-          <div className="flex h-full w-full items-stretch rounded-md border border-[var(--border)] bg-[var(--surface)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]">
+        <li className={styles.item} key={entity.id}>
+          <div className={styles.card}>
             {/* The card stays primary navigation; Save is a distinct control. */}
-            <Link
-              className="flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-2 px-5 py-4 no-underline"
-              href={`/objects/${entity.slug}`}
-            >
-              <span className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
-                {entity.canonical_name}
-              </span>
-              <span className="text-sm text-[var(--muted)]">
-                {entityTypeMessages[entity.entity_type]}
-              </span>
+            <Link className={styles.objectLink} href={`/objects/${entity.slug}`}>
+              <span className={styles.name}>{entity.canonical_name}</span>
+              <span className={styles.type}>{entityTypeMessages[entity.entity_type]}</span>
             </Link>
-            <div className="flex items-center pr-1.5">
+            <div className={styles.save}>
               <SaveToCollectionsButton
                 identity={{
                   canonical_name: entity.canonical_name,
@@ -66,9 +57,9 @@ export function EntityCardGrid({
 /** Honest empty state for an intentionally small reviewed slice. */
 export function ExploreEmptyState({ messages }: Readonly<{ messages: ExploreMessages["browse"] }>) {
   return (
-    <div className="max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8">
-      <h3 className="text-xl font-semibold">{messages.emptyTitle}</h3>
-      <p className="mt-2 leading-7 text-[var(--muted)]">{messages.emptyDescription}</p>
+    <div className={styles.state}>
+      <h3>{messages.emptyTitle}</h3>
+      <p>{messages.emptyDescription}</p>
     </div>
   );
 }
@@ -82,14 +73,9 @@ export function ExploreUnavailableState({
   messages: ExploreMessages["unavailable"];
 }>) {
   return (
-    <div
-      className="max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8"
-      role="status"
-    >
-      <h3 className="text-xl font-semibold">
-        {context === "search" ? messages.searchTitle : messages.catalogueTitle}
-      </h3>
-      <p className="mt-2 leading-7 text-[var(--muted)]">{messages.description}</p>
+    <div className={styles.state} role="status">
+      <h3>{context === "search" ? messages.searchTitle : messages.catalogueTitle}</h3>
+      <p>{messages.description}</p>
     </div>
   );
 }

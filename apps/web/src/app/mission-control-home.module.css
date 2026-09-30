@@ -1,0 +1,477 @@
+.home {
+  display: grid;
+  gap: 5.5rem;
+}
+
+.portal {
+  display: grid;
+  min-height: 31rem;
+  grid-template-columns: minmax(0, 1.12fr) minmax(19rem, 0.88fr);
+  gap: clamp(2.5rem, 6vw, 6.5rem);
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.portalCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 10ch;
+  margin: 0.8rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 7.4vw, 7.25rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+}
+
+.intro {
+  max-width: 43rem;
+  margin: 1.75rem 0 0;
+  color: var(--muted-strong);
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  line-height: 1.75;
+}
+
+.pathways {
+  display: grid;
+  max-width: 42rem;
+  margin-top: 2.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.pathway {
+  display: grid;
+  min-height: 3.55rem;
+  grid-template-columns: 2.25rem 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.95rem;
+  font-weight: 620;
+  text-decoration: none;
+  transition:
+    padding-inline 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.pathway:hover {
+  border-bottom-color: var(--border-strong);
+  color: var(--accent-strong);
+  padding-inline: 0.35rem;
+}
+
+.pathwayIndex {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+}
+
+.pathwayArrow {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.utilityLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.35rem;
+  margin-top: 1.15rem;
+}
+
+.utilityLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--link);
+  font-size: 0.82rem;
+  text-underline-offset: 0.25rem;
+}
+
+.event {
+  align-self: center;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-strong);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 45%), var(--surface);
+  padding: clamp(1.5rem, 3.5vw, 2.35rem);
+}
+
+.eventUnavailable {
+  border-left: 2px solid var(--border-strong);
+}
+
+.eventHeader {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.eventLabel {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.eventTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.65rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.eventStatus {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 0.88rem;
+  font-weight: 620;
+}
+
+.eventBody {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.timing {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1.4rem;
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+}
+
+.timing p {
+  margin: 0;
+}
+
+.timingDetail {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 1.5rem 0 0;
+}
+
+.fact {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+}
+
+.fact dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fact dd {
+  margin: 0.3rem 0 0;
+  color: var(--foreground);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.eventAction {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-top: 1.25rem;
+  color: var(--link);
+  font-size: 0.85rem;
+  text-underline-offset: 0.25rem;
+}
+
+.stream {
+  display: grid;
+  gap: 5rem;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.38fr) minmax(0, 0.62fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  max-width: 25rem;
+}
+
+.sectionTitle {
+  margin: 0.65rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.4vw, 3.15rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.sectionIntro {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.boardList,
+.boardEmpty {
+  margin: 0;
+}
+
+.boardList {
+  display: grid;
+}
+
+.boardEntry {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding: 1.15rem 0 1.25rem;
+}
+
+.boardEntry:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.boardMeta {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.boardName {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 620;
+}
+
+.boardName a {
+  color: var(--foreground);
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.25rem;
+}
+
+.boardDetail {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.boardEmpty {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.4rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.discovery {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.32fr) minmax(0, 0.68fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 2.5rem 0 3rem;
+}
+
+.discoveryMeta {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+}
+
+.published {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+}
+
+.discoveryBody {
+  min-width: 0;
+}
+
+.discoveryTitle {
+  max-width: 24ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.5vw, 4.35rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.discoverySummary {
+  max-width: 52rem;
+  margin: 1.6rem 0 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.why {
+  max-width: 52rem;
+  margin-top: 1.6rem;
+  border-left: 1px solid var(--border-strong);
+  padding-left: 1.25rem;
+}
+
+.why h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.why p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.confirmation {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.69rem;
+  line-height: 1.55;
+}
+
+.discoveryLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  color: var(--link);
+  font-size: 0.85rem;
+  text-underline-offset: 0.25rem;
+}
+
+.learningBand {
+  max-width: 58rem;
+}
+
+.about {
+  display: grid;
+  max-width: 62rem;
+  grid-template-columns: minmax(10rem, 0.3fr) minmax(0, 0.7fr);
+  gap: 2rem;
+  border-top: 1px solid var(--border);
+  padding-top: 2.25rem;
+}
+
+.about h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.about p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+@media (max-width: 62rem) {
+  .portal {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .event {
+    max-width: 44rem;
+  }
+
+  .board,
+  .discovery {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  .sectionHeader {
+    max-width: 38rem;
+  }
+}
+
+@media (max-width: 40rem) {
+  .home {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.35rem, 18vw, 5.2rem);
+  }
+
+  .intro {
+    font-size: 1rem;
+  }
+
+  .portal {
+    gap: 2.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .boardEntry {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .discovery {
+    padding-block: 2rem 2.5rem;
+  }
+
+  .about {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .event {
+    background: Canvas;
+  }
+}

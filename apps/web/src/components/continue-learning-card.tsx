@@ -36,20 +36,23 @@ export function ContinueLearningCard({ content, messages, path }: ContinueLearni
   return (
     <section
       aria-labelledby="continue-learning-heading"
-      className="max-w-2xl rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
+      className="border-y border-[var(--border)] py-7"
     >
-      <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
+      <p className="font-mono text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--accent)] uppercase">
         {messages.eyebrow}
       </p>
-      <h2 className="mt-2 text-2xl font-semibold" id="continue-learning-heading">
+      <h2
+        className="mt-3 font-[var(--font-display)] text-3xl font-medium tracking-[-0.035em]"
+        id="continue-learning-heading"
+      >
         {messages.title}
       </h2>
-      <p className="mt-2 leading-7 text-[var(--muted)]">
+      <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">
         {pathComplete ? messages.completeDescription : messages.activeDescription}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-4">
         <Link
-          className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline hover:border-[var(--accent)]"
+          className="inline-flex min-h-11 items-center border-b border-[var(--accent)] font-semibold text-[var(--foreground)] no-underline transition-colors hover:text-[var(--accent-strong)]"
           href={`/learn/${path.slug}/${lessonSlug}`}
         >
           {linkLabel}

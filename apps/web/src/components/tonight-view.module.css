@@ -1,0 +1,693 @@
+.page {
+  display: grid;
+  gap: 4.75rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.69rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.7rem, 8vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.058em;
+  line-height: 0.86;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.briefSection {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.27fr) minmax(0, 0.73fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 3vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: -0.038em;
+  line-height: 1;
+}
+
+.sectionSummary {
+  max-width: 23rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.selectBlock {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 46rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0 1.15rem;
+}
+
+.label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.labelStrong {
+  color: var(--foreground);
+  font-size: 0.79rem;
+  font-weight: 650;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-height: 2.8rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--background-raised);
+  color: var(--foreground);
+  padding: 0 0.72rem;
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+}
+
+.select {
+  font-family: inherit;
+}
+
+.help,
+.usageNote,
+.currentLocation,
+.nightSelected,
+.statusText {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.currentLocation {
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+}
+
+.setupGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.setupPanel {
+  min-width: 0;
+  padding: 1.2rem 1.4rem 1.35rem 0;
+}
+
+.setupPanel + .setupPanel {
+  border-left: 1px solid var(--border);
+  padding-left: 1.4rem;
+}
+
+.setupCopy {
+  max-width: 28rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.fieldset legend {
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.coordinateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.primaryButton {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  border-bottom-color: var(--accent-strong);
+  color: var(--accent-strong);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.error {
+  margin: 0.75rem 0 0;
+  color: var(--focus);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.nightControl {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 30rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0 1.15rem;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.27fr) minmax(0, 0.73fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.summaryLead {
+  min-width: 0;
+}
+
+.summaryContext {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.metric {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 1rem 1.05rem;
+}
+
+.metric:nth-child(3n) {
+  border-right: 0;
+}
+
+.metric dt,
+.eventGrid dt,
+.weatherFacts dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.metric dd,
+.eventGrid dd,
+.weatherFacts dd {
+  margin: 0.4rem 0 0;
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 560;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.statusPanel {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.15rem 0;
+}
+
+.statusPanel h2,
+.statusPanel h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.statusPanel p {
+  max-width: 44rem;
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.results {
+  display: grid;
+  gap: 2.5rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2.25rem;
+}
+
+.resultsHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 18rem);
+  gap: 2rem;
+  align-items: end;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.6vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.resultsSummary {
+  max-width: 42rem;
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.sortLabel {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.analysisStack {
+  display: grid;
+  gap: 3.5rem;
+}
+
+.orderingExplanation {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.77rem;
+  line-height: 1.65;
+}
+
+.weather {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.27fr) minmax(0, 0.73fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+.weatherIntro {
+  min-width: 0;
+}
+
+.weatherTitle,
+.targetListTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.weatherIntro p,
+.targetListDescription {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.weatherBody {
+  min-width: 0;
+}
+
+.weatherState {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.weatherAttribution {
+  margin-top: 0.9rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.6;
+}
+
+.weatherAttribution p {
+  margin: 0.35rem 0 0;
+}
+
+.weatherAttribution a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.targetSection {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.27fr) minmax(0, 0.73fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.targetList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.targetRow {
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 1.3rem 0 1.55rem;
+}
+
+.targetTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.targetIdentity {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.8rem;
+}
+
+.targetName {
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.7vw, 2.2rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.targetName a {
+  color: var(--foreground);
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.22rem;
+}
+
+.targetType {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+}
+
+.targetGeometry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 1.5rem;
+  margin-top: 0.9rem;
+}
+
+.targetPrimary,
+.targetSecondary,
+.moonLine,
+.weatherLine {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.targetPrimary {
+  color: var(--foreground);
+  font-weight: 560;
+}
+
+.moonLine,
+.weatherLine {
+  grid-column: 1 / -1;
+}
+
+.details {
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.55rem;
+}
+
+.details summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  cursor: pointer;
+  align-items: center;
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.eventGrid,
+.weatherFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0.6rem 0 0.75rem;
+}
+
+.sourceLine {
+  margin: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.weatherFactsWrap {
+  margin-top: 0.45rem;
+}
+
+.stateList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.stateRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 0 1rem;
+}
+
+.stateName {
+  margin: 0;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.stateReason {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.authoritativeNote {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  line-height: 1.55;
+}
+
+.catalogueFailure {
+  border-top: 1px solid var(--warning);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.catalogueFailure p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.emptyState {
+  max-width: 44rem;
+  border-top: 1px dashed var(--border-strong);
+  border-bottom: 1px dashed var(--border);
+  padding: 1.4rem 0;
+}
+
+.emptyState h2,
+.emptyState h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.emptyState p {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 64rem) {
+  .hero,
+  .briefSection,
+  .summary,
+  .weather,
+  .targetSection {
+    grid-template-columns: 1fr;
+  }
+
+  .intro,
+  .sectionSummary {
+    max-width: 42rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .setupGrid,
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .setupPanel,
+  .setupPanel + .setupPanel {
+    border-left: 0;
+    padding: 1rem 0 1.1rem;
+  }
+
+  .setupPanel + .setupPanel {
+    border-top: 1px solid var(--border);
+  }
+
+  .metric,
+  .metric:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .resultsHeader,
+  .targetTop {
+    grid-template-columns: 1fr;
+  }
+
+  .targetGeometry,
+  .eventGrid,
+  .weatherFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .moonLine,
+  .weatherLine {
+    grid-column: auto;
+  }
+
+  .stateRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 36rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.7rem, 20vw, 5.3rem);
+  }
+
+  .coordinateGrid {
+    grid-template-columns: 1fr;
+  }
+}

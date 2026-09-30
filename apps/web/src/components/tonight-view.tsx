@@ -72,6 +72,7 @@ import {
   CorruptedStoragePanel,
   StorageUnavailableNote,
 } from "./collection-state-blocks";
+import styles from "./tonight-view.module.css";
 
 type TonightViewProps = Readonly<{
   apiOrigin?: string;
@@ -94,12 +95,8 @@ const EMPTY_ITEMS: ReadonlyArray<{
   slug: string;
 }> = [];
 
-const PRIMARY_BUTTON_CLASS =
-  "inline-flex min-h-11 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-strong)] disabled:cursor-wait disabled:opacity-70";
-const SECONDARY_BUTTON_CLASS =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]";
-const INPUT_CLASS =
-  "min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]";
+const PRIMARY_BUTTON_CLASS = styles.primaryButton;
+const SECONDARY_BUTTON_CLASS = styles.secondaryButton;
 
 function formatAltitude(
   altitude: number,
@@ -273,70 +270,76 @@ function CollectionScope({
   selectedCollectionId: string | null;
 }>) {
   return (
-    <section aria-labelledby="tonight-collection-heading" className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 className="text-xl font-semibold" id="tonight-collection-heading">
+    <section aria-labelledby="tonight-collection-heading" className={styles.briefSection}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.heading}</p>
+        <h2 className={styles.sectionTitle} id="tonight-collection-heading">
           {messages.heading}
         </h2>
-        <span className="text-sm text-[var(--muted)]">{messages.summary}</span>
+        <p className={styles.sectionSummary}>{messages.summary}</p>
       </div>
-      {collectionsStatus === "loading" ? (
-        <CollectionLoadingNote messages={collectionStateMessages.shared} />
-      ) : null}
-      {collectionsStatus === "unavailable" ? (
-        <StorageUnavailableNote context="page" messages={collectionStateMessages.shared} />
-      ) : null}
-      {collectionsStatus === "corrupted" ? (
-        <CorruptedStoragePanel messages={collectionStateMessages} />
-      ) : null}
-      {collectionsStatus === "ready" && collections.length === 0 ? (
-        <div className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-7">
-          <h3 className="text-lg font-semibold">{messages.emptyTitle}</h3>
-          <p className="mt-2 leading-7 text-[var(--muted)]">{messages.emptyDescription}</p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link className={PRIMARY_BUTTON_CLASS} href="/collections">
-              {messages.openCollections}
-            </Link>
-            <Link className={SECONDARY_BUTTON_CLASS} href="/explore">
-              {messages.exploreObjects}
-            </Link>
+      <div className={styles.sectionBody}>
+        {collectionsStatus === "loading" ? (
+          <CollectionLoadingNote messages={collectionStateMessages.shared} />
+        ) : null}
+        {collectionsStatus === "unavailable" ? (
+          <StorageUnavailableNote context="page" messages={collectionStateMessages.shared} />
+        ) : null}
+        {collectionsStatus === "corrupted" ? (
+          <CorruptedStoragePanel messages={collectionStateMessages} />
+        ) : null}
+        {collectionsStatus === "ready" && collections.length === 0 ? (
+          <div className={styles.emptyState}>
+            <h3>{messages.emptyTitle}</h3>
+            <p>{messages.emptyDescription}</p>
+            <div className={styles.actionRow}>
+              <Link className={PRIMARY_BUTTON_CLASS} href="/collections">
+                {messages.openCollections}
+              </Link>
+              <Link className={SECONDARY_BUTTON_CLASS} href="/explore">
+                {messages.exploreObjects}
+              </Link>
+            </div>
           </div>
-        </div>
-      ) : null}
-      {collectionsStatus === "ready" && collections.length > 0 && selectedCollectionId !== null ? (
-        <div className="max-w-2xl space-y-2">
-          <label
-            className="block text-sm font-medium text-[var(--foreground)]"
-            htmlFor="tonight-collection"
-          >
-            {messages.selectLabel}
-          </label>
-          <select
-            className={INPUT_CLASS.replace("font-mono", "")}
-            id="tonight-collection"
-            onChange={(event) => onChange(event.target.value)}
-            value={selectedCollectionId}
-          >
-            {collections.map((collection) => (
-              <option key={collection.id} value={collection.id}>
-                {formatCountMessage(messages.optionSaved, collection.items.length, locale, {
-                  name: collection.name,
-                })}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm leading-6 text-[var(--muted)]">{messages.usageNote}</p>
-        </div>
-      ) : null}
-      {collectionsStatus === "ready" && collections.length > 0 && selectedCollectionId === null ? (
-        <div className="max-w-xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-6">
-          <h3 className="text-lg font-semibold">{messages.noNonEmptyTitle}</h3>
-          <p className="mt-2 leading-7 text-[var(--muted)]">{messages.noNonEmptyDescription}</p>
-          <Link className={`${SECONDARY_BUTTON_CLASS} mt-4`} href="/collections">
-            {messages.manageCollections}
-          </Link>
-        </div>
-      ) : null}
+        ) : null}
+        {collectionsStatus === "ready" &&
+        collections.length > 0 &&
+        selectedCollectionId !== null ? (
+          <div className={styles.selectBlock}>
+            <label className={styles.label} htmlFor="tonight-collection">
+              <span className={styles.labelStrong}>{messages.selectLabel}</span>
+              <select
+                className={styles.select}
+                id="tonight-collection"
+                onChange={(event) => onChange(event.target.value)}
+                value={selectedCollectionId}
+              >
+                {collections.map((collection) => (
+                  <option key={collection.id} value={collection.id}>
+                    {formatCountMessage(messages.optionSaved, collection.items.length, locale, {
+                      name: collection.name,
+                    })}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className={styles.usageNote}>{messages.usageNote}</p>
+          </div>
+        ) : null}
+        {collectionsStatus === "ready" &&
+        collections.length > 0 &&
+        selectedCollectionId === null ? (
+          <div className={styles.emptyState}>
+            <h3>{messages.noNonEmptyTitle}</h3>
+            <p>{messages.noNonEmptyDescription}</p>
+            <div className={styles.actionRow}>
+              <Link className={SECONDARY_BUTTON_CLASS} href="/collections">
+                {messages.manageCollections}
+              </Link>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -367,26 +370,29 @@ function ObserverSetup({
   onManualSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }>) {
   return (
-    <section aria-labelledby="tonight-location-heading" className="space-y-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 className="text-xl font-semibold" id="tonight-location-heading">
+    <section aria-labelledby="tonight-location-heading" className={styles.briefSection}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.heading}</p>
+        <h2 className={styles.sectionTitle} id="tonight-location-heading">
           {messages.heading}
         </h2>
-        <span className="text-sm text-[var(--muted)]">{messages.summary}</span>
+        <p className={styles.sectionSummary}>{messages.summary}</p>
       </div>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-          <p className="text-sm leading-6 text-[var(--muted)]">{messages.privacyNote}</p>
-          <button
-            className={`${PRIMARY_BUTTON_CLASS} mt-4`}
-            disabled={geoBusy}
-            onClick={onGeolocation}
-            type="button"
-          >
-            {geoBusy ? messages.lookingUp : messages.useMyLocation}
-          </button>
+      <div className={styles.setupGrid}>
+        <div className={styles.setupPanel}>
+          <p className={styles.setupCopy}>{messages.privacyNote}</p>
+          <div className={styles.actionRow}>
+            <button
+              className={PRIMARY_BUTTON_CLASS}
+              disabled={geoBusy}
+              onClick={onGeolocation}
+              type="button"
+            >
+              {geoBusy ? messages.lookingUp : messages.useMyLocation}
+            </button>
+          </div>
           {location !== null ? (
-            <p className="mt-4 text-sm text-[var(--foreground)]">
+            <p className={styles.currentLocation}>
               {formatMessageTemplate(messages.currentLocation, {
                 latitude: formatLocaleFixedNumber(location.latitude, 3, locale),
                 longitude: formatLocaleFixedNumber(location.longitude, 3, locale),
@@ -394,25 +400,20 @@ function ObserverSetup({
             </p>
           ) : null}
           {locationError !== "" ? (
-            <p className="mt-3 text-sm text-[var(--focus)]" role="alert">
+            <p className={styles.error} role="alert">
               {locationError}
             </p>
           ) : null}
         </div>
-        <form
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4"
-          onSubmit={onManualSubmit}
-        >
-          <fieldset>
-            <legend className="text-sm font-semibold text-[var(--foreground)]">
-              {messages.manualLegend}
-            </legend>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="space-y-1.5 text-sm text-[var(--muted)]" htmlFor="tonight-latitude">
-                <span className="block">{messages.latitudeLabel}</span>
+        <form className={styles.setupPanel} onSubmit={onManualSubmit}>
+          <fieldset className={styles.fieldset}>
+            <legend>{messages.manualLegend}</legend>
+            <div className={styles.coordinateGrid}>
+              <label className={styles.label} htmlFor="tonight-latitude">
+                <span>{messages.latitudeLabel}</span>
                 <input
                   aria-describedby="tonight-coordinate-help"
-                  className={INPUT_CLASS}
+                  className={styles.input}
                   id="tonight-latitude"
                   inputMode="decimal"
                   onChange={(event) => onLatitudeChange(event.target.value)}
@@ -421,14 +422,11 @@ function ObserverSetup({
                   value={latitude}
                 />
               </label>
-              <label
-                className="space-y-1.5 text-sm text-[var(--muted)]"
-                htmlFor="tonight-longitude"
-              >
-                <span className="block">{messages.longitudeLabel}</span>
+              <label className={styles.label} htmlFor="tonight-longitude">
+                <span>{messages.longitudeLabel}</span>
                 <input
                   aria-describedby="tonight-coordinate-help"
-                  className={INPUT_CLASS}
+                  className={styles.input}
                   id="tonight-longitude"
                   inputMode="decimal"
                   onChange={(event) => onLongitudeChange(event.target.value)}
@@ -438,12 +436,14 @@ function ObserverSetup({
                 />
               </label>
             </div>
-            <p className="mt-3 text-xs leading-5 text-[var(--muted)]" id="tonight-coordinate-help">
+            <p className={styles.help} id="tonight-coordinate-help">
               {messages.coordinateHelp}
             </p>
-            <button className={`${SECONDARY_BUTTON_CLASS} mt-4`} type="submit">
-              {messages.calculateAction}
-            </button>
+            <div className={styles.actionRow}>
+              <button className={SECONDARY_BUTTON_CLASS} type="submit">
+                {messages.calculateAction}
+              </button>
+            </div>
           </fieldset>
         </form>
       </div>
@@ -465,29 +465,30 @@ function NightSetup({
   timeZone: string;
 }>) {
   return (
-    <section aria-labelledby="tonight-night-heading" className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 className="text-xl font-semibold" id="tonight-night-heading">
+    <section aria-labelledby="tonight-night-heading" className={styles.briefSection}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.heading}</p>
+        <h2 className={styles.sectionTitle} id="tonight-night-heading">
           {messages.heading}
         </h2>
-        <span className="text-sm text-[var(--muted)]">
+        <p className={styles.sectionSummary}>
           {formatMessageTemplate(messages.timesShown, { timeZone })}
-        </span>
+        </p>
       </div>
-      <div className="max-w-2xl space-y-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-        <label className="space-y-1.5 text-sm text-[var(--muted)]" htmlFor="tonight-date">
-          <span className="block font-medium text-[var(--foreground)]">{messages.nightOf}</span>
+      <div className={styles.nightControl}>
+        <label className={styles.label} htmlFor="tonight-date">
+          <span className={styles.labelStrong}>{messages.nightOf}</span>
           <input
-            className={INPUT_CLASS}
+            className={styles.input}
             id="tonight-date"
             onChange={(event) => onDateChange(event.target.value)}
             type="date"
             value={activeNightDate}
           />
-          <span className="block text-xs leading-5">{messages.dateHelp}</span>
+          <span className={styles.help}>{messages.dateHelp}</span>
         </label>
         {isValidNightDate(activeNightDate) ? (
-          <p className="pt-2 text-sm text-[var(--muted)]">
+          <p className={styles.nightSelected}>
             {formatMessageTemplate(messages.selectedNight, {
               date: formatObservationDateLabel(activeNightDate, timeZone, locale),
             })}
@@ -522,99 +523,84 @@ function NightSummary({
   const summary = analysis?.summary;
   const darkness = commonNight?.astronomicalDarkness;
   return (
-    <section aria-labelledby="tonight-summary-heading" className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-        <h2 className="text-xl font-semibold" id="tonight-summary-heading">
+    <section aria-labelledby="tonight-summary-heading" className={styles.summary}>
+      <div className={styles.summaryLead}>
+        <p className={styles.sectionEyebrow}>{messages.heading}</p>
+        <h2 className={styles.sectionTitle} id="tonight-summary-heading">
           {messages.heading}
         </h2>
-        <span className="text-sm text-[var(--muted)]">{timeZone}</span>
-      </div>
-      <p className="text-sm leading-6 text-[var(--muted)]">
-        {formatMessageTemplate(messages.nightAndCollection, {
-          collectionName,
-          date: formatObservationDateLabel(nightDate, timeZone, locale),
-        })}
-      </p>
-      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.astronomicalDusk}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {commonNight === null
-              ? messages.unavailable
-              : formatNightEvent(commonNight.astronomicalDusk, timeZone, locale, eventMessages)}
-          </dd>
-        </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.astronomicalDawn}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {commonNight === null
-              ? messages.unavailable
-              : formatNightEvent(commonNight.astronomicalDawn, timeZone, locale, eventMessages)}
-          </dd>
-        </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.darkness}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {darkness === undefined
-              ? messages.calculating
-              : darkness === null
-                ? messages.unavailableForNight
-                : messages.sunBelowEighteen}
-          </dd>
-        </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.savedTargets}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {formatLocaleNumber(targetCount, locale)}
-          </dd>
-        </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.scientificallyAnalyzed}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {summary === undefined
-              ? messages.waiting
-              : formatLocaleNumber(summary.scientificallyAnalyzedCount, locale)}
-          </dd>
-        </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.aboveHorizon}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {summary === undefined
-              ? messages.waiting
-              : formatLocaleNumber(summary.aboveHorizonCount, locale)}
-          </dd>
-        </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.unavailableUnresolved}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">
-            {summary === undefined
-              ? messages.waiting
-              : formatLocaleNumber(summary.unavailableOrUnresolvedCount, locale)}
-          </dd>
-        </div>
-      </dl>
-      {commonNight !== null && commonNight.astronomicalDarkness === null ? (
-        <p
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-sm text-[var(--muted)]"
-          role="status"
-        >
-          {messages.noDarkness}
+        <p className={styles.summaryContext}>
+          {formatMessageTemplate(messages.nightAndCollection, {
+            collectionName,
+            date: formatObservationDateLabel(nightDate, timeZone, locale),
+          })}
+          {" · "}
+          {timeZone}
         </p>
-      ) : null}
+      </div>
+      <div>
+        <dl className={styles.metricGrid}>
+          <div className={styles.metric}>
+            <dt>{messages.astronomicalDusk}</dt>
+            <dd>
+              {commonNight === null
+                ? messages.unavailable
+                : formatNightEvent(commonNight.astronomicalDusk, timeZone, locale, eventMessages)}
+            </dd>
+          </div>
+          <div className={styles.metric}>
+            <dt>{messages.astronomicalDawn}</dt>
+            <dd>
+              {commonNight === null
+                ? messages.unavailable
+                : formatNightEvent(commonNight.astronomicalDawn, timeZone, locale, eventMessages)}
+            </dd>
+          </div>
+          <div className={styles.metric}>
+            <dt>{messages.darkness}</dt>
+            <dd>
+              {darkness === undefined
+                ? messages.calculating
+                : darkness === null
+                  ? messages.unavailableForNight
+                  : messages.sunBelowEighteen}
+            </dd>
+          </div>
+          <div className={styles.metric}>
+            <dt>{messages.savedTargets}</dt>
+            <dd>{formatLocaleNumber(targetCount, locale)}</dd>
+          </div>
+          <div className={styles.metric}>
+            <dt>{messages.scientificallyAnalyzed}</dt>
+            <dd>
+              {summary === undefined
+                ? messages.waiting
+                : formatLocaleNumber(summary.scientificallyAnalyzedCount, locale)}
+            </dd>
+          </div>
+          <div className={styles.metric}>
+            <dt>{messages.aboveHorizon}</dt>
+            <dd>
+              {summary === undefined
+                ? messages.waiting
+                : formatLocaleNumber(summary.aboveHorizonCount, locale)}
+            </dd>
+          </div>
+          <div className={styles.metric}>
+            <dt>{messages.unavailableUnresolved}</dt>
+            <dd>
+              {summary === undefined
+                ? messages.waiting
+                : formatLocaleNumber(summary.unavailableOrUnresolvedCount, locale)}
+            </dd>
+          </div>
+        </dl>
+        {commonNight !== null && commonNight.astronomicalDarkness === null ? (
+          <p className={styles.statusText} role="status">
+            {messages.noDarkness}
+          </p>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -641,37 +627,23 @@ function EventDetails({
           coordinateDisclosureMessages,
         );
   return (
-    <details className="mt-3 rounded-md border border-[var(--border)] px-3 py-2">
-      <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-[var(--foreground)]">
-        {messages.detailsSummary}
-      </summary>
-      <dl className="grid gap-3 pb-2 pt-2 sm:grid-cols-3">
+    <details className={styles.details}>
+      <summary>{messages.detailsSummary}</summary>
+      <dl className={styles.eventGrid}>
         <div>
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.rise}
-          </dt>
-          <dd className="mt-1 text-sm text-[var(--foreground)]">
-            {formatTargetEvent(target.targetEvents.rise, timeZone, locale, messages)}
-          </dd>
+          <dt>{messages.rise}</dt>
+          <dd>{formatTargetEvent(target.targetEvents.rise, timeZone, locale, messages)}</dd>
         </div>
         <div>
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.meridianTransit}
-          </dt>
-          <dd className="mt-1 text-sm text-[var(--foreground)]">
-            {formatTargetEvent(target.targetEvents.transit, timeZone, locale, messages)}
-          </dd>
+          <dt>{messages.meridianTransit}</dt>
+          <dd>{formatTargetEvent(target.targetEvents.transit, timeZone, locale, messages)}</dd>
         </div>
         <div>
-          <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.set}
-          </dt>
-          <dd className="mt-1 text-sm text-[var(--foreground)]">
-            {formatTargetEvent(target.targetEvents.set, timeZone, locale, messages)}
-          </dd>
+          <dt>{messages.set}</dt>
+          <dd>{formatTargetEvent(target.targetEvents.set, timeZone, locale, messages)}</dd>
         </div>
       </dl>
-      <p className="border-t border-[var(--border)] pb-1 pt-3 text-xs leading-5 text-[var(--muted)]">
+      <p className={styles.sourceLine}>
         {formatMessageTemplate(messages.sourceLine, {
           dataset: target.coordinate.source.dataset.name,
           disclosure,
@@ -693,11 +665,10 @@ function MoonLine({
   messages: TonightMessages["target"];
   target: TonightAnalysis["aboveHorizon"][number];
 }>) {
-  if (target.moon === null)
-    return <p className="text-sm text-[var(--muted)]">{messages.moonUnavailable}</p>;
+  if (target.moon === null) return <p className={styles.moonLine}>{messages.moonUnavailable}</p>;
   const moonHorizon = target.moon.position.altitude < 0 ? messages.moonBelow : messages.moonAbove;
   return (
-    <p className="text-sm leading-6 text-[var(--muted)]">
+    <p className={styles.moonLine}>
       {formatMessageTemplate(messages.moonLine, {
         altitude: formatAltitude(target.moon.position.altitude, locale, messages),
         horizon: moonHorizon,
@@ -730,45 +701,31 @@ function WeatherLine({
 }>) {
   const hour = nearestWeatherHour(forecast.hours, target.peak.instant);
   if (hour === null) {
-    return <p className="text-sm text-[var(--muted)]">{messages.contextUnavailable}</p>;
+    return <p className={styles.weatherLine}>{messages.contextUnavailable}</p>;
   }
   return (
-    <div className="space-y-2" data-testid="tonight-weather-facts">
-      <p className="text-sm leading-6 text-[var(--muted)]">
+    <div className={styles.weatherFactsWrap} data-testid="tonight-weather-facts">
+      <p className={styles.weatherLine}>
         {formatMessageTemplate(messages.peakSummary, {
           cloudCover: formatWeatherPercent(hour.cloudCover, locale, messages),
           precipitation: formatWeatherPercent(hour.precipitationProbability, locale, messages),
           time: formatObservationTime(hour.instant, timeZone, locale),
         })}
       </p>
-      <details className="rounded-md border border-[var(--border)] px-3 py-2">
-        <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-[var(--foreground)]">
-          {messages.moreFacts}
-        </summary>
-        <dl className="grid gap-3 pb-2 pt-2 sm:grid-cols-3">
+      <details className={styles.details}>
+        <summary>{messages.moreFacts}</summary>
+        <dl className={styles.weatherFacts}>
           <div>
-            <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-              {messages.visibilityLabel}
-            </dt>
-            <dd className="mt-1 text-sm text-[var(--foreground)]">
-              {formatWeatherVisibility(hour.visibilityMeters, locale, messages)}
-            </dd>
+            <dt>{messages.visibilityLabel}</dt>
+            <dd>{formatWeatherVisibility(hour.visibilityMeters, locale, messages)}</dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-              {messages.humidityLabel}
-            </dt>
-            <dd className="mt-1 text-sm text-[var(--foreground)]">
-              {formatWeatherPercent(hour.relativeHumidity, locale, messages)}
-            </dd>
+            <dt>{messages.humidityLabel}</dt>
+            <dd>{formatWeatherPercent(hour.relativeHumidity, locale, messages)}</dd>
           </div>
           <div>
-            <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-              {messages.windLabel}
-            </dt>
-            <dd className="mt-1 text-sm text-[var(--foreground)]">
-              {formatWeatherWind(hour.windSpeedKmh, locale, messages)}
-            </dd>
+            <dt>{messages.windLabel}</dt>
+            <dd>{formatWeatherWind(hour.windSpeedKmh, locale, messages)}</dd>
           </div>
         </dl>
       </details>
@@ -796,51 +753,43 @@ function TargetRow({
   timeZone: string;
 }>) {
   return (
-    <li
-      className="min-w-0 border-b border-[var(--border)] py-5 first:pt-0 last:border-b-0 last:pb-0"
-      data-testid="tonight-target-row"
-    >
-      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h3 className="min-w-0 truncate text-lg font-semibold tracking-tight">
-              <Link
-                className="text-[var(--foreground)] underline decoration-[var(--border-strong)] underline-offset-4 hover:decoration-[var(--accent)]"
-                href={objectHref(target.item.slug)}
-              >
-                {target.item.canonical_name}
-              </Link>
+    <li className={styles.targetRow} data-testid="tonight-target-row">
+      <div className={styles.targetTop}>
+        <div>
+          <div className={styles.targetIdentity}>
+            <h3 className={styles.targetName}>
+              <Link href={objectHref(target.item.slug)}>{target.item.canonical_name}</Link>
             </h3>
-            <span className="text-sm text-[var(--muted)]">
-              {entityTypeMessages[target.item.entity_type]}
-            </span>
+            <span className={styles.targetType}>{entityTypeMessages[target.item.entity_type]}</span>
           </div>
-          <p className="text-sm leading-6 text-[var(--foreground)]">
-            {formatMessageTemplate(messages.target.highestAltitude, {
-              altitude: formatAltitude(target.peak.altitude, locale, messages.target),
-              time: formatObservationTime(target.peak.instant, timeZone, locale),
-            })}
-          </p>
-          <p className="text-sm text-[var(--muted)]">
-            {formatMessageTemplate(messages.target.azimuthAtPeak, {
-              azimuth: formatAzimuth(
-                target.peak.azimuth,
-                target.peak.compass,
-                locale,
-                messages.target,
-              ),
-            })}
-          </p>
-          <MoonLine locale={locale} messages={messages.target} target={target} />
-          {forecast !== undefined ? (
-            <WeatherLine
-              forecast={forecast}
-              locale={locale}
-              messages={messages.weather}
-              target={target}
-              timeZone={timeZone}
-            />
-          ) : null}
+          <div className={styles.targetGeometry}>
+            <p className={styles.targetPrimary}>
+              {formatMessageTemplate(messages.target.highestAltitude, {
+                altitude: formatAltitude(target.peak.altitude, locale, messages.target),
+                time: formatObservationTime(target.peak.instant, timeZone, locale),
+              })}
+            </p>
+            <p className={styles.targetSecondary}>
+              {formatMessageTemplate(messages.target.azimuthAtPeak, {
+                azimuth: formatAzimuth(
+                  target.peak.azimuth,
+                  target.peak.compass,
+                  locale,
+                  messages.target,
+                ),
+              })}
+            </p>
+            <MoonLine locale={locale} messages={messages.target} target={target} />
+            {forecast !== undefined ? (
+              <WeatherLine
+                forecast={forecast}
+                locale={locale}
+                messages={messages.weather}
+                target={target}
+                timeZone={timeZone}
+              />
+            ) : null}
+          </div>
           <EventDetails
             coordinateDisclosureMessages={coordinateDisclosureMessages}
             locale={locale}
@@ -849,10 +798,7 @@ function TargetRow({
             timeZone={timeZone}
           />
         </div>
-        <Link
-          className={`${SECONDARY_BUTTON_CLASS} shrink-0 no-underline`}
-          href={plannerHref(target.item.slug, nightDate)}
-        >
+        <Link className={SECONDARY_BUTTON_CLASS} href={plannerHref(target.item.slug, nightDate)}>
           {messages.lists.openPlanner}
         </Link>
       </div>
@@ -888,19 +834,20 @@ function TargetList({
   return (
     <section
       aria-labelledby={`${secondary ? "tonight-below" : "tonight-above"}-heading`}
-      className="space-y-4"
+      className={styles.targetSection}
     >
-      <div>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{title}</p>
         <h2
-          className="text-xl font-semibold"
+          className={styles.targetListTitle}
           id={`${secondary ? "tonight-below" : "tonight-above"}-heading`}
         >
           {title}
         </h2>
-        <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{description}</p>
+        <p className={styles.targetListDescription}>{description}</p>
       </div>
       <ol
-        className="m-0 list-none rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-5 sm:px-5"
+        className={styles.targetList}
         data-testid={secondary ? "tonight-below-list" : "tonight-primary-list"}
       >
         {targets.map((target) => (
@@ -945,51 +892,49 @@ function UnresolvedList({
 }>) {
   if (targets.length === 0) return null;
   return (
-    <section aria-labelledby="tonight-unresolved-heading" className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold" id="tonight-unresolved-heading">
+    <section aria-labelledby="tonight-unresolved-heading" className={styles.targetSection}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.unresolvedTitle}</p>
+        <h2 className={styles.targetListTitle} id="tonight-unresolved-heading">
           {messages.unresolvedTitle}
         </h2>
-        <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+        <p className={styles.targetListDescription}>
           {formatCountMessage(messages.unresolvedSummary, targets.length, locale)}
         </p>
       </div>
-      <ul className="m-0 list-none divide-y divide-[var(--border)] rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 sm:px-5">
-        {targets.map((target) => (
-          <li
-            className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
-            key={target.item.slug}
-          >
-            <div className="min-w-0">
-              <p className="truncate font-medium text-[var(--foreground)]">
-                {target.item.canonical_name}
-              </p>
-              <p className="text-sm text-[var(--muted)]">
-                {unresolvedReason(target, messages.unresolvedReasons)}
-                {target.coordinateSourceCount !== undefined ? (
-                  <>
-                    {" "}
-                    {formatCountMessage(
-                      messages.acceptedPairs,
-                      target.coordinateSourceCount,
-                      locale,
-                    )}
-                  </>
-                ) : null}
-              </p>
-            </div>
-            <Link
-              className={`${SECONDARY_BUTTON_CLASS} shrink-0 no-underline`}
-              href={plannerHref(target.item.slug, nightDate)}
-            >
-              {target.kind === "multiple-coordinate-sources"
-                ? messages.inspectPlanner
-                : messages.openPlanner}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs leading-5 text-[var(--muted)]">{messages.authoritativeNote}</p>
+      <div>
+        <ul className={styles.stateList}>
+          {targets.map((target) => (
+            <li className={styles.stateRow} key={target.item.slug}>
+              <div>
+                <p className={styles.stateName}>{target.item.canonical_name}</p>
+                <p className={styles.stateReason}>
+                  {unresolvedReason(target, messages.unresolvedReasons)}
+                  {target.coordinateSourceCount !== undefined ? (
+                    <>
+                      {" "}
+                      {formatCountMessage(
+                        messages.acceptedPairs,
+                        target.coordinateSourceCount,
+                        locale,
+                      )}
+                    </>
+                  ) : null}
+                </p>
+              </div>
+              <Link
+                className={SECONDARY_BUTTON_CLASS}
+                href={plannerHref(target.item.slug, nightDate)}
+              >
+                {target.kind === "multiple-coordinate-sources"
+                  ? messages.inspectPlanner
+                  : messages.openPlanner}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className={styles.authoritativeNote}>{messages.authoritativeNote}</p>
+      </div>
     </section>
   );
 }
@@ -1005,26 +950,20 @@ function NoDarknessTargets({
 }>) {
   if (targets.length === 0) return null;
   return (
-    <section aria-labelledby="tonight-no-darkness-targets-heading" className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold" id="tonight-no-darkness-targets-heading">
+    <section aria-labelledby="tonight-no-darkness-targets-heading" className={styles.targetSection}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.sectionEyebrow}>{messages.noDarknessTitle}</p>
+        <h2 className={styles.targetListTitle} id="tonight-no-darkness-targets-heading">
           {messages.noDarknessTitle}
         </h2>
-        <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-          {messages.noDarknessDescription}
-        </p>
+        <p className={styles.targetListDescription}>{messages.noDarknessDescription}</p>
       </div>
-      <ul className="m-0 list-none divide-y divide-[var(--border)] rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 sm:px-5">
+      <ul className={styles.stateList}>
         {targets.map((target) => (
-          <li
-            className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4"
-            key={target.item.slug}
-          >
-            <span className="truncate font-medium text-[var(--foreground)]">
-              {target.item.canonical_name}
-            </span>
+          <li className={styles.stateRow} key={target.item.slug}>
+            <span className={styles.stateName}>{target.item.canonical_name}</span>
             <Link
-              className={`${SECONDARY_BUTTON_CLASS} shrink-0 no-underline`}
+              className={SECONDARY_BUTTON_CLASS}
               href={plannerHref(target.item.slug, nightDate)}
             >
               {messages.openPlanner}
@@ -1058,7 +997,7 @@ function TonightWeatherAttribution({
   timeZone: string;
 }>) {
   return (
-    <div className="space-y-2 text-xs leading-5 text-[var(--muted)]">
+    <div className={styles.weatherAttribution}>
       {consented ? (
         <p>
           {formatMessageTemplate(messages.consentDisclosure, {
@@ -1079,21 +1018,11 @@ function TonightWeatherAttribution({
               : { retrievedAt: formatRetrievedAt(fetchedAt, timeZone, locale) }),
           },
         )}{" "}
-        <a
-          className="font-medium text-[var(--link)] underline decoration-[var(--border-strong)] underline-offset-2 hover:text-[var(--foreground)]"
-          href={WEATHER_PROVIDER_URL}
-          rel="noreferrer"
-          target="_blank"
-        >
+        <a href={WEATHER_PROVIDER_URL} rel="noreferrer" target="_blank">
           {formatMessageTemplate(messages.providerLink, { provider: WEATHER_PROVIDER_NAME })}
         </a>{" "}
         ·{" "}
-        <a
-          className="text-[var(--link)] underline underline-offset-2"
-          href={WEATHER_PROVIDER_LICENSE_URL}
-          rel="noreferrer"
-          target="_blank"
-        >
+        <a href={WEATHER_PROVIDER_LICENSE_URL} rel="noreferrer" target="_blank">
           {messages.licenceLink}
         </a>
       </p>
@@ -1114,66 +1043,56 @@ function TonightWeatherPanel({
 }>) {
   const consented = weather.status !== "idle";
   return (
-    <section aria-labelledby="tonight-weather-heading" className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold" id="tonight-weather-heading">
+    <section aria-labelledby="tonight-weather-heading" className={styles.weather}>
+      <div className={styles.weatherIntro}>
+        <h3 className={styles.weatherTitle} id="tonight-weather-heading">
           {messages.heading}
         </h3>
-        <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--muted)]">{messages.intro}</p>
+        <p>{messages.intro}</p>
       </div>
-      {weather.availability !== "allowed" ? (
-        <p className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]">
-          {messages.dateUnavailable}
-        </p>
-      ) : weather.status === "idle" ? (
-        <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            {formatMessageTemplate(messages.consentPrompt, {
-              digits: formatLocaleNumber(2, locale),
-              provider: WEATHER_PROVIDER_NAME,
-            })}
+      <div className={styles.weatherBody}>
+        {weather.availability !== "allowed" ? (
+          <p className={styles.weatherState}>{messages.dateUnavailable}</p>
+        ) : weather.status === "idle" ? (
+          <div className={styles.weatherState}>
+            <p>
+              {formatMessageTemplate(messages.consentPrompt, {
+                digits: formatLocaleNumber(2, locale),
+                provider: WEATHER_PROVIDER_NAME,
+              })}
+            </p>
+            <div className={styles.actionRow}>
+              <button className={PRIMARY_BUTTON_CLASS} onClick={weather.enable} type="button">
+                {messages.loadAction}
+              </button>
+            </div>
+          </div>
+        ) : weather.status === "loading" ? (
+          <p aria-live="polite" className={styles.weatherState} role="status">
+            {messages.loading}
           </p>
-          <button className={`${PRIMARY_BUTTON_CLASS} mt-4`} onClick={weather.enable} type="button">
-            {messages.loadAction}
-          </button>
-        </div>
-      ) : weather.status === "loading" ? (
-        <p
-          aria-live="polite"
-          className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]"
-          role="status"
-        >
-          {messages.loading}
-        </p>
-      ) : weather.status === "unavailable" ? (
-        <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4">
-          <p className="text-sm text-[var(--muted)]" role="alert">
-            {messages.failure}
+        ) : weather.status === "unavailable" ? (
+          <div className={styles.weatherState}>
+            <p role="alert">{messages.failure}</p>
+            <div className={styles.actionRow}>
+              <button className={SECONDARY_BUTTON_CLASS} onClick={weather.retry} type="button">
+                {messages.retry}
+              </button>
+            </div>
+          </div>
+        ) : weather.forecast !== undefined ? (
+          <p aria-live="polite" className={styles.weatherState} role="status">
+            {messages.loaded}
           </p>
-          <button
-            className={`${SECONDARY_BUTTON_CLASS} mt-3`}
-            onClick={weather.retry}
-            type="button"
-          >
-            {messages.retry}
-          </button>
-        </div>
-      ) : weather.forecast !== undefined ? (
-        <p
-          aria-live="polite"
-          className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4 text-sm text-[var(--muted)]"
-          role="status"
-        >
-          {messages.loaded}
-        </p>
-      ) : null}
-      <TonightWeatherAttribution
-        consented={consented}
-        fetchedAt={weather.forecast?.fetchedAt}
-        locale={locale}
-        messages={messages}
-        timeZone={timeZone}
-      />
+        ) : null}
+        <TonightWeatherAttribution
+          consented={consented}
+          fetchedAt={weather.forecast?.fetchedAt}
+          locale={locale}
+          messages={messages}
+          timeZone={timeZone}
+        />
+      </div>
     </section>
   );
 }
@@ -1206,11 +1125,7 @@ function AnalysisResults({
   const weather = useObservationWeather({ location, nightDate });
   if (detailLoad.status === "loading") {
     return (
-      <p
-        aria-live="polite"
-        className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5 text-sm text-[var(--muted)]"
-        role="status"
-      >
+      <p aria-live="polite" className={styles.statusPanel} role="status">
         {formatCountMessage(messages.analysis.loading, detailLoad.total, locale, {
           completed: formatLocaleNumber(detailLoad.completed, locale),
         })}
@@ -1219,11 +1134,7 @@ function AnalysisResults({
   }
   if (analysis === null) {
     return (
-      <p
-        aria-live="polite"
-        className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5 text-sm text-[var(--muted)]"
-        role="status"
-      >
+      <p aria-live="polite" className={styles.statusPanel} role="status">
         {messages.analysis.prompt}
       </p>
     );
@@ -1236,23 +1147,19 @@ function AnalysisResults({
   );
 
   return (
-    <div className="space-y-10">
+    <div className={styles.analysisStack}>
       {hasCatalogueFailures ? (
-        <div
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-4"
-          role="status"
-        >
-          <p className="text-sm text-[var(--muted)]">{messages.analysis.catalogueFailure}</p>
-          <button className={`${SECONDARY_BUTTON_CLASS} mt-3`} onClick={onRetry} type="button">
-            {messages.analysis.retryCatalogue}
-          </button>
+        <div className={styles.catalogueFailure} role="status">
+          <p>{messages.analysis.catalogueFailure}</p>
+          <div className={styles.actionRow}>
+            <button className={SECONDARY_BUTTON_CLASS} onClick={onRetry} type="button">
+              {messages.analysis.retryCatalogue}
+            </button>
+          </div>
         </div>
       ) : null}
       {analysis.night.astronomicalDarkness !== null ? (
-        <p
-          className="max-w-3xl text-sm leading-6 text-[var(--muted)]"
-          id="tonight-ordering-explanation"
-        >
+        <p className={styles.orderingExplanation} id="tonight-ordering-explanation">
           {messages.analysis.orderingExplanation}
         </p>
       ) : null}
@@ -1307,9 +1214,7 @@ function AnalysisResults({
       primary.length === 0 &&
       below.length === 0 &&
       analysis.unresolved.length === 0 ? (
-        <p className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-5 text-sm text-[var(--muted)]">
-          {messages.analysis.emptyOrdering}
-        </p>
+        <p className={styles.statusPanel}>{messages.analysis.emptyOrdering}</p>
       ) : null}
     </div>
   );
@@ -1448,15 +1353,13 @@ export function TonightView({
   }, [messages.location]);
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="max-w-3xl text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       <CollectionScope
@@ -1510,59 +1413,40 @@ export function TonightView({
           {selectedItems.length === 0 ? (
             <section
               aria-labelledby="tonight-empty-collection-heading"
-              className="max-w-xl rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-7"
+              className={styles.emptyState}
             >
-              <h2 className="text-xl font-semibold" id="tonight-empty-collection-heading">
-                {messages.emptyCollection.title}
-              </h2>
-              <p className="mt-2 leading-7 text-[var(--muted)]">
-                {messages.emptyCollection.description}
-              </p>
+              <h2 id="tonight-empty-collection-heading">{messages.emptyCollection.title}</h2>
+              <p>{messages.emptyCollection.description}</p>
               <Link
-                className={`${SECONDARY_BUTTON_CLASS} mt-4 no-underline`}
+                className={SECONDARY_BUTTON_CLASS}
                 href={`/collections/${selectedCollection.id}`}
               >
                 {messages.emptyCollection.manageAction}
               </Link>
             </section>
           ) : location === null ? (
-            <section
-              aria-live="polite"
-              className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5"
-            >
-              <h2 className="text-xl font-semibold">{messages.locationRequired.title}</h2>
-              <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-                {messages.locationRequired.description}
-              </p>
+            <section aria-live="polite" className={styles.statusPanel}>
+              <h2>{messages.locationRequired.title}</h2>
+              <p>{messages.locationRequired.description}</p>
             </section>
           ) : !isValidNightDate(activeNightDate) ? (
-            <section
-              aria-live="polite"
-              className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5"
-            >
-              <h2 className="text-xl font-semibold">{messages.invalidNight.title}</h2>
-              <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-                {messages.invalidNight.description}
-              </p>
+            <section aria-live="polite" className={styles.statusPanel}>
+              <h2>{messages.invalidNight.title}</h2>
+              <p>{messages.invalidNight.description}</p>
             </section>
           ) : detailLoad !== null ? (
-            <section aria-labelledby="tonight-results-heading" className="space-y-5">
-              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-2">
+            <section aria-labelledby="tonight-results-heading" className={styles.results}>
+              <div className={styles.resultsHeader}>
                 <div>
-                  <h2 className="text-2xl font-semibold" id="tonight-results-heading">
+                  <h2 className={styles.resultsTitle} id="tonight-results-heading">
                     {messages.resultsHeader.heading}
                   </h2>
-                  <p className="mt-1 text-sm text-[var(--muted)]">
-                    {messages.resultsHeader.summary}
-                  </p>
+                  <p className={styles.resultsSummary}>{messages.resultsHeader.summary}</p>
                 </div>
-                <label
-                  className="flex min-h-11 items-center gap-2 text-sm text-[var(--muted)]"
-                  htmlFor="tonight-sort"
-                >
-                  <span className="whitespace-nowrap">{messages.resultsHeader.orderBy}</span>
+                <label className={styles.sortLabel} htmlFor="tonight-sort">
+                  <span>{messages.resultsHeader.orderBy}</span>
                   <select
-                    className="min-h-11 rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
+                    className={styles.select}
                     id="tonight-sort"
                     onChange={(event) => setSort(event.target.value as TonightSort)}
                     value={sort}

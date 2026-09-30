@@ -11,7 +11,14 @@ result=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h 127.0.0.1 -U lumina_admin -d po
       (SELECT count(*) FROM pg_database WHERE datname IN ('lumina', 'lumina_test')) = 2
       AND
       (SELECT count(*) FROM pg_roles
-       WHERE rolname IN ('lumina_app', 'lumina_migrate', 'lumina_test_app', 'lumina_test_migrate')) = 4
+       WHERE rolname IN (
+         'lumina_app',
+         'lumina_migrate',
+         'lumina_test_app',
+         'lumina_test_migrate',
+         'lumina_catalog_operator',
+         'lumina_test_catalog_operator'
+       )) = 6
   " 2>/dev/null)
 
 [ "$result" = "t" ]

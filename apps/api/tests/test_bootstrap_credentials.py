@@ -633,3 +633,37 @@ def test_healthcheck_fails_when_role_database_predicate_is_false(tmp_path: Path)
 
     assert completed.returncode != 0
     assert completed.stdout == ""
+
+
+def test_healthcheck_requires_catalog_operator_roles(tmp_path: Path) -> None:
+    binary_directory = tmp_path / "bin"
+    binary_directory.mkdir()
+    for name, content in {
+        "pg_isready": "#!/bin/sh\nexit 0\n",
+        "psql": (
+            "#!/bin/sh\n"
+            'case "$*" in\n'
+            "  *lumina_catalog_operator*lumina_test_catalog_operator*'= 6'*) printf 't\\n' ;;\n"
+            "  *) printf 'f\\n' ;;\n"
+            "esac\n"
+        ),
+    }.items():
+        binary = binary_directory / name
+        binary.write_text(content, encoding="utf-8")
+        binary.chmod(0o700)
+    script = Path(__file__).resolve().parents[3] / "infra/docker/postgres/healthcheck.sh"
+
+    completed = subprocess.run(
+        ["sh", str(script)],
+        env={
+            **os.environ,
+            "PATH": f"{binary_directory}:{os.environ['PATH']}",
+            "POSTGRES_PASSWORD": "a" * 64,
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0
+    assert completed.stdout == ""

@@ -6,9 +6,10 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from fakes.http import get_asgi
+from fakes.snapshot import DeterministicSnapshotReader
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
-from lumina.provenance.application.read import ProviderSnapshot, ProviderSnapshotReader
+from lumina.provenance.application.read import ProviderSnapshot
 from lumina.provenance.composition import launch_library_runtime_config
 from lumina.provenance.domain.launch_library import (
     Ll2Agency,
@@ -35,18 +36,6 @@ from lumina.settings import AppSettings
 from lumina.space_now.application.launches import LaunchReadService
 
 _NOW = datetime(2026, 9, 15, 0, 0, tzinfo=UTC)
-
-
-class _Reader(ProviderSnapshotReader):
-    def __init__(self, snapshot: ProviderSnapshot | BaseException) -> None:
-        self.snapshot = snapshot
-        self.calls: list[str] = []
-
-    async def read(self, provider_code: str) -> ProviderSnapshot:
-        self.calls.append(provider_code)
-        if isinstance(self.snapshot, BaseException):
-            raise self.snapshot
-        return self.snapshot
 
 
 def _launch(
@@ -167,7 +156,9 @@ async def test_projection_preserves_status_precision_and_eligibility() -> None:
         status=Ll2Status(8, "To Be Confirmed", "TBC"),
         precision=Ll2Precision(5, "Day", "DAY"),
     )
-    reader = _Reader(_snapshot(cache=_cache((_launch(0), coarse)), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(
+        _snapshot(cache=_cache((_launch(0), coarse)), cache_state=CacheState.FRESH)
+    )
     projection = await LaunchReadService(reader).read()
     assert projection.availability == "fresh"
     assert projection.total_launch_count == 2
@@ -200,7 +191,9 @@ async def test_projection_has_explicit_unavailable_states(
     reason: str,
 ) -> None:
     projection = await LaunchReadService(
-        _Reader(_snapshot(enabled=enabled, cache=cache, cache_state=cache_state))
+        DeterministicSnapshotReader(
+            _snapshot(enabled=enabled, cache=cache, cache_state=cache_state)
+        )
     ).read()
     assert projection.availability == "unavailable"
     assert projection.unavailable_reason == reason
@@ -212,7 +205,7 @@ async def test_projection_has_explicit_unavailable_states(
 async def test_stale_projection_retains_source_data_and_failure_separately() -> None:
     fetched = _NOW - timedelta(hours=3)
     projection = await LaunchReadService(
-        _Reader(
+        DeterministicSnapshotReader(
             _snapshot(
                 cache=_cache(fetched_at=fetched),
                 cache_state=CacheState.STALE,
@@ -227,7 +220,9 @@ async def test_stale_projection_retains_source_data_and_failure_separately() -> 
 
 
 def test_public_launch_list_and_detail_are_cache_only_and_bounded() -> None:
-    service = LaunchReadService(_Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH)))
+    service = LaunchReadService(
+        DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    )
     app = _app(service)
     listing = get_asgi(app, "/api/v1/now/launches")
     assert listing.status_code == 200
@@ -247,7 +242,11 @@ def test_public_launch_list_and_detail_are_cache_only_and_bounded() -> None:
 
 
 def test_detail_missing_invalid_and_query_parameters_fail_without_upstream_access() -> None:
-    app = _app(LaunchReadService(_Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))))
+    app = _app(
+        LaunchReadService(
+            DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+        )
+    )
     assert get_asgi(app, "/api/v1/now/launches/not-a-uuid").status_code == 422
     assert (
         get_asgi(app, "/api/v1/now/launches/ffffffff-ffff-4fff-8fff-ffffffffffff").status_code
@@ -262,7 +261,9 @@ def test_list_drops_complete_tail_records_to_stay_under_public_byte_ceiling() ->
     response = get_asgi(
         _app(
             LaunchReadService(
-                _Reader(_snapshot(cache=_cache(launches), cache_state=CacheState.FRESH))
+                DeterministicSnapshotReader(
+                    _snapshot(cache=_cache(launches), cache_state=CacheState.FRESH)
+                )
             )
         ),
         "/api/v1/now/launches",
@@ -278,7 +279,11 @@ def test_list_drops_complete_tail_records_to_stay_under_public_byte_ceiling() ->
 def test_detail_can_read_tail_launch_outside_bounded_public_list() -> None:
     launches = tuple(_launch(index) for index in range(13))
     app = _app(
-        LaunchReadService(_Reader(_snapshot(cache=_cache(launches), cache_state=CacheState.FRESH)))
+        LaunchReadService(
+            DeterministicSnapshotReader(
+                _snapshot(cache=_cache(launches), cache_state=CacheState.FRESH)
+            )
+        )
     )
 
     listing = get_asgi(app, "/api/v1/now/launches")

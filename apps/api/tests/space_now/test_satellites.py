@@ -10,9 +10,10 @@ from typing import Any
 import httpx
 import pytest
 from fakes.http import get_asgi, request_asgi
+from fakes.snapshot import DeterministicSnapshotReader
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
-from lumina.provenance.application.read import ProviderSnapshot, ProviderSnapshotReader
+from lumina.provenance.application.read import ProviderSnapshot
 from lumina.provenance.composition import celestrak_runtime_config
 from lumina.provenance.domain.celestrak import (
     CelestrakCodec,
@@ -42,18 +43,6 @@ class _Clock:
 
     def now(self) -> datetime:
         return self.current
-
-
-class _Reader(ProviderSnapshotReader):
-    def __init__(self, snapshot: ProviderSnapshot | BaseException) -> None:
-        self.snapshot = snapshot
-        self.calls: list[str] = []
-
-    async def read(self, provider_code: str) -> ProviderSnapshot:
-        self.calls.append(provider_code)
-        if isinstance(self.snapshot, BaseException):
-            raise self.snapshot
-        return self.snapshot
 
 
 def _iss(*, catalog_number: int = 25544) -> CelestrakSatellite:
@@ -166,7 +155,7 @@ def _snapshot(
 
 
 def _app(snapshot: ProviderSnapshot) -> FastAPI:
-    reader = _Reader(snapshot)
+    reader = DeterministicSnapshotReader(snapshot)
     app = create_app(
         AppSettings.model_validate(
             {
@@ -232,7 +221,7 @@ def _pass_payload(catalog_number: int = 25544) -> dict[str, Any]:
 
 @pytest.mark.asyncio
 async def test_list_projection_preserves_groups_epoch_and_element_age() -> None:
-    reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
     projection = await SatelliteReadService(reader, clock=_Clock()).read()
     assert projection.availability == "fresh"
     assert projection.total_satellite_count == 2

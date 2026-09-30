@@ -6,11 +6,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from fakes.http import get_asgi
+from fakes.snapshot import DeterministicSnapshotReader
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import (
     ProviderSnapshot,
-    ProviderSnapshotReader,
     ProviderSnapshotReadError,
 )
 from lumina.provenance.composition import nasa_neows_runtime_config
@@ -29,18 +29,6 @@ from lumina.settings import AppSettings
 from lumina.space_now.application.read import NearEarthReadService
 
 _NOW = datetime(2026, 9, 12, 12, 0, tzinfo=UTC)
-
-
-class _Reader(ProviderSnapshotReader):
-    def __init__(self, snapshot: ProviderSnapshot | BaseException) -> None:
-        self.snapshot = snapshot
-        self.calls: list[str] = []
-
-    async def read(self, provider_code: str) -> ProviderSnapshot:
-        self.calls.append(provider_code)
-        if isinstance(self.snapshot, BaseException):
-            raise self.snapshot
-        return self.snapshot
 
 
 def _encounter(
@@ -146,7 +134,7 @@ def _app(service: NearEarthReadService) -> FastAPI:
 
 @pytest.mark.asyncio
 async def test_projection_exposes_fresh_ordered_events_and_explicit_uncertainty_absence() -> None:
-    reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
 
     projection = await NearEarthReadService(reader).read()
 
@@ -166,7 +154,9 @@ async def test_projection_exposes_fresh_ordered_events_and_explicit_uncertainty_
 @pytest.mark.asyncio
 async def test_projection_caps_only_public_output_and_reports_full_cached_count() -> None:
     encounters = tuple(_encounter(index) for index in range(33))
-    reader = _Reader(_snapshot(cache=_cache(encounters=encounters), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(
+        _snapshot(cache=_cache(encounters=encounters), cache_state=CacheState.FRESH)
+    )
 
     projection = await NearEarthReadService(reader).read()
 
@@ -194,7 +184,9 @@ async def test_projection_has_explicit_unavailable_states(
     reason: str,
 ) -> None:
     projection = await NearEarthReadService(
-        _Reader(_snapshot(enabled=enabled, cache=cache, cache_state=cache_state))
+        DeterministicSnapshotReader(
+            _snapshot(enabled=enabled, cache=cache, cache_state=cache_state)
+        )
     ).read()
 
     assert projection.availability == "unavailable"
@@ -207,7 +199,7 @@ async def test_projection_has_explicit_unavailable_states(
 async def test_projection_keeps_stale_events_and_retrieval_failure_separate() -> None:
     cache = _cache(fetched_at=_NOW - timedelta(hours=4))
     projection = await NearEarthReadService(
-        _Reader(
+        DeterministicSnapshotReader(
             _snapshot(
                 cache=cache,
                 cache_state=CacheState.STALE,
@@ -227,7 +219,9 @@ async def test_projection_keeps_stale_events_and_retrieval_failure_separate() ->
 def test_public_near_earth_response_is_safe_and_cache_only() -> None:
     response = get_asgi(
         _app(
-            NearEarthReadService(_Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH)))
+            NearEarthReadService(
+                DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+            )
         ),
         "/api/v1/now/near-earth",
     )
@@ -255,7 +249,7 @@ def test_public_near_earth_response_trims_to_generated_client_byte_limit() -> No
     response = get_asgi(
         _app(
             NearEarthReadService(
-                _Reader(
+                DeterministicSnapshotReader(
                     _snapshot(
                         cache=_cache(encounters=encounters),
                         cache_state=CacheState.FRESH,
@@ -278,7 +272,7 @@ def test_public_near_earth_response_trims_to_generated_client_byte_limit() -> No
 
 
 def test_public_near_earth_route_rejects_query_parameters_without_reading_state() -> None:
-    reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
     response = get_asgi(
         _app(NearEarthReadService(reader)),
         "/api/v1/now/near-earth?start_date=2026-09-12",
@@ -291,7 +285,7 @@ def test_public_near_earth_route_rejects_query_parameters_without_reading_state(
 
 def test_public_near_earth_route_uses_the_standard_safe_error_for_read_failures() -> None:
     response = get_asgi(
-        _app(NearEarthReadService(_Reader(ProviderSnapshotReadError()))),
+        _app(NearEarthReadService(DeterministicSnapshotReader(ProviderSnapshotReadError()))),
         "/api/v1/now/near-earth",
     )
 

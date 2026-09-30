@@ -6,11 +6,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from fakes.http import get_asgi
+from fakes.snapshot import DeterministicSnapshotReader
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import (
     ProviderSnapshot,
-    ProviderSnapshotReader,
     ProviderSnapshotReadError,
 )
 from lumina.provenance.composition import noaa_swpc_runtime_config
@@ -41,18 +41,6 @@ from lumina.space_now.application.read import SpaceWeatherReadService
 
 _ROOT = __import__("pathlib").Path(__file__).resolve().parents[4]
 _NOW = datetime(2026, 9, 12, 7, 0, tzinfo=UTC)
-
-
-class _Reader(ProviderSnapshotReader):
-    def __init__(self, snapshot: ProviderSnapshot | BaseException) -> None:
-        self.snapshot = snapshot
-        self.calls: list[str] = []
-
-    async def read(self, provider_code: str) -> ProviderSnapshot:
-        self.calls.append(provider_code)
-        if isinstance(self.snapshot, BaseException):
-            raise self.snapshot
-        return self.snapshot
 
 
 def _normalized() -> SwpcNormalized:
@@ -155,7 +143,7 @@ def _app(service: SpaceWeatherReadService) -> FastAPI:
 
 @pytest.mark.asyncio
 async def test_projection_keeps_scale_families_statuses_units_and_timestamps_distinct() -> None:
-    reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
 
     projection = await SpaceWeatherReadService(reader).read()
 
@@ -194,7 +182,9 @@ async def test_projection_has_explicit_unavailable_states(
     reason: str,
 ) -> None:
     projection = await SpaceWeatherReadService(
-        _Reader(_snapshot(enabled=enabled, cache=cache, cache_state=cache_state))
+        DeterministicSnapshotReader(
+            _snapshot(enabled=enabled, cache=cache, cache_state=cache_state)
+        )
     ).read()
 
     assert projection.availability == "unavailable"
@@ -208,7 +198,7 @@ def test_public_space_weather_response_is_cache_only_and_safe() -> None:
     response = get_asgi(
         _app(
             SpaceWeatherReadService(
-                _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+                DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
             )
         ),
         "/api/v1/now/space-weather",
@@ -255,7 +245,9 @@ def test_public_space_weather_rejects_noncanonical_persisted_ordering() -> None:
     response = get_asgi(
         _app(
             SpaceWeatherReadService(
-                _Reader(_snapshot(cache=corrupted, cache_state=CacheState.FRESH))
+                DeterministicSnapshotReader(
+                    _snapshot(cache=corrupted, cache_state=CacheState.FRESH)
+                )
             )
         ),
         "/api/v1/now/space-weather",
@@ -302,7 +294,9 @@ def test_public_space_weather_response_keeps_complete_notifications_within_trans
     response = get_asgi(
         _app(
             SpaceWeatherReadService(
-                _Reader(_snapshot(cache=large_cache, cache_state=CacheState.FRESH))
+                DeterministicSnapshotReader(
+                    _snapshot(cache=large_cache, cache_state=CacheState.FRESH)
+                )
             )
         ),
         "/api/v1/now/space-weather",
@@ -316,7 +310,7 @@ def test_public_space_weather_response_keeps_complete_notifications_within_trans
 
 
 def test_public_space_weather_route_rejects_query_parameters_without_reading_state() -> None:
-    reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
     response = get_asgi(
         _app(SpaceWeatherReadService(reader)),
         "/api/v1/now/space-weather?refresh=true",
@@ -329,7 +323,7 @@ def test_public_space_weather_route_rejects_query_parameters_without_reading_sta
 
 def test_public_space_weather_route_uses_standard_safe_read_error() -> None:
     response = get_asgi(
-        _app(SpaceWeatherReadService(_Reader(ProviderSnapshotReadError()))),
+        _app(SpaceWeatherReadService(DeterministicSnapshotReader(ProviderSnapshotReadError()))),
         "/api/v1/now/space-weather",
     )
 

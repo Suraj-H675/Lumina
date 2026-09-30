@@ -8,11 +8,11 @@ from typing import Literal
 import pytest
 from fakes.apod import public_content_bytes
 from fakes.http import get_asgi
+from fakes.snapshot import DeterministicSnapshotReader
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import (
     ProviderSnapshot,
-    ProviderSnapshotReader,
     ProviderSnapshotReadError,
 )
 from lumina.provenance.composition import nasa_apod_runtime_config
@@ -43,18 +43,6 @@ from lumina.space_now.application.read import (
 
 _NOW = datetime(2026, 9, 10, 12, 0, tzinfo=UTC)
 _SOURCE_MEDIA_URL = "https://media.example.invalid/private-fixture.jpg"
-
-
-class _Reader(ProviderSnapshotReader):
-    def __init__(self, snapshot: ProviderSnapshot | BaseException) -> None:
-        self.snapshot = snapshot
-        self.calls: list[str] = []
-
-    async def read(self, provider_code: str) -> ProviderSnapshot:
-        self.calls.append(provider_code)
-        if isinstance(self.snapshot, BaseException):
-            raise self.snapshot
-        return self.snapshot
 
 
 def _cache(
@@ -189,7 +177,7 @@ def _app(service: ApodReadService) -> FastAPI:
 
 @pytest.mark.asyncio
 async def test_projection_returns_fresh_content_without_raw_media_urls() -> None:
-    reader = _Reader(
+    reader = DeterministicSnapshotReader(
         _snapshot(
             cache=_cache(copyright="Fixture Creator"),
             cache_state=CacheState.FRESH,
@@ -224,7 +212,9 @@ async def test_projection_has_explicit_unavailable_states(
     reason: str,
 ) -> None:
     projection = await ApodReadService(
-        _Reader(_snapshot(enabled=enabled, cache=cache, cache_state=cache_state))
+        DeterministicSnapshotReader(
+            _snapshot(enabled=enabled, cache=cache, cache_state=cache_state)
+        )
     ).read()
 
     assert projection.availability == "unavailable"
@@ -238,7 +228,7 @@ async def test_projection_has_explicit_unavailable_states(
 async def test_projection_keeps_stale_content_and_distinct_retrieval_timestamp() -> None:
     cache = _cache(fetched_at=_NOW - timedelta(hours=7))
     projection = await ApodReadService(
-        _Reader(
+        DeterministicSnapshotReader(
             _snapshot(
                 cache=cache,
                 cache_state=CacheState.STALE,
@@ -272,14 +262,18 @@ async def test_projection_rejects_a_cache_identity_mismatch_at_the_product_bound
 
     with pytest.raises(ProviderSnapshotReadError):
         await ApodReadService(
-            _Reader(_snapshot(cache=mismatched, cache_state=CacheState.FRESH))
+            DeterministicSnapshotReader(_snapshot(cache=mismatched, cache_state=CacheState.FRESH))
         ).read()
 
 
 def test_public_apod_response_is_safe_and_read_only() -> None:
     cache = _cache(copyright="Fixture Creator")
     response = get_asgi(
-        _app(ApodReadService(_Reader(_snapshot(cache=cache, cache_state=CacheState.FRESH)))),
+        _app(
+            ApodReadService(
+                DeterministicSnapshotReader(_snapshot(cache=cache, cache_state=CacheState.FRESH))
+            )
+        ),
         "/api/v1/now/apod",
     )
 
@@ -309,7 +303,7 @@ def test_public_apod_response_is_safe_and_read_only() -> None:
 
 
 def test_public_apod_route_rejects_query_parameters_without_reading_provider_state() -> None:
-    reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
+    reader = DeterministicSnapshotReader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
     response = get_asgi(_app(ApodReadService(reader)), "/api/v1/now/apod?date=2026-09-09")
 
     assert response.status_code == 422
@@ -319,7 +313,7 @@ def test_public_apod_route_rejects_query_parameters_without_reading_provider_sta
 
 def test_public_apod_route_uses_the_standard_safe_error_for_read_failures() -> None:
     response = get_asgi(
-        _app(ApodReadService(_Reader(ProviderSnapshotReadError()))),
+        _app(ApodReadService(DeterministicSnapshotReader(ProviderSnapshotReadError()))),
         "/api/v1/now/apod",
     )
 
@@ -343,7 +337,7 @@ def test_maximum_accepted_apod_content_fits_the_full_success_response_bound() ->
     response = get_asgi(
         _app(
             ApodReadService(
-                _Reader(
+                DeterministicSnapshotReader(
                     _snapshot(
                         cache=cache,
                         cache_state=CacheState.STALE,
@@ -370,7 +364,11 @@ def test_legacy_oversized_apod_cache_is_readable_but_never_emitted() -> None:
     assert decoded.explanation == "x" * 60_000
 
     response = get_asgi(
-        _app(ApodReadService(_Reader(_snapshot(cache=legacy, cache_state=CacheState.FRESH)))),
+        _app(
+            ApodReadService(
+                DeterministicSnapshotReader(_snapshot(cache=legacy, cache_state=CacheState.FRESH))
+            )
+        ),
         "/api/v1/now/apod",
     )
 

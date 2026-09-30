@@ -86,6 +86,8 @@ API_PYTHON_IMAGE = (
 SECRET_PAYLOAD = "fake-secret-payload-that-must-not-leak"
 EXPECTED_PNPM_OVERRIDES = {
     "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2",
+    "brace-expansion@1.1.18": "1.1.21",
+    "brace-expansion@5.0.9": "5.0.12",
 }
 HISTORICAL_TRUFFLEHOG_EXCEPTIONS = (
     (
@@ -237,6 +239,8 @@ def _pnpm_list(*arguments: str) -> object:
 def _assert_remediated_dependency_graph(records: object) -> None:
     nodes = tuple(_dependency_nodes(records))
     vulnerable_versions = {
+        ("brace-expansion", "1.1.18"),
+        ("brace-expansion", "5.0.9"),
         ("js-yaml", "4.2.0"),
         ("js-yaml", "4.3.0"),
         ("js-yaml", "4.3.1"),
@@ -444,6 +448,8 @@ def test_pnpm_workspace_override_ownership_and_lockfile_metadata_are_exact() -> 
 
     assert _top_level_yaml_block(workspace, "overrides") == (
         '  "@hey-api/json-schema-ref-parser@1.4.4>js-yaml": "4.3.2"',
+        '  "brace-expansion@1.1.18": "1.1.21"',
+        '  "brace-expansion@5.0.9": "5.0.12"',
         "",
     )
     assert dict(_top_level_yaml_mapping(workspace, "overrides")) == EXPECTED_PNPM_OVERRIDES

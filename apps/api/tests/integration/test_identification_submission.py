@@ -18,6 +18,7 @@ from .migration_lifecycle import (
     migration_config,
     run_alembic,
     run_migration_operation,
+    runtime_sync_url,
 )
 
 _HEAD_REVISION = "a2b3c4d5e6f7"
@@ -32,12 +33,6 @@ _SUBMISSION_ID = UUID("61000000-0000-4000-8000-000000000001")
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
     return make_url(settings.test_database_sync_url.get_secret_value())
-
-
-def _runtime_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
 
 
 def _cleanup(settings: IntegrationTestSettings) -> None:
@@ -224,7 +219,7 @@ def test_runtime_can_create_fake_or_consented_nova_and_scrub_but_cannot_delete(
     integration_settings: IntegrationTestSettings,
 ) -> None:
     _cleanup(integration_settings)
-    engine = create_engine(_runtime_url(integration_settings), poolclass=NullPool)
+    engine = create_engine(runtime_sync_url(integration_settings), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             connection.execute(

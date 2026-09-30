@@ -11,7 +11,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
-from .migration_lifecycle import run_migration_operation
+from .migration_lifecycle import run_migration_operation, runtime_sync_url
 
 _HEAD = "a2b3c4d5e6f7"
 _REMOTE = "identification_remote_solve"
@@ -22,12 +22,6 @@ _NOVA_ID = UUID("63000000-0000-4000-8000-000000000002")
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
     return make_url(settings.test_database_sync_url.get_secret_value())
-
-
-def _runtime_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
 
 
 def _cleanup(settings: IntegrationTestSettings) -> None:
@@ -199,7 +193,7 @@ def test_runtime_cannot_bypass_remote_consent_or_delete_remote_evidence(
     integration_settings: IntegrationTestSettings,
 ) -> None:
     _cleanup(integration_settings)
-    engine = create_engine(_runtime_url(integration_settings), poolclass=NullPool)
+    engine = create_engine(runtime_sync_url(integration_settings), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             for submission_id, solver, consent, key in (

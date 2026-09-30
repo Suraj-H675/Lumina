@@ -120,6 +120,13 @@ def historical_runtime_url(settings: IntegrationTestSettings) -> URL:
     return url
 
 
+def runtime_sync_url(settings: IntegrationTestSettings) -> URL:
+    """Return the test runtime URL using the synchronous PostgreSQL driver."""
+    return make_url(settings.test_database_url.get_secret_value()).set(
+        drivername="postgresql+psycopg"
+    )
+
+
 def historical_admin_connection_url(admin_url: URL) -> URL:
     """Return an admin URL scoped to the disposable pre-B3 history database."""
     return make_url(admin_url).set(database=_HISTORY_DATABASE)

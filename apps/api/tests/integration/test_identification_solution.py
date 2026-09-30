@@ -15,7 +15,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
-from .migration_lifecycle import run_migration_operation
+from .migration_lifecycle import run_migration_operation, runtime_sync_url
 
 _HEAD = "a2b3c4d5e6f7"
 _SOLUTION = "identification_solution"
@@ -25,12 +25,6 @@ _SUBMISSION_ID = UUID("64000000-0000-4000-8000-000000000001")
 
 def _sync_url(settings: IntegrationTestSettings) -> URL:
     return make_url(settings.test_database_sync_url.get_secret_value())
-
-
-def _runtime_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
 
 
 def _cleanup(settings: IntegrationTestSettings) -> None:
@@ -235,7 +229,7 @@ def test_runtime_result_rows_are_immutable_and_solution_delete_cascades_annotati
 ) -> None:
     _cleanup(integration_settings)
     _seed_fetching_result(integration_settings)
-    engine = create_engine(_runtime_url(integration_settings), poolclass=NullPool)
+    engine = create_engine(runtime_sync_url(integration_settings), poolclass=NullPool)
     try:
         with engine.begin() as connection:
             connection.execute(
@@ -300,7 +294,7 @@ def test_solution_fk_and_science_checks_fail_closed(
 ) -> None:
     _cleanup(integration_settings)
     _seed_fetching_result(integration_settings)
-    engine = create_engine(_runtime_url(integration_settings), poolclass=NullPool)
+    engine = create_engine(runtime_sync_url(integration_settings), poolclass=NullPool)
     try:
         with pytest.raises(IntegrityError), engine.begin() as connection:
             connection.execute(

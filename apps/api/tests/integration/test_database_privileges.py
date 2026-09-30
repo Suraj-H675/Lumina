@@ -7,9 +7,10 @@ from collections.abc import Callable
 import pytest
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, create_engine, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import InterfaceError, OperationalError, ProgrammingError
 from sqlalchemy.pool import NullPool
+
+from .migration_lifecycle import runtime_sync_url
 
 
 def _run_privilege_operation[Result](operation: Callable[[], Result]) -> Result:
@@ -54,12 +55,6 @@ def _assert_runtime_denied(url: URL, statement: str) -> None:
     finally:
         engine.dispose()
     pytest.fail("Runtime role unexpectedly received a prohibited database privilege.")
-
-
-def _test_runtime_sync_url(settings: IntegrationTestSettings) -> URL:
-    return make_url(settings.test_database_url.get_secret_value()).set(
-        drivername="postgresql+psycopg"
-    )
 
 
 def test_database_owners_roles_and_public_privileges(
@@ -115,7 +110,7 @@ def test_database_owners_roles_and_public_privileges(
 def test_runtime_roles_cannot_create_or_modify_database_objects(
     integration_settings: IntegrationTestSettings,
 ) -> None:
-    runtime_url = _test_runtime_sync_url(integration_settings)
+    runtime_url = runtime_sync_url(integration_settings)
 
     for statement in (
         "CREATE SCHEMA lumina_runtime_denied",

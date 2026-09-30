@@ -9,6 +9,7 @@ from typing import cast
 from uuid import UUID, uuid4
 
 import pytest
+from fakes.jobs import noop_production_registry
 from lumina.jobs.application.claim import ClaimJobService
 from lumina.jobs.application.completion import CompleteJobService
 from lumina.jobs.application.enqueue import EnqueueJobService
@@ -16,8 +17,6 @@ from lumina.jobs.application.execution import ExecuteOneJobService, JobProcessed
 from lumina.jobs.application.failure import FailJobService
 from lumina.jobs.application.handlers import (
     StaticHandlerRegistry,
-    SystemNoopHandler,
-    production_handler_registry,
 )
 from lumina.jobs.application.heartbeat import HeartbeatJobService
 from lumina.jobs.domain.handler import (
@@ -41,17 +40,6 @@ from ..migration_lifecycle import (
 
 _OWNER = "worker.integration.12345678-1234-4234-9234-123456789abc"
 _FOREIGN_OWNER = "worker.integration.foreign"
-
-
-def _noop_production_registry() -> StaticHandlerRegistry:
-    provider_sync = SystemNoopHandler()
-    identification_solve = SystemNoopHandler()
-    return production_handler_registry(
-        provider_sync=provider_sync,
-        provider_sync_validator=provider_sync.validate_payload,
-        identification_solve=identification_solve,
-        identification_solve_validator=identification_solve.validate_payload,
-    )
 
 
 @pytest.fixture(autouse=True)
@@ -282,7 +270,7 @@ async def test_successful_noop_claims_and_completes_without_payload_echo(
 
     outcome = await _executor(
         database_runtime,
-        registry=_noop_production_registry(),
+        registry=noop_production_registry(),
     ).execute()
     row = _row(integration_settings, enqueued.id)
 
@@ -321,7 +309,7 @@ async def test_unsupported_and_incompatible_claims_use_canonical_terminal_failur
 
     await _executor(
         database_runtime,
-        registry=_noop_production_registry(),
+        registry=noop_production_registry(),
     ).execute()
     row = _row(integration_settings, identifier)
 

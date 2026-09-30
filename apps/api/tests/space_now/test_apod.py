@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 import pytest
+from fakes.apod import public_content_bytes
 from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
@@ -90,23 +90,6 @@ def _cache(
     )
 
 
-def _public_content_bytes(value: NasaApodNormalized) -> bytes:
-    return json.dumps(
-        {
-            "date": value.date,
-            "title": value.title,
-            "explanation": value.explanation,
-            "media_type": value.media_type,
-            "copyright": value.copyright,
-            "service_version": value.service_version,
-            "apod_page_url": apod_page_url(value.date),
-        },
-        allow_nan=False,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-
 def _max_budget_normalized() -> NasaApodNormalized:
     low = 0
     high = 60_000
@@ -123,7 +106,7 @@ def _max_budget_normalized() -> NasaApodNormalized:
             copyright="C" * 512,
             service_version="v1",
         )
-        if len(_public_content_bytes(candidate)) <= APOD_PUBLIC_CONTENT_MAX_BYTES:
+        if len(public_content_bytes(candidate)) <= APOD_PUBLIC_CONTENT_MAX_BYTES:
             low = midpoint
         else:
             high = midpoint - 1
@@ -348,7 +331,7 @@ def test_public_apod_route_uses_the_standard_safe_error_for_read_failures() -> N
 
 def test_maximum_accepted_apod_content_fits_the_full_success_response_bound() -> None:
     normalized = _max_budget_normalized()
-    assert len(_public_content_bytes(normalized)) == APOD_PUBLIC_CONTENT_MAX_BYTES
+    assert len(public_content_bytes(normalized)) == APOD_PUBLIC_CONTENT_MAX_BYTES
 
     cache = _cache(
         date=normalized.date,

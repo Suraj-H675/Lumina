@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from fakes.apod import json_response
 from fakes.provider_runtime import DeterministicNasaTransport, sleep_noop, timeout
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
@@ -42,22 +43,6 @@ _NOW = datetime(2026, 9, 10, 12, 0, tzinfo=UTC)
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 _TEST_KEY = "fixture-apod-key-2026"
 _TEST_SECRET = SecretStr(_TEST_KEY)
-
-
-def _json_response(
-    body: bytes,
-    *,
-    status_code: int = 200,
-    content_type: str = "application/json; charset=utf-8",
-) -> RawProviderResponse:
-    return RawProviderResponse(
-        status_code=status_code,
-        headers={"content-type": content_type},
-        body=body,
-        raw_complete=True,
-        observed_bytes=len(body),
-        content_type_valid=content_type.split(";", 1)[0].strip().lower() == "application/json",
-    )
 
 
 def _fixture(name: str) -> bytes:
@@ -417,7 +402,7 @@ class _NoTimeoutContext:
 async def test_apod_sync_applies_four_hour_refresh_and_six_hour_fresh_policy() -> None:
     clock = _Clock()
     store = _ApodStore()
-    transport = DeterministicNasaTransport([_json_response(_fixture("nasa-apod-image.json"))])
+    transport = DeterministicNasaTransport([json_response(_fixture("nasa-apod-image.json"))])
     service = _service(transport, store, clock)
 
     success = await service.sync(APOD_PROVIDER_CODE)
@@ -441,7 +426,7 @@ async def test_apod_outage_preserves_stale_snapshot_then_expires_it() -> None:
     store = _ApodStore()
     transport = DeterministicNasaTransport(
         [
-            _json_response(_fixture("nasa-apod-image.json")),
+            json_response(_fixture("nasa-apod-image.json")),
             timeout(),
             timeout(),
             timeout(),
@@ -476,15 +461,15 @@ async def test_apod_outage_preserves_stale_snapshot_then_expires_it() -> None:
     ("outcome", "expected_code", "expected_attempts"),
     [
         (
-            [_json_response(b'{"error":"limited"}', status_code=429)],
+            [json_response(b'{"error":"limited"}', status_code=429)],
             "provider.http_rate_limited",
             1,
         ),
         (
             [
-                _json_response(b"server", status_code=500),
-                _json_response(b"server", status_code=500),
-                _json_response(b"server", status_code=500),
+                json_response(b"server", status_code=500),
+                json_response(b"server", status_code=500),
+                json_response(b"server", status_code=500),
             ],
             "provider.http_server_error",
             3,
@@ -563,7 +548,7 @@ async def test_apod_secret_reflection_fails_closed_with_redacted_quarantine_body
         separators=(",", ":"),
     ).encode()
     service = _service(
-        DeterministicNasaTransport([_json_response(reflected)]),
+        DeterministicNasaTransport([json_response(reflected)]),
         store,
         clock,
     )
@@ -585,8 +570,8 @@ async def test_older_apod_response_is_quarantined_without_rolling_back_cache() -
     store = _ApodStore()
     transport = DeterministicNasaTransport(
         [
-            _json_response(_fixture("nasa-apod-image.json")),
-            _json_response(_rollback_body()),
+            json_response(_fixture("nasa-apod-image.json")),
+            json_response(_rollback_body()),
         ]
     )
     service = _service(transport, store, clock)
@@ -620,7 +605,7 @@ async def test_apod_payload_schema_failure_is_quarantined_and_does_not_replace_c
         }
     ).encode()
     transport = DeterministicNasaTransport(
-        [_json_response(_fixture("nasa-apod-image.json")), _json_response(malformed)]
+        [json_response(_fixture("nasa-apod-image.json")), json_response(malformed)]
     )
     service = _service(transport, store, clock)
     await service.sync(APOD_PROVIDER_CODE)
@@ -641,7 +626,7 @@ async def test_oversized_apod_content_fails_normalization_and_preserves_last_goo
     clock = _Clock()
     original = _legacy_oversized_cache()
     store = _ApodStore(cache=original)
-    transport = DeterministicNasaTransport([_json_response(_oversized_apod_body())])
+    transport = DeterministicNasaTransport([json_response(_oversized_apod_body())])
     service = _service(transport, store, clock)
 
     report = await service.sync(APOD_PROVIDER_CODE)
@@ -658,7 +643,7 @@ async def test_oversized_apod_content_fails_normalization_and_preserves_last_goo
 async def test_valid_apod_replacement_recovers_from_legacy_oversized_cache() -> None:
     clock = _Clock()
     store = _ApodStore(cache=_legacy_oversized_cache())
-    transport = DeterministicNasaTransport([_json_response(_fixture("nasa-apod-image.json"))])
+    transport = DeterministicNasaTransport([json_response(_fixture("nasa-apod-image.json"))])
     service = _service(transport, store, clock)
 
     report = await service.sync(APOD_PROVIDER_CODE)

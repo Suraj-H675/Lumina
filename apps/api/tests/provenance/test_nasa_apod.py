@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fakes.apod import json_response, public_content_bytes
 from fakes.provider_runtime import DeterministicNasaTransport
 from lumina.provenance.domain.apod import (
     APOD_PUBLIC_CONTENT_MAX_BYTES,
@@ -35,22 +36,6 @@ _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 _TEST_KEY = "fixture-apod-key-2026"
 _TEST_SECRET = SecretStr(_TEST_KEY)
 _INVALID_AUTHORITY_URL = "https://user:pass@example.invalid/apod.jpg"  # trufflehog:ignore
-
-
-def _json_response(
-    body: bytes,
-    *,
-    status_code: int = 200,
-    content_type: str = "application/json; charset=utf-8",
-) -> RawProviderResponse:
-    return RawProviderResponse(
-        status_code=status_code,
-        headers={"content-type": content_type},
-        body=body,
-        raw_complete=True,
-        observed_bytes=len(body),
-        content_type_valid=content_type.split(";", 1)[0].strip().lower() == "application/json",
-    )
 
 
 def _fixture(name: str) -> bytes:
@@ -81,23 +66,6 @@ def _base_payload() -> dict[str, object]:
     }
 
 
-def _public_content_bytes(value: NasaApodNormalized) -> bytes:
-    return json.dumps(
-        {
-            "date": value.date,
-            "title": value.title,
-            "explanation": value.explanation,
-            "media_type": value.media_type,
-            "copyright": value.copyright,
-            "service_version": value.service_version,
-            "apod_page_url": apod_page_url(value.date),
-        },
-        allow_nan=False,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-
 def _public_budget_value(explanation: str) -> NasaApodNormalized:
     return NasaApodNormalized(
         date="2026-09-10",
@@ -118,18 +86,18 @@ def test_apod_public_content_budget_uses_canonical_utf8_json_bytes() -> None:
     while low < high:
         midpoint = (low + high + 1) // 2
         candidate = _public_budget_value("x" * midpoint)
-        if len(_public_content_bytes(candidate)) <= APOD_PUBLIC_CONTENT_MAX_BYTES:
+        if len(public_content_bytes(candidate)) <= APOD_PUBLIC_CONTENT_MAX_BYTES:
             low = midpoint
         else:
             high = midpoint - 1
 
     accepted = _public_budget_value("x" * low)
-    assert len(_public_content_bytes(accepted)) == APOD_PUBLIC_CONTENT_MAX_BYTES
+    assert len(public_content_bytes(accepted)) == APOD_PUBLIC_CONTENT_MAX_BYTES
     validate_apod_public_compatibility(accepted)
     NasaApodCodec().encode(accepted)
 
     rejected = _public_budget_value("x" * (low + 1))
-    assert len(_public_content_bytes(rejected)) > APOD_PUBLIC_CONTENT_MAX_BYTES
+    assert len(public_content_bytes(rejected)) > APOD_PUBLIC_CONTENT_MAX_BYTES
     with pytest.raises(ValueError, match="compatibility bound"):
         validate_apod_public_compatibility(rejected)
 
@@ -138,7 +106,7 @@ def test_apod_public_content_budget_counts_unicode_and_json_escaping() -> None:
     value = _public_budget_value('😀"\\\n\t' * 6_000)
 
     assert len(value.explanation) < 60_000
-    assert len(_public_content_bytes(value)) > APOD_PUBLIC_CONTENT_MAX_BYTES
+    assert len(public_content_bytes(value)) > APOD_PUBLIC_CONTENT_MAX_BYTES
     with pytest.raises(ValueError, match="compatibility bound"):
         validate_apod_public_compatibility(value)
 
@@ -175,7 +143,7 @@ def test_apod_manifest_and_runtime_identity_are_reviewed_and_exact() -> None:
 
 @pytest.mark.asyncio
 async def test_apod_fetch_uses_only_the_fixed_keyed_endpoint_and_redacts_key_repr() -> None:
-    transport = DeterministicNasaTransport([_json_response(_fixture("nasa-apod-image.json"))])
+    transport = DeterministicNasaTransport([json_response(_fixture("nasa-apod-image.json"))])
     adapter = _adapter(transport)
 
     raw = await adapter.fetch(NasaApodRequest())
@@ -226,7 +194,7 @@ async def test_apod_rejects_server_secret_reflection_and_redacts_quarantine_evid
         },
         separators=(",", ":"),
     ).encode()
-    adapter = _adapter(DeterministicNasaTransport([_json_response(reflected)]))
+    adapter = _adapter(DeterministicNasaTransport([json_response(reflected)]))
 
     raw = await adapter.fetch(NasaApodRequest())
     assert isinstance(raw, RawProviderResponse)
@@ -251,7 +219,7 @@ async def test_apod_rejects_percent_encoded_server_secret_in_media_url() -> None
         separators=(",", ":"),
     ).encode()
     adapter = _adapter(
-        DeterministicNasaTransport([_json_response(body)]),
+        DeterministicNasaTransport([json_response(body)]),
         api_key=SecretStr(secret),
     )
 
@@ -268,7 +236,7 @@ async def test_apod_rejects_percent_encoded_server_secret_in_media_url() -> None
 
 @pytest.mark.asyncio
 async def test_image_fixture_normalizes_optional_absence_and_ignores_additive_fields() -> None:
-    transport = DeterministicNasaTransport([_json_response(_fixture("nasa-apod-image.json"))])
+    transport = DeterministicNasaTransport([json_response(_fixture("nasa-apod-image.json"))])
     adapter = _adapter(transport)
 
     payload = adapter.validate_payload(await adapter.fetch(NasaApodRequest()))
@@ -295,7 +263,7 @@ async def test_image_fixture_normalizes_optional_absence_and_ignores_additive_fi
 async def test_multiline_nasa_text_is_preserved_as_plain_text() -> None:
     transport = DeterministicNasaTransport(
         [
-            _json_response(
+            json_response(
                 json.dumps({**_base_payload(), "explanation": "line one.\n\nline two."}).encode()
             )
         ]
@@ -311,7 +279,7 @@ async def test_multiline_nasa_text_is_preserved_as_plain_text() -> None:
 async def test_apod_scientific_unicode_text_remains_valid() -> None:
     transport = DeterministicNasaTransport(
         [
-            _json_response(
+            json_response(
                 json.dumps(
                     {
                         **_base_payload(),
@@ -332,7 +300,7 @@ async def test_apod_scientific_unicode_text_remains_valid() -> None:
 @pytest.mark.asyncio
 async def test_copyrighted_image_preserves_exact_source_value() -> None:
     adapter = _adapter(
-        DeterministicNasaTransport([_json_response(_fixture("nasa-apod-copyrighted-image.json"))])
+        DeterministicNasaTransport([json_response(_fixture("nasa-apod-copyrighted-image.json"))])
     )
 
     payload = adapter.validate_payload(await adapter.fetch(NasaApodRequest()))
@@ -344,7 +312,7 @@ async def test_copyrighted_image_preserves_exact_source_value() -> None:
 @pytest.mark.asyncio
 async def test_video_fixture_requires_no_hd_url_and_remains_link_only_at_normalization() -> None:
     adapter = _adapter(
-        DeterministicNasaTransport([_json_response(_fixture("nasa-apod-video.json"))])
+        DeterministicNasaTransport([json_response(_fixture("nasa-apod-video.json"))])
     )
 
     payload = adapter.validate_payload(await adapter.fetch(NasaApodRequest()))
@@ -392,7 +360,7 @@ async def test_video_fixture_requires_no_hd_url_and_remains_link_only_at_normali
 async def test_apod_rejects_invalid_wire_payloads_without_specific_error_reflection(
     body: bytes,
 ) -> None:
-    adapter = _adapter(DeterministicNasaTransport([_json_response(body)]))
+    adapter = _adapter(DeterministicNasaTransport([json_response(body)]))
 
     with pytest.raises(ProviderPayloadInvalid) as captured:
         adapter.validate_payload(await adapter.fetch(NasaApodRequest()))
@@ -407,7 +375,7 @@ def test_apod_rejects_wrong_content_type_and_incomplete_bounded_body() -> None:
 
     with pytest.raises(ProviderPayloadInvalid):
         adapter.validate_payload(
-            _json_response(json.dumps(payload).encode(), content_type="text/html")
+            json_response(json.dumps(payload).encode(), content_type="text/html")
         )
     with pytest.raises(ProviderPayloadInvalid):
         adapter.validate_payload(

@@ -195,10 +195,15 @@
   padding: 1.35rem 0 1.5rem;
 }
 
+.compactStatus {
+  max-width: 48rem;
+}
+
 .emptyState h2,
 .emptyState h3,
 .statusPanel h1,
-.statusPanel h2 {
+.statusPanel h2,
+.compactStatus h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(1.65rem, 3vw, 2.35rem);
@@ -207,11 +212,30 @@
 }
 
 .emptyState p,
-.statusPanel p {
+.statusPanel p,
+.compactStatus p {
   max-width: 42rem;
   margin: 0.65rem 0 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.statusMessage {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.recoveryStatus {
+  min-height: 1.5rem;
+  font-size: 0.75rem;
+}
+
+.statusPanel .secondaryAction,
+.compactStatus .secondaryAction {
+  margin-top: 1rem;
 }
 
 .backLink {

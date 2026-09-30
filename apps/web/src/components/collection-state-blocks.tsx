@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { collectionStoreFailureMessage } from "../lib/collections-messages";
 import { resetCollections } from "../lib/collections-store";
 import type { CollectionsMessages, CollectionStateMessages } from "../lib/i18n/messages/types";
+import styles from "./collections-experience.module.css";
 
 /**
  * Honest bounded states shared by every collections surface: while the store
@@ -13,14 +14,11 @@ import type { CollectionsMessages, CollectionStateMessages } from "../lib/i18n/m
  * confirmed user action.
  */
 
-const secondaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]";
-
 export function CollectionLoadingNote({
   messages,
 }: Readonly<{ messages: CollectionsMessages["shared"] }>) {
   return (
-    <p className="text-sm text-[var(--muted)]" role="status">
+    <p className={styles.statusMessage} role="status">
       {messages.loading}
     </p>
   );
@@ -31,12 +29,9 @@ export function StorageUnavailableNote({
   messages,
 }: Readonly<{ context: "page" | "picker"; messages: CollectionsMessages["shared"] }>) {
   return (
-    <div
-      className="max-w-xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-6"
-      role="status"
-    >
-      <h2 className="text-lg font-semibold">{messages.storageUnavailable.title}</h2>
-      <p className="mt-2 leading-7 text-[var(--muted)]">
+    <div className={styles.statusPanel} role="status">
+      <h2>{messages.storageUnavailable.title}</h2>
+      <p>
         {context === "picker"
           ? messages.storageUnavailable.pickerDescription
           : messages.storageUnavailable.pageDescription}
@@ -73,21 +68,17 @@ export function CorruptedStoragePanel({
   }, [messages, resetArmed]);
 
   return (
-    <div
-      className={`space-y-4 ${compact ? "" : "max-w-xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-6"}`}
-    >
+    <div className={compact ? styles.compactStatus : styles.statusPanel}>
       <div role="status">
-        <h2 className="text-lg font-semibold">{messages.shared.corrupted.title}</h2>
-        <p className="mt-2 leading-7 text-[var(--muted)]">
-          {messages.shared.corrupted.description}
-        </p>
+        <h2>{messages.shared.corrupted.title}</h2>
+        <p>{messages.shared.corrupted.description}</p>
       </div>
-      <button className={secondaryButtonClassName} onClick={handleReset} type="button">
+      <button className={styles.secondaryAction} onClick={handleReset} type="button">
         {resetArmed
           ? messages.shared.corrupted.confirmResetAction
           : messages.shared.corrupted.resetAction}
       </button>
-      <p aria-live="polite" className="min-h-6 text-sm text-[var(--muted)]" role="status">
+      <p aria-live="polite" className={styles.recoveryStatus} role="status">
         {message}
       </p>
     </div>

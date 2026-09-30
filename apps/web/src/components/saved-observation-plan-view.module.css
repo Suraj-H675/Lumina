@@ -1,0 +1,327 @@
+.page {
+  display: grid;
+  gap: clamp(4rem, 8vw, 6.5rem);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(2.75rem, 6vw, 4.75rem);
+}
+
+.eyebrow,
+.sectionIndex,
+.factLabel {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 12ch;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 8vw, 6.8rem);
+  font-weight: 500;
+  letter-spacing: -0.058em;
+  line-height: 0.9;
+}
+
+.intro {
+  max-width: 44rem;
+  margin: 1.35rem 0 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.heroMeta {
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  line-height: 1.65;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sectionSummary {
+  max-width: 25rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.factGrid,
+.eventGrid,
+.nightGrid {
+  display: grid;
+  border-top: 1px solid var(--border-strong);
+}
+
+.factGrid,
+.eventGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nightGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.fact,
+.eventFact {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.1rem 1.1rem 1.2rem;
+}
+
+.fact:first-child,
+.eventFact:first-child {
+  padding-left: 0;
+}
+
+.fact:last-child,
+.eventFact:last-child {
+  border-right: 0;
+}
+
+.factLabel {
+  color: var(--muted);
+  letter-spacing: 0.07em;
+}
+
+.factValue {
+  margin: 0.65rem 0 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.dataValue {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.factNote {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.69rem;
+  line-height: 1.55;
+}
+
+.nightSummary {
+  margin: 0;
+  color: var(--muted-strong);
+  line-height: 1.7;
+}
+
+.tableFrame {
+  overflow-x: auto;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.table {
+  width: 100%;
+  min-width: 30rem;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.8rem;
+}
+
+.table th {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.table th,
+.table td {
+  padding: 0.85rem 1rem;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: 0;
+}
+
+.table tbody tr {
+  border-top: 1px solid var(--border);
+}
+
+.sourceBlock {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 0 1.35rem;
+}
+
+.sourceBlock p {
+  max-width: 54rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.sourceBlock p + p {
+  margin-top: 0.7rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.35rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.2rem;
+}
+
+.action,
+.dangerAction {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.action:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.dangerAction {
+  color: var(--danger);
+}
+
+.dangerAction:hover {
+  border-bottom-color: var(--danger);
+}
+
+.deletePanel {
+  max-width: 48rem;
+  border-top: 1px dashed var(--border-strong);
+  border-bottom: 1px dashed var(--border);
+  padding: 1.2rem 0 1.35rem;
+}
+
+.deletePanel h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.deletePanel p {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.deleteActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.2rem;
+  margin-top: 1rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 64rem) {
+  .hero,
+  .section {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    gap: 1.5rem;
+  }
+
+  .heroMeta,
+  .sectionSummary {
+    max-width: 44rem;
+  }
+}
+
+@media (max-width: 44rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.35rem, 18vw, 5rem);
+  }
+
+  .factGrid,
+  .eventGrid,
+  .nightGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fact,
+  .eventFact,
+  .fact:first-child,
+  .eventFact:first-child {
+    border-right: 0;
+    padding: 1rem 0;
+  }
+
+  .nightGrid {
+    margin-top: 1rem;
+  }
+}

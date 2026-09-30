@@ -11,6 +11,7 @@ import { JournalEntryButton } from "./journal-entry-button";
 import { ObservationConditions } from "./observation-conditions";
 import { SaveObservationPlanButton } from "./save-observation-plan-button";
 import { SkyFinder } from "./sky-finder";
+import styles from "./observation-planner.module.css";
 import { formatCoordinateDisclosure } from "../lib/i18n/coordinate-disclosure";
 import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
@@ -122,11 +123,9 @@ function geolocationFailureMessage(
 
 function eventCard(label: string, value: string) {
   return (
-    <div className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-3">
-      <dt className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-        {label}
-      </dt>
-      <dd className="mt-1 text-sm font-medium text-[var(--foreground)]">{value}</dd>
+    <div className={styles.eventCard}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
@@ -143,18 +142,13 @@ function CoordinateSource({
   const { coordinate } = plan;
   const profile = coordinateProfileForSource(coordinate.source);
   return (
-    <section
-      aria-labelledby="position-source-heading"
-      className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4"
-    >
-      <h3 className="text-sm font-semibold text-[var(--foreground)]" id="position-source-heading">
-        {messages.title}
-      </h3>
-      <p className="mt-1 text-sm text-[var(--muted)]">
+    <section aria-labelledby="position-source-heading" className={styles.coordinateSource}>
+      <h3 id="position-source-heading">{messages.title}</h3>
+      <p>
         {coordinate.source.provider.name} · {coordinate.source.dataset.name} (
         {coordinate.source.dataset.release_version})
       </p>
-      <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+      <p className={styles.coordinateRecord}>
         {messages.sourceRecordLabel}{" "}
         <span className="font-mono">{coordinate.source.source_record_id}</span> ·{" "}
         {profile === null
@@ -219,14 +213,9 @@ function AltitudeChart({
         });
 
   return (
-    <figure aria-labelledby={`${chartId}-caption`} className="space-y-3">
-      <div className="overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 sm:p-4">
-        <svg
-          aria-hidden="true"
-          className="h-auto w-full"
-          role="presentation"
-          viewBox={`0 0 ${width} ${height}`}
-        >
+    <figure aria-labelledby={`${chartId}-caption`} className={styles.chart}>
+      <div className={styles.chartFrame}>
+        <svg aria-hidden="true" role="presentation" viewBox={`0 0 ${width} ${height}`}>
           <rect fill="var(--surface)" height={plotHeight} width={plotWidth} x={left} y={top} />
           {darknessStart !== undefined && darknessEnd !== undefined ? (
             <rect
@@ -334,8 +323,8 @@ function AltitudeChart({
           </text>
         </svg>
       </div>
-      <figcaption className="text-sm leading-6 text-[var(--muted)]" id={`${chartId}-caption`}>
-        <span className="font-medium text-[var(--foreground)]">{messages.title}</span>{" "}
+      <figcaption className={styles.chartCaption} id={`${chartId}-caption`}>
+        <strong>{messages.title}</strong>{" "}
         {selectedInPlot ? messages.descriptionWithSelectedTime : messages.description}
       </figcaption>
       <p className="sr-only">{accessibleSummary}</p>
@@ -370,69 +359,67 @@ function PlannerResults({
 }>) {
   const highest = plan.maxDuringDarkness;
   return (
-    <section aria-labelledby="planner-results-heading" className="space-y-8">
-      <div className="space-y-3">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.results.eyebrow}
-        </p>
-        <h2 className="text-2xl font-semibold tracking-tight" id="planner-results-heading">
-          {highest !== null && highest.altitude > 0
-            ? formatMessageTemplate(messages.results.highestHeading, {
-                time: formatObservationTime(highest.instant, timeZone, locale),
-              })
-            : messages.results.belowHorizonHeading}
-        </h2>
-        {highest !== null && highest.altitude > 0 ? (
-          <p className="text-[var(--muted)]">
-            {formatMessageTemplate(messages.results.highestAltitude, {
-              altitude: formatAltitude(highest.altitude, locale),
-            })}
-          </p>
-        ) : null}
-        <JournalEntryButton
-          entityId={targetEntityId}
-          messages={journalEntryMessages}
-          objectName={targetName}
-          plannerContext={{
-            latitudeDeg: plan.location.latitude,
-            longitudeDeg: plan.location.longitude,
-            selectedTimeUtc: plan.selected.instant.toISOString(),
-          }}
-        />
-        <SaveObservationPlanButton
-          locale={locale}
-          messages={messages.savePlan}
-          nightDate={nightDate}
-          plan={plan}
-          target={{
-            canonicalName: targetName,
-            entityId: targetEntityId,
-            entityType: targetEntityType,
-            slug: targetSlug,
-          }}
-          timeZone={timeZone}
-        />
+    <section aria-labelledby="planner-results-heading" className={styles.results}>
+      <div className={styles.resultsHeader}>
+        <div>
+          <p className={styles.eyebrow}>{messages.results.eyebrow}</p>
+          <h2 className={styles.resultsTitle} id="planner-results-heading">
+            {highest !== null && highest.altitude > 0
+              ? formatMessageTemplate(messages.results.highestHeading, {
+                  time: formatObservationTime(highest.instant, timeZone, locale),
+                })
+              : messages.results.belowHorizonHeading}
+          </h2>
+          {highest !== null && highest.altitude > 0 ? (
+            <p className={styles.resultsSummary}>
+              {formatMessageTemplate(messages.results.highestAltitude, {
+                altitude: formatAltitude(highest.altitude, locale),
+              })}
+            </p>
+          ) : null}
+        </div>
+        <div className={styles.resultActions}>
+          <JournalEntryButton
+            entityId={targetEntityId}
+            messages={journalEntryMessages}
+            objectName={targetName}
+            plannerContext={{
+              latitudeDeg: plan.location.latitude,
+              longitudeDeg: plan.location.longitude,
+              selectedTimeUtc: plan.selected.instant.toISOString(),
+            }}
+          />
+          <SaveObservationPlanButton
+            locale={locale}
+            messages={messages.savePlan}
+            nightDate={nightDate}
+            plan={plan}
+            target={{
+              canonicalName: targetName,
+              entityId: targetEntityId,
+              entityType: targetEntityType,
+              slug: targetSlug,
+            }}
+            timeZone={timeZone}
+          />
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-          <p className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.results.selectedTime}
-          </p>
-          <p className="mt-2 font-mono text-2xl text-[var(--foreground)]">
+      <div className={styles.metricGrid}>
+        <div className={styles.metric}>
+          <p className={styles.metricLabel}>{messages.results.selectedTime}</p>
+          <p className={styles.metricValue}>
             {formatAltitude(plan.selected.position.altitude, locale)}
           </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{messages.results.altitudeGeometric}</p>
-          <p className="mt-3 text-lg font-medium text-[var(--foreground)]">
+          <p className={styles.metricDetail}>{messages.results.altitudeGeometric}</p>
+          <p className={styles.metricSecondary}>
             {formatAzimuth(plan.selected.position.azimuth, locale)}
           </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{messages.results.azimuthConvention}</p>
+          <p className={styles.metricDetail}>{messages.results.azimuthConvention}</p>
         </div>
-        <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:col-span-2">
-          <p className="text-xs font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
-            {messages.results.nightBoundaries}
-          </p>
-          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className={styles.metric}>
+          <p className={styles.metricLabel}>{messages.results.nightBoundaries}</p>
+          <dl className={styles.eventsGrid}>
             {eventCard(
               messages.results.events.sunsetGeometric,
               formatNightEvent(
@@ -471,24 +458,16 @@ function PlannerResults({
             )}
           </dl>
           {plan.night.astronomicalDarkness === null ? (
-            <p className="mt-3 text-sm text-[var(--muted)]">
-              {messages.results.darknessUnavailable}
-            </p>
+            <p className={styles.metricDetail}>{messages.results.darknessUnavailable}</p>
           ) : null}
-          <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-            {messages.results.solarBoundaryDescription}
-          </p>
+          <p className={styles.metricDetail}>{messages.results.solarBoundaryDescription}</p>
         </div>
       </div>
 
-      <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-5">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">
-          {messages.results.targetEvents.title}
-        </h3>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          {formatMessageTemplate(messages.results.targetEvents.description, { timeZone })}
-        </p>
-        <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className={styles.eventsPanel}>
+        <h3>{messages.results.targetEvents.title}</h3>
+        <p>{formatMessageTemplate(messages.results.targetEvents.description, { timeZone })}</p>
+        <dl className={styles.targetEventsGrid}>
           {eventCard(
             messages.results.events.rise,
             formatTargetEvent(plan.targetEvents.rise, timeZone, locale, messages.results.events),
@@ -638,243 +617,207 @@ export function ObservationPlanner({
   const targetTitle = detail?.canonical_name ?? messages.header.chooseObject;
 
   return (
-    <div className="space-y-10">
-      <header className="space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{targetTitle}</h1>
-            <p className="mt-3 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-              {messages.header.description}
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.heroTitle}>{targetTitle}</h1>
+          <p className={styles.heroDescription}>{messages.header.description}</p>
+          {detail !== null ? (
+            <p className={styles.heroMeta}>
+              {formatMessageTemplate(messages.header.targetSummary, {
+                entityType: entityTypeMessages[detail.entity_type],
+              })}
             </p>
-          </div>
-          {detail !== null && slug !== null ? (
-            <Link
-              className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
-              href={`/objects/${slug}`}
-            >
-              {messages.header.openObject}
-            </Link>
           ) : null}
         </div>
-        {detail !== null ? (
-          <p className="text-sm text-[var(--muted)]">
-            {formatMessageTemplate(messages.header.targetSummary, {
-              entityType: entityTypeMessages[detail.entity_type],
-            })}
-          </p>
+        {detail !== null && slug !== null ? (
+          <Link className={styles.objectLink} href={`/objects/${slug}`}>
+            {messages.header.openObject}
+          </Link>
         ) : null}
       </header>
 
-      <section aria-labelledby="target-heading" className="space-y-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 className="text-xl font-semibold" id="target-heading">
+      <section aria-labelledby="target-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01</p>
+          <h2 className={styles.sectionTitle} id="target-heading">
             {messages.target.heading}
           </h2>
-          <span className="text-sm text-[var(--muted)]">{messages.target.reviewedSuggestions}</span>
+          <p className={styles.sectionMeta}>{messages.target.reviewedSuggestions}</p>
         </div>
-        <div className="relative max-w-2xl">
-          <CatalogueSearchBox
-            {...(apiOrigin === undefined ? {} : { apiOrigin })}
-            initialQuery=""
-            locale={locale}
-            messages={catalogueSearchMessages}
-            suggestionDestination="observe"
-          />
+        <div className={styles.sectionBody}>
+          <div className={styles.searchWrap}>
+            <CatalogueSearchBox
+              {...(apiOrigin === undefined ? {} : { apiOrigin })}
+              initialQuery=""
+              locale={locale}
+              messages={catalogueSearchMessages}
+              suggestionDestination="observe"
+            />
+          </div>
+          {targetUnavailable ? (
+            <p className={styles.statusText}>{messages.target.unavailable}</p>
+          ) : null}
+          {detail === null ? (
+            <p className={styles.statusText}>{messages.target.emptyDescription}</p>
+          ) : null}
         </div>
-        {targetUnavailable ? (
-          <p className="text-sm text-[var(--muted)]">{messages.target.unavailable}</p>
-        ) : null}
-        {detail === null ? (
-          <p className="max-w-2xl leading-7 text-[var(--muted)]">
-            {messages.target.emptyDescription}
-          </p>
-        ) : null}
       </section>
 
       {detail !== null && coordinatePairs.length === 0 ? (
-        <section
-          aria-labelledby="coordinates-unavailable-heading"
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-5"
-        >
-          <h2 className="text-xl font-semibold" id="coordinates-unavailable-heading">
-            {messages.coordinatesUnavailable.title}
-          </h2>
-          <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-            {messages.coordinatesUnavailable.description}
-          </p>
+        <section aria-labelledby="coordinates-unavailable-heading" className={styles.statePanel}>
+          <h2 id="coordinates-unavailable-heading">{messages.coordinatesUnavailable.title}</h2>
+          <p>{messages.coordinatesUnavailable.description}</p>
         </section>
       ) : null}
 
       {detail !== null && coordinatePairs.length > 0 ? (
         <>
-          <section aria-labelledby="location-heading" className="space-y-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-              <h2 className="text-xl font-semibold" id="location-heading">
+          <section aria-labelledby="location-heading" className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionIndex}>02</p>
+              <h2 className={styles.sectionTitle} id="location-heading">
                 {messages.location.title}
               </h2>
-              <span className="text-sm text-[var(--muted)]">{messages.location.deviceNote}</span>
+              <p className={styles.sectionMeta}>{messages.location.deviceNote}</p>
             </div>
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-              <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <p className="text-sm leading-6 text-[var(--muted)]">
-                  {messages.location.privacyDescription}
-                </p>
-                <button
-                  className="mt-4 inline-flex min-h-11 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--background)] transition-colors hover:bg-[var(--accent-strong)] disabled:cursor-wait disabled:opacity-70"
-                  disabled={geoBusy}
-                  onClick={handleGeolocation}
-                  type="button"
-                >
-                  {geoBusy ? messages.location.lookupBusy : messages.location.useMyLocation}
-                </button>
-                {location !== null ? (
-                  <p className="mt-4 text-sm text-[var(--foreground)]">
-                    {formatMessageTemplate(messages.location.currentLocation, {
-                      latitude: formatLocationValue(location.latitude, locale),
-                      longitude: formatLocationValue(location.longitude, locale),
-                    })}
-                  </p>
-                ) : null}
-                {locationError ? (
-                  <p className="mt-3 text-sm text-[var(--focus)]" role="alert">
-                    {locationError}
-                  </p>
-                ) : null}
-              </div>
-              <form
-                className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4"
-                onSubmit={handleManualLocation}
-              >
-                <fieldset>
-                  <legend className="text-sm font-semibold text-[var(--foreground)]">
-                    {messages.location.manualLegend}
-                  </legend>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <label
-                      className="space-y-1.5 text-sm text-[var(--muted)]"
-                      htmlFor="observer-latitude"
+            <div className={styles.sectionBody}>
+              <div className={styles.locationGrid}>
+                <div className={styles.methodPanel}>
+                  <p className={styles.panelCopy}>{messages.location.privacyDescription}</p>
+                  <div className={styles.actionRow}>
+                    <button
+                      className={styles.primaryButton}
+                      disabled={geoBusy}
+                      onClick={handleGeolocation}
+                      type="button"
                     >
-                      <span className="block">{messages.location.latitudeLabel}</span>
-                      <input
-                        aria-describedby="observer-coordinate-help"
-                        className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
-                        id="observer-latitude"
-                        inputMode="decimal"
-                        onChange={(event) => setLatitude(event.target.value)}
-                        placeholder="12.972"
-                        type="text"
-                        value={latitude}
-                      />
-                    </label>
-                    <label
-                      className="space-y-1.5 text-sm text-[var(--muted)]"
-                      htmlFor="observer-longitude"
-                    >
-                      <span className="block">{messages.location.longitudeLabel}</span>
-                      <input
-                        aria-describedby="observer-coordinate-help"
-                        className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
-                        id="observer-longitude"
-                        inputMode="decimal"
-                        onChange={(event) => setLongitude(event.target.value)}
-                        placeholder="77.594"
-                        type="text"
-                        value={longitude}
-                      />
-                    </label>
+                      {geoBusy ? messages.location.lookupBusy : messages.location.useMyLocation}
+                    </button>
                   </div>
-                  <p
-                    className="mt-3 text-xs leading-5 text-[var(--muted)]"
-                    id="observer-coordinate-help"
-                  >
-                    {messages.location.coordinateHelp}
-                  </p>
-                  <button
-                    className="mt-4 inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
-                    type="submit"
-                  >
-                    {messages.location.calculateAction}
-                  </button>
-                </fieldset>
-              </form>
+                  {location !== null ? (
+                    <p className={styles.currentLocation}>
+                      {formatMessageTemplate(messages.location.currentLocation, {
+                        latitude: formatLocationValue(location.latitude, locale),
+                        longitude: formatLocationValue(location.longitude, locale),
+                      })}
+                    </p>
+                  ) : null}
+                  {locationError ? (
+                    <p className={styles.error} role="alert">
+                      {locationError}
+                    </p>
+                  ) : null}
+                </div>
+                <form className={styles.methodPanel} onSubmit={handleManualLocation}>
+                  <fieldset className={styles.fieldset}>
+                    <legend className={styles.panelTitle}>{messages.location.manualLegend}</legend>
+                    <div className={styles.fieldGrid}>
+                      <label className={styles.label} htmlFor="observer-latitude">
+                        <span>{messages.location.latitudeLabel}</span>
+                        <input
+                          aria-describedby="observer-coordinate-help"
+                          className={styles.input}
+                          id="observer-latitude"
+                          inputMode="decimal"
+                          onChange={(event) => setLatitude(event.target.value)}
+                          placeholder="12.972"
+                          type="text"
+                          value={latitude}
+                        />
+                      </label>
+                      <label className={styles.label} htmlFor="observer-longitude">
+                        <span>{messages.location.longitudeLabel}</span>
+                        <input
+                          aria-describedby="observer-coordinate-help"
+                          className={styles.input}
+                          id="observer-longitude"
+                          inputMode="decimal"
+                          onChange={(event) => setLongitude(event.target.value)}
+                          placeholder="77.594"
+                          type="text"
+                          value={longitude}
+                        />
+                      </label>
+                    </div>
+                    <p className={styles.help} id="observer-coordinate-help">
+                      {messages.location.coordinateHelp}
+                    </p>
+                    <div className={styles.actionRow}>
+                      <button className={styles.secondaryButton} type="submit">
+                        {messages.location.calculateAction}
+                      </button>
+                    </div>
+                  </fieldset>
+                </form>
+              </div>
             </div>
           </section>
 
-          <section aria-labelledby="night-heading" className="space-y-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-              <h2 className="text-xl font-semibold" id="night-heading">
+          <section aria-labelledby="night-heading" className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionIndex}>03</p>
+              <h2 className={styles.sectionTitle} id="night-heading">
                 {messages.night.title}
               </h2>
-              <span className="text-sm text-[var(--muted)]">
+              <p className={styles.sectionMeta}>
                 {formatMessageTemplate(messages.night.timeZoneSummary, { timeZone })}
-              </span>
-            </div>
-            <div className="grid gap-4 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:grid-cols-2">
-              <label className="space-y-1.5 text-sm text-[var(--muted)]" htmlFor="observing-date">
-                <span className="block font-medium text-[var(--foreground)]">
-                  {messages.night.dateLabel}
-                </span>
-                <input
-                  className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
-                  id="observing-date"
-                  onChange={(event) => setNightDate(event.target.value)}
-                  type="date"
-                  value={activeNightDate}
-                />
-                <span className="block text-xs leading-5">{messages.night.dateHelp}</span>
-              </label>
-              <label className="space-y-1.5 text-sm text-[var(--muted)]" htmlFor="selected-time">
-                <span className="block font-medium text-[var(--foreground)]">
-                  {messages.night.selectedTimeLabel}
-                </span>
-                <input
-                  className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
-                  id="selected-time"
-                  onChange={(event) => setSelectedTime(event.target.value)}
-                  type="time"
-                  value={selectedTime}
-                />
-                <span className="block text-xs leading-5">{messages.night.selectedTimeHelp}</span>
-              </label>
-            </div>
-            {activeNightDate === localDateString(new Date()) ? (
-              <button
-                className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)]"
-                onClick={useNow}
-                type="button"
-              >
-                {messages.night.nowAction}
-              </button>
-            ) : null}
-            {activeNightDate !== "" && isValidNightDate(activeNightDate) ? (
-              <p className="text-sm text-[var(--muted)]">
-                {formatMessageTemplate(messages.night.summary, {
-                  date: formatObservationDateLabel(activeNightDate, timeZone, locale),
-                })}
               </p>
-            ) : null}
+            </div>
+            <div className={styles.sectionBody}>
+              <div className={styles.nightGrid}>
+                <label className={styles.label} htmlFor="observing-date">
+                  <span className={styles.labelStrong}>{messages.night.dateLabel}</span>
+                  <input
+                    className={styles.input}
+                    id="observing-date"
+                    onChange={(event) => setNightDate(event.target.value)}
+                    type="date"
+                    value={activeNightDate}
+                  />
+                  <span className={styles.help}>{messages.night.dateHelp}</span>
+                </label>
+                <label className={styles.label} htmlFor="selected-time">
+                  <span className={styles.labelStrong}>{messages.night.selectedTimeLabel}</span>
+                  <input
+                    className={styles.input}
+                    id="selected-time"
+                    onChange={(event) => setSelectedTime(event.target.value)}
+                    type="time"
+                    value={selectedTime}
+                  />
+                  <span className={styles.help}>{messages.night.selectedTimeHelp}</span>
+                </label>
+              </div>
+              <div className={styles.actionRow}>
+                {activeNightDate === localDateString(new Date()) ? (
+                  <button className={styles.secondaryButton} onClick={useNow} type="button">
+                    {messages.night.nowAction}
+                  </button>
+                ) : null}
+              </div>
+              {activeNightDate !== "" && isValidNightDate(activeNightDate) ? (
+                <p className={styles.nightSummary}>
+                  {formatMessageTemplate(messages.night.summary, {
+                    date: formatObservationDateLabel(activeNightDate, timeZone, locale),
+                  })}
+                </p>
+              ) : null}
+            </div>
           </section>
 
           {coordinatePairs.length > 1 ? (
-            <section
-              aria-labelledby="source-selector-heading"
-              className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4"
-            >
-              <label className="space-y-2 text-sm" htmlFor="coordinate-source">
-                <span
-                  className="block font-semibold text-[var(--foreground)]"
-                  id="source-selector-heading"
-                >
+            <section aria-labelledby="source-selector-heading" className={styles.sourceSelector}>
+              <label className={styles.sourceLabel} htmlFor="coordinate-source">
+                <span className={styles.sourceTitle} id="source-selector-heading">
                   {messages.coordinateSource.heading}
                 </span>
-                <span className="block text-[var(--muted)]">
+                <span className={styles.sourceDescription}>
                   {messages.coordinateSource.description}
                 </span>
                 <select
-                  className="min-h-11 w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-[var(--foreground)] outline-none focus:border-[var(--border-strong)]"
+                  className={styles.select}
                   id="coordinate-source"
                   onChange={(event) => setSelectedSourceKey(event.target.value)}
                   value={selectedCoordinate?.sourceKey ?? ""}
@@ -893,14 +836,9 @@ export function ObservationPlanner({
           ) : null}
 
           {location === null ? (
-            <section
-              aria-live="polite"
-              className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5"
-            >
-              <h2 className="text-xl font-semibold">{messages.states.locationRequired.title}</h2>
-              <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-                {messages.states.locationRequired.description}
-              </p>
+            <section aria-live="polite" className={styles.statePanel}>
+              <h2>{messages.states.locationRequired.title}</h2>
+              <p>{messages.states.locationRequired.description}</p>
             </section>
           ) : plan !== null ? (
             <PlannerResults
@@ -917,14 +855,9 @@ export function ObservationPlanner({
               nightDate={activeNightDate}
             />
           ) : (
-            <section
-              aria-live="polite"
-              className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-5"
-            >
-              <h2 className="text-xl font-semibold">{messages.states.invalidTime.title}</h2>
-              <p className="mt-2 max-w-2xl leading-7 text-[var(--muted)]">
-                {messages.states.invalidTime.description}
-              </p>
+            <section aria-live="polite" className={styles.statePanel}>
+              <h2>{messages.states.invalidTime.title}</h2>
+              <p>{messages.states.invalidTime.description}</p>
             </section>
           )}
         </>

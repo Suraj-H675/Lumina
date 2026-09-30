@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from pathlib import Path
 from typing import Final, cast
 
 import pytest
+from fakes.provider_runtime import DeterministicProviderTransport
 from lumina.provenance.domain.provider import ProviderPayloadInvalid
 from lumina.provenance.domain.request_plan import ProviderComponentResult
 from lumina.provenance.domain.runtime import NormalizedJsonValue, RawProviderResponse
@@ -76,23 +77,7 @@ def _raw(body: bytes, maximum: int, *, content_type_valid: bool = True) -> RawPr
     )
 
 
-@dataclass
-class _Transport:
-    responses: list[RawProviderResponse]
-    requests: list[FixedHttpRequest] = field(default_factory=list)
-
-    async def request(
-        self,
-        request: FixedHttpRequest,
-        *,
-        attempt_deadline: float | None = None,
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.requests.append(request)
-        return self.responses.pop(0)
-
-
-def _adapter(transport: _Transport) -> NoaaSwpcAdapter:
+def _adapter(transport: DeterministicProviderTransport) -> NoaaSwpcAdapter:
     return NoaaSwpcAdapter(
         transport,
         source_manifest=load_noaa_swpc_source_manifest(_REPOSITORY_ROOT),
@@ -117,7 +102,7 @@ def test_request_plan_is_exactly_the_five_fixed_products() -> None:
 
 
 def test_adapter_normalizes_all_components_and_preserves_science_statuses() -> None:
-    transport = _Transport(
+    transport = DeterministicProviderTransport(
         [
             _raw(_body(filename), maximum)
             for filename, maximum in zip(_COMPONENT_FILES, _COMPONENT_LIMITS, strict=True)
@@ -291,7 +276,7 @@ def test_component_contract_failures_are_rejected(
     value = json.loads(_body(_COMPONENT_FILES[component_index]))
     mutated = mutator(value)  # type: ignore[operator]
     body = json.dumps(mutated, separators=(",", ":")).encode()
-    adapter = _adapter(_Transport([]))
+    adapter = _adapter(DeterministicProviderTransport([]))
     component = noaa_swpc_request_plan().components[component_index]
 
     with pytest.raises(ProviderPayloadInvalid):
@@ -324,7 +309,7 @@ def test_swpc_rejects_unicode_format_controls_in_provider_text(
     value = json.loads(_body(_COMPONENT_FILES[component_index]))
     mutated = mutator(value)  # type: ignore[operator]
     body = json.dumps(mutated, separators=(",", ":")).encode()
-    adapter = _adapter(_Transport([]))
+    adapter = _adapter(DeterministicProviderTransport([]))
     component = noaa_swpc_request_plan().components[component_index]
 
     with pytest.raises(ProviderPayloadInvalid):
@@ -335,7 +320,7 @@ def test_swpc_rejects_unicode_format_controls_in_provider_text(
 
 
 def test_duplicate_keys_and_nonfinite_numbers_are_rejected() -> None:
-    adapter = _adapter(_Transport([]))
+    adapter = _adapter(DeterministicProviderTransport([]))
     plan = noaa_swpc_request_plan()
     scales = plan.components[0]
     kp = plan.components[1]

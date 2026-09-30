@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fakes.provider_runtime import no_timeout, sleep_noop
+from fakes.provider_runtime import (
+    DeterministicProviderStore,
+    DeterministicProviderTransport,
+    no_timeout,
+    sleep_noop,
+)
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.domain.provider import ProviderFetchTimeout, ProviderFetchUnavailable
@@ -17,11 +21,6 @@ from lumina.provenance.domain.request_plan import ProviderRequestPlan
 from lumina.provenance.domain.runtime import (
     PANOPTES_PROVIDER_CODE,
     CacheState,
-    ProviderClaim,
-    ProviderClaimOutcome,
-    ProviderFinalization,
-    ProviderFinalizationOutcome,
-    ProviderLease,
     ProviderRuntimeConfig,
     ProviderSyncOutcome,
     RawProviderResponse,
@@ -67,69 +66,9 @@ def _raw(index: int, *, body: bytes | None = None) -> RawProviderResponse:
     )
 
 
-@dataclass
-class _Transport:
-    outcomes: list[RawProviderResponse | BaseException]
-    paths: list[str] = field(default_factory=list)
-
-    async def request(
-        self,
-        request: Any,
-        *,
-        attempt_deadline: float | None = None,
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.paths.append(request.url)
-        outcome = self.outcomes.pop(0)
-        if isinstance(outcome, BaseException):
-            raise outcome
-        return outcome
-
-
-@dataclass
-class _Store:
-    failure_cache_state: CacheState = CacheState.STALE
-    failure_stale_fallback: bool = True
-    success_calls: list[dict[str, Any]] = field(default_factory=list)
-    failure_calls: list[dict[str, Any]] = field(default_factory=list)
-
-    async def acquire(self, config: ProviderRuntimeConfig, **kwargs: Any) -> ProviderClaim:
-        del config, kwargs
-        return ProviderClaim(
-            ProviderClaimOutcome.STARTED,
-            lease=ProviderLease("panoptes-test-lease", half_open_probe=False),
-        )
-
-    async def finalize_success(
-        self,
-        config: ProviderRuntimeConfig,
-        **kwargs: Any,
-    ) -> ProviderFinalization:
-        self.success_calls.append({"config": config, **kwargs})
-        return ProviderFinalization(ProviderFinalizationOutcome.COMMITTED, CacheState.FRESH)
-
-    async def finalize_failure(
-        self,
-        config: ProviderRuntimeConfig,
-        **kwargs: Any,
-    ) -> ProviderFinalization:
-        self.failure_calls.append({"config": config, **kwargs})
-        return ProviderFinalization(
-            ProviderFinalizationOutcome.COMMITTED,
-            self.failure_cache_state,
-            stale_fallback=self.failure_stale_fallback,
-        )
-
-    async def status(self, config: ProviderRuntimeConfig, **kwargs: Any) -> Any:
-        raise AssertionError("status is not used by this sync test")
-
-    async def set_enabled(self, config: ProviderRuntimeConfig, **kwargs: Any) -> Any:
-        raise AssertionError("set_enabled is not used by this sync test")
-
-
 def _service(
-    transport: _Transport,
-    store: _Store,
+    transport: DeterministicProviderTransport,
+    store: DeterministicProviderStore,
     sleeper: Any,
     *,
     plan_factory: Any = zooniverse_panoptes_request_plan,
@@ -159,7 +98,7 @@ def _service(
 
 
 def test_retry_refetches_only_failed_panoptes_component() -> None:
-    transport = _Transport(
+    transport = DeterministicProviderTransport(
         [
             _raw(0),
             ProviderFetchTimeout(),
@@ -170,7 +109,7 @@ def test_retry_refetches_only_failed_panoptes_component() -> None:
             _raw(5),
         ]
     )
-    store = _Store()
+    store = DeterministicProviderStore(lease_token="panoptes-test-lease")
     sleeps: list[float] = []
 
     async def sleeper(delay: float) -> None:
@@ -183,14 +122,16 @@ def test_retry_refetches_only_failed_panoptes_component() -> None:
     assert report.retries == 1
     assert sleeps == [1.0]
     assert (
-        transport.paths[1] == transport.paths[2] == ("https://www.zooniverse.org/api/projects/7929")
+        transport.requests[1].url
+        == transport.requests[2].url
+        == "https://www.zooniverse.org/api/projects/7929"
     )
     assert len(store.success_calls) == 1
     assert store.failure_calls == []
 
 
 def test_late_component_failure_never_publishes_partial_panoptes_snapshot() -> None:
-    transport = _Transport(
+    transport = DeterministicProviderTransport(
         [
             _raw(0),
             _raw(1),
@@ -202,7 +143,7 @@ def test_late_component_failure_never_publishes_partial_panoptes_snapshot() -> N
             ProviderFetchUnavailable(),
         ]
     )
-    store = _Store()
+    store = DeterministicProviderStore(lease_token="panoptes-test-lease")
 
     report = asyncio.run(_service(transport, store, sleep_noop).sync(PANOPTES_PROVIDER_CODE))
 
@@ -221,14 +162,16 @@ def test_identity_contract_failure_stops_before_later_components_and_keeps_body(
     malformed = json.loads((_FIXTURE_ROOT / _FILES[2]).read_text())
     malformed["projects"][0]["slug"] = "invented/project"
     malformed_body = json.dumps(malformed).encode()
-    transport = _Transport([_raw(0), _raw(1), _raw(2, body=malformed_body), _raw(3)])
-    store = _Store()
+    transport = DeterministicProviderTransport(
+        [_raw(0), _raw(1), _raw(2, body=malformed_body), _raw(3)]
+    )
+    store = DeterministicProviderStore(lease_token="panoptes-test-lease")
 
     report = asyncio.run(_service(transport, store, sleep_noop).sync(PANOPTES_PROVIDER_CODE))
 
     assert report.outcome is ProviderSyncOutcome.STALE_FALLBACK
     assert report.failure_code == "provider.payload_invalid"
-    assert transport.paths == [
+    assert [request.url for request in transport.requests] == [
         "https://www.zooniverse.org/api/projects/5733",
         "https://www.zooniverse.org/api/projects/7929",
         "https://www.zooniverse.org/api/projects/19413",
@@ -251,10 +194,10 @@ def test_total_evidence_bound_rejects_without_publishing_snapshot() -> None:
     final["projects"][0]["description"] = "x" * 29_000
     large_final_body = json.dumps(final, separators=(",", ":")).encode()
     assert len(large_final_body) < 32_768
-    transport = _Transport(
+    transport = DeterministicProviderTransport(
         [_raw(0), _raw(1), _raw(2), _raw(3), _raw(4), _raw(5, body=large_final_body)]
     )
-    store = _Store()
+    store = DeterministicProviderStore(lease_token="panoptes-test-lease")
 
     report = asyncio.run(
         _service(
@@ -267,7 +210,7 @@ def test_total_evidence_bound_rejects_without_publishing_snapshot() -> None:
 
     assert report.outcome is ProviderSyncOutcome.STALE_FALLBACK
     assert report.failure_code == "provider.response_too_large"
-    assert transport.paths[-1].endswith("/api/projects/13718")
+    assert transport.requests[-1].url.endswith("/api/projects/13718")
     assert store.success_calls == []
 
 
@@ -277,21 +220,21 @@ def test_request_cycle_deadline_is_shared_across_panoptes_attempts() -> None:
     def monotonic() -> float:
         return monotonic_value
 
-    class SlowTransport(_Transport):
+    class SlowTransport(DeterministicProviderTransport):
         async def request(
             self,
             request: Any,
             *,
             attempt_deadline: float | None = None,
         ) -> RawProviderResponse:
-            del attempt_deadline
             nonlocal monotonic_value
-            self.paths.append(request.url)
+            self.requests.append(request)
+            self.attempt_deadlines.append(attempt_deadline)
             monotonic_value += 30.0
             raise ProviderFetchTimeout()
 
     transport = SlowTransport([])
-    store = _Store()
+    store = DeterministicProviderStore(lease_token="panoptes-test-lease")
 
     report = asyncio.run(
         _service(transport, store, sleep_noop, monotonic=monotonic).sync(PANOPTES_PROVIDER_CODE)
@@ -301,20 +244,21 @@ def test_request_cycle_deadline_is_shared_across_panoptes_attempts() -> None:
     assert report.failure_code == "provider.timeout"
     assert report.attempts == 3
     assert report.retries == 2
-    assert len(transport.paths) == 3
-    assert all(path.endswith("/api/projects/5733") for path in transport.paths)
+    assert len(transport.requests) == 3
+    assert all(request.url.endswith("/api/projects/5733") for request in transport.requests)
     assert store.success_calls == []
 
 
 def test_expired_cache_failure_is_not_reported_as_stale_fallback() -> None:
-    transport = _Transport(
+    transport = DeterministicProviderTransport(
         [
             ProviderFetchUnavailable(),
             ProviderFetchUnavailable(),
             ProviderFetchUnavailable(),
         ]
     )
-    store = _Store(
+    store = DeterministicProviderStore(
+        lease_token="panoptes-test-lease",
         failure_cache_state=CacheState.EXPIRED,
         failure_stale_fallback=False,
     )

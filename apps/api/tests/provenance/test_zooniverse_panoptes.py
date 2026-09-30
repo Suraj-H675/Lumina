@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from pathlib import Path
 from typing import Final, cast
 
 import pytest
+from fakes.provider_runtime import DeterministicProviderTransport
 from lumina.provenance.domain.citizen_science import (
     PANOPTES_COMPONENT_IDS,
     PanoptesCodec,
@@ -69,23 +70,7 @@ def _raw(body: bytes, *, content_type_valid: bool = True) -> RawProviderResponse
     )
 
 
-@dataclass
-class _Transport:
-    responses: list[RawProviderResponse]
-    requests: list[FixedHttpRequest] = field(default_factory=list)
-
-    async def request(
-        self,
-        request: FixedHttpRequest,
-        *,
-        attempt_deadline: float | None = None,
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.requests.append(request)
-        return self.responses.pop(0)
-
-
-def _adapter(transport: _Transport) -> ZooniversePanoptesAdapter:
+def _adapter(transport: DeterministicProviderTransport) -> ZooniversePanoptesAdapter:
     return ZooniversePanoptesAdapter(
         transport,
         source_manifest=load_zooniverse_panoptes_source_manifest(_REPOSITORY_ROOT),
@@ -112,7 +97,7 @@ def test_request_plan_is_exactly_six_direct_project_gets() -> None:
 
 
 def test_adapter_uses_exact_versioned_accept_header_and_fixed_paths() -> None:
-    transport = _Transport([_raw(_body("galaxy-zoo"))])
+    transport = DeterministicProviderTransport([_raw(_body("galaxy-zoo"))])
     adapter = _adapter(transport)
     request = zooniverse_panoptes_request_plan().components[0].request
 
@@ -130,7 +115,9 @@ def test_adapter_uses_exact_versioned_accept_header_and_fixed_paths() -> None:
 
 def test_adapter_normalizes_all_components_and_discards_provider_prose() -> None:
     plan = zooniverse_panoptes_request_plan()
-    transport = _Transport([_raw(_body(component_id)) for component_id in plan.component_ids])
+    transport = DeterministicProviderTransport(
+        [_raw(_body(component_id)) for component_id in plan.component_ids]
+    )
     adapter = _adapter(transport)
     results: list[ProviderComponentResult] = []
 
@@ -186,7 +173,7 @@ def test_private_and_not_live_are_preserved_as_source_status_facts() -> None:
     body["projects"][0]["private"] = True
     body["projects"][0]["live"] = False
     raw = _raw(json.dumps(body).encode())
-    adapter = _adapter(_Transport([raw]))
+    adapter = _adapter(DeterministicProviderTransport([raw]))
     request = zooniverse_panoptes_request_plan().components[0].request
 
     parsed = adapter.validate_component_payload(request, raw)
@@ -204,7 +191,7 @@ def test_adapter_ignores_large_unconsumed_provider_arrays_within_transport_bound
     }
     raw = _raw(json.dumps(body, separators=(",", ":")).encode())
     assert len(raw.body) < raw.max_response_bytes
-    adapter = _adapter(_Transport([raw]))
+    adapter = _adapter(DeterministicProviderTransport([raw]))
     request = zooniverse_panoptes_request_plan().components[0].request
 
     parsed = adapter.validate_component_payload(request, raw)
@@ -233,7 +220,7 @@ def test_adapter_rejects_project_identity_or_status_drift(
     body = json.loads(_body("galaxy-zoo"))
     body["projects"][0][field] = replacement
     raw = _raw(json.dumps(body).encode())
-    adapter = _adapter(_Transport([raw]))
+    adapter = _adapter(DeterministicProviderTransport([raw]))
     request = zooniverse_panoptes_request_plan().components[0].request
 
     with pytest.raises(ProviderPayloadInvalid):
@@ -241,7 +228,7 @@ def test_adapter_rejects_project_identity_or_status_drift(
 
 
 def test_adapter_rejects_duplicate_keys_or_non_single_project_envelope() -> None:
-    adapter = _adapter(_Transport([]))
+    adapter = _adapter(DeterministicProviderTransport([]))
     request = zooniverse_panoptes_request_plan().components[0].request
     duplicate = _raw(
         b'{"projects":[{"id":"5733","id":"5733","slug":"zookeeper/galaxy-zoo",'
@@ -257,7 +244,7 @@ def test_adapter_rejects_duplicate_keys_or_non_single_project_envelope() -> None
 
 
 def test_adapter_rejects_transport_contract_drift() -> None:
-    adapter = _adapter(_Transport([]))
+    adapter = _adapter(DeterministicProviderTransport([]))
     request = zooniverse_panoptes_request_plan().components[0].request
     good = _raw(_body("galaxy-zoo"))
 

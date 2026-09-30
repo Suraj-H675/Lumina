@@ -5,10 +5,20 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from typing import Final
+from typing import Any, Final
 
 from lumina.provenance.domain.provider import ProviderFetchTimeout, ProviderFetchUnavailable
-from lumina.provenance.domain.runtime import MAX_RESPONSE_BYTES, RawProviderResponse
+from lumina.provenance.domain.runtime import (
+    MAX_RESPONSE_BYTES,
+    CacheState,
+    ProviderClaim,
+    ProviderClaimOutcome,
+    ProviderFinalization,
+    ProviderFinalizationOutcome,
+    ProviderLease,
+    ProviderRuntimeConfig,
+    RawProviderResponse,
+)
 from lumina.provenance.infrastructure.http import FixedHttpRequest
 
 VALID_COUNT_BODY: Final = b"count(pl_name)\n6360\n"
@@ -70,6 +80,50 @@ class DeterministicProviderTransport:
         if isinstance(outcome, BaseException):
             raise outcome
         return outcome
+
+
+@dataclass
+class DeterministicProviderStore:
+    """Record sync finalization calls with configurable failure state."""
+
+    lease_token: str
+    failure_cache_state: CacheState = CacheState.STALE
+    failure_stale_fallback: bool = True
+    success_calls: list[dict[str, Any]] = field(default_factory=list)
+    failure_calls: list[dict[str, Any]] = field(default_factory=list)
+
+    async def acquire(self, config: ProviderRuntimeConfig, **kwargs: Any) -> ProviderClaim:
+        del config, kwargs
+        return ProviderClaim(
+            ProviderClaimOutcome.STARTED,
+            lease=ProviderLease(self.lease_token, half_open_probe=False),
+        )
+
+    async def finalize_success(
+        self,
+        config: ProviderRuntimeConfig,
+        **kwargs: Any,
+    ) -> ProviderFinalization:
+        self.success_calls.append({"config": config, **kwargs})
+        return ProviderFinalization(ProviderFinalizationOutcome.COMMITTED, CacheState.FRESH)
+
+    async def finalize_failure(
+        self,
+        config: ProviderRuntimeConfig,
+        **kwargs: Any,
+    ) -> ProviderFinalization:
+        self.failure_calls.append({"config": config, **kwargs})
+        return ProviderFinalization(
+            ProviderFinalizationOutcome.COMMITTED,
+            self.failure_cache_state,
+            stale_fallback=self.failure_stale_fallback,
+        )
+
+    async def status(self, config: ProviderRuntimeConfig, **kwargs: Any) -> Any:
+        raise AssertionError("status is not used by this deterministic provider store")
+
+    async def set_enabled(self, config: ProviderRuntimeConfig, **kwargs: Any) -> Any:
+        raise AssertionError("set_enabled is not used by this deterministic provider store")
 
 
 def timeout() -> ProviderFetchTimeout:

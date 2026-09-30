@@ -38,6 +38,7 @@ import {
   type HRDiagramView,
   verifyHRDiagramBrowserArtifact,
 } from "../lib/simulations/hr-diagram-explorer";
+import styles from "./lab-data-instrument.module.css";
 import { LearningModeSelector } from "./learning-mode-selector";
 
 type HRDiagramExplorerEnhancedProps = Readonly<{
@@ -175,17 +176,13 @@ function FilterGroup<T extends string>({
   groupId: string;
 }>) {
   return (
-    <fieldset className="min-w-0 rounded-md border border-[var(--border)] p-4">
-      <legend className="px-1 text-sm font-semibold">{legend}</legend>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+    <fieldset className={styles.filterGroup}>
+      <legend>{legend}</legend>
+      <div className={styles.filterChoices}>
         {values.map((value) => {
           const inputId = `${groupId}-${value}`;
           return (
-            <label
-              className="flex min-h-11 items-center gap-2 text-sm"
-              htmlFor={inputId}
-              key={value}
-            >
+            <label className={styles.filterChoice} htmlFor={inputId} key={value}>
               <input
                 checked={selected.includes(value)}
                 className="h-4 w-4"
@@ -254,10 +251,10 @@ function PlotFigure({
         }));
 
   return (
-    <figure className="space-y-3" data-testid="hr-diagram-plot">
+    <figure className={styles.plotFigure} data-testid="hr-diagram-plot">
       <svg
         aria-labelledby="hr-diagram-plot-title hr-diagram-plot-description"
-        className="h-auto w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
+        className={styles.plotSvg}
         role="img"
         viewBox="0 0 760 430"
       >
@@ -386,7 +383,7 @@ function PlotFigure({
           {axes.y}
         </text>
       </svg>
-      <figcaption className="text-sm leading-6 text-[var(--muted)]">
+      <figcaption className={styles.caption}>
         {formatMessageTemplate(messages.plot.caption, {
           xDirection: axes.xDirection,
           yDirection: axes.yDirection,
@@ -408,10 +405,12 @@ function SelectedStarDetail({
   outsideFilters: boolean;
 }>) {
   return (
-    <section aria-labelledby="hr-selected-heading" className="space-y-4">
-      <div>
-        <h2 id="hr-selected-heading">{messages.detail.title}</h2>
-        <p className="text-[var(--muted)]">
+    <section aria-labelledby="hr-selected-heading" className={styles.selectedPanel}>
+      <div className={styles.selectedHeader}>
+        <h2 className={styles.selectedTitle} id="hr-selected-heading">
+          {messages.detail.title}
+        </h2>
+        <p className={styles.selectedSummary}>
           {formatMessageTemplate(messages.detail.summary, {
             cluster: record.cluster_label,
             designation: record.designation,
@@ -420,12 +419,12 @@ function SelectedStarDetail({
           })}
         </p>
         {outsideFilters ? (
-          <p className="rounded-md border border-[var(--border)] p-3" role="note">
+          <p className={styles.note} role="note">
             {messages.detail.outsideFilters}
           </p>
         ) : null}
       </div>
-      <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+      <dl className={styles.detailGrid}>
         <div>
           <dt>{messages.detail.labels.sourceId}</dt>
           <dd>{record.gaia_source_id}</dd>
@@ -536,11 +535,11 @@ function RecordsTable({
   return (
     <div
       aria-label={messages.table.ariaLabel}
-      className="overflow-x-auto"
+      className={styles.tableWrap}
       role="region"
       tabIndex={0}
     >
-      <table>
+      <table className={styles.table}>
         <caption>
           {formatMessageTemplate(messages.table.caption, {
             count: formatLocaleNumber(records.length, locale),
@@ -568,7 +567,7 @@ function RecordsTable({
                     aria-label={formatMessageTemplate(messages.table.selectAria, {
                       star: selectedStarLabel(record, messages),
                     })}
-                    className="min-h-11 text-left font-semibold text-[var(--link)] underline"
+                    className={styles.tableButton}
                     onClick={() => onSelect(record.star_id)}
                     type="button"
                   >
@@ -600,95 +599,97 @@ function ModelSurface({
   mode: HRDiagramAudienceMode;
 }>) {
   return (
-    <section aria-labelledby="hr-model-heading" className="space-y-4">
+    <section aria-labelledby="hr-model-heading" className={styles.modelSection}>
       <h2 id="hr-model-heading">{messages.model.title}</h2>
-      <p>
-        <strong>{messages.model.modelLabel}</strong> {HR_DIAGRAM_DEFINITION.model_version}. This is
-        the fixed {HR_DIAGRAM_DEFINITION.dataset_id} dataset: 128 curated Gaia DR3 records,
-        equalized to 32 per cluster. Marker density is not a population-density estimate.
-      </p>
-      <p>
-        The plotted central values are published Gaia quantities. Nova-Lumina does not convert BP−RP
-        to temperature, M_G to luminosity, plot position to classification, or source data into age,
-        mass, radius, lifetime, or future evolution. FLAME stage groups are model-derived
-        educational groupings of the source-published stage index.
-      </p>
-      <p>
-        Cluster filters use the reviewed Hunt &amp; Reffert catalogue rows. The selected-star detail
-        preserves that source row&apos;s membership probability and inrj/inrt flags; a catalogue
-        association is not a Nova-Lumina-recomputed membership claim.
-      </p>
-      <h3>{messages.model.displayRelationships}</h3>
-      <dl>
-        {Object.entries(HR_DIAGRAM_DEFINITION.calculation_module.equations).map(
-          ([name, equation]) => (
-            <div key={name}>
-              <dt>{name.replaceAll("_", " ")}</dt>
-              <dd>{equation}</dd>
-            </div>
-          ),
-        )}
-      </dl>
-      <p>
-        These logarithmic and linear maps are visualization transforms only. The H-R and CMD views
-        are alternate source-variable views, not exact conversions. Gaia uncertainty values for
-        T_eff, luminosity, and M_G retain their asymmetric p16/p50/p84 semantics; BP−RP has no
-        synthesized uncertainty in v1.
-      </p>
-      {mode !== "explorer" ? (
-        <>
-          <h3>{mode === "student" ? "Reading the diagram" : "Deep-dive data boundary"}</h3>
-          {mode === "student" ? (
-            <p>
-              The broad main sequence, turn-off transition, and red-giant-branch concepts help
-              describe stellar populations, but the plot does not draw classification polygons.
-              Spectral class comes from Gaia tags, while stage group comes from the separate FLAME
-              index and its documented boundaries. Cluster membership comes from Hunt &amp; Reffert,
-              not from a star&apos;s position.
-            </p>
-          ) : (
-            <ul>
-              <li>Gaia fields: teff_gspphot, lum_flame, mg_gspphot, bp_rp, and source flags.</li>
-              <li>Stage boundaries: 100, 360, 490, and 1290 in evolstage_flame.</li>
-              <li>
-                Eligibility requires Gaia spectral-class primary probability above 0.5 via
-                flags_esphs.
-              </li>
-              <li>
-                Selection is deterministic round-robin across non-empty (stage_group,
-                spectral_class) cells, ordered by numeric source_id.
-              </li>
-            </ul>
+      <div className={styles.modelBody}>
+        <p>
+          <strong>{messages.model.modelLabel}</strong> {HR_DIAGRAM_DEFINITION.model_version}. This
+          is the fixed {HR_DIAGRAM_DEFINITION.dataset_id} dataset: 128 curated Gaia DR3 records,
+          equalized to 32 per cluster. Marker density is not a population-density estimate.
+        </p>
+        <p>
+          The plotted central values are published Gaia quantities. Nova-Lumina does not convert
+          BP−RP to temperature, M_G to luminosity, plot position to classification, or source data
+          into age, mass, radius, lifetime, or future evolution. FLAME stage groups are
+          model-derived educational groupings of the source-published stage index.
+        </p>
+        <p>
+          Cluster filters use the reviewed Hunt &amp; Reffert catalogue rows. The selected-star
+          detail preserves that source row&apos;s membership probability and inrj/inrt flags; a
+          catalogue association is not a Nova-Lumina-recomputed membership claim.
+        </p>
+        <h3>{messages.model.displayRelationships}</h3>
+        <dl>
+          {Object.entries(HR_DIAGRAM_DEFINITION.calculation_module.equations).map(
+            ([name, equation]) => (
+              <div key={name}>
+                <dt>{name.replaceAll("_", " ")}</dt>
+                <dd>{equation}</dd>
+              </div>
+            ),
           )}
-        </>
-      ) : null}
-      <h3>{messages.model.assumptionsAndLimitations}</h3>
-      <ul>
-        {HR_DIAGRAM_DEFINITION.assumptions.map((assumption) => (
-          <li key={assumption}>{assumption}</li>
-        ))}
-        {HR_DIAGRAM_DEFINITION.limitations.map((limitation) => (
-          <li key={limitation}>{limitation}</li>
-        ))}
-      </ul>
-      <h3>{messages.model.sources}</h3>
-      <ul>
-        {HR_DIAGRAM_DEFINITION.references.map((sourceId) => {
-          const source = sourceForId(sourceId);
-          return source === undefined ? (
-            <li key={sourceId}>
-              {formatMessageTemplate(messages.model.sourceUnavailable, { sourceId })}
-            </li>
-          ) : (
-            <li key={sourceId}>
-              <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
-                {source.title}
-              </a>{" "}
-              ({source.organization_or_authors}; {source.dataset_or_release})
-            </li>
-          );
-        })}
-      </ul>
+        </dl>
+        <p>
+          These logarithmic and linear maps are visualization transforms only. The H-R and CMD views
+          are alternate source-variable views, not exact conversions. Gaia uncertainty values for
+          T_eff, luminosity, and M_G retain their asymmetric p16/p50/p84 semantics; BP−RP has no
+          synthesized uncertainty in v1.
+        </p>
+        {mode !== "explorer" ? (
+          <>
+            <h3>{mode === "student" ? "Reading the diagram" : "Deep-dive data boundary"}</h3>
+            {mode === "student" ? (
+              <p>
+                The broad main sequence, turn-off transition, and red-giant-branch concepts help
+                describe stellar populations, but the plot does not draw classification polygons.
+                Spectral class comes from Gaia tags, while stage group comes from the separate FLAME
+                index and its documented boundaries. Cluster membership comes from Hunt &amp;
+                Reffert, not from a star&apos;s position.
+              </p>
+            ) : (
+              <ul>
+                <li>Gaia fields: teff_gspphot, lum_flame, mg_gspphot, bp_rp, and source flags.</li>
+                <li>Stage boundaries: 100, 360, 490, and 1290 in evolstage_flame.</li>
+                <li>
+                  Eligibility requires Gaia spectral-class primary probability above 0.5 via
+                  flags_esphs.
+                </li>
+                <li>
+                  Selection is deterministic round-robin across non-empty (stage_group,
+                  spectral_class) cells, ordered by numeric source_id.
+                </li>
+              </ul>
+            )}
+          </>
+        ) : null}
+        <h3>{messages.model.assumptionsAndLimitations}</h3>
+        <ul>
+          {HR_DIAGRAM_DEFINITION.assumptions.map((assumption) => (
+            <li key={assumption}>{assumption}</li>
+          ))}
+          {HR_DIAGRAM_DEFINITION.limitations.map((limitation) => (
+            <li key={limitation}>{limitation}</li>
+          ))}
+        </ul>
+        <h3>{messages.model.sources}</h3>
+        <ul>
+          {HR_DIAGRAM_DEFINITION.references.map((sourceId) => {
+            const source = sourceForId(sourceId);
+            return source === undefined ? (
+              <li key={sourceId}>
+                {formatMessageTemplate(messages.model.sourceUnavailable, { sourceId })}
+              </li>
+            ) : (
+              <li key={sourceId}>
+                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                  {source.title}
+                </a>{" "}
+                ({source.organization_or_authors}; {source.dataset_or_release})
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -745,138 +746,132 @@ export function HRDiagramExplorerEnhanced({
   }
 
   return (
-    <article className="space-y-10" data-testid="hr-diagram-explorer">
-      <header className="max-w-4xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{MODE_COPY[mode].introduction}</p>
-        <p className="rounded-md border border-[var(--border)] p-4 text-[var(--muted)]">
-          <strong className="text-[var(--foreground)]">{messages.header.learningPrompt}</strong>{" "}
-          {MODE_COPY[mode].question}
-        </p>
+    <article className={styles.page} data-testid="hr-diagram-explorer">
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <div className={styles.heroAside}>
+          <p className={styles.intro}>{MODE_COPY[mode].introduction}</p>
+          <p className={styles.learningPrompt}>
+            <strong>{messages.header.learningPrompt}</strong> {MODE_COPY[mode].question}
+          </p>
+        </div>
       </header>
 
       {stateInvalid ? (
-        <aside
-          aria-label={messages.invalidState.title}
-          className="rounded-md border border-[var(--border)] p-4"
-          role="alert"
-        >
-          <h2 className="text-lg font-semibold">{messages.invalidState.title}</h2>
-          <p className="mt-2 text-[var(--muted)]">{messages.invalidState.description}</p>
-          <button
-            className="mt-3 min-h-11 rounded-sm border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={reset}
-            type="button"
-          >
+        <aside aria-label={messages.invalidState.title} className={styles.alert} role="alert">
+          <h2>{messages.invalidState.title}</h2>
+          <p>{messages.invalidState.description}</p>
+          <button className={styles.button} onClick={reset} type="button">
             {messages.actions.resetDefault}
           </button>
         </aside>
       ) : null}
 
       {artifactIntegrityInvalid ? (
-        <div
-          aria-label={messages.artifactIntegrity.title}
-          className="rounded-md border border-[var(--border)] p-4"
-          role="alert"
-        >
-          <h2 className="text-lg font-semibold">{messages.artifactIntegrity.title}</h2>
-          <p className="mt-2 text-[var(--muted)]">{messages.artifactIntegrity.description}</p>
+        <div aria-label={messages.artifactIntegrity.title} className={styles.alert} role="alert">
+          <h2>{messages.artifactIntegrity.title}</h2>
+          <p>{messages.artifactIntegrity.description}</p>
         </div>
       ) : (
         <>
-          <section aria-labelledby="hr-controls-heading" className="space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 id="hr-controls-heading">{messages.controls.title}</h2>
-                <p className="text-[var(--muted)]">
-                  {formatMessageTemplate(messages.controls.countSummary, {
-                    count: formatLocaleNumber(records.length, locale),
-                    total: formatLocaleNumber(HR_DIAGRAM_RECORDS.length, locale),
-                  })}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="text-sm font-semibold" htmlFor="hr-view-select">
-                  {messages.controls.viewLabel}
-                </label>
-                <select
-                  className="min-h-11 rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base"
-                  id="hr-view-select"
-                  onChange={(event) =>
-                    updateState({ ...state, view: event.target.value as HRDiagramView })
-                  }
-                  value={state.view}
-                >
-                  {HR_DIAGRAM_VIEWS.map((view) => (
-                    <option key={view} value={view}>
-                      {viewLabel(view, messages)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="min-h-11 rounded-sm border border-[var(--border-strong)] px-4 font-semibold"
-                  onClick={reset}
-                  type="button"
-                >
-                  {messages.actions.reset}
-                </button>
+          <section aria-labelledby="hr-controls-heading" className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionIndex}>01 · Dataset</p>
+              <h2 className={styles.sectionTitle} id="hr-controls-heading">
+                {messages.controls.title}
+              </h2>
+              <p className={styles.sectionDescription}>
+                {formatMessageTemplate(messages.controls.countSummary, {
+                  count: formatLocaleNumber(records.length, locale),
+                  total: formatLocaleNumber(HR_DIAGRAM_RECORDS.length, locale),
+                })}
+              </p>
+            </div>
+            <div className={styles.sectionBody}>
+              <div className={styles.controls}>
+                <div className={styles.controlBar}>
+                  <p className={styles.controlMeta}>
+                    {displayAxisLabels(state.view, messages).xDirection}.{" "}
+                    {displayAxisLabels(state.view, messages).yDirection}
+                  </p>
+                  <div className={styles.controlActions}>
+                    <label className={styles.selectControl} htmlFor="hr-view-select">
+                      {messages.controls.viewLabel}
+                      <select
+                        className={styles.select}
+                        id="hr-view-select"
+                        onChange={(event) =>
+                          updateState({ ...state, view: event.target.value as HRDiagramView })
+                        }
+                        value={state.view}
+                      >
+                        {HR_DIAGRAM_VIEWS.map((view) => (
+                          <option key={view} value={view}>
+                            {viewLabel(view, messages)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className={styles.button} onClick={reset} type="button">
+                      {messages.actions.reset}
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.filterGrid}>
+                  <FilterGroup
+                    groupId="hr-spectral"
+                    labels={{ O: "O", B: "B", A: "A", F: "F", G: "G", K: "K", M: "M" }}
+                    legend={messages.controls.spectralLegend}
+                    onToggle={(value) =>
+                      updateState({
+                        ...state,
+                        spectral_classes: toggleValue(
+                          state.spectral_classes,
+                          value,
+                          HR_DIAGRAM_SPECTRAL_CLASSES,
+                        ),
+                      })
+                    }
+                    selected={state.spectral_classes}
+                    values={HR_DIAGRAM_SPECTRAL_CLASSES}
+                  />
+                  <FilterGroup
+                    groupId="hr-stage"
+                    labels={STAGE_LABELS}
+                    legend={messages.controls.stageLegend}
+                    onToggle={(value) =>
+                      updateState({
+                        ...state,
+                        stage_groups: toggleValue(
+                          state.stage_groups,
+                          value,
+                          HR_DIAGRAM_STAGE_GROUPS,
+                        ),
+                      })
+                    }
+                    selected={state.stage_groups}
+                    values={HR_DIAGRAM_STAGE_GROUPS}
+                  />
+                  <FilterGroup
+                    groupId="hr-cluster"
+                    labels={CLUSTER_LABELS}
+                    legend={messages.controls.clusterLegend}
+                    onToggle={(value) =>
+                      updateState({
+                        ...state,
+                        clusters: toggleValue(state.clusters, value, HR_DIAGRAM_CLUSTERS),
+                      })
+                    }
+                    selected={state.clusters}
+                    values={HR_DIAGRAM_CLUSTERS}
+                  />
+                </div>
+                <LearningModeSelector onChange={setMode} />
               </div>
             </div>
-            <p className="text-sm text-[var(--muted)]">
-              {displayAxisLabels(state.view, messages).xDirection}.{" "}
-              {displayAxisLabels(state.view, messages).yDirection}
-            </p>
-            <div className="grid gap-4 lg:grid-cols-3">
-              <FilterGroup
-                groupId="hr-spectral"
-                labels={{ O: "O", B: "B", A: "A", F: "F", G: "G", K: "K", M: "M" }}
-                legend={messages.controls.spectralLegend}
-                onToggle={(value) =>
-                  updateState({
-                    ...state,
-                    spectral_classes: toggleValue(
-                      state.spectral_classes,
-                      value,
-                      HR_DIAGRAM_SPECTRAL_CLASSES,
-                    ),
-                  })
-                }
-                selected={state.spectral_classes}
-                values={HR_DIAGRAM_SPECTRAL_CLASSES}
-              />
-              <FilterGroup
-                groupId="hr-stage"
-                labels={STAGE_LABELS}
-                legend={messages.controls.stageLegend}
-                onToggle={(value) =>
-                  updateState({
-                    ...state,
-                    stage_groups: toggleValue(state.stage_groups, value, HR_DIAGRAM_STAGE_GROUPS),
-                  })
-                }
-                selected={state.stage_groups}
-                values={HR_DIAGRAM_STAGE_GROUPS}
-              />
-              <FilterGroup
-                groupId="hr-cluster"
-                labels={CLUSTER_LABELS}
-                legend={messages.controls.clusterLegend}
-                onToggle={(value) =>
-                  updateState({
-                    ...state,
-                    clusters: toggleValue(state.clusters, value, HR_DIAGRAM_CLUSTERS),
-                  })
-                }
-                selected={state.clusters}
-                values={HR_DIAGRAM_CLUSTERS}
-              />
-            </div>
-            <LearningModeSelector onChange={setMode} />
           </section>
 
           <PlotFigure
@@ -888,12 +883,10 @@ export function HRDiagramExplorerEnhanced({
             view={state.view}
           />
 
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm font-semibold" htmlFor="hr-keyboard-star-selector">
-              {messages.controls.keyboardLabel}
-            </label>
+          <div className={styles.keyboardControl}>
+            <label htmlFor="hr-keyboard-star-selector">{messages.controls.keyboardLabel}</label>
             <select
-              className="min-h-11 min-w-0 max-w-full rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base"
+              className={styles.select}
               id="hr-keyboard-star-selector"
               onChange={(event) => selectStar(event.target.value)}
               value={state.selected_star_id}
@@ -910,17 +903,12 @@ export function HRDiagramExplorerEnhanced({
                 </option>
               ) : null}
             </select>
-            <span className="text-sm text-[var(--muted)]">{messages.controls.keyboardHelp}</span>
+            <span className={styles.keyboardHelp}>{messages.controls.keyboardHelp}</span>
           </div>
 
-          <section
-            aria-labelledby="hr-legend-heading"
-            className="rounded-md border border-[var(--border)] p-4"
-          >
-            <h2 id="hr-legend-heading" className="text-lg font-semibold">
-              {messages.legend.title}
-            </h2>
-            <ul className="mt-3 grid gap-2 text-sm text-[var(--muted)] sm:grid-cols-2">
+          <section aria-labelledby="hr-legend-heading" className={styles.legend}>
+            <h2 id="hr-legend-heading">{messages.legend.title}</h2>
+            <ul className={styles.legendList}>
               <li>{messages.legend.items.point}</li>
               <li>{messages.legend.items.selected}</li>
               <li>{messages.legend.items.sourceBacked}</li>
@@ -935,47 +923,51 @@ export function HRDiagramExplorerEnhanced({
             record={selected}
           />
 
-          <section aria-labelledby="hr-table-heading" className="space-y-4">
-            <div>
-              <h2 id="hr-table-heading">{messages.table.title}</h2>
-              <p className="text-[var(--muted)]">{messages.table.description}</p>
+          <section aria-labelledby="hr-table-heading" className={styles.tableSection}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionIndex}>03 · Data</p>
+              <h2 className={styles.sectionTitle} id="hr-table-heading">
+                {messages.table.title}
+              </h2>
+              <p className={styles.sectionDescription}>{messages.table.description}</p>
             </div>
-            <RecordsTable
-              locale={locale}
-              messages={messages}
-              onSelect={selectStar}
-              records={records}
-              selectedStarId={selected.star_id}
-            />
+            <div className={styles.sectionBody}>
+              <RecordsTable
+                locale={locale}
+                messages={messages}
+                onSelect={selectStar}
+                records={records}
+                selectedStarId={selected.star_id}
+              />
+            </div>
           </section>
 
           <ModelSurface messages={messages} mode={mode} />
 
-          <section
-            aria-labelledby="hr-share-heading"
-            className="rounded-md border border-[var(--border)] p-4"
-          >
+          <section aria-labelledby="hr-share-heading" className={styles.shareSection}>
             <h2 id="hr-share-heading">{messages.share.title}</h2>
-            <p className="mt-2 text-[var(--muted)]">{messages.share.description}</p>
-            <p className="mt-2 break-all text-sm">
-              <a className="text-[var(--link)] underline" href={shareUrl}>
-                {messages.share.link}
-              </a>
-            </p>
-            <p className="mt-2 text-xs text-[var(--muted)]">
-              {formatMessageTemplate(messages.share.modelSummary, {
-                modelVersion: HR_DIAGRAM_DEFINITION.model_version,
-                schemaVersion: formatLocaleNumber(
-                  HR_DIAGRAM_DEFINITION.share_schema_version,
-                  locale,
-                ),
-              })}
-            </p>
+            <div className={styles.shareBody}>
+              <p>{messages.share.description}</p>
+              <p className={styles.shareUrl}>
+                <a className={styles.textLink} href={shareUrl}>
+                  {messages.share.link}
+                </a>
+              </p>
+              <p>
+                {formatMessageTemplate(messages.share.modelSummary, {
+                  modelVersion: HR_DIAGRAM_DEFINITION.model_version,
+                  schemaVersion: formatLocaleNumber(
+                    HR_DIAGRAM_DEFINITION.share_schema_version,
+                    locale,
+                  ),
+                })}
+              </p>
+            </div>
           </section>
 
-          <p className="text-sm text-[var(--muted)]">
-            {messages.footer.description}
-            <Link className="ml-1 text-[var(--link)] underline" href="/lab">
+          <p className={styles.caption}>
+            {messages.footer.description}{" "}
+            <Link className={styles.textLink} href="/lab">
               {messages.footer.link}
             </Link>
           </p>

@@ -7,6 +7,7 @@ import { formatLocaleNumber, formatMessageTemplate } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { ScaleExplorerMessages } from "../lib/i18n/messages/types";
 import type { AudienceMode } from "../lib/learning/content";
+import styles from "./lab-data-instrument.module.css";
 import { LearningModeSelector } from "./learning-mode-selector";
 import {
   DEFAULT_SCALE_EXPLORER_STATE,
@@ -70,8 +71,7 @@ const modeCopy: Record<
   },
 };
 
-const buttonClassName =
-  "inline-flex min-h-11 items-center justify-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold text-[var(--foreground)] no-underline transition-colors motion-reduce:transition-none hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-55";
+const buttonClassName = styles.button;
 
 function categoryLabel(
   category: ScaleNodeCategory,
@@ -208,57 +208,36 @@ function ScaleTrack({
   model: ReturnType<typeof buildScaleExplorerModel>;
 }>) {
   return (
-    <div className="space-y-3">
-      <div
-        aria-hidden="true"
-        className="relative h-28 overflow-hidden rounded-md border border-[var(--border)] bg-[linear-gradient(90deg,var(--surface),var(--surface-hover))]"
-      >
-        <div className="absolute inset-x-4 top-1/2 h-1 -translate-y-1/2 rounded-full bg-[var(--border-strong)]">
+    <div className={styles.track}>
+      <div aria-hidden="true" className={styles.trackFrame}>
+        <div className={styles.trackLine}>
           {model.nodes.map((entry) => {
             const selected = entry.node.id === model.selected.node.id;
             return (
               <span
-                className={
-                  selected
-                    ? "absolute top-1/2 h-10 w-3 -translate-x-1/2 -translate-y-1/2 rounded-sm border-2 border-[var(--focus)] bg-[var(--accent)]"
-                    : "absolute top-1/2 h-5 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--muted)]"
-                }
+                className={selected ? styles.trackMarkerSelected : styles.trackMarker}
                 key={entry.node.id}
                 style={{ left: `${entry.position_percent}%` }}
               />
             );
           })}
         </div>
-        <span className="absolute bottom-2 left-4 text-xs font-semibold text-[var(--muted)]">
-          {messages.smallest}
-        </span>
-        <span className="absolute bottom-2 right-4 text-xs font-semibold text-[var(--muted)]">
-          {messages.largest}
-        </span>
+        <span className={styles.trackLabelLeft}>{messages.smallest}</span>
+        <span className={styles.trackLabelRight}>{messages.largest}</span>
       </div>
-      <p className="text-sm text-[var(--muted)]">
+      <p className={styles.caption}>
         {formatMessageTemplate(messages.markerSummary, { node: model.selected.node.name })}
       </p>
-      <div
-        aria-label={messages.legendAriaLabel}
-        className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--muted)]"
-        role="group"
-      >
-        <span className="inline-flex min-h-11 items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="inline-block h-7 w-3 rounded-sm border-2 border-[var(--focus)] bg-[var(--accent)]"
-          />
+      <div aria-label={messages.legendAriaLabel} className={styles.trackLegend} role="group">
+        <span>
+          <span aria-hidden="true" className={styles.markerSelectedKey} />
           {messages.selectedMarker}
         </span>
-        <span className="inline-flex min-h-11 items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="inline-block h-4 w-1 rounded-full bg-[var(--muted)]"
-          />
+        <span>
+          <span aria-hidden="true" className={styles.markerKey} />
           {messages.otherMarker}
         </span>
-        <span className="inline-flex min-h-11 items-center">{messages.coordinate}</span>
+        <span>{messages.coordinate}</span>
       </div>
     </div>
   );
@@ -272,7 +251,7 @@ function SourceList({
   sourceIds: ReadonlyArray<string>;
 }>) {
   return (
-    <ul className="m-0 grid list-disc gap-2 pl-5 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {sourceIds.map((sourceId) => {
         const source = sourceForId(sourceId);
         return (
@@ -286,10 +265,7 @@ function SourceList({
                   :{" "}
                 </span>
                 <code className="mr-2 break-all text-xs text-[var(--foreground)]">{source.id}</code>
-                <a
-                  className="inline-flex min-h-11 items-center py-2 font-medium text-[var(--link)] underline"
-                  href={source.url}
-                >
+                <a className={styles.sourceLink} href={source.url}>
                   {source.title}
                 </a>{" "}
                 <span>
@@ -327,7 +303,7 @@ function SourceLinkList({
   sourceIds: ReadonlyArray<string>;
 }>) {
   return (
-    <ul className="m-0 grid gap-1 pl-0 text-xs leading-5 text-[var(--muted)]">
+    <ul className={styles.entityLinks}>
       {sourceIds.map((sourceId) => {
         const source = sourceForId(sourceId);
         return (
@@ -337,10 +313,7 @@ function SourceLinkList({
             ) : (
               <span className="flex flex-wrap items-center gap-x-2">
                 <code className="break-all text-[var(--foreground)]">{source.id}</code>
-                <a
-                  className="inline-flex min-h-11 items-center py-2 text-[var(--link)] underline"
-                  href={source.url}
-                >
+                <a className={styles.sourceLink} href={source.url}>
                   {source.title}
                 </a>
               </span>
@@ -360,26 +333,24 @@ function ComparisonEvidence({
   messages: ScaleExplorerMessages;
 }>) {
   return (
-    <div className="space-y-3 border-t border-[var(--border)] pt-5">
+    <div className={styles.evidenceBlock}>
       <h3>{messages.comparisonEvidence.title}</h3>
-      <p className="text-sm leading-6 text-[var(--muted)]">
+      <p>
         {formatMessageTemplate(messages.comparisonEvidence.summary, {
           algorithm: comparison.algorithm_id,
           unit: comparison.unit,
           version: comparison.algorithm_version,
         })}
       </p>
-      <p className="text-sm leading-6 text-[var(--muted)]">
+      <p>
         {messages.comparisonEvidence.inputNodeIds}:{" "}
         <code className="break-all text-[var(--foreground)]">
           {comparison.input_node_ids.join(", ")}
         </code>
       </p>
-      <p className="text-sm font-semibold text-[var(--muted)]">
-        {messages.comparisonEvidence.inputSourceRecords}
-      </p>
+      <p>{messages.comparisonEvidence.inputSourceRecords}</p>
       <SourceList messages={messages.sources} sourceIds={comparison.input_source_ids} />
-      <p className="text-sm leading-6 text-[var(--muted)]">
+      <p>
         {formatMessageTemplate(messages.comparisonEvidence.rounding, {
           rounding: comparison.rounding,
         })}
@@ -400,57 +371,51 @@ function TransitionCalculationContract({
   messages: ScaleExplorerMessages;
 }>) {
   return (
-    <div className="space-y-3 border-t border-[var(--border)] pt-5">
+    <div className={styles.evidenceBlock}>
       <h3>{messages.transitionContract.title}</h3>
-      <dl className="grid gap-3 text-sm leading-6 text-[var(--muted)] sm:grid-cols-2">
+      <dl className={styles.contractGrid}>
         <div>
-          <dt className="font-semibold">{messages.transitionContract.algorithm}</dt>
-          <dd className="mt-1">
+          <dt>{messages.transitionContract.algorithm}</dt>
+          <dd>
             <code className="text-[var(--foreground)]">{contract.algorithm_id}</code> v
             {contract.algorithm_version}
           </dd>
         </div>
         <div>
-          <dt className="font-semibold">{messages.transitionContract.units}</dt>
-          <dd className="mt-1">
+          <dt>{messages.transitionContract.units}</dt>
+          <dd>
             {formatMessageTemplate(messages.transitionContract.unitsValue, {
               input: contract.input_unit,
               output: contract.output_unit,
             })}
           </dd>
         </div>
-        <div className="sm:col-span-2">
-          <dt className="font-semibold">{messages.transitionContract.inputNodeIds}</dt>
-          <dd className="mt-1 break-words font-mono text-xs text-[var(--foreground)]">
-            {contract.input_node_ids.join(", ")}
-          </dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="font-semibold">{messages.transitionContract.validDomain}</dt>
-          <dd className="mt-1">{contract.valid_domain}</dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="font-semibold">{messages.transitionContract.numericalTolerance}</dt>
-          <dd className="mt-1">{contract.numerical_tolerance}</dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="font-semibold">{messages.transitionContract.learnerFacingRounding}</dt>
-          <dd className="mt-1">{contract.learner_facing_rounding}</dd>
+        <div>
+          <dt>{messages.transitionContract.inputNodeIds}</dt>
+          <dd>{contract.input_node_ids.join(", ")}</dd>
         </div>
         <div>
-          <dt className="font-semibold">{messages.transitionContract.testReferences}</dt>
-          <dd className="mt-1 break-words font-mono text-xs text-[var(--foreground)]">
-            {contract.test_references.join(", ")}
-          </dd>
+          <dt>{messages.transitionContract.validDomain}</dt>
+          <dd>{contract.valid_domain}</dd>
         </div>
         <div>
-          <dt className="font-semibold">{messages.transitionContract.generated}</dt>
-          <dd className="mt-1">{contract.generated_at}</dd>
+          <dt>{messages.transitionContract.numericalTolerance}</dt>
+          <dd>{contract.numerical_tolerance}</dd>
+        </div>
+        <div>
+          <dt>{messages.transitionContract.learnerFacingRounding}</dt>
+          <dd>{contract.learner_facing_rounding}</dd>
+        </div>
+        <div>
+          <dt>{messages.transitionContract.testReferences}</dt>
+          <dd>{contract.test_references.join(", ")}</dd>
+        </div>
+        <div>
+          <dt>{messages.transitionContract.generated}</dt>
+          <dd>{contract.generated_at}</dd>
         </div>
       </dl>
-      <p className="text-sm font-semibold text-[var(--muted)]">
-        {messages.transitionContract.inputSourceRecords}
-      </p>
+      <p>{messages.transitionContract.inputSourceRecords}</p>
       <SourceList messages={messages.sources} sourceIds={contract.input_source_ids} />
     </div>
   );
@@ -468,44 +433,27 @@ function NodeTable({
   onSelect: (nodeId: ScaleExplorerState["node_id"]) => void;
 }>) {
   return (
-    <div className="max-w-full overflow-x-auto rounded-md border border-[var(--border)]">
-      <table className="min-w-[60rem] w-full border-collapse text-left text-sm">
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
         <caption className="sr-only">{messages.table.caption}</caption>
-        <thead className="bg-[var(--surface)] text-[var(--muted)]">
+        <thead>
           <tr>
-            <th className="px-4 py-3 font-semibold" scope="col">
-              {messages.table.headers.node}
-            </th>
-            <th className="px-4 py-3 font-semibold" scope="col">
-              {messages.table.headers.characteristicSize}
-            </th>
-            <th className="px-4 py-3 font-semibold" scope="col">
-              {messages.table.headers.comparison}
-            </th>
-            <th className="px-4 py-3 font-semibold" scope="col">
-              {messages.table.headers.sourceStatus}
-            </th>
-            <th className="px-4 py-3 font-semibold" scope="col">
-              {messages.table.headers.evidence}
-            </th>
+            <th scope="col">{messages.table.headers.node}</th>
+            <th scope="col">{messages.table.headers.characteristicSize}</th>
+            <th scope="col">{messages.table.headers.comparison}</th>
+            <th scope="col">{messages.table.headers.sourceStatus}</th>
+            <th scope="col">{messages.table.headers.evidence}</th>
           </tr>
         </thead>
         <tbody>
           {model.nodes.map((entry) => {
             const selected = entry.node.id === model.selected.node.id;
             return (
-              <tr
-                className={
-                  selected
-                    ? "border-t border-[var(--accent)] bg-[var(--surface-hover)]"
-                    : "border-t border-[var(--border)]"
-                }
-                key={entry.node.id}
-              >
-                <th className="px-4 py-3 align-top font-semibold" scope="row">
+              <tr className={selected ? styles.tableSelected : undefined} key={entry.node.id}>
+                <th scope="row">
                   <button
                     aria-current={selected ? "true" : undefined}
-                    className="min-h-11 min-w-11 text-left text-[var(--foreground)] underline decoration-[var(--border-strong)] underline-offset-4 hover:decoration-[var(--accent)]"
+                    className={styles.tableButton}
                     onClick={() => onSelect(entry.node.id)}
                     type="button"
                   >
@@ -517,16 +465,14 @@ function NodeTable({
                     </span>
                   ) : null}
                 </th>
-                <td className="px-4 py-3 align-top text-[var(--foreground)]">
+                <td>
                   {entry.node.display_value}
                   <span className="mt-1 block text-xs text-[var(--muted)]">
                     {quantityLabel(entry.node.characteristic_quantity, messages.quantities)}
                   </span>
                 </td>
-                <td className="max-w-sm px-4 py-3 align-top leading-6 text-[var(--muted)]">
-                  {entry.comparison.text}
-                </td>
-                <td className="px-4 py-3 align-top leading-6 text-[var(--muted)]">
+                <td>{entry.comparison.text}</td>
+                <td>
                   {statusLabel(entry.node.value_status, messages.statuses)}
                   <span className="mt-1 block text-xs">
                     {formatMessageTemplate(messages.table.onTrack, {
@@ -534,7 +480,7 @@ function NodeTable({
                     })}
                   </span>
                 </td>
-                <td className="px-4 py-3 align-top">
+                <td>
                   <span className="block text-xs font-semibold text-[var(--muted)]">
                     {messages.table.characteristicValue}
                   </span>
@@ -636,543 +582,532 @@ export function ScaleExplorerView({
   }
 
   return (
-    <article className="space-y-12">
-      <nav aria-label={messages.header.breadcrumbAriaLabel}>
-        <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
+    <article className={styles.page}>
+      <nav aria-label={messages.header.breadcrumbAriaLabel} className={styles.breadcrumbs}>
+        <ol>
           <li>{messages.header.labBreadcrumb}</li>
           <li aria-hidden="true">/</li>
           <li aria-current="page">{messages.header.title}</li>
         </ol>
       </nav>
 
-      <header className="max-w-3xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <div className={styles.heroAside}>
+          <p className={styles.intro}>{messages.header.intro}</p>
+          <p className={styles.learningPrompt}>
+            <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
+          </p>
+        </div>
       </header>
 
       <LearningModeSelector onChange={setMode} />
 
       {invalidNotice ? (
-        <aside
-          aria-labelledby="invalid-scale-state-heading"
-          className="max-w-3xl space-y-3 rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
-          role="alert"
-        >
+        <aside aria-labelledby="invalid-scale-state-heading" className={styles.alert} role="alert">
           <h2 id="invalid-scale-state-heading">{messages.invalidState.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.invalidState.description}</p>
+          <p>{messages.invalidState.description}</p>
         </aside>
       ) : null}
 
-      <section aria-labelledby="scale-objective-heading" className="max-w-3xl space-y-4">
-        <h2 id="scale-objective-heading">{messages.objective.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">{copy.introduction}</p>
-        <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 leading-7 text-[var(--foreground)]">
-          <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
-        </p>
-        <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
-          {SCALE_EXPLORER_DEFINITION.learning_objectives.map((objective) => (
-            <li key={objective}>{objective}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="scale-controls-heading" className="max-w-3xl space-y-5">
-        <div className="space-y-2">
-          <h2 id="scale-controls-heading">{messages.controls.title}</h2>
-          <p className="leading-7 text-[var(--muted)]" id="scale-control-help">
-            {formatMessageTemplate(messages.controls.description, {
-              count: formatLocaleNumber(SCALE_EXPLORER_NODES.length, locale),
-            })}
-          </p>
+      <section aria-labelledby="scale-objective-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Orientation</p>
+          <h2 className={styles.sectionTitle} id="scale-objective-heading">
+            {messages.objective.title}
+          </h2>
         </div>
-        <div className="space-y-3">
-          <label className="font-semibold" htmlFor="scale-node-slider">
-            {messages.controls.sliderLabel}
-          </label>
-          <input
-            aria-describedby="scale-control-help"
-            aria-label={messages.controls.sliderLabel}
-            aria-valuetext={formatMessageTemplate(messages.controls.sliderAriaValue, {
-              count: formatLocaleNumber(model.nodes.length, locale),
-              index: formatLocaleNumber(model.selected.index + 1, locale),
-              node: nodeLabel(model.selected, messages),
-            })}
-            className="block min-h-11 w-full accent-[var(--accent)]"
-            id="scale-node-slider"
-            max={model.nodes.length - 1}
-            min={0}
-            onChange={(event) => handleSliderChange(event.target.value)}
-            step={1}
-            type="range"
-            value={model.selected.index}
-          />
-          <p className="text-sm text-[var(--muted)]">
-            {formatMessageTemplate(messages.controls.nodeSummary, {
-              count: formatLocaleNumber(model.nodes.length, locale),
-              index: formatLocaleNumber(model.selected.index + 1, locale),
-              node: model.selected.node.name,
-            })}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            className={buttonClassName}
-            disabled={model.selected.previous === undefined}
-            onClick={() => {
-              const previous = model.selected.previous;
-              if (previous !== undefined) selectNode(previous.node.id);
-            }}
-            type="button"
-          >
-            {messages.actions.previousNode}
-          </button>
-          <button className={buttonClassName} onClick={handleReset} type="button">
-            {messages.actions.reset}
-          </button>
-          <button
-            className={buttonClassName}
-            disabled={model.selected.next === undefined}
-            onClick={() => {
-              const next = model.selected.next;
-              if (next !== undefined) selectNode(next.node.id);
-            }}
-            type="button"
-          >
-            {messages.actions.nextNode}
-          </button>
-        </div>
-      </section>
-
-      <section aria-labelledby="scale-visual-heading" className="space-y-5">
-        <div className="space-y-2">
-          <h2 id="scale-visual-heading">{messages.track.title}</h2>
-          <p className="max-w-3xl leading-7 text-[var(--muted)]">{messages.track.description}</p>
-        </div>
-        <ScaleTrack messages={messages.track} model={model} />
-      </section>
-
-      <section
-        aria-labelledby="selected-scale-heading"
-        className="max-w-3xl space-y-5 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
-      >
-        <div aria-atomic="true" aria-live="polite" role="status">
-          <p className="text-sm font-semibold text-[var(--accent)]">
-            {messages.result.selectedNode}
-          </p>
-          <h2 id="selected-scale-heading">{model.selected.node.name}</h2>
-          <p className="mt-2 text-lg leading-8 text-[var(--foreground)]">
-            {model.selected.node.display_value}{" "}
-            {quantityLabel(model.selected.node.characteristic_quantity, messages.quantities)}
-          </p>
-        </div>
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.result.category}
-            </dt>
-            <dd className="mt-1">
-              {categoryLabel(model.selected.node.category, messages.categories)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.result.valueStatus}
-            </dt>
-            <dd className="mt-1">
-              {statusLabel(model.selected.node.value_status, messages.statuses)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.result.sourceValue}
-            </dt>
-            <dd className="mt-1">
-              {formatLocaleNumber(model.selected.node.source_value, locale)}{" "}
-              {model.selected.node.source_unit}{" "}
-              <span className="text-sm text-[var(--muted)]">
-                ({sourceQuantityLabel(model.selected.node, messages.sourceQuantities)})
-              </span>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.result.displayPosition}
-            </dt>
-            <dd className="mt-1">
-              {formatDisplayPosition(model.selected.position_percent, locale, messages)}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.result.comparison}
-            </dt>
-            <dd className="mt-1 leading-7">{model.selected.comparison.text}</dd>
-          </div>
-        </dl>
-        <ComparisonEvidence comparison={model.selected.comparison} messages={messages} />
-        <p className="leading-7 text-[var(--muted)]">{model.selected.node.source_basis}</p>
-        <p className="leading-7 text-[var(--foreground)]">
-          {model.selected.node.transition_explanation.text}
-        </p>
-        {model.selected.node.transition_explanation.derived_quantity !== undefined ? (
-          <TransitionCalculationContract
-            contract={model.selected.node.transition_explanation.derived_quantity}
-            messages={messages}
-          />
-        ) : null}
-        <div className="grid gap-6 border-t border-[var(--border)] pt-5 sm:grid-cols-2">
-          <div className="space-y-2">
-            <h3>{messages.result.characteristicEvidence}</h3>
-            <SourceList messages={messages.sources} sourceIds={model.selected.node.source_ids} />
-          </div>
-          <div className="space-y-2">
-            <h3>{messages.result.transitionEvidence}</h3>
-            <SourceList
-              messages={messages.sources}
-              sourceIds={model.selected.node.transition_explanation.source_ids}
-            />
-          </div>
-        </div>
-        <aside
-          aria-labelledby="scale-reading-heading"
-          className="space-y-3 rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-5 py-4"
-        >
-          <h3 id="scale-reading-heading">{messages.result.readingTitle}</h3>
-          <p className="leading-7 text-[var(--muted)]">{copy.result_explanation}</p>
-          {model.selected.comparison.kind === "calculated-ratio" ? (
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              {formatMessageTemplate(messages.result.calculatedComparison, {
-                reference:
-                  model.nodes.find(
-                    (entry) => entry.node.id === model.selected.comparison.reference_node_id,
-                  )?.node.name ?? messages.result.referenceFallback,
-                selected: model.selected.node.name,
-              })}
-            </p>
-          ) : null}
-        </aside>
-        <div className="space-y-3 border-t border-[var(--border)] pt-5">
-          <h3>{messages.entityLinks.title}</h3>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            {messages.entityLinks.description}
-          </p>
-          <ul className="m-0 grid list-disc gap-2 pl-5 text-sm leading-6">
-            {model.selected.node.entity_links.map((link) => (
-              <li key={link.href}>
-                <span className="mr-1 text-sm text-[var(--muted)]">
-                  {link.kind === "entity-reference"
-                    ? messages.entityLinks.entityReference
-                    : messages.entityLinks.sourceReference}
-                </span>
-                <a
-                  className="inline-flex min-h-11 items-center py-2 text-[var(--link)] underline"
-                  href={link.href}
-                >
-                  {link.label}
-                </a>
-              </li>
+        <div className={styles.modelBody}>
+          <p>{copy.introduction}</p>
+          <ul>
+            {SCALE_EXPLORER_DEFINITION.learning_objectives.map((objective) => (
+              <li key={objective}>{objective}</li>
             ))}
           </ul>
         </div>
       </section>
 
-      <section aria-labelledby="scale-alternative-heading" className="space-y-5">
-        <div className="space-y-2">
-          <h2 id="scale-alternative-heading">{messages.dataAlternative.title}</h2>
-          <p className="max-w-3xl leading-7 text-[var(--muted)]">
-            {messages.dataAlternative.description}
+      <section aria-labelledby="scale-controls-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>02 · Position</p>
+          <h2 className={styles.sectionTitle} id="scale-controls-heading">
+            {messages.controls.title}
+          </h2>
+          <p className={styles.sectionDescription} id="scale-control-help">
+            {formatMessageTemplate(messages.controls.description, {
+              count: formatLocaleNumber(SCALE_EXPLORER_NODES.length, locale),
+            })}
           </p>
         </div>
-        <NodeTable locale={locale} messages={messages} model={model} onSelect={selectNode} />
+        <div className={styles.sectionBody}>
+          <div className={styles.rangeControl}>
+            <label htmlFor="scale-node-slider">{messages.controls.sliderLabel}</label>
+            <input
+              aria-describedby="scale-control-help"
+              aria-label={messages.controls.sliderLabel}
+              aria-valuetext={formatMessageTemplate(messages.controls.sliderAriaValue, {
+                count: formatLocaleNumber(model.nodes.length, locale),
+                index: formatLocaleNumber(model.selected.index + 1, locale),
+                node: nodeLabel(model.selected, messages),
+              })}
+              id="scale-node-slider"
+              max={model.nodes.length - 1}
+              min={0}
+              onChange={(event) => handleSliderChange(event.target.value)}
+              step={1}
+              type="range"
+              value={model.selected.index}
+            />
+            <p className={styles.rangeSummary}>
+              {formatMessageTemplate(messages.controls.nodeSummary, {
+                count: formatLocaleNumber(model.nodes.length, locale),
+                index: formatLocaleNumber(model.selected.index + 1, locale),
+                node: model.selected.node.name,
+              })}
+            </p>
+          </div>
+          <div className={styles.actions}>
+            <button
+              className={buttonClassName}
+              disabled={model.selected.previous === undefined}
+              onClick={() => {
+                const previous = model.selected.previous;
+                if (previous !== undefined) selectNode(previous.node.id);
+              }}
+              type="button"
+            >
+              {messages.actions.previousNode}
+            </button>
+            <button className={buttonClassName} onClick={handleReset} type="button">
+              {messages.actions.reset}
+            </button>
+            <button
+              className={buttonClassName}
+              disabled={model.selected.next === undefined}
+              onClick={() => {
+                const next = model.selected.next;
+                if (next !== undefined) selectNode(next.node.id);
+              }}
+              type="button"
+            >
+              {messages.actions.nextNode}
+            </button>
+          </div>
+        </div>
       </section>
 
-      <section aria-labelledby="scale-model-heading" className="max-w-3xl space-y-6">
-        <div className="space-y-2">
-          <h2 id="scale-model-heading">{messages.model.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">
-            {copy.model_note} {SCALE_EXPLORER_DEFINITION.visualization_module}{" "}
-            {messages.model.disclaimer}
+      <section aria-labelledby="scale-visual-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>03 · Scale field</p>
+          <h2 className={styles.sectionTitle} id="scale-visual-heading">
+            {messages.track.title}
+          </h2>
+          <p className={styles.sectionDescription}>{messages.track.description}</p>
+        </div>
+        <div className={styles.sectionBody}>
+          <ScaleTrack messages={messages.track} model={model} />
+        </div>
+      </section>
+
+      <section aria-labelledby="selected-scale-heading" className={styles.selectedPanel}>
+        <div className={styles.selectedHeader} aria-atomic="true" aria-live="polite" role="status">
+          <p className={styles.sectionIndex}>{messages.result.selectedNode}</p>
+          <h2 className={styles.selectedTitle} id="selected-scale-heading">
+            {model.selected.node.name}
+          </h2>
+          <p className={styles.resultValue}>
+            {model.selected.node.display_value}{" "}
+            {quantityLabel(model.selected.node.characteristic_quantity, messages.quantities)}
           </p>
         </div>
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.model.modelVersion}
-            </dt>
-            <dd className="mt-1 font-mono text-sm">{SCALE_EXPLORER_MODEL_VERSION}</dd>
+        <div className={styles.resultBody}>
+          <dl className={styles.factGrid}>
+            <div>
+              <dt>{messages.result.category}</dt>
+              <dd>{categoryLabel(model.selected.node.category, messages.categories)}</dd>
+            </div>
+            <div>
+              <dt>{messages.result.valueStatus}</dt>
+              <dd>{statusLabel(model.selected.node.value_status, messages.statuses)}</dd>
+            </div>
+            <div>
+              <dt>{messages.result.sourceValue}</dt>
+              <dd>
+                {formatLocaleNumber(model.selected.node.source_value, locale)}{" "}
+                {model.selected.node.source_unit}{" "}
+                <span>({sourceQuantityLabel(model.selected.node, messages.sourceQuantities)})</span>
+              </dd>
+            </div>
+            <div>
+              <dt>{messages.result.displayPosition}</dt>
+              <dd>{formatDisplayPosition(model.selected.position_percent, locale, messages)}</dd>
+            </div>
+            <div>
+              <dt>{messages.result.comparison}</dt>
+              <dd>{model.selected.comparison.text}</dd>
+            </div>
+          </dl>
+          <ComparisonEvidence comparison={model.selected.comparison} messages={messages} />
+          <p className={styles.resultNarrative}>{model.selected.node.source_basis}</p>
+          <p className={styles.resultNarrative}>
+            {model.selected.node.transition_explanation.text}
+          </p>
+          {model.selected.node.transition_explanation.derived_quantity !== undefined ? (
+            <TransitionCalculationContract
+              contract={model.selected.node.transition_explanation.derived_quantity}
+              messages={messages}
+            />
+          ) : null}
+          <div className={styles.detailGrid}>
+            <div>
+              <h3>{messages.result.characteristicEvidence}</h3>
+              <SourceList messages={messages.sources} sourceIds={model.selected.node.source_ids} />
+            </div>
+            <div>
+              <h3>{messages.result.transitionEvidence}</h3>
+              <SourceList
+                messages={messages.sources}
+                sourceIds={model.selected.node.transition_explanation.source_ids}
+              />
+            </div>
           </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.model.contentReview}
-            </dt>
-            <dd className="mt-1 leading-7">
-              {formatMessageTemplate(messages.model.contentReviewValue, {
-                reviewedAt: SCALE_EXPLORER_DEFINITION.reviewed_at.slice(0, 10),
-                reviewers: SCALE_EXPLORER_DEFINITION.reviewed_by.join(", "),
-                status: SCALE_EXPLORER_DEFINITION.status,
-                version: formatLocaleNumber(SCALE_EXPLORER_DEFINITION.version, locale),
-              })}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">{messages.model.input}</dt>
-            <dd className="mt-1 leading-7">
-              {formatMessageTemplate(messages.model.inputValue, {
-                name: SCALE_EXPLORER_DEFINITION.input_schema.name,
-                unit: SCALE_EXPLORER_DEFINITION.input_schema.unit,
-              })}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.model.validRange}
-            </dt>
-            <dd className="mt-1 leading-7">
-              {formatMessageTemplate(messages.model.validRangeValue, {
-                count: formatLocaleNumber(SCALE_EXPLORER_NODES.length, locale),
-                nodes: SCALE_EXPLORER_NODES.map((entry) => entry.name).join(", "),
-              })}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-[var(--muted)]">
-              {messages.model.shareStateShape}
-            </dt>
-            <dd className="mt-1 leading-7">
-              <code className="text-sm text-[var(--foreground)]">
-                model_version + node_id + schema version
-              </code>
-              ; {messages.model.shareStateSuffix}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-sm font-semibold text-[var(--muted)]">{messages.model.output}</dt>
-            <dd className="mt-1 leading-7">
-              {SCALE_EXPLORER_DEFINITION.output_schema.join("; ")}.
-            </dd>
-          </div>
-        </dl>
-        <div className="space-y-3">
-          <h3>
-            {mode === "explorer" ? messages.model.howScaleBuilt : messages.model.relationshipsUsed}
-          </h3>
-          {mode === "explorer" ? (
-            <p className="leading-7 text-[var(--muted)]">
-              Source values are converted to metres for ordering. The comparison method{" "}
-              <code className="text-sm text-[var(--foreground)]">
-                {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.algorithm_id} v
-                {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.algorithm_version}
-              </code>{" "}
-              is used only where a reference node is defined; the track coordinate is logarithmic
-              and dimensionless.
-            </p>
-          ) : (
-            <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
-              {SCALE_EXPLORER_DEFINITION.calculation_module.relationships.map((relationship) => (
-                <li key={relationship}>
-                  <code className="text-sm text-[var(--foreground)]">{relationship}</code>
+          <aside aria-labelledby="scale-reading-heading" className={styles.readingBlock}>
+            <h3 id="scale-reading-heading">{messages.result.readingTitle}</h3>
+            <p>{copy.result_explanation}</p>
+            {model.selected.comparison.kind === "calculated-ratio" ? (
+              <p>
+                {formatMessageTemplate(messages.result.calculatedComparison, {
+                  reference:
+                    model.nodes.find(
+                      (entry) => entry.node.id === model.selected.comparison.reference_node_id,
+                    )?.node.name ?? messages.result.referenceFallback,
+                  selected: model.selected.node.name,
+                })}
+              </p>
+            ) : null}
+          </aside>
+          <div className={styles.evidenceBlock}>
+            <h3>{messages.entityLinks.title}</h3>
+            <p>{messages.entityLinks.description}</p>
+            <ul className={styles.entityLinks}>
+              {model.selected.node.entity_links.map((link) => (
+                <li key={link.href}>
+                  <span>
+                    {link.kind === "entity-reference"
+                      ? messages.entityLinks.entityReference
+                      : messages.entityLinks.sourceReference}
+                  </span>{" "}
+                  <a className={styles.sourceLink} href={link.href}>
+                    {link.label}
+                  </a>
                 </li>
               ))}
             </ul>
-          )}
-        </div>
-        {mode === "student" ? (
-          <div className="space-y-3">
-            <h3>{messages.model.mathsToNotice}</h3>
-            <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
-              <li>
-                <code className="text-sm text-[var(--foreground)]">
-                  characteristic diameter = 2 × radius
-                </code>{" "}
-                for the radius-backed planet entries.
-              </li>
-              <li>
-                <code className="text-sm text-[var(--foreground)]">
-                  selected size ÷ reference size = dimensionless ratio
-                </code>
-                .
-              </li>
-              <li>
-                Logarithmic position uses the base-10 logarithm between the curated endpoints; it is
-                a display coordinate, not a physical location.
-              </li>
-            </ul>
           </div>
-        ) : null}
-        {mode === "deep-dive" ? (
-          <div className="space-y-3">
-            <h3>{messages.model.derivedQuantityContracts}</h3>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.characteristicSizeAlgorithm}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  <code className="text-sm text-[var(--foreground)]">
-                    {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.algorithm_id}{" "}
-                    v
-                    {
-                      SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size
-                        .algorithm_version
-                    }
-                  </code>
-                  ; output{" "}
-                  {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.output_unit}.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.characteristicSizeInputs}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.inputs}.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.comparisonAlgorithm}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  <code className="text-sm text-[var(--foreground)]">
-                    {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.algorithm_id} v
-                    {
-                      SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison
-                        .algorithm_version
-                    }
-                  </code>
-                  ; output{" "}
-                  {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.output_unit}.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.comparisonInputs}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.inputs}.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.characteristicSizeValidDomain}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.valid_domain}.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.validDomain}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.valid_domain}.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.numericalTolerance}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  {
-                    SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison
-                      .numerical_tolerance
-                  }
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-[var(--muted)]">
-                  {messages.model.characteristicSizeTolerance}
-                </dt>
-                <dd className="mt-1 leading-7">
-                  {
-                    SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size
-                      .numerical_tolerance
-                  }
-                </dd>
-              </div>
-            </dl>
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              {formatMessageTemplate(messages.model.automatedValidationFixtures, {
-                fixtures: SCALE_EXPLORER_DEFINITION.validation_fixtures.join(", "),
-              })}
-            </p>
-          </div>
-        ) : null}
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-3">
-            <h3>{messages.model.assumptions}</h3>
-            <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
-              {SCALE_EXPLORER_DEFINITION.assumptions.map((assumption) => (
-                <li key={assumption}>{assumption}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="space-y-3">
-            <h3>{messages.model.knownLimitations}</h3>
-            <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
-              {SCALE_EXPLORER_DEFINITION.limitations.map((limitation) => (
-                <li key={limitation}>{limitation}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <h3>{messages.model.references}</h3>
-          {mode === "deep-dive" ? (
-            <SourceList
-              messages={messages.sources}
-              sourceIds={SCALE_EXPLORER_DEFINITION.references}
-            />
-          ) : (
-            <SourceLinkList
-              messages={messages.sources}
-              sourceIds={SCALE_EXPLORER_DEFINITION.references}
-            />
-          )}
         </div>
       </section>
 
-      <section
-        aria-labelledby="scale-share-heading"
-        className="max-w-3xl space-y-4 border-t border-[var(--border)] pt-8"
-      >
-        <h2 id="scale-share-heading">{messages.share.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">
-          {formatMessageTemplate(messages.share.description, {
-            modelVersion: SCALE_EXPLORER_MODEL_VERSION,
-            schemaVersion: formatLocaleNumber(
-              SCALE_EXPLORER_DEFINITION.share_schema_version,
-              locale,
-            ),
-          })}
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <button className={buttonClassName} onClick={() => void handleShare()} type="button">
-            {messages.actions.copyShareLink}
-          </button>
-          <Link className={buttonClassName} href="/learn">
-            {messages.actions.continueLearning}
-          </Link>
+      <section aria-labelledby="scale-alternative-heading" className={styles.tableSection}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>04 · Data</p>
+          <h2 className={styles.sectionTitle} id="scale-alternative-heading">
+            {messages.dataAlternative.title}
+          </h2>
+          <p className={styles.sectionDescription}>{messages.dataAlternative.description}</p>
         </div>
-        {shareUrl !== null ? (
-          <label className="block space-y-2" htmlFor="scale-share-url">
-            <span className="text-sm font-semibold">{messages.share.label}</span>
-            <input
-              className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-sm text-[var(--foreground)]"
-              id="scale-share-url"
-              readOnly
-              value={shareUrl}
-            />
-          </label>
-        ) : null}
-        <p aria-live="polite" className="min-h-6 text-sm text-[var(--muted)]" role="status">
-          {message}
-        </p>
+        <div className={styles.sectionBody}>
+          <NodeTable locale={locale} messages={messages} model={model} onSelect={selectNode} />
+        </div>
+      </section>
+
+      <section aria-labelledby="scale-model-heading" className={styles.modelSection}>
+        <h2 id="scale-model-heading">{messages.model.title}</h2>
+        <div className={styles.modelBody}>
+          <p>
+            {copy.model_note} {SCALE_EXPLORER_DEFINITION.visualization_module}{" "}
+            {messages.model.disclaimer}
+          </p>
+          <dl>
+            <div>
+              <dt className="text-sm font-semibold text-[var(--muted)]">
+                {messages.model.modelVersion}
+              </dt>
+              <dd className="mt-1 font-mono text-sm">{SCALE_EXPLORER_MODEL_VERSION}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-semibold text-[var(--muted)]">
+                {messages.model.contentReview}
+              </dt>
+              <dd className="mt-1 leading-7">
+                {formatMessageTemplate(messages.model.contentReviewValue, {
+                  reviewedAt: SCALE_EXPLORER_DEFINITION.reviewed_at.slice(0, 10),
+                  reviewers: SCALE_EXPLORER_DEFINITION.reviewed_by.join(", "),
+                  status: SCALE_EXPLORER_DEFINITION.status,
+                  version: formatLocaleNumber(SCALE_EXPLORER_DEFINITION.version, locale),
+                })}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-semibold text-[var(--muted)]">{messages.model.input}</dt>
+              <dd className="mt-1 leading-7">
+                {formatMessageTemplate(messages.model.inputValue, {
+                  name: SCALE_EXPLORER_DEFINITION.input_schema.name,
+                  unit: SCALE_EXPLORER_DEFINITION.input_schema.unit,
+                })}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-semibold text-[var(--muted)]">
+                {messages.model.validRange}
+              </dt>
+              <dd className="mt-1 leading-7">
+                {formatMessageTemplate(messages.model.validRangeValue, {
+                  count: formatLocaleNumber(SCALE_EXPLORER_NODES.length, locale),
+                  nodes: SCALE_EXPLORER_NODES.map((entry) => entry.name).join(", "),
+                })}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm font-semibold text-[var(--muted)]">
+                {messages.model.shareStateShape}
+              </dt>
+              <dd className="mt-1 leading-7">
+                <code className="text-sm text-[var(--foreground)]">
+                  model_version + node_id + schema version
+                </code>
+                ; {messages.model.shareStateSuffix}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-sm font-semibold text-[var(--muted)]">{messages.model.output}</dt>
+              <dd className="mt-1 leading-7">
+                {SCALE_EXPLORER_DEFINITION.output_schema.join("; ")}.
+              </dd>
+            </div>
+          </dl>
+          <div className="space-y-3">
+            <h3>
+              {mode === "explorer"
+                ? messages.model.howScaleBuilt
+                : messages.model.relationshipsUsed}
+            </h3>
+            {mode === "explorer" ? (
+              <p className="leading-7 text-[var(--muted)]">
+                Source values are converted to metres for ordering. The comparison method{" "}
+                <code className="text-sm text-[var(--foreground)]">
+                  {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.algorithm_id} v
+                  {
+                    SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison
+                      .algorithm_version
+                  }
+                </code>{" "}
+                is used only where a reference node is defined; the track coordinate is logarithmic
+                and dimensionless.
+              </p>
+            ) : (
+              <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
+                {SCALE_EXPLORER_DEFINITION.calculation_module.relationships.map((relationship) => (
+                  <li key={relationship}>
+                    <code className="text-sm text-[var(--foreground)]">{relationship}</code>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {mode === "student" ? (
+            <div className="space-y-3">
+              <h3>{messages.model.mathsToNotice}</h3>
+              <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
+                <li>
+                  <code className="text-sm text-[var(--foreground)]">
+                    characteristic diameter = 2 × radius
+                  </code>{" "}
+                  for the radius-backed planet entries.
+                </li>
+                <li>
+                  <code className="text-sm text-[var(--foreground)]">
+                    selected size ÷ reference size = dimensionless ratio
+                  </code>
+                  .
+                </li>
+                <li>
+                  Logarithmic position uses the base-10 logarithm between the curated endpoints; it
+                  is a display coordinate, not a physical location.
+                </li>
+              </ul>
+            </div>
+          ) : null}
+          {mode === "deep-dive" ? (
+            <div className="space-y-3">
+              <h3>{messages.model.derivedQuantityContracts}</h3>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.characteristicSizeAlgorithm}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    <code className="text-sm text-[var(--foreground)]">
+                      {
+                        SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size
+                          .algorithm_id
+                      }{" "}
+                      v
+                      {
+                        SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size
+                          .algorithm_version
+                      }
+                    </code>
+                    ; output{" "}
+                    {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.output_unit}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.characteristicSizeInputs}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.inputs}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.comparisonAlgorithm}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    <code className="text-sm text-[var(--foreground)]">
+                      {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.algorithm_id}{" "}
+                      v
+                      {
+                        SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison
+                          .algorithm_version
+                      }
+                    </code>
+                    ; output{" "}
+                    {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.output_unit}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.comparisonInputs}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.inputs}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.characteristicSizeValidDomain}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    {SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size.valid_domain}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.validDomain}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    {SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison.valid_domain}.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.numericalTolerance}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    {
+                      SCALE_EXPLORER_DEFINITION.calculation_module.derived_comparison
+                        .numerical_tolerance
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-semibold text-[var(--muted)]">
+                    {messages.model.characteristicSizeTolerance}
+                  </dt>
+                  <dd className="mt-1 leading-7">
+                    {
+                      SCALE_EXPLORER_DEFINITION.calculation_module.characteristic_size
+                        .numerical_tolerance
+                    }
+                  </dd>
+                </div>
+              </dl>
+              <p className="text-sm leading-6 text-[var(--muted)]">
+                {formatMessageTemplate(messages.model.automatedValidationFixtures, {
+                  fixtures: SCALE_EXPLORER_DEFINITION.validation_fixtures.join(", "),
+                })}
+              </p>
+            </div>
+          ) : null}
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-3">
+              <h3>{messages.model.assumptions}</h3>
+              <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
+                {SCALE_EXPLORER_DEFINITION.assumptions.map((assumption) => (
+                  <li key={assumption}>{assumption}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <h3>{messages.model.knownLimitations}</h3>
+              <ul className="m-0 grid list-disc gap-2 pl-5 leading-7 text-[var(--muted)]">
+                {SCALE_EXPLORER_DEFINITION.limitations.map((limitation) => (
+                  <li key={limitation}>{limitation}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3>{messages.model.references}</h3>
+            {mode === "deep-dive" ? (
+              <SourceList
+                messages={messages.sources}
+                sourceIds={SCALE_EXPLORER_DEFINITION.references}
+              />
+            ) : (
+              <SourceLinkList
+                messages={messages.sources}
+                sourceIds={SCALE_EXPLORER_DEFINITION.references}
+              />
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="scale-share-heading" className={styles.shareSection}>
+        <h2 id="scale-share-heading">{messages.share.title}</h2>
+        <div className={styles.shareBody}>
+          <p>
+            {formatMessageTemplate(messages.share.description, {
+              modelVersion: SCALE_EXPLORER_MODEL_VERSION,
+              schemaVersion: formatLocaleNumber(
+                SCALE_EXPLORER_DEFINITION.share_schema_version,
+                locale,
+              ),
+            })}
+          </p>
+          <div className={styles.actions}>
+            <button className={buttonClassName} onClick={() => void handleShare()} type="button">
+              {messages.actions.copyShareLink}
+            </button>
+            <Link className={buttonClassName} href="/learn">
+              {messages.actions.continueLearning}
+            </Link>
+          </div>
+          {shareUrl !== null ? (
+            <label className={styles.selectControl} htmlFor="scale-share-url">
+              <span>{messages.share.label}</span>
+              <input className={styles.shareInput} id="scale-share-url" readOnly value={shareUrl} />
+            </label>
+          ) : null}
+          <p aria-live="polite" className={styles.caption} role="status">
+            {message}
+          </p>
+        </div>
       </section>
     </article>
   );

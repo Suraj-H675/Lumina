@@ -10,6 +10,7 @@ import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { LaunchCenterMessages } from "../../../lib/i18n/messages/types";
 import type { NowLaunchesOutcome } from "../../../lib/server/space-now";
 import { LaunchCountdown } from "./launch-countdown";
+import styles from "./launches-view.module.css";
 
 export function LaunchesView({
   locale,
@@ -23,13 +24,13 @@ export function LaunchesView({
   if (outcome.kind !== "ok") return <TransportUnavailable messages={messages.list} />;
   const response = outcome.data;
   return (
-    <article className="max-w-5xl space-y-10">
-      <header className="max-w-3xl space-y-5">
-        <p className="text-sm font-semibold tracking-[0.14em] text-[var(--accent)] uppercase">
-          {messages.list.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.list.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.list.intro}</p>
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.list.eyebrow}</p>
+          <h1 className={styles.title}>{messages.list.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.list.intro}</p>
       </header>
 
       {response.availability === "unavailable" ? (
@@ -37,12 +38,13 @@ export function LaunchesView({
       ) : (
         <>
           <FreshnessBanner messages={messages.list} response={response} />
-          <section aria-labelledby="launch-list-heading" className="space-y-5">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold" id="launch-list-heading">
+          <section aria-labelledby="launch-list-heading" className={styles.snapshot}>
+            <div className={styles.snapshotHeader}>
+              <p className={styles.sectionEyebrow}>{messages.list.eyebrow}</p>
+              <h2 className={styles.snapshotTitle} id="launch-list-heading">
                 {messages.list.currentSnapshotTitle}
               </h2>
-              <p className="text-sm leading-6 text-[var(--muted)]">
+              <p className={styles.snapshotCount}>
                 {formatCountMessage(
                   messages.list.snapshotCount,
                   response.returned_launch_count,
@@ -51,7 +53,7 @@ export function LaunchesView({
                 )}
               </p>
             </div>
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className={styles.launchList}>
               {response.launches.map((launch) => (
                 <LaunchCard
                   key={launch.launch_id}
@@ -66,7 +68,7 @@ export function LaunchesView({
         </>
       )}
 
-      <Link className="inline-flex min-h-11 items-center text-[var(--link)] underline" href="/now">
+      <Link className={styles.backLink} href="/now">
         {messages.list.backToSpaceNow}
       </Link>
     </article>
@@ -83,53 +85,48 @@ function LaunchCard({
   messages: LaunchCenterMessages;
 }>) {
   return (
-    <article className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-5">
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold text-[var(--accent)]">{launch.status.abbreviation}</span>
-          <span className="text-[var(--muted)]">{launch.status.name}</span>
-        </div>
-        <h3 className="text-xl font-semibold leading-7">
-          <Link
-            className="text-[var(--link)] underline underline-offset-4"
-            href={`/now/launches/${launch.launch_id}`}
-          >
-            {launch.name}
-          </Link>
-        </h3>
+    <article className={styles.launch}>
+      <div className={styles.launchRail}>
+        <p className={styles.status}>{launch.status.abbreviation}</p>
+        <span className={styles.statusName}>{launch.status.name}</span>
+        <p className={styles.updated}>
+          {messages.list.providerRecordUpdatedLabel}{" "}
+          <time dateTime={launch.timing.provider_updated_at}>
+            {launch.timing.provider_updated_at}
+          </time>
+        </p>
       </div>
-      <Schedule launch={launch} messages={messages.schedule} />
-      {launch.timing.countdown_eligible ? (
-        <LaunchCountdown
-          locale={locale}
-          messages={messages.countdown}
-          targetUtc={launch.timing.net_utc}
-        />
-      ) : null}
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        <Fact
-          label={messages.list.facts.vehicle}
-          value={launch.vehicle?.full_name ?? messages.common.notProvided}
-        />
-        <Fact
-          label={messages.list.facts.launchProvider}
-          value={launch.agency?.name ?? messages.common.notProvided}
-        />
-        <Fact
-          label={messages.list.facts.mission}
-          value={launch.mission?.name ?? messages.common.notProvided}
-        />
-        <Fact
-          label={messages.list.facts.site}
-          value={launch.site?.pad_name ?? messages.common.notProvided}
-        />
-      </dl>
-      <p className="text-sm text-[var(--muted)]">
-        {messages.list.providerRecordUpdatedLabel}{" "}
-        <time dateTime={launch.timing.provider_updated_at}>
-          {launch.timing.provider_updated_at}
-        </time>
-      </p>
+      <div className={styles.launchBody}>
+        <h3 className={styles.launchTitle}>
+          <Link href={`/now/launches/${launch.launch_id}`}>{launch.name}</Link>
+        </h3>
+        <Schedule launch={launch} messages={messages.schedule} />
+        {launch.timing.countdown_eligible ? (
+          <LaunchCountdown
+            locale={locale}
+            messages={messages.countdown}
+            targetUtc={launch.timing.net_utc}
+          />
+        ) : null}
+        <dl className={styles.facts}>
+          <Fact
+            label={messages.list.facts.vehicle}
+            value={launch.vehicle?.full_name ?? messages.common.notProvided}
+          />
+          <Fact
+            label={messages.list.facts.launchProvider}
+            value={launch.agency?.name ?? messages.common.notProvided}
+          />
+          <Fact
+            label={messages.list.facts.mission}
+            value={launch.mission?.name ?? messages.common.notProvided}
+          />
+          <Fact
+            label={messages.list.facts.site}
+            value={launch.site?.pad_name ?? messages.common.notProvided}
+          />
+        </dl>
+      </div>
     </article>
   );
 }
@@ -143,8 +140,8 @@ function Schedule({
 }>) {
   const exact = launch.timing.precision_id <= 2;
   return (
-    <div className="space-y-2 border-l-4 border-[var(--border-strong)] pl-4">
-      <p className="font-medium">
+    <div className={styles.schedule}>
+      <p className={styles.schedulePrimary}>
         {exact ? messages.scheduledNet : messages.scheduleReference}:{" "}
         {exact ? (
           <time dateTime={launch.timing.net_utc}>{launch.timing.net_utc}</time>
@@ -152,7 +149,7 @@ function Schedule({
           launch.timing.net_utc.slice(0, 10)
         )}
       </p>
-      <p className="text-sm leading-6 text-[var(--muted)]">
+      <p className={styles.scheduleDetail}>
         {formatMessageTemplate(messages.sourcePrecision, {
           abbreviation: launch.timing.precision_abbreviation,
           countdown: launch.timing.countdown_eligible
@@ -162,7 +159,7 @@ function Schedule({
         })}
       </p>
       {launch.timing.window_start_utc === null || launch.timing.window_end_utc === null ? null : (
-        <p className="text-sm text-[var(--muted)]">
+        <p className={styles.window}>
           {formatMessageTemplate(messages.window, {
             end: launch.timing.window_end_utc,
             start: launch.timing.window_start_utc,
@@ -180,13 +177,14 @@ function FreshnessBanner({
   return (
     <section
       aria-live="polite"
-      className="space-y-2 border-l-4 border-[var(--accent)] bg-[var(--surface)] p-4"
+      className={styles.freshness}
+      data-state={response.availability}
       role="status"
     >
-      <p className="font-semibold">
+      <p className={styles.freshnessTitle}>
         {response.availability === "stale" ? messages.staleSnapshot : messages.freshSnapshot}
       </p>
-      <p className="leading-7 text-[var(--muted)]">
+      <p className={styles.freshnessCopy}>
         {formatMessageTemplate(messages.retrievedCache, {
           retrievedAt: response.freshness.retrieved_at ?? messages.unrecordedTime,
         })}{" "}
@@ -196,7 +194,7 @@ function FreshnessBanner({
         })}
       </p>
       {response.freshness.last_refresh_failure_code === null ? null : (
-        <p className="text-sm text-[var(--muted)]">
+        <p className={styles.failure}>
           {formatMessageTemplate(messages.lastSafeRefreshFailure, {
             code: response.freshness.last_refresh_failure_code,
           })}
@@ -211,20 +209,19 @@ function SourceDetails({
   response,
 }: Readonly<{ messages: LaunchCenterMessages["list"]; response: LaunchListResponse }>) {
   return (
-    <section
-      aria-labelledby="launch-source-heading"
-      className="space-y-4 border-t border-[var(--border)] pt-8"
-    >
-      <h2 className="text-xl font-semibold" id="launch-source-heading">
+    <section aria-labelledby="launch-source-heading" className={styles.source}>
+      <h2 className={styles.sourceTitle} id="launch-source-heading">
         {messages.sourceTitle}
       </h2>
-      <p className="leading-7 text-[var(--muted)]">{response.source.attribution_text}</p>
-      <p className="flex flex-wrap gap-x-5 gap-y-2">
-        <External href={response.source.official_documentation_url}>
-          {messages.sourceDocumentation}
-        </External>
-        <External href={response.source.terms_url}>{messages.providerInformation}</External>
-      </p>
+      <div>
+        <p className={styles.sourceCopy}>{response.source.attribution_text}</p>
+        <p className={styles.sourceLinks}>
+          <External href={response.source.official_documentation_url}>
+            {messages.sourceDocumentation}
+          </External>
+          <External href={response.source.terms_url}>{messages.providerInformation}</External>
+        </p>
+      </div>
     </section>
   );
 }
@@ -243,50 +240,37 @@ function Unavailable({
   return (
     <section
       aria-labelledby="launch-unavailable-heading"
-      className="space-y-3 border-l-4 border-[var(--border-strong)] bg-[var(--surface)] p-5"
+      className={styles.unavailable}
       role="status"
     >
-      <h2 className="text-2xl font-semibold" id="launch-unavailable-heading">
-        {messages.list.unavailableTitle}
-      </h2>
-      <p className="leading-7 text-[var(--muted)]">{detail}</p>
-      <p className="text-sm text-[var(--muted)]">{messages.list.noBrowserProviderRequest}</p>
+      <h2 id="launch-unavailable-heading">{messages.list.unavailableTitle}</h2>
+      <p>{detail}</p>
+      <p className={styles.unavailableNote}>{messages.list.noBrowserProviderRequest}</p>
     </section>
   );
 }
 
 function TransportUnavailable({ messages }: Readonly<{ messages: LaunchCenterMessages["list"] }>) {
   return (
-    <section
-      aria-labelledby="launch-transport-heading"
-      className="max-w-2xl space-y-4"
-      role="status"
-    >
-      <h1 className="text-3xl font-semibold" id="launch-transport-heading">
-        {messages.transportTitle}
-      </h1>
-      <p className="leading-7 text-[var(--muted)]">{messages.transportDescription}</p>
+    <section aria-labelledby="launch-transport-heading" className={styles.transport} role="status">
+      <h1 id="launch-transport-heading">{messages.transportTitle}</h1>
+      <p>{messages.transportDescription}</p>
     </section>
   );
 }
 
 function Fact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div>
-      <dt className="font-medium">{label}</dt>
-      <dd className="text-[var(--muted)]">{value}</dd>
+    <div className={styles.fact}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
 
 function External({ children, href }: Readonly<{ children: string; href: string }>) {
   return (
-    <a
-      className="inline-flex min-h-11 items-center text-[var(--link)] underline"
-      href={href}
-      rel="noopener noreferrer"
-      target="_blank"
-    >
+    <a className={styles.external} href={href} rel="noopener noreferrer" target="_blank">
       {children}
     </a>
   );

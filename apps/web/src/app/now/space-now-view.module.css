@@ -1,0 +1,355 @@
+.page {
+  display: grid;
+  gap: 5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.7rem, 8vw, 7.2rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.86;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.dailySection {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.freshnessBanner {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.28fr) minmax(0, 0.72fr);
+  gap: 1.5rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 0;
+}
+
+.freshnessBanner[data-state="stale"] {
+  border-top-color: var(--warning);
+}
+
+.freshnessTitle {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.freshnessDescription {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.feature {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(15rem, 0.32fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 0 2.5rem;
+}
+
+.featureMain {
+  min-width: 0;
+}
+
+.featureTitle {
+  max-width: 18ch;
+  margin: 0.7rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.3rem, 4.8vw, 4.6rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.96;
+}
+
+.aboutTitle {
+  margin: 1.8rem 0 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.explanation {
+  max-width: 48rem;
+  margin: 0.6rem 0 0;
+  white-space: pre-line;
+  color: var(--muted-strong);
+  line-height: 1.75;
+}
+
+.featureMeta {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1rem;
+}
+
+.metaGrid {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+}
+
+.metaGrid div,
+.retrievalGrid div {
+  min-width: 0;
+}
+
+.metaGrid dt,
+.retrievalGrid dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.metaGrid dd,
+.retrievalGrid dd {
+  margin: 0.3rem 0 0;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.officialLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  width: fit-content;
+  border-bottom: 1px solid var(--accent);
+  color: var(--link);
+  font-size: 0.82rem;
+  font-weight: 620;
+  text-underline-offset: 0.22rem;
+}
+
+.mediaNotice,
+.copyright,
+.invalidLink {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.copyright {
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+}
+
+.copyright strong {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.provenance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.provenanceSection {
+  min-width: 0;
+  padding: 1.4rem 1.5rem 1.5rem 0;
+}
+
+.provenanceSection + .provenanceSection {
+  border-left: 1px solid var(--border);
+  padding-left: 1.5rem;
+}
+
+.provenanceTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.retrievalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+  margin: 1rem 0 0;
+}
+
+.sourceCopy {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.sourceLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.15rem;
+  margin: 0.75rem 0 0;
+}
+
+.externalLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--link);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 0.22rem;
+}
+
+.feeds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.feed {
+  display: grid;
+  min-width: 0;
+  min-height: 13rem;
+  grid-template-rows: auto auto 1fr auto;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1.35rem 1.4rem;
+}
+
+.feed:nth-child(2n) {
+  border-right: 0;
+}
+
+.feedTitle {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.6vw, 2.15rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.feedDescription {
+  max-width: 35rem;
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.feedLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  width: fit-content;
+  margin-top: 1rem;
+  color: var(--link);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.22rem;
+  text-transform: uppercase;
+}
+
+.unavailable {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 0;
+}
+
+.unavailable h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+.unavailable p {
+  max-width: 46rem;
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 62rem) {
+  .hero,
+  .feature {
+    grid-template-columns: 1fr;
+  }
+
+  .intro {
+    max-width: 42rem;
+  }
+
+  .featureMeta {
+    max-width: 34rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .provenance,
+  .feeds {
+    grid-template-columns: 1fr;
+  }
+
+  .provenanceSection,
+  .provenanceSection + .provenanceSection {
+    border-left: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 0;
+  }
+
+  .feed,
+  .feed:nth-child(2n) {
+    border-right: 0;
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 36rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.7rem, 20vw, 5.4rem);
+  }
+
+  .freshnessBanner,
+  .retrievalGrid {
+    grid-template-columns: 1fr;
+  }
+}

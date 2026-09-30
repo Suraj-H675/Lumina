@@ -1,0 +1,340 @@
+.page {
+  display: grid;
+  gap: 5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 12ch;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 7.5vw, 6.8rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.freshness {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.28fr) minmax(0, 0.72fr);
+  gap: 1.5rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 0;
+}
+
+.freshness[data-state="stale"] {
+  border-top-color: var(--warning);
+}
+
+.freshnessTitle {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.freshnessCopy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.failure {
+  grid-column: 2;
+  margin: -0.65rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  line-height: 1.55;
+}
+
+.snapshot {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.snapshotHeader {
+  min-width: 0;
+}
+
+.snapshotTitle {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.snapshotCount {
+  max-width: 24rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.launchList {
+  display: grid;
+  border-top: 1px solid var(--border-strong);
+}
+
+.launch {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.24fr) minmax(0, 0.76fr);
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1.35rem 0 1.6rem;
+}
+
+.launchRail {
+  min-width: 0;
+}
+
+.status {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statusName {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.updated {
+  margin: 1.1rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.launchBody {
+  min-width: 0;
+}
+
+.launchTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 3vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.launchTitle a {
+  color: var(--foreground);
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.25rem;
+}
+
+.schedule {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1.15rem;
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+}
+
+.schedulePrimary {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.scheduleDetail,
+.window {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1.5rem;
+  margin: 1.2rem 0 0;
+}
+
+.fact {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
+}
+
+.fact dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fact dd {
+  margin: 0.25rem 0 0;
+  color: var(--foreground);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.source {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2.2rem;
+}
+
+.sourceTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.sourceCopy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.sourceLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.15rem;
+  margin: 0.75rem 0 0;
+}
+
+.external,
+.backLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--link);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 0.22rem;
+}
+
+.backLink {
+  width: fit-content;
+  border-top: 1px solid var(--border);
+  padding-top: 0.4rem;
+}
+
+.unavailable,
+.transport {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 0;
+}
+
+.unavailable h2,
+.transport h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.unavailable p,
+.transport p {
+  max-width: 46rem;
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.unavailableNote {
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+}
+
+@media (max-width: 62rem) {
+  .hero,
+  .snapshot,
+  .source {
+    grid-template-columns: 1fr;
+  }
+
+  .intro {
+    max-width: 42rem;
+  }
+}
+
+@media (max-width: 42rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.6rem, 19vw, 5.2rem);
+  }
+
+  .freshness,
+  .launch {
+    grid-template-columns: 1fr;
+  }
+
+  .failure {
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .launch {
+    gap: 0.8rem;
+  }
+
+  .updated {
+    margin-top: 0.5rem;
+  }
+
+  .facts {
+    grid-template-columns: 1fr;
+  }
+}

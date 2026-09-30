@@ -14,6 +14,7 @@ import {
   SYSTEM_COMPARE_ITEMS,
   systemCompareItemById,
 } from "../../../lib/visualizations/system-scale-compare";
+import styles from "../system-exploration.module.css";
 import { SystemScaleCompareExplorer } from "./system-scale-compare-explorer";
 
 export function createSystemScaleCompareMetadata(messages: SystemScaleCompareMessages): Metadata {
@@ -31,21 +32,29 @@ export default function SystemScaleComparePage({
   const defaults = SYSTEM_COMPARE_DEFINITION.default_item_ids.map((id) =>
     systemCompareItemById(id)!,
   );
+  const formattedReferenceCount = formatLocaleNumber(SYSTEM_COMPARE_ITEMS.length, locale);
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <Link
-          className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--muted)] underline underline-offset-4"
-          href="/explore"
-        >
-          {messages.backToExplore}
-        </Link>
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <Link className={styles.backLink} href="/explore">
+            {messages.backToExplore}
+          </Link>
+          <p className={styles.eyebrow}>{messages.eyebrow}</p>
+          <h1 className={styles.title}>{messages.title}</h1>
+          <p className={styles.intro}>{messages.intro}</p>
+        </div>
+        <dl className={styles.heroRail}>
+          <div className={styles.heroFact}>
+            <dt>{messages.model.title}</dt>
+            <dd>{SYSTEM_COMPARE_DEFINITION.model_version}</dd>
+          </div>
+          <div className={styles.heroFact}>
+            <dt>{messages.inventory.title}</dt>
+            <dd>{formattedReferenceCount}</dd>
+          </div>
+        </dl>
       </header>
 
       <SystemScaleCompareExplorer locale={locale} messages={messages.explorer} />
@@ -71,12 +80,12 @@ function DefaultComparison({
 }>) {
   const [solar, exoplanet, voyager] = defaults;
   return (
-    <section aria-labelledby="default-system-compare-heading" className="space-y-4">
-      <div className="max-w-4xl space-y-2">
-        <h2 className="text-2xl font-semibold" id="default-system-compare-heading">
+    <section aria-labelledby="default-system-compare-heading" className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle} id="default-system-compare-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
+        <p className={styles.sectionSummary}>
           {formatMessageTemplate(messages.description, {
             exoplanet: exoplanet!.name,
             solar: solar!.name,
@@ -84,14 +93,14 @@ function DefaultComparison({
           })}
         </p>
       </div>
-      <div className="overflow-x-auto border border-[var(--border)]">
-        <table className="w-full min-w-[52rem] border-collapse text-left">
+      <div className={`${styles.tableWrap} ${styles.sectionBody}`}>
+        <table className={styles.table} style={{ minWidth: "52rem" }}>
           <thead>
-            <tr className="border-b border-[var(--border)]">
-              <th className="p-3">{messages.headers.reference}</th>
-              <th className="p-3">{messages.headers.scientificQuantity}</th>
-              <th className="p-3">{messages.headers.value}</th>
-              <th className="p-3">
+            <tr>
+              <th>{messages.headers.reference}</th>
+              <th>{messages.headers.scientificQuantity}</th>
+              <th>{messages.headers.value}</th>
+              <th>
                 {formatMessageTemplate(messages.headers.earthMultiple, {
                   unit: SYSTEM_COMPARE_DISTANCE_UNIT,
                 })}
@@ -100,13 +109,13 @@ function DefaultComparison({
           </thead>
           <tbody>
             {defaults.map((item) => (
-              <tr className="border-b border-[var(--border)] last:border-0" key={item.id}>
-                <th className="p-3 font-semibold">{item.name}</th>
-                <td className="p-3">{item.quantity_label}</td>
-                <td className="p-3 font-mono">
+              <tr key={item.id}>
+                <th>{item.name}</th>
+                <td>{item.quantity_label}</td>
+                <td className={styles.dataValue}>
                   {formatLocaleFixedNumber(item.value_au, 6, locale)} {SYSTEM_COMPARE_DISTANCE_UNIT}
                 </td>
-                <td className="p-3 font-mono">
+                <td className={styles.dataValue}>
                   {formatLocaleFixedNumber(item.earth_reference_ratio, 3, locale)}×
                 </td>
               </tr>
@@ -122,17 +131,14 @@ function ModelDisclosure({
   messages,
 }: Readonly<{ messages: SystemScaleCompareMessages["model"] }>) {
   return (
-    <section
-      aria-labelledby="system-compare-model-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-4xl space-y-2">
-        <h2 className="text-2xl font-semibold" id="system-compare-model-heading">
+    <section aria-labelledby="system-compare-model-heading" className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle} id="system-compare-model-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
+        <p className={styles.sectionSummary}>{messages.description}</p>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className={`${styles.modelGrid} ${styles.sectionBody}`}>
         <DisclosureList
           title={messages.assumptionsTitle}
           values={SYSTEM_COMPARE_DEFINITION.assumptions}
@@ -155,52 +161,48 @@ function ReferenceInventory({
 }>) {
   const formattedCount = formatLocaleNumber(SYSTEM_COMPARE_ITEMS.length, locale);
   return (
-    <section aria-labelledby="reference-inventory-heading" className="space-y-4">
-      <div className="max-w-4xl space-y-2">
-        <h2 className="text-2xl font-semibold" id="reference-inventory-heading">
+    <section aria-labelledby="reference-inventory-heading" className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle} id="reference-inventory-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
+        <p className={styles.sectionSummary}>
           {formatMessageTemplate(messages.description, { count: formattedCount })}
         </p>
       </div>
-      <details className="border border-[var(--border)] p-4">
-        <summary className="cursor-pointer font-semibold">
+      <details className={`${styles.inventoryDetails} ${styles.sectionBody}`}>
+        <summary className={styles.inventorySummary}>
           {formatMessageTemplate(messages.summary, {
             count: formattedCount,
             unit: SYSTEM_COMPARE_DISTANCE_UNIT,
           })}
         </summary>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[58rem] border-collapse text-left">
+        <div className={styles.tableWrap}>
+          <table className={styles.table} style={{ minWidth: "58rem" }}>
             <thead>
-              <tr className="border-b border-[var(--border)]">
-                <th className="p-3">{messages.headers.group}</th>
-                <th className="p-3">{messages.headers.reference}</th>
-                <th className="p-3">{messages.headers.quantity}</th>
-                <th className="p-3">
+              <tr>
+                <th>{messages.headers.group}</th>
+                <th>{messages.headers.reference}</th>
+                <th>{messages.headers.quantity}</th>
+                <th>
                   {formatMessageTemplate(messages.headers.value, {
                     unit: SYSTEM_COMPARE_DISTANCE_UNIT,
                   })}
                 </th>
-                <th className="p-3">{messages.headers.source}</th>
+                <th>{messages.headers.source}</th>
               </tr>
             </thead>
             <tbody>
               {SYSTEM_COMPARE_ITEMS.map((item) => (
-                <tr className="border-b border-[var(--border)] last:border-0" key={item.id}>
-                  <td className="p-3">{item.group_label}</td>
-                  <th className="p-3 font-semibold">{item.name}</th>
-                  <td className="p-3">{item.quantity_label}</td>
-                  <td className="p-3 font-mono">
+                <tr key={item.id}>
+                  <td>{item.group_label}</td>
+                  <th>{item.name}</th>
+                  <td>{item.quantity_label}</td>
+                  <td className={styles.dataValue}>
                     {formatLocaleFixedNumber(item.value_au, 6, locale)}
                   </td>
-                  <td className="p-3">
-                    <a
-                      className="text-[var(--link)] underline underline-offset-4"
-                      href={item.source.url}
-                      rel="noreferrer"
-                    >
+                  <td>
+                    <a className={styles.inlineLink} href={item.source.url} rel="noreferrer">
                       {item.source.label}
                     </a>
                   </td>
@@ -219,9 +221,9 @@ function DisclosureList({
   values,
 }: Readonly<{ title: string; values: ReadonlyArray<string> }>) {
   return (
-    <div className="space-y-3">
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <ul className="list-disc space-y-2 pl-5 text-sm leading-6 text-[var(--muted)]">
+    <div className={styles.modelPanel}>
+      <h3 className={styles.modelTitle}>{title}</h3>
+      <ul className={styles.modelList}>
         {values.map((value) => (
           <li key={value}>{value}</li>
         ))}

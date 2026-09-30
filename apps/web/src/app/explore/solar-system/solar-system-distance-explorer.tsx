@@ -22,6 +22,7 @@ import {
   type SolarSystemBodyId,
   type SolarSystemScaleMode,
 } from "../../../lib/visualizations/solar-system-distance";
+import styles from "../system-exploration.module.css";
 
 const DEFAULT_BODY_ID: SolarSystemBodyId = "earth";
 
@@ -34,38 +35,36 @@ export function SolarSystemDistanceExplorer({
   const selected = solarSystemBodyById(selectedId) ?? SOLAR_SYSTEM_BODIES[3]!;
 
   return (
-    <div className="space-y-8">
-      <section
-        aria-labelledby="system-model-heading"
-        className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-      >
-        <div className="max-w-4xl space-y-3">
-          <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-            {formatMessageTemplate(messages.modelEyebrow, {
-              modelVersion: SOLAR_SYSTEM_DEFINITION.model_version,
-            })}
-          </p>
-          <h2 className="text-2xl font-semibold" id="system-model-heading">
-            {messages.title}
-          </h2>
-          <p className="leading-7 text-[var(--muted)]">
+    <div className={styles.instrumentStack}>
+      <section aria-labelledby="system-model-heading" className={styles.instrument}>
+        <div className={styles.instrumentHeader}>
+          <div>
+            <p className={styles.instrumentEyebrow}>
+              {formatMessageTemplate(messages.modelEyebrow, {
+                modelVersion: SOLAR_SYSTEM_DEFINITION.model_version,
+              })}
+            </p>
+            <h2 className={styles.instrumentTitle} id="system-model-heading">
+              {messages.title}
+            </h2>
+          </div>
+          <p className={styles.instrumentDescription}>
             {formatMessageTemplate(messages.description, {
               provider: SOLAR_SYSTEM_PROVIDER_NAME,
             })}
           </p>
         </div>
 
-        <div aria-label={messages.scaleAriaLabel} className="flex flex-wrap gap-2" role="group">
-          <ScaleButton active={mode === "log"} onClick={() => setMode("log")}>
-            {messages.scaleModes.logAction}
-          </ScaleButton>
-          <ScaleButton active={mode === "linear"} onClick={() => setMode("linear")}>
-            {messages.scaleModes.linearAction}
-          </ScaleButton>
-        </div>
-
-        <div className="border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
-          <p className="text-sm leading-6 text-[var(--muted)]">
+        <div className={styles.scaleControls}>
+          <div aria-label={messages.scaleAriaLabel} className={styles.scaleToggle} role="group">
+            <ScaleButton active={mode === "log"} onClick={() => setMode("log")}>
+              {messages.scaleModes.logAction}
+            </ScaleButton>
+            <ScaleButton active={mode === "linear"} onClick={() => setMode("linear")}>
+              {messages.scaleModes.linearAction}
+            </ScaleButton>
+          </div>
+          <p className={styles.scaleNote}>
             {mode === "log"
               ? formatMessageTemplate(messages.logDescription, {
                   unit: SOLAR_SYSTEM_DISTANCE_UNIT,
@@ -74,7 +73,7 @@ export function SolarSystemDistanceExplorer({
           </p>
         </div>
 
-        <div className="space-y-3" data-testid="solar-system-distance-track">
+        <div className={styles.trackList} data-testid="solar-system-distance-track">
           <OriginRow
             messages={messages}
             selected={selectedId === "sun"}
@@ -110,12 +109,7 @@ function ScaleButton({
   onClick,
 }: Readonly<{ active: boolean; children: React.ReactNode; onClick: () => void }>) {
   return (
-    <button
-      aria-pressed={active}
-      className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold aria-pressed:bg-[var(--foreground)] aria-pressed:text-[var(--background)]"
-      onClick={onClick}
-      type="button"
-    >
+    <button aria-pressed={active} className={styles.scaleButton} onClick={onClick} type="button">
       {children}
     </button>
   );
@@ -132,21 +126,18 @@ function OriginRow({
 }>) {
   const sun = SOLAR_SYSTEM_BODIES[0]!;
   return (
-    <div className="grid gap-2 sm:grid-cols-[7rem_1fr] sm:items-center">
+    <div className={styles.trackRow}>
       <button
         aria-pressed={selected}
-        className="min-h-11 text-left font-semibold text-[var(--link)] underline underline-offset-4"
+        className={styles.trackButton}
         onClick={onSelect}
         type="button"
       >
         {sun.name}
       </button>
-      <div className="flex min-h-11 items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="inline-block size-3 shrink-0 rounded-full border border-current"
-        />
-        <span className="text-sm text-[var(--muted)]">
+      <div className={styles.originTrack}>
+        <span aria-hidden="true" className={styles.originMarker} />
+        <span>
           {formatMessageTemplate(messages.sunOrigin, {
             unit: SOLAR_SYSTEM_DISTANCE_UNIT,
           })}
@@ -175,27 +166,21 @@ function PlanetDistanceRow({
   if (position === null) return null;
   const barWidth = `${Math.max(0, Math.min(100, position))}%`;
   return (
-    <div className="grid gap-2 sm:grid-cols-[7rem_1fr] sm:items-center">
+    <div className={styles.trackRow}>
       <button
         aria-pressed={selected}
-        className="min-h-11 text-left font-semibold text-[var(--link)] underline underline-offset-4"
+        className={styles.trackButton}
         onClick={onSelect}
         type="button"
       >
         {planet.name}
       </button>
-      <div className="space-y-1">
-        <div className="relative h-5 border-l border-r border-[var(--border)]" aria-hidden="true">
-          <div
-            className="absolute top-1/2 h-px -translate-y-1/2 bg-[var(--border-strong)]"
-            style={{ width: barWidth }}
-          />
-          <span
-            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-current bg-[var(--background)]"
-            style={{ left: barWidth }}
-          />
+      <div className={styles.trackBody}>
+        <div className={styles.trackRail} aria-hidden="true">
+          <div className={styles.trackFill} style={{ width: barWidth }} />
+          <span className={styles.trackMarker} style={{ left: barWidth }} />
         </div>
-        <p className="text-xs text-[var(--muted)]">
+        <p className={styles.trackSummary}>
           {formatMessageTemplate(messages.trackSummary, {
             distance: formatLocaleNumber(planet.mean_distance_au, locale, {
               maximumFractionDigits: 3,
@@ -224,73 +209,68 @@ function SelectedBody({
 }>) {
   const isSun = body.id === "sun";
   return (
-    <section
-      aria-labelledby="selected-system-body-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.selected.eyebrow}
-        </p>
-        <h2 className="text-3xl font-semibold" id="selected-system-body-heading">
+    <section aria-labelledby="selected-system-body-heading" className={styles.selectedPanel}>
+      <div>
+        <p className={styles.instrumentEyebrow}>{messages.selected.eyebrow}</p>
+        <h2 className={styles.selectedTitle} id="selected-system-body-heading">
           {body.name}
         </h2>
-        <p className="capitalize text-[var(--muted)]">{body.kind}</p>
+        <p className={styles.selectedSubtitle}>{body.kind}</p>
       </div>
-      <dl className="grid gap-4 sm:grid-cols-3">
-        <Fact
-          label={messages.selected.meanDistanceLabel}
-          value={formatMessageTemplate(messages.valueWithUnit, {
-            unit: SOLAR_SYSTEM_DISTANCE_UNIT,
-            value: formatLocaleNumber(body.mean_distance_au, locale, {
-              maximumFractionDigits: 3,
-            }),
-          })}
-        />
-        <Fact
-          label={messages.selected.lightTimeLabel}
-          value={
-            isSun
-              ? formatLocaleNumber(0, locale)
-              : formatMessageTemplate(messages.valueWithUnit, {
-                  unit: body.light_time_unit,
-                  value: formatSolarSystemRawNumber(body.light_time_value, locale),
-                })
-          }
-        />
-        <Fact
-          label={messages.selected.earthRatioLabel}
-          value={
-            isSun
-              ? formatLocaleNumber(0, locale) + "×"
-              : formatLocaleNumber(body.earth_distance_ratio, locale, {
-                  maximumFractionDigits: 3,
-                }) + "×"
-          }
-        />
-      </dl>
-      <div className="flex flex-wrap gap-3">
-        <Link
-          className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
-          href={`/lab/scale-explorer/${body.scale_explorer_node_id}`}
-        >
-          {formatMessageTemplate(messages.selected.compareSizeAction, {
-            body: body.name,
-          })}
-        </Link>
+      <div>
+        <dl className={styles.metricGrid}>
+          <Fact
+            label={messages.selected.meanDistanceLabel}
+            value={formatMessageTemplate(messages.valueWithUnit, {
+              unit: SOLAR_SYSTEM_DISTANCE_UNIT,
+              value: formatLocaleNumber(body.mean_distance_au, locale, {
+                maximumFractionDigits: 3,
+              }),
+            })}
+          />
+          <Fact
+            label={messages.selected.lightTimeLabel}
+            value={
+              isSun
+                ? formatLocaleNumber(0, locale)
+                : formatMessageTemplate(messages.valueWithUnit, {
+                    unit: body.light_time_unit,
+                    value: formatSolarSystemRawNumber(body.light_time_value, locale),
+                  })
+            }
+          />
+          <Fact
+            label={messages.selected.earthRatioLabel}
+            value={
+              isSun
+                ? formatLocaleNumber(0, locale) + "×"
+                : formatLocaleNumber(body.earth_distance_ratio, locale, {
+                    maximumFractionDigits: 3,
+                  }) + "×"
+            }
+          />
+        </dl>
+        <div className={styles.actions}>
+          <Link
+            className={styles.actionLink}
+            href={`/lab/scale-explorer/${body.scale_explorer_node_id}`}
+          >
+            {formatMessageTemplate(messages.selected.compareSizeAction, {
+              body: body.name,
+            })}
+          </Link>
+        </div>
+        <p className={styles.metricNote}>{messages.selected.disclosure}</p>
       </div>
-      <p className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        {messages.selected.disclosure}
-      </p>
     </section>
   );
 }
 
 function Fact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-      <dt className="text-sm text-[var(--muted)]">{label}</dt>
-      <dd className="mt-1 font-mono text-lg">{value}</dd>
+    <div className={styles.metric}>
+      <dt className={styles.metricLabel}>{label}</dt>
+      <dd className={styles.metricValue}>{value}</dd>
     </div>
   );
 }
@@ -305,35 +285,35 @@ function DistanceTable({
   valueWithUnit: string;
 }>) {
   return (
-    <section aria-labelledby="distance-table-heading" className="space-y-4">
-      <div className="max-w-3xl space-y-2">
-        <h2 className="text-2xl font-semibold" id="distance-table-heading">
+    <section aria-labelledby="distance-table-heading" className={styles.tableSection}>
+      <div className={styles.tableHeader}>
+        <h2 className={styles.tableTitle} id="distance-table-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
+        <p className={styles.tableDescription}>{messages.description}</p>
       </div>
-      <div className="overflow-x-auto border border-[var(--border)]">
-        <table className="w-full min-w-[46rem] border-collapse text-left">
+      <div className={styles.tableWrap}>
+        <table className={styles.table} style={{ minWidth: "46rem" }}>
           <thead>
-            <tr className="border-b border-[var(--border)]">
-              <th className="p-3">{messages.headers.body}</th>
-              <th className="p-3">{messages.headers.meanDistance}</th>
-              <th className="p-3">{messages.headers.lightTime}</th>
-              <th className="p-3">{messages.headers.linearTrack}</th>
-              <th className="p-3">{messages.headers.logTrack}</th>
+            <tr>
+              <th>{messages.headers.body}</th>
+              <th>{messages.headers.meanDistance}</th>
+              <th>{messages.headers.lightTime}</th>
+              <th>{messages.headers.linearTrack}</th>
+              <th>{messages.headers.logTrack}</th>
             </tr>
           </thead>
           <tbody>
             {SOLAR_SYSTEM_BODIES.map((body) => (
-              <tr className="border-b border-[var(--border)] last:border-0" key={body.id}>
-                <th className="p-3 font-semibold">{body.name}</th>
-                <td className="p-3 font-mono">
+              <tr key={body.id}>
+                <th>{body.name}</th>
+                <td className={styles.dataValue}>
                   {formatMessageTemplate(valueWithUnit, {
                     unit: SOLAR_SYSTEM_DISTANCE_UNIT,
                     value: formatSolarSystemRawNumber(body.mean_distance_au, locale),
                   })}
                 </td>
-                <td className="p-3">
+                <td>
                   {body.id === "sun"
                     ? formatLocaleNumber(0, locale)
                     : formatMessageTemplate(valueWithUnit, {
@@ -341,10 +321,10 @@ function DistanceTable({
                         value: formatSolarSystemRawNumber(body.light_time_value, locale),
                       })}
                 </td>
-                <td className="p-3 font-mono">
+                <td className={styles.dataValue}>
                   {formatLocaleFixedNumber(body.linear_position_percent, 2, locale)}%
                 </td>
-                <td className="p-3 font-mono">
+                <td className={styles.dataValue}>
                   {body.log_position_percent === null
                     ? formatMessageTemplate(messages.logUndefined, {
                         unit: SOLAR_SYSTEM_DISTANCE_UNIT,

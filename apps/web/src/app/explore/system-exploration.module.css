@@ -1,0 +1,881 @@
+.page {
+  display: grid;
+  gap: clamp(4rem, 8vw, 7rem);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.34fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(2.75rem, 6vw, 5rem);
+}
+
+.heroCopy {
+  min-width: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 560;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.25rem;
+  transition: color 160ms ease;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.eyebrow,
+.instrumentEyebrow,
+.cardEyebrow {
+  margin: 1.35rem 0 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 11ch;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.55rem, 7vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+}
+
+.intro {
+  max-width: 44rem;
+  margin: 1.5rem 0 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+.heroRail {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+}
+
+.heroFact {
+  display: grid;
+  gap: 0.45rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.heroFact dt,
+.factLabel,
+.metricLabel {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heroFact dd {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.section,
+.continuation {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 3.25rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sectionSummary {
+  max-width: 25rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.modelGrid,
+.formulaGrid,
+.provenanceGrid,
+.metricGrid,
+.cardGrid,
+.selectorGrid {
+  display: grid;
+  gap: 0;
+}
+
+.modelGrid,
+.formulaGrid,
+.provenanceGrid,
+.metricGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.modelPanel,
+.formula,
+.provenanceFact,
+.metric {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 1.25rem 1.35rem;
+}
+
+.modelPanel:nth-child(2n),
+.formula:nth-child(2n),
+.provenanceFact:nth-child(2n),
+.metric:nth-child(2n) {
+  border-right: 0;
+}
+
+.modelTitle,
+.formula dt {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.modelList {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.formula dd {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.sourceList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.sourceItem {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.34fr) minmax(0, 0.66fr);
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 0;
+}
+
+.sourceLink,
+.inlineLink,
+.actionLink {
+  color: var(--foreground);
+  font-weight: 620;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.25rem;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.sourceLink:hover,
+.inlineLink:hover,
+.actionLink:hover {
+  color: var(--accent-strong);
+}
+
+.sourceOrg,
+.sourceCitation,
+.sourceScope,
+.metricNote,
+.instrumentDescription,
+.scaleNote,
+.trackSummary,
+.cardText {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.sourceOrg {
+  margin-top: 0.35rem;
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+}
+
+.sourceScope {
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+}
+
+.sourceCitation {
+  margin-top: 0.65rem;
+  font-size: 0.68rem;
+}
+
+.provenanceFactWide {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.factValue,
+.metricValue {
+  margin: 0.7rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.83rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.metricValue {
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+}
+
+.metricNote {
+  margin-top: 0.6rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.4rem;
+  margin-top: 1.35rem;
+}
+
+.actionLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-strong);
+  text-decoration: none;
+}
+
+.queryDetails,
+.inventoryDetails {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.querySummary,
+.inventorySummary {
+  min-height: 2.75rem;
+  cursor: pointer;
+  color: var(--foreground);
+  font-weight: 620;
+}
+
+.queryText {
+  margin: 1rem 0 0;
+  overflow-x: auto;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.continuation {
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1.4rem;
+}
+
+.continuation .sectionTitle {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+}
+
+.instrumentStack {
+  display: grid;
+  gap: 4rem;
+}
+
+.instrument {
+  position: relative;
+  display: grid;
+  gap: 1.75rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 0 1.75rem;
+}
+
+.instrumentHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 0.55fr) minmax(14rem, 0.45fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: end;
+}
+
+.instrumentEyebrow {
+  margin-top: 0;
+}
+
+.instrumentTitle {
+  max-width: 19ch;
+  margin: 0.55rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.instrumentDescription {
+  max-width: 34rem;
+  align-self: end;
+  font-size: 0.82rem;
+}
+
+.selectorGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+}
+
+.selectLabel {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.66rem;
+  font-weight: 620;
+}
+
+.selectLabel:last-child {
+  border-right: 0;
+}
+
+.selectInput {
+  min-height: 2.75rem;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.scaleControls {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.scaleToggle {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-strong);
+}
+
+.scaleButton {
+  min-height: 2.75rem;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-strong);
+  padding: 0.65rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 620;
+  cursor: pointer;
+}
+
+.scaleButton[aria-pressed="true"] {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.scaleButton:focus-visible,
+.trackButton:focus-visible,
+.systemButton:focus-visible,
+.selectInput:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.scaleNote {
+  max-width: 46rem;
+}
+
+.trackList {
+  display: grid;
+  border-top: 1px solid var(--border-strong);
+}
+
+.trackRow {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.22fr) minmax(0, 0.78fr);
+  gap: 1.5rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.trackButton,
+.systemButton {
+  min-height: 2.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  padding: 0;
+  text-align: left;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.trackButton[aria-pressed="true"],
+.systemButton[aria-pressed="true"] {
+  color: var(--accent-strong);
+}
+
+.trackBody {
+  min-width: 0;
+}
+
+.trackHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+}
+
+.trackMeta {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+}
+
+.trackRail {
+  position: relative;
+  height: 1.25rem;
+  margin-top: 0.4rem;
+  border-left: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border-strong);
+}
+
+.trackRail::after {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--border);
+  content: "";
+}
+
+.trackFill {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 0;
+  height: 1px;
+  background: var(--foreground);
+  transform: translateY(-50%);
+}
+
+.trackMarker {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 1px solid var(--foreground);
+  border-radius: 999px;
+  background: var(--background);
+  transform: translate(-50%, -50%);
+}
+
+.trackSummary {
+  margin-top: 0.35rem;
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+}
+
+.selectedPanel {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.3fr) minmax(0, 0.7fr);
+  gap: clamp(1.75rem, 5vw, 4.5rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1.25rem;
+}
+
+.selectedTitle {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.selectedSubtitle {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.cardGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.card {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 1.25rem 1.35rem;
+}
+
+.card:last-child {
+  border-right: 0;
+}
+
+.cardEyebrow {
+  margin-top: 0;
+}
+
+.cardTitle {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.cardDefinitionList {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.1rem 0 0;
+}
+
+.cardDefinitionList dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+}
+
+.cardDefinitionList dd {
+  margin: 0.2rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.cardText {
+  margin-top: 1rem;
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+}
+
+.tableSection {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.tableHeader {
+  max-width: 44rem;
+}
+
+.tableTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3vw, 2.55rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.tableDescription {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.78rem;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 0.8rem;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table thead th {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table tbody th {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.dataValue {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.systemChooser {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.systemContext {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.systemContextHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.systemContextTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 3vw, 2.4rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.systemContextMeta,
+.selectedSummary {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  line-height: 1.6;
+}
+
+.selectedSummary {
+  max-width: 26rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+}
+
+.metricLink {
+  margin: 0.9rem 0 0;
+  font-size: 0.75rem;
+}
+
+.systemButton {
+  display: grid;
+  gap: 0.3rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 1rem;
+}
+
+.systemButton:last-child {
+  border-right: 0;
+}
+
+.systemButton span:last-child {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  font-weight: 500;
+}
+
+.originTrack {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+}
+
+.originMarker {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: none;
+  border: 1px solid var(--foreground);
+  border-radius: 999px;
+}
+
+@media (max-width: 70rem) {
+  .systemChooser {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .systemButton:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .systemButton:last-child {
+    border-right: 1px solid var(--border);
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 62rem) {
+  .hero,
+  .instrumentHeader,
+  .section,
+  .continuation,
+  .selectedPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .heroRail {
+    max-width: 34rem;
+  }
+
+  .sectionSummary {
+    max-width: 42rem;
+  }
+
+  .scaleControls {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 48rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.4rem, 16vw, 5.1rem);
+  }
+
+  .modelGrid,
+  .formulaGrid,
+  .provenanceGrid,
+  .metricGrid,
+  .selectorGrid,
+  .systemChooser {
+    grid-template-columns: 1fr;
+  }
+
+  .modelPanel,
+  .formula,
+  .provenanceFact,
+  .metric,
+  .selectLabel,
+  .systemButton {
+    border-right: 0;
+  }
+
+  .provenanceFactWide {
+    grid-column: auto;
+  }
+
+  .sourceItem,
+  .trackRow {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .table th,
+  .table td {
+    padding-inline: 0.65rem;
+  }
+}
+
+.trackRow > h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .sourceLink,
+  .inlineLink,
+  .actionLink {
+    transition: none;
+  }
+}

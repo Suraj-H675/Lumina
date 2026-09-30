@@ -24,6 +24,7 @@ import {
   type ExoplanetLayoutSystem,
   type ExoplanetScaleMode,
 } from "../../../lib/visualizations/exoplanet-systems";
+import styles from "../system-exploration.module.css";
 
 const DEFAULT_SYSTEM_SLUG = "kepler-186";
 
@@ -49,21 +50,20 @@ export function ExoplanetSystemExplorer({
   }
 
   return (
-    <div className="space-y-8">
-      <section
-        aria-labelledby="exoplanet-systems-heading"
-        className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-      >
-        <div className="max-w-4xl space-y-3">
-          <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-            {formatMessageTemplate(messages.modelEyebrow, {
-              modelVersion: EXOPLANET_SYSTEM_DEFINITION.model_version,
-            })}
-          </p>
-          <h2 className="text-2xl font-semibold" id="exoplanet-systems-heading">
-            {formatMessageTemplate(messages.title, { unit: EXOPLANET_DISTANCE_UNIT })}
-          </h2>
-          <p className="leading-7 text-[var(--muted)]">
+    <div className={styles.instrumentStack}>
+      <section aria-labelledby="exoplanet-systems-heading" className={styles.instrument}>
+        <div className={styles.instrumentHeader}>
+          <div>
+            <p className={styles.instrumentEyebrow}>
+              {formatMessageTemplate(messages.modelEyebrow, {
+                modelVersion: EXOPLANET_SYSTEM_DEFINITION.model_version,
+              })}
+            </p>
+            <h2 className={styles.instrumentTitle} id="exoplanet-systems-heading">
+              {formatMessageTemplate(messages.title, { unit: EXOPLANET_DISTANCE_UNIT })}
+            </h2>
+          </div>
+          <p className={styles.instrumentDescription}>
             {formatMessageTemplate(messages.description, {
               provider: EXOPLANET_RAW_SNAPSHOT.provider,
               table: EXOPLANET_RAW_SNAPSHOT.table,
@@ -73,7 +73,7 @@ export function ExoplanetSystemExplorer({
 
         <div
           aria-label={messages.host.groupAriaLabel}
-          className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5"
+          className={styles.systemChooser}
           role="group"
         >
           {EXOPLANET_SYSTEMS.map((system) => (
@@ -87,13 +87,13 @@ export function ExoplanetSystemExplorer({
                 name: system.display_name,
               })}
               aria-pressed={system.host_slug === selectedSystem.host_slug}
-              className="min-h-12 border border-[var(--border-strong)] px-3 py-2 text-left font-semibold aria-pressed:bg-[var(--foreground)] aria-pressed:text-[var(--background)]"
+              className={styles.systemButton}
               key={system.host_slug}
               onClick={() => chooseSystem(system)}
               type="button"
             >
-              <span className="block">{system.display_name}</span>
-              <span className="block text-xs font-normal opacity-80">
+              <span>{system.display_name}</span>
+              <span>
                 {formatCountMessage(
                   messages.host.confirmedPlanets,
                   system.archive_planet_count,
@@ -104,35 +104,36 @@ export function ExoplanetSystemExplorer({
           ))}
         </div>
 
-        <div aria-label={messages.scaleAriaLabel} className="flex flex-wrap gap-2" role="group">
-          <ScaleButton active={mode === "log"} onClick={() => setMode("log")}>
-            {messages.scaleModes.logAction}
-          </ScaleButton>
-          <ScaleButton active={mode === "linear"} onClick={() => setMode("linear")}>
-            {messages.scaleModes.linearAction}
-          </ScaleButton>
-        </div>
-
-        <div className="border border-[var(--border)] bg-[var(--surface)] p-4 text-sm leading-6 text-[var(--muted)]">
-          {mode === "log"
-            ? formatMessageTemplate(messages.logDescription, {
-                maximum: formatRawNumber(
-                  EXOPLANET_SYSTEM_DEFINITION.shared_scale_domain_au.maximum,
-                  locale,
-                ),
-                minimum: formatRawNumber(
-                  EXOPLANET_SYSTEM_DEFINITION.shared_scale_domain_au.minimum,
-                  locale,
-                ),
-                unit: EXOPLANET_DISTANCE_UNIT,
-              })
-            : formatMessageTemplate(messages.linearDescription, {
-                maximum: formatRawNumber(
-                  EXOPLANET_SYSTEM_DEFINITION.shared_scale_domain_au.maximum,
-                  locale,
-                ),
-                unit: EXOPLANET_DISTANCE_UNIT,
-              })}
+        <div className={styles.scaleControls}>
+          <div aria-label={messages.scaleAriaLabel} className={styles.scaleToggle} role="group">
+            <ScaleButton active={mode === "log"} onClick={() => setMode("log")}>
+              {messages.scaleModes.logAction}
+            </ScaleButton>
+            <ScaleButton active={mode === "linear"} onClick={() => setMode("linear")}>
+              {messages.scaleModes.linearAction}
+            </ScaleButton>
+          </div>
+          <p className={styles.scaleNote}>
+            {mode === "log"
+              ? formatMessageTemplate(messages.logDescription, {
+                  maximum: formatRawNumber(
+                    EXOPLANET_SYSTEM_DEFINITION.shared_scale_domain_au.maximum,
+                    locale,
+                  ),
+                  minimum: formatRawNumber(
+                    EXOPLANET_SYSTEM_DEFINITION.shared_scale_domain_au.minimum,
+                    locale,
+                  ),
+                  unit: EXOPLANET_DISTANCE_UNIT,
+                })
+              : formatMessageTemplate(messages.linearDescription, {
+                  maximum: formatRawNumber(
+                    EXOPLANET_SYSTEM_DEFINITION.shared_scale_domain_au.maximum,
+                    locale,
+                  ),
+                  unit: EXOPLANET_DISTANCE_UNIT,
+                })}
+          </p>
         </div>
 
         <SystemLanes
@@ -166,12 +167,7 @@ function ScaleButton({
   onClick,
 }: Readonly<{ active: boolean; children: React.ReactNode; onClick: () => void }>) {
   return (
-    <button
-      aria-pressed={active}
-      className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold aria-pressed:bg-[var(--foreground)] aria-pressed:text-[var(--background)]"
-      onClick={onClick}
-      type="button"
-    >
+    <button aria-pressed={active} className={styles.scaleButton} onClick={onClick} type="button">
       {children}
     </button>
   );
@@ -197,25 +193,22 @@ function SystemLanes({
       aria-label={formatMessageTemplate(messages.systemLayoutAriaLabel, {
         system: system.display_name,
       })}
-      className="space-y-4"
+      className={styles.systemContext}
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
+      <div className={styles.systemContextHeader}>
         <div>
-          <h3 className="text-xl font-semibold">{system.display_name}</h3>
-          <p className="text-sm text-[var(--muted)]">
+          <h3 className={styles.systemContextTitle}>{system.display_name}</h3>
+          <p className={styles.systemContextMeta}>
             {formatMessageTemplate(messages.host.hostname, {
               hostname: system.archive_hostname,
             })}
           </p>
         </div>
-        <Link
-          className="font-semibold text-[var(--link)] underline underline-offset-4"
-          href={`/objects/${system.host_slug}`}
-        >
+        <Link className={styles.inlineLink} href={`/objects/${system.host_slug}`}>
           {messages.host.openCanonical}
         </Link>
       </div>
-      <div className="space-y-3">
+      <div className={styles.trackList}>
         {system.planets.map((planet) => (
           <PlanetLane
             key={planet.name}
@@ -228,7 +221,7 @@ function SystemLanes({
           />
         ))}
       </div>
-      <p className="text-xs leading-5 text-[var(--muted)]">
+      <p className={styles.trackSummary}>
         {formatMessageTemplate(messages.host.originDisclosure, {
           unit: EXOPLANET_DISTANCE_UNIT,
         })}
@@ -255,27 +248,21 @@ function PlanetLane({
   const position = exoplanetPosition(planet, mode);
   const width = `${Math.max(0, Math.min(100, position))}%`;
   return (
-    <div className="grid gap-2 sm:grid-cols-[9rem_1fr] sm:items-center">
+    <div className={styles.trackRow}>
       <button
         aria-pressed={selected}
-        className="min-h-11 text-left font-semibold text-[var(--link)] underline underline-offset-4"
+        className={styles.trackButton}
         onClick={onSelect}
         type="button"
       >
         {planet.name}
       </button>
-      <div className="space-y-1">
-        <div aria-hidden="true" className="relative h-5 border-l border-r border-[var(--border)]">
-          <div
-            className="absolute top-1/2 h-px -translate-y-1/2 bg-[var(--border-strong)]"
-            style={{ width }}
-          />
-          <span
-            className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-current bg-[var(--background)]"
-            style={{ left: width }}
-          />
+      <div className={styles.trackBody}>
+        <div aria-hidden="true" className={styles.trackRail}>
+          <div className={styles.trackFill} style={{ width }} />
+          <span className={styles.trackMarker} style={{ left: width }} />
         </div>
-        <p className="text-xs text-[var(--muted)]">
+        <p className={styles.trackSummary}>
           {formatMessageTemplate(messages.trackSummary, {
             distance: formatRawNumber(planet.semimajor_axis_au, locale),
             mode:
@@ -303,18 +290,13 @@ function PlanetDetail({
   system: ExoplanetLayoutSystem;
 }>) {
   return (
-    <section
-      aria-labelledby="selected-exoplanet-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.planet.eyebrow}
-        </p>
-        <h2 className="text-3xl font-semibold" id="selected-exoplanet-heading">
+    <section aria-labelledby="selected-exoplanet-heading" className={styles.selectedPanel}>
+      <div>
+        <p className={styles.instrumentEyebrow}>{messages.planet.eyebrow}</p>
+        <h2 className={styles.selectedTitle} id="selected-exoplanet-heading">
           {planet.name}
         </h2>
-        <p className="text-[var(--muted)]">
+        <p className={styles.selectedSummary}>
           {formatMessageTemplate(messages.planet.discoverySummary, {
             host: system.display_name,
             method: planet.discovery_method,
@@ -322,31 +304,33 @@ function PlanetDetail({
           })}
         </p>
       </div>
-      <dl className="grid gap-4 md:grid-cols-2">
-        <ParameterCard
-          label={messages.parameter.semimajorAxisLabel}
-          locale={locale}
-          messages={messages.parameter}
-          reference={planet.semimajor_axis_reference}
-          uncertainty={planet.semimajor_axis_uncertainty_au}
-          unit={EXOPLANET_DISTANCE_UNIT}
-          value={planet.semimajor_axis_au}
-        />
-        <ParameterCard
-          label={messages.parameter.orbitalPeriodLabel}
-          locale={locale}
-          messages={messages.parameter}
-          reference={planet.orbital_period_reference}
-          uncertainty={planet.orbital_period_uncertainty_days}
-          unit={EXOPLANET_PERIOD_UNIT}
-          value={planet.orbital_period_days}
-        />
-      </dl>
-      <p className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        {formatMessageTemplate(messages.planet.disclosure, {
-          table: EXOPLANET_COMPOSITE_TABLE_NAME,
-        })}
-      </p>
+      <div>
+        <dl className={styles.metricGrid}>
+          <ParameterCard
+            label={messages.parameter.semimajorAxisLabel}
+            locale={locale}
+            messages={messages.parameter}
+            reference={planet.semimajor_axis_reference}
+            uncertainty={planet.semimajor_axis_uncertainty_au}
+            unit={EXOPLANET_DISTANCE_UNIT}
+            value={planet.semimajor_axis_au}
+          />
+          <ParameterCard
+            label={messages.parameter.orbitalPeriodLabel}
+            locale={locale}
+            messages={messages.parameter}
+            reference={planet.orbital_period_reference}
+            uncertainty={planet.orbital_period_uncertainty_days}
+            unit={EXOPLANET_PERIOD_UNIT}
+            value={planet.orbital_period_days}
+          />
+        </dl>
+        <p className={styles.metricNote}>
+          {formatMessageTemplate(messages.planet.disclosure, {
+            table: EXOPLANET_COMPOSITE_TABLE_NAME,
+          })}
+        </p>
+      </div>
     </section>
   );
 }
@@ -369,15 +353,15 @@ function ParameterCard({
   value: number;
 }>) {
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-      <dt className="text-sm text-[var(--muted)]">{label}</dt>
-      <dd className="mt-1 font-mono text-lg">
+    <div className={styles.metric}>
+      <dt className={styles.metricLabel}>{label}</dt>
+      <dd className={styles.metricValue}>
         {formatMessageTemplate(messages.valueWithUnit, {
           unit,
           value: formatRawNumber(value, locale),
         })}
       </dd>
-      <dd className="mt-2 text-xs leading-5 text-[var(--muted)]">
+      <dd className={styles.metricNote}>
         {uncertainty.plus === null || uncertainty.minus === null
           ? messages.noUncertainty
           : formatMessageTemplate(messages.uncertainty, {
@@ -386,12 +370,8 @@ function ParameterCard({
               unit,
             })}
       </dd>
-      <dd className="mt-3">
-        <a
-          className="text-sm font-semibold text-[var(--link)] underline underline-offset-4"
-          href={reference.url}
-          rel="noreferrer"
-        >
+      <dd className={styles.metricLink}>
+        <a className={styles.inlineLink} href={reference.url} rel="noreferrer">
           {formatMessageTemplate(messages.reference, {
             reference: reference.text,
           })}
@@ -411,43 +391,43 @@ function AllSystemsTable({
   valueWithUnit: string;
 }>) {
   return (
-    <section aria-labelledby="all-exoplanets-heading" className="space-y-4">
-      <div className="max-w-3xl space-y-2">
-        <h2 className="text-2xl font-semibold" id="all-exoplanets-heading">
+    <section aria-labelledby="all-exoplanets-heading" className={styles.tableSection}>
+      <div className={styles.tableHeader}>
+        <h2 className={styles.tableTitle} id="all-exoplanets-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
+        <p className={styles.tableDescription}>{messages.description}</p>
       </div>
-      <div className="overflow-x-auto border border-[var(--border)]">
-        <table className="w-full min-w-[48rem] border-collapse text-left">
+      <div className={styles.tableWrap}>
+        <table className={styles.table} style={{ minWidth: "48rem" }}>
           <thead>
-            <tr className="border-b border-[var(--border)]">
-              <th className="p-3">{messages.headers.host}</th>
-              <th className="p-3">{messages.headers.planet}</th>
-              <th className="p-3">{messages.headers.semimajorAxis}</th>
-              <th className="p-3">{messages.headers.orbitalPeriod}</th>
-              <th className="p-3">{messages.headers.discovery}</th>
+            <tr>
+              <th>{messages.headers.host}</th>
+              <th>{messages.headers.planet}</th>
+              <th>{messages.headers.semimajorAxis}</th>
+              <th>{messages.headers.orbitalPeriod}</th>
+              <th>{messages.headers.discovery}</th>
             </tr>
           </thead>
           <tbody>
             {EXOPLANET_SYSTEMS.flatMap((system) =>
               system.planets.map((planet) => (
-                <tr className="border-b border-[var(--border)] last:border-0" key={planet.name}>
-                  <td className="p-3">{system.display_name}</td>
-                  <th className="p-3 font-semibold">{planet.name}</th>
-                  <td className="p-3 font-mono">
+                <tr key={planet.name}>
+                  <td>{system.display_name}</td>
+                  <th>{planet.name}</th>
+                  <td className={styles.dataValue}>
                     {formatMessageTemplate(valueWithUnit, {
                       unit: EXOPLANET_DISTANCE_UNIT,
                       value: formatRawNumber(planet.semimajor_axis_au, locale),
                     })}
                   </td>
-                  <td className="p-3 font-mono">
+                  <td className={styles.dataValue}>
                     {formatMessageTemplate(valueWithUnit, {
                       unit: EXOPLANET_PERIOD_UNIT,
                       value: formatRawNumber(planet.orbital_period_days, locale),
                     })}
                   </td>
-                  <td className="p-3">
+                  <td>
                     {formatLocaleNumber(planet.discovery_year, locale, { useGrouping: false })} ·{" "}
                     {planet.discovery_method}
                   </td>

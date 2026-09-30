@@ -23,6 +23,7 @@ import {
   validateStellarLaboratoryState,
   type StellarLaboratoryState,
 } from "../lib/simulations/stellar-laboratory";
+import styles from "./lab-calculation-instrument.module.css";
 
 type StellarLaboratoryViewProps = Readonly<{
   initialState: StellarLaboratoryState;
@@ -57,7 +58,7 @@ function format(value: number, locale: PublishedLocale, digits = 6): string {
 
 function SourceList({ messages }: Readonly<{ messages: StellarLaboratoryMessages["model"] }>) {
   return (
-    <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {STELLAR_LABORATORY_DEFINITION.references.map((sourceId) => {
         const source = STELLAR_LABORATORY_SOURCES.find((candidate) => candidate.id === sourceId);
         return (
@@ -66,7 +67,7 @@ function SourceList({ messages }: Readonly<{ messages: StellarLaboratoryMessages
               <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
-                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                <a href={source.url} rel="noreferrer">
                   {source.title}
                 </a>{" "}
                 ({source.organization_or_authors}; {source.id})
@@ -108,14 +109,11 @@ function ResultSummary({
     [messages.labels.expectedRemnant, result.expected_remnant],
   ] as const;
   return (
-    <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <dl className={styles.summaryGrid}>
       {rows.map(([label, value]) => (
-        <div
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4"
-          key={label}
-        >
-          <dt className="text-sm text-[var(--muted)]">{label}</dt>
-          <dd className="mt-1 break-words font-semibold">{value}</dd>
+        <div className={styles.summaryCell} key={label}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
         </div>
       ))}
     </dl>
@@ -130,24 +128,19 @@ function Lifecycle({
   result: StellarLaboratoryCalculationResponse;
 }>) {
   return (
-    <section aria-labelledby="stellar-lifecycle-heading" className="space-y-4">
-      <div className="max-w-4xl space-y-2">
-        <h3 className="text-xl font-semibold" id="stellar-lifecycle-heading">
-          {messages.lifecycleTitle}
-        </h3>
-        <p className="leading-7 text-[var(--muted)]">{messages.lifecycleDescription}</p>
+    <section aria-labelledby="stellar-lifecycle-heading" className={styles.lifecycle}>
+      <div className={styles.lifecycleHeader}>
+        <h3 id="stellar-lifecycle-heading">{messages.lifecycleTitle}</h3>
+        <p>{messages.lifecycleDescription}</p>
       </div>
-      <ol className="grid list-decimal gap-3 pl-6 sm:grid-cols-2 xl:grid-cols-4">
-        {result.evolutionary_path.map((stage) => (
-          <li
-            className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] p-4 font-semibold"
-            key={stage}
-          >
-            {stage}
-          </li>
-        ))}
-      </ol>
-      <p className="text-sm leading-6 text-[var(--muted)]">{result.remnant_boundary_note}</p>
+      <div>
+        <ol className={styles.lifecycleList}>
+          {result.evolutionary_path.map((stage) => (
+            <li key={stage}>{stage}</li>
+          ))}
+        </ol>
+        <p className={styles.caption}>{result.remnant_boundary_note}</p>
+      </div>
     </section>
   );
 }
@@ -265,163 +258,167 @@ export function StellarLaboratoryView({
   }
 
   return (
-    <article className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
-        <aside className="border border-[var(--border-strong)] p-4" role="alert">
+        <aside className={styles.alert} role="alert">
           {messages.invalidState.inline}
         </aside>
       ) : null}
 
-      <section aria-labelledby="stellar-input-heading" className="space-y-5">
-        <div className="max-w-4xl space-y-2">
-          <h2 className="text-2xl font-semibold" id="stellar-input-heading">
+      <section aria-labelledby="stellar-input-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Initial mass</p>
+          <h2 className={styles.sectionTitle} id="stellar-input-heading">
             {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
+          <p className={styles.sectionDescription}>
             {formatMessageTemplate(messages.controls.description, {
               minimum: format(STELLAR_LABORATORY_INPUT_RANGE.min, locale),
               maximum: format(STELLAR_LABORATORY_INPUT_RANGE.max, locale),
             })}
           </p>
         </div>
-        <form className="space-y-5" onSubmit={submit}>
-          <label className="block max-w-md space-y-2" htmlFor="stellar-initial-mass">
-            <span className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-              <span>{messages.controls.fieldLabel}</span>
-              <span className="text-xs font-normal text-[var(--muted)]">M☉</span>
-            </span>
-            <input
-              className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono text-sm"
-              disabled={requestState === "loading"}
-              id="stellar-initial-mass"
-              inputMode="decimal"
-              max={STELLAR_LABORATORY_INPUT_RANGE.max}
-              min={STELLAR_LABORATORY_INPUT_RANGE.min}
-              onChange={(event) => {
-                setDraftMass(event.target.value);
-                setMessage("");
-              }}
-              step="any"
-              type="number"
-              value={draftMass}
-            />
-          </label>
-          <div className="flex flex-wrap gap-3">
-            <button
-              className="min-h-11 rounded-md bg-[var(--accent)] px-5 font-semibold text-[var(--background)]"
-              disabled={requestState === "loading"}
-              type="submit"
+        <div className={styles.sectionBody}>
+          <form className={styles.form} onSubmit={submit}>
+            <div className={styles.singleInputGrid}>
+              <label className={styles.field} htmlFor="stellar-initial-mass">
+                <span className={styles.fieldLabel}>
+                  <span>{messages.controls.fieldLabel}</span>
+                  <span className={styles.unit}>M☉</span>
+                </span>
+                <input
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  id="stellar-initial-mass"
+                  inputMode="decimal"
+                  max={STELLAR_LABORATORY_INPUT_RANGE.max}
+                  min={STELLAR_LABORATORY_INPUT_RANGE.min}
+                  onChange={(event) => {
+                    setDraftMass(event.target.value);
+                    setMessage("");
+                  }}
+                  step="any"
+                  type="number"
+                  value={draftMass}
+                />
+              </label>
+              <div className={styles.actions}>
+                <button
+                  className={styles.primaryButton}
+                  disabled={requestState === "loading"}
+                  type="submit"
+                >
+                  {requestState === "loading"
+                    ? messages.actions.calculating
+                    : messages.actions.calculate}
+                </button>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={requestState === "loading"}
+                  onClick={resetDefault}
+                  type="button"
+                >
+                  {messages.actions.reset}
+                </button>
+              </div>
+            </div>
+          </form>
+          {message ? (
+            <p
+              className={styles.message}
+              role={requestState === "unavailable" ? "alert" : "status"}
             >
-              {requestState === "loading"
-                ? messages.actions.calculating
-                : messages.actions.calculate}
-            </button>
-            <button
-              className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
-              disabled={requestState === "loading"}
-              onClick={resetDefault}
-              type="button"
-            >
-              {messages.actions.reset}
-            </button>
-          </div>
-        </form>
-        {message ? (
-          <p role={requestState === "unavailable" ? "alert" : "status"}>{message}</p>
-        ) : null}
+              {message}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       {calculation === null ? (
-        <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
-          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
+        <section className={styles.unavailable} role="alert">
+          <h2>{messages.result.unavailableTitle}</h2>
+          <p>{messages.result.unavailableDescription}</p>
         </section>
       ) : (
-        <section aria-labelledby="stellar-result-heading" className="space-y-7">
-          <div className="max-w-4xl space-y-2">
-            <h2 className="text-2xl font-semibold" id="stellar-result-heading">
+        <section aria-labelledby="stellar-result-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionIndex}>02 · Stellar outcome</p>
+            <h2 className={styles.sectionTitle} id="stellar-result-heading">
               {messages.result.title}
             </h2>
-            <p className="leading-7 text-[var(--muted)]">
+            <p className={styles.sectionDescription}>
               {formatMessageTemplate(messages.result.description, {
                 modelVersion: calculation.model_version,
               })}
             </p>
           </div>
-          <ResultSummary locale={locale} messages={messages.result} result={calculation} />
-          <Lifecycle messages={messages.result} result={calculation} />
-          <p className="leading-7 text-[var(--muted)]">{calculation.metallicity_scope}</p>
+          <div className={styles.resultStack}>
+            <ResultSummary locale={locale} messages={messages.result} result={calculation} />
+            <Lifecycle messages={messages.result} result={calculation} />
+            <p className={styles.resultNote}>{calculation.metallicity_scope}</p>
+          </div>
         </section>
       )}
 
-      <section
-        aria-labelledby="stellar-model-heading"
-        className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
-      >
-        <h2 className="text-2xl font-semibold" id="stellar-model-heading">
-          {messages.model.title}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          {STELLAR_LABORATORY_DEFINITION.default_preset}
-        </p>
-        <p className="leading-7 text-[var(--muted)]">
-          {STELLAR_LABORATORY_DEFINITION.sampling_policy}
-        </p>
-        <details>
-          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
-          <dl className="mt-3 space-y-3 text-sm">
-            {Object.entries(STELLAR_LABORATORY_DEFINITION.equations).map(([name, equation]) => (
-              <div key={name}>
-                <dt className="font-semibold">{name.replaceAll("_", " ")}</dt>
-                <dd className="font-mono text-[var(--muted)]">{equation}</dd>
+      <section aria-labelledby="stellar-model-heading" className={styles.modelSection}>
+        <h2 id="stellar-model-heading">{messages.model.title}</h2>
+        <div className={styles.modelBody}>
+          <p>{STELLAR_LABORATORY_DEFINITION.default_preset}</p>
+          <p>{STELLAR_LABORATORY_DEFINITION.sampling_policy}</p>
+          <details className={styles.modelDetails}>
+            <summary>{messages.model.equations}</summary>
+            <div className={styles.modelDetailsBody}>
+              <dl className={styles.equationList}>
+                {Object.entries(STELLAR_LABORATORY_DEFINITION.equations).map(([name, equation]) => (
+                  <div key={name}>
+                    <dt>{name.replaceAll("_", " ")}</dt>
+                    <dd>{equation}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </details>
+          <details className={styles.modelDetails} open>
+            <summary>{messages.model.assumptionsAndLimitations}</summary>
+            <div className={styles.modelDetailsBody}>
+              <div className={styles.modelColumns}>
+                <div>
+                  <h3>{messages.model.assumptions}</h3>
+                  <ul>
+                    {STELLAR_LABORATORY_DEFINITION.assumptions.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3>{messages.model.limitations}</h3>
+                  <ul>
+                    {STELLAR_LABORATORY_DEFINITION.limitations.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            ))}
-          </dl>
-        </details>
-        <details open>
-          <summary className="cursor-pointer font-semibold">
-            {messages.model.assumptionsAndLimitations}
-          </summary>
-          <div className="mt-3 grid gap-5 md:grid-cols-2">
-            <div>
-              <h3 className="font-semibold">{messages.model.assumptions}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {STELLAR_LABORATORY_DEFINITION.assumptions.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
             </div>
-            <div>
-              <h3 className="font-semibold">{messages.model.limitations}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {STELLAR_LABORATORY_DEFINITION.limitations.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </details>
-        <div>
-          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
-          <div className="mt-2">
+          </details>
+          <div>
+            <h3>{messages.model.reviewedSources}</h3>
             <SourceList messages={messages.model} />
           </div>
+          <p className={styles.currentState}>
+            {formatMessageTemplate(messages.model.currentState, {
+              mass: format(state.initial_mass_msun, locale),
+            })}
+          </p>
         </div>
-        <p className="text-sm text-[var(--muted)]">
-          {formatMessageTemplate(messages.model.currentState, {
-            mass: format(state.initial_mass_msun, locale),
-          })}
-        </p>
       </section>
     </article>
   );

@@ -12,6 +12,7 @@ import {
   TRANSIT_SOURCES,
   type TransitMethodState,
 } from "../lib/simulations/transit-method";
+import styles from "./lab-calculation-instrument.module.css";
 
 type TransitMethodNoScriptProps = Readonly<{
   initialState: TransitMethodState;
@@ -128,90 +129,106 @@ export function TransitMethodNoScript({
 }: TransitMethodNoScriptProps) {
   return (
     <noscript>
-      <article>
-        <header>
-          <p>{messages.noScript.eyebrow}</p>
-          <h1>{messages.header.title}</h1>
-          <p>{messages.noScript.intro}</p>
+      <article className={styles.noScriptPage}>
+        <header className={styles.noScriptHero}>
+          <div>
+            <p className={styles.eyebrow}>{messages.noScript.eyebrow}</p>
+            <h1 className={styles.title}>{messages.header.title}</h1>
+          </div>
+          <p className={styles.intro}>{messages.noScript.intro}</p>
         </header>
         {initialStateInvalid ? (
-          <aside role="alert">
+          <aside className={styles.alert} role="alert">
             <h2>{messages.invalidState.title}</h2>
             <p>{messages.invalidState.description}</p>
           </aside>
         ) : null}
-        <section aria-labelledby="transit-noscript-state">
+        <section aria-labelledby="transit-noscript-state" className={styles.noScriptSection}>
           <h2 id="transit-noscript-state">{messages.noScript.currentStateTitle}</h2>
-          <dl>
-            <div>
-              <dt>{messages.noScript.stateLabels.stellarRadius}</dt>
-              <dd>{numeric(initialState.stellar_radius_m, locale, messages.notApplicable, "m")}</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.stateLabels.planetRadius}</dt>
-              <dd>{numeric(initialState.planet_radius_m, locale, messages.notApplicable, "m")}</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.stateLabels.semiMajorAxis}</dt>
-              <dd>
-                {numeric(initialState.semi_major_axis_m, locale, messages.notApplicable, "m")}
-              </dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.stateLabels.orbitalPeriod}</dt>
-              <dd>{numeric(initialState.orbital_period_s, locale, messages.notApplicable, "s")}</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.stateLabels.inclination}</dt>
-              <dd>
-                {numeric(initialState.inclination_deg, locale, messages.notApplicable, "deg")}
-              </dd>
-            </div>
-          </dl>
+          <div className={styles.noScriptBody}>
+            <dl>
+              <div>
+                <dt>{messages.noScript.stateLabels.stellarRadius}</dt>
+                <dd>
+                  {numeric(initialState.stellar_radius_m, locale, messages.notApplicable, "m")}
+                </dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.stateLabels.planetRadius}</dt>
+                <dd>
+                  {numeric(initialState.planet_radius_m, locale, messages.notApplicable, "m")}
+                </dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.stateLabels.semiMajorAxis}</dt>
+                <dd>
+                  {numeric(initialState.semi_major_axis_m, locale, messages.notApplicable, "m")}
+                </dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.stateLabels.orbitalPeriod}</dt>
+                <dd>
+                  {numeric(initialState.orbital_period_s, locale, messages.notApplicable, "s")}
+                </dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.stateLabels.inclination}</dt>
+                <dd>
+                  {numeric(initialState.inclination_deg, locale, messages.notApplicable, "deg")}
+                </dd>
+              </div>
+            </dl>
+          </div>
         </section>
         {initialCalculation === null ? (
-          <section role="alert">
+          <section className={styles.noScriptSection} role="alert">
             <h2>{messages.result.unavailableNoScriptTitle}</h2>
-            <p>{messages.result.unavailableNoScriptDescription}</p>
+            <div className={styles.noScriptBody}>
+              <p>{messages.result.unavailableNoScriptDescription}</p>
+            </div>
           </section>
         ) : (
-          <section aria-labelledby="transit-noscript-result">
+          <section aria-labelledby="transit-noscript-result" className={styles.noScriptSection}>
             <h2 id="transit-noscript-result">{messages.result.noScriptTitle}</h2>
-            <p>
-              {formatMessageTemplate(messages.result.model, {
-                modelVersion: initialCalculation.model_version,
-              })}
-            </p>
-            <ResultTable locale={locale} messages={messages} result={initialCalculation} />
+            <div className={styles.noScriptBody}>
+              <p>
+                {formatMessageTemplate(messages.result.model, {
+                  modelVersion: initialCalculation.model_version,
+                })}
+              </p>
+              <ResultTable locale={locale} messages={messages} result={initialCalculation} />
+            </div>
           </section>
         )}
-        <section aria-labelledby="transit-noscript-model">
+        <section aria-labelledby="transit-noscript-model" className={styles.noScriptSection}>
           <h2 id="transit-noscript-model">{messages.noScript.modelTitle}</h2>
-          <p>{TRANSIT_DEFINITION.sampling_policy}</p>
-          <p>{TRANSIT_DEFINITION.default_preset}</p>
-          <h3>{messages.model.equations}</h3>
-          <dl>
-            {Object.entries(TRANSIT_DEFINITION.equations).map(([name, equation]) => (
-              <div key={name}>
-                <dt>{name.replaceAll("_", " ")}</dt>
-                <dd>{equation}</dd>
-              </div>
-            ))}
-          </dl>
-          <h3>{messages.model.assumptions}</h3>
-          <ul>
-            {TRANSIT_DEFINITION.assumptions.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          <h3>{messages.model.limitations}</h3>
-          <ul>
-            {TRANSIT_DEFINITION.limitations.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          <h3>{messages.model.reviewedSources}</h3>
-          <SourceList messages={messages.model} />
+          <div className={styles.noScriptBody}>
+            <p>{TRANSIT_DEFINITION.sampling_policy}</p>
+            <p>{TRANSIT_DEFINITION.default_preset}</p>
+            <h3>{messages.model.equations}</h3>
+            <dl>
+              {Object.entries(TRANSIT_DEFINITION.equations).map(([name, equation]) => (
+                <div key={name}>
+                  <dt>{name.replaceAll("_", " ")}</dt>
+                  <dd>{equation}</dd>
+                </div>
+              ))}
+            </dl>
+            <h3>{messages.model.assumptions}</h3>
+            <ul>
+              {TRANSIT_DEFINITION.assumptions.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <h3>{messages.model.limitations}</h3>
+            <ul>
+              {TRANSIT_DEFINITION.limitations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <h3>{messages.model.reviewedSources}</h3>
+            <SourceList messages={messages.model} />
+          </div>
         </section>
       </article>
     </noscript>

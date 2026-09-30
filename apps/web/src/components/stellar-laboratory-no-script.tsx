@@ -8,6 +8,7 @@ import {
   STELLAR_LABORATORY_SOURCES,
   type StellarLaboratoryState,
 } from "../lib/simulations/stellar-laboratory";
+import styles from "./lab-calculation-instrument.module.css";
 
 type StellarLaboratoryNoScriptProps = Readonly<{
   initialState: StellarLaboratoryState;
@@ -94,56 +95,72 @@ export function StellarLaboratoryNoScript({
 }: StellarLaboratoryNoScriptProps) {
   return (
     <noscript>
-      <article>
-        <header>
-          <p>{messages.noScript.eyebrow}</p>
-          <h1>{messages.header.title}</h1>
-          <p>{messages.noScript.intro}</p>
+      <article className={styles.noScriptPage}>
+        <header className={styles.noScriptHero}>
+          <div>
+            <p className={styles.eyebrow}>{messages.noScript.eyebrow}</p>
+            <h1 className={styles.title}>{messages.header.title}</h1>
+          </div>
+          <p className={styles.intro}>{messages.noScript.intro}</p>
         </header>
         {initialStateInvalid ? (
-          <section aria-labelledby="stellar-nojs-invalid">
+          <section aria-labelledby="stellar-nojs-invalid" className={styles.noScriptSection}>
             <h2 id="stellar-nojs-invalid">{messages.invalidState.title}</h2>
-            <p>{messages.invalidState.description}</p>
+            <div className={styles.noScriptBody}>
+              <p>{messages.invalidState.description}</p>
+            </div>
           </section>
         ) : null}
-        <section aria-labelledby="stellar-nojs-input">
+        <section aria-labelledby="stellar-nojs-input" className={styles.noScriptSection}>
           <h2 id="stellar-nojs-input">{messages.noScript.requestedMassTitle}</h2>
-          <p>{numeric(initialState.initial_mass_msun, locale, "M☉")}</p>
+          <div className={styles.noScriptBody}>
+            <p>{numeric(initialState.initial_mass_msun, locale, "M☉")}</p>
+          </div>
         </section>
         {initialCalculation === null ? (
-          <section aria-labelledby="stellar-nojs-unavailable">
+          <section aria-labelledby="stellar-nojs-unavailable" className={styles.noScriptSection}>
             <h2 id="stellar-nojs-unavailable">{messages.noScript.unavailableTitle}</h2>
-            <p>{messages.noScript.unavailableDescription}</p>
+            <div className={styles.noScriptBody}>
+              <p>{messages.noScript.unavailableDescription}</p>
+            </div>
           </section>
         ) : (
-          <section aria-labelledby="stellar-nojs-result">
+          <section aria-labelledby="stellar-nojs-result" className={styles.noScriptSection}>
             <h2 id="stellar-nojs-result">{messages.noScript.resultTitle}</h2>
-            <p>
-              {messages.noScript.modelVersion}: {initialCalculation.model_version}
-            </p>
-            <ResultTable locale={locale} messages={messages.noScript} result={initialCalculation} />
-            <h3>{messages.noScript.lifecycleTitle}</h3>
-            <ol>
-              {initialCalculation.evolutionary_path.map((stage) => (
-                <li key={stage}>{stage}</li>
-              ))}
-            </ol>
-            <p>{initialCalculation.metallicity_scope}</p>
-            <p>{initialCalculation.remnant_boundary_note}</p>
+            <div className={styles.noScriptBody}>
+              <p>
+                {messages.noScript.modelVersion}: {initialCalculation.model_version}
+              </p>
+              <ResultTable
+                locale={locale}
+                messages={messages.noScript}
+                result={initialCalculation}
+              />
+              <h3>{messages.noScript.lifecycleTitle}</h3>
+              <ol>
+                {initialCalculation.evolutionary_path.map((stage) => (
+                  <li key={stage}>{stage}</li>
+                ))}
+              </ol>
+              <p>{initialCalculation.metallicity_scope}</p>
+              <p>{initialCalculation.remnant_boundary_note}</p>
+            </div>
           </section>
         )}
-        <section aria-labelledby="stellar-nojs-model">
+        <section aria-labelledby="stellar-nojs-model" className={styles.noScriptSection}>
           <h2 id="stellar-nojs-model">{messages.model.title}</h2>
-          <p>{STELLAR_LABORATORY_DEFINITION.default_preset}</p>
-          <p>{STELLAR_LABORATORY_DEFINITION.sampling_policy}</p>
-          <h3>{messages.model.limitations}</h3>
-          <ul>
-            {STELLAR_LABORATORY_DEFINITION.limitations.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          <h3>{messages.model.reviewedSources}</h3>
-          <SourceList messages={messages.model} />
+          <div className={styles.noScriptBody}>
+            <p>{STELLAR_LABORATORY_DEFINITION.default_preset}</p>
+            <p>{STELLAR_LABORATORY_DEFINITION.sampling_policy}</p>
+            <h3>{messages.model.limitations}</h3>
+            <ul>
+              {STELLAR_LABORATORY_DEFINITION.limitations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <h3>{messages.model.reviewedSources}</h3>
+            <SourceList messages={messages.model} />
+          </div>
         </section>
       </article>
     </noscript>

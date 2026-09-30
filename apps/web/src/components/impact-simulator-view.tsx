@@ -21,6 +21,7 @@ import {
   type ImpactSimulatorState,
   type ImpactSimulatorTargetMaterial,
 } from "../lib/simulations/impact-simulator";
+import styles from "./lab-calculation-instrument.module.css";
 
 type ImpactSimulatorViewProps = Readonly<{
   initialState: ImpactSimulatorState;
@@ -62,7 +63,7 @@ function format(value: number, locale: PublishedLocale, digits = 6): string {
 
 function SourceList({ messages }: Readonly<{ messages: ImpactSimulatorMessages["model"] }>) {
   return (
-    <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {IMPACT_SIMULATOR_DEFINITION.references.map((sourceId) => {
         const source = IMPACT_SIMULATOR_SOURCES.find((candidate) => candidate.id === sourceId);
         return (
@@ -71,7 +72,7 @@ function SourceList({ messages }: Readonly<{ messages: ImpactSimulatorMessages["
               <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
-                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                <a href={source.url} rel="noreferrer">
                   {source.title}
                 </a>{" "}
                 ({source.organization_or_authors}; {source.id})
@@ -94,9 +95,9 @@ function CraterSensitivityTable({
   result: ImpactSimulatorCalculationResponse;
 }>) {
   return (
-    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
-      <table className="w-full min-w-[660px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
+    <div aria-label={messages.scrollAriaLabel} className={styles.tableWrap} tabIndex={0}>
+      <table className={styles.table}>
+        <caption>{messages.caption}</caption>
         <thead>
           <tr>
             {[
@@ -105,11 +106,7 @@ function CraterSensitivityTable({
               messages.headers.finalDiameter,
               messages.headers.classification,
             ].map((heading) => (
-              <th
-                className="border-b border-[var(--border)] p-2 text-left"
-                key={heading}
-                scope="col"
-              >
+              <th key={heading} scope="col">
                 {heading}
               </th>
             ))}
@@ -118,16 +115,10 @@ function CraterSensitivityTable({
         <tbody>
           {result.coefficient_sensitivity.map((row) => (
             <tr key={row.scaling_coefficient}>
-              <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.scaling_coefficient, locale)}
-              </td>
-              <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.transient_diameter_m, locale)}
-              </td>
-              <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.final_diameter_m, locale)}
-              </td>
-              <td className="border-b border-[var(--border)] p-2">{row.classification}</td>
+              <td data-numeric="true">{format(row.scaling_coefficient, locale)}</td>
+              <td data-numeric="true">{format(row.transient_diameter_m, locale)}</td>
+              <td data-numeric="true">{format(row.final_diameter_m, locale)}</td>
+              <td>{row.classification}</td>
             </tr>
           ))}
         </tbody>
@@ -146,28 +137,20 @@ function EjectaTable({
   result: ImpactSimulatorCalculationResponse;
 }>) {
   return (
-    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
-      <table className="w-full min-w-[520px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
+    <div aria-label={messages.scrollAriaLabel} className={styles.tableWrap} tabIndex={0}>
+      <table className={styles.table}>
+        <caption>{messages.caption}</caption>
         <thead>
           <tr>
-            <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              {messages.headers.thickness}
-            </th>
-            <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              {messages.headers.radius}
-            </th>
+            <th scope="col">{messages.headers.thickness}</th>
+            <th scope="col">{messages.headers.radius}</th>
           </tr>
         </thead>
         <tbody>
           {result.ejecta_thickness_radii.map((row) => (
             <tr key={row.thickness_m}>
-              <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.thickness_m, locale)}
-              </td>
-              <td className="border-b border-[var(--border)] p-2 font-mono">
-                {format(row.radius_m, locale)}
-              </td>
+              <td data-numeric="true">{format(row.thickness_m, locale)}</td>
+              <td data-numeric="true">{format(row.radius_m, locale)}</td>
             </tr>
           ))}
         </tbody>
@@ -199,30 +182,26 @@ function ReturnedScaleFigure({
   ];
   const maximum = Math.max(...rows.map((row) => row.value));
   return (
-    <figure className="space-y-3">
-      <div
-        aria-label={messages.ariaLabel}
-        className="space-y-3 rounded-md border border-[var(--border)] p-4"
-        role="img"
-      >
-        {rows.map((row) => (
-          <div className="space-y-1" key={row.label}>
-            <div className="flex flex-wrap justify-between gap-2 text-sm">
-              <span>{row.label}</span>
-              <span className="font-mono">{format(row.value, locale)} m</span>
+    <figure className={styles.figure}>
+      <div aria-label={messages.ariaLabel} className={styles.figureFrame} role="img">
+        <div className={styles.figureRows}>
+          {rows.map((row) => (
+            <div className={styles.figureRow} key={row.label}>
+              <div className={styles.figureRowHeader}>
+                <span>{row.label}</span>
+                <span>{format(row.value, locale)} m</span>
+              </div>
+              <div className={styles.barTrack}>
+                <div
+                  className={styles.barValue}
+                  style={{ width: `${Math.max(2, (row.value / maximum) * 100)}%` }}
+                />
+              </div>
             </div>
-            <div className="h-3 w-full rounded-sm border border-[var(--border)]">
-              <div
-                className="h-full bg-[var(--accent)]"
-                style={{ width: `${Math.max(2, (row.value / maximum) * 100)}%` }}
-              />
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-      <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        {messages.caption}
-      </figcaption>
+      <figcaption className={styles.caption}>{messages.caption}</figcaption>
     </figure>
   );
 }
@@ -360,282 +339,281 @@ export function ImpactSimulatorView({
   }
 
   return (
-    <article className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
-        <aside className="border border-[var(--border-strong)] p-4" role="alert">
+        <aside className={styles.alert} role="alert">
           {messages.invalidState.inline}
         </aside>
       ) : null}
 
-      <section aria-labelledby="impact-input-heading" className="space-y-5">
-        <div className="max-w-4xl space-y-2">
-          <h2 className="text-2xl font-semibold" id="impact-input-heading">
+      <section aria-labelledby="impact-input-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Parameters</p>
+          <h2 className={styles.sectionTitle} id="impact-input-heading">
             {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
+          <p className={styles.sectionDescription}>{messages.controls.description}</p>
         </div>
-        <form className="space-y-5" onSubmit={submit}>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-            <label className="space-y-2">
-              <span className="block font-semibold">{messages.controls.fields.diameter}</span>
-              <input
-                aria-label={messages.controls.fieldAriaLabels.diameter}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
+        <div className={styles.sectionBody}>
+          <form className={styles.form} onSubmit={submit}>
+            <div className={styles.inputGrid} data-columns="5">
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.diameter}</span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.diameter}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  max={IMPACT_SIMULATOR_LIMITS.maxDiameterM}
+                  min={IMPACT_SIMULATOR_LIMITS.minDiameterM}
+                  onChange={(event) => {
+                    setDraftDiameter(event.target.value);
+                    setMessage("");
+                  }}
+                  step="any"
+                  type="number"
+                  value={draftDiameter}
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.density}</span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.density}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  max={IMPACT_SIMULATOR_LIMITS.maxImpactorDensityKgM3}
+                  min={IMPACT_SIMULATOR_LIMITS.minImpactorDensityKgM3}
+                  onChange={(event) => {
+                    setDraftDensity(event.target.value);
+                    setMessage("");
+                  }}
+                  step="any"
+                  type="number"
+                  value={draftDensity}
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.speed}</span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.speed}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  max={IMPACT_SIMULATOR_LIMITS.maxSpeedKmS}
+                  min={IMPACT_SIMULATOR_LIMITS.minSpeedKmS}
+                  onChange={(event) => {
+                    setDraftSpeed(event.target.value);
+                    setMessage("");
+                  }}
+                  step="any"
+                  type="number"
+                  value={draftSpeed}
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.angle}</span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.angle}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  max={IMPACT_SIMULATOR_LIMITS.maxImpactAngleDeg}
+                  min={IMPACT_SIMULATOR_LIMITS.minImpactAngleDeg}
+                  onChange={(event) => {
+                    setDraftAngle(event.target.value);
+                    setMessage("");
+                  }}
+                  step="any"
+                  type="number"
+                  value={draftAngle}
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.target}</span>
+                <select
+                  aria-label={messages.controls.fieldAriaLabels.target}
+                  className={styles.select}
+                  disabled={requestState === "loading"}
+                  onChange={(event) => {
+                    setDraftTarget(event.target.value as ImpactSimulatorTargetMaterial);
+                    setMessage("");
+                  }}
+                  value={draftTarget}
+                >
+                  {(["sedimentary_rock", "crystalline_rock"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {targetLabel(value, messages.targets)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className={styles.actions}>
+              <button
+                className={styles.primaryButton}
                 disabled={requestState === "loading"}
-                max={IMPACT_SIMULATOR_LIMITS.maxDiameterM}
-                min={IMPACT_SIMULATOR_LIMITS.minDiameterM}
-                onChange={(event) => {
-                  setDraftDiameter(event.target.value);
-                  setMessage("");
-                }}
-                step="any"
-                type="number"
-                value={draftDiameter}
-              />
-            </label>
-            <label className="space-y-2">
-              <span className="block font-semibold">{messages.controls.fields.density}</span>
-              <input
-                aria-label={messages.controls.fieldAriaLabels.density}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
-                disabled={requestState === "loading"}
-                max={IMPACT_SIMULATOR_LIMITS.maxImpactorDensityKgM3}
-                min={IMPACT_SIMULATOR_LIMITS.minImpactorDensityKgM3}
-                onChange={(event) => {
-                  setDraftDensity(event.target.value);
-                  setMessage("");
-                }}
-                step="any"
-                type="number"
-                value={draftDensity}
-              />
-            </label>
-            <label className="space-y-2">
-              <span className="block font-semibold">{messages.controls.fields.speed}</span>
-              <input
-                aria-label={messages.controls.fieldAriaLabels.speed}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
-                disabled={requestState === "loading"}
-                max={IMPACT_SIMULATOR_LIMITS.maxSpeedKmS}
-                min={IMPACT_SIMULATOR_LIMITS.minSpeedKmS}
-                onChange={(event) => {
-                  setDraftSpeed(event.target.value);
-                  setMessage("");
-                }}
-                step="any"
-                type="number"
-                value={draftSpeed}
-              />
-            </label>
-            <label className="space-y-2">
-              <span className="block font-semibold">{messages.controls.fields.angle}</span>
-              <input
-                aria-label={messages.controls.fieldAriaLabels.angle}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
-                disabled={requestState === "loading"}
-                max={IMPACT_SIMULATOR_LIMITS.maxImpactAngleDeg}
-                min={IMPACT_SIMULATOR_LIMITS.minImpactAngleDeg}
-                onChange={(event) => {
-                  setDraftAngle(event.target.value);
-                  setMessage("");
-                }}
-                step="any"
-                type="number"
-                value={draftAngle}
-              />
-            </label>
-            <label className="space-y-2">
-              <span className="block font-semibold">{messages.controls.fields.target}</span>
-              <select
-                aria-label={messages.controls.fieldAriaLabels.target}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
-                disabled={requestState === "loading"}
-                onChange={(event) => {
-                  setDraftTarget(event.target.value as ImpactSimulatorTargetMaterial);
-                  setMessage("");
-                }}
-                value={draftTarget}
+                type="submit"
               >
-                {(["sedimentary_rock", "crystalline_rock"] as const).map((value) => (
-                  <option key={value} value={value}>
-                    {targetLabel(value, messages.targets)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              className="min-h-11 rounded-md bg-[var(--accent)] px-5 font-semibold text-[var(--background)]"
-              disabled={requestState === "loading"}
-              type="submit"
+                {requestState === "loading"
+                  ? messages.actions.calculating
+                  : messages.actions.calculate}
+              </button>
+              <button
+                className={styles.secondaryButton}
+                disabled={requestState === "loading"}
+                onClick={resetDefault}
+                type="button"
+              >
+                {messages.actions.reset}
+              </button>
+            </div>
+          </form>
+          {message ? (
+            <p
+              className={styles.message}
+              role={requestState === "unavailable" ? "alert" : "status"}
             >
-              {requestState === "loading"
-                ? messages.actions.calculating
-                : messages.actions.calculate}
-            </button>
-            <button
-              className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
-              disabled={requestState === "loading"}
-              onClick={resetDefault}
-              type="button"
-            >
-              {messages.actions.reset}
-            </button>
-          </div>
-        </form>
-        {message ? (
-          <p role={requestState === "unavailable" ? "alert" : "status"}>{message}</p>
-        ) : null}
+              {message}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       {calculation === null ? (
-        <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
-          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
+        <section className={styles.unavailable} role="alert">
+          <h2>{messages.result.unavailableTitle}</h2>
+          <p>{messages.result.unavailableDescription}</p>
         </section>
       ) : (
-        <section aria-labelledby="impact-result-heading" className="space-y-7">
-          <div className="max-w-4xl space-y-2">
-            <h2 className="text-2xl font-semibold" id="impact-result-heading">
+        <section aria-labelledby="impact-result-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionIndex}>02 · Result</p>
+            <h2 className={styles.sectionTitle} id="impact-result-heading">
               {messages.result.title}
             </h2>
-            <p className="leading-7 text-[var(--muted)]">
+            <p className={styles.sectionDescription}>
               {formatMessageTemplate(messages.result.description, {
                 modelVersion: calculation.model_version,
                 targetDensity: format(calculation.target_density_kg_m3, locale),
               })}
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">{messages.result.labels.impactorMass}</p>
-              <p className="mt-1 font-semibold">
-                {format(calculation.impactor_mass_kg, locale)} kg
-              </p>
-            </div>
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">{messages.result.labels.kineticEnergy}</p>
-              <p className="mt-1 font-semibold">{format(calculation.kinetic_energy_j, locale)} J</p>
-            </div>
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">{messages.result.labels.tntContext}</p>
-              <p className="mt-1 font-semibold">
-                {format(calculation.tnt_equivalent_megatons, locale)} Mt TNT
-              </p>
-            </div>
-            <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="text-sm text-[var(--muted)]">
-                {messages.result.labels.bestFinalCrater}
-              </p>
-              <p className="mt-1 font-semibold">
-                {format(calculation.best_estimate_crater.final_diameter_m, locale)} m
-              </p>
-            </div>
+          <div className={styles.resultStack}>
+            <dl className={styles.summaryGrid}>
+              <div className={styles.summaryCell}>
+                <dt>{messages.result.labels.impactorMass}</dt>
+                <dd>{format(calculation.impactor_mass_kg, locale)} kg</dd>
+              </div>
+              <div className={styles.summaryCell}>
+                <dt>{messages.result.labels.kineticEnergy}</dt>
+                <dd>{format(calculation.kinetic_energy_j, locale)} J</dd>
+              </div>
+              <div className={styles.summaryCell}>
+                <dt>{messages.result.labels.tntContext}</dt>
+                <dd>{format(calculation.tnt_equivalent_megatons, locale)} Mt TNT</dd>
+              </div>
+              <div className={styles.summaryCell}>
+                <dt>{messages.result.labels.bestFinalCrater}</dt>
+                <dd>{format(calculation.best_estimate_crater.final_diameter_m, locale)} m</dd>
+              </div>
+            </dl>
+            <p className={styles.resultNote}>{messages.result.tntDescription}</p>
+
+            <section aria-labelledby="impact-sensitivity-heading" className={styles.subsection}>
+              <div className={styles.subsectionHeader}>
+                <h3 id="impact-sensitivity-heading">{messages.sensitivity.title}</h3>
+                <p>{calculation.uncertainty_note}</p>
+              </div>
+              <div className={styles.subsectionBody}>
+                <CraterSensitivityTable
+                  locale={locale}
+                  messages={messages.sensitivity}
+                  result={calculation}
+                />
+              </div>
+            </section>
+
+            <section aria-labelledby="impact-ejecta-heading" className={styles.subsection}>
+              <div className={styles.subsectionHeader}>
+                <h3 id="impact-ejecta-heading">{messages.ejecta.title}</h3>
+                <p>{messages.ejecta.description}</p>
+              </div>
+              <div className={styles.subsectionBody}>
+                <ReturnedScaleFigure
+                  locale={locale}
+                  messages={messages.figure}
+                  result={calculation}
+                />
+                <EjectaTable
+                  locale={locale}
+                  messages={messages.ejecta.table}
+                  result={calculation}
+                />
+              </div>
+            </section>
+
+            <p className={styles.resultNote}>{calculation.model_note}</p>
           </div>
-          <p className="max-w-4xl rounded-md border border-[var(--border)] p-4 text-sm leading-6">
-            {messages.result.tntDescription}
-          </p>
-
-          <section aria-labelledby="impact-sensitivity-heading" className="space-y-4">
-            <div className="max-w-4xl space-y-2">
-              <h3 className="text-xl font-semibold" id="impact-sensitivity-heading">
-                {messages.sensitivity.title}
-              </h3>
-              <p className="leading-7 text-[var(--muted)]">{calculation.uncertainty_note}</p>
-            </div>
-            <CraterSensitivityTable
-              locale={locale}
-              messages={messages.sensitivity}
-              result={calculation}
-            />
-          </section>
-
-          <section aria-labelledby="impact-ejecta-heading" className="space-y-4">
-            <div className="max-w-4xl space-y-2">
-              <h3 className="text-xl font-semibold" id="impact-ejecta-heading">
-                {messages.ejecta.title}
-              </h3>
-              <p className="leading-7 text-[var(--muted)]">{messages.ejecta.description}</p>
-            </div>
-            <ReturnedScaleFigure locale={locale} messages={messages.figure} result={calculation} />
-            <EjectaTable locale={locale} messages={messages.ejecta.table} result={calculation} />
-          </section>
-
-          <p className="max-w-4xl rounded-md border border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted)]">
-            {calculation.model_note}
-          </p>
         </section>
       )}
 
-      <section
-        aria-labelledby="impact-model-heading"
-        className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
-      >
-        <h2 className="text-2xl font-semibold" id="impact-model-heading">
-          {messages.model.title}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">{IMPACT_SIMULATOR_DEFINITION.summary}</p>
-        <details open>
-          <summary className="cursor-pointer font-semibold">
-            {messages.model.assumptionsAndLimitations}
-          </summary>
-          <div className="mt-3 grid gap-5 md:grid-cols-2">
-            <div>
-              <h3 className="font-semibold">{messages.model.assumptions}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {IMPACT_SIMULATOR_DEFINITION.assumptions.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+      <section aria-labelledby="impact-model-heading" className={styles.modelSection}>
+        <h2 id="impact-model-heading">{messages.model.title}</h2>
+        <div className={styles.modelBody}>
+          <p>{IMPACT_SIMULATOR_DEFINITION.summary}</p>
+          <details className={styles.modelDetails} open>
+            <summary>{messages.model.assumptionsAndLimitations}</summary>
+            <div className={styles.modelDetailsBody}>
+              <div className={styles.modelColumns}>
+                <div>
+                  <h3>{messages.model.assumptions}</h3>
+                  <ul>
+                    {IMPACT_SIMULATOR_DEFINITION.assumptions.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3>{messages.model.limitations}</h3>
+                  <ul>
+                    {IMPACT_SIMULATOR_DEFINITION.limitations.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">{messages.model.limitations}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {IMPACT_SIMULATOR_DEFINITION.limitations.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </details>
-        <details>
-          <summary className="cursor-pointer font-semibold">{messages.model.equations}</summary>
-          <ul className="mt-3 list-disc space-y-3 pl-6 text-sm leading-6 text-[var(--muted)]">
-            {IMPACT_SIMULATOR_DEFINITION.equations.map((equation) => (
-              <li key={equation.id}>
-                <strong className="text-[var(--foreground)]">{equation.id}:</strong>{" "}
-                <code>{equation.expression}</code>
-                {equation.source_equation ? <> — {equation.source_equation}</> : null}
-              </li>
-            ))}
-          </ul>
-        </details>
-        <div>
-          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
-          <div className="mt-2">
+          </details>
+          <details className={styles.modelDetails}>
+            <summary>{messages.model.equations}</summary>
+            <ul>
+              {IMPACT_SIMULATOR_DEFINITION.equations.map((equation) => (
+                <li key={equation.id}>
+                  <strong>{equation.id}:</strong> <code>{equation.expression}</code>
+                  {equation.source_equation ? <> — {equation.source_equation}</> : null}
+                </li>
+              ))}
+            </ul>
+          </details>
+          <div>
+            <h3>{messages.model.reviewedSources}</h3>
             <SourceList messages={messages.model} />
           </div>
+          <p className={styles.currentState}>
+            {formatMessageTemplate(messages.model.currentState, {
+              diameter: format(state.diameter_m, locale),
+              density: format(state.impactor_density_kg_m3, locale),
+              speed: format(state.speed_km_s, locale),
+              angle: format(state.impact_angle_deg, locale),
+              target: targetLabel(state.target_material, messages.targets),
+            })}
+          </p>
         </div>
-        <p className="text-sm text-[var(--muted)]">
-          {formatMessageTemplate(messages.model.currentState, {
-            diameter: format(state.diameter_m, locale),
-            density: format(state.impactor_density_kg_m3, locale),
-            speed: format(state.speed_km_s, locale),
-            angle: format(state.impact_angle_deg, locale),
-            target: targetLabel(state.target_material, messages.targets),
-          })}
-        </p>
       </section>
     </article>
   );

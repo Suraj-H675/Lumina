@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
-from fakes.provider_runtime import no_timeout
+from fakes.provider_runtime import DeterministicProviderTransport, no_timeout
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_neows_runtime_config
@@ -90,22 +90,6 @@ class _Store:
         return SimpleNamespace(state=SimpleNamespace(enabled=self.enabled))
 
 
-class _ReplayTransport:
-    def __init__(self, outcomes: list[RawProviderResponse | BaseException]) -> None:
-        self.outcomes = outcomes
-        self.requests: list[Any] = []
-
-    async def request(
-        self, request: Any, *, attempt_deadline: float | None = None
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.requests.append(request)
-        outcome = self.outcomes.pop(0)
-        if isinstance(outcome, BaseException):
-            raise outcome
-        return outcome
-
-
 def _raw_fixture() -> RawProviderResponse:
     body = (_FIXTURES / "nasa-neows-feed.json").read_bytes()
     return RawProviderResponse(
@@ -149,7 +133,9 @@ def _service(
 @pytest.mark.asyncio
 async def test_neows_retries_reuse_one_frozen_window_across_utc_midnight() -> None:
     clock = _Clock(_START)
-    transport = _ReplayTransport([ProviderFetchUnavailable(), _raw_fixture(), _raw_fixture()])
+    transport = DeterministicProviderTransport(
+        [ProviderFetchUnavailable(), _raw_fixture(), _raw_fixture()]
+    )
     adapter = NasaNeowsAdapter(
         transport,
         api_key=_KEY,
@@ -188,7 +174,7 @@ async def test_neows_retries_reuse_one_frozen_window_across_utc_midnight() -> No
 @pytest.mark.asyncio
 async def test_neows_missing_key_skips_network_and_does_not_record_provider_failure() -> None:
     config = nasa_neows_runtime_config()
-    transport = _ReplayTransport([])
+    transport = DeterministicProviderTransport([])
     adapter = NasaNeowsAdapter(
         transport,
         api_key=None,
@@ -226,7 +212,7 @@ async def test_neows_short_key_bounded_invalid_response_reaches_failure_finaliza
         content_type_valid=True,
         max_response_bytes=NEOWS_MAX_RESPONSE_BYTES,
     )
-    transport = _ReplayTransport([raw])
+    transport = DeterministicProviderTransport([raw])
     config = nasa_neows_runtime_config()
     adapter = NasaNeowsAdapter(
         transport,

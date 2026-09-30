@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
-from fakes.provider_runtime import no_timeout, sleep_noop
+from fakes.provider_runtime import DeterministicProviderTransport, no_timeout, sleep_noop
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import celestrak_runtime_config
@@ -101,19 +101,6 @@ class _Store:
         raise AssertionError("set_enabled is not used by CelesTrak sync tests")
 
 
-class _ReplayTransport:
-    def __init__(self, outcomes: list[RawProviderResponse]) -> None:
-        self.outcomes = outcomes
-        self.requests: list[Any] = []
-
-    async def request(
-        self, request: Any, *, attempt_deadline: float | None = None
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.requests.append(request)
-        return self.outcomes.pop(0)
-
-
 def _fixture(name: str) -> object:
     return json.loads((_FIXTURES / name).read_text())
 
@@ -132,7 +119,7 @@ def _raw(index: int, *, value: object | None = None, status: int = 200) -> RawPr
     )
 
 
-def _service(transport: _ReplayTransport, store: _Store) -> ProviderSyncService:
+def _service(transport: DeterministicProviderTransport, store: _Store) -> ProviderSyncService:
     config = celestrak_runtime_config()
     adapter = CelestrakAdapter(transport, source_manifest=load_celestrak_source_manifest())
     registration = ProviderRegistration(
@@ -156,7 +143,7 @@ def _service(transport: _ReplayTransport, store: _Store) -> ProviderSyncService:
 
 @pytest.mark.asyncio
 async def test_success_publishes_one_atomic_snapshot_after_both_fixed_groups() -> None:
-    transport = _ReplayTransport([_raw(0), _raw(1)])
+    transport = DeterministicProviderTransport([_raw(0), _raw(1)])
     store = _Store(current_payload=None)
 
     report = await _service(transport, store).sync(CELESTRAK_PROVIDER_CODE)
@@ -178,7 +165,7 @@ async def test_success_publishes_one_atomic_snapshot_after_both_fixed_groups() -
 @pytest.mark.asyncio
 async def test_second_group_contract_failure_never_publishes_partial_snapshot() -> None:
     malformed = [{"NORAD_CAT_ID": 25544}]
-    transport = _ReplayTransport([_raw(0), _raw(1, value=malformed)])
+    transport = DeterministicProviderTransport([_raw(0), _raw(1, value=malformed)])
     store = _Store()
 
     report = await _service(transport, store).sync(CELESTRAK_PROVIDER_CODE)
@@ -192,7 +179,7 @@ async def test_second_group_contract_failure_never_publishes_partial_snapshot() 
 
 @pytest.mark.asyncio
 async def test_rate_limit_on_first_group_uses_stale_fallback_without_partial_fetch() -> None:
-    transport = _ReplayTransport([_raw(0, value=[], status=429)])
+    transport = DeterministicProviderTransport([_raw(0, value=[], status=429)])
     store = _Store()
 
     report = await _service(transport, store).sync(CELESTRAK_PROVIDER_CODE)
@@ -207,7 +194,7 @@ async def test_rate_limit_on_first_group_uses_stale_fallback_without_partial_fet
 
 @pytest.mark.asyncio
 async def test_regressed_element_epoch_is_rejected_before_cache_replacement() -> None:
-    initial_transport = _ReplayTransport([_raw(0), _raw(1)])
+    initial_transport = DeterministicProviderTransport([_raw(0), _raw(1)])
     initial_store = _Store(current_payload=None)
     initial = await _service(initial_transport, initial_store).sync(CELESTRAK_PROVIDER_CODE)
     assert initial.outcome is ProviderSyncOutcome.SUCCESS
@@ -217,7 +204,9 @@ async def test_regressed_element_epoch_is_rejected_before_cache_replacement() ->
     visual = cast(list[dict[str, Any]], _fixture("visual.json"))
     stations[0]["EPOCH"] = "2026-06-18T12:16:41.638656"
     visual[0]["EPOCH"] = "2026-06-18T12:16:41.638656"
-    regressed_transport = _ReplayTransport([_raw(0, value=stations), _raw(1, value=visual)])
+    regressed_transport = DeterministicProviderTransport(
+        [_raw(0, value=stations), _raw(1, value=visual)]
+    )
     regressed_store = _Store(current_payload=current_payload)
 
     report = await _service(regressed_transport, regressed_store).sync(CELESTRAK_PROVIDER_CODE)

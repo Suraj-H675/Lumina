@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
-from fakes.provider_runtime import no_timeout, sleep_noop
+from fakes.provider_runtime import DeterministicProviderTransport, no_timeout, sleep_noop
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import launch_library_runtime_config
@@ -81,19 +81,6 @@ class _Store:
         return SimpleNamespace(state=SimpleNamespace(enabled=True), cache=None)
 
 
-class _ReplayTransport:
-    def __init__(self, outcomes: list[RawProviderResponse]) -> None:
-        self.outcomes = outcomes
-        self.requests: list[Any] = []
-
-    async def request(
-        self, request: Any, *, attempt_deadline: float | None = None
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.requests.append(request)
-        return self.outcomes.pop(0)
-
-
 def _raw(
     *, status: int = 200, body: bytes | None = None, retry_after: str | None = None
 ) -> RawProviderResponse:
@@ -112,7 +99,7 @@ def _raw(
     )
 
 
-def _service(transport: _ReplayTransport, store: _Store) -> ProviderSyncService:
+def _service(transport: DeterministicProviderTransport, store: _Store) -> ProviderSyncService:
     config = launch_library_runtime_config()
     adapter = LaunchLibraryAdapter(transport, source_manifest=config.source_manifest)
     registration = ProviderRegistration(
@@ -135,7 +122,7 @@ def _service(transport: _ReplayTransport, store: _Store) -> ProviderSyncService:
 
 @pytest.mark.asyncio
 async def test_ll2_success_commits_one_normalized_snapshot_from_one_fixed_request() -> None:
-    transport = _ReplayTransport([_raw()])
+    transport = DeterministicProviderTransport([_raw()])
     store = _Store()
 
     report = await _service(transport, store).sync(LL2_PROVIDER_CODE)
@@ -157,7 +144,7 @@ async def test_ll2_success_commits_one_normalized_snapshot_from_one_fixed_reques
 
 @pytest.mark.asyncio
 async def test_ll2_rate_limit_uses_stale_fallback_without_retrying_429() -> None:
-    transport = _ReplayTransport([_raw(status=429, body=b"", retry_after="3600")])
+    transport = DeterministicProviderTransport([_raw(status=429, body=b"", retry_after="3600")])
     store = _Store(stale_on_failure=True)
 
     report = await _service(transport, store).sync(LL2_PROVIDER_CODE)
@@ -172,7 +159,7 @@ async def test_ll2_rate_limit_uses_stale_fallback_without_retrying_429() -> None
 
 @pytest.mark.asyncio
 async def test_ll2_schema_drift_finalizes_as_contract_failure_without_replacing_cache() -> None:
-    transport = _ReplayTransport([_raw(body=b'{"count":1,"results":[{"id":7}]}')])
+    transport = DeterministicProviderTransport([_raw(body=b'{"count":1,"results":[{"id":7}]}')])
     store = _Store()
 
     report = await _service(transport, store).sync(LL2_PROVIDER_CODE)

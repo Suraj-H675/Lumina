@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 import pytest_asyncio
-from fakes.provider_runtime import no_timeout, sleep_noop
+from fakes.provider_runtime import DeterministicProviderTransport, no_timeout, sleep_noop
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_neows_runtime_config
@@ -24,7 +24,6 @@ from lumina.provenance.domain.runtime import (
     ProviderSyncOutcome,
     RawProviderResponse,
 )
-from lumina.provenance.infrastructure.http import FixedHttpRequest
 from lumina.provenance.infrastructure.nasa_neows import NasaNeowsAdapter
 from lumina.provenance.infrastructure.postgresql.runtime import PostgreSqlProviderRuntimeStore
 from lumina.settings import IntegrationTestSettings
@@ -46,25 +45,6 @@ class _Clock:
 
     def now(self) -> datetime:
         return self.current
-
-
-@dataclass
-class _ReplayTransport:
-    outcomes: list[RawProviderResponse | BaseException]
-    requests: list[FixedHttpRequest]
-
-    async def request(
-        self,
-        request: FixedHttpRequest,
-        *,
-        attempt_deadline: float | None = None,
-    ) -> RawProviderResponse:
-        del attempt_deadline
-        self.requests.append(request)
-        outcome = self.outcomes.pop(0)
-        if isinstance(outcome, BaseException):
-            raise outcome
-        return outcome
 
 
 @dataclass
@@ -146,7 +126,7 @@ def _fixture_raw() -> RawProviderResponse:
 
 def _service(
     context: _Context,
-    transport: _ReplayTransport,
+    transport: DeterministicProviderTransport,
 ) -> ProviderSyncService:
     adapter = NasaNeowsAdapter(
         transport,
@@ -177,7 +157,7 @@ def _service(
 async def test_neows_postgresql_cache_preserves_nested_payload_through_outage_and_expiry(
     neows_context: _Context,
 ) -> None:
-    transport = _ReplayTransport(
+    transport = DeterministicProviderTransport(
         [_fixture_raw(), *(ProviderFetchUnavailable() for _ in range(6))], []
     )
     service = _service(neows_context, transport)
@@ -236,7 +216,7 @@ async def test_neows_postgresql_quarantine_redacts_key_bearing_evidence(
         '{"near_earth_objects": [], "links": '
         f'{{"self":"https://api.nasa.gov/neo/rest/v1/feed?api_key={_KEY}"}}}}'
     ).encode()
-    transport = _ReplayTransport([_fixture_raw(), _raw(invalid_body)], [])
+    transport = DeterministicProviderTransport([_fixture_raw(), _raw(invalid_body)])
     service = _service(neows_context, transport)
     await neows_context.store.set_enabled(
         neows_context.config,

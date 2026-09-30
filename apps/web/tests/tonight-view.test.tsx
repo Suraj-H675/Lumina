@@ -174,8 +174,6 @@ beforeEach(() => {
   );
   window.dispatchEvent(new StorageEvent("storage", { key: COLLECTIONS_STORAGE_KEY }));
   clearTonightCatalogueDetailCache();
-  clearWeatherForecastCache();
-  replaceMock.mockReset();
 });
 
 afterEach(() => {

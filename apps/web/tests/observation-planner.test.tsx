@@ -146,8 +146,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  pushMock.mockReset();
-  replaceMock.mockReset();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -533,7 +531,6 @@ describe("ObservationPlanner", () => {
   });
 
   it("isolates named-anchor failure from the real bright context and target region", async () => {
-    resetIauContextCachesForTests();
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -561,7 +558,6 @@ describe("ObservationPlanner", () => {
   });
 
   it("isolates constellation failure from named anchors and the real bright context", async () => {
-    resetIauContextCachesForTests();
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -587,7 +583,6 @@ describe("ObservationPlanner", () => {
   });
 
   it("keeps the core finder usable while bright-star context loads", async () => {
-    resetBrightStarContextCacheForTests();
     vi.stubGlobal(
       "fetch",
       vi.fn(() => new Promise<Response>(() => undefined)),
@@ -605,7 +600,6 @@ describe("ObservationPlanner", () => {
   });
 
   it("fails closed without breaking target, Moon, or reference markers", async () => {
-    resetBrightStarContextCacheForTests();
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({ ok: false, arrayBuffer: async () => new ArrayBuffer(0) }) as Response),

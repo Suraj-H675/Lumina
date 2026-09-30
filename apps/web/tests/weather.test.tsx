@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { localDateString } from "../src/lib/observation/domain";
 import type { ObserverLocation } from "../src/lib/observation/domain";
@@ -252,8 +252,6 @@ describe("weather request and domain semantics", () => {
 });
 
 describe("weather provider fetch", () => {
-  beforeEach(() => clearWeatherForecastCache());
-
   it("returns a normalized forecast and uses the supplied clock", async () => {
     const fetchImpl = vi.fn(
       async () => new Response(JSON.stringify(validPayload()), { status: 200 }),

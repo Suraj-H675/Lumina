@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 import anyio
 import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.rocket_mission_designer_routes import router
@@ -25,15 +26,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _query(
@@ -66,7 +58,7 @@ def test_rocket_mission_designer_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_rocket_mission_designer_route_returns_synthetic_reference_vehicle() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/rocket-mission-designer?" + _query(),
     )
@@ -102,7 +94,7 @@ def test_rocket_mission_designer_route_rejects_transport_and_domain_violations()
         base.replace("stage_specific_impulse_s=300.0", "stage_specific_impulse_s=not-a-number"),
     )
     for query in invalid_queries:
-        response = _request(_app(), f"/api/v1/simulations/rocket-mission-designer?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/rocket-mission-designer?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {
@@ -126,7 +118,7 @@ def test_rocket_mission_designer_route_rejects_missing_or_oversized_repeated_arr
         stage_thrust_n=(20_000.0,) * 5,
     )
     for query in (missing_thrust, too_many):
-        response = _request(_app(), f"/api/v1/simulations/rocket-mission-designer?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/rocket-mission-designer?{query}")
         assert response.status_code == 422
         assert response.json()["error"]["code"] == "request.validation_failed"
 

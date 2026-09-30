@@ -4,6 +4,7 @@ from typing import Any
 
 import anyio
 import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
     )
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 def test_seasons_route_is_registered_as_one_read_only_get_endpoint() -> None:
     routes = [route for route in router.routes if isinstance(route, APIRoute)]
 
@@ -44,7 +36,7 @@ def test_seasons_route_is_registered_as_one_read_only_get_endpoint() -> None:
 
 
 def test_seasons_route_returns_the_versioned_canonical_result() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/seasons?axial_tilt_deg=23.43928&orbital_position_deg=90"
         "&latitude_deg=40&eccentricity_preset=earth",
@@ -89,7 +81,7 @@ def test_seasons_route_rejects_unknown_and_repeated_query_fields() -> None:
         "axial_tilt_deg=23.43928&orbital_position_deg=90&latitude_deg=40&eccentricity_preset=earth"
     )
     for suffix in ("&unknown=value", "&latitude_deg=40"):
-        response = _request(_app(), f"/api/v1/simulations/seasons?{required}{suffix}")
+        response = get_asgi(_app(), f"/api/v1/simulations/seasons?{required}{suffix}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] == "seasons.model_invalid"
@@ -103,7 +95,7 @@ def test_seasons_route_rejects_out_of_range_and_unknown_preset_without_fallback(
         "axial_tilt_deg=23.43928&orbital_position_deg=360&latitude_deg=40&eccentricity_preset=earth",
         "axial_tilt_deg=23.43928&orbital_position_deg=90&latitude_deg=40&eccentricity_preset=unknown",
     ):
-        response = _request(_app(), f"/api/v1/simulations/seasons?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/seasons?{query}")
         assert response.status_code == 422
         assert response.json()["error"]["code"] in {
             "seasons.model_invalid",

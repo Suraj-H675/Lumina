@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.orbit_routes import router
@@ -34,15 +35,6 @@ def _app() -> FastAPI:
     )
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 _DEFAULT_QUERY = urlencode(
     {
         "central_mass_kg": EARTH_MASS_KG,
@@ -66,7 +58,7 @@ def test_orbit_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_orbit_route_returns_canonical_circular_result() -> None:
-    response = _request(_app(), f"/api/v1/simulations/orbit-sandbox?{_DEFAULT_QUERY}")
+    response = get_asgi(_app(), f"/api/v1/simulations/orbit-sandbox?{_DEFAULT_QUERY}")
     assert response.status_code == 200
     payload = response.json()
     assert payload["model_version"] == "orbit-sandbox-v1"
@@ -87,7 +79,7 @@ def test_orbit_route_rejects_extra_repeated_and_relationally_invalid_query() -> 
         f"{_DEFAULT_QUERY}&central_mass_kg={EARTH_MASS_KG}",
         _DEFAULT_QUERY.replace("time_step_s=10", "time_step_s=100"),
     ):
-        response = _request(_app(), f"/api/v1/simulations/orbit-sandbox?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/orbit-sandbox?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

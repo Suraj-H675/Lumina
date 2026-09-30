@@ -4,6 +4,7 @@ from typing import Any
 
 import anyio
 import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.eclipse_simulator_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
     )
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 def _query(*, at_utc: str, latitude: float, longitude: float, elevation: float) -> str:
     return (
         f"at_utc={at_utc}&latitude_deg={latitude}&longitude_deg={longitude}&elevation_m={elevation}"
@@ -49,7 +41,7 @@ def test_eclipse_simulator_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_eclipse_simulator_route_returns_dallas_total_reference() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/eclipse-simulator?"
         + _query(
@@ -74,7 +66,7 @@ def test_eclipse_simulator_route_returns_dallas_total_reference() -> None:
 
 
 def test_eclipse_simulator_route_returns_albuquerque_annular_reference() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/eclipse-simulator?"
         + _query(
@@ -93,7 +85,7 @@ def test_eclipse_simulator_route_returns_albuquerque_annular_reference() -> None
 
 
 def test_eclipse_simulator_route_returns_no_event_for_next_day_control() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/eclipse-simulator?"
         + _query(
@@ -139,7 +131,7 @@ def test_eclipse_simulator_route_rejects_extra_repeated_and_invalid_query() -> N
             elevation=130,
         ),
     ):
-        response = _request(_app(), f"/api/v1/simulations/eclipse-simulator?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/eclipse-simulator?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

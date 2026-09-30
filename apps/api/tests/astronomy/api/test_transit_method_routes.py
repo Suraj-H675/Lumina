@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.transit_routes import router
@@ -28,15 +29,6 @@ def _app() -> FastAPI:
     )
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 _DEFAULT_QUERY = urlencode(
     {
         "stellar_radius_m": 1.0e9,
@@ -56,7 +48,7 @@ def test_transit_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_transit_route_returns_canonical_central_result() -> None:
-    response = _request(_app(), f"/api/v1/simulations/transit-method?{_DEFAULT_QUERY}")
+    response = get_asgi(_app(), f"/api/v1/simulations/transit-method?{_DEFAULT_QUERY}")
     assert response.status_code == 200
     payload = response.json()
     assert payload["model_version"] == "transit-method-v1"
@@ -74,7 +66,7 @@ def test_transit_route_returns_canonical_central_result() -> None:
 
 def test_transit_route_returns_valid_no_transit_result() -> None:
     query = _DEFAULT_QUERY.replace("inclination_deg=90.0", "inclination_deg=80.0")
-    response = _request(_app(), f"/api/v1/simulations/transit-method?{query}")
+    response = get_asgi(_app(), f"/api/v1/simulations/transit-method?{query}")
     assert response.status_code == 200
     payload = response.json()
     assert payload["classification"] == "no_transit"
@@ -89,7 +81,7 @@ def test_transit_route_rejects_extra_repeated_and_relationally_invalid_query() -
         f"{_DEFAULT_QUERY}&stellar_radius_m=1000000000",
         _DEFAULT_QUERY.replace("planet_radius_m=100000000.0", "planet_radius_m=1000000000.0"),
     ):
-        response = _request(_app(), f"/api/v1/simulations/transit-method?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/transit-method?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

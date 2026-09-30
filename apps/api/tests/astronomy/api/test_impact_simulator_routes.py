@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.impact_simulator_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _query(
@@ -64,7 +56,7 @@ def test_impact_simulator_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_impact_simulator_route_returns_synthetic_default() -> None:
-    response = _request(_app(), "/api/v1/simulations/impact-simulator?" + _query())
+    response = get_asgi(_app(), "/api/v1/simulations/impact-simulator?" + _query())
     assert response.status_code == 200
     payload = response.json()
     assert payload["model_version"] == "impact-simulator-v1"
@@ -85,7 +77,7 @@ def test_impact_simulator_route_returns_synthetic_default() -> None:
 
 
 def test_impact_simulator_route_matches_source_validation_case() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/impact-simulator?"
         + _query(impactor_density_kg_m3=1_500.0, target_material="crystalline_rock"),
@@ -114,7 +106,7 @@ def test_impact_simulator_route_rejects_transport_and_domain_violations() -> Non
         base.replace("speed_km_s=17.0", "speed_km_s=not-a-number"),
     )
     for query in invalid_queries:
-        response = _request(_app(), f"/api/v1/simulations/impact-simulator?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/impact-simulator?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {
@@ -126,7 +118,7 @@ def test_impact_simulator_route_rejects_transport_and_domain_violations() -> Non
 
 
 def test_impact_simulator_route_rejects_missing_or_non_get_requests() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/impact-simulator?"
         "diameter_m=1500&impactor_density_kg_m3=3000&speed_km_s=17&impact_angle_deg=45",

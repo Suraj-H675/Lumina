@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import anyio
-import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import ProviderSnapshot, ProviderSnapshotReader
@@ -161,15 +160,6 @@ def _app(service: LaunchReadService) -> FastAPI:
     return app
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 @pytest.mark.asyncio
 async def test_projection_preserves_status_precision_and_eligibility() -> None:
     coarse = _launch(
@@ -239,7 +229,7 @@ async def test_stale_projection_retains_source_data_and_failure_separately() -> 
 def test_public_launch_list_and_detail_are_cache_only_and_bounded() -> None:
     service = LaunchReadService(_Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH)))
     app = _app(service)
-    listing = _request(app, "/api/v1/now/launches")
+    listing = get_asgi(app, "/api/v1/now/launches")
     assert listing.status_code == 200
     body = listing.json()
     assert body["availability"] == "fresh"
@@ -250,7 +240,7 @@ def test_public_launch_list_and_detail_are_cache_only_and_bounded() -> None:
     assert len(listing.content) <= 61_440
 
     launch_id = body["launches"][0]["launch_id"]
-    detail = _request(app, f"/api/v1/now/launches/{launch_id}")
+    detail = get_asgi(app, f"/api/v1/now/launches/{launch_id}")
     assert detail.status_code == 200
     assert detail.json()["launch"]["launch_id"] == launch_id
     assert len(detail.content) <= 61_440
@@ -258,18 +248,18 @@ def test_public_launch_list_and_detail_are_cache_only_and_bounded() -> None:
 
 def test_detail_missing_invalid_and_query_parameters_fail_without_upstream_access() -> None:
     app = _app(LaunchReadService(_Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))))
-    assert _request(app, "/api/v1/now/launches/not-a-uuid").status_code == 422
+    assert get_asgi(app, "/api/v1/now/launches/not-a-uuid").status_code == 422
     assert (
-        _request(app, "/api/v1/now/launches/ffffffff-ffff-4fff-8fff-ffffffffffff").status_code
+        get_asgi(app, "/api/v1/now/launches/ffffffff-ffff-4fff-8fff-ffffffffffff").status_code
         == 404
     )
-    assert _request(app, "/api/v1/now/launches?limit=1").status_code == 422
+    assert get_asgi(app, "/api/v1/now/launches?limit=1").status_code == 422
 
 
 def test_list_drops_complete_tail_records_to_stay_under_public_byte_ceiling() -> None:
     large = "x" * 4096
     launches = tuple(_launch(index, description=large) for index in range(12))
-    response = _request(
+    response = get_asgi(
         _app(
             LaunchReadService(
                 _Reader(_snapshot(cache=_cache(launches), cache_state=CacheState.FRESH))
@@ -291,7 +281,7 @@ def test_detail_can_read_tail_launch_outside_bounded_public_list() -> None:
         LaunchReadService(_Reader(_snapshot(cache=_cache(launches), cache_state=CacheState.FRESH)))
     )
 
-    listing = _request(app, "/api/v1/now/launches")
+    listing = get_asgi(app, "/api/v1/now/launches")
     assert listing.status_code == 200
     body = listing.json()
     assert body["total_launch_count"] == 13
@@ -299,7 +289,7 @@ def test_detail_can_read_tail_launch_outside_bounded_public_list() -> None:
     tail_id = launches[-1].launch_id
     assert tail_id not in {item["launch_id"] for item in body["launches"]}
 
-    detail = _request(app, f"/api/v1/now/launches/{tail_id}")
+    detail = get_asgi(app, f"/api/v1/now/launches/{tail_id}")
     assert detail.status_code == 200
     assert detail.json()["launch"]["launch_id"] == tail_id
     assert len(detail.content) <= 61_440

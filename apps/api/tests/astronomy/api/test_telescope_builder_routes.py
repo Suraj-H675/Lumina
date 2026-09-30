@@ -4,6 +4,7 @@ from typing import Any
 
 import anyio
 import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.telescope_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
     )
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 _DEFAULT_QUERY = (
     "aperture_mm=100&telescope_focal_length_mm=1000&telescope_type=refractor"
     "&eyepiece_focal_length_mm=20&eyepiece_apparent_field_deg=50"
@@ -51,7 +43,7 @@ def test_telescope_builder_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_telescope_builder_route_returns_literal_default_geometry() -> None:
-    response = _request(_app(), f"/api/v1/simulations/telescope-builder?{_DEFAULT_QUERY}")
+    response = get_asgi(_app(), f"/api/v1/simulations/telescope-builder?{_DEFAULT_QUERY}")
 
     assert response.status_code == 200
     payload = response.json()
@@ -90,7 +82,7 @@ def test_telescope_builder_route_rejects_extra_repeated_and_relationally_invalid
         "&eyepiece_focal_length_mm=60&eyepiece_apparent_field_deg=50"
         "&optical_modifier_kind=reducer&optical_modifier_factor=0.5&target_angular_size_arcmin=30",
     ):
-        response = _request(_app(), f"/api/v1/simulations/telescope-builder?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/telescope-builder?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

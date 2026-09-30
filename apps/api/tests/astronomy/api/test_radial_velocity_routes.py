@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.radial_velocity_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 _DEFAULT_QUERY = urlencode(
@@ -58,7 +50,7 @@ def test_radial_velocity_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_radial_velocity_route_returns_canonical_circular_result() -> None:
-    response = _request(_app(), f"/api/v1/simulations/radial-velocity?{_DEFAULT_QUERY}")
+    response = get_asgi(_app(), f"/api/v1/simulations/radial-velocity?{_DEFAULT_QUERY}")
     assert response.status_code == 200
     payload = response.json()
     assert payload["model_version"] == "radial-velocity-v1"
@@ -79,7 +71,7 @@ def test_radial_velocity_route_returns_canonical_circular_result() -> None:
 
 def test_radial_velocity_route_returns_valid_face_on_zero_signal() -> None:
     query = _DEFAULT_QUERY.replace("inclination_deg=90.0", "inclination_deg=0.0")
-    response = _request(_app(), f"/api/v1/simulations/radial-velocity?{query}")
+    response = get_asgi(_app(), f"/api/v1/simulations/radial-velocity?{query}")
     assert response.status_code == 200
     payload = response.json()
     assert payload["semi_amplitude_m_s"] == 0.0
@@ -96,7 +88,7 @@ def test_radial_velocity_route_rejects_extra_repeated_and_invalid_query() -> Non
         _DEFAULT_QUERY.replace("eccentricity=0.0", "eccentricity=0.96"),
         _DEFAULT_QUERY.replace("inclination_deg=90.0", "inclination_deg=90.1"),
     ):
-        response = _request(_app(), f"/api/v1/simulations/radial-velocity?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/radial-velocity?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

@@ -10,6 +10,7 @@ from typing import Any
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import ProviderSnapshot, ProviderSnapshotReader
@@ -187,15 +188,6 @@ def _app(snapshot: ProviderSnapshot) -> FastAPI:
     return app
 
 
-def _get(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 def _post(app: FastAPI, path: str, payload: dict[str, Any]) -> httpx.Response:
     async def send() -> httpx.Response:
         transport = httpx.ASGITransport(app=app)
@@ -269,7 +261,7 @@ async def test_list_projection_preserves_groups_epoch_and_element_age() -> None:
 
 
 def test_public_list_is_cache_only_bounded_and_attributed() -> None:
-    response = _get(
+    response = get_asgi(
         _app(_snapshot(cache=_cache(), cache_state=CacheState.FRESH)), "/api/v1/now/satellites"
     )
     assert response.status_code == 200
@@ -306,7 +298,7 @@ def test_large_valid_catalog_is_listed_but_pass_prediction_is_typed_refusal() ->
     large = replace(_bright(), catalog_number=340_000, object_name="LARGE ID TEST SAT")
     cache = _cache((_iss(), large))
     app = _app(_snapshot(cache=cache, cache_state=CacheState.FRESH))
-    listing = _get(app, "/api/v1/now/satellites").json()
+    listing = get_asgi(app, "/api/v1/now/satellites").json()
     item = next(value for value in listing["satellites"] if value["catalog_number"] == 340000)
     assert item["pass_prediction_runtime_supported"] is False
 
@@ -332,7 +324,7 @@ def test_list_has_explicit_unavailable_states(
     cache_state: CacheState,
     reason: str,
 ) -> None:
-    response = _get(
+    response = get_asgi(
         _app(_snapshot(enabled=enabled, cache=cache, cache_state=cache_state)),
         "/api/v1/now/satellites",
     )

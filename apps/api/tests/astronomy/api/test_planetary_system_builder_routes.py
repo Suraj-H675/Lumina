@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 import anyio
 import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.planetary_system_builder_routes import router
@@ -25,15 +26,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _query(
@@ -62,7 +54,7 @@ def test_planetary_system_builder_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_planetary_system_builder_route_returns_synthetic_reference_system() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/planetary-system-builder?" + _query(),
     )
@@ -95,7 +87,7 @@ def test_planetary_system_builder_route_returns_synthetic_reference_system() -> 
 
 
 def test_planetary_system_builder_route_supports_single_planet_without_pair_diagnostic() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/planetary-system-builder?"
         + _query(planet_mass_mearth=(1.0,), semi_major_axis_au=(1.0,)),
@@ -117,7 +109,7 @@ def test_planetary_system_builder_route_rejects_transport_and_domain_violations(
         base.replace("stellar_mass_msun=1.0", "stellar_mass_msun=not-a-number"),
     )
     for query in invalid_queries:
-        response = _request(_app(), f"/api/v1/simulations/planetary-system-builder?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/planetary-system-builder?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {
@@ -138,7 +130,7 @@ def test_planetary_system_builder_route_rejects_missing_or_oversized_repeated_ar
         semi_major_axis_au=tuple(float(index) for index in range(1, 10)),
     )
     for query in (missing_axis, too_many):
-        response = _request(_app(), f"/api/v1/simulations/planetary-system-builder?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/planetary-system-builder?{query}")
         assert response.status_code == 422
         assert response.json()["error"]["code"] == "request.validation_failed"
 

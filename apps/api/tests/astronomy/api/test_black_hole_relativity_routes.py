@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.black_hole_relativity_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _query(
@@ -58,7 +50,7 @@ def test_black_hole_relativity_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_black_hole_relativity_route_returns_synthetic_default() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/black-hole-relativity?" + _query(),
     )
@@ -91,7 +83,7 @@ def test_black_hole_relativity_route_returns_synthetic_default() -> None:
 
 
 def test_black_hole_relativity_route_matches_openstax_rounded_solar_case() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/black-hole-relativity?" + _query(mass_nominal_solar=1.0),
     )
@@ -117,7 +109,7 @@ def test_black_hole_relativity_route_rejects_transport_and_domain_violations() -
         base.replace("mass_nominal_solar=10.0", "mass_nominal_solar=not-a-number"),
     )
     for query in invalid_queries:
-        response = _request(
+        response = get_asgi(
             _app(),
             f"/api/v1/simulations/black-hole-relativity?{query}",
         )
@@ -132,7 +124,7 @@ def test_black_hole_relativity_route_rejects_transport_and_domain_violations() -
 
 
 def test_black_hole_relativity_route_rejects_missing_or_non_get_requests() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/black-hole-relativity?mass_nominal_solar=10",
     )

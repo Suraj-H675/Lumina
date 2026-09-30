@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 import anyio
 import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.spectroscopy_lab_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _query(
@@ -68,7 +60,7 @@ def test_spectroscopy_lab_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_spectroscopy_lab_route_returns_compact_absorption_result() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/spectroscopy-lab?" + _query(),
     )
@@ -91,7 +83,7 @@ def test_spectroscopy_lab_route_returns_compact_absorption_result() -> None:
 
 
 def test_spectroscopy_lab_route_supports_continuum_with_empty_element_field() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/spectroscopy-lab?" + _query(mode="continuum", selected_elements=""),
     )
@@ -104,7 +96,7 @@ def test_spectroscopy_lab_route_supports_continuum_with_empty_element_field() ->
 
 
 def test_spectroscopy_lab_route_returns_redshifted_hydrogen_metadata() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/spectroscopy-lab?"
         + _query(
@@ -136,7 +128,7 @@ def test_spectroscopy_lab_route_rejects_extra_repeated_and_invalid_query() -> No
         _query(noise_seed=-1),
     )
     for query in invalid_queries:
-        response = _request(_app(), f"/api/v1/simulations/spectroscopy-lab?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/spectroscopy-lab?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

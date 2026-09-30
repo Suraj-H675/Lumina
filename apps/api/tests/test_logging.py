@@ -6,21 +6,10 @@ import io
 import json
 import logging
 
-import anyio
-import httpx
-from fastapi import FastAPI
+from fakes.http import get_asgi
 from lumina.bootstrap import create_app
 from lumina.settings import AppSettings
 from lumina.shared.logging import JsonFormatter
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def test_json_formatter_emits_utc_structure_without_exception_text() -> None:
@@ -78,7 +67,7 @@ def test_request_log_uses_route_template_and_omits_secret_sentinels() -> None:
     logger = logging.getLogger("lumina")
     logger.addHandler(handler)
     try:
-        response = _request(
+        response = get_asgi(
             app,
             f"/_test/failure/{route_secret}?private={query_secret}",
         )

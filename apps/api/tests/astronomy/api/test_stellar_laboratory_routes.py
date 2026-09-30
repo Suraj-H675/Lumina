@@ -5,6 +5,7 @@ from typing import Any
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.stellar_laboratory_routes import router
@@ -27,15 +28,6 @@ def _app() -> FastAPI:
     )
 
 
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 def test_stellar_laboratory_route_is_one_read_only_get_endpoint() -> None:
     routes = [route for route in router.routes if isinstance(route, APIRoute)]
     assert len(routes) == 1
@@ -44,7 +36,7 @@ def test_stellar_laboratory_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_stellar_laboratory_route_returns_approximate_solar_mass_mapping() -> None:
-    response = _request(_app(), "/api/v1/simulations/stellar-laboratory?initial_mass_msun=1")
+    response = get_asgi(_app(), "/api/v1/simulations/stellar-laboratory?initial_mass_msun=1")
     assert response.status_code == 200
     payload = response.json()
     assert payload["model_version"] == "stellar-laboratory-v1"
@@ -59,7 +51,7 @@ def test_stellar_laboratory_route_returns_approximate_solar_mass_mapping() -> No
 
 
 def test_stellar_laboratory_route_preserves_remnant_boundary() -> None:
-    response = _request(_app(), "/api/v1/simulations/stellar-laboratory?initial_mass_msun=10")
+    response = get_asgi(_app(), "/api/v1/simulations/stellar-laboratory?initial_mass_msun=10")
     assert response.status_code == 200
     payload = response.json()
     assert payload["expected_remnant"] == "neutron star"
@@ -74,7 +66,7 @@ def test_stellar_laboratory_route_rejects_extra_repeated_and_invalid_query() -> 
         "initial_mass_msun=0.3999",
         "initial_mass_msun=29.67",
     ):
-        response = _request(_app(), f"/api/v1/simulations/stellar-laboratory?{query}")
+        response = get_asgi(_app(), f"/api/v1/simulations/stellar-laboratory?{query}")
         assert response.status_code == 422
         payload: dict[str, Any] = response.json()
         assert payload["error"]["code"] in {

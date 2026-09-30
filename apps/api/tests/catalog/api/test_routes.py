@@ -6,9 +6,8 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock
 from uuid import UUID
 
-import anyio
-import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
@@ -39,15 +38,6 @@ def _app() -> FastAPI:
         }
     )
     return create_app(settings)
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _summary(*, slug: str = "hd-209458") -> EntitySummaryResponse:
@@ -116,7 +106,7 @@ def test_slug_route_calls_only_slug_service_and_never_uuid_service() -> None:
     service = _service(app)
     service.get_entity_by_slug.return_value = _summary()
 
-    response = _request(app, "/api/v1/catalog/entities/by-slug/hd-209458")
+    response = get_asgi(app, "/api/v1/catalog/entities/by-slug/hd-209458")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -134,7 +124,7 @@ def test_slug_route_rejects_noncanonical_path_values_without_calling_service(slu
     app = _app()
     service = _service(app)
 
-    response = _request(app, f"/api/v1/catalog/entities/by-slug/{slug}")
+    response = get_asgi(app, f"/api/v1/catalog/entities/by-slug/{slug}")
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "request.validation_failed"
@@ -147,7 +137,7 @@ def test_uuid_looking_value_under_slug_route_keeps_slug_semantics() -> None:
     slug = str(_ENTITY_ID)
     service.get_entity_by_slug.return_value = _summary(slug=slug)
 
-    response = _request(app, f"/api/v1/catalog/entities/by-slug/{slug}")
+    response = get_asgi(app, f"/api/v1/catalog/entities/by-slug/{slug}")
 
     assert response.status_code == 200
     service.get_entity_by_slug.assert_awaited_once_with(slug)
@@ -165,7 +155,7 @@ def test_missing_slug_is_normalized_to_catalogue_not_found() -> None:
     service = _service(app)
     service.get_entity_by_slug.side_effect = CatalogEntityNotFound()
 
-    response = _request(app, "/api/v1/catalog/entities/by-slug/does-not-exist")
+    response = get_asgi(app, "/api/v1/catalog/entities/by-slug/does-not-exist")
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "catalog.entity_not_found"
@@ -179,7 +169,7 @@ def test_browse_response_maps_the_nested_page_contract() -> None:
         page=PageResponse(next_cursor="opaque", has_more=True, limit=1),
     )
 
-    response = _request(app, "/api/v1/catalog/entities?limit=1")
+    response = get_asgi(app, "/api/v1/catalog/entities?limit=1")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -203,7 +193,7 @@ def test_browse_without_filter_passes_no_filter() -> None:
         items=[], page=PageResponse(next_cursor=None, has_more=False, limit=20)
     )
 
-    response = _request(app, "/api/v1/catalog/entities")
+    response = get_asgi(app, "/api/v1/catalog/entities")
 
     assert response.status_code == 200
     service.list_entities.assert_awaited_once_with(entity_type=None, cursor=None, limit=20)
@@ -216,7 +206,7 @@ def test_browse_with_one_valid_filter_passes_selected_scalar() -> None:
         items=[], page=PageResponse(next_cursor=None, has_more=False, limit=20)
     )
 
-    response = _request(app, "/api/v1/catalog/entities?entity_type=star")
+    response = get_asgi(app, "/api/v1/catalog/entities?entity_type=star")
 
     assert response.status_code == 200
     service.list_entities.assert_awaited_once_with(entity_type="star", cursor=None, limit=20)
@@ -226,7 +216,7 @@ def _assert_repeated_filter_rejected(path: str) -> None:
     app = _app()
     service = _service(app)
 
-    response = _request(app, path)
+    response = get_asgi(app, path)
 
     assert response.status_code == 422
     payload: dict[str, Any] = response.json()
@@ -262,7 +252,7 @@ def test_existing_uuid_route_remains_reachable() -> None:
     service = _service(app)
     service.get_entity_detail.side_effect = CatalogEntityNotFound()
 
-    response = _request(app, f"/api/v1/catalog/entities/{_ENTITY_ID}")
+    response = get_asgi(app, f"/api/v1/catalog/entities/{_ENTITY_ID}")
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "catalog.entity_not_found"
@@ -274,8 +264,8 @@ def test_search_returns_explainable_result_and_suggest_returns_summaries() -> No
     app = _app()
     service = _search_service(app)
 
-    response = _request(app, "/api/v1/search?q=hd-209458")
-    suggest_response = _request(app, "/api/v1/search/suggest?q=hd-209458")
+    response = get_asgi(app, "/api/v1/search?q=hd-209458")
+    suggest_response = get_asgi(app, "/api/v1/search/suggest?q=hd-209458")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -309,7 +299,7 @@ def test_search_returns_explainable_result_and_suggest_returns_summaries() -> No
 
 @pytest.mark.parametrize("path", ["/api/v1/search?q=a&q=b", "/api/v1/search/suggest?q=a&q=b"])
 def test_repeated_query_is_rejected(path: str) -> None:
-    response = _request(_app(), path)
+    response = get_asgi(_app(), path)
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "request.validation_failed"

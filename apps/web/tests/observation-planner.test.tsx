@@ -25,6 +25,8 @@ import {
   NAMED_ANCHOR_CONTEXT_URL,
   resetIauContextCachesForTests,
 } from "../src/lib/observation/iau-context";
+import { arrayBufferResponse } from "./support/http";
+import { k2_18AstrometryDetail } from "./support/observation-fixtures";
 
 const { pushMock, replaceMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
@@ -37,16 +39,6 @@ vi.mock("next/navigation", () => ({
 
 import { ObservationPlanner } from "../src/components/observation-planner";
 
-const source = {
-  dataset: {
-    code: "gaia-source-astrometry",
-    name: "Gaia Data Release 3 main source catalogue — reviewed astrometry slice",
-    release_version: "dr3",
-  },
-  provider: { code: "esa-gaia", name: "ESA Gaia Archive" },
-  source_record_id: "gaia-source-record-3910747531814692736",
-};
-
 const brightStarArtifact = readFileSync(resolve("public/data/gaia-dr3-bright-sky-context-v1.csv"));
 const namedAnchorArtifact = readFileSync(
   resolve("public/data/iau-named-gaia-bright-anchors-v1.json"),
@@ -55,61 +47,8 @@ const constellationArtifact = readFileSync(
   resolve("public/data/iau-constellation-context-v1.json"),
 );
 
-function brightStarResponse(): Response {
-  return {
-    ok: true,
-    arrayBuffer: async () => Uint8Array.from(brightStarArtifact).buffer,
-  } as Response;
-}
-
-function namedAnchorResponse(): Response {
-  return {
-    ok: true,
-    arrayBuffer: async () => Uint8Array.from(namedAnchorArtifact).buffer,
-  } as Response;
-}
-
-function constellationResponse(): Response {
-  return {
-    ok: true,
-    arrayBuffer: async () => Uint8Array.from(constellationArtifact).buffer,
-  } as Response;
-}
-
-function plannerDetail(): EntityDetailResponse {
-  const measurement = (code: string, value: string) => ({
-    current_selection: {
-      measurement: {
-        id: `${code}-measurement`,
-        original_unit: "deg",
-        original_value: value,
-        source,
-        unit: { code: "deg", name: "degree", symbol: "deg" },
-        value,
-      },
-      selection: {
-        explanation: "Only reviewed measurement for this quantity.",
-        rule: "single-reviewed-measurement",
-        selected_at: "2026-08-27T00:00:00Z",
-        version: "1",
-      },
-    },
-    measurement_count: 1,
-    quantity: { code, name: code },
-  });
-  return {
-    canonical_name: "K2-18",
-    entity_type: "star",
-    id: "403d0e71-8d81-5c52-abad-c4666c1b5cd6",
-    quantities: [
-      measurement("gaia_icrs_right_ascension", "172.5601297577743"),
-      measurement("gaia_icrs_declination", "7.58781312214569"),
-    ],
-  };
-}
-
 function renderPlanner(
-  detail: EntityDetailResponse | null = plannerDetail(),
+  detail: EntityDetailResponse | null = k2_18AstrometryDetail(),
   date = "2026-08-27",
   messages: ObservationPlannerMessages = enMessages.observationPlanner,
   coordinateDisclosureMessages: CoordinateDisclosureMessages = enMessages.coordinateDisclosure,
@@ -137,9 +76,12 @@ beforeEach(() => {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
-      if (String(input) === BRIGHT_STAR_CONTEXT_URL) return brightStarResponse();
-      if (String(input) === NAMED_ANCHOR_CONTEXT_URL) return namedAnchorResponse();
-      if (String(input) === CONSTELLATION_CONTEXT_URL) return constellationResponse();
+      if (String(input) === BRIGHT_STAR_CONTEXT_URL) return arrayBufferResponse(brightStarArtifact);
+      if (String(input) === NAMED_ANCHOR_CONTEXT_URL)
+        return arrayBufferResponse(namedAnchorArtifact);
+      if (String(input) === CONSTELLATION_CONTEXT_URL) {
+        return arrayBufferResponse(constellationArtifact);
+      }
       throw new Error("Unexpected test network request");
     }),
   );
@@ -168,10 +110,16 @@ describe("ObservationPlanner", () => {
       },
     };
 
-    renderPlanner(plannerDetail(), "2026-08-27", messages, enMessages.coordinateDisclosure, {
-      ...enMessages.entityTypes,
-      star: "Fixture planner target type",
-    });
+    renderPlanner(
+      k2_18AstrometryDetail(),
+      "2026-08-27",
+      messages,
+      enMessages.coordinateDisclosure,
+      {
+        ...enMessages.entityTypes,
+        star: "Fixture planner target type",
+      },
+    );
 
     expect(screen.getByText("Planner message fixture")).toBeVisible();
     expect(screen.getByRole("button", { name: "Use fixture coordinates" })).toBeVisible();
@@ -201,7 +149,7 @@ describe("ObservationPlanner", () => {
       },
     };
 
-    renderPlanner(plannerDetail(), "2026-08-27", messages);
+    renderPlanner(k2_18AstrometryDetail(), "2026-08-27", messages);
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -219,7 +167,12 @@ describe("ObservationPlanner", () => {
       gaiaDr3: "Fixture Gaia coordinate provenance at {referenceEpoch}.",
     };
 
-    renderPlanner(plannerDetail(), "2026-08-27", enMessages.observationPlanner, disclosureMessages);
+    renderPlanner(
+      k2_18AstrometryDetail(),
+      "2026-08-27",
+      enMessages.observationPlanner,
+      disclosureMessages,
+    );
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -353,7 +306,7 @@ describe("ObservationPlanner", () => {
       },
     };
 
-    renderPlanner(plannerDetail(), localDateString(new Date()), messages);
+    renderPlanner(k2_18AstrometryDetail(), localDateString(new Date()), messages);
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -395,7 +348,7 @@ describe("ObservationPlanner", () => {
       },
     };
 
-    renderPlanner(plannerDetail(), "2026-08-27", messages);
+    renderPlanner(k2_18AstrometryDetail(), "2026-08-27", messages);
     await user.type(screen.getByLabelText("Latitude"), "12.972");
     await user.type(screen.getByLabelText("Longitude"), "77.594");
     await user.click(screen.getByRole("button", { name: /calculate with these coordinates/i }));
@@ -537,8 +490,12 @@ describe("ObservationPlanner", () => {
         if (String(input) === NAMED_ANCHOR_CONTEXT_URL) {
           return { ok: false, arrayBuffer: async () => new ArrayBuffer(0) } as Response;
         }
-        if (String(input) === BRIGHT_STAR_CONTEXT_URL) return brightStarResponse();
-        if (String(input) === CONSTELLATION_CONTEXT_URL) return constellationResponse();
+        if (String(input) === BRIGHT_STAR_CONTEXT_URL) {
+          return arrayBufferResponse(brightStarArtifact);
+        }
+        if (String(input) === CONSTELLATION_CONTEXT_URL) {
+          return arrayBufferResponse(constellationArtifact);
+        }
         throw new Error("Unexpected test network request");
       }),
     );
@@ -564,8 +521,12 @@ describe("ObservationPlanner", () => {
         if (String(input) === CONSTELLATION_CONTEXT_URL) {
           return { ok: false, arrayBuffer: async () => new ArrayBuffer(0) } as Response;
         }
-        if (String(input) === BRIGHT_STAR_CONTEXT_URL) return brightStarResponse();
-        if (String(input) === NAMED_ANCHOR_CONTEXT_URL) return namedAnchorResponse();
+        if (String(input) === BRIGHT_STAR_CONTEXT_URL) {
+          return arrayBufferResponse(brightStarArtifact);
+        }
+        if (String(input) === NAMED_ANCHOR_CONTEXT_URL) {
+          return arrayBufferResponse(namedAnchorArtifact);
+        }
         throw new Error("Unexpected test network request");
       }),
     );

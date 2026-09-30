@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { EntityDetailResponse } from "@nova-lumina/api-client";
 
 import { loadExploreCatalogue, loadObjectBySlug, searchCatalogue } from "../src/lib/server/catalog";
-import { jsonResponse } from "./support/http";
+import { fetchRecording, jsonResponse } from "./support/http";
 
 const K2_18_ID = "403d0e71-8d81-5c52-abad-c4666c1b5cd6";
 
@@ -21,23 +21,6 @@ const summaries = {
     slug: "k2-18",
   },
 } as const;
-
-type RecordedRequest = Readonly<{ path: string }>;
-
-function fetchRecording(handler: (path: string) => Response | undefined): {
-  requests: Array<RecordedRequest>;
-  implementation: typeof fetch;
-} {
-  const requests: Array<RecordedRequest> = [];
-  const implementation = ((input: RequestInfo | URL) => {
-    const url = input instanceof URL ? input : new URL(String(input));
-    requests.push({ path: `${url.pathname}${url.search}` });
-    const body = handler(`${url.pathname}${url.search}`);
-    if (body === undefined) return Promise.resolve(new Response("{}", { status: 500 }));
-    return Promise.resolve(body);
-  }) as unknown as typeof fetch;
-  return { implementation, requests };
-}
 
 describe("loadExploreCatalogue", () => {
   it("forwards the opaque continuation cursor and returns the next cursor", async () => {
@@ -61,7 +44,7 @@ describe("loadExploreCatalogue", () => {
       kind: "ok",
       nextCursor: "next-opaque-cursor",
     });
-    expect(requests).toEqual([{ path: "/api/v1/catalog/entities?cursor=opaque-cursor&limit=60" }]);
+    expect(requests).toEqual(["/api/v1/catalog/entities?cursor=opaque-cursor&limit=60"]);
   });
 
   it("returns bounded browse items from the public list endpoint", async () => {
@@ -82,7 +65,7 @@ describe("loadExploreCatalogue", () => {
       kind: "ok",
       nextCursor: null,
     });
-    expect(requests).toEqual([{ path: "/api/v1/catalog/entities?limit=60" }]);
+    expect(requests).toEqual(["/api/v1/catalog/entities?limit=60"]);
   });
 
   it("forwards a valid entity-type filter to the browse endpoint", async () => {
@@ -106,7 +89,7 @@ describe("loadExploreCatalogue", () => {
       kind: "ok",
       nextCursor: "c",
     });
-    expect(requests).toEqual([{ path: "/api/v1/catalog/entities?entity_type=star&limit=60" }]);
+    expect(requests).toEqual(["/api/v1/catalog/entities?entity_type=star&limit=60"]);
   });
 
   it("accepts the additive sky-region entity type for browse filters", async () => {
@@ -130,9 +113,7 @@ describe("loadExploreCatalogue", () => {
       kind: "ok",
       nextCursor: null,
     });
-    expect(requests).toEqual([
-      { path: "/api/v1/catalog/entities?entity_type=sky_region&limit=60" },
-    ]);
+    expect(requests).toEqual(["/api/v1/catalog/entities?entity_type=sky_region&limit=60"]);
   });
 
   it("rejects an entity-type filter outside the public vocabulary without a request", async () => {
@@ -193,7 +174,7 @@ describe("searchCatalogue", () => {
       ],
       kind: "ok",
     });
-    expect(requests).toEqual([{ path: "/api/v1/search?q=kepler&entity_type=star&limit=50" }]);
+    expect(requests).toEqual(["/api/v1/search?q=kepler&entity_type=star&limit=50"]);
   });
 
   it("maps a rejected query to a distinct invalid-query state", async () => {
@@ -250,7 +231,7 @@ describe("loadObjectBySlug", () => {
     const outcome = await loadObjectBySlug("k2-18", { fetchImplementation: implementation });
 
     expect(outcome).toEqual({ detail, kind: "ok" });
-    expect(requests.map((request) => request.path)).toEqual([
+    expect(requests).toEqual([
       "/api/v1/catalog/entities/by-slug/k2-18",
       `/api/v1/catalog/entities/${K2_18_ID}`,
     ]);

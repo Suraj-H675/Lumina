@@ -22,16 +22,10 @@ import {
   resetIauContextCachesForTests,
   resolveTargetConstellation,
 } from "../src/lib/observation/iau-context";
+import { arrayBufferResponse } from "./support/http";
 
 const namedArtifactPath = resolve("public/data/iau-named-gaia-bright-anchors-v1.json");
 const constellationArtifactPath = resolve("public/data/iau-constellation-context-v1.json");
-
-function responseFor(bytes: Uint8Array): Response {
-  return {
-    ok: true,
-    arrayBuffer: async () => Uint8Array.from(bytes).buffer,
-  } as Response;
-}
 
 beforeEach(() => resetIauContextCachesForTests());
 
@@ -157,8 +151,9 @@ describe("IAU context loaders and target membership", () => {
     const namedBytes = await readFile(namedArtifactPath);
     const constellationBytes = await readFile(constellationArtifactPath);
     const fetcher = vi.fn(async (input: RequestInfo | URL) => {
-      if (String(input) === NAMED_ANCHOR_CONTEXT_URL) return responseFor(namedBytes);
-      if (String(input) === CONSTELLATION_CONTEXT_URL) return responseFor(constellationBytes);
+      if (String(input) === NAMED_ANCHOR_CONTEXT_URL) return arrayBufferResponse(namedBytes);
+      if (String(input) === CONSTELLATION_CONTEXT_URL)
+        return arrayBufferResponse(constellationBytes);
       throw new Error("Unexpected test request");
     }) as unknown as typeof fetch;
 
@@ -189,9 +184,11 @@ describe("IAU context loaders and target membership", () => {
     const fetcher = vi
       .fn<typeof fetch>()
       .mockResolvedValueOnce(
-        responseFor(Uint8Array.from(bytes, (byte, index) => (index === 0 ? byte ^ 1 : byte))),
+        arrayBufferResponse(
+          Uint8Array.from(bytes, (byte, index) => (index === 0 ? byte ^ 1 : byte)),
+        ),
       )
-      .mockResolvedValueOnce(responseFor(bytes));
+      .mockResolvedValueOnce(arrayBufferResponse(bytes));
 
     await expect(loadNamedAnchorContext(fetcher)).rejects.toThrow(IAUContextRejected);
     await expect(loadNamedAnchorContext(fetcher)).resolves.toMatchObject({

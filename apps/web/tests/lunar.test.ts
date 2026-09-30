@@ -1,16 +1,7 @@
 import * as Astronomy from "astronomy-engine";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { EntityDetailResponse } from "@nova-lumina/api-client";
-
-import {
-  ASTROMETRY_DATASET_CODE,
-  DECLINATION_QUANTITY_CODE,
-  DEGREES_UNIT_CODE,
-  RIGHT_ASCENSION_QUANTITY_CODE,
-  computeObservationPlan,
-  extractCoordinatePairs,
-} from "../src/lib/observation/domain";
+import { computeObservationPlan, extractCoordinatePairs } from "../src/lib/observation/domain";
 import {
   calculateAngularSeparation,
   calculateMoonHorizontalPosition,
@@ -18,48 +9,7 @@ import {
   minimumTargetMoonSeparationDuringDarkness,
   moonPhase,
 } from "../src/lib/observation/lunar";
-
-const source = {
-  dataset: {
-    code: ASTROMETRY_DATASET_CODE,
-    name: "Gaia Data Release 3 main source catalogue — reviewed astrometry slice",
-    release_version: "dr3",
-  },
-  provider: { code: "esa-gaia", name: "ESA Gaia Archive" },
-  source_record_id: "gaia-source-record-3910747531814692736",
-};
-
-function coordinateDetail(): EntityDetailResponse {
-  const measurement = (code: string, value: string) => ({
-    current_selection: {
-      measurement: {
-        id: `${code}-measurement`,
-        original_unit: DEGREES_UNIT_CODE,
-        original_value: value,
-        source,
-        unit: { code: DEGREES_UNIT_CODE, name: "degree", symbol: "deg" },
-        value,
-      },
-      selection: {
-        explanation: "Only reviewed measurement for this quantity.",
-        rule: "single-reviewed-measurement",
-        selected_at: "2026-08-27T00:00:00Z",
-        version: "1",
-      },
-    },
-    measurement_count: 1,
-    quantity: { code, name: code },
-  });
-  return {
-    canonical_name: "K2-18",
-    entity_type: "star",
-    id: "403d0e71-8d81-5c52-abad-c4666c1b5cd6",
-    quantities: [
-      measurement(RIGHT_ASCENSION_QUANTITY_CODE, "172.5601297577743"),
-      measurement(DECLINATION_QUANTITY_CODE, "7.58781312214569"),
-    ],
-  };
-}
+import { k2_18AstrometryDetail } from "./support/observation-fixtures";
 
 const location = { latitude: 12.972, longitude: 77.594 } as const;
 const selectedInstant = new Date("2026-08-27T00:00:00Z");
@@ -105,7 +55,7 @@ describe("lunar observation domain", () => {
   });
 
   it("composes selected lunar facts with the planner samples", () => {
-    const coordinate = extractCoordinatePairs(coordinateDetail())[0];
+    const coordinate = extractCoordinatePairs(k2_18AstrometryDetail())[0];
     expect(coordinate).toBeDefined();
     const plan = computeObservationPlan(
       coordinate!,
@@ -135,7 +85,7 @@ describe("lunar observation domain", () => {
     vi.spyOn(Astronomy, "Equator").mockImplementation(() => {
       throw new Error("fixture astronomy failure");
     });
-    const coordinate = extractCoordinatePairs(coordinateDetail())[0];
+    const coordinate = extractCoordinatePairs(k2_18AstrometryDetail())[0];
     expect(coordinate).toBeDefined();
     expect(computeLunarConditions(coordinate!, location, selectedInstant, null, [])).toBeNull();
   });

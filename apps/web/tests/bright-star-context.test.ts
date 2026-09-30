@@ -12,6 +12,7 @@ import {
   parseBrightStarContextArtifact,
   resetBrightStarContextCacheForTests,
 } from "../src/lib/observation/bright-star-context";
+import { arrayBufferResponse } from "./support/http";
 
 const HEADER = BRIGHT_STAR_CONTEXT_COLUMNS.join(",");
 const ROW_ONE = '10,1636148068921376768,"Gaia DR3 10",2016.0,0.25,-45.5,1.5,false';
@@ -19,13 +20,6 @@ const ROW_TWO = "20,1636148068921376768,Gaia DR3 20,2016.0,359.75,90,5.5,false";
 
 function artifact(...rows: Array<string>): Uint8Array {
   return new TextEncoder().encode(`${[HEADER, ...rows].join("\n")}\n`);
-}
-
-function responseFor(bytes: Uint8Array): Response {
-  return {
-    ok: true,
-    arrayBuffer: async () => Uint8Array.from(bytes).buffer,
-  } as Response;
 }
 
 beforeEach(() => resetBrightStarContextCacheForTests());
@@ -44,7 +38,7 @@ describe("bright-star context canonical artifact", () => {
 
   it("loads once with a location-free same-origin request and reuses the result", async () => {
     const bytes = await readFile(resolve("public/data/gaia-dr3-bright-sky-context-v1.csv"));
-    const fetcher = vi.fn(async () => responseFor(bytes)) as unknown as typeof fetch;
+    const fetcher = vi.fn(async () => arrayBufferResponse(bytes)) as unknown as typeof fetch;
 
     const first = loadBrightStarContext(fetcher);
     const second = loadBrightStarContext(fetcher);

@@ -11,7 +11,7 @@ import {
   MESSIER_RIGHT_ASCENSION_QUANTITY_CODE,
   MESSIER_V2_RELEASE,
 } from "../src/lib/observation/domain";
-import { jsonResponse } from "./support/http";
+import { fetchRecording, jsonResponse } from "./support/http";
 
 const M31: EntitySummaryResponse = {
   canonical_name: "Messier 31",
@@ -25,20 +25,6 @@ const M42: EntitySummaryResponse = {
   id: "6d4bdbe9-2fdb-5f42-b56a-922f0789bd10",
   slug: "messier-42",
 };
-function fetchRecording(handler: (path: string) => Response | undefined): {
-  implementation: typeof fetch;
-  requests: Array<string>;
-} {
-  const requests: Array<string> = [];
-  const implementation = ((input: RequestInfo | URL) => {
-    const url = input instanceof URL ? input : new URL(String(input));
-    const path = `${url.pathname}${url.search}`;
-    requests.push(path);
-    return Promise.resolve(handler(path) ?? new Response("{}", { status: 500 }));
-  }) as unknown as typeof fetch;
-  return { implementation, requests };
-}
-
 function coordinateDetail(entityType: "galaxy" | "star" = "galaxy"): EntityDetailResponse {
   const source = {
     dataset: {

@@ -25,6 +25,7 @@ import {
   voyagerSampleYear,
   type VoyagerTrajectorySample,
 } from "../../../../lib/visualizations/voyager-1";
+import styles from "../../system-exploration.module.css";
 
 export function VoyagerTrajectoryExplorer({
   centerBodyName,
@@ -39,18 +40,17 @@ export function VoyagerTrajectoryExplorer({
   const sample = VOYAGER_SAMPLES[sampleIndex]!;
 
   return (
-    <section
-      aria-labelledby="voyager-trajectory-heading"
-      className="space-y-6 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-4xl space-y-3">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {formatMessageTemplate(messages.eyebrow, { provider: VOYAGER_HORIZONS_NAME })}
-        </p>
-        <h2 className="text-2xl font-semibold" id="voyager-trajectory-heading">
-          {formatMessageTemplate(messages.title, { mission: VOYAGER_MISSION_NAME })}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">
+    <section aria-labelledby="voyager-trajectory-heading" className={styles.instrument}>
+      <div className={styles.instrumentHeader}>
+        <div>
+          <p className={styles.instrumentEyebrow}>
+            {formatMessageTemplate(messages.eyebrow, { provider: VOYAGER_HORIZONS_NAME })}
+          </p>
+          <h2 className={styles.instrumentTitle} id="voyager-trajectory-heading">
+            {formatMessageTemplate(messages.title, { mission: VOYAGER_MISSION_NAME })}
+          </h2>
+        </div>
+        <p className={styles.instrumentDescription}>
           {formatMessageTemplate(messages.description, {
             center: centerBodyName,
             frame: VOYAGER_REFERENCE_FRAME_LABEL,
@@ -60,8 +60,8 @@ export function VoyagerTrajectoryExplorer({
         </p>
       </div>
 
-      <label className="block max-w-3xl space-y-2 font-semibold">
-        <span>
+      <label className={styles.rangeControl}>
+        <span className={styles.rangeLabel}>
           {formatMessageTemplate(messages.sampleLabel, {
             center: centerBodyName,
             distance: formatLocaleFixedNumber(sample.radius_au, 2, locale),
@@ -73,7 +73,7 @@ export function VoyagerTrajectoryExplorer({
           aria-label={formatMessageTemplate(messages.sliderAriaLabel, {
             mission: VOYAGER_MISSION_NAME,
           })}
-          className="min-h-11 w-full"
+          className={styles.rangeInput}
           max={VOYAGER_SAMPLES.length - 1}
           min={0}
           onChange={(event) => setSampleIndex(Number(event.currentTarget.value))}
@@ -83,7 +83,7 @@ export function VoyagerTrajectoryExplorer({
         />
       </label>
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className={styles.figureGrid}>
         <TrajectoryProjection
           centerBodyName={centerBodyName}
           messages={messages.projection}
@@ -127,15 +127,15 @@ function TrajectoryProjection({
   const selected = plot.points[selectedIndex]!;
 
   return (
-    <figure className="space-y-3 border border-[var(--border)] bg-[var(--surface)] p-4">
-      <figcaption className="space-y-1">
-        <span className="block font-semibold">
+    <figure className={styles.plotFigure}>
+      <figcaption className={styles.plotCaption}>
+        <span className={styles.plotTitle}>
           {formatMessageTemplate(messages.title, {
             frame: VOYAGER_REFERENCE_FRAME_LABEL,
             xyAxes: VOYAGER_XY_AXES_LABEL,
           })}
         </span>
-        <span className="block text-xs leading-5 text-[var(--muted)]">
+        <span className={styles.plotDescription}>
           {formatMessageTemplate(messages.description, {
             unit: VOYAGER_DISTANCE_UNIT,
             xAxis: VOYAGER_X_AXIS_LABEL,
@@ -149,7 +149,7 @@ function TrajectoryProjection({
           mission: VOYAGER_MISSION_NAME,
           xyAxes: VOYAGER_XY_AXES_LABEL,
         })}
-        className="h-auto w-full"
+        className={styles.plotSvg}
         role="img"
         viewBox="0 0 520 520"
       >
@@ -223,10 +223,10 @@ function DistanceHistory({
   const selected = plot.points[selectedIndex]!;
 
   return (
-    <figure className="space-y-3 border border-[var(--border)] bg-[var(--surface)] p-4">
-      <figcaption className="space-y-1">
-        <span className="block font-semibold">{messages.title}</span>
-        <span className="block text-xs leading-5 text-[var(--muted)]">
+    <figure className={styles.plotFigure}>
+      <figcaption className={styles.plotCaption}>
+        <span className={styles.plotTitle}>{messages.title}</span>
+        <span className={styles.plotDescription}>
           {formatMessageTemplate(messages.description, {
             formula: VOYAGER_RADIUS_FORMULA,
             provider: VOYAGER_HORIZONS_SHORT_NAME,
@@ -237,7 +237,7 @@ function DistanceHistory({
         aria-label={formatMessageTemplate(messages.ariaLabel, {
           mission: VOYAGER_MISSION_NAME,
         })}
-        className="h-auto w-full"
+        className={styles.plotSvg}
         role="img"
         viewBox={`0 0 ${plot.width} ${plot.height}`}
       >
@@ -302,14 +302,17 @@ function SelectedVector({
   sample: VoyagerTrajectorySample;
 }>) {
   return (
-    <section aria-labelledby="selected-voyager-vector-heading" className="space-y-4">
-      <h3 className="text-xl font-semibold" id="selected-voyager-vector-heading">
-        {formatMessageTemplate(messages.selectedVectorTitle, {
-          provider: VOYAGER_HORIZONS_SHORT_NAME,
-          year: formatLocaleNumber(voyagerSampleYear(sample), locale, { useGrouping: false }),
-        })}
-      </h3>
-      <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <section aria-labelledby="selected-voyager-vector-heading" className={styles.selectedPanel}>
+      <div>
+        <p className={styles.cardEyebrow}>{messages.vectorLabels.distance}</p>
+        <h3 className={styles.selectedTitle} id="selected-voyager-vector-heading">
+          {formatMessageTemplate(messages.selectedVectorTitle, {
+            provider: VOYAGER_HORIZONS_SHORT_NAME,
+            year: formatLocaleNumber(voyagerSampleYear(sample), locale, { useGrouping: false }),
+          })}
+        </h3>
+      </div>
+      <dl className={styles.vectorGrid}>
         <VectorFact
           label={formatMessageTemplate(messages.vectorLabels.epoch, {
             timeScale: VOYAGER_TIME_SCALE,
@@ -339,9 +342,9 @@ function SelectedVector({
 
 function VectorFact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)] p-3">
-      <dt className="text-xs text-[var(--muted)]">{label}</dt>
-      <dd className="mt-1 break-words font-mono text-sm">{value}</dd>
+    <div className={styles.metric}>
+      <dt className={styles.metricLabel}>{label}</dt>
+      <dd className={styles.factValue}>{value}</dd>
     </div>
   );
 }

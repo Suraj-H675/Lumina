@@ -11,6 +11,7 @@ import {
   type AtlasLayerId,
 } from "../../../lib/wwt/atlas";
 import type { WwtAtlasSession } from "../../../lib/wwt/client";
+import styles from "./deep-sky.module.css";
 
 type AtlasTarget = Readonly<{
   declinationDegrees: number;
@@ -297,30 +298,27 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
   }
 
   return (
-    <section
-      aria-labelledby="atlas-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-3xl space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h2 className="text-2xl font-semibold" id="atlas-heading">
-          {messages.header.title}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.header.intro}</p>
+    <section aria-labelledby="atlas-heading" className={styles.atlas}>
+      <div className={styles.atlasHeader}>
+        <div>
+          <p className={styles.atlasEyebrow}>{messages.header.eyebrow}</p>
+          <h2 className={styles.atlasTitle} id="atlas-heading">
+            {messages.header.title}
+          </h2>
+        </div>
+        <p className={styles.atlasIntro}>{messages.header.intro}</p>
       </div>
 
       <div
         aria-label={messages.canvasAriaLabel}
-        className="relative min-h-72 overflow-hidden border border-[var(--border)] bg-black sm:min-h-96"
+        className={styles.atlasFrame}
         id="nova-lumina-wwt-atlas"
         ref={containerRef}
       >
         {!active ? (
-          <div className="flex min-h-72 items-center justify-center p-6 text-center sm:min-h-96">
-            <div className="max-w-xl space-y-4">
-              <p className="text-[var(--muted)]">
+          <div className={styles.activation}>
+            <div className={styles.activationInner}>
+              <p>
                 {target === null
                   ? messages.activation.missingTarget
                   : formatMessageTemplate(messages.activation.readyForTarget, {
@@ -328,7 +326,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
                     })}
               </p>
               <button
-                className="min-h-11 border border-[var(--accent)] px-5 font-semibold text-[var(--link)] disabled:cursor-not-allowed disabled:opacity-60"
+                className={styles.primaryAction}
                 disabled={status.kind === "loading" || status.kind === "checking-survey"}
                 onClick={activate}
                 type="button"
@@ -346,13 +344,13 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
 
       <AtlasStatusMessage messages={messages.status} status={status} />
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <fieldset className="space-y-3 border border-[var(--border)] p-4">
-          <legend className="px-1 font-semibold">{messages.survey.legend}</legend>
-          <label className="block space-y-2">
-            <span className="text-sm text-[var(--muted)]">{messages.survey.wavelengthLabel}</span>
+      <div className={styles.controlsGrid}>
+        <fieldset className={styles.controlGroup}>
+          <legend className={styles.controlLegend}>{messages.survey.legend}</legend>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{messages.survey.wavelengthLabel}</span>
             <select
-              className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3"
+              className={styles.select}
               disabled={status.kind === "checking-survey" || status.kind === "loading"}
               onChange={(event) => void chooseLayer(event.target.value as AtlasLayerId)}
               value={layerId}
@@ -364,49 +362,37 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
               ))}
             </select>
           </label>
-          <p className="text-sm leading-6 text-[var(--muted)]">{activeLayer.interpretation}</p>
-          <p className="text-sm">
+          <p className={styles.controlText}>{activeLayer.interpretation}</p>
+          <p className={styles.controlText}>
             {messages.survey.creditLabel}: {activeLayer.creditText}{" "}
-            <a
-              className="text-[var(--link)] underline"
-              href={activeLayer.creditUrl}
-              rel="noreferrer"
-            >
+            <a className={styles.inlineLink} href={activeLayer.creditUrl} rel="noreferrer">
               {messages.survey.sourceDetails}
             </a>
           </p>
         </fieldset>
 
-        <fieldset className="space-y-3 border border-[var(--border)] p-4" disabled={!active}>
-          <legend className="px-1 font-semibold">{messages.view.legend}</legend>
-          <div className="flex flex-wrap gap-2">
+        <fieldset className={styles.controlGroup} disabled={!active}>
+          <legend className={styles.controlLegend}>{messages.view.legend}</legend>
+          <div className={styles.buttonRow}>
             <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
+              className={styles.controlButton}
               onClick={() => void focusTarget()}
               type="button"
             >
               {messages.view.focus}
             </button>
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
-              onClick={() => zoom(0.8)}
-              type="button"
-            >
+            <button className={styles.controlButton} onClick={() => zoom(0.8)} type="button">
               {messages.view.zoomIn}
             </button>
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
-              onClick={() => zoom(1.25)}
-              type="button"
-            >
+            <button className={styles.controlButton} onClick={() => zoom(1.25)} type="button">
               {messages.view.zoomOut}
             </button>
           </div>
-          <div aria-label={messages.view.panAriaLabel} className="grid max-w-48 grid-cols-3 gap-2">
+          <div aria-label={messages.view.panAriaLabel} className={styles.panGrid}>
             <span />
             <button
               aria-label={messages.view.panUp}
-              className="min-h-11 border border-[var(--border)]"
+              className={styles.controlButton}
               onClick={() => pan(0, -40)}
               type="button"
             >
@@ -415,7 +401,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
             <span />
             <button
               aria-label={messages.view.panLeft}
-              className="min-h-11 border border-[var(--border)]"
+              className={styles.controlButton}
               onClick={() => pan(-40, 0)}
               type="button"
             >
@@ -423,7 +409,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
             </button>
             <button
               aria-label={messages.view.panDown}
-              className="min-h-11 border border-[var(--border)]"
+              className={styles.controlButton}
               onClick={() => pan(0, 40)}
               type="button"
             >
@@ -431,7 +417,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
             </button>
             <button
               aria-label={messages.view.panRight}
-              className="min-h-11 border border-[var(--border)]"
+              className={styles.controlButton}
               onClick={() => pan(40, 0)}
               type="button"
             >
@@ -440,41 +426,33 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
           </div>
         </fieldset>
 
-        <fieldset className="space-y-3 border border-[var(--border)] p-4" disabled={!active}>
-          <legend className="px-1 font-semibold">{messages.time.legend}</legend>
-          <label className="block space-y-2">
-            <span className="text-sm text-[var(--muted)]">{messages.time.inputLabel}</span>
+        <fieldset className={styles.controlGroup} disabled={!active}>
+          <legend className={styles.controlLegend}>{messages.time.legend}</legend>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{messages.time.inputLabel}</span>
             <input
-              className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3 font-mono"
+              className={styles.input}
               onChange={(event) => setUtcInput(event.target.value)}
               placeholder="2026-09-15T18:30:00Z"
               type="text"
               value={utcInput}
             />
           </label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
-              onClick={applyUtcTime}
-              type="button"
-            >
+          <div className={styles.buttonRow}>
+            <button className={styles.controlButton} onClick={applyUtcTime} type="button">
               {messages.time.apply}
             </button>
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
-              onClick={useCurrentTime}
-              type="button"
-            >
+            <button className={styles.controlButton} onClick={useCurrentTime} type="button">
               {messages.time.useCurrent}
             </button>
           </div>
-          <p className="text-sm text-[var(--muted)]">{messages.time.help}</p>
+          <p className={styles.controlText}>{messages.time.help}</p>
         </fieldset>
 
-        <fieldset className="space-y-3 border border-[var(--border)] p-4" disabled={!active}>
-          <legend className="px-1 font-semibold">{messages.observer.legend}</legend>
-          <p className="text-sm leading-6 text-[var(--muted)]">{messages.observer.privacy}</p>
-          <div className="grid gap-3 sm:grid-cols-3">
+        <fieldset className={styles.controlGroup} disabled={!active}>
+          <legend className={styles.controlLegend}>{messages.observer.legend}</legend>
+          <p className={styles.controlText}>{messages.observer.privacy}</p>
+          <div className={styles.observerGrid}>
             <ObserverField
               label={messages.observer.latitudeLabel}
               max="90"
@@ -497,23 +475,15 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
               value={elevation}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
-              onClick={useLocation}
-              type="button"
-            >
+          <div className={styles.buttonRow}>
+            <button className={styles.controlButton} onClick={useLocation} type="button">
               {messages.observer.useLocation}
             </button>
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-3"
-              onClick={applyObserver}
-              type="button"
-            >
+            <button className={styles.controlButton} onClick={applyObserver} type="button">
               {messages.observer.apply}
             </button>
           </div>
-          <label className="flex min-h-11 items-center gap-3">
+          <label className={styles.toggle}>
             <input
               checked={localHorizon}
               onChange={(event) => toggleHorizon(event.target.checked)}
@@ -524,7 +494,7 @@ export function DeepSkyAtlas({ initialLayerId, messages, target }: Props) {
         </fieldset>
       </div>
 
-      <p className="text-sm leading-6 text-[var(--muted)]">
+      <p className={styles.rendererNote}>
         {formatMessageTemplate(messages.rendererDisclosure, {
           engineVersion: WWT_ENGINE_VERSION,
           helpersVersion: WWT_HELPERS_VERSION,
@@ -548,10 +518,10 @@ function ObserverField({
   value: string;
 }>) {
   return (
-    <label className="space-y-2">
-      <span className="text-sm">{label}</span>
+    <label className={styles.field}>
+      <span className={styles.fieldLabel}>{label}</span>
       <input
-        className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3"
+        className={styles.input}
         inputMode="decimal"
         max={max}
         min={min}
@@ -571,34 +541,34 @@ function AtlasStatusMessage({
   if (status.kind === "idle") return null;
   if (status.kind === "checking-survey")
     return (
-      <p aria-live="polite" role="status">
+      <p aria-live="polite" className={styles.status} role="status">
         {formatMessageTemplate(messages.checkingSurvey, { layerLabel: status.layerLabel })}
       </p>
     );
   if (status.kind === "loading")
     return (
-      <p aria-live="polite" role="status">
+      <p aria-live="polite" className={styles.status} role="status">
         {messages.loading}
       </p>
     );
   if (status.kind === "context-lost")
     return (
-      <p aria-live="polite" role="alert">
+      <p aria-live="polite" className={styles.status} role="alert">
         {messages.contextLost}
       </p>
     );
   if (status.kind === "error")
     return (
-      <p aria-live="polite" className="text-[var(--muted)]" role="alert">
+      <p aria-live="polite" className={styles.status} role="alert">
         {status.message}
       </p>
     );
   return status.message === undefined ? (
-    <p aria-live="polite" role="status">
+    <p aria-live="polite" className={styles.status} role="status">
       {messages.ready}
     </p>
   ) : (
-    <p aria-live="polite" role="status">
+    <p aria-live="polite" className={styles.status} role="status">
       {status.message}
     </p>
   );

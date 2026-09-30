@@ -16,6 +16,7 @@ import {
 } from "../../../lib/server/deep-sky";
 import { ATLAS_LAYERS, atlasLayerById, type AtlasLayerId } from "../../../lib/wwt/atlas";
 import { DeepSkyAtlas } from "./deep-sky-atlas";
+import styles from "./deep-sky.module.css";
 
 export function createDeepSkyMetadata(messages: DeepSkyMessages): Metadata {
   return {
@@ -86,46 +87,46 @@ export default async function DeepSkyPage({
       : null;
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-3xl space-y-4">
-        <Link
-          className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--muted)] underline underline-offset-4"
-          href="/explore"
-        >
-          {messages.header.backToExplore}
-        </Link>
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <Link className={styles.backLink} href="/explore">
+            {messages.header.backToExplore}
+          </Link>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+          <p className={styles.intro}>{messages.header.intro}</p>
+        </div>
+        <div className={styles.heroAside}>
+          <span>{messages.browse.summary}</span>
+          <span>{messages.layers.title}</span>
+        </div>
       </header>
 
       {invalidLayer ? (
-        <p className="border border-[var(--border)] p-4" role="alert">
+        <p className={styles.alert} role="alert">
           {messages.invalidLayer}
         </p>
       ) : null}
 
-      <section aria-labelledby="deep-sky-browse-heading" className="space-y-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 className="text-2xl font-semibold" id="deep-sky-browse-heading">
+      <section aria-labelledby="deep-sky-browse-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle} id="deep-sky-browse-heading">
             {messages.browse.title}
           </h2>
-          <span className="text-sm text-[var(--muted)]">{messages.browse.summary}</span>
         </div>
-        <DeepSkyBrowse
-          browse={browse}
-          entityTypeMessages={entityTypeMessages}
-          layerId={activeLayer.id}
-          locale={locale}
-          messages={messages.browse}
-          selectedSlug={
-            selection.kind === "none" ? null : "slug" in selection ? selection.slug : null
-          }
-        />
+        <div className={styles.sectionBody}>
+          <DeepSkyBrowse
+            browse={browse}
+            entityTypeMessages={entityTypeMessages}
+            layerId={activeLayer.id}
+            locale={locale}
+            messages={messages.browse}
+            selectedSlug={
+              selection.kind === "none" ? null : "slug" in selection ? selection.slug : null
+            }
+          />
+        </div>
       </section>
 
       <SelectedObject
@@ -137,22 +138,26 @@ export default async function DeepSkyPage({
 
       <DeepSkyAtlas initialLayerId={activeLayer.id} messages={messages.atlas} target={target} />
 
-      <section aria-labelledby="survey-links-heading" className="space-y-4">
-        <h2 className="text-2xl font-semibold" id="survey-links-heading">
-          {messages.layers.title}
-        </h2>
-        <p className="max-w-3xl leading-7 text-[var(--muted)]">{messages.layers.description}</p>
-        <ul className="grid list-none gap-3 p-0 sm:grid-cols-2">
+      <section aria-labelledby="survey-links-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle} id="survey-links-heading">
+            {messages.layers.title}
+          </h2>
+          <p className={styles.sectionSummary}>{messages.layers.description}</p>
+        </div>
+        <ul className={styles.layerList}>
           {ATLAS_LAYERS.map((layer) => {
             const selectedSlug = "slug" in selection ? selection.slug : undefined;
             const href = deepSkyHref(selectedSlug, layer.id);
             return (
-              <li className="border border-[var(--border)] p-4" key={layer.id}>
-                <Link className="font-semibold text-[var(--link)] underline" href={href}>
-                  {layer.label}
-                </Link>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{layer.interpretation}</p>
-                <p className="mt-2 text-sm">{layer.creditText}</p>
+              <li className={styles.layerItem} key={layer.id}>
+                <div>
+                  <Link className={styles.layerLink} href={href}>
+                    {layer.label}
+                  </Link>
+                  <p className={styles.layerCredit}>{layer.creditText}</p>
+                </div>
+                <p className={styles.layerDescription}>{layer.interpretation}</p>
               </li>
             );
           })}
@@ -179,20 +184,20 @@ function DeepSkyBrowse({
 }>) {
   if (browse.kind === "unavailable") {
     return (
-      <div className="border border-[var(--border)] p-5" role="status">
-        <h3 className="text-xl font-semibold">{messages.unavailableTitle}</h3>
-        <p className="mt-2 text-[var(--muted)]">{messages.unavailableDescription}</p>
+      <div className={styles.statePanel} role="status">
+        <h3>{messages.unavailableTitle}</h3>
+        <p>{messages.unavailableDescription}</p>
       </div>
     );
   }
   if (browse.items.length === 0) {
-    return <p className="text-[var(--muted)]">{messages.empty}</p>;
+    return <p className={styles.statusText}>{messages.empty}</p>;
   }
 
   return (
     <>
       {browse.unavailableTypes.length > 0 ? (
-        <p className="text-sm text-[var(--muted)]" role="status">
+        <p className={styles.statusText} role="status">
           {formatMessageTemplate(messages.unavailableTypes, {
             types: formatLocaleList(
               browse.unavailableTypes.map((entityType) => entityTypeMessages[entityType]),
@@ -203,7 +208,7 @@ function DeepSkyBrowse({
         </p>
       ) : null}
       {browse.truncatedTypes.length > 0 ? (
-        <p className="text-sm text-[var(--muted)]">
+        <p className={styles.statusText}>
           {formatMessageTemplate(messages.boundedSlice, {
             types: formatLocaleList(
               browse.truncatedTypes.map((entityType) => entityTypeMessages[entityType]),
@@ -213,25 +218,18 @@ function DeepSkyBrowse({
           })}
         </p>
       ) : null}
-      <ul
-        aria-label={messages.ariaLabel}
-        className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      <ul aria-label={messages.ariaLabel} className={styles.objectList}>
         {browse.items.map((item) => {
           const selected = item.slug === selectedSlug;
           return (
-            <li key={item.id}>
+            <li className={styles.objectItem} key={item.id}>
               <Link
                 aria-current={selected ? "page" : undefined}
-                className="flex min-h-20 flex-col justify-center border border-[var(--border)] bg-[var(--surface)] px-4 py-3 no-underline hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+                className={styles.objectLink}
                 href={deepSkyHref(item.slug, layerId)}
               >
-                <span className="font-semibold text-[var(--foreground)]">
-                  {item.canonical_name}
-                </span>
-                <span className="text-sm text-[var(--muted)]">
-                  {entityTypeMessages[item.entity_type]}
-                </span>
+                <span className={styles.objectName}>{item.canonical_name}</span>
+                <span className={styles.objectType}>{entityTypeMessages[item.entity_type]}</span>
               </Link>
             </li>
           );
@@ -254,14 +252,15 @@ function SelectedObject({
 }>) {
   if (selection.kind === "none") {
     return (
-      <section
-        aria-labelledby="selected-object-heading"
-        className="border border-[var(--border)] p-5 sm:p-7"
-      >
-        <h2 className="text-2xl font-semibold" id="selected-object-heading">
-          {messages.selectTitle}
-        </h2>
-        <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">{messages.selectDescription}</p>
+      <section aria-labelledby="selected-object-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle} id="selected-object-heading">
+            {messages.selectTitle}
+          </h2>
+        </div>
+        <div className={styles.statePanel}>
+          <p>{messages.selectDescription}</p>
+        </div>
       </section>
     );
   }
@@ -304,58 +303,49 @@ function SelectedObject({
 
   const { coordinate, detail, coordinateDisclosure, slug } = selection;
   return (
-    <section
-      aria-labelledby="selected-object-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.selectedEyebrow}
-        </p>
-        <h2 className="text-3xl font-semibold" id="selected-object-heading">
+    <section aria-labelledby="selected-object-heading" className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <p className={styles.selectedEyebrow}>{messages.selectedEyebrow}</p>
+        <h2 className={styles.sectionTitle} id="selected-object-heading">
           {detail.canonical_name}
         </h2>
-        <p className="text-[var(--muted)]">{entityTypeMessages[detail.entity_type]}</p>
+        <p className={styles.sectionSummary}>{entityTypeMessages[detail.entity_type]}</p>
       </div>
-      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CoordinateFact
-          label={messages.rightAscensionLabel}
-          value={`${coordinate.originalRightAscension}°`}
-        />
-        <CoordinateFact
-          label={messages.declinationLabel}
-          value={`${coordinate.originalDeclination}°`}
-        />
-        <CoordinateFact
-          label={messages.referenceEpochLabel}
-          value={`J${coordinate.epoch.toFixed(1)}`}
-        />
-        <CoordinateFact
-          label={messages.coordinateSourceLabel}
-          value={coordinate.source.provider.name}
-        />
-      </dl>
-      <div className="space-y-2 text-sm leading-6 text-[var(--muted)]">
-        <p>{formatCoordinateDisclosure(coordinateDisclosure, coordinateDisclosureMessages)}</p>
-        <p>
-          {messages.datasetLabel}: {coordinate.source.dataset.name} (
-          {coordinate.source.dataset.release_version}) · {messages.sourceRecordLabel}{" "}
-          <span className="font-mono">{coordinate.source.source_record_id}</span>.
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        <Link
-          className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
-          href={`/objects/${encodeURIComponent(slug)}`}
-        >
-          {messages.openObject}
-        </Link>
-        <Link
-          className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold text-[var(--link)]"
-          href={`/observe?object=${encodeURIComponent(slug)}`}
-        >
-          {messages.openPlanner}
-        </Link>
+      <div className={styles.selectedPanel}>
+        <dl className={styles.factGrid}>
+          <CoordinateFact
+            label={messages.rightAscensionLabel}
+            value={`${coordinate.originalRightAscension}°`}
+          />
+          <CoordinateFact
+            label={messages.declinationLabel}
+            value={`${coordinate.originalDeclination}°`}
+          />
+          <CoordinateFact
+            label={messages.referenceEpochLabel}
+            value={`J${coordinate.epoch.toFixed(1)}`}
+          />
+          <CoordinateFact
+            label={messages.coordinateSourceLabel}
+            value={coordinate.source.provider.name}
+          />
+        </dl>
+        <div className={styles.disclosure}>
+          <p>{formatCoordinateDisclosure(coordinateDisclosure, coordinateDisclosureMessages)}</p>
+          <p>
+            {messages.datasetLabel}: {coordinate.source.dataset.name} (
+            {coordinate.source.dataset.release_version}) · {messages.sourceRecordLabel}{" "}
+            <span className={styles.factValue}>{coordinate.source.source_record_id}</span>.
+          </p>
+        </div>
+        <div className={styles.actions}>
+          <Link className={styles.action} href={`/objects/${encodeURIComponent(slug)}`}>
+            {messages.openObject}
+          </Link>
+          <Link className={styles.action} href={`/observe?object=${encodeURIComponent(slug)}`}>
+            {messages.openPlanner}
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -363,9 +353,9 @@ function SelectedObject({
 
 function CoordinateFact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-      <dt className="text-sm text-[var(--muted)]">{label}</dt>
-      <dd className="mt-1 font-mono text-lg">{value}</dd>
+    <div className={styles.fact}>
+      <dt className={styles.factLabel}>{label}</dt>
+      <dd className={styles.factValue}>{value}</dd>
     </div>
   );
 }
@@ -375,15 +365,15 @@ function SelectionProblem({
   title,
 }: Readonly<{ children: React.ReactNode; title: string }>) {
   return (
-    <section
-      aria-labelledby="selected-object-heading"
-      className="border border-[var(--border)] p-5 sm:p-7"
-      role="status"
-    >
-      <h2 className="text-2xl font-semibold" id="selected-object-heading">
-        {title}
-      </h2>
-      <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">{children}</p>
+    <section aria-labelledby="selected-object-heading" className={styles.section} role="status">
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle} id="selected-object-heading">
+          {title}
+        </h2>
+      </div>
+      <div className={styles.statePanel}>
+        <p>{children}</p>
+      </div>
     </section>
   );
 }

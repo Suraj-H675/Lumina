@@ -403,6 +403,94 @@
   font-size: 0.76rem;
 }
 
+.rangeControl {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 54rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0 1.15rem;
+}
+
+.rangeLabel {
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.rangeInput {
+  width: 100%;
+  min-height: 2.75rem;
+  accent-color: var(--accent);
+}
+
+.rangeInput:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.figureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.plotFigure {
+  min-width: 0;
+  margin: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.1rem 1.25rem 1.35rem;
+}
+
+.plotFigure:last-child {
+  border-right: 0;
+}
+
+.plotCaption {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.plotTitle {
+  color: var(--foreground);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.plotDescription {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.plotSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 1rem;
+}
+
+.vectorGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.vectorGrid .metric {
+  border-right: 1px solid var(--border);
+  padding-left: 0.8rem;
+}
+
+.vectorGrid .metric:first-child {
+  padding-left: 0;
+}
+
+.vectorGrid .metric:last-child {
+  border-right: 0;
+}
+
 .scaleControls {
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
@@ -797,6 +885,18 @@
   .card {
     border-right: 0;
   }
+
+  .vectorGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vectorGrid .metric:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .vectorGrid .metric:nth-child(2n + 1):not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
 }
 
 @media (max-width: 62rem) {
@@ -810,6 +910,14 @@
 
   .heroRail {
     max-width: 34rem;
+  }
+
+  .figureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .plotFigure {
+    border-right: 0;
   }
 
   .sectionSummary {
@@ -839,6 +947,10 @@
     grid-template-columns: 1fr;
   }
 
+  .vectorGrid {
+    grid-template-columns: 1fr;
+  }
+
   .modelPanel,
   .formula,
   .provenanceFact,
@@ -846,6 +958,12 @@
   .selectLabel,
   .systemButton {
     border-right: 0;
+  }
+
+  .vectorGrid .metric,
+  .vectorGrid .metric:first-child {
+    border-right: 0;
+    padding-inline: 0;
   }
 
   .provenanceFactWide {

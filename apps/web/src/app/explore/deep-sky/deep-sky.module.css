@@ -1,0 +1,597 @@
+.page {
+  display: grid;
+  gap: clamp(4rem, 8vw, 7rem);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(16rem, 0.3fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(2.75rem, 6vw, 5rem);
+}
+
+.heroCopy {
+  min-width: 0;
+}
+
+.backLink,
+.action,
+.layerLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.backLink {
+  color: var(--muted);
+  font-weight: 560;
+}
+
+.backLink:hover,
+.action:hover,
+.layerLink:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.eyebrow,
+.selectedEyebrow,
+.atlasEyebrow,
+.factLabel {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin-top: 1.35rem;
+}
+
+.title {
+  max-width: 10ch;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.7rem, 8vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+}
+
+.intro {
+  max-width: 44rem;
+  margin: 1.45rem 0 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.heroAside {
+  display: grid;
+  gap: 0.7rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.alert {
+  max-width: 52rem;
+  border-top: 1px dashed var(--danger);
+  border-bottom: 1px dashed var(--border);
+  padding: 1rem 0;
+  color: var(--muted-strong);
+  line-height: 1.65;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle,
+.atlasTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sectionSummary {
+  max-width: 25rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.statusText {
+  max-width: 48rem;
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.objectList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.objectItem {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.objectItem:nth-child(3n) {
+  border-right: 0;
+}
+
+.objectLink {
+  display: grid;
+  min-height: 5.8rem;
+  align-content: center;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  color: var(--foreground);
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    padding-inline 160ms ease;
+}
+
+.objectLink:hover,
+.objectLink[aria-current="page"] {
+  background: color-mix(in srgb, var(--surface) 66%, transparent);
+  padding-inline: 1.2rem;
+}
+
+.objectLink[aria-current="page"] {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.objectName {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.objectType {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+}
+
+.statePanel {
+  max-width: 48rem;
+  border-top: 1px dashed var(--border-strong);
+  border-bottom: 1px dashed var(--border);
+  padding: 1.3rem 0 1.45rem;
+}
+
+.statePanel h2,
+.statePanel h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.statePanel p {
+  max-width: 44rem;
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.selectedPanel {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 0 1.35rem;
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.fact {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 1rem 1.05rem;
+}
+
+.fact:first-child {
+  padding-left: 0;
+}
+
+.fact:last-child {
+  border-right: 0;
+}
+
+.factLabel {
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.factValue {
+  margin: 0.55rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.disclosure {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.disclosure p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.35rem;
+  margin-top: 1rem;
+}
+
+.layerList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.layerItem {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.3fr) minmax(0, 0.7fr);
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.layerLink {
+  width: fit-content;
+}
+
+.layerDescription,
+.layerCredit {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.layerCredit {
+  margin-top: 0.35rem;
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+}
+
+.atlas {
+  display: grid;
+  gap: 1.5rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1.5rem;
+}
+
+.atlasHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 0.55fr) minmax(14rem, 0.45fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: end;
+}
+
+.atlasTitle {
+  margin-top: 0.55rem;
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+}
+
+.atlasIntro {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.atlasFrame {
+  position: relative;
+  min-height: 24rem;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: #000;
+}
+
+.activation {
+  display: grid;
+  min-height: 24rem;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.activationInner {
+  display: grid;
+  max-width: 34rem;
+  gap: 1rem;
+  justify-items: center;
+}
+
+.activationInner p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.primaryAction,
+.controlButton {
+  min-height: 2.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground);
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.primaryAction {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.primaryAction:disabled,
+.controlButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.controlsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.controlGroup {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.controlGroup:nth-child(2n) {
+  border-right: 0;
+}
+
+.controlLegend {
+  padding: 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.fieldLabel {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--background-raised);
+  color: var(--foreground);
+  padding: 0 0.7rem;
+  font-family: var(--font-data);
+  font-size: 0.76rem;
+}
+
+.controlText,
+.rendererNote,
+.status {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.inlineLink {
+  color: var(--foreground);
+  font-weight: 650;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 0.25rem;
+}
+
+.buttonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.1rem;
+  margin-top: 1rem;
+}
+
+.panGrid {
+  display: grid;
+  max-width: 10rem;
+  grid-template-columns: repeat(3, minmax(2.75rem, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+
+.panGrid .controlButton {
+  border: 1px solid var(--border);
+}
+
+.observerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.toggle {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+  color: var(--foreground);
+  font-size: 0.76rem;
+}
+
+.toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.rendererNote {
+  margin-top: 0;
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+}
+
+@media (max-width: 64rem) {
+  .hero,
+  .section,
+  .atlasHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .heroAside,
+  .sectionSummary,
+  .atlasIntro {
+    max-width: 42rem;
+  }
+
+  .objectList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .objectItem:nth-child(3n) {
+    border-right: 1px solid var(--border);
+  }
+
+  .objectItem:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .factGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 46rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.5rem, 18vw, 5.2rem);
+  }
+
+  .objectList,
+  .factGrid,
+  .controlsGrid,
+  .observerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .objectItem,
+  .objectItem:nth-child(2n),
+  .objectItem:nth-child(3n),
+  .fact,
+  .controlGroup,
+  .controlGroup:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .fact,
+  .fact:first-child {
+    padding-inline: 0;
+  }
+
+  .layerItem {
+    grid-template-columns: 1fr;
+  }
+
+  .atlasFrame,
+  .activation {
+    min-height: 18rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .action,
+  .layerLink,
+  .objectLink {
+    transition: none;
+  }
+}

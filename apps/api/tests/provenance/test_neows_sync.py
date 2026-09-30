@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Callable
-from contextlib import asynccontextmanager
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -11,6 +10,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
+from fakes.provider_runtime import no_timeout
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_neows_runtime_config
@@ -37,11 +37,6 @@ from pydantic import SecretStr
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 _KEY = SecretStr("fixture-neows-key-2026")
 _START = datetime(2026, 9, 12, 23, 59, tzinfo=UTC)
-
-
-@asynccontextmanager
-async def _no_timeout(_deadline: float) -> AsyncIterator[None]:
-    yield
 
 
 @dataclass
@@ -146,7 +141,7 @@ def _service(
         clock=clock,
         sleeper=sleeper,
         monotonic=lambda: 0.0,
-        timeout_at=_no_timeout,
+        timeout_at=no_timeout,
         lease_token_factory=lambda: "fixture-neows-lease",
     )
 

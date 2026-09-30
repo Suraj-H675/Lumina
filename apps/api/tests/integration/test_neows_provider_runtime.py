@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from fakes.provider_runtime import no_timeout, sleep_noop
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_neows_runtime_config
@@ -38,12 +38,6 @@ from .migration_lifecycle import run_migration_operation
 _NOW = datetime(2026, 9, 12, 12, 0, tzinfo=UTC)
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 _KEY = "fixture-neows-key-2026"
-
-
-@asynccontextmanager
-async def _no_timeout(_deadline: float) -> AsyncIterator[None]:
-    """Keep the database-backed cycle deterministic; deadlines have unit coverage."""
-    yield
 
 
 @dataclass
@@ -172,15 +166,11 @@ def _service(
         registry=StaticProviderRegistry({NEOWS_PROVIDER_CODE: registration}),
         store=context.store,
         clock=context.clock,
-        sleeper=lambda _delay: _completed_sleep(),
+        sleeper=sleep_noop,
         monotonic=lambda: 1.0,
-        timeout_at=_no_timeout,
+        timeout_at=no_timeout,
         lease_token_factory=lambda: "integration-neows-lease-token",
     )
-
-
-async def _completed_sleep() -> None:
-    return None
 
 
 @pytest.mark.asyncio

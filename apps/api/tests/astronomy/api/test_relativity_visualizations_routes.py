@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import anyio
 import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.relativity_visualizations_routes import router
@@ -26,15 +27,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
 
 
 def _query(
@@ -62,7 +54,7 @@ def test_relativity_visualizations_route_is_one_read_only_get_endpoint() -> None
 
 
 def test_relativity_visualizations_route_returns_exact_reference_case() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/relativity-visualizations?" + _query(),
     )
@@ -86,7 +78,7 @@ def test_relativity_visualizations_route_returns_exact_reference_case() -> None:
 
 
 def test_relativity_visualizations_route_returns_zero_speed_identity() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/relativity-visualizations?" + _query(relative_speed_fraction_c=0.0),
     )
@@ -112,7 +104,7 @@ def test_relativity_visualizations_route_rejects_transport_and_domain_violations
         base.replace("relative_speed_fraction_c=0.6", "relative_speed_fraction_c=not-a-number"),
     )
     for query in invalid_queries:
-        response = _request(
+        response = get_asgi(
             _app(),
             f"/api/v1/simulations/relativity-visualizations?{query}",
         )
@@ -127,7 +119,7 @@ def test_relativity_visualizations_route_rejects_transport_and_domain_violations
 
 
 def test_relativity_visualizations_route_rejects_missing_or_non_get_requests() -> None:
-    response = _request(
+    response = get_asgi(
         _app(),
         "/api/v1/simulations/relativity-visualizations?relative_speed_fraction_c=0.6",
     )

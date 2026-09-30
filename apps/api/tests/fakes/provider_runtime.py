@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Final
 
@@ -78,3 +80,14 @@ def timeout() -> ProviderFetchTimeout:
 def unavailable() -> ProviderFetchUnavailable:
     """Return a safe deterministic network failure."""
     return ProviderFetchUnavailable()
+
+
+@asynccontextmanager
+async def no_timeout(_deadline: float) -> AsyncIterator[None]:
+    """Provide a deterministic timeout boundary that never expires."""
+    yield
+
+
+async def sleep_noop(_delay: float) -> None:
+    """Provide a deterministic sleeper that completes immediately."""
+    return None

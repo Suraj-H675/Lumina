@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from fakes.provider_runtime import DeterministicNasaTransport, timeout
+from fakes.provider_runtime import DeterministicNasaTransport, sleep_noop, timeout
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import nasa_apod_runtime_config
@@ -371,10 +371,6 @@ class _Clock:
         return self.current
 
 
-async def _no_sleep(_delay: float) -> None:
-    return None
-
-
 def _service(
     transport: DeterministicNasaTransport,
     store: _ApodStore,
@@ -402,7 +398,7 @@ def _service(
         registry=registry,
         store=store,
         clock=clock,
-        sleeper=_no_sleep,
+        sleeper=sleep_noop,
         monotonic=lambda: 1.0,
         timeout_at=lambda _deadline: _NoTimeoutContext(),
         lease_token_factory=lambda: "fixture-apod-lease",

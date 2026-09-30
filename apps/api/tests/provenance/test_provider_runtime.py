@@ -6,7 +6,6 @@ import asyncio
 import hashlib
 import logging
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from logging.handlers import BufferingHandler
@@ -18,8 +17,10 @@ import pytest
 from fakes.provider_runtime import (
     VALID_COUNT_BODY,
     DeterministicNasaTransport,
+    no_timeout,
     oversized_response,
     response,
+    sleep_noop,
     timeout,
 )
 from lumina.provenance.application.registry import ProviderRegistration
@@ -64,12 +65,6 @@ from lumina.provenance.infrastructure.nasa_exoplanet_archive import (
 )
 
 _NOW = datetime(2026, 9, 10, 12, 0, tzinfo=UTC)
-
-
-@asynccontextmanager
-async def _no_timeout(_deadline: float) -> AsyncIterator[None]:
-    """Keep existing unit cases deterministic while deadline cases inject their own clock."""
-    yield
 
 
 @dataclass
@@ -283,15 +278,11 @@ def _service(
         registry=registry,
         store=store,
         clock=clock or SimpleNamespace(now=lambda: _NOW),
-        sleeper=sleeper or (lambda _delay: _completed_sleep()),
+        sleeper=sleeper or sleep_noop,
         monotonic=monotonic or (lambda: 10.0),
-        timeout_at=timeout_at or _no_timeout,
+        timeout_at=timeout_at or no_timeout,
         lease_token_factory=lease_token_factory or (lambda: "fixture-lease-token"),
     )
-
-
-async def _completed_sleep() -> None:
-    return None
 
 
 def test_static_registry_binds_manifest_and_runtime_policy_without_network() -> None:

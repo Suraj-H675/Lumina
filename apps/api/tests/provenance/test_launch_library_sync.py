@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -11,6 +9,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
+from fakes.provider_runtime import no_timeout, sleep_noop
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.composition import launch_library_runtime_config
@@ -36,15 +35,6 @@ from lumina.provenance.infrastructure.launch_library import (
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 _NOW = datetime(2026, 9, 15, 0, 0, tzinfo=UTC)
-
-
-@asynccontextmanager
-async def _no_timeout(_deadline: float) -> AsyncIterator[None]:
-    yield
-
-
-async def _sleep_noop(_delay: float) -> None:
-    return None
 
 
 @dataclass
@@ -136,9 +126,9 @@ def _service(transport: _ReplayTransport, store: _Store) -> ProviderSyncService:
         registry=StaticProviderRegistry({LL2_PROVIDER_CODE: registration}),
         store=cast(ProviderRuntimeStore, store),
         clock=_Clock(),
-        sleeper=_sleep_noop,
+        sleeper=sleep_noop,
         monotonic=lambda: 0.0,
-        timeout_at=_no_timeout,
+        timeout_at=no_timeout,
         lease_token_factory=lambda: "fixture-ll2-lease",
     )
 

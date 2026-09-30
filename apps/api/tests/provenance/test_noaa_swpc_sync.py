@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from fakes.provider_runtime import no_timeout
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.domain.provider import ProviderFetchTimeout, ProviderFetchUnavailable
@@ -124,11 +123,6 @@ class _Store:
         raise AssertionError("set_enabled is not used by this sync test")
 
 
-@asynccontextmanager
-async def _no_timeout(_deadline: float) -> AsyncIterator[None]:
-    yield
-
-
 def _service(
     transport: _Transport,
     store: _Store,
@@ -155,7 +149,7 @@ def _service(
         clock=type("Clock", (), {"now": lambda _self: _NOW})(),
         sleeper=sleeper,
         monotonic=monotonic,
-        timeout_at=_no_timeout,
+        timeout_at=no_timeout,
         lease_token_factory=lambda: "swpc-test-lease",
     )
 

@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from fakes.provider_runtime import no_timeout, sleep_noop
 from lumina.provenance.application.registry import ProviderRegistration, StaticProviderRegistry
 from lumina.provenance.application.sync import ProviderSyncService
 from lumina.provenance.domain.provider import ProviderFetchTimeout, ProviderFetchUnavailable
@@ -128,11 +127,6 @@ class _Store:
         raise AssertionError("set_enabled is not used by this sync test")
 
 
-@asynccontextmanager
-async def _no_timeout(_deadline: float) -> AsyncIterator[None]:
-    yield
-
-
 def _service(
     transport: _Transport,
     store: _Store,
@@ -159,13 +153,9 @@ def _service(
         clock=type("Clock", (), {"now": lambda _self: _NOW})(),
         sleeper=sleeper,
         monotonic=monotonic,
-        timeout_at=_no_timeout,
+        timeout_at=no_timeout,
         lease_token_factory=lambda: "panoptes-test-lease",
     )
-
-
-async def _no_sleep(_delay: float) -> None:
-    return None
 
 
 def test_retry_refetches_only_failed_panoptes_component() -> None:
@@ -214,7 +204,7 @@ def test_late_component_failure_never_publishes_partial_panoptes_snapshot() -> N
     )
     store = _Store()
 
-    report = asyncio.run(_service(transport, store, _no_sleep).sync(PANOPTES_PROVIDER_CODE))
+    report = asyncio.run(_service(transport, store, sleep_noop).sync(PANOPTES_PROVIDER_CODE))
 
     assert report.outcome is ProviderSyncOutcome.STALE_FALLBACK
     assert report.failure_code == "provider.transport_unavailable"
@@ -234,7 +224,7 @@ def test_identity_contract_failure_stops_before_later_components_and_keeps_body(
     transport = _Transport([_raw(0), _raw(1), _raw(2, body=malformed_body), _raw(3)])
     store = _Store()
 
-    report = asyncio.run(_service(transport, store, _no_sleep).sync(PANOPTES_PROVIDER_CODE))
+    report = asyncio.run(_service(transport, store, sleep_noop).sync(PANOPTES_PROVIDER_CODE))
 
     assert report.outcome is ProviderSyncOutcome.STALE_FALLBACK
     assert report.failure_code == "provider.payload_invalid"
@@ -270,7 +260,7 @@ def test_total_evidence_bound_rejects_without_publishing_snapshot() -> None:
         _service(
             transport,
             store,
-            _no_sleep,
+            sleep_noop,
             plan_factory=lambda: bounded_plan,
         ).sync(PANOPTES_PROVIDER_CODE)
     )
@@ -304,7 +294,7 @@ def test_request_cycle_deadline_is_shared_across_panoptes_attempts() -> None:
     store = _Store()
 
     report = asyncio.run(
-        _service(transport, store, _no_sleep, monotonic=monotonic).sync(PANOPTES_PROVIDER_CODE)
+        _service(transport, store, sleep_noop, monotonic=monotonic).sync(PANOPTES_PROVIDER_CODE)
     )
 
     assert report.outcome is ProviderSyncOutcome.STALE_FALLBACK
@@ -329,7 +319,7 @@ def test_expired_cache_failure_is_not_reported_as_stale_fallback() -> None:
         failure_stale_fallback=False,
     )
 
-    report = asyncio.run(_service(transport, store, _no_sleep).sync(PANOPTES_PROVIDER_CODE))
+    report = asyncio.run(_service(transport, store, sleep_noop).sync(PANOPTES_PROVIDER_CODE))
 
     assert report.outcome is ProviderSyncOutcome.UPSTREAM_FAILURE
     assert report.failure_code == "provider.transport_unavailable"

@@ -13,6 +13,7 @@ import type {
   JournalEntryMessages,
   ObjectMessages,
 } from "../lib/i18n/messages/types";
+import styles from "./object-view.module.css";
 
 type ObjectViewProps = Readonly<{
   collectionSaveMessages: CollectionSaveMessages;
@@ -48,162 +49,162 @@ export function ObjectView({
   );
 
   return (
-    <article className="space-y-12">
-      <header className="space-y-3">
-        <Link
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-[var(--muted)] underline decoration-[var(--border-strong)] underline-offset-4 transition-colors hover:text-[var(--foreground)]"
-          href="/explore"
-        >
-          {messages.header.backToExplore}
-        </Link>
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-[var(--foreground)] sm:text-5xl">
-          {title}
-        </h1>
-        <p className="text-lg text-[var(--muted)]">
-          {detail.quantities.length === 0
-            ? entityType
-            : formatCountMessage(
-                messages.header.measuredQuantities,
-                detail.quantities.length,
-                locale,
-                { entityType },
-              )}
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Link
-            className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--background)] no-underline transition-colors hover:bg-[var(--accent-strong)]"
-            href={`/observe?object=${encodeURIComponent(slug)}`}
-          >
-            <span aria-hidden="true">◒</span> {messages.header.observe}
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.identity}>
+          <Link className={styles.backLink} href="/explore">
+            {messages.header.backToExplore}
           </Link>
-          <Link
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
-            href={`/compare?object=${encodeURIComponent(slug)}`}
-          >
-            <span aria-hidden="true">⇄</span> {messages.header.compare}
-          </Link>
-          <SaveToCollectionsButton
-            identity={{
-              canonical_name: title,
-              entity_type: detail.entity_type,
-              slug,
-            }}
-            locale={locale}
-            messages={collectionSaveMessages}
-          />
-          <JournalEntryButton
-            entityId={detail.id}
-            messages={journalEntryMessages}
-            objectName={title}
-          />
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{title}</h1>
+          <p className={styles.descriptor}>
+            {detail.quantities.length === 0
+              ? entityType
+              : formatCountMessage(
+                  messages.header.measuredQuantities,
+                  detail.quantities.length,
+                  locale,
+                  { entityType },
+                )}
+          </p>
+        </div>
+        <div>
+          <nav aria-label={title} className={styles.actions}>
+            <Link
+              className={styles.primaryAction}
+              href={`/observe?object=${encodeURIComponent(slug)}`}
+            >
+              <span>{messages.header.observe}</span>
+              <span aria-hidden="true" className={styles.actionGlyph}>
+                ◒
+              </span>
+            </Link>
+            <Link
+              className={styles.secondaryAction}
+              href={`/compare?object=${encodeURIComponent(slug)}`}
+            >
+              <span>{messages.header.compare}</span>
+              <span aria-hidden="true" className={styles.actionGlyph}>
+                ⇄
+              </span>
+            </Link>
+          </nav>
+          <div className={styles.utilityActions}>
+            <SaveToCollectionsButton
+              identity={{
+                canonical_name: title,
+                entity_type: detail.entity_type,
+                slug,
+              }}
+              locale={locale}
+              messages={collectionSaveMessages}
+            />
+            <JournalEntryButton
+              entityId={detail.id}
+              messages={journalEntryMessages}
+              objectName={title}
+            />
+          </div>
         </div>
       </header>
 
-      <section aria-labelledby="object-data-heading" className="space-y-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 className="text-xl font-semibold" id="object-data-heading">
+      <section aria-labelledby="object-data-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.header.eyebrow}</p>
+          <h2 className={styles.sectionTitle} id="object-data-heading">
             {messages.science.heading}
           </h2>
-          <span className="text-sm text-[var(--muted)]">{messages.science.summary}</span>
+          <p className={styles.sectionSummary}>{messages.science.summary}</p>
         </div>
 
-        {measuredQuantities.length === 0 && unselectedQuantities.length === 0 ? (
-          <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.science.empty}</p>
-        ) : (
-          <>
-            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
-              {measuredQuantities.map((entry) => {
-                const selection = entry.current_selection;
-                if (selection === null) return null;
-                const { measurement } = selection;
-                return (
-                  <div
-                    className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4"
-                    key={entry.quantity.code}
-                  >
-                    <dt className="text-sm font-medium text-[var(--muted)]">
-                      {entry.quantity.name}
-                    </dt>
-                    <dd className="mt-1.5">
-                      <span className="font-mono text-2xl tracking-tight text-[var(--foreground)]">
-                        {formatMeasurementValue(measurement.value)}
-                      </span>{" "}
-                      <span className="text-sm text-[var(--accent)]">
-                        {measurement.unit.symbol}
-                      </span>
-                      <span className="mt-1 block text-xs text-[var(--muted)]">
-                        {formatCountMessage(
-                          messages.science.measurementDetails,
-                          entry.measurement_count,
-                          locale,
-                          {
-                            originalUnit: measurement.original_unit,
-                            originalValue: measurement.original_value,
-                          },
-                        )}
-                      </span>
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-            {unselectedQuantities.length > 0 ? (
-              <p className="text-sm leading-6 text-[var(--muted)]">
-                {formatMessageTemplate(messages.science.unselected, {
-                  quantities: unselectedQuantities.map((entry) => entry.quantity.name).join(", "),
+        <div>
+          {measuredQuantities.length === 0 && unselectedQuantities.length === 0 ? (
+            <p className={styles.empty}>{messages.science.empty}</p>
+          ) : (
+            <>
+              <dl className={styles.measurements}>
+                {measuredQuantities.map((entry) => {
+                  const selection = entry.current_selection;
+                  if (selection === null) return null;
+                  const { measurement } = selection;
+                  return (
+                    <div className={styles.measurement} key={entry.quantity.code}>
+                      <dt className={styles.measurementName}>{entry.quantity.name}</dt>
+                      <dd className={styles.measurementValue}>
+                        <span className={styles.value}>
+                          {formatMeasurementValue(measurement.value)}
+                        </span>
+                        <span className={styles.unit}>{measurement.unit.symbol}</span>
+                        <span className={styles.measurementDetail}>
+                          {formatCountMessage(
+                            messages.science.measurementDetails,
+                            entry.measurement_count,
+                            locale,
+                            {
+                              originalUnit: measurement.original_unit,
+                              originalValue: measurement.original_value,
+                            },
+                          )}
+                        </span>
+                      </dd>
+                    </div>
+                  );
                 })}
-              </p>
-            ) : null}
-          </>
-        )}
-      </section>
-
-      <section aria-labelledby="object-provenance-heading" className="space-y-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] pb-2">
-          <h2 className="text-xl font-semibold" id="object-provenance-heading">
-            {messages.provenance.heading}
-          </h2>
-          <span className="text-sm text-[var(--muted)]">{messages.provenance.summary}</span>
-        </div>
-        {provenanceRows.length === 0 ? (
-          <p className="leading-7 text-[var(--muted)]">{messages.provenance.empty}</p>
-        ) : (
-          <ul className="grid list-none gap-3 p-0 md:grid-cols-2">
-            {provenanceRows.map((row) => (
-              <li
-                className="rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-4 py-4"
-                key={row.recordId}
-              >
-                <p className="font-medium text-[var(--foreground)]">{row.providerName}</p>
-                <p className="mt-0.5 text-sm text-[var(--muted)]">
-                  {row.datasetName} ({row.releaseVersion})
-                </p>
-                <p className="mt-1 text-sm text-[var(--muted)]">
-                  {formatMessageTemplate(messages.provenance.sourceRecord, {
-                    recordId: row.recordId,
+              </dl>
+              {unselectedQuantities.length > 0 ? (
+                <p className={styles.unselected}>
+                  {formatMessageTemplate(messages.science.unselected, {
+                    quantities: unselectedQuantities.map((entry) => entry.quantity.name).join(", "),
                   })}
                 </p>
-                {row.quantityNames.length > 0 ? (
-                  <p className="mt-2 text-sm text-[var(--muted)]">
-                    {formatMessageTemplate(messages.provenance.covers, {
-                      quantities: row.quantityNames.join(", "),
+              ) : null}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section aria-labelledby="object-provenance-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.provenance.heading}</p>
+          <h2 className={styles.sectionTitle} id="object-provenance-heading">
+            {messages.provenance.heading}
+          </h2>
+          <p className={styles.sectionSummary}>{messages.provenance.summary}</p>
+        </div>
+        {provenanceRows.length === 0 ? (
+          <p className={styles.empty}>{messages.provenance.empty}</p>
+        ) : (
+          <ul className={styles.provenanceList}>
+            {provenanceRows.map((row) => (
+              <li className={styles.provenanceRow} key={row.recordId}>
+                <div>
+                  <p className={styles.provider}>{row.providerName}</p>
+                  <p className={styles.dataset}>
+                    {row.datasetName} ({row.releaseVersion})
+                  </p>
+                </div>
+                <div className={styles.sourceDetails}>
+                  <p className={styles.sourceRecord}>
+                    {formatMessageTemplate(messages.provenance.sourceRecord, {
+                      recordId: row.recordId,
                     })}
                   </p>
-                ) : null}
+                  {row.quantityNames.length > 0 ? (
+                    <p className={styles.covers}>
+                      {formatMessageTemplate(messages.provenance.covers, {
+                        quantities: row.quantityNames.join(", "),
+                      })}
+                    </p>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <footer className="border-t border-[var(--border)] pt-6">
-        <Link
-          className="inline-flex min-h-11 items-center gap-2 font-medium text-[var(--link)] underline"
-          href="/explore"
-        >
+      <footer className={styles.footer}>
+        <Link className={styles.footerLink} href="/explore">
           {messages.footerBackToExplore}
         </Link>
       </footer>

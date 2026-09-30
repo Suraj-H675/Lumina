@@ -4,17 +4,13 @@ import struct
 import zlib
 
 import pytest
+from fakes.raster import png_chunk
 from lumina.identification.domain.remote_raster import SanitizedRemoteRaster, sanitize_remote_raster
 from lumina.identification.domain.uploads import (
     UploadMalformed,
     UploadValidationPolicy,
     validate_raster_upload,
 )
-
-
-def _chunk(kind: bytes, data: bytes) -> bytes:
-    crc = zlib.crc32(kind + data) & 0xFFFFFFFF
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", crc)
 
 
 def _policy() -> UploadValidationPolicy:
@@ -27,12 +23,12 @@ def _png_with_metadata() -> bytes:
     rows = b"".join(b"\x00" + b"\x00" * (width * 3) for _ in range(height))
     return (
         b"\x89PNG\r\n\x1a\n"
-        + _chunk(b"IHDR", ihdr)
-        + _chunk(b"tEXt", b"GPS=private-location")
-        + _chunk(b"eXIf", b"Exif-private-metadata")
-        + _chunk(b"tRNS", b"\x00\x01\x00\x02\x00\x03")
-        + _chunk(b"IDAT", zlib.compress(rows))
-        + _chunk(b"IEND", b"")
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"tEXt", b"GPS=private-location")
+        + png_chunk(b"eXIf", b"Exif-private-metadata")
+        + png_chunk(b"tRNS", b"\x00\x01\x00\x02\x00\x03")
+        + png_chunk(b"IDAT", zlib.compress(rows))
+        + png_chunk(b"IEND", b"")
     )
 
 

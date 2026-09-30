@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import struct
-import zlib
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
@@ -10,6 +9,7 @@ from uuid import UUID
 
 import pytest
 from astropy.io import fits
+from fakes.raster import png_chunk
 from lumina.identification.application.remote_polling import RemoteSolvePollingService
 from lumina.identification.domain.nova import (
     NovaAnnotation,
@@ -46,19 +46,14 @@ _SUBMISSION_ID = UUID("73000000-0000-4000-8000-000000000001")
 _KEY = PrivateObjectKey("b" * 32)
 
 
-def _chunk(kind: bytes, data: bytes) -> bytes:
-    checksum = zlib.crc32(kind + data) & 0xFFFFFFFF
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", checksum)
-
-
 def _png_with_metadata() -> bytes:
     ihdr = struct.pack(">IIBBBBB", 32, 32, 8, 2, 0, 0, 0)
     return (
         b"\x89PNG\r\n\x1a\n"
-        + _chunk(b"IHDR", ihdr)
-        + _chunk(b"tEXt", b"Comment\x00private-metadata")
-        + _chunk(b"IDAT", b"fixture")
-        + _chunk(b"IEND", b"")
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"tEXt", b"Comment\x00private-metadata")
+        + png_chunk(b"IDAT", b"fixture")
+        + png_chunk(b"IEND", b"")
     )
 
 

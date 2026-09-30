@@ -3,34 +3,16 @@
 from __future__ import annotations
 
 import hashlib
-import struct
-import zlib
 from dataclasses import dataclass
 
 import pytest
+from fakes.raster import black_rgb_png
 from lumina.identification.application.uploads import (
     StoreValidatedUploadService,
     UploadStorageIntegrityError,
 )
 from lumina.identification.domain.storage import PrivateObjectKey, StoredPrivateObject
 from lumina.identification.domain.uploads import UploadTooLarge, UploadValidationPolicy
-
-
-def _chunk(kind: bytes, data: bytes) -> bytes:
-    crc = zlib.crc32(kind + data) & 0xFFFFFFFF
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", crc)
-
-
-def _png() -> bytes:
-    width = height = 8
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
-    rows = b"".join(b"\x00" + b"\x00" * (width * 3) for _ in range(height))
-    return (
-        b"\x89PNG\r\n\x1a\n"
-        + _chunk(b"IHDR", ihdr)
-        + _chunk(b"IDAT", zlib.compress(rows))
-        + _chunk(b"IEND", b"")
-    )
 
 
 @dataclass
@@ -68,7 +50,7 @@ def _service(store: FakeStore, *, max_bytes: int = 1_000_000) -> StoreValidatedU
 
 def test_validation_precedes_storage_and_returns_only_safe_metadata() -> None:
     store = FakeStore()
-    content = _png()
+    content = black_rgb_png(8, 8)
     result = _service(store).store(content, declared_media_type="image/png")
 
     assert store.put_calls == 1
@@ -79,7 +61,7 @@ def test_validation_precedes_storage_and_returns_only_safe_metadata() -> None:
 
 def test_rejected_upload_never_reaches_private_store() -> None:
     store = FakeStore()
-    content = _png()
+    content = black_rgb_png(8, 8)
     with pytest.raises(UploadTooLarge):
         _service(store, max_bytes=len(content) - 1).store(content, declared_media_type="image/png")
     assert store.put_calls == 0
@@ -88,5 +70,5 @@ def test_rejected_upload_never_reaches_private_store() -> None:
 def test_storage_integrity_mismatch_is_deleted_and_fails_closed() -> None:
     store = FakeStore(corrupt=True)
     with pytest.raises(UploadStorageIntegrityError):
-        _service(store).store(_png(), declared_media_type="image/png")
+        _service(store).store(black_rgb_png(8, 8), declared_media_type="image/png")
     assert store.deleted == [PrivateObjectKey("d" * 32)]

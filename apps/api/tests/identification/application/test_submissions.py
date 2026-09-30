@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import hashlib
-import struct
-import zlib
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest
+from fakes.raster import black_rgb_png
 from lumina.identification.application.submissions import (
     CreateSubmissionService,
     DeleteSubmissionService,
@@ -35,23 +34,6 @@ from lumina.identification.domain.uploads import UploadMediaType, UploadValidati
 _NOW = datetime(2026, 9, 15, 12, tzinfo=UTC)
 _SUBMISSION_ID = UUID("61000000-0000-4000-8000-000000000001")
 _DEFAULT_KEY = PrivateObjectKey("e" * 32)
-
-
-def _chunk(kind: bytes, data: bytes) -> bytes:
-    crc = zlib.crc32(kind + data) & 0xFFFFFFFF
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", crc)
-
-
-def _png() -> bytes:
-    width = height = 8
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
-    rows = b"".join(b"\x00" + b"\x00" * (width * 3) for _ in range(height))
-    return (
-        b"\x89PNG\r\n\x1a\n"
-        + _chunk(b"IHDR", ihdr)
-        + _chunk(b"IDAT", zlib.compress(rows))
-        + _chunk(b"IEND", b"")
-    )
 
 
 @dataclass
@@ -216,7 +198,7 @@ async def test_create_stores_first_then_persists_bounded_private_metadata() -> N
     )
 
     result = await service.create(
-        _png(),
+        black_rgb_png(8, 8),
         original_filename=r"C:\private\night.png",
         declared_media_type="image/png",
     )
@@ -243,7 +225,7 @@ async def test_database_create_failure_removes_already_written_private_object() 
 
     with pytest.raises(SubmissionStorageFailure):
         await service.create(
-            _png(),
+            black_rgb_png(8, 8),
             original_filename="night.png",
             declared_media_type="image/png",
         )
@@ -435,7 +417,7 @@ async def test_remote_start_creates_exact_nova_consent_pair_and_remote_state() -
     remote_state = FakeRemoteStateCreator()
 
     result = await _remote_start_service(store, repository, remote_state).start(
-        _png(),
+        black_rgb_png(8, 8),
         original_filename="night.png",
         declared_media_type="image/png",
     )
@@ -456,7 +438,7 @@ async def test_remote_state_creation_failure_deletes_private_upload_and_scrubs_m
 
     with pytest.raises(RuntimeError, match="remote-state-failed"):
         await _remote_start_service(store, repository, remote_state).start(
-            _png(),
+            black_rgb_png(8, 8),
             original_filename="night.png",
             declared_media_type="image/png",
         )

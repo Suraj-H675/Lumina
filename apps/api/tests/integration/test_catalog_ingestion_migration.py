@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from threading import Event, Thread
 from time import monotonic, sleep
@@ -16,10 +16,12 @@ from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
+    expect_integrity_error,
     historical_migration_identity,
     historical_runtime_url,
     historical_sync_url,
     migration_config,
+    migration_revision,
     normalize_historical_database_to_b2,
     read_historical_revision,
     run_alembic,
@@ -117,10 +119,6 @@ def _runtime_url(settings: IntegrationTestSettings) -> URL:
     return historical_runtime_url(settings).set(drivername="postgresql+psycopg")
 
 
-def _revision(connection: Connection) -> str | None:
-    return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
-
-
 def _run_rolled_back(
     settings: IntegrationTestSettings,
     operation: Callable[[Connection], None],
@@ -134,15 +132,6 @@ def _run_rolled_back(
             transaction.rollback()
 
     run_migration_operation(historical_sync_url(settings), execute)
-
-
-def _expect_integrity_error(
-    connection: Connection,
-    statement: str,
-    parameters: Mapping[str, object] | None = None,
-) -> None:
-    with pytest.raises(IntegrityError), connection.begin_nested():
-        connection.execute(text(statement), parameters or {})
 
 
 def _insert_graph(
@@ -286,7 +275,7 @@ def test_phase1a3_schema_trigger_and_conflict_contract_are_exact(
     historical_test_database: None,
 ) -> None:
     def assert_schema(connection: Connection) -> None:
-        assert _revision(connection) == _PHASE_1A3_HEAD
+        assert migration_revision(connection) == _PHASE_1A3_HEAD
         assert _table_names(connection) == {"alembic_version", "job", *_CATALOG_TABLES}
 
         columns = {
@@ -472,7 +461,7 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
             {"id": _MEASUREMENT_ID},
         ).one()
         assert tuple(row) == ("1.2300", "1.2300", "fixture unit")
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO measurement "
             "(id, entity_id, source_record_id, quantity_id, unit_id, value_numeric, "
@@ -486,7 +475,7 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
                 "unit_id": _UNIT_ID,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO measurement "
             "(id, entity_id, source_record_id, quantity_id, unit_id, value_numeric, "
@@ -500,7 +489,7 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
                 "unit_id": _UNIT_ID,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO measurement "
             "(id, entity_id, source_record_id, quantity_id, unit_id, value_numeric, "
@@ -523,7 +512,7 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
             ),
             {"fingerprint": "c" * 64, "provider_id": _PROVIDER_ID},
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO ingestion_conflict "
             "(fingerprint, category, provider_id, dataset_id, incoming_evidence) "
@@ -535,7 +524,7 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
                 "dataset_id": _DATASET_ID,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO ingestion_conflict "
             "(fingerprint, category, measurement_id, source_fact_key, incoming_evidence, "
@@ -543,7 +532,7 @@ def test_source_truth_and_conflict_constraints_preserve_exact_contract(
             ":measurement_id, 'fixture.field', '{}'::jsonb, 'open', CURRENT_TIMESTAMP)",
             {"fingerprint": "e" * 64, "measurement_id": _MEASUREMENT_ID},
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO ingestion_conflict "
             "(fingerprint, category, provider_id, incoming_evidence) "
@@ -586,7 +575,7 @@ def test_source_resolution_trigger_allows_only_one_unmeasured_null_to_uuid_trans
                 {"entity_id": _ENTITY_B_ID, "source_id": _SOURCE_ID},
             ),
         ):
-            _expect_integrity_error(connection, statement, parameters)
+            expect_integrity_error(connection, statement, parameters)
 
     _run_rolled_back(integration_settings, exercise, historical_test_database)
 
@@ -872,7 +861,7 @@ def test_upgrade_and_downgrade_refuse_unbackfillable_or_immutable_rows(
                     connection, identity, _PHASE_1A3_HEAD, downgrade=False
                 ),
             )
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
+        assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A2_HEAD
 
         def clean_parent(connection: Connection) -> None:
             connection.execute(text("DELETE FROM source_record"))
@@ -898,7 +887,7 @@ def test_upgrade_and_downgrade_refuse_unbackfillable_or_immutable_rows(
                     connection, identity, _PHASE_1A2_HEAD, downgrade=True
                 ),
             )
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
+        assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A3_HEAD
 
         def clean_head(connection: Connection) -> None:
             _delete_graph(connection)
@@ -996,7 +985,7 @@ def test_downgrade_locks_before_emptiness_guard_preserve_concurrent_ingestion(
         assert len(failures) == 1
         assert type(failures[0]) is RuntimeError
         assert str(failures[0]) == "Runtime ACL migration precondition failed."
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
+        assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A3_HEAD
         assert (
             run_migration_operation(
                 sync_url,
@@ -1067,7 +1056,7 @@ def test_downgrade_refuses_resolution_function_body_drift(
                         connection, identity, _PHASE_1A2_HEAD, downgrade=True
                     ),
                 )
-            assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
+            assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A3_HEAD
         finally:
 
             def restore_function_body(connection: Connection) -> None:
@@ -1090,20 +1079,20 @@ def test_clean_upgrade_downgrade_and_reupgrade_restore_the_parent(
             lambda connection: run_alembic(connection, identity, _PHASE_1A2_HEAD, downgrade=True),
         )
         try:
-            assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
+            assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A2_HEAD
             run_migration_operation(
                 sync_url,
                 lambda connection: run_alembic(
                     connection, identity, _PHASE_1A3_HEAD, downgrade=False
                 ),
             )
-            assert run_migration_operation(sync_url, _revision) == _PHASE_1A3_HEAD
+            assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A3_HEAD
             run_migration_operation(
                 sync_url,
                 lambda connection: run_alembic(
                     connection, identity, _PHASE_1A2_HEAD, downgrade=True
                 ),
             )
-            assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
+            assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A2_HEAD
         finally:
             pass

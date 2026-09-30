@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from uuid import UUID
 
@@ -10,14 +10,16 @@ import pytest
 from alembic.script import ScriptDirectory
 from lumina.settings import IntegrationTestSettings
 from sqlalchemy import URL, Connection, create_engine, text
-from sqlalchemy.exc import DataError, IntegrityError, ProgrammingError
+from sqlalchemy.exc import DataError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
+    expect_integrity_error,
     historical_migration_identity,
     historical_runtime_url,
     historical_sync_url,
     migration_config,
+    migration_revision,
     run_alembic,
     run_migration_operation,
 )
@@ -132,10 +134,6 @@ _EXPECTED_INDEXES = {
 }
 
 
-def _revision(connection: Connection) -> str | None:
-    return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
-
-
 _ACCEPTED_HISTORICAL_REVISIONS = frozenset(
     {
         "0002_grant_job_runtime_dml",
@@ -148,7 +146,9 @@ _ACCEPTED_HISTORICAL_REVISIONS = frozenset(
 )
 
 
-def _history_revision(integration_settings: IntegrationTestSettings) -> str | None:
+def _history_revision(
+    integration_settings: IntegrationTestSettings,
+) -> str | None:
     from .migration_lifecycle import historical_sync_url, run_migration_operation
 
     revision = run_migration_operation(
@@ -198,15 +198,6 @@ def _run_rolled_back(
             transaction.rollback()
 
     run_migration_operation(historical_sync_url(integration_settings), execute)
-
-
-def _expect_integrity_error(
-    connection: Connection,
-    statement: str,
-    parameters: Mapping[str, object],
-) -> None:
-    with pytest.raises(IntegrityError), connection.begin_nested():
-        connection.execute(text(statement), parameters)
 
 
 def _insert_provider(connection: Connection, provider_id: UUID, code: str) -> None:
@@ -356,7 +347,7 @@ def test_catalog_columns_constraints_indexes_and_collations_are_exact(
     _phase1a1_schema: None,
 ) -> None:
     def assert_catalog(connection: Connection) -> None:
-        assert _revision(connection) == _REVISION
+        assert migration_revision(connection) == _REVISION
         assert _table_names(connection) == {"alembic_version", "job", *_TABLES}
 
         for table_name in _TABLES:
@@ -507,7 +498,7 @@ def test_upgrade_from_phase0_downgrade_and_reupgrade(
     try:
 
         def assert_phase0(connection: Connection) -> None:
-            assert _revision(connection) == _PHASE_0_HEAD
+            assert migration_revision(connection) == _PHASE_0_HEAD
             assert _table_names(connection) == {"alembic_version", "job"}
 
         run_migration_operation(sync_url, assert_phase0)
@@ -517,7 +508,7 @@ def test_upgrade_from_phase0_downgrade_and_reupgrade(
         )
 
         def assert_phase1a1(connection: Connection) -> None:
-            assert _revision(connection) == _REVISION
+            assert migration_revision(connection) == _REVISION
             assert _table_names(connection) == {"alembic_version", "job", *_TABLES}
 
         run_migration_operation(sync_url, assert_phase1a1)
@@ -566,7 +557,7 @@ def test_uuid_null_and_timestamp_semantics(
             == _ENTITY_A
         )
 
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO source_record "
             "(id, provider_id, dataset_id, provider_record_id, provider_version) "
@@ -596,7 +587,7 @@ def test_identity_checks_and_case_sensitive_uniqueness(
     def exercise(connection: Connection) -> None:
         _insert_provider(connection, _PROVIDER_A, "Fixture.Provider")
         _insert_provider(connection, _PROVIDER_B, "fixture.provider")
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO provider "
             "(id, code, name, documentation_url, terms_url, attribution_text) "
@@ -607,13 +598,13 @@ def test_identity_checks_and_case_sensitive_uniqueness(
 
         _insert_entity(connection, _ENTITY_A, name="Duplicate Fixture Name")
         _insert_entity(connection, _ENTITY_B, name="Duplicate Fixture Name")
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO entity (id, entity_type, canonical_name) "
             "VALUES (:id, 'unapproved_type', 'Fixture Invalid Type')",
             {"id": UUID("30000000-0000-4000-8000-000000000003")},
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO entity (id, entity_type, canonical_name) VALUES (:id, 'star', '   ')",
             {"id": UUID("30000000-0000-4000-8000-000000000004")},
@@ -631,7 +622,7 @@ def test_identity_checks_and_case_sensitive_uniqueness(
             UUID("20000000-0000-4000-8000-000000000003"),
             _PROVIDER_B,
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO dataset "
             "(id, provider_id, code, name, release_version, source_url, licence, citation) "
@@ -645,7 +636,7 @@ def test_identity_checks_and_case_sensitive_uniqueness(
         )
 
         _insert_source_record(connection, _SOURCE_A, _PROVIDER_A, _DATASET_A)
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO source_record "
             "(id, provider_id, dataset_id, provider_record_id, provider_version, fetched_at) "
@@ -692,7 +683,7 @@ def test_invalid_fk_states_and_source_record_fields_are_rejected(
         _insert_provider(connection, _PROVIDER_B, "fixture.provider")
         _insert_dataset(connection, _DATASET_A, _PROVIDER_A)
 
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO dataset "
             "(id, provider_id, code, name, release_version, source_url, licence, citation) "
@@ -704,7 +695,7 @@ def test_invalid_fk_states_and_source_record_fields_are_rejected(
                 "provider_id": UUID("10000000-0000-4000-8000-000000000099"),
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO source_record "
             "(id, provider_id, dataset_id, provider_record_id, provider_version, fetched_at) "
@@ -716,7 +707,7 @@ def test_invalid_fk_states_and_source_record_fields_are_rejected(
                 "fetched_at": _FETCHED_AT,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO source_record "
             "(id, provider_id, dataset_id, provider_record_id, provider_version, "
@@ -746,7 +737,7 @@ def test_invalid_fk_states_and_source_record_fields_are_rejected(
                 "fetched_at": _FETCHED_AT,
             }
             values[field] = value
-            _expect_integrity_error(
+            expect_integrity_error(
                 connection,
                 "INSERT INTO source_record "
                 "(id, provider_id, dataset_id, provider_record_id, provider_version, "
@@ -782,7 +773,7 @@ def test_fk_updates_and_deletes_are_restrictive(
                 {"id": _ENTITY_A, "replacement": _ENTITY_B},
             ),
         ):
-            _expect_integrity_error(connection, statement, parameters)
+            expect_integrity_error(connection, statement, parameters)
 
         connection.execute(text("DELETE FROM source_record WHERE id = :id"), {"id": _SOURCE_A})
         connection.execute(text("DELETE FROM dataset WHERE id = :id"), {"id": _DATASET_A})
@@ -937,7 +928,7 @@ def test_acl_drift_refuses_downgrade_without_partial_changes(
                 ),
             )
         assert run_migration_operation(sync_url, _table_names) == before
-        assert run_migration_operation(sync_url, _revision) == _REVISION
+        assert run_migration_operation(sync_url, migration_revision) == _REVISION
     finally:
         run_migration_operation(sync_url, revoke)
         run_migration_operation(

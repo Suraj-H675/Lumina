@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID
@@ -16,10 +16,12 @@ from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.pool import NullPool
 
 from .migration_lifecycle import (
+    expect_integrity_error,
     historical_migration_identity,
     historical_runtime_url,
     historical_sync_url,
     migration_config,
+    migration_revision,
     normalize_historical_database_to_b2,
     read_historical_revision,
     run_alembic,
@@ -165,10 +167,6 @@ def _head() -> str:
     return heads[0]
 
 
-def _revision(connection: Connection) -> str | None:
-    return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
-
-
 def _run_rolled_back_at_phase(
     settings: IntegrationTestSettings,
     operation: Callable[[Connection], None],
@@ -183,15 +181,6 @@ def _run_rolled_back_at_phase(
             transaction.rollback()
 
     run_migration_operation(historical_sync_url(settings), execute)
-
-
-def _expect_integrity_error(
-    connection: Connection,
-    statement: str,
-    parameters: Mapping[str, object] | None = None,
-) -> None:
-    with pytest.raises(IntegrityError), connection.begin_nested():
-        connection.execute(text(statement), parameters or {})
 
 
 def _insert_provider_dataset_entity_source(
@@ -348,7 +337,7 @@ def test_phase1a2_catalogue_is_exact_and_has_no_deferred_schema(
     historical_test_database: None,
 ) -> None:
     def assert_schema(connection: Connection) -> None:
-        assert _revision(connection) == _PHASE_1A2_HEAD
+        assert migration_revision(connection) == _PHASE_1A2_HEAD
         assert _table_names(connection) == {
             "alembic_version",
             "job",
@@ -584,7 +573,7 @@ def test_quantity_unit_is_the_only_compatibility_boundary(
                 },
             )
 
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO measurement "
             "(id, entity_id, source_record_id, quantity_id, unit_id, value_numeric) "
@@ -621,7 +610,7 @@ def test_quantity_unit_is_the_only_compatibility_boundary(
                 {"id": UUID("55000000-0000-4000-8000-000000000011")},
             ),
         ):
-            _expect_integrity_error(connection, statement, parameters)
+            expect_integrity_error(connection, statement, parameters)
 
     _run_rolled_back_at_phase(integration_settings, exercise)
 
@@ -704,7 +693,7 @@ def test_measurement_numeric_decimal_is_finite_and_provenance_is_required(
             )
 
         for offset, value in enumerate(("NaN", "Infinity", "-Infinity"), start=11):
-            _expect_integrity_error(
+            expect_integrity_error(
                 connection,
                 "INSERT INTO measurement "
                 "(id, entity_id, source_record_id, quantity_id, unit_id, value_numeric) "
@@ -735,7 +724,7 @@ def test_measurement_numeric_decimal_is_finite_and_provenance_is_required(
                 "fetched_at": _SELECTED_AT,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO measurement "
             "(id, entity_id, source_record_id, quantity_id, unit_id, value_numeric) "
@@ -748,7 +737,7 @@ def test_measurement_numeric_decimal_is_finite_and_provenance_is_required(
                 "unit_id": _UNIT_ID,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO measurement "
             "(id, entity_id, quantity_id, unit_id, value_numeric) "
@@ -805,13 +794,13 @@ def test_measurement_and_canonical_entity_quantity_closure(
             "selection_version = 'invalid version'",
             "explanation = '   '",
         ):
-            _expect_integrity_error(
+            expect_integrity_error(
                 connection,
                 f"UPDATE canonical_measurement SET {assignment} WHERE id = :id",
                 {"id": _CANONICAL_A},
             )
 
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO canonical_measurement "
             "(id, entity_id, quantity_id, measurement_id, selection_rule, selection_version, "
@@ -825,7 +814,7 @@ def test_measurement_and_canonical_entity_quantity_closure(
                 "selected_at": _SELECTED_AT,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO canonical_measurement "
             "(id, entity_id, quantity_id, measurement_id, selection_rule, selection_version, "
@@ -839,7 +828,7 @@ def test_measurement_and_canonical_entity_quantity_closure(
                 "selected_at": _SELECTED_AT,
             },
         )
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO canonical_measurement "
             "(id, entity_id, quantity_id, measurement_id, selection_rule, selection_version, "
@@ -906,7 +895,7 @@ def test_canonical_active_uniqueness_and_replacement_history(
             },
         ).scalar_one()
         assert first_selected_at.tzinfo is not None
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "INSERT INTO canonical_measurement "
             "(id, entity_id, quantity_id, measurement_id, selection_rule, selection_version, "
@@ -925,7 +914,7 @@ def test_canonical_active_uniqueness_and_replacement_history(
         )
 
         earlier = first_selected_at - timedelta(seconds=1)
-        _expect_integrity_error(
+        expect_integrity_error(
             connection,
             "UPDATE canonical_measurement SET superseded_at = :superseded_at WHERE id = :id",
             {"id": _CANONICAL_A, "superseded_at": earlier},
@@ -1144,7 +1133,7 @@ def assert_revision_and_tables(
     revision: str,
 ) -> None:
     """Assert lifecycle revision and the table set implied by that revision."""
-    assert _revision(connection) == revision
+    assert migration_revision(connection) == revision
     if revision == _PHASE_1A1_HEAD:
         expected = {"alembic_version", "job", "provider", "entity", "dataset", "source_record"}
     else:
@@ -1213,6 +1202,6 @@ def test_phase1a2_downgrade_fails_closed_on_schema_or_acl_drift(
                 ),
             )
         assert run_migration_operation(sync_url, _table_names) == before
-        assert run_migration_operation(sync_url, _revision) == _PHASE_1A2_HEAD
+        assert run_migration_operation(sync_url, migration_revision) == _PHASE_1A2_HEAD
     finally:
         execute(repair)

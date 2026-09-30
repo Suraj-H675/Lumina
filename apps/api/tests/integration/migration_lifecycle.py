@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Final
@@ -17,7 +17,7 @@ from lumina.shared.infrastructure.database.migration_identity import (
 )
 from sqlalchemy import URL, Connection, create_engine, text
 from sqlalchemy.engine import make_url
-from sqlalchemy.exc import InterfaceError, OperationalError
+from sqlalchemy.exc import IntegrityError, InterfaceError, OperationalError
 from sqlalchemy.pool import NullPool
 
 from .database_safety import require_local_test_database
@@ -69,6 +69,26 @@ def execute_integration_sql(
         return rows
 
     return run_migration_operation(sync_url, operation)
+
+
+def migration_revision(connection: Connection) -> str | None:
+    """Return the Alembic revision visible on one migration connection."""
+    return connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
+
+
+def read_migration_revision(url: URL) -> str | None:
+    """Read the Alembic revision through a guarded migration connection."""
+    return run_migration_operation(url, migration_revision)
+
+
+def expect_integrity_error(
+    connection: Connection,
+    statement: str,
+    parameters: Mapping[str, object] | None = None,
+) -> None:
+    """Assert one statement fails without aborting the surrounding transaction."""
+    with pytest.raises(IntegrityError), connection.begin_nested():
+        connection.execute(text(statement), parameters or {})
 
 
 def public_table_names(connection: Connection) -> set[str]:

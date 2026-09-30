@@ -6,7 +6,7 @@ import re
 
 import pytest
 from lumina.settings import IntegrationTestSettings
-from sqlalchemy import URL, Connection, text
+from sqlalchemy import URL
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 
@@ -15,20 +15,12 @@ from .migration_lifecycle import (
     historical_sync_url,
     normalize_historical_database_to_b2,
     open_migration_connection,
+    read_migration_revision,
     run_alembic,
     run_migration_operation,
 )
 
 _HISTORICAL_B2 = "b7f3a2c81d4e"
-
-
-def _revision(url: URL) -> str | None:
-    def query(connection: Connection) -> str | None:
-        return connection.execute(
-            text("SELECT version_num FROM alembic_version")
-        ).scalar_one_or_none()
-
-    return run_migration_operation(url, query)
 
 
 def test_upgrade_downgrade_and_reupgrade(
@@ -43,13 +35,13 @@ def test_upgrade_downgrade_and_reupgrade(
     run_migration_operation(
         sync_url, lambda c: run_alembic(c, identity, "c4b9e2d7a6f1", downgrade=True)
     )
-    assert _revision(sync_url) == "c4b9e2d7a6f1"
+    assert read_migration_revision(sync_url) == "c4b9e2d7a6f1"
 
     try:
         run_migration_operation(
             sync_url, lambda c: run_alembic(c, identity, _HISTORICAL_B2, downgrade=False)
         )
-        assert _revision(sync_url) == _HISTORICAL_B2
+        assert read_migration_revision(sync_url) == _HISTORICAL_B2
     finally:
         normalize_historical_database_to_b2(integration_settings)
 

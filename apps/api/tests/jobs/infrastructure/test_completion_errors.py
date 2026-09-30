@@ -9,6 +9,7 @@ from typing import cast
 from uuid import UUID
 
 import pytest
+from fakes.tasks import pending_tasks
 from lumina.jobs.domain.completion import (
     CompleteJobRequest,
     JobCompletionContention,
@@ -676,22 +677,8 @@ async def _assert_deadline_cleanup(
     assert pool.checked_out == 0
     for session in sessions:
         assert session.in_transaction() is False or session.discarded
-    current = asyncio.current_task()
-    pending_after = {
-        cast(asyncio.Task[object], task)
-        for task in asyncio.all_tasks()
-        if task is not current and not task.done()
-    }
+    pending_after = pending_tasks()
     assert pending_after <= pending_before
-
-
-def _pending_tasks() -> set[asyncio.Task[object]]:
-    current = asyncio.current_task()
-    return {
-        cast(asyncio.Task[object], task)
-        for task in asyncio.all_tasks()
-        if task is not current and not task.done()
-    }
 
 
 @pytest.mark.asyncio
@@ -700,7 +687,7 @@ async def test_confirmed_commit_closes_with_inactive_transaction_and_safe_pool()
     connection = _DeadlineConnection(pool, backend_pid=101, primary=True)
     primary = _DeadlineSession(connection)
     store, _ = _deadline_store(primary, [])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     completed = await asyncio.wait_for(store.complete(_request()), timeout=1)
 
@@ -723,7 +710,7 @@ async def test_connection_invalidation_quarantines_ambiguous_primary() -> None:
     reconciliation_connection = _DeadlineConnection(pool, backend_pid=202, primary=False)
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     completed = await asyncio.wait_for(store.complete(_request()), timeout=1)
 
@@ -753,7 +740,7 @@ async def test_session_invalidation_quarantines_when_connection_invalidation_fai
     reconciliation_connection = _DeadlineConnection(pool, backend_pid=202, primary=False)
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     completed = await asyncio.wait_for(store.complete(_request()), timeout=1)
 
@@ -796,7 +783,7 @@ async def test_failed_invalidations_detach_pool_before_close_and_prevent_reuse(
         invalidate=session_invalidation,
     )
     store, factory = _deadline_store(primary, [])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobCompletionOutcomeUnknown) as failure:
@@ -856,7 +843,7 @@ async def test_hanging_reconciliation_acquisition_is_bounded_and_discarded() -> 
         acquisition="hang",
     )
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobCompletionOutcomeUnknown):
@@ -885,7 +872,7 @@ async def test_hanging_reconciliation_rollback_is_bounded_and_discarded() -> Non
         rollback="hang",
     )
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobCompletionOutcomeUnknown):
@@ -916,7 +903,7 @@ async def test_never_settling_commit_is_bounded_and_reconciliation_is_attempted(
     )
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobCompletionDatabaseOperationFailure) as failure:
@@ -942,7 +929,7 @@ async def test_hanging_commit_can_reconcile_exact_completion_once() -> None:
     reconciliation_connection = _DeadlineConnection(pool, backend_pid=202, primary=False)
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     completed = await asyncio.wait_for(store.complete(_request()), timeout=1)
 
@@ -970,7 +957,7 @@ async def test_completion_reconciliation_attempt_mismatch_is_fatal_unknown() -> 
     )
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     with pytest.raises(JobCompletionOutcomeUnknown):
         await asyncio.wait_for(store.complete(_request()), timeout=1)
@@ -996,7 +983,7 @@ async def test_hanging_commit_without_fresh_backend_is_bounded_unknown() -> None
         for _ in range(3)
     ]
     store, factory = _deadline_store(primary, reconciliations)
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     with pytest.raises(JobCompletionOutcomeUnknown) as failure:
         await asyncio.wait_for(store.complete(_request()), timeout=1)
@@ -1025,7 +1012,7 @@ async def test_hanging_reconciliation_query_is_bounded_unknown() -> None:
     )
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobCompletionOutcomeUnknown):
@@ -1055,7 +1042,7 @@ async def test_hanging_primary_quarantine_or_close_is_bounded_unknown(
         close="hang" if lifecycle == "close" else "success",
     )
     store, _ = _deadline_store(primary, [])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     with pytest.raises(JobCompletionOutcomeUnknown):
         await asyncio.wait_for(store.complete(_request()), timeout=1)
@@ -1076,7 +1063,7 @@ async def test_hanging_reconciliation_close_is_bounded_unknown() -> None:
     reconciliation_connection = _DeadlineConnection(pool, backend_pid=202, primary=False)
     reconciliation = _DeadlineSession(reconciliation_connection, close="hang")
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
 
     with pytest.raises(JobCompletionOutcomeUnknown):
         await asyncio.wait_for(store.complete(_request()), timeout=1)
@@ -1098,7 +1085,7 @@ async def test_post_update_cancellation_settles_through_reconciliation() -> None
     reconciliation_connection = _DeadlineConnection(pool, backend_pid=202, primary=False)
     reconciliation = _DeadlineSession(reconciliation_connection)
     store, _ = _deadline_store(primary, [reconciliation])
-    pending_before = _pending_tasks()
+    pending_before = pending_tasks()
     task = asyncio.create_task(store.complete(_request()))
 
     await asyncio.wait_for(primary.commit_started.wait(), timeout=1)

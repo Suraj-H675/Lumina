@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import anyio
 import httpx
+from fakes.http import request_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.sync import ProviderSyncReport
@@ -54,21 +54,18 @@ def _request(
     provider: str | None = "nasa-exoplanet-archive",
     content: bytes = b"",
 ) -> httpx.Response:
-    async def send() -> httpx.Response:
-        headers = {}
-        if token is not None:
-            headers["Authorization"] = f"Bearer {token}"
-        if provider is not None:
-            headers["X-Lumina-Provider-Code"] = provider
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.post(
-                "/api/v1/providers/internal-sync",
-                headers=headers,
-                content=content,
-            )
-
-    return anyio.run(send)
+    headers = {}
+    if token is not None:
+        headers["Authorization"] = f"Bearer {token}"
+    if provider is not None:
+        headers["X-Lumina-Provider-Code"] = provider
+    return request_asgi(
+        app,
+        "POST",
+        "/api/v1/providers/internal-sync",
+        headers=headers,
+        content=content,
+    )
 
 
 def test_scheduler_route_fails_closed_without_configured_or_valid_token() -> None:

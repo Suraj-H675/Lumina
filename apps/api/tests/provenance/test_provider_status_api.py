@@ -5,8 +5,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime, timedelta
 
-import anyio
-import httpx
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.sync import ProviderRuntimeError
@@ -35,15 +34,6 @@ def _app() -> FastAPI:
             }
         )
     )
-
-
-def _request(app: FastAPI) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get("/api/v1/providers/status")
-
-    return anyio.run(send)
 
 
 def _snapshot(*, enabled: bool = False) -> ProviderStatusSnapshot:
@@ -181,7 +171,7 @@ def test_status_is_safe_and_does_not_expose_cached_payload_or_endpoint() -> None
     app.state.provider_registry = production_provider_registry()
     app.state.provider_sync_service = _StatusService(_snapshot(enabled=False))
 
-    response = _request(app)
+    response = get_asgi(app, "/api/v1/providers/status")
 
     assert response.status_code == 200
     body = response.json()
@@ -235,7 +225,7 @@ def test_status_failure_is_safe_and_does_not_leak_exception_detail() -> None:
     app.state.provider_registry = production_provider_registry()
     app.state.provider_sync_service = _StatusService(ProviderRuntimeError())
 
-    response = _request(app)
+    response = get_asgi(app, "/api/v1/providers/status")
 
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "provider.status_unavailable"
@@ -249,7 +239,7 @@ def test_status_reads_the_finite_provider_set_concurrently() -> None:
     service = _ConcurrentStatusService(_snapshot(enabled=False))
     app.state.provider_sync_service = service
 
-    response = _request(app)
+    response = get_asgi(app, "/api/v1/providers/status")
 
     assert response.status_code == 200
     assert service.max_active == 7

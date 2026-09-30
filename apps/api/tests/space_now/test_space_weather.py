@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import anyio
-import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import (
@@ -154,15 +153,6 @@ def _app(service: SpaceWeatherReadService) -> FastAPI:
     return application
 
 
-def _request(application: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=application)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 @pytest.mark.asyncio
 async def test_projection_keeps_scale_families_statuses_units_and_timestamps_distinct() -> None:
     reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
@@ -215,7 +205,7 @@ async def test_projection_has_explicit_unavailable_states(
 
 
 def test_public_space_weather_response_is_cache_only_and_safe() -> None:
-    response = _request(
+    response = get_asgi(
         _app(
             SpaceWeatherReadService(
                 _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
@@ -262,7 +252,7 @@ def test_public_space_weather_rejects_noncanonical_persisted_ordering() -> None:
         stale_until=canonical.stale_until,
     )
 
-    response = _request(
+    response = get_asgi(
         _app(
             SpaceWeatherReadService(
                 _Reader(_snapshot(cache=corrupted, cache_state=CacheState.FRESH))
@@ -309,7 +299,7 @@ def test_public_space_weather_response_keeps_complete_notifications_within_trans
         fresh_until=large_cache.fresh_until,
         stale_until=large_cache.stale_until,
     )
-    response = _request(
+    response = get_asgi(
         _app(
             SpaceWeatherReadService(
                 _Reader(_snapshot(cache=large_cache, cache_state=CacheState.FRESH))
@@ -327,7 +317,7 @@ def test_public_space_weather_response_keeps_complete_notifications_within_trans
 
 def test_public_space_weather_route_rejects_query_parameters_without_reading_state() -> None:
     reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
-    response = _request(
+    response = get_asgi(
         _app(SpaceWeatherReadService(reader)),
         "/api/v1/now/space-weather?refresh=true",
     )
@@ -338,7 +328,7 @@ def test_public_space_weather_route_rejects_query_parameters_without_reading_sta
 
 
 def test_public_space_weather_route_uses_standard_safe_read_error() -> None:
-    response = _request(
+    response = get_asgi(
         _app(SpaceWeatherReadService(_Reader(ProviderSnapshotReadError()))),
         "/api/v1/now/space-weather",
     )

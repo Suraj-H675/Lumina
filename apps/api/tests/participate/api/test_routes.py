@@ -3,8 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-import anyio
-import httpx
+from fakes.http import request_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
@@ -128,15 +127,6 @@ class _Reader:
         return self.snapshot
 
 
-def _request(app: FastAPI, path: str, *, method: str = "GET") -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.request(method, path)
-
-    return anyio.run(send)
-
-
 def test_participate_route_is_one_read_only_get_endpoint() -> None:
     routes = [route for route in router.routes if isinstance(route, APIRoute)]
     assert len(routes) == 1
@@ -145,7 +135,7 @@ def test_participate_route_is_one_read_only_get_endpoint() -> None:
 
 
 def test_participate_returns_reviewed_content_and_current_status_within_normal_ceiling() -> None:
-    response = _request(_app(), "/api/v1/participate")
+    response = request_asgi(_app(), "GET", "/api/v1/participate")
 
     assert response.status_code == 200
     assert len(response.content) < 61_440
@@ -180,8 +170,8 @@ def test_participate_returns_reviewed_content_and_current_status_within_normal_c
 
 def test_participate_rejects_query_parameters_and_non_get_methods() -> None:
     app = _app()
-    query = _request(app, "/api/v1/participate?location=somewhere")
-    post = _request(app, "/api/v1/participate", method="POST")
+    query = request_asgi(app, "GET", "/api/v1/participate?location=somewhere")
+    post = request_asgi(app, "POST", "/api/v1/participate")
 
     assert query.status_code == 422
     assert query.json()["error"]["code"] == "request.validation_failed"
@@ -200,7 +190,7 @@ def test_participate_fails_closed_when_read_service_raises() -> None:
     app = _app()
     app.state.participate_read_service = FailingService()
 
-    response = _request(app, "/api/v1/participate")
+    response = request_asgi(app, "GET", "/api/v1/participate")
 
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "participate.unavailable"

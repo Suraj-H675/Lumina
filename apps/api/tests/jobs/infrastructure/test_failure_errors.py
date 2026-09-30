@@ -9,6 +9,7 @@ from typing import cast
 from uuid import UUID
 
 import pytest
+from fakes.tasks import pending_tasks
 from lumina.jobs.domain.failure import (
     FailJobRequest,
     FailureClassification,
@@ -447,15 +448,6 @@ def _cleanup_store(
     )
 
 
-def _pending_tasks() -> set[asyncio.Task[object]]:
-    current = asyncio.current_task()
-    return {
-        cast(asyncio.Task[object], task)
-        for task in asyncio.all_tasks()
-        if task is not current and not task.done()
-    }
-
-
 async def _assert_cleanup_settled(
     *,
     before: set[asyncio.Task[object]],
@@ -465,11 +457,7 @@ async def _assert_cleanup_settled(
     scheduler_turn = asyncio.Event()
     asyncio.get_running_loop().call_soon(scheduler_turn.set)
     await asyncio.wait_for(scheduler_turn.wait(), timeout=1)
-    after = {
-        cast(asyncio.Task[object], task)
-        for task in asyncio.all_tasks()
-        if task is not asyncio.current_task() and not task.done()
-    }
+    after = pending_tasks()
     assert after <= before
     if terminal_confirmed:
         assert session.transaction_active is False or session.connection_value.reusable is False
@@ -503,7 +491,7 @@ async def test_zero_row_with_hanging_rollback_is_bounded_and_keeps_ownership_los
     pool = _CleanupPool()
     connection = _CleanupConnection(pool)
     session = _CleanupSession(connection, rollback="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobOwnershipLost):
@@ -524,7 +512,7 @@ async def test_sql_error_with_hanging_rollback_is_bounded_and_keeps_category() -
     pool = _CleanupPool()
     connection = _CleanupConnection(pool, failure="sql_error")
     session = _CleanupSession(connection, rollback="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobFailureDatabaseOperationFailure):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -540,7 +528,7 @@ async def test_malformed_returned_evidence_uses_bounded_cleanup_and_keeps_catego
     pool = _CleanupPool()
     connection = _CleanupConnection(pool, failure="malformed")
     session = _CleanupSession(connection, rollback="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobFailureDatabaseStateFailure):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -556,7 +544,7 @@ async def test_cancellation_with_hanging_rollback_is_bounded_and_propagates() ->
     pool = _CleanupPool()
     connection = _CleanupConnection(pool, failure="cancel")
     session = _CleanupSession(connection, rollback="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(asyncio.CancelledError):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -571,7 +559,7 @@ async def test_successful_rollback_with_hanging_close_uses_physical_quarantine()
     pool = _CleanupPool()
     connection = _CleanupConnection(pool)
     session = _CleanupSession(connection, close="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobOwnershipLost):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -588,7 +576,7 @@ async def test_failed_rollback_uses_physical_invalidation_before_close() -> None
     pool = _CleanupPool()
     connection = _CleanupConnection(pool)
     session = _CleanupSession(connection, rollback="error")
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobOwnershipLost):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -605,7 +593,7 @@ async def test_session_invalidation_follows_failed_physical_invalidation() -> No
     pool = _CleanupPool()
     connection = _CleanupConnection(pool, invalidate="error")
     session = _CleanupSession(connection, rollback="error")
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobOwnershipLost):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -626,7 +614,7 @@ async def test_pool_replacement_follows_failed_rollback_and_invalidations() -> N
         rollback="error",
         invalidate="error",
     )
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobOwnershipLost):
         await asyncio.wait_for(_cleanup_store(session).fail(_request()), timeout=1)
@@ -653,7 +641,7 @@ async def test_failed_quarantine_is_bounded_skips_close_and_uses_safe_error(
         invalidate="error",
         close="error",
     )
-    before = _pending_tasks()
+    before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobFailureDatabaseOperationFailure) as failure:
@@ -690,7 +678,7 @@ async def test_cleanup_deadline_exhaustion_cancels_and_observes_every_task() -> 
         invalidate="hang",
         close="hang",
     )
-    before = _pending_tasks()
+    before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobFailureDatabaseOperationFailure):
@@ -717,7 +705,7 @@ async def test_cancelled_acquisition_uses_bounded_cleanup_and_observes_task() ->
     pool = _CleanupPool()
     connection = _CleanupConnection(pool)
     session = _CleanupSession(connection, acquisition="hang", rollback="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
     operation = asyncio.create_task(_cleanup_store(session).fail(_request()))
     await asyncio.wait_for(session.acquisition_started.wait(), timeout=1)
 

@@ -7,10 +7,9 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import anyio
 import httpx
 import pytest
-from fakes.http import get_asgi
+from fakes.http import get_asgi, request_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import ProviderSnapshot, ProviderSnapshotReader
@@ -189,12 +188,7 @@ def _app(snapshot: ProviderSnapshot) -> FastAPI:
 
 
 def _post(app: FastAPI, path: str, payload: dict[str, Any]) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.post(path, json=payload)
-
-    return anyio.run(send)
+    return request_asgi(app, "POST", path, json=payload)
 
 
 def _post_raw(
@@ -204,15 +198,10 @@ def _post_raw(
     *,
     content_length: int | None = None,
 ) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        headers = {"content-type": "application/json"}
-        if content_length is not None:
-            headers["content-length"] = str(content_length)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.post(path, content=body, headers=headers)
-
-    return anyio.run(send)
+    headers = {"content-type": "application/json"}
+    if content_length is not None:
+        headers["content-length"] = str(content_length)
+    return request_asgi(app, "POST", path, content=body, headers=headers)
 
 
 def _post_chunked(app: FastAPI, path: str, chunks: tuple[bytes, ...]) -> httpx.Response:
@@ -220,16 +209,13 @@ def _post_chunked(app: FastAPI, path: str, chunks: tuple[bytes, ...]) -> httpx.R
         for chunk in chunks:
             yield chunk
 
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.post(
-                path,
-                content=body_stream(),
-                headers={"content-type": "application/json"},
-            )
-
-    return anyio.run(send)
+    return request_asgi(
+        app,
+        "POST",
+        path,
+        content=body_stream(),
+        headers={"content-type": "application/json"},
+    )
 
 
 def _pass_payload(catalog_number: int = 25544) -> dict[str, Any]:

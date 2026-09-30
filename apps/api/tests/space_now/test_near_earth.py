@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import anyio
-import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import (
@@ -145,15 +144,6 @@ def _app(service: NearEarthReadService) -> FastAPI:
     return application
 
 
-def _request(application: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=application)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 @pytest.mark.asyncio
 async def test_projection_exposes_fresh_ordered_events_and_explicit_uncertainty_absence() -> None:
     reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
@@ -235,7 +225,7 @@ async def test_projection_keeps_stale_events_and_retrieval_failure_separate() ->
 
 
 def test_public_near_earth_response_is_safe_and_cache_only() -> None:
-    response = _request(
+    response = get_asgi(
         _app(
             NearEarthReadService(_Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH)))
         ),
@@ -262,7 +252,7 @@ def test_public_near_earth_response_is_safe_and_cache_only() -> None:
 def test_public_near_earth_response_trims_to_generated_client_byte_limit() -> None:
     large_name = "😀" * 500
     encounters = tuple(_encounter(index, name=f"{large_name} {index}") for index in range(32))
-    response = _request(
+    response = get_asgi(
         _app(
             NearEarthReadService(
                 _Reader(
@@ -289,7 +279,7 @@ def test_public_near_earth_response_trims_to_generated_client_byte_limit() -> No
 
 def test_public_near_earth_route_rejects_query_parameters_without_reading_state() -> None:
     reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
-    response = _request(
+    response = get_asgi(
         _app(NearEarthReadService(reader)),
         "/api/v1/now/near-earth?start_date=2026-09-12",
     )
@@ -300,7 +290,7 @@ def test_public_near_earth_route_rejects_query_parameters_without_reading_state(
 
 
 def test_public_near_earth_route_uses_the_standard_safe_error_for_read_failures() -> None:
-    response = _request(
+    response = get_asgi(
         _app(NearEarthReadService(_Reader(ProviderSnapshotReadError()))),
         "/api/v1/now/near-earth",
     )

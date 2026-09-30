@@ -3,10 +3,8 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-import anyio
-import httpx
 import pytest
-from fakes.http import get_asgi
+from fakes.http import get_asgi, request_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.radial_velocity_routes import router
@@ -99,12 +97,6 @@ def test_radial_velocity_route_rejects_extra_repeated_and_invalid_query() -> Non
 
 
 def test_radial_velocity_route_rejects_non_get_requests() -> None:
-    async def send() -> httpx.Response:
-        app = _app()
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.post("/api/v1/simulations/radial-velocity")
-
-    response = anyio.run(send)
+    response = request_asgi(_app(), "POST", "/api/v1/simulations/radial-velocity")
     assert response.status_code == 405
     assert response.json()["error"]["code"] == "request.method_not_allowed"

@@ -7,8 +7,7 @@ from typing import Any
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
-import anyio
-import httpx
+from fakes.http import request_asgi
 from fastapi import FastAPI
 from lumina import __version__
 from lumina.bootstrap import create_app
@@ -75,30 +74,15 @@ def _app(**overrides: object) -> FastAPI:
     return create_app(AppSettings.model_validate(values))
 
 
-def _request(
-    app: FastAPI,
-    method: str,
-    path: str,
-    *,
-    headers: dict[str, str] | None = None,
-) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.request(method, path, headers=headers)
-
-    return anyio.run(send)
-
-
 def test_liveness_contract_is_exact_and_dependency_free() -> None:
-    response = _request(_app(), "GET", "/health/live")
+    response = request_asgi(_app(), "GET", "/health/live")
 
     assert response.status_code == 200
     assert response.json() == {"status": "live"}
 
 
 def test_metadata_contract_is_exact() -> None:
-    response = _request(
+    response = request_asgi(
         _app(LUMINA_BUILD_COMMIT="abc123"),
         "GET",
         "/api/v1/meta",
@@ -115,11 +99,11 @@ def test_metadata_contract_is_exact() -> None:
 
 
 def test_metadata_defaults_build_commit_to_null() -> None:
-    assert _request(_app(), "GET", "/api/v1/meta").json()["build_commit"] is None
+    assert request_asgi(_app(), "GET", "/api/v1/meta").json()["build_commit"] is None
 
 
 def test_unknown_route_uses_object_shaped_safe_error() -> None:
-    response = _request(_app(), "GET", "/not-present")
+    response = request_asgi(_app(), "GET", "/not-present")
 
     assert response.status_code == 404
     payload = response.json()
@@ -137,7 +121,7 @@ def test_validation_error_omits_raw_input_context_and_messages() -> None:
         return {"limit": limit}
 
     sentinel = "PRIVATE-INPUT-SENTINEL"
-    response = _request(app, "GET", f"/_test/validated?limit={sentinel}")
+    response = request_asgi(app, "GET", f"/_test/validated?limit={sentinel}")
 
     assert response.status_code == 422
     payload = response.json()
@@ -153,7 +137,7 @@ def test_validation_error_omits_raw_input_context_and_messages() -> None:
 
 def test_valid_caller_request_id_is_canonicalized_and_returned() -> None:
     caller_id = str(uuid4()).upper()
-    response = _request(
+    response = request_asgi(
         _app(),
         "GET",
         "/health/live",
@@ -164,7 +148,7 @@ def test_valid_caller_request_id_is_canonicalized_and_returned() -> None:
 
 
 def test_invalid_caller_request_id_is_replaced_with_uuid4() -> None:
-    response = _request(
+    response = request_asgi(
         _app(),
         "GET",
         "/health/live",
@@ -179,12 +163,12 @@ def test_non_documentation_routes_retain_the_strict_csp() -> None:
     app = _app()
 
     for path in ("/health/live", "/api/v1/meta", "/openapi.json", "/not-present"):
-        response = _request(app, "GET", path)
+        response = request_asgi(app, "GET", path)
         assert response.headers["Content-Security-Policy"] == _STRICT_CONTENT_SECURITY_POLICY
 
 
 def test_security_headers_are_unchanged_except_for_documentation_csp() -> None:
-    response = _request(_app(), "GET", "/health/live")
+    response = request_asgi(_app(), "GET", "/health/live")
 
     assert response.headers["Content-Security-Policy"] == _STRICT_CONTENT_SECURITY_POLICY
     assert response.headers["X-Content-Type-Options"] == "nosniff"
@@ -195,7 +179,7 @@ def test_security_headers_are_unchanged_except_for_documentation_csp() -> None:
 
 
 def test_swagger_documentation_csp_covers_generated_assets_and_openapi_fetch() -> None:
-    response = _request(_app(), "GET", "/docs")
+    response = request_asgi(_app(), "GET", "/docs")
     parser = _DocumentationHtmlParser()
     parser.feed(response.text)
     policy = response.headers["Content-Security-Policy"]
@@ -219,7 +203,7 @@ def test_swagger_documentation_csp_covers_generated_assets_and_openapi_fetch() -
 
 
 def test_redoc_documentation_csp_covers_generated_assets_and_openapi_fetch() -> None:
-    response = _request(_app(), "GET", "/redoc")
+    response = request_asgi(_app(), "GET", "/redoc")
     parser = _DocumentationHtmlParser()
     parser.feed(response.text)
     policy = response.headers["Content-Security-Policy"]
@@ -244,8 +228,8 @@ def test_redoc_documentation_csp_covers_generated_assets_and_openapi_fetch() -> 
 
 def test_documentation_csp_exceptions_are_limited_to_enabled_documentation_routes() -> None:
     app = _app()
-    swagger_response = _request(app, "GET", "/docs")
-    redoc_response = _request(app, "GET", "/redoc")
+    swagger_response = request_asgi(app, "GET", "/docs")
+    redoc_response = request_asgi(app, "GET", "/redoc")
 
     assert swagger_response.headers["Content-Security-Policy"] != _STRICT_CONTENT_SECURITY_POLICY
     assert redoc_response.headers["Content-Security-Policy"] != _STRICT_CONTENT_SECURITY_POLICY
@@ -255,13 +239,13 @@ def test_documentation_csp_exceptions_are_limited_to_enabled_documentation_route
         "X-Frame-Options",
         "Permissions-Policy",
     ):
-        health_response = _request(app, "GET", "/health/live")
+        health_response = request_asgi(app, "GET", "/health/live")
         assert swagger_response.headers[header] == health_response.headers[header]
         assert redoc_response.headers[header] == health_response.headers[header]
     assert "Strict-Transport-Security" not in swagger_response.headers
     assert "Strict-Transport-Security" not in redoc_response.headers
     for path in ("/docs/", "/redoc/", "/health/live", "/api/v1/meta", "/openapi.json"):
-        response = _request(app, "GET", path)
+        response = request_asgi(app, "GET", path)
         assert response.headers["Content-Security-Policy"] == _STRICT_CONTENT_SECURITY_POLICY
 
 
@@ -269,7 +253,7 @@ def test_disabled_documentation_routes_keep_the_strict_csp() -> None:
     app = _app(LUMINA_ENABLE_API_DOCS=False)
 
     for path in ("/docs", "/redoc", "/openapi.json"):
-        response = _request(app, "GET", path)
+        response = request_asgi(app, "GET", path)
         assert response.status_code == 404
         assert response.headers["Content-Security-Policy"] == _STRICT_CONTENT_SECURITY_POLICY
         assert response.headers["X-Content-Type-Options"] == "nosniff"
@@ -281,7 +265,7 @@ def test_disabled_documentation_routes_keep_the_strict_csp() -> None:
 
 
 def test_empty_cors_configuration_grants_no_cross_origin_access() -> None:
-    response = _request(
+    response = request_asgi(
         _app(),
         "GET",
         "/health/live",
@@ -292,7 +276,7 @@ def test_empty_cors_configuration_grants_no_cross_origin_access() -> None:
 
 
 def test_configured_cors_origin_is_allowed_without_credentials() -> None:
-    response = _request(
+    response = request_asgi(
         _app(LUMINA_CORS_ORIGINS="https://example.com"),
         "GET",
         "/health/live",
@@ -310,13 +294,13 @@ def test_cors_preflight_allows_current_get_post_and_identification_delete_contra
         "Origin": "https://example.com",
         "Access-Control-Request-Headers": "X-Request-ID",
     }
-    get_response = _request(
+    get_response = request_asgi(
         app,
         "OPTIONS",
         "/health/live",
         headers={**headers, "Access-Control-Request-Method": "GET"},
     )
-    post_response = _request(
+    post_response = request_asgi(
         app,
         "OPTIONS",
         "/health/live",
@@ -330,7 +314,7 @@ def test_cors_preflight_allows_current_get_post_and_identification_delete_contra
 
 
 def test_openapi_contains_only_approved_routes() -> None:
-    response = _request(
+    response = request_asgi(
         _app(
             LUMINA_ENABLE_REMOTE_ASTROMETRY=True,
             LUMINA_ASTROMETRY_API_KEY="server-secret-sentinel",

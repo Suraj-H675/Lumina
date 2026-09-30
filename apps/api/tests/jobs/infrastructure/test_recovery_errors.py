@@ -7,6 +7,7 @@ from time import monotonic
 from typing import cast
 
 import pytest
+from fakes.tasks import pending_tasks
 from lumina.jobs.domain.recovery import (
     JobRecoveryContention,
     JobRecoveryDatabaseOperationFailure,
@@ -399,24 +400,11 @@ def _store(
     )
 
 
-def _pending_tasks() -> set[asyncio.Task[object]]:
-    current = asyncio.current_task()
-    return {
-        cast(asyncio.Task[object], task)
-        for task in asyncio.all_tasks()
-        if task is not current and not task.done()
-    }
-
-
 async def _assert_no_new_pending_tasks(before: set[asyncio.Task[object]]) -> None:
     turn = asyncio.Event()
     asyncio.get_running_loop().call_soon(turn.set)
     await asyncio.wait_for(turn.wait(), timeout=1)
-    after = {
-        cast(asyncio.Task[object], task)
-        for task in asyncio.all_tasks()
-        if task is not asyncio.current_task() and not task.done()
-    }
+    after = pending_tasks()
     assert after <= before
 
 
@@ -475,7 +463,7 @@ async def test_positive_ambiguous_commit_is_fatal_quarantined_and_never_retried(
 ) -> None:
     connection = _Connection([{"selected_count": 1, "requeued_count": 1, "dead_lettered_count": 0}])
     session = _Session(connection, commit=commit_behavior)
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobRecoveryOutcomeUnknown) as failure:
         await asyncio.wait_for(
@@ -511,7 +499,7 @@ async def test_confirmed_commit_with_unsafe_close_is_operation_failure_not_unkno
 async def test_empty_batch_hanging_rollback_is_bounded_quarantined_and_observed() -> None:
     connection = _Connection([{"selected_count": 0, "requeued_count": 0, "dead_lettered_count": 0}])
     session = _Session(connection, rollback="hang")
-    before = _pending_tasks()
+    before = pending_tasks()
     started = monotonic()
 
     result = await asyncio.wait_for(
@@ -595,7 +583,7 @@ async def test_all_failed_quarantine_paths_skip_normal_close_within_shared_deadl
         close="hang",
         invalidate="error",
     )
-    before = _pending_tasks()
+    before = pending_tasks()
     started = monotonic()
 
     with pytest.raises(JobRecoveryDatabaseOperationFailure):
@@ -703,7 +691,7 @@ async def test_hanging_invalidations_are_cancelled_observed_and_close_is_skipped
         close="hang",
         invalidate="hang",
     )
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobRecoveryDatabaseOperationFailure):
         await asyncio.wait_for(
@@ -730,7 +718,7 @@ async def test_hanging_pool_replacement_is_bounded_and_close_is_skipped() -> Non
         close="hang",
         invalidate="error",
     )
-    before = _pending_tasks()
+    before = pending_tasks()
 
     with pytest.raises(JobRecoveryDatabaseOperationFailure):
         await asyncio.wait_for(
@@ -747,7 +735,7 @@ async def test_started_hanging_pool_replacement_is_cancelled_and_observed() -> N
     connection = _Connection([], pool_replacement="hang")
     session = _Session(connection)
     deadline = asyncio.get_running_loop().time() + 0.1
-    before = _pending_tasks()
+    before = pending_tasks()
 
     result = await _run_until_deadline(
         _detach_connection_pool(

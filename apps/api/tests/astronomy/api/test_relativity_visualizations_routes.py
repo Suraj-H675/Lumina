@@ -3,10 +3,8 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import urlencode
 
-import anyio
-import httpx
 import pytest
-from fakes.http import get_asgi
+from fakes.http import get_asgi, request_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.astronomy.api.relativity_visualizations_routes import router
@@ -126,12 +124,6 @@ def test_relativity_visualizations_route_rejects_missing_or_non_get_requests() -
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "request.validation_failed"
 
-    async def post() -> httpx.Response:
-        app = _app()
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.post("/api/v1/simulations/relativity-visualizations")
-
-    post_response = anyio.run(post)
+    post_response = request_asgi(_app(), "POST", "/api/v1/simulations/relativity-visualizations")
     assert post_response.status_code == 405
     assert post_response.json()["error"]["code"] == "request.method_not_allowed"

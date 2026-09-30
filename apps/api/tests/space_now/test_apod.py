@@ -6,9 +6,8 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
-import anyio
-import httpx
 import pytest
+from fakes.http import get_asgi
 from fastapi import FastAPI
 from lumina.bootstrap import create_app
 from lumina.provenance.application.read import (
@@ -205,15 +204,6 @@ def _app(service: ApodReadService) -> FastAPI:
     return application
 
 
-def _request(application: FastAPI, path: str) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=application)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.get(path)
-
-    return anyio.run(send)
-
-
 @pytest.mark.asyncio
 async def test_projection_returns_fresh_content_without_raw_media_urls() -> None:
     reader = _Reader(
@@ -305,7 +295,7 @@ async def test_projection_rejects_a_cache_identity_mismatch_at_the_product_bound
 
 def test_public_apod_response_is_safe_and_read_only() -> None:
     cache = _cache(copyright="Fixture Creator")
-    response = _request(
+    response = get_asgi(
         _app(ApodReadService(_Reader(_snapshot(cache=cache, cache_state=CacheState.FRESH)))),
         "/api/v1/now/apod",
     )
@@ -337,7 +327,7 @@ def test_public_apod_response_is_safe_and_read_only() -> None:
 
 def test_public_apod_route_rejects_query_parameters_without_reading_provider_state() -> None:
     reader = _Reader(_snapshot(cache=_cache(), cache_state=CacheState.FRESH))
-    response = _request(_app(ApodReadService(reader)), "/api/v1/now/apod?date=2026-09-09")
+    response = get_asgi(_app(ApodReadService(reader)), "/api/v1/now/apod?date=2026-09-09")
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "request.validation_failed"
@@ -345,7 +335,7 @@ def test_public_apod_route_rejects_query_parameters_without_reading_provider_sta
 
 
 def test_public_apod_route_uses_the_standard_safe_error_for_read_failures() -> None:
-    response = _request(
+    response = get_asgi(
         _app(ApodReadService(_Reader(ProviderSnapshotReadError()))),
         "/api/v1/now/apod",
     )
@@ -367,7 +357,7 @@ def test_maximum_accepted_apod_content_fits_the_full_success_response_bound() ->
         copyright=normalized.copyright,
         fetched_at=_NOW - timedelta(hours=7),
     )
-    response = _request(
+    response = get_asgi(
         _app(
             ApodReadService(
                 _Reader(
@@ -396,7 +386,7 @@ def test_legacy_oversized_apod_cache_is_readable_but_never_emitted() -> None:
     decoded = NasaApodCodec().decode(legacy.normalized_payload)
     assert decoded.explanation == "x" * 60_000
 
-    response = _request(
+    response = get_asgi(
         _app(ApodReadService(_Reader(_snapshot(cache=legacy, cache_state=CacheState.FRESH)))),
         "/api/v1/now/apod",
     )
@@ -435,7 +425,7 @@ def test_apod_route_has_a_final_fail_closed_response_size_guard() -> None:
             attribution_text=manifest.attribution_text,
         ),
     )
-    response = _request(
+    response = get_asgi(
         _app(_OversizedProjectionService(projection)),
         "/api/v1/now/apod",
     )

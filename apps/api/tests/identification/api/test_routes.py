@@ -5,12 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 from uuid import UUID
 
-import anyio
-import httpx
 import pytest
+from fakes.http import request_asgi
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from lumina.bootstrap import create_app
@@ -63,20 +61,6 @@ def _app(tmp_path: Path, **overrides: object) -> FastAPI:
     }
     values.update(overrides)
     return create_app(AppSettings.model_validate(values))
-
-
-def _request(
-    app: FastAPI,
-    method: str,
-    path: str,
-    **kwargs: Any,
-) -> httpx.Response:
-    async def send() -> httpx.Response:
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-            return await client.request(method, path, **kwargs)
-
-    return anyio.run(send)
 
 
 @dataclass
@@ -201,7 +185,7 @@ def test_capabilities_exposes_only_safe_authoritative_policy(tmp_path: Path) -> 
         LUMINA_UPLOAD_RETENTION_HOURS=36,
     )
 
-    response = _request(app, "GET", "/api/v1/identification/capabilities")
+    response = request_asgi(app, "GET", "/api/v1/identification/capabilities")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -259,14 +243,14 @@ def test_disabled_identification_fails_closed_for_every_public_route(
 
     assert not storage_root.exists()
 
-    response = _request(app, method, path, **kwargs)
+    response = request_asgi(app, method, path, **kwargs)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "request.not_found"
 
 
 def test_capabilities_rejects_query_parameters(tmp_path: Path) -> None:
-    response = _request(
+    response = request_asgi(
         _app(tmp_path),
         "GET",
         "/api/v1/identification/capabilities?debug=true",
@@ -282,7 +266,7 @@ def test_enabled_remote_solver_requires_explicit_consent_before_reading_upload(
     remote = RemoteStartSpy()
     app.state.identification_remote_start_service = remote
 
-    response = _request(
+    response = request_asgi(
         app,
         "POST",
         "/api/v1/identification/submissions",
@@ -303,7 +287,7 @@ def test_enabled_remote_solver_starts_only_after_consent_without_provider_ids(
     app.state.identification_remote_start_service = remote
     content = b"remote-bounded-fixture"
 
-    response = _request(
+    response = request_asgi(
         app,
         "POST",
         "/api/v1/identification/submissions",
@@ -331,7 +315,7 @@ def test_file_byte_limit_is_enforced_after_multipart_parsing(tmp_path: Path) -> 
     service = RemoteStartSpy()
     app.state.identification_remote_start_service = service
 
-    response = _request(
+    response = request_asgi(
         app,
         "POST",
         "/api/v1/identification/submissions",
@@ -349,7 +333,7 @@ def test_asgi_body_bound_rejects_large_multipart_before_route_service(tmp_path: 
     service = RemoteStartSpy()
     app.state.identification_remote_start_service = service
 
-    response = _request(
+    response = request_asgi(
         app,
         "POST",
         "/api/v1/identification/submissions",
@@ -380,7 +364,7 @@ def test_create_maps_only_safe_fixed_failures(
     app = _app(tmp_path)
     app.state.identification_remote_start_service = RemoteStartSpy(failure=failure)
 
-    response = _request(
+    response = request_asgi(
         app,
         "POST",
         "/api/v1/identification/submissions",
@@ -399,7 +383,7 @@ def test_status_preserves_legacy_synthetic_result_without_private_state(tmp_path
     service = PublicReadSpy(_status())
     app.state.identification_public_read_service = service
 
-    response = _request(
+    response = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}",
@@ -483,7 +467,7 @@ def test_status_not_found_is_safe_and_does_not_reflect_identifier(tmp_path: Path
     app = _app(tmp_path)
     app.state.identification_public_read_service = PublicReadSpy(SubmissionNotFound())
 
-    response = _request(
+    response = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}",
@@ -498,7 +482,7 @@ def test_delete_is_idempotent_for_existing_deleted_or_missing_submission(tmp_pat
     app = _app(tmp_path)
     success = DeleteSpy()
     app.state.identification_delete_service = success
-    first = _request(
+    first = request_asgi(
         app,
         "DELETE",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}",
@@ -509,7 +493,7 @@ def test_delete_is_idempotent_for_existing_deleted_or_missing_submission(tmp_pat
 
     missing = DeleteSpy(failure=SubmissionNotFound())
     app.state.identification_delete_service = missing
-    second = _request(
+    second = request_asgi(
         app,
         "DELETE",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}",
@@ -521,7 +505,7 @@ def test_delete_is_idempotent_for_existing_deleted_or_missing_submission(tmp_pat
 def test_identification_routes_reject_query_options(tmp_path: Path) -> None:
     app = _app(tmp_path)
     app.state.identification_public_read_service = PublicReadSpy(_status())
-    response = _request(
+    response = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}?include=private",
@@ -535,7 +519,7 @@ def test_solution_returns_only_normalized_bounded_science(tmp_path: Path) -> Non
     service = PublicReadSpy(_status(), _solution())
     app.state.identification_public_read_service = service
 
-    response = _request(
+    response = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution",
@@ -596,7 +580,7 @@ def test_solution_not_ready_is_a_safe_conflict(tmp_path: Path) -> None:
         IdentificationSolutionNotReady(),
     )
 
-    response = _request(
+    response = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution",
@@ -611,12 +595,12 @@ def test_solution_rejects_unknown_or_duplicate_query_options(tmp_path: Path) -> 
     service = PublicReadSpy(_status(), _solution())
     app.state.identification_public_read_service = service
 
-    unknown = _request(
+    unknown = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution?debug=true",
     )
-    duplicate = _request(
+    duplicate = request_asgi(
         app,
         "GET",
         f"/api/v1/identification/submissions/{_SUBMISSION_ID}/solution?cursor=abc&cursor=def",

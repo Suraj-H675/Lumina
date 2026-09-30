@@ -17,6 +17,7 @@ import {
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { SatelliteMessages } from "../../../lib/i18n/messages/types";
 import { CELESTRAK_NAME } from "../../../lib/space-now/provider-display";
+import styles from "../live-data-detail.module.css";
 
 type Props = Readonly<{
   locale: PublishedLocale;
@@ -116,68 +117,63 @@ export function SatellitePassFinder({ locale, messages, satellites }: Props) {
   }
 
   return (
-    <section
-      aria-labelledby="pass-finder-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-3xl space-y-2">
-        <h2 className="text-2xl font-semibold" id="pass-finder-heading">
+    <section aria-labelledby="pass-finder-heading" className={styles.instrument}>
+      <div className={styles.instrumentHeader}>
+        <h2 className={styles.instrumentTitle} id="pass-finder-heading">
           {messages.heading}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
+        <p className={styles.instrumentDescription}>
           {formatMessageTemplate(messages.privacy, { provider: CELESTRAK_NAME })}
         </p>
       </div>
-      <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
-        <label className="space-y-2 sm:col-span-2">
-          <span className="font-medium">{messages.fields.satellite}</span>
-          <select
-            className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3"
-            onChange={(event) => setCatalog(event.target.value)}
-            required
-            value={catalog}
-          >
-            {selectable.map((satellite) => (
-              <option key={satellite.catalog_number} value={satellite.catalog_number}>
-                {formatMessageTemplate(messages.option, {
-                  catalogNumber: satellite.catalog_number,
-                  name: satellite.name,
-                })}
-              </option>
-            ))}
-          </select>
-        </label>
-        <NumberField
-          label={messages.fields.latitude}
-          max="90"
-          min="-90"
-          onChange={setLatitude}
-          value={latitude}
-        />
-        <NumberField
-          label={messages.fields.longitude}
-          max="180"
-          min="-180"
-          onChange={setLongitude}
-          value={longitude}
-        />
-        <NumberField
-          label={messages.fields.elevation}
-          max="10000"
-          min="-500"
-          onChange={setElevation}
-          value={elevation}
-        />
-        <div className="flex flex-wrap items-end gap-3">
-          <button
-            className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={useLocation}
-            type="button"
-          >
+      <form onSubmit={submit}>
+        <div className={styles.formGrid}>
+          <label className={`${styles.field} ${styles.fieldWide}`}>
+            <span className={styles.fieldLabel}>{messages.fields.satellite}</span>
+            <select
+              className={styles.select}
+              onChange={(event) => setCatalog(event.target.value)}
+              required
+              value={catalog}
+            >
+              {selectable.map((satellite) => (
+                <option key={satellite.catalog_number} value={satellite.catalog_number}>
+                  {formatMessageTemplate(messages.option, {
+                    catalogNumber: satellite.catalog_number,
+                    name: satellite.name,
+                  })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <NumberField
+            label={messages.fields.latitude}
+            max="90"
+            min="-90"
+            onChange={setLatitude}
+            value={latitude}
+          />
+          <NumberField
+            label={messages.fields.longitude}
+            max="180"
+            min="-180"
+            onChange={setLongitude}
+            value={longitude}
+          />
+          <NumberField
+            label={messages.fields.elevation}
+            max="10000"
+            min="-500"
+            onChange={setElevation}
+            value={elevation}
+          />
+        </div>
+        <div className={styles.formActions}>
+          <button className={styles.button} onClick={useLocation} type="button">
             {messages.actions.useLocation}
           </button>
           <button
-            className="min-h-11 border border-[var(--accent)] px-4 font-semibold text-[var(--link)]"
+            className={styles.primaryButton}
             disabled={state.kind === "loading" || selectable.length === 0}
             type="submit"
           >
@@ -208,10 +204,10 @@ function NumberField({
   value: string;
 }>) {
   return (
-    <label className="space-y-2">
-      <span className="font-medium">{label}</span>
+    <label className={styles.field}>
+      <span className={styles.fieldLabel}>{label}</span>
       <input
-        className="min-h-11 w-full border border-[var(--border)] bg-[var(--background)] px-3"
+        className={styles.input}
         inputMode="decimal"
         max={max}
         min={min}
@@ -234,25 +230,25 @@ function PassState({
   messages: SatelliteMessages["passFinder"];
   state: State;
 }>) {
-  if (state.kind === "idle") return <p className="text-sm text-[var(--muted)]">{messages.idle}</p>;
+  if (state.kind === "idle") return <p className={styles.stateText}>{messages.idle}</p>;
   if (state.kind === "loading")
     return (
-      <p aria-live="polite" role="status">
+      <p aria-live="polite" className={styles.stateText} role="status">
         {messages.loading}
       </p>
     );
   if (state.kind === "error")
     return (
-      <p aria-live="polite" className="text-[var(--muted)]" role="alert">
+      <p aria-live="polite" className={styles.stateText} role="alert">
         {messages.errors[state.reason]}
       </p>
     );
   const { prediction, satellite } = state.response;
   if (prediction.state === "refused") {
     return (
-      <div className="space-y-2" role="status">
-        <p className="font-semibold">{messages.result.refusedTitle}</p>
-        <p className="text-[var(--muted)]">
+      <div className={styles.result} role="status">
+        <p className={styles.resultTitle}>{messages.result.refusedTitle}</p>
+        <p className={styles.stateText}>
           {messages.result.reasonLabel}{" "}
           {refusalReasonMessage(prediction.refusal_reason, messages.result)}.
         </p>
@@ -261,7 +257,7 @@ function PassState({
   }
   if (prediction.state === "no_passes") {
     return (
-      <p role="status">
+      <p className={styles.stateText} role="status">
         {formatMessageTemplate(messages.result.noPasses, {
           altitudeThreshold: formatLocaleNumber(
             prediction.algorithm.altitude_threshold_deg,
@@ -274,12 +270,12 @@ function PassState({
     );
   }
   return (
-    <div className="space-y-5" role="status">
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold">
+    <div className={styles.result} role="status">
+      <div>
+        <h3 className={styles.resultTitle}>
           {formatMessageTemplate(messages.result.heading, { satellite: satellite.name })}
         </h3>
-        <p className="text-sm text-[var(--muted)]">
+        <p className={styles.quietCopy}>
           {formatMessageTemplate(messages.result.algorithmSummary, {
             gravityModel: prediction.algorithm.gravity_model,
             hours: formatLocaleFixedNumber(prediction.element_age_hours_at_start, 1, locale),
@@ -288,17 +284,17 @@ function PassState({
           })}
         </p>
         {prediction.stale_element_warning ? (
-          <p className="font-medium">
+          <p className={styles.warning}>
             {formatMessageTemplate(messages.result.staleWarning, {
               hours: formatLocaleNumber(ELEMENT_WARNING_HOURS, locale),
             })}
           </p>
         ) : null}
       </div>
-      <ol className="space-y-4">
+      <ol className={styles.passList}>
         {prediction.passes.map((passItem) => (
-          <li className="space-y-2 border border-[var(--border)] p-4" key={passItem.peak.time_utc}>
-            <p className="font-semibold">
+          <li className={styles.pass} key={passItem.peak.time_utc}>
+            <p className={styles.passTitle}>
               {messages.result.passPeakLabel}{" "}
               <time dateTime={passItem.peak.time_utc}>{passItem.peak.time_utc}</time>{" "}
               {formatMessageTemplate(messages.result.passPeakAfterTime, {
@@ -306,7 +302,7 @@ function PassState({
                 direction: passItem.peak.direction,
               })}
             </p>
-            <p className="text-sm text-[var(--muted)]">
+            <p className={styles.passMeta}>
               {formatMessageTemplate(messages.result.passRiseSet, {
                 riseDirection: passItem.rise.direction,
                 riseTime: passItem.rise.time_utc,
@@ -314,7 +310,7 @@ function PassState({
                 setTime: passItem.set.time_utc,
               })}
             </p>
-            <p className="text-sm text-[var(--muted)]">
+            <p className={styles.passMeta}>
               {formatMessageTemplate(messages.result.illumination, {
                 skyState: skyStateLabel(passItem.observer_sky_state_at_peak, messages.result),
                 sunAltitude: formatLocaleFixedNumber(
@@ -330,7 +326,7 @@ function PassState({
           </li>
         ))}
       </ol>
-      <p className="text-sm leading-6 text-[var(--muted)]">{messages.result.limitation}</p>
+      <p className={styles.stateText}>{messages.result.limitation}</p>
     </div>
   );
 }

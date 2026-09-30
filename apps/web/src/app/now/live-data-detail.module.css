@@ -1,0 +1,579 @@
+.page {
+  display: grid;
+  gap: clamp(4rem, 8vw, 6.5rem);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(17rem, 0.3fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(2.75rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.cardLabel {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 12ch;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.7rem, 8vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.stack {
+  display: grid;
+  gap: clamp(3.5rem, 7vw, 5.5rem);
+}
+
+.freshness {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.3fr) minmax(0, 0.7fr);
+  gap: 1.4rem;
+  border-top: 1px solid var(--accent);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.freshness[data-state="stale"] {
+  border-top-color: var(--warning);
+}
+
+.freshnessTitle {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.freshnessCopy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.freshnessCopy + .freshnessCopy {
+  margin-top: 0.45rem;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sectionDescription {
+  max-width: 27rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.bodyCopy {
+  max-width: 52rem;
+  margin: 0;
+  color: var(--muted-strong);
+  line-height: 1.75;
+}
+
+.bodyCopy + .bodyCopy {
+  margin-top: 0.9rem;
+}
+
+.quietCopy {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.ruledGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.ruledGridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.ruledItem {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1.1rem 1.15rem 1.25rem;
+}
+
+.ruledGrid .ruledItem:nth-child(3n),
+.ruledGridTwo .ruledItem:nth-child(2n) {
+  border-right: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.cardMetric {
+  margin: 0.55rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.cardCopy {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.definitionList {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.definitionList dt,
+.factGrid dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.definitionList dd,
+.factGrid dd {
+  margin: 0.25rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.warning {
+  margin: 1rem 0 0;
+  border-top: 1px dashed var(--warning);
+  padding-top: 0.8rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.76rem;
+}
+
+.tableWide {
+  min-width: 60rem;
+}
+
+.tableMedium {
+  min-width: 32rem;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 0.8rem;
+  vertical-align: top;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table thead th {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table tbody th {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.table td {
+  color: var(--muted-strong);
+}
+
+.dataValue {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.subvalue {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  font-weight: 500;
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.fact {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.fact:nth-child(2n) {
+  border-right: 0;
+}
+
+.sourceBlock,
+.statePanel {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 0 1.35rem;
+}
+
+.sourceBlock p,
+.statePanel p {
+  max-width: 52rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.sourceBlock p + p,
+.statePanel p + p {
+  margin-top: 0.7rem;
+}
+
+.statePanel h1,
+.statePanel h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.statePanel h1 + p,
+.statePanel h2 + p {
+  margin-top: 0.7rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.link,
+.button,
+.primaryButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground);
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.link:hover,
+.button:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.primaryButton {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.button:disabled,
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.notificationList,
+.passList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.notification,
+.pass {
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0 1.15rem;
+}
+
+.notificationHeader,
+.passTitle {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.notificationMeta,
+.passMeta {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+  line-height: 1.55;
+}
+
+.notificationMessage {
+  margin: 0.7rem 0 0;
+  white-space: pre-line;
+  color: var(--muted-strong);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.instrument {
+  display: grid;
+  gap: 1.35rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.4rem 0 1.6rem;
+}
+
+.instrumentHeader {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.35fr) minmax(0, 0.65fr);
+  gap: 1.5rem 3rem;
+  align-items: end;
+}
+
+.instrumentTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.5vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.instrumentDescription {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 1rem 1rem;
+}
+
+.field:nth-child(3n) {
+  border-right: 0;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.fieldLabel {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--background-raised);
+  color: var(--foreground);
+  padding: 0 0.65rem;
+  font-family: var(--font-data);
+  font-size: 0.76rem;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.1rem;
+  padding-top: 0.8rem;
+}
+
+.stateText {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.result {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1rem;
+}
+
+.resultTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+@media (max-width: 64rem) {
+  .hero,
+  .section,
+  .instrumentHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .intro,
+  .sectionDescription,
+  .instrumentDescription {
+    max-width: 44rem;
+  }
+
+  .ruledGrid,
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ruledGrid .ruledItem:nth-child(3n),
+  .field:nth-child(3n) {
+    border-right: 1px solid var(--border);
+  }
+
+  .ruledGrid .ruledItem:nth-child(2n),
+  .field:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .fieldWide {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 46rem) {
+  .page,
+  .stack {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.5rem, 18vw, 5.2rem);
+  }
+
+  .freshness,
+  .ruledGrid,
+  .ruledGridTwo,
+  .factGrid,
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ruledItem,
+  .ruledGrid .ruledItem:nth-child(2n),
+  .ruledGrid .ruledItem:nth-child(3n),
+  .fact,
+  .fact:nth-child(2n),
+  .field,
+  .field:nth-child(2n),
+  .field:nth-child(3n) {
+    border-right: 0;
+    padding-inline: 0;
+  }
+}

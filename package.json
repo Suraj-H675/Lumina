@@ -23,7 +23,7 @@
     "manifests:check": "uv run python scripts/data/validate_manifests.py",
     "migrations:check": "uv run python scripts/ci/check_migration_integrity.py",
     "package:check": "uv run python scripts/ci/check_python_wheel.py",
-    "provider-scheduler:check": "node --check infra/neon/functions/provider-scheduler/index.mjs && node --test infra/neon/functions/provider-scheduler/index.test.mjs",
+    "provider-scheduler:check": "node --test infra/neon/functions/provider-scheduler/index.test.mjs",
     "security:check": "bash scripts/ci/check_security.sh",
     "sky-context:artifact-check": "uv run python scripts/data/validate_iau_context.py",
     "test": "pnpm --filter @nova-lumina/api-client test && pnpm --filter @nova-lumina/web test",

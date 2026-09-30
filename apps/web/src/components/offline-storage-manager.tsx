@@ -16,6 +16,7 @@ import {
   readApproximateBrowserStorage,
   type ApproximateBrowserStorage,
 } from "../lib/pwa-storage";
+import styles from "./trust-surfaces.module.css";
 
 type PersonalSummary =
   | Readonly<{ kind: "loading" }>
@@ -111,145 +112,128 @@ export function OfflineStorageManager({
   const savedPlanCount = personal.kind === "available" ? personal.savedPlans : 0;
 
   return (
-    <div className="space-y-8">
-      <section aria-labelledby="browser-storage-heading" className="space-y-3">
-        <h2 className="text-2xl font-semibold" id="browser-storage-heading">
-          {messages.approximate.heading}
-        </h2>
+    <div className={styles.storage}>
+      <section aria-labelledby="browser-storage-heading" className={styles.storageOverview}>
+        <h2 id="browser-storage-heading">{messages.approximate.heading}</h2>
         {estimate === null ? (
-          <p className="text-[var(--muted)]">{messages.approximate.checking}</p>
+          <p>{messages.approximate.checking}</p>
         ) : estimate.kind === "available" ? (
-          <p className="leading-7 text-[var(--muted)]">
+          <p>
             {formatMessageTemplate(messages.approximate.available, {
               quota: formatMib(estimate.quotaBytes, locale),
               usage: formatMib(estimate.usageBytes, locale),
             })}
           </p>
         ) : estimate.kind === "unsupported" ? (
-          <p className="leading-7 text-[var(--muted)]">{messages.approximate.unsupported}</p>
+          <p>{messages.approximate.unsupported}</p>
         ) : (
-          <p className="leading-7 text-[var(--muted)]">{messages.approximate.unavailable}</p>
+          <p>{messages.approximate.unavailable}</p>
         )}
       </section>
 
-      <section
-        aria-labelledby="offline-copies-heading"
-        className="space-y-4 rounded-md border border-[var(--border)] bg-[var(--surface)] p-5"
-      >
-        <h2 className="text-2xl font-semibold" id="offline-copies-heading">
-          {messages.offlineCopies.heading}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.offlineCopies.description}</p>
-        <p className="text-sm leading-6 text-[var(--muted)]">
-          {messages.offlineCopies.separationNotice}
-        </p>
-        <button
-          className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold"
-          onClick={() => setConfirmClearCaches(true)}
-          type="button"
-        >
-          {messages.offlineCopies.clearAction}
-        </button>
-        {confirmClearCaches ? (
-          <div className="space-y-3 rounded-md border border-[var(--border-strong)] bg-[var(--background-raised)] p-4">
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              {messages.offlineCopies.confirmDescription}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold"
-                onClick={() => void clearCaches()}
-                type="button"
-              >
-                {messages.offlineCopies.confirmAction}
-              </button>
-              <button
-                className="min-h-11 rounded-md border border-[var(--border)] px-4 text-sm"
-                onClick={() => setConfirmClearCaches(false)}
-                type="button"
-              >
-                {messages.cancelAction}
-              </button>
-            </div>
+      <div className={styles.storageSections}>
+        <section aria-labelledby="offline-copies-heading" className={styles.storageSection}>
+          <h2 id="offline-copies-heading">{messages.offlineCopies.heading}</h2>
+          <p>{messages.offlineCopies.description}</p>
+          <p className={styles.separation}>{messages.offlineCopies.separationNotice}</p>
+          <div className={styles.actions}>
+            <button
+              className={styles.dangerAction}
+              onClick={() => setConfirmClearCaches(true)}
+              type="button"
+            >
+              {messages.offlineCopies.clearAction}
+            </button>
           </div>
-        ) : null}
-      </section>
+          {confirmClearCaches ? (
+            <div className={styles.confirmation}>
+              <p>{messages.offlineCopies.confirmDescription}</p>
+              <div className={styles.actions}>
+                <button
+                  className={styles.dangerAction}
+                  onClick={() => void clearCaches()}
+                  type="button"
+                >
+                  {messages.offlineCopies.confirmAction}
+                </button>
+                <button
+                  className={styles.cancelAction}
+                  onClick={() => setConfirmClearCaches(false)}
+                  type="button"
+                >
+                  {messages.cancelAction}
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </section>
 
-      <section
-        aria-labelledby="personal-data-heading"
-        className="space-y-4 rounded-md border border-[var(--border)] bg-[var(--surface)] p-5"
-      >
-        <h2 className="text-2xl font-semibold" id="personal-data-heading">
-          {messages.personal.heading}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.personal.description}</p>
-        {personal.kind === "loading" ? (
-          <p className="text-sm text-[var(--muted)]">{messages.personal.checking}</p>
-        ) : personal.kind === "unavailable" ? (
-          <p className="text-sm text-[var(--muted)]">{messages.personal.unavailable}</p>
-        ) : (
-          <ul className="space-y-1 text-sm text-[var(--muted)]">
-            <li>{formatCountMessage(messages.personal.savedPlans, personal.savedPlans, locale)}</li>
-            <li>
-              {formatCountMessage(
-                messages.personal.journalEntries,
-                personal.journalEntries,
-                locale,
-              )}
-            </li>
-          </ul>
-        )}
-        <p className="text-sm leading-6 text-[var(--muted)]">
-          {messages.personal.separateStoresNotice}
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <button
-            className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold disabled:opacity-60"
-            disabled={personal.kind !== "available" || savedPlanCount === 0}
-            onClick={() => setConfirmDeletePlans(true)}
-            type="button"
-          >
-            {messages.personal.deleteAction}
-          </button>
-          <Link
-            className="inline-flex min-h-11 items-center text-sm text-[var(--link)] underline"
-            href="/journal"
-          >
-            {messages.personal.manageJournal}
-          </Link>
-        </div>
-        {confirmDeletePlans ? (
-          <div className="space-y-3 rounded-md border border-[var(--border-strong)] bg-[var(--background-raised)] p-4">
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              {messages.personal.confirmDescription}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                className="min-h-11 rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold"
-                onClick={() => void deletePlans()}
-                type="button"
-              >
-                {messages.personal.confirmAction}
-              </button>
-              <button
-                className="min-h-11 rounded-md border border-[var(--border)] px-4 text-sm"
-                onClick={() => setConfirmDeletePlans(false)}
-                type="button"
-              >
-                {messages.cancelAction}
-              </button>
-            </div>
+        <section aria-labelledby="personal-data-heading" className={styles.storageSection}>
+          <h2 id="personal-data-heading">{messages.personal.heading}</h2>
+          <p>{messages.personal.description}</p>
+          {personal.kind === "loading" ? (
+            <p>{messages.personal.checking}</p>
+          ) : personal.kind === "unavailable" ? (
+            <p>{messages.personal.unavailable}</p>
+          ) : (
+            <ul className={styles.counts}>
+              <li>
+                {formatCountMessage(messages.personal.savedPlans, personal.savedPlans, locale)}
+              </li>
+              <li>
+                {formatCountMessage(
+                  messages.personal.journalEntries,
+                  personal.journalEntries,
+                  locale,
+                )}
+              </li>
+            </ul>
+          )}
+          <p className={styles.separation}>{messages.personal.separateStoresNotice}</p>
+          <div className={styles.actions}>
+            <button
+              className={styles.dangerAction}
+              disabled={personal.kind !== "available" || savedPlanCount === 0}
+              onClick={() => setConfirmDeletePlans(true)}
+              type="button"
+            >
+              {messages.personal.deleteAction}
+            </button>
+            <Link className={styles.actionLink} href="/journal">
+              {messages.personal.manageJournal}
+            </Link>
           </div>
-        ) : null}
-      </section>
+          {confirmDeletePlans ? (
+            <div className={styles.confirmation}>
+              <p>{messages.personal.confirmDescription}</p>
+              <div className={styles.actions}>
+                <button
+                  className={styles.dangerAction}
+                  onClick={() => void deletePlans()}
+                  type="button"
+                >
+                  {messages.personal.confirmAction}
+                </button>
+                <button
+                  className={styles.cancelAction}
+                  onClick={() => setConfirmDeletePlans(false)}
+                  type="button"
+                >
+                  {messages.cancelAction}
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      </div>
 
       {actionStatus !== "" ? (
-        <p className="text-sm text-[var(--muted)]" role="status">
+        <p className={styles.feedback} role="status">
           {actionStatus}
         </p>
       ) : null}
       {actionError !== "" ? (
-        <p className="text-sm text-[var(--focus)]" role="alert">
+        <p className={`${styles.feedback} ${styles.error}`} role="alert">
           {actionError}
         </p>
       ) : null}

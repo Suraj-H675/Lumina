@@ -82,7 +82,6 @@ beforeEach(() => {
   fake.delete.mockReset();
   fake.request.mockReset();
   fake.solution.mockReset();
-  fake.statusEndpoint.mockClear();
   Object.defineProperty(URL, "createObjectURL", {
     configurable: true,
     value: vi.fn(() => "blob:local-identification-preview"),

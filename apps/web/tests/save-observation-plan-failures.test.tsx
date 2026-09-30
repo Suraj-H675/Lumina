@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { observationPlanFixture, savedPlanTargetFixture } from "./saved-observation-plan-fixture";
 
@@ -18,10 +18,6 @@ import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import { SavedPlanStorageError } from "../src/lib/journal/database";
 import { MAX_SAVED_OBSERVATION_PLANS } from "../src/lib/observation/saved-plan";
-
-beforeEach(() => {
-  putSavedObservationPlanMock.mockReset();
-});
 
 function renderButton() {
   return render(

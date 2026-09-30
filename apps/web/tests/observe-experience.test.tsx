@@ -31,7 +31,6 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  replaceMock.mockReset();
   await resetPersonalDatabase();
 });
 

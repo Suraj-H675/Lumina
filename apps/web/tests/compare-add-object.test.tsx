@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const { fetchMock, pushMock } = vi.hoisted(() => ({
   fetchMock: vi.fn(),
@@ -36,11 +36,6 @@ function okSuggestions(items: Array<{ canonical_name: string; slug: string }>) {
     })),
   };
 }
-
-afterEach(() => {
-  fetchMock.mockReset();
-  pushMock.mockReset();
-});
 
 describe("CompareAddObject", () => {
   it("appends the chosen suggestion to the committed object parameters", async () => {

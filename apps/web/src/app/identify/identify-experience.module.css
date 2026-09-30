@@ -1,5 +1,6 @@
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 5rem;
 }
 
@@ -704,7 +705,7 @@
   .hero,
   .stage,
   .statusPanel {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .intro,
@@ -714,7 +715,7 @@
   }
 
   .viewerLayout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -731,7 +732,7 @@
   .surveyFigures,
   .journalForm,
   .surveyControls {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .journalWide {

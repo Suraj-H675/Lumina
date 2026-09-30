@@ -1,5 +1,6 @@
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 5rem;
 }
 
@@ -440,7 +441,7 @@
   .transfer,
   .entriesSection,
   .entry {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .intro,
@@ -461,7 +462,7 @@
 
   .transferLedger,
   .metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .transferPanel,
@@ -475,7 +476,7 @@
   }
 
   .entrySection {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.45rem;
   }
 }

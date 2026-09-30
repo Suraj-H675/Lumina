@@ -61,9 +61,13 @@ describe("Lab section navigation", () => {
   it("points the primary Lab item at the section index and marks deep links active", () => {
     render(<SiteNav messages={enMessages.shell.navigation} />);
 
-    const labLink = screen.getByRole("link", { name: "Lab" });
-    expect(labLink).toHaveAttribute("href", "/lab");
-    expect(labLink).toHaveAttribute("aria-current", "page");
+    const labLinks = screen.getAllByRole("link", { name: "Lab" });
+    expect(labLinks).toHaveLength(2);
+    for (const labLink of labLinks) {
+      expect(labLink).toHaveAttribute("href", "/lab");
+      expect(labLink).toHaveAttribute("data-active", "true");
+      expect(labLink).not.toHaveAttribute("aria-current");
+    }
     expect(screen.getByRole("link", { name: "Participate" })).toHaveAttribute(
       "href",
       "/participate",

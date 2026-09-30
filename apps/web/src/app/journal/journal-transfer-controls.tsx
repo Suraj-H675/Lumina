@@ -21,6 +21,7 @@ import {
   type JournalImportPreview,
   type ParsedJournalImport,
 } from "../../lib/journal/export";
+import styles from "./journal-view.module.css";
 
 type ImportReview = Readonly<{
   bundle: ParsedJournalImport;
@@ -125,116 +126,129 @@ export function JournalTransferControls({
   }
 
   return (
-    <section
-      aria-labelledby="journal-transfer-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold" id="journal-transfer-heading">
+    <section aria-labelledby="journal-transfer-heading" className={styles.transfer}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle} id="journal-transfer-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
+        <p className={styles.sectionDescription}>{messages.description}</p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold disabled:opacity-50"
-          disabled={exportState === "working"}
-          onClick={() => void exportJournal()}
-          type="button"
-        >
-          {exportState === "working" ? messages.preparingExport : messages.exportAction}
-        </button>
-      </div>
-      {exportState === "error" ? <p role="alert">{messages.exportFailure}</p> : null}
-
-      <div className="space-y-3 border-t border-[var(--border)] pt-5">
-        <label className="block space-y-2 font-semibold" htmlFor="journal-import-file">
-          <span>{messages.importFileLabel}</span>
-          <input
-            accept="application/json,.json"
-            className="block min-h-11 max-w-full"
-            id="journal-import-file"
-            onChange={(event) => void chooseImport(event.target.files?.[0])}
-            ref={fileRef}
-            type="file"
-          />
-        </label>
-        <p className="text-sm leading-6 text-[var(--muted)]">{messages.importDescription}</p>
-      </div>
-
-      {importReview === null ? null : (
-        <div className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-4">
-          <h3 className="text-xl font-semibold">{messages.importPreviewTitle}</h3>
-          <p>
-            <strong>
-              {formatCountMessage(
-                messages.importPreviewNewEntries,
-                importReview.preview.added_ids.length,
-                locale,
-              )}
-            </strong>
-            {". "}
-            <strong>
-              {formatCountMessage(
-                messages.importPreviewConflicts,
-                importReview.preview.conflicts.length,
-                locale,
-              )}
-            </strong>
-            .
-          </p>
-          {importReview.preview.conflicts.map((conflict) => (
-            <fieldset className="space-y-2 border-t border-[var(--border)] pt-3" key={conflict.id}>
-              <legend className="font-semibold">
-                {formatMessageTemplate(messages.conflictTitle, { id: conflict.id })}
-              </legend>
-              <p className="text-sm text-[var(--muted)]">
-                {formatMessageTemplate(messages.conflictSummary, {
-                  importedUpdated: formatTimestamp(conflict.incoming_updated_at, locale),
-                  localUpdated: formatTimestamp(conflict.local_updated_at, locale),
-                  recommendation:
-                    conflict.recommendation === "use_imported"
-                      ? messages.recommendationUseImported
-                      : messages.recommendationKeepLocal,
-                })}
+      <div className={styles.sectionBody}>
+        <div className={styles.transferLedger}>
+          <div className={styles.transferPanel}>
+            <h3>{messages.exportAction}</h3>
+            <div className={styles.transferActions}>
+              <button
+                className={styles.textAction}
+                disabled={exportState === "working"}
+                onClick={() => void exportJournal()}
+                type="button"
+              >
+                {exportState === "working" ? messages.preparingExport : messages.exportAction}
+              </button>
+            </div>
+            {exportState === "error" ? (
+              <p className={styles.errorMessage} role="alert">
+                {messages.exportFailure}
               </p>
-              <label className="mr-4 inline-flex min-h-11 items-center gap-2">
-                <input
-                  checked={decisions.get(conflict.id) === "keep_local"}
-                  name={`journal-conflict-${conflict.id}`}
-                  onChange={() => chooseConflict(conflict.id, "keep_local")}
-                  type="radio"
-                />
-                {messages.keepLocal}
-              </label>
-              <label className="inline-flex min-h-11 items-center gap-2">
-                <input
-                  checked={decisions.get(conflict.id) === "use_imported"}
-                  name={`journal-conflict-${conflict.id}`}
-                  onChange={() => chooseConflict(conflict.id, "use_imported")}
-                  type="radio"
-                />
-                {messages.useImported}
-              </label>
-            </fieldset>
-          ))}
-          <button
-            className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold disabled:opacity-50"
-            disabled={importing}
-            onClick={() => void applyImport()}
-            type="button"
-          >
-            {importing ? messages.importActionWorking : messages.applyReviewedImport}
-          </button>
-        </div>
-      )}
+            ) : null}
+          </div>
 
-      {importMessage === null ? null : (
-        <p aria-live="polite" role="status">
-          {importMessage}
-        </p>
-      )}
+          <div className={styles.transferPanel}>
+            <h3>{messages.importFileLabel}</h3>
+            <label className={styles.fileLabel} htmlFor="journal-import-file">
+              <span>{messages.importFileLabel}</span>
+              <input
+                accept="application/json,.json"
+                className={styles.fileInput}
+                id="journal-import-file"
+                onChange={(event) => void chooseImport(event.target.files?.[0])}
+                ref={fileRef}
+                type="file"
+              />
+            </label>
+            <p className={styles.transferNote}>{messages.importDescription}</p>
+          </div>
+        </div>
+
+        {importReview === null ? null : (
+          <div className={styles.importPreview}>
+            <h3>{messages.importPreviewTitle}</h3>
+            <p>
+              <strong>
+                {formatCountMessage(
+                  messages.importPreviewNewEntries,
+                  importReview.preview.added_ids.length,
+                  locale,
+                )}
+              </strong>
+              {". "}
+              <strong>
+                {formatCountMessage(
+                  messages.importPreviewConflicts,
+                  importReview.preview.conflicts.length,
+                  locale,
+                )}
+              </strong>
+              .
+            </p>
+            {importReview.preview.conflicts.map((conflict) => (
+              <fieldset className={styles.conflict} key={conflict.id}>
+                <legend>
+                  {formatMessageTemplate(messages.conflictTitle, { id: conflict.id })}
+                </legend>
+                <p>
+                  {formatMessageTemplate(messages.conflictSummary, {
+                    importedUpdated: formatTimestamp(conflict.incoming_updated_at, locale),
+                    localUpdated: formatTimestamp(conflict.local_updated_at, locale),
+                    recommendation:
+                      conflict.recommendation === "use_imported"
+                        ? messages.recommendationUseImported
+                        : messages.recommendationKeepLocal,
+                  })}
+                </p>
+                <div className={styles.conflictChoices}>
+                  <label className={styles.conflictChoice}>
+                    <input
+                      checked={decisions.get(conflict.id) === "keep_local"}
+                      name={`journal-conflict-${conflict.id}`}
+                      onChange={() => chooseConflict(conflict.id, "keep_local")}
+                      type="radio"
+                    />
+                    {messages.keepLocal}
+                  </label>
+                  <label className={styles.conflictChoice}>
+                    <input
+                      checked={decisions.get(conflict.id) === "use_imported"}
+                      name={`journal-conflict-${conflict.id}`}
+                      onChange={() => chooseConflict(conflict.id, "use_imported")}
+                      type="radio"
+                    />
+                    {messages.useImported}
+                  </label>
+                </div>
+              </fieldset>
+            ))}
+            <div className={styles.transferActions}>
+              <button
+                className={styles.textAction}
+                disabled={importing}
+                onClick={() => void applyImport()}
+                type="button"
+              >
+                {importing ? messages.importActionWorking : messages.applyReviewedImport}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {importMessage === null ? null : (
+          <p aria-live="polite" className={styles.statusMessage} role="status">
+            {importMessage}
+          </p>
+        )}
+      </div>
     </section>
   );
 }

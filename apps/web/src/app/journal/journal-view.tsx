@@ -19,6 +19,7 @@ import {
 } from "../../lib/journal/database";
 import type { JournalEntry } from "../../lib/journal/model";
 import { JournalTransferControls } from "./journal-transfer-controls";
+import styles from "./journal-view.module.css";
 
 type JournalUiState =
   | Readonly<{ kind: "loading" }>
@@ -69,24 +70,22 @@ export function JournalView({
   }
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
-        <p className="leading-7 text-[var(--muted)]">{messages.privacyDetail}</p>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.eyebrow}</p>
+          <h1 className={styles.title}>{messages.title}</h1>
+        </div>
+        <div className={styles.heroAside}>
+          <p className={styles.intro}>{messages.intro}</p>
+          <p className={styles.privacy}>{messages.privacyDetail}</p>
+          <div className={styles.heroActions}>
+            <Link className={styles.textAction} href="/identify">
+              {messages.identifyAnotherImage}
+            </Link>
+          </div>
+        </div>
       </header>
-
-      <div className="flex flex-wrap gap-3">
-        <Link
-          className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-4 font-semibold"
-          href="/identify"
-        >
-          {messages.identifyAnotherImage}
-        </Link>
-      </div>
 
       <JournalTransferControls
         locale={locale}
@@ -95,25 +94,28 @@ export function JournalView({
       />
 
       {state.kind === "loading" ? (
-        <p role="status">{messages.loading}</p>
+        <p className={styles.statusMessage} role="status">
+          {messages.loading}
+        </p>
       ) : state.kind === "error" ? (
-        <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-xl font-semibold">{messages.states.unavailableTitle}</h2>
-          <p className="mt-2 text-[var(--muted)]">{state.message}</p>
+        <section className={styles.statePanel} role="alert">
+          <h2>{messages.states.unavailableTitle}</h2>
+          <p>{state.message}</p>
         </section>
       ) : state.entries.length === 0 ? (
-        <section className="border border-[var(--border)] p-5 sm:p-7">
-          <h2 className="text-2xl font-semibold">{messages.states.emptyTitle}</h2>
-          <p className="mt-2 max-w-3xl leading-7 text-[var(--muted)]">
-            {messages.states.emptyDescription}
-          </p>
+        <section className={styles.statePanel}>
+          <h2>{messages.states.emptyTitle}</h2>
+          <p>{messages.states.emptyDescription}</p>
         </section>
       ) : (
-        <section aria-labelledby="journal-entries-heading" className="space-y-5">
-          <h2 className="text-2xl font-semibold" id="journal-entries-heading">
-            {messages.states.entriesTitle}
-          </h2>
-          <div className="grid gap-5">
+        <section aria-labelledby="journal-entries-heading" className={styles.entriesSection}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>{messages.states.entriesTitle}</p>
+            <h2 className={styles.sectionTitle} id="journal-entries-heading">
+              {messages.states.entriesTitle}
+            </h2>
+          </div>
+          <div className={styles.entries}>
             {state.entries.map((entry) => (
               <JournalEntryCard
                 deleting={deleteConfirmId === entry.id}
@@ -151,171 +153,156 @@ function JournalEntryCard({
   onRequestDelete: () => void;
 }>) {
   return (
-    <article className="space-y-5 border border-[var(--border)] p-5 sm:p-7">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
+    <article className={styles.entry}>
+      <div className={styles.entryRail}>
+        <p className={styles.entryStamp}>
           {formatMessageTemplate(messages.savedAt, {
             timestamp: formatTimestamp(entry.created_at, locale),
           })}
         </p>
-        <h3 className="text-2xl font-semibold">{entry.title}</h3>
-        <p className="text-sm text-[var(--muted)]">
+        <h3 className={styles.entryTitle}>{entry.title}</h3>
+        <p className={styles.entryId}>
           {messages.entryIdLabel} <code>{entry.id}</code>
         </p>
       </div>
 
-      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric
-          label={messages.observationTimeLabel}
-          value={
-            entry.observed_time === null
-              ? messages.notRecorded
-              : formatTimestamp(entry.observed_time.utc, locale)
-          }
-        />
-        <Metric label={messages.locationLabel} value={formatLocation(entry, locale, messages)} />
-        <Metric
-          label={messages.solvedCenterLabel}
-          value={
-            entry.plate_solve === null
-              ? messages.noPlateSolve
-              : formatMessageTemplate(messages.solvedCenterValue, {
-                  dec: formatLocaleNumber(entry.plate_solve.center_dec_deg, locale, {
-                    maximumFractionDigits: 6,
-                    minimumFractionDigits: 6,
-                  }),
-                  ra: formatLocaleNumber(entry.plate_solve.center_ra_deg, locale, {
-                    maximumFractionDigits: 6,
-                    minimumFractionDigits: 6,
-                  }),
-                })
-          }
-        />
-        <Metric
-          label={messages.coordinateFrameLabel}
-          value={entry.plate_solve?.frame ?? messages.notRecorded}
-        />
-        <Metric
-          label={messages.pixelScaleLabel}
-          value={
-            entry.plate_solve === null
-              ? messages.notRecorded
-              : formatMessageTemplate(messages.pixelScaleValue, {
-                  value: formatLocaleNumber(entry.plate_solve.pixel_scale_arcsec, locale, {
-                    maximumFractionDigits: 3,
-                    minimumFractionDigits: 3,
-                  }),
-                })
-          }
-        />
-        <Metric
-          label={messages.equipmentLabel}
-          value={
-            entry.equipment.length === 0
-              ? messages.notRecorded
-              : formatLocaleList(entry.equipment, locale)
-          }
-        />
-        <Metric
-          label={messages.localImageLabel}
-          value={
-            entry.attachment_ids.length === 0
-              ? messages.localImageNotRetained
-              : messages.localImageRetained
-          }
-        />
-        <Metric
-          label={messages.followUpLabel}
-          value={entry.follow_up ? messages.followUpMarked : messages.followUpNotMarked}
-        />
-      </dl>
+      <div className={styles.entryBody}>
+        <dl className={styles.metrics}>
+          <Metric
+            label={messages.observationTimeLabel}
+            value={
+              entry.observed_time === null
+                ? messages.notRecorded
+                : formatTimestamp(entry.observed_time.utc, locale)
+            }
+          />
+          <Metric label={messages.locationLabel} value={formatLocation(entry, locale, messages)} />
+          <Metric
+            label={messages.solvedCenterLabel}
+            value={
+              entry.plate_solve === null
+                ? messages.noPlateSolve
+                : formatMessageTemplate(messages.solvedCenterValue, {
+                    dec: formatLocaleNumber(entry.plate_solve.center_dec_deg, locale, {
+                      maximumFractionDigits: 6,
+                      minimumFractionDigits: 6,
+                    }),
+                    ra: formatLocaleNumber(entry.plate_solve.center_ra_deg, locale, {
+                      maximumFractionDigits: 6,
+                      minimumFractionDigits: 6,
+                    }),
+                  })
+            }
+          />
+          <Metric
+            label={messages.coordinateFrameLabel}
+            value={entry.plate_solve?.frame ?? messages.notRecorded}
+          />
+          <Metric
+            label={messages.pixelScaleLabel}
+            value={
+              entry.plate_solve === null
+                ? messages.notRecorded
+                : formatMessageTemplate(messages.pixelScaleValue, {
+                    value: formatLocaleNumber(entry.plate_solve.pixel_scale_arcsec, locale, {
+                      maximumFractionDigits: 3,
+                      minimumFractionDigits: 3,
+                    }),
+                  })
+            }
+          />
+          <Metric
+            label={messages.equipmentLabel}
+            value={
+              entry.equipment.length === 0
+                ? messages.notRecorded
+                : formatLocaleList(entry.equipment, locale)
+            }
+          />
+          <Metric
+            label={messages.localImageLabel}
+            value={
+              entry.attachment_ids.length === 0
+                ? messages.localImageNotRetained
+                : messages.localImageRetained
+            }
+          />
+          <Metric
+            label={messages.followUpLabel}
+            value={entry.follow_up ? messages.followUpMarked : messages.followUpNotMarked}
+          />
+        </dl>
 
-      {entry.objects.length > 0 ? (
-        <div className="space-y-2">
-          <h4 className="font-semibold">{messages.savedObjectsTitle}</h4>
-          <ul className="flex flex-wrap gap-2" aria-label={messages.savedObjectsLabel}>
-            {entry.objects.slice(0, 20).map((object) => (
-              <li
-                className="border border-[var(--border)] px-2 py-1 text-sm"
-                key={`${object.source}:${object.entity_id ?? ""}:${object.name}`}
-              >
-                {object.name}
-              </li>
-            ))}
-          </ul>
-          {entry.objects.length > 20 ? (
-            <p className="text-sm text-[var(--muted)]">
-              {formatCountMessage(messages.moreSavedObjects, entry.objects.length - 20, locale)}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {entry.conditions !== null && entry.conditions.length > 0 ? (
-        <div>
-          <h4 className="font-semibold">{messages.conditionsTitle}</h4>
-          <p className="mt-1 whitespace-pre-wrap leading-7 text-[var(--muted)]">
-            {entry.conditions}
-          </p>
-        </div>
-      ) : null}
-      {entry.notes.length > 0 ? (
-        <div>
-          <h4 className="font-semibold">{messages.notesTitle}</h4>
-          <p className="mt-1 whitespace-pre-wrap leading-7 text-[var(--muted)]">{entry.notes}</p>
-        </div>
-      ) : null}
-
-      {entry.plate_solve === null ? null : (
-        <details className="border border-[var(--border)] p-4">
-          <summary className="cursor-pointer font-semibold">
-            {messages.plateSolveProvenance}
-          </summary>
-          <div className="mt-3 space-y-2 text-sm text-[var(--muted)]">
-            <p>
-              {messages.solverVersionLabel} <code>{entry.plate_solve.solver_version}</code>
-            </p>
-            <p>
-              {messages.wcsFingerprintLabel} <code>{entry.plate_solve.wcs_source_sha256}</code>
-            </p>
-            <p>
-              {messages.snapshotIdLabel} <code>{entry.plate_solve.snapshot_id}</code>
-            </p>
+        {entry.objects.length > 0 ? (
+          <div className={styles.entrySection}>
+            <h4>{messages.savedObjectsTitle}</h4>
+            <div>
+              <ul className={styles.objectList} aria-label={messages.savedObjectsLabel}>
+                {entry.objects.slice(0, 20).map((object) => (
+                  <li key={`${object.source}:${object.entity_id ?? ""}:${object.name}`}>
+                    {object.name}
+                  </li>
+                ))}
+              </ul>
+              {entry.objects.length > 20 ? (
+                <p className={styles.moreObjects}>
+                  {formatCountMessage(messages.moreSavedObjects, entry.objects.length - 20, locale)}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </details>
-      )}
+        ) : null}
 
-      <div className="border-t border-[var(--border)] pt-4">
-        {deleting ? (
-          <div
-            className="flex flex-wrap gap-3"
-            role="group"
-            aria-label={formatMessageTemplate(messages.deleteGroupLabel, { title: entry.title })}
-          >
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-              onClick={onConfirmDelete}
-              type="button"
-            >
-              {messages.confirmLocalDelete}
-            </button>
-            <button
-              className="min-h-11 px-4 font-semibold text-[var(--link)] underline"
-              onClick={onCancelDelete}
-              type="button"
-            >
-              {messages.keepEntry}
-            </button>
+        {entry.conditions !== null && entry.conditions.length > 0 ? (
+          <div className={styles.entrySection}>
+            <h4>{messages.conditionsTitle}</h4>
+            <p className="whitespace-pre-wrap">{entry.conditions}</p>
           </div>
-        ) : (
-          <button
-            className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={onRequestDelete}
-            type="button"
-          >
-            {messages.deleteLocalEntry}
-          </button>
+        ) : null}
+        {entry.notes.length > 0 ? (
+          <div className={styles.entrySection}>
+            <h4>{messages.notesTitle}</h4>
+            <p className="whitespace-pre-wrap">{entry.notes}</p>
+          </div>
+        ) : null}
+
+        {entry.plate_solve === null ? null : (
+          <details className={styles.provenance}>
+            <summary>{messages.plateSolveProvenance}</summary>
+            <div className={styles.provenanceBody}>
+              <p>
+                {messages.solverVersionLabel} <code>{entry.plate_solve.solver_version}</code>
+              </p>
+              <p>
+                {messages.wcsFingerprintLabel} <code>{entry.plate_solve.wcs_source_sha256}</code>
+              </p>
+              <p>
+                {messages.snapshotIdLabel} <code>{entry.plate_solve.snapshot_id}</code>
+              </p>
+            </div>
+          </details>
         )}
+
+        <div className={styles.entryActions}>
+          {deleting ? (
+            <div
+              className={styles.entryActions}
+              role="group"
+              aria-label={formatMessageTemplate(messages.deleteGroupLabel, { title: entry.title })}
+            >
+              <button className={styles.dangerAction} onClick={onConfirmDelete} type="button">
+                {messages.confirmLocalDelete}
+              </button>
+              <button className={styles.secondaryAction} onClick={onCancelDelete} type="button">
+                {messages.keepEntry}
+              </button>
+            </div>
+          ) : (
+            <button className={styles.dangerAction} onClick={onRequestDelete} type="button">
+              {messages.deleteLocalEntry}
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -323,9 +310,9 @@ function JournalEntryCard({
 
 function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-      <dt className="text-sm text-[var(--muted)]">{label}</dt>
-      <dd className="mt-1 font-semibold">{value}</dd>
+    <div className={styles.metric}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }

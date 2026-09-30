@@ -15,11 +15,7 @@ import {
   type LearningProgressImportPreview,
   type LearningProgressStoreFailureReason,
 } from "../lib/learning/progress-store";
-
-const primaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] bg-[var(--surface-hover)] px-4 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60";
-const secondaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-60";
+import styles from "./learning-experience.module.css";
 
 type LearningProgressControlsProps = Readonly<{
   locale: PublishedLocale;
@@ -152,94 +148,92 @@ export function LearningProgressControls({ locale, messages }: LearningProgressC
   }
 
   return (
-    <section
-      aria-labelledby="learning-data-heading"
-      className="space-y-4 border-t border-[var(--border)] pt-8"
-    >
-      <div className="space-y-2">
-        <h2 id="learning-data-heading">{messages.title}</h2>
-        <p className="max-w-2xl leading-7 text-[var(--muted)]">{messages.description}</p>
+    <section aria-labelledby="learning-data-heading" className={styles.progressSection}>
+      <div>
+        <h2 className={styles.progressTitle} id="learning-data-heading">
+          {messages.title}
+        </h2>
+        <p className={styles.progressDescription}>{messages.description}</p>
       </div>
-      {status === "unavailable" ? (
-        <p className="text-sm text-[var(--warning)]" role="status">
-          {messages.statusUnavailable}
-        </p>
-      ) : null}
-      {status === "corrupted" ? (
-        <p className="text-sm text-[var(--warning)]" role="status">
-          {messages.statusCorrupted}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap gap-3">
-        <button
-          className={primaryButtonClassName}
-          disabled={busy || status !== "ready"}
-          onClick={() => void handleExport()}
-          type="button"
-        >
-          {messages.exportAction}
-        </button>
-        <label className={secondaryButtonClassName}>
-          {messages.importAction}
-          <input
-            accept="application/json,.json"
-            className="sr-only"
-            disabled={busy}
-            onChange={(event) => void handleImport(event)}
-            type="file"
-          />
-        </label>
-        <button
-          className={secondaryButtonClassName}
-          disabled={busy || status === "unavailable"}
-          onClick={handleReset}
-          type="button"
-        >
-          {resetArmed ? messages.confirmResetAction : messages.resetAction}
-        </button>
-      </div>
-      {preview !== null ? (
-        <div
-          className="max-w-2xl space-y-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4"
-          role="status"
-        >
-          <h3 className="font-semibold">{messages.previewTitle}</h3>
-          <p className="leading-7 text-[var(--muted)]">
-            {formatCountMessage(messages.previewPaths, preview.added_paths, locale)}{" "}
-            {formatCountMessage(messages.previewAttempts, preview.added_attempts, locale)}{" "}
-            {formatCountMessage(messages.previewLessons, preview.updated_lessons, locale)}{" "}
-            {messages.previewRetention}
+      <div className={styles.progressBody}>
+        {status === "unavailable" ? (
+          <p className={styles.progressStatus} role="status">
+            {messages.statusUnavailable}
           </p>
-          <div className="flex flex-wrap gap-3">
-            <button
-              className={primaryButtonClassName}
+        ) : null}
+        {status === "corrupted" ? (
+          <p className={styles.progressStatus} role="status">
+            {messages.statusCorrupted}
+          </p>
+        ) : null}
+        <div className={styles.progressActions}>
+          <button
+            className={styles.primaryButton}
+            disabled={busy || status !== "ready"}
+            onClick={() => void handleExport()}
+            type="button"
+          >
+            {messages.exportAction}
+          </button>
+          <label className={styles.secondaryButton}>
+            {messages.importAction}
+            <input
+              accept="application/json,.json"
+              className="sr-only"
               disabled={busy}
-              onClick={() => void confirmImport()}
-              type="button"
-            >
-              {messages.confirmImportAction}
-            </button>
-            <button
-              className={secondaryButtonClassName}
-              disabled={busy}
-              onClick={() => {
-                setPreview(null);
-                setRawImport(null);
-                setMessage(messages.importCancelled);
-              }}
-              type="button"
-            >
-              {messages.cancelImportAction}
-            </button>
-          </div>
+              onChange={(event) => void handleImport(event)}
+              type="file"
+            />
+          </label>
+          <button
+            className={styles.secondaryButton}
+            disabled={busy || status === "unavailable"}
+            onClick={handleReset}
+            type="button"
+          >
+            {resetArmed ? messages.confirmResetAction : messages.resetAction}
+          </button>
         </div>
-      ) : null}
-      <p aria-live="polite" className="min-h-6 text-sm text-[var(--muted)]" role="status">
-        {message}
-      </p>
-      <p className="text-xs text-[var(--muted)]">
-        {formatCountMessage(messages.storedSummary, progress.paths.length, locale)}
-      </p>
+        {preview !== null ? (
+          <div className={styles.preview} role="status">
+            <h3>{messages.previewTitle}</h3>
+            <p className={styles.previewCopy}>
+              {formatCountMessage(messages.previewPaths, preview.added_paths, locale)}{" "}
+              {formatCountMessage(messages.previewAttempts, preview.added_attempts, locale)}{" "}
+              {formatCountMessage(messages.previewLessons, preview.updated_lessons, locale)}{" "}
+              {messages.previewRetention}
+            </p>
+            <div className={styles.previewActions}>
+              <button
+                className={styles.primaryButton}
+                disabled={busy}
+                onClick={() => void confirmImport()}
+                type="button"
+              >
+                {messages.confirmImportAction}
+              </button>
+              <button
+                className={styles.secondaryButton}
+                disabled={busy}
+                onClick={() => {
+                  setPreview(null);
+                  setRawImport(null);
+                  setMessage(messages.importCancelled);
+                }}
+                type="button"
+              >
+                {messages.cancelImportAction}
+              </button>
+            </div>
+          </div>
+        ) : null}
+        <p aria-live="polite" className={styles.progressMessage} role="status">
+          {message}
+        </p>
+        <p className={styles.progressMeta}>
+          {formatCountMessage(messages.storedSummary, progress.paths.length, locale)}
+        </p>
+      </div>
     </section>
   );
 }

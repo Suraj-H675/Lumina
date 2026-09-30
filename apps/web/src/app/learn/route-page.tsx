@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LearningProgressControls } from "../../components/learning-progress-controls";
+import styles from "../../components/learning-experience.module.css";
 import { formatMessageTemplate } from "../../lib/i18n/format";
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type { LearnLandingMessages, LearnMessages } from "../../lib/i18n/messages/types";
@@ -23,30 +24,30 @@ export function LearnLandingRoute({
   const landing = messages.landing;
 
   return (
-    <article className="space-y-12">
-      <header className="max-w-3xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {landing.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{landing.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{landing.intro}</p>
+    <article className={styles.landing}>
+      <header className={styles.landingHero}>
+        <div>
+          <p className={styles.eyebrow}>{landing.eyebrow}</p>
+          <h1 className={styles.landingTitle}>{landing.title}</h1>
+        </div>
+        <p className={styles.landingIntro}>{landing.intro}</p>
       </header>
-      <section
-        aria-labelledby="available-path-heading"
-        className="max-w-3xl space-y-4 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
-      >
-        <p className="text-sm font-semibold text-[var(--accent)]">{landing.pathLabel}</p>
-        <h2 id="available-path-heading">{path.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">{path.summary}</p>
-        <p className="text-sm text-[var(--muted)]">
-          {formatMessageTemplate(landing.pathMeta, { lessonCount: path.lesson_slugs.length })}
-        </p>
-        <Link
-          className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline hover:border-[var(--accent)]"
-          href={`/learn/${path.slug}`}
-        >
-          {landing.viewPath}
-        </Link>
+      <section aria-labelledby="available-path-heading" className={styles.featuredPath}>
+        <div>
+          <p className={styles.pathLabel}>{landing.pathLabel}</p>
+          <h2 className={styles.featuredPathTitle} id="available-path-heading">
+            {path.title}
+          </h2>
+          <p className={styles.featuredPathSummary}>{path.summary}</p>
+        </div>
+        <div className={styles.featuredPathMeta}>
+          <p className={styles.pathMeta}>
+            {formatMessageTemplate(landing.pathMeta, { lessonCount: path.lesson_slugs.length })}
+          </p>
+          <Link className={styles.textAction} href={`/learn/${path.slug}`}>
+            {landing.viewPath}
+          </Link>
+        </div>
       </section>
       <LearningProgressControls locale={locale} messages={messages.progressControls} />
     </article>

@@ -1,0 +1,896 @@
+.landing,
+.pathPage,
+.lessonPage {
+  display: grid;
+  gap: 5rem;
+}
+
+.landingHero,
+.pathHero,
+.lessonHero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.sectionEyebrow,
+.lessonIndex,
+.pathLabel {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.69rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.landingTitle,
+.pathTitle,
+.lessonTitle {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.6rem, 8vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.058em;
+  line-height: 0.88;
+}
+
+.landingIntro,
+.pathSummary,
+.lessonSummary {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.featuredPath {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(12rem, 0.28fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.8rem 0 2rem;
+}
+
+.featuredPathTitle {
+  max-width: 18ch;
+  margin: 0.7rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.5vw, 4.2rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.96;
+}
+
+.featuredPathSummary {
+  max-width: 44rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.featuredPathMeta {
+  display: grid;
+  align-content: start;
+  gap: 1.2rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1rem;
+}
+
+.pathMeta,
+.lessonMeta,
+.progressMeta {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  line-height: 1.6;
+}
+
+.textAction,
+.navAction,
+.sourceLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  width: fit-content;
+  color: var(--link);
+  font-size: 0.8rem;
+  font-weight: 620;
+  text-decoration: underline;
+  text-underline-offset: 0.24rem;
+}
+
+.breadcrumbs {
+  margin: 0;
+}
+
+.breadcrumbList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  list-style: none;
+}
+
+.breadcrumbList a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.pathHero {
+  padding-top: 0.2rem;
+}
+
+.pathHeroMeta,
+.lessonHeroMeta {
+  display: grid;
+  align-content: end;
+  gap: 1rem;
+}
+
+.pathStructure {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sectionDescription {
+  max-width: 24rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.objectiveList,
+.stepList,
+.bodyList {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted-strong);
+  line-height: 1.7;
+}
+
+.objectiveList {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding-top: 1.1rem;
+  padding-bottom: 1.2rem;
+}
+
+.lessonListSection {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.lessonListHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.8rem;
+}
+
+.lessonListTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.lessonList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.lessonEntry {
+  border-bottom: 1px solid var(--border);
+}
+
+.lessonLink,
+.lessonLocked {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 1rem;
+  min-height: 8rem;
+  align-items: start;
+  padding: 1.15rem 0;
+  text-decoration: none;
+}
+
+.lessonLink {
+  color: var(--foreground);
+  transition:
+    background-color 160ms ease,
+    padding-inline 160ms ease;
+}
+
+.lessonLink:hover {
+  background: color-mix(in srgb, var(--surface) 64%, transparent);
+  padding-inline: 0.45rem;
+}
+
+.lessonLocked {
+  opacity: 0.72;
+}
+
+.lessonNumber {
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  letter-spacing: 0.06em;
+}
+
+.lessonEntryTitle {
+  display: block;
+  max-width: 24ch;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.lessonEntrySummary {
+  display: block;
+  max-width: 42rem;
+  margin-top: 0.55rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.lessonState {
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.lessonState[data-mastered="true"] {
+  color: var(--success);
+}
+
+.pathComplete {
+  margin: 0;
+  border-top: 1px solid var(--success);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  color: var(--success);
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.capstone {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2.4rem;
+}
+
+.capstoneBody {
+  min-width: 0;
+}
+
+.capstoneIntro,
+.activityMeta,
+.expectedObservation,
+.lessonBody p,
+.modeExplanation,
+.modeQuestion,
+.quizIntro,
+.sourceReview,
+.progressDescription,
+.previewCopy {
+  margin: 0;
+  color: var(--muted-strong);
+  line-height: 1.72;
+}
+
+.safety {
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--warning);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.safety strong,
+.modeQuestion strong,
+.misconception strong,
+.expectedObservation strong {
+  color: var(--foreground);
+}
+
+.lessonHero {
+  padding-top: 0.2rem;
+}
+
+.lessonHeroTitleBlock {
+  min-width: 0;
+}
+
+.lessonTitle {
+  max-width: 13ch;
+}
+
+.locked {
+  max-width: 46rem;
+  border-top: 1px dashed var(--border-strong);
+  border-bottom: 1px dashed var(--border);
+  padding: 1.5rem 0;
+}
+
+.locked h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+.locked p {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.modeBar {
+  display: grid;
+  grid-template-columns: auto minmax(12rem, 18rem) minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: center;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 0;
+}
+
+.modeLabel {
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modeSelect {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--background-raised);
+  color: var(--foreground);
+  padding: 0 0.7rem;
+  font-size: 0.8rem;
+}
+
+.modeDescription {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.lessonLead {
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) minmax(16rem, 0.38fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1.6rem 0 1.8rem;
+}
+
+.hook {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+.modePanel {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 0.9rem;
+}
+
+.modeVariantLabel {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.modeExplanation,
+.modeQuestion {
+  font-size: 0.8rem;
+}
+
+.lessonSection {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.24fr) minmax(0, 0.76fr);
+  gap: clamp(1.6rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.lessonSectionHeading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3vw, 2.55rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.lessonBody {
+  display: grid;
+  gap: 1.15rem;
+  min-width: 0;
+}
+
+.examples {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.24fr) minmax(0, 0.76fr);
+  gap: clamp(1.6rem, 5vw, 5rem);
+}
+
+.exampleList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.example {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.3fr) minmax(0, 0.7fr);
+  gap: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 0 1rem;
+}
+
+.example strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.example p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.misconception {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 54rem;
+  border-top: 1px solid var(--warning);
+  border-bottom: 1px solid var(--border);
+  padding: 1.35rem 0;
+}
+
+.misconception h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.misconception p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.activity {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2.2rem;
+}
+
+.activityBody {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.quiz {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2.2rem;
+}
+
+.quizBody {
+  min-width: 0;
+}
+
+.quizQuestions {
+  display: grid;
+  margin-top: 1.4rem;
+  border-top: 1px solid var(--border);
+}
+
+.question {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 0 1.35rem;
+}
+
+.question legend {
+  max-width: 100%;
+  padding: 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.choices {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.85rem;
+}
+
+.choice {
+  display: flex;
+  min-height: 2.75rem;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.45rem 0;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+}
+
+.hint {
+  margin-top: 0.55rem;
+}
+
+.hint summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  cursor: pointer;
+  align-items: center;
+  color: var(--link);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.hint p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.buttonRow,
+.progressActions,
+.previewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.2rem;
+  margin-top: 1.2rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.primaryButton {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  border-bottom-color: var(--accent-strong);
+  color: var(--accent-strong);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.quizResult {
+  margin-top: 1.7rem;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.quizResult h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.quizResult ol {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.quizResult p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.resultState {
+  font-weight: 650;
+}
+
+.resultState[data-correct="true"] {
+  color: var(--success);
+}
+
+.resultState[data-correct="false"] {
+  color: var(--warning);
+}
+
+.saveMessage {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--success);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.lessonNavigation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.9rem 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.1rem;
+}
+
+.navAction {
+  color: var(--foreground);
+}
+
+.progressSection {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.3fr) minmax(0, 0.7fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2rem;
+}
+
+.progressBody {
+  min-width: 0;
+}
+
+.progressTitle,
+.sourcesTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.progressDescription,
+.sourceReview {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.progressStatus,
+.progressMessage {
+  margin: 0.75rem 0 0;
+  color: var(--warning);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.progressMessage {
+  min-height: 1.2rem;
+  color: var(--muted);
+}
+
+.progressMeta {
+  margin-top: 0.3rem;
+}
+
+.preview {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.preview h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.previewCopy {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.sources {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.3fr) minmax(0, 0.7fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2rem;
+}
+
+.sourceList {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  padding: 0;
+  list-style: none;
+  counter-reset: sources;
+}
+
+.sourceItem {
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  gap: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 0 0.95rem;
+  counter-increment: sources;
+}
+
+.sourceItem::before {
+  content: counter(sources, decimal-leading-zero);
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+}
+
+.sourceLink {
+  min-height: auto;
+  color: var(--link);
+  font-size: 0.8rem;
+}
+
+.sourceMeta {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.73rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 64rem) {
+  .landingHero,
+  .pathHero,
+  .lessonHero,
+  .featuredPath,
+  .pathStructure,
+  .capstone,
+  .lessonSection,
+  .examples,
+  .activity,
+  .quiz,
+  .progressSection,
+  .sources {
+    grid-template-columns: 1fr;
+  }
+
+  .landingIntro,
+  .pathSummary,
+  .lessonSummary,
+  .sectionDescription {
+    max-width: 42rem;
+  }
+
+  .featuredPathMeta {
+    max-width: 28rem;
+  }
+}
+
+@media (max-width: 46rem) {
+  .landing,
+  .pathPage,
+  .lessonPage {
+    gap: 4rem;
+  }
+
+  .landingTitle,
+  .pathTitle,
+  .lessonTitle {
+    font-size: clamp(3.4rem, 18vw, 5.3rem);
+  }
+
+  .lessonListHeader,
+  .modeBar,
+  .lessonLead {
+    grid-template-columns: 1fr;
+  }
+
+  .lessonLink,
+  .lessonLocked {
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+  }
+
+  .lessonState {
+    grid-column: 2;
+  }
+
+  .example {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+}

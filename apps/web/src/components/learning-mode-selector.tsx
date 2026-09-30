@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { usePresentationModeMessages } from "../lib/i18n/presentation-mode-context";
 import { AUDIENCE_MODES, type AudienceMode } from "../lib/learning/content";
+import styles from "./learning-experience.module.css";
 
 const PRESENTATION_MODE_KEY = "lumina.presentation-mode.v1";
 
@@ -56,12 +57,12 @@ export function LearningModeSelector({ onChange }: LearningModeSelectorProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <label className="text-sm font-semibold" htmlFor="learning-presentation-mode">
+    <div className={styles.modeBar}>
+      <label className={styles.modeLabel} htmlFor="learning-presentation-mode">
         {messages.label}
       </label>
       <select
-        className="min-h-11 rounded-sm border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
+        className={styles.modeSelect}
         id="learning-presentation-mode"
         onChange={(event) => handleChange(event.target.value)}
         value={mode}
@@ -72,7 +73,7 @@ export function LearningModeSelector({ onChange }: LearningModeSelectorProps) {
           </option>
         ))}
       </select>
-      <span className="text-sm text-[var(--muted)]">{messages.description}</span>
+      <span className={styles.modeDescription}>{messages.description}</span>
     </div>
   );
 }

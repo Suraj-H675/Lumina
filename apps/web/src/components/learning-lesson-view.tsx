@@ -27,6 +27,7 @@ import type { QuizEvaluation } from "../lib/learning/quiz";
 import { LearningModeSelector } from "./learning-mode-selector";
 import { LearningQuiz } from "./learning-quiz";
 import { LearningSources } from "./learning-sources";
+import styles from "./learning-experience.module.css";
 
 type LearningLessonViewProps = Readonly<{
   content: LearningContent;
@@ -101,49 +102,45 @@ export function LearningLessonView({
   }
 
   return (
-    <article className="space-y-10">
-      <nav aria-label={messages.breadcrumbLabel}>
-        <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
+    <article className={styles.lessonPage}>
+      <nav aria-label={messages.breadcrumbLabel} className={styles.breadcrumbs}>
+        <ol className={styles.breadcrumbList}>
           <li>
-            <Link className="text-[var(--link)] underline" href="/learn">
-              {messages.learnLink}
-            </Link>
+            <Link href="/learn">{messages.learnLink}</Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link className="text-[var(--link)] underline" href={`/learn/${path.slug}`}>
-              {path.title}
-            </Link>
+            <Link href={`/learn/${path.slug}`}>{path.title}</Link>
           </li>
           <li aria-hidden="true">/</li>
           <li aria-current="page">{lesson.title}</li>
         </ol>
       </nav>
-      <header className="max-w-3xl space-y-5">
-        <p className="text-sm text-[var(--muted)]">
-          {formatMessageTemplate(messages.lessonMeta, {
-            lessonCount: formatLocaleNumber(path.lesson_slugs.length, locale),
-            lessonNumber: formatLocaleNumber(currentIndex + 1, locale),
-            minutes: formatLocaleNumber(lesson.estimated_minutes, locale),
-          })}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{lesson.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{lesson.summary}</p>
+      <header className={styles.lessonHero}>
+        <div className={styles.lessonHeroTitleBlock}>
+          <p className={styles.lessonIndex}>
+            {formatMessageTemplate(messages.lessonMeta, {
+              lessonCount: formatLocaleNumber(path.lesson_slugs.length, locale),
+              lessonNumber: formatLocaleNumber(currentIndex + 1, locale),
+              minutes: formatLocaleNumber(lesson.estimated_minutes, locale),
+            })}
+          </p>
+          <h1 className={styles.lessonTitle}>{lesson.title}</h1>
+        </div>
+        <div className={styles.lessonHeroMeta}>
+          <p className={styles.lessonSummary}>{lesson.summary}</p>
+        </div>
       </header>
       {!prerequisiteState.unlocked ? (
-        <section
-          aria-labelledby="lesson-locked-heading"
-          className="max-w-2xl space-y-4 rounded-lg border border-dashed border-[var(--border-strong)] px-6 py-6"
-          role="status"
-        >
+        <section aria-labelledby="lesson-locked-heading" className={styles.locked} role="status">
           <h2 id="lesson-locked-heading">{messages.lockedTitle}</h2>
-          <p className="leading-7 text-[var(--muted)]">
+          <p>
             {formatMessageTemplate(messages.lockedDescription, {
               prerequisites: formatLocaleList(prerequisiteState.missing, locale),
             })}
           </p>
           <Link
-            className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline"
+            className={styles.textAction}
             href={`/learn/${path.slug}/${previousSlug ?? path.lesson_slugs[0]}`}
           >
             {messages.goToAvailableLesson}
@@ -152,112 +149,111 @@ export function LearningLessonView({
       ) : (
         <>
           <LearningModeSelector onChange={handleModeChange} />
-          <section
-            aria-labelledby="lesson-hook-heading"
-            className="max-w-3xl space-y-4 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
-          >
+          <section aria-labelledby="lesson-hook-heading" className={styles.lessonLead}>
             <h2 className="sr-only" id="lesson-hook-heading">
               {messages.lessonIntroduction}
             </h2>
-            <p className="text-xl leading-8 text-[var(--foreground)]">{lesson.hook}</p>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-[var(--accent)]">
-                {lesson.mode_variants[mode].label}
-              </p>
-              <p className="leading-7 text-[var(--muted)]">
-                {lesson.mode_variants[mode].explanation}
-              </p>
-              <p className="text-sm leading-6 text-[var(--muted)]">
-                <strong className="text-[var(--foreground)]">{messages.thinkAboutLabel}</strong>{" "}
+            <p className={styles.hook}>{lesson.hook}</p>
+            <div className={styles.modePanel}>
+              <p className={styles.modeVariantLabel}>{lesson.mode_variants[mode].label}</p>
+              <p className={styles.modeExplanation}>{lesson.mode_variants[mode].explanation}</p>
+              <p className={styles.modeQuestion}>
+                <strong>{messages.thinkAboutLabel}</strong>{" "}
                 {lesson.mode_variants[mode].deeper_question}
               </p>
             </div>
           </section>
-          <section aria-labelledby="lesson-objectives-heading" className="max-w-3xl space-y-4">
-            <h2 id="lesson-objectives-heading">{messages.objectivesTitle}</h2>
-            <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
+          <section aria-labelledby="lesson-objectives-heading" className={styles.lessonSection}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionEyebrow}>{messages.objectivesTitle}</p>
+              <h2 className={styles.lessonSectionHeading} id="lesson-objectives-heading">
+                {messages.objectivesTitle}
+              </h2>
+            </div>
+            <ul className={styles.objectiveList}>
               {lesson.learning_objectives.map((objective) => (
                 <li key={objective}>{objective}</li>
               ))}
             </ul>
           </section>
-          <div className="max-w-3xl space-y-10">
+          <>
             {lesson.sections.map((section) => (
               <section
                 aria-labelledby={`${section.id}-heading`}
-                className="space-y-4"
+                className={styles.lessonSection}
                 key={section.id}
               >
-                <h2 id={`${section.id}-heading`}>{section.heading}</h2>
-                {section.paragraphs.map((paragraph) => (
-                  <p className="leading-7 text-[var(--muted)]" key={paragraph}>
-                    {paragraph}
-                  </p>
-                ))}
-                <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
-                  {section.bullets.map((bullet) => (
-                    <li key={bullet}>{bullet}</li>
+                <h2 className={styles.lessonSectionHeading} id={`${section.id}-heading`}>
+                  {section.heading}
+                </h2>
+                <div className={styles.lessonBody}>
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
                   ))}
-                </ul>
+                  <ul className={styles.bodyList}>
+                    {section.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
               </section>
             ))}
-          </div>
-          <section aria-labelledby="real-examples-heading" className="max-w-3xl space-y-4">
-            <h2 id="real-examples-heading">{messages.realExamplesTitle}</h2>
-            <ul className="m-0 grid gap-3 list-none p-0">
+          </>
+          <section aria-labelledby="real-examples-heading" className={styles.examples}>
+            <h2 className={styles.lessonSectionHeading} id="real-examples-heading">
+              {messages.realExamplesTitle}
+            </h2>
+            <ul className={styles.exampleList}>
               {lesson.real_object_examples.map((example) => (
-                <li
-                  className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-5 py-4"
-                  key={example.name}
-                >
+                <li className={styles.example} key={example.name}>
                   <strong>{example.name}</strong>
-                  <p className="mt-1 leading-7 text-[var(--muted)]">{example.why_it_helps}</p>
+                  <p>{example.why_it_helps}</p>
                 </li>
               ))}
             </ul>
           </section>
-          <aside
-            aria-labelledby="misconception-heading"
-            className="max-w-3xl space-y-4 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-6 py-6"
-          >
+          <aside aria-labelledby="misconception-heading" className={styles.misconception}>
             <h2 id="misconception-heading">{messages.misconceptionTitle}</h2>
-            <p className="font-semibold">{lesson.misconception_check.prompt}</p>
-            <p className="leading-7 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">{messages.commonMistakeLabel}</strong>{" "}
+            <p>
+              <strong>{lesson.misconception_check.prompt}</strong>
+            </p>
+            <p>
+              <strong>{messages.commonMistakeLabel}</strong>{" "}
               {lesson.misconception_check.misconception}
             </p>
-            <p className="leading-7 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">{messages.correctionLabel}</strong>{" "}
-              {lesson.misconception_check.correction}
+            <p>
+              <strong>{messages.correctionLabel}</strong> {lesson.misconception_check.correction}
             </p>
           </aside>
-          <section aria-labelledby="lesson-activity-heading" className="max-w-3xl space-y-4">
-            <h2 id="lesson-activity-heading">
-              {formatMessageTemplate(messages.activityTitle, {
-                activityTitle: lesson.activity.title,
-              })}
-            </h2>
-            <p className="text-sm text-[var(--muted)]">
-              {formatMessageTemplate(messages.activityMeta, {
-                materials: formatLocaleList(lesson.activity.materials, locale),
-                minutes: formatLocaleNumber(lesson.activity.duration_minutes, locale),
-              })}
-            </p>
-            <ol className="m-0 grid list-decimal gap-2 pl-6 leading-7 text-[var(--muted)]">
-              {lesson.activity.steps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-            <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 text-sm leading-6 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">{messages.safetyLabel}</strong>{" "}
-              {lesson.activity.safety}
-            </p>
-            <p className="leading-7 text-[var(--muted)]">
-              <strong className="text-[var(--foreground)]">
-                {messages.expectedObservationLabel}
-              </strong>{" "}
-              {lesson.activity.expected_observation}
-            </p>
+          <section aria-labelledby="lesson-activity-heading" className={styles.activity}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionEyebrow}>{messages.activityTitle}</p>
+              <h2 className={styles.sectionTitle} id="lesson-activity-heading">
+                {formatMessageTemplate(messages.activityTitle, {
+                  activityTitle: lesson.activity.title,
+                })}
+              </h2>
+            </div>
+            <div className={styles.activityBody}>
+              <p className={styles.activityMeta}>
+                {formatMessageTemplate(messages.activityMeta, {
+                  materials: formatLocaleList(lesson.activity.materials, locale),
+                  minutes: formatLocaleNumber(lesson.activity.duration_minutes, locale),
+                })}
+              </p>
+              <ol className={styles.stepList}>
+                {lesson.activity.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <p className={styles.safety}>
+                <strong>{messages.safetyLabel}</strong> {lesson.activity.safety}
+              </p>
+              <p className={styles.expectedObservation}>
+                <strong>{messages.expectedObservationLabel}</strong>{" "}
+                {lesson.activity.expected_observation}
+              </p>
+            </div>
           </section>
           <LearningQuiz
             locale={locale}
@@ -265,39 +261,23 @@ export function LearningLessonView({
             onEvaluated={handleEvaluated}
             quiz={quiz}
           />
-          <p
-            aria-live="polite"
-            className="min-h-6 max-w-3xl text-sm font-semibold text-[var(--success)]"
-            role="status"
-          >
+          <p aria-live="polite" className={styles.saveMessage} role="status">
             {saveMessage}
           </p>
-          <nav
-            aria-label={messages.navigationLabel}
-            className="flex flex-wrap justify-between gap-3 border-t border-[var(--border)] pt-6"
-          >
+          <nav aria-label={messages.navigationLabel} className={styles.lessonNavigation}>
             {previousSlug !== undefined ? (
-              <Link
-                className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 font-medium text-[var(--foreground)] no-underline"
-                href={`/learn/${path.slug}/${previousSlug}`}
-              >
+              <Link className={styles.navAction} href={`/learn/${path.slug}/${previousSlug}`}>
                 {messages.previousLesson}
               </Link>
             ) : (
               <span />
             )}
             {nextSlug !== undefined ? (
-              <Link
-                className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline"
-                href={`/learn/${path.slug}/${nextSlug}`}
-              >
+              <Link className={styles.navAction} href={`/learn/${path.slug}/${nextSlug}`}>
                 {messages.nextLesson}
               </Link>
             ) : (
-              <Link
-                className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold text-[var(--foreground)] no-underline"
-                href={`/learn/${path.slug}`}
-              >
+              <Link className={styles.navAction} href={`/learn/${path.slug}`}>
                 {messages.reviewPathProgress}
               </Link>
             )}

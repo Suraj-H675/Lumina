@@ -7,9 +7,7 @@ import type { PublishedLocale } from "../lib/i18n/locales";
 import type { LearningLessonMessages } from "../lib/i18n/messages/types";
 import type { LearningQuiz } from "../lib/learning/content";
 import { evaluateQuiz, type QuizEvaluation } from "../lib/learning/quiz";
-
-const primaryButtonClassName =
-  "inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] bg-[var(--surface-hover)] px-4 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60";
+import styles from "./learning-experience.module.css";
 
 type LearningQuizProps = Readonly<{
   locale: PublishedLocale;
@@ -34,84 +32,73 @@ export function LearningQuiz({ locale, messages, onEvaluated, quiz }: LearningQu
   }
 
   return (
-    <section
-      aria-labelledby="knowledge-check-heading"
-      className="space-y-6 border-t border-[var(--border)] pt-8"
-    >
-      <div className="space-y-2">
-        <h2 id="knowledge-check-heading">{messages.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">
+    <section aria-labelledby="knowledge-check-heading" className={styles.quiz}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle} id="knowledge-check-heading">
+          {messages.title}
+        </h2>
+      </div>
+      <div className={styles.quizBody}>
+        <p className={styles.quizIntro}>
           {formatMessageTemplate(messages.intro, { quizTitle: quiz.title })}
         </p>
-      </div>
-      <form
-        className="space-y-6"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit();
-        }}
-      >
-        {quiz.questions.map((question, questionIndex) => (
-          <fieldset
-            className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5"
-            key={question.id}
-          >
-            <legend className="max-w-full px-1 text-base font-semibold">
-              {formatMessageTemplate(messages.question, {
-                questionNumber: formatLocaleNumber(questionIndex + 1, locale),
-                questionPrompt: question.prompt,
-              })}
-            </legend>
-            <div className="space-y-2">
-              {question.choices.map((choice) => {
-                const inputId = `${quiz.id}-${question.id}-${choice.id}`;
-                return (
-                  <label
-                    className="flex min-h-11 cursor-pointer items-center gap-3 rounded-sm px-2 py-2 hover:bg-[var(--surface-hover)]"
-                    htmlFor={inputId}
-                    key={choice.id}
-                  >
-                    <input
-                      checked={answers[question.id] === choice.id}
-                      id={inputId}
-                      name={question.id}
-                      onChange={() =>
-                        setAnswers((current) => ({ ...current, [question.id]: choice.id }))
-                      }
-                      type="radio"
-                      value={choice.id}
-                    />
-                    <span>{choice.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-            <details>
-              <summary className="min-h-11 cursor-pointer py-2 font-medium text-[var(--link)] underline">
-                {messages.hintAction}
-              </summary>
-              <p className="leading-7 text-[var(--muted)]">{question.hint}</p>
-            </details>
-          </fieldset>
-        ))}
-        <div className="flex flex-wrap gap-3">
-          <button className={primaryButtonClassName} type="submit">
-            {messages.checkAnswers}
-          </button>
-          {evaluation !== null ? (
-            <button
-              className="inline-flex min-h-11 items-center rounded-md border border-[var(--border)] px-4 text-sm font-medium text-[var(--foreground)]"
-              onClick={reset}
-              type="button"
-            >
-              {messages.tryAgain}
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
+          }}
+        >
+          <div className={styles.quizQuestions}>
+            {quiz.questions.map((question, questionIndex) => (
+              <fieldset className={styles.question} key={question.id}>
+                <legend>
+                  {formatMessageTemplate(messages.question, {
+                    questionNumber: formatLocaleNumber(questionIndex + 1, locale),
+                    questionPrompt: question.prompt,
+                  })}
+                </legend>
+                <div className={styles.choices}>
+                  {question.choices.map((choice) => {
+                    const inputId = `${quiz.id}-${question.id}-${choice.id}`;
+                    return (
+                      <label className={styles.choice} htmlFor={inputId} key={choice.id}>
+                        <input
+                          checked={answers[question.id] === choice.id}
+                          id={inputId}
+                          name={question.id}
+                          onChange={() =>
+                            setAnswers((current) => ({ ...current, [question.id]: choice.id }))
+                          }
+                          type="radio"
+                          value={choice.id}
+                        />
+                        <span>{choice.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <details className={styles.hint}>
+                  <summary>{messages.hintAction}</summary>
+                  <p>{question.hint}</p>
+                </details>
+              </fieldset>
+            ))}
+          </div>
+          <div className={styles.buttonRow}>
+            <button className={styles.primaryButton} type="submit">
+              {messages.checkAnswers}
             </button>
-          ) : null}
-        </div>
-      </form>
-      {evaluation !== null ? (
-        <QuizResults evaluation={evaluation} locale={locale} messages={messages} quiz={quiz} />
-      ) : null}
+            {evaluation !== null ? (
+              <button className={styles.secondaryButton} onClick={reset} type="button">
+                {messages.tryAgain}
+              </button>
+            ) : null}
+          </div>
+        </form>
+        {evaluation !== null ? (
+          <QuizResults evaluation={evaluation} locale={locale} messages={messages} quiz={quiz} />
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -135,30 +122,18 @@ function QuizResults({
     },
   );
   return (
-    <section
-      aria-live="polite"
-      aria-labelledby="quiz-result-heading"
-      className="space-y-4 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] p-5"
-    >
-      <h3 className="text-lg font-semibold" id="quiz-result-heading">
-        {resultMessage}
-      </h3>
-      <ol className="m-0 grid list-decimal gap-4 pl-6">
+    <section aria-live="polite" aria-labelledby="quiz-result-heading" className={styles.quizResult}>
+      <h3 id="quiz-result-heading">{resultMessage}</h3>
+      <ol>
         {evaluation.results.map((result, index) => {
           const question = quiz.questions[index];
           if (question === undefined) return null;
           return (
             <li key={result.question_id}>
-              <p
-                className={
-                  result.correct
-                    ? "font-semibold text-[var(--success)]"
-                    : "font-semibold text-[var(--warning)]"
-                }
-              >
+              <p className={styles.resultState} data-correct={result.correct ? "true" : "false"}>
                 {result.correct ? messages.correctLabel : messages.notYetLabel}: {result.feedback}
               </p>
-              <p className="mt-1 leading-7 text-[var(--muted)]">{result.explanation}</p>
+              <p>{result.explanation}</p>
             </li>
           );
         })}

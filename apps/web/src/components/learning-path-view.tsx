@@ -8,6 +8,7 @@ import { getSourcesForIds } from "../lib/learning/content";
 
 import { LearningPathLessonList } from "./learning-path-lesson-list";
 import { LearningSources } from "./learning-sources";
+import styles from "./learning-experience.module.css";
 
 type LearningPathViewProps = Readonly<{
   content: LearningContent;
@@ -25,31 +26,36 @@ export function LearningPathView({
   sourceMessages,
 }: LearningPathViewProps) {
   return (
-    <article className="space-y-12">
-      <nav aria-label={messages.breadcrumbLabel}>
-        <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
+    <article className={styles.pathPage}>
+      <nav aria-label={messages.breadcrumbLabel} className={styles.breadcrumbs}>
+        <ol className={styles.breadcrumbList}>
           <li>
-            <Link className="text-[var(--link)] underline" href="/learn">
-              {messages.learnLink}
-            </Link>
+            <Link href="/learn">{messages.learnLink}</Link>
           </li>
           <li aria-hidden="true">/</li>
           <li aria-current="page">{path.title}</li>
         </ol>
       </nav>
-      <header className="max-w-3xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{path.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{path.summary}</p>
-        <p className="text-sm text-[var(--muted)]">
-          {formatCountMessage(messages.lessonMeta, path.lesson_slugs.length, locale)}
-        </p>
+      <header className={styles.pathHero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.eyebrow}</p>
+          <h1 className={styles.pathTitle}>{path.title}</h1>
+        </div>
+        <div className={styles.pathHeroMeta}>
+          <p className={styles.pathSummary}>{path.summary}</p>
+          <p className={styles.pathMeta}>
+            {formatCountMessage(messages.lessonMeta, path.lesson_slugs.length, locale)}
+          </p>
+        </div>
       </header>
-      <section aria-labelledby="path-objectives-heading" className="max-w-3xl space-y-4">
-        <h2 id="path-objectives-heading">{messages.objectivesTitle}</h2>
-        <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
+      <section aria-labelledby="path-objectives-heading" className={styles.pathStructure}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
+          <h2 className={styles.sectionTitle} id="path-objectives-heading">
+            {messages.objectivesTitle}
+          </h2>
+        </div>
+        <ul className={styles.objectiveList}>
           {path.learning_objectives.map((objective) => (
             <li key={objective}>{objective}</li>
           ))}
@@ -61,25 +67,26 @@ export function LearningPathView({
         messages={messages.lessonList}
         path={path}
       />
-      <section
-        aria-labelledby="path-capstone-heading"
-        className="max-w-3xl space-y-4 border-t border-[var(--border)] pt-8"
-      >
-        <h2 id="path-capstone-heading">
-          {formatMessageTemplate(messages.capstoneTitle, {
-            capstoneTitle: path.capstone_activity.title,
-          })}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.capstoneIntro}</p>
-        <ol className="m-0 grid list-decimal gap-2 pl-6 leading-7 text-[var(--muted)]">
-          {path.capstone_activity.steps.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
-        <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 text-sm leading-6 text-[var(--muted)]">
-          <strong className="text-[var(--foreground)]">{messages.safetyLabel}</strong>{" "}
-          {path.capstone_activity.safety}
-        </p>
+      <section aria-labelledby="path-capstone-heading" className={styles.capstone}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
+          <h2 className={styles.sectionTitle} id="path-capstone-heading">
+            {formatMessageTemplate(messages.capstoneTitle, {
+              capstoneTitle: path.capstone_activity.title,
+            })}
+          </h2>
+        </div>
+        <div className={styles.capstoneBody}>
+          <p className={styles.capstoneIntro}>{messages.capstoneIntro}</p>
+          <ol className={styles.stepList}>
+            {path.capstone_activity.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+          <p className={styles.safety}>
+            <strong>{messages.safetyLabel}</strong> {path.capstone_activity.safety}
+          </p>
+        </div>
       </section>
       <LearningSources
         locale={locale}

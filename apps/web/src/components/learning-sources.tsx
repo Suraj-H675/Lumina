@@ -7,6 +7,7 @@ import {
 } from "../lib/i18n/format";
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { LearningSourcesMessages } from "../lib/i18n/messages/types";
+import styles from "./learning-experience.module.css";
 
 type LearningSourcesProps = Readonly<{
   locale: PublishedLocale;
@@ -33,13 +34,12 @@ export function LearningSources({
   version,
 }: LearningSourcesProps) {
   return (
-    <section
-      aria-labelledby="learning-sources-heading"
-      className="space-y-4 border-t border-[var(--border)] pt-8"
-    >
-      <div className="space-y-2">
-        <h2 id="learning-sources-heading">{messages.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">
+    <section aria-labelledby="learning-sources-heading" className={styles.sources}>
+      <div>
+        <h2 className={styles.sourcesTitle} id="learning-sources-heading">
+          {messages.title}
+        </h2>
+        <p className={styles.sourceReview}>
           {formatMessageTemplate(messages.reviewSummary, {
             reviewedAt: reviewDate(reviewedAt, locale),
             reviewedBy: formatLocaleList(reviewedBy, locale),
@@ -47,19 +47,21 @@ export function LearningSources({
           })}
         </p>
       </div>
-      <ol aria-label={messages.sourcesLabel} className="m-0 grid list-decimal gap-3 pl-6">
+      <ol aria-label={messages.sourcesLabel} className={styles.sourceList}>
         {sources.map((source) => (
-          <li className="pl-2" key={source.id}>
-            <a className="font-medium text-[var(--link)] underline" href={source.url_or_doi}>
-              {source.title}
-            </a>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {formatMessageTemplate(messages.sourceMeta, {
-                accessedAt: reviewDate(source.accessed_at, locale),
-                claimScope: source.claim_scope,
-                organization: source.organization_or_authors,
-              })}
-            </p>
+          <li className={styles.sourceItem} key={source.id}>
+            <div>
+              <a className={styles.sourceLink} href={source.url_or_doi}>
+                {source.title}
+              </a>
+              <p className={styles.sourceMeta}>
+                {formatMessageTemplate(messages.sourceMeta, {
+                  accessedAt: reviewDate(source.accessed_at, locale),
+                  claimScope: source.claim_scope,
+                  organization: source.organization_or_authors,
+                })}
+              </p>
+            </div>
           </li>
         ))}
       </ol>

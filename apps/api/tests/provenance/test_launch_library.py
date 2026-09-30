@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import copy
 import json
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from fakes.provider_runtime import DeterministicProviderTransport
 from lumina.provenance.composition import launch_library_runtime_config
 from lumina.provenance.domain.launch_library import (
     Ll2Codec,
@@ -26,18 +26,6 @@ from lumina.provenance.infrastructure.launch_library import (
 )
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
-
-
-@dataclass
-class _ReplayTransport:
-    outcomes: list[RawProviderResponse]
-    requests: list[Any] = field(default_factory=list)
-
-    async def request(
-        self, request: Any, *, attempt_deadline: float | None = None
-    ) -> RawProviderResponse:
-        self.requests.append((request, attempt_deadline))
-        return self.outcomes.pop(0)
 
 
 def _fixture_value() -> dict[str, Any]:
@@ -63,8 +51,8 @@ def _raw(value: object, *, body: bytes | None = None) -> RawProviderResponse:
     )
 
 
-def _adapter() -> tuple[LaunchLibraryAdapter, _ReplayTransport]:
-    replay = _ReplayTransport([_raw(_fixture_value())])
+def _adapter() -> tuple[LaunchLibraryAdapter, DeterministicProviderTransport]:
+    replay = DeterministicProviderTransport([_raw(_fixture_value())])
     return LaunchLibraryAdapter(
         replay, source_manifest=load_launch_library_source_manifest()
     ), replay
@@ -88,8 +76,8 @@ async def test_fetch_uses_only_fixed_detailed_upcoming_request() -> None:
     adapter, replay = _adapter()
     request = LaunchLibraryRequest()
     await adapter.fetch(request, attempt_deadline=123.0)
-    fixed, deadline = replay.requests[0]
-    assert deadline == 123.0
+    fixed = replay.requests[0]
+    assert replay.attempt_deadlines == [123.0]
     assert fixed.url == "https://ll.thespacedevs.com/2.3.0/launches/upcoming/"
     assert fixed.params == (
         ("format", "json"),

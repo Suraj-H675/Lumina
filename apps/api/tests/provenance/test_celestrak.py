@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import copy
 import json
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from fakes.provider_runtime import DeterministicProviderTransport
 from lumina.provenance.composition import celestrak_runtime_config
 from lumina.provenance.domain.celestrak import (
     CelestrakCodec,
@@ -34,18 +35,6 @@ from lumina.provenance.infrastructure.http import FixedHttpRequest
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider" / "celestrak"
 
 
-@dataclass
-class _ReplayTransport:
-    outcomes: list[RawProviderResponse]
-    requests: list[Any] = field(default_factory=list)
-
-    async def request(
-        self, request: Any, *, attempt_deadline: float | None = None
-    ) -> RawProviderResponse:
-        self.requests.append((request, attempt_deadline))
-        return self.outcomes.pop(0)
-
-
 def _fixture(name: str) -> list[dict[str, Any]]:
     return cast(list[dict[str, Any]], json.loads((_FIXTURES / name).read_text()))
 
@@ -64,7 +53,9 @@ def _raw(value: object, maximum: int, *, body: bytes | None = None) -> RawProvid
 
 
 def _adapter() -> CelestrakAdapter:
-    return CelestrakAdapter(_ReplayTransport([]), source_manifest=load_celestrak_source_manifest())
+    return CelestrakAdapter(
+        DeterministicProviderTransport([]), source_manifest=load_celestrak_source_manifest()
+    )
 
 
 def _component(component_id: str) -> CelestrakComponentRequest:
@@ -104,12 +95,12 @@ def test_manifest_runtime_and_plan_are_exact() -> None:
 @pytest.mark.asyncio
 async def test_fetch_uses_only_fixed_group_and_json_query() -> None:
     raw = _raw([], CELESTRAK_STATIONS_MAX_RESPONSE_BYTES)
-    replay = _ReplayTransport([raw])
+    replay = DeterministicProviderTransport([raw])
     adapter = CelestrakAdapter(replay, source_manifest=load_celestrak_source_manifest())
     request = _component("stations")
     await adapter.fetch(request, attempt_deadline=123.0)
-    fixed, deadline = replay.requests[0]
-    assert deadline == 123.0
+    fixed = replay.requests[0]
+    assert replay.attempt_deadlines == [123.0]
     assert fixed.url == "https://celestrak.org/NORAD/elements/gp.php"
     assert fixed.params == (("GROUP", "STATIONS"), ("FORMAT", "JSON"))
     assert fixed.max_response_bytes == CELESTRAK_STATIONS_MAX_RESPONSE_BYTES

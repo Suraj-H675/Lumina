@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 import pytest_asyncio
-from fakes.provider_runtime import DeterministicNasaTransport, response, timeout
+from fakes.provider_runtime import DeterministicProviderTransport, response, timeout
 from lumina.provenance.application.registry import (
     ProviderRegistration,
     StaticProviderRegistry,
@@ -290,7 +290,7 @@ async def test_fake_provider_gate_success_stale_fallback_and_expiry(
 ) -> None:
     outcomes: list[RawProviderResponse | BaseException] = [response()]
     outcomes.extend(timeout() for _ in range(6))
-    transport = DeterministicNasaTransport(outcomes)
+    transport = DeterministicProviderTransport(outcomes)
     service = _service(provider_context, transport)
     await provider_context.store.set_enabled(
         provider_context.config,
@@ -343,7 +343,7 @@ async def test_schema_failure_quarantines_without_replacing_good_cache(
 ) -> None:
     valid = response()
     malformed = response(b"count(pl_name)\nnot-a-count\n")
-    transport = DeterministicNasaTransport([valid, malformed])
+    transport = DeterministicProviderTransport([valid, malformed])
     service = _service(provider_context, transport)
     await provider_context.store.set_enabled(
         provider_context.config,
@@ -378,7 +378,7 @@ async def test_transient_circuit_opens_then_one_half_open_probe_recovers(
 ) -> None:
     outcomes: list[RawProviderResponse | BaseException] = [timeout() for _ in range(9)]
     outcomes.append(response())
-    transport = DeterministicNasaTransport(outcomes)
+    transport = DeterministicProviderTransport(outcomes)
     service = _service(provider_context, transport)
     await provider_context.store.set_enabled(
         provider_context.config,

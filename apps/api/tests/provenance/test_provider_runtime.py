@@ -16,7 +16,7 @@ import httpx
 import pytest
 from fakes.provider_runtime import (
     VALID_COUNT_BODY,
-    DeterministicNasaTransport,
+    DeterministicProviderTransport,
     no_timeout,
     oversized_response,
     response,
@@ -366,7 +366,7 @@ def test_runtime_policy_rejects_manifest_endpoint_drift() -> None:
 
 @pytest.mark.asyncio
 async def test_nasa_adapter_accepts_exact_fixture_and_normalizes_wire_name() -> None:
-    transport = DeterministicNasaTransport([response()])
+    transport = DeterministicProviderTransport([response()])
     adapter = _adapter(transport)
 
     raw = await adapter.fetch(NasaCountRequest())
@@ -398,7 +398,7 @@ async def test_nasa_adapter_accepts_exact_fixture_and_normalizes_wire_name() -> 
     ],
 )
 async def test_nasa_adapter_rejects_wire_schema_drift(body: bytes) -> None:
-    adapter = _adapter(DeterministicNasaTransport([response(body)]))
+    adapter = _adapter(DeterministicProviderTransport([response(body)]))
     raw = await adapter.fetch(NasaCountRequest())
 
     with pytest.raises(ProviderPayloadInvalid):
@@ -407,7 +407,7 @@ async def test_nasa_adapter_rejects_wire_schema_drift(body: bytes) -> None:
 
 @pytest.mark.asyncio
 async def test_nasa_adapter_rejects_wrong_content_type_before_normalization() -> None:
-    adapter = _adapter(DeterministicNasaTransport([response(content_type="application/json")]))
+    adapter = _adapter(DeterministicProviderTransport([response(content_type="application/json")]))
     raw = await adapter.fetch(NasaCountRequest())
 
     with pytest.raises(ProviderPayloadInvalid):
@@ -668,7 +668,7 @@ async def test_request_cycle_timeout_during_retry_sleep_is_one_failure_without_n
         timeout_context.expire()
         await asyncio.sleep(0)
 
-    transport = DeterministicNasaTransport([timeout(), response()])
+    transport = DeterministicProviderTransport([timeout(), response()])
     store = _StoreDouble()
     report = await _service(
         transport,
@@ -698,7 +698,7 @@ async def test_request_cycle_deadline_is_anchored_before_lease_acquisition() -> 
             clock.value = 75.0
             return await super().acquire(config, **kwargs)
 
-    transport = DeterministicNasaTransport([response()])
+    transport = DeterministicProviderTransport([response()])
     store = SlowAcquireStore()
     report = await _service(transport, store, monotonic=clock).sync("nasa-exoplanet-archive")
 
@@ -710,7 +710,7 @@ async def test_request_cycle_deadline_is_anchored_before_lease_acquisition() -> 
 async def test_later_attempt_receives_only_remaining_cycle_budget() -> None:
     clock = _Monotonic()
 
-    class TruncatedRetryTransport(DeterministicNasaTransport):
+    class TruncatedRetryTransport(DeterministicProviderTransport):
         async def request(
             self,
             request: FixedHttpRequest,
@@ -740,7 +740,7 @@ async def test_retry_sleeps_consume_the_single_request_cycle_budget() -> None:
     clock = _Monotonic()
     delays: list[float] = []
 
-    class ExhaustingTransport(DeterministicNasaTransport):
+    class ExhaustingTransport(DeterministicProviderTransport):
         async def request(
             self,
             request: FixedHttpRequest,
@@ -776,7 +776,7 @@ async def test_retry_sleeps_consume_the_single_request_cycle_budget() -> None:
 async def test_attempt_total_timeout_can_retry_and_succeed_without_circuit_failure() -> None:
     clock = _Monotonic()
 
-    class TimeoutThenSuccessTransport(DeterministicNasaTransport):
+    class TimeoutThenSuccessTransport(DeterministicProviderTransport):
         async def request(
             self,
             request: FixedHttpRequest,
@@ -815,7 +815,7 @@ async def test_attempt_total_timeout_can_retry_and_succeed_without_circuit_failu
 @pytest.mark.asyncio
 async def test_half_open_attempt_uses_same_total_deadline_without_retry() -> None:
     clock = _Monotonic()
-    transport = DeterministicNasaTransport([timeout(), response()])
+    transport = DeterministicProviderTransport([timeout(), response()])
     store = _StoreDouble(
         claim=ProviderClaim(
             ProviderClaimOutcome.STARTED,
@@ -877,7 +877,7 @@ async def test_external_cancellation_closes_transport_and_preserves_lease_fencin
     assert store.successful_tokens == []
     assert store.active_token == "cancelled-token"
 
-    before_expiry_transport = DeterministicNasaTransport([response()])
+    before_expiry_transport = DeterministicProviderTransport([response()])
     before_expiry_report = await _service(
         before_expiry_transport,
         store,
@@ -888,7 +888,7 @@ async def test_external_cancellation_closes_transport_and_preserves_lease_fencin
     assert before_expiry_transport.requests == []
 
     clock.value = _NOW.replace(second=0) + timedelta(seconds=121)
-    replacement_transport = DeterministicNasaTransport([response()])
+    replacement_transport = DeterministicProviderTransport([response()])
     replacement_report = await _service(
         replacement_transport,
         store,
@@ -915,7 +915,7 @@ async def test_external_cancellation_closes_transport_and_preserves_lease_fencin
 
 @pytest.mark.asyncio
 async def test_sync_retry_success_counts_transport_retry_not_failed_cycle() -> None:
-    transport = DeterministicNasaTransport([timeout(), response()])
+    transport = DeterministicProviderTransport([timeout(), response()])
     store = _StoreDouble()
     delays: list[float] = []
 
@@ -938,7 +938,7 @@ async def test_sync_retry_success_counts_transport_retry_not_failed_cycle() -> N
 async def test_fenced_success_is_not_logged_as_a_successful_provider_cycle(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    transport = DeterministicNasaTransport([response()])
+    transport = DeterministicProviderTransport([response()])
     store = _StoreDouble(
         success_result=ProviderFinalization(
             ProviderFinalizationOutcome.FENCED,
@@ -958,7 +958,7 @@ async def test_fenced_success_is_not_logged_as_a_successful_provider_cycle(
 @pytest.mark.asyncio
 async def test_schema_failure_is_quarantinable_and_never_normalized() -> None:
     malformed = b"count(pl_name)\nnot-a-count\n"
-    transport = DeterministicNasaTransport([response(malformed)])
+    transport = DeterministicProviderTransport([response(malformed)])
     store = _StoreDouble()
 
     report = await _service(transport, store).sync("nasa-exoplanet-archive")
@@ -994,7 +994,7 @@ async def test_sync_skips_without_network_for_non_started_claims(
     claim_outcome: ProviderClaimOutcome,
     expected: ProviderSyncOutcome,
 ) -> None:
-    transport = DeterministicNasaTransport([])
+    transport = DeterministicProviderTransport([])
     store = _StoreDouble(claim=ProviderClaim(claim_outcome))
 
     report = await _service(transport, store).sync("nasa-exoplanet-archive")
@@ -1007,7 +1007,7 @@ async def test_sync_skips_without_network_for_non_started_claims(
 
 @pytest.mark.asyncio
 async def test_half_open_probe_allows_exactly_one_attempt() -> None:
-    transport = DeterministicNasaTransport([timeout(), response()])
+    transport = DeterministicProviderTransport([timeout(), response()])
     store = _StoreDouble(
         claim=ProviderClaim(
             ProviderClaimOutcome.STARTED,
@@ -1026,7 +1026,7 @@ async def test_half_open_probe_allows_exactly_one_attempt() -> None:
 
 @pytest.mark.asyncio
 async def test_rate_limit_is_immediate_handled_failure_without_transport_retry() -> None:
-    transport = DeterministicNasaTransport(
+    transport = DeterministicProviderTransport(
         [response(b"rate limited", status_code=429, headers={"retry-after": "1"})]
     )
     store = _StoreDouble()
@@ -1041,7 +1041,7 @@ async def test_rate_limit_is_immediate_handled_failure_without_transport_retry()
 
 @pytest.mark.asyncio
 async def test_oversized_numeric_retry_after_is_bounded_without_leaking_or_aborting() -> None:
-    transport = DeterministicNasaTransport(
+    transport = DeterministicProviderTransport(
         [response(b"rate limited", status_code=429, headers={"retry-after": "9" * 4_301})]
     )
     store = _StoreDouble()
@@ -1055,7 +1055,7 @@ async def test_oversized_numeric_retry_after_is_bounded_without_leaking_or_abort
 
 @pytest.mark.asyncio
 async def test_oversized_transport_evidence_is_incomplete_and_not_checksum_claimed() -> None:
-    transport = DeterministicNasaTransport([oversized_response()])
+    transport = DeterministicProviderTransport([oversized_response()])
     store = _StoreDouble()
 
     report = await _service(transport, store).sync("nasa-exoplanet-archive")

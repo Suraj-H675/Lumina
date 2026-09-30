@@ -5,13 +5,13 @@ from __future__ import annotations
 import copy
 import json
 from collections.abc import AsyncIterator
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
 import httpx
 import pytest
+from fakes.provider_runtime import DeterministicProviderTransport
 from lumina.provenance.composition import nasa_neows_runtime_config
 from lumina.provenance.domain.neows import (
     MAX_NEOWS_ENCOUNTERS,
@@ -46,18 +46,6 @@ _REQUEST = NasaNeowsRequest(
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "provider"
 
 
-@dataclass
-class _ReplayTransport:
-    outcomes: list[RawProviderResponse]
-    requests: list[Any] = field(default_factory=list)
-
-    async def request(
-        self, request: Any, *, attempt_deadline: float | None = None
-    ) -> RawProviderResponse:
-        self.requests.append((request, attempt_deadline))
-        return self.outcomes.pop(0)
-
-
 def _fixture_value() -> dict[str, Any]:
     return cast(
         dict[str, Any],
@@ -83,9 +71,9 @@ def _raw(value: object, *, body: bytes | None = None) -> RawProviderResponse:
 
 
 def _adapter(
-    transport: _ReplayTransport | None = None,
-) -> tuple[NasaNeowsAdapter, _ReplayTransport]:
-    replay = transport or _ReplayTransport([_raw(_fixture_value())])
+    transport: DeterministicProviderTransport | None = None,
+) -> tuple[NasaNeowsAdapter, DeterministicProviderTransport]:
+    replay = transport or DeterministicProviderTransport([_raw(_fixture_value())])
     adapter = NasaNeowsAdapter(
         replay,
         api_key=SecretStr("fixture-neows-key-2026"),
@@ -129,7 +117,7 @@ def test_neows_manifest_and_identity_are_exact() -> None:
 
 @pytest.mark.asyncio
 async def test_request_factory_freezes_one_utc_seven_day_window_and_redacts_key() -> None:
-    adapter, transport = _adapter(_ReplayTransport([_raw(_fixture_value())]))
+    adapter, transport = _adapter(DeterministicProviderTransport([_raw(_fixture_value())]))
 
     request = adapter.new_request()
     assert request.start_date == "2026-09-12"
@@ -138,7 +126,7 @@ async def test_request_factory_freezes_one_utc_seven_day_window_and_redacts_key(
     assert "fixture-neows-key-2026" not in repr(request)
     await adapter.fetch(request)
 
-    fixed = transport.requests[0][0]
+    fixed = transport.requests[0]
     assert fixed.url == "https://api.nasa.gov/neo/rest/v1/feed"
     assert fixed.params == (
         ("start_date", "2026-09-12"),
@@ -299,7 +287,7 @@ def test_neows_rejects_duplicate_matching_earth_approaches_without_an_ordinal() 
 
 
 def test_empty_feed_is_a_valid_successful_normalization() -> None:
-    adapter, _ = _adapter(_ReplayTransport([_raw({"near_earth_objects": {}})]))
+    adapter, _ = _adapter(DeterministicProviderTransport([_raw({"near_earth_objects": {}})]))
     payload = adapter.validate_payload(_raw({"near_earth_objects": {}}))
 
     assert adapter.normalize(_REQUEST, payload) == NasaNeowsNormalized(
@@ -433,7 +421,7 @@ async def test_neows_raw_response_repr_and_quarantine_evidence_redact_key_bearin
         '{"near_earth_objects": {}, "links": '
         f'{{"self":"https://api.nasa.gov/neo/rest/v1/feed?api_key={key}"}}}}'
     ).encode()
-    adapter, _ = _adapter(_ReplayTransport([_raw({}, body=body)]))
+    adapter, _ = _adapter(DeterministicProviderTransport([_raw({}, body=body)]))
 
     raw = await adapter.fetch(_REQUEST)
 
@@ -449,7 +437,7 @@ async def test_neows_raw_response_repr_and_quarantine_evidence_redact_key_bearin
 async def test_neows_quarantine_redaction_handles_json_escaped_secret_without_growth() -> None:
     key = 'a"b\\c'
     body = json.dumps({"echo": key}, separators=(",", ":")).encode("utf-8")
-    replay = _ReplayTransport([_raw({}, body=body)])
+    replay = DeterministicProviderTransport([_raw({}, body=body)])
     adapter = NasaNeowsAdapter(
         replay,
         api_key=SecretStr(key),
@@ -475,7 +463,7 @@ async def test_neows_quarantine_redaction_handles_json_escaped_secret_without_gr
 async def test_neows_short_key_redaction_stays_within_the_raw_response_bound() -> None:
     key = "x"
     body = key.encode("ascii") * NEOWS_MAX_RESPONSE_BYTES
-    replay = _ReplayTransport([_raw({}, body=body)])
+    replay = DeterministicProviderTransport([_raw({}, body=body)])
     adapter = NasaNeowsAdapter(
         replay,
         api_key=SecretStr(key),

@@ -49,7 +49,7 @@ def oversized_response(*, status_code: int = 200) -> RawProviderResponse:
 
 
 @dataclass
-class DeterministicNasaTransport:
+class DeterministicProviderTransport:
     """Replay a finite sequence of responses or transport failures."""
 
     outcomes: list[RawProviderResponse | BaseException]

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import type { LabIndexMessages } from "../../lib/i18n/messages/types";
+import styles from "./lab-page.module.css";
 
 const labs = [
   {
@@ -107,33 +108,30 @@ export function createLabMetadata(messages: LabIndexMessages): Metadata {
 
 export default function LabPage({ messages }: Readonly<{ messages: LabIndexMessages }>) {
   return (
-    <article className="space-y-10">
-      <header className="max-w-3xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{messages.title}</h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.intro}</p>
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.eyebrow}</p>
+          <h1 className={styles.title}>{messages.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.intro}</p>
       </header>
 
       <nav aria-label={messages.navigationLabel}>
-        <ul className="m-0 grid list-none gap-5 p-0 md:grid-cols-2 xl:grid-cols-4">
-          {labs.map((lab) => (
-            <li className="flex" key={lab.href}>
-              <Link
-                className="flex min-h-44 w-full flex-col justify-between rounded-md border border-[var(--border)] bg-[var(--surface)] p-5 no-underline transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                href={lab.href}
-              >
-                <span>
-                  <span className="block text-xl font-semibold text-[var(--foreground)]">
-                    {lab.title}
-                  </span>
-                  <span className="mt-3 block leading-7 text-[var(--muted)]">
-                    {lab.description}
-                  </span>
+        <ul className={styles.list}>
+          {labs.map((lab, index) => (
+            <li className={styles.item} key={lab.href}>
+              <Link className={styles.link} href={lab.href}>
+                <span aria-hidden="true" className={styles.index}>
+                  {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="mt-5 font-semibold text-[var(--link)] underline">
-                  {messages.openLab}
+                <span className={styles.content}>
+                  <span className={styles.labTitle}>{lab.title}</span>
+                  <span className={styles.description}>{lab.description}</span>
+                  <span className={styles.openLabel}>{messages.openLab}</span>
+                </span>
+                <span aria-hidden="true" className={styles.arrow}>
+                  →
                 </span>
               </Link>
             </li>

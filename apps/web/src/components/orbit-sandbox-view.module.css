@@ -1,0 +1,463 @@
+.page {
+  display: grid;
+  gap: 5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(18rem, 0.3fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.eyebrow,
+.sectionIndex {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.69rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 11ch;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 7.5vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.alert {
+  border-top: 1px solid var(--warning);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+  color: var(--muted-strong);
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.sectionHeader {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.sectionDescription {
+  max-width: 24rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 0.5rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.95rem 1rem 1.05rem;
+}
+
+.field:nth-child(3n) {
+  border-right: 0;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: var(--muted-strong);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.unit {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  font-weight: 500;
+}
+
+.input {
+  width: 100%;
+  min-height: 2.7rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--background-raised);
+  color: var(--foreground);
+  padding: 0 0.65rem;
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
+  margin-top: 1.35rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--foreground);
+  font-size: 0.83rem;
+  font-weight: 650;
+}
+
+.primaryButton {
+  border-bottom-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  border-bottom-color: var(--accent-strong);
+  color: var(--accent-strong);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.message {
+  margin: 1rem 0 0;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.resultStack {
+  display: grid;
+  gap: 2.2rem;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+}
+
+.summaryCell {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.05rem 1.15rem;
+}
+
+.summaryCell:nth-child(3n) {
+  border-right: 0;
+}
+
+.summaryCell dt {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  line-height: 1.5;
+}
+
+.summaryCell dd {
+  margin: 0.55rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-data);
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.trajectory {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0;
+}
+
+.trajectoryFrame {
+  overflow: hidden;
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  background: var(--background-raised);
+}
+
+.trajectoryFrame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 42rem;
+}
+
+.caption {
+  max-width: 52rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.preview {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.preview summary,
+.modelDetails summary {
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 650;
+}
+
+.previewDescription {
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.tableWrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.65rem 0.7rem 0.65rem 0;
+}
+
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.model {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.28fr) minmax(0, 0.72fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  border-top: 1px solid var(--border-strong);
+  padding-top: 2.5rem;
+}
+
+.modelBody {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.modelCopy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.modelDetails {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.equationList {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.equationList dt {
+  color: var(--muted-strong);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.equationList dd {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.assumptionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.assumptionGrid h3,
+.sourcesTitle {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.assumptionGrid ul,
+.sourceList {
+  margin: 0.7rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.sourceList {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sourceList a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.22rem;
+}
+
+.currentState {
+  margin: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  line-height: 1.6;
+}
+
+.unavailable {
+  border-top: 1px solid var(--danger);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 0;
+}
+
+.unavailable h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+.unavailable p {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 64rem) {
+  .hero,
+  .section,
+  .model {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    gap: 1.7rem;
+  }
+
+  .sectionDescription {
+    max-width: 42rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .inputGrid,
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field:nth-child(3n),
+  .summaryCell:nth-child(3n) {
+    border-right: 1px solid var(--border);
+  }
+
+  .field:nth-child(2n),
+  .summaryCell:nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 36rem) {
+  .page {
+    gap: 4rem;
+  }
+
+  .title {
+    font-size: clamp(3.6rem, 20vw, 5.2rem);
+  }
+
+  .inputGrid,
+  .summaryGrid,
+  .assumptionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .field,
+  .field:nth-child(2n),
+  .field:nth-child(3n),
+  .summaryCell,
+  .summaryCell:nth-child(2n),
+  .summaryCell:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .trajectoryFrame svg {
+    min-width: 22rem;
+  }
+}

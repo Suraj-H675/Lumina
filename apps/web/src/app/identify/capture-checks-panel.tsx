@@ -17,6 +17,7 @@ import {
   type CaptureCheckResult,
 } from "../../lib/identification/capture-checks";
 import { ASTROMETRY_PROVIDER_NAME } from "../../lib/identification/provider-display";
+import styles from "./identify-experience.module.css";
 
 type CaptureCheckFailureReason = "decodeFailed" | "invalidPixels" | "noOpaquePixels" | "unknown";
 
@@ -56,46 +57,53 @@ export function CaptureChecksPanel({
   }
 
   return (
-    <section
-      aria-labelledby="capture-checks-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-4xl space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h2 className="text-2xl font-semibold" id="capture-checks-heading">
+    <section aria-labelledby="capture-checks-heading" className={styles.stage}>
+      <div className={styles.stageHeader}>
+        <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
+        <h2 className={styles.stageTitle} id="capture-checks-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
+        <p className={styles.stageDescription}>
           {formatMessageTemplate(messages.description, {
             provider: ASTROMETRY_PROVIDER_NAME,
           })}
         </p>
       </div>
 
-      {state.kind === "idle" || state.kind === "error" ? (
-        <button
-          className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-          onClick={() => void runChecks()}
-          type="button"
-        >
-          {state.kind === "error" ? messages.actions.retry : messages.actions.run}
-        </button>
-      ) : null}
-      {state.kind === "running" ? <p role="status">{messages.analyzing}</p> : null}
-      {state.kind === "error" ? <p role="alert">{messages.failures[state.reason]}</p> : null}
-      {state.kind === "ready" ? (
-        <CaptureCheckResults locale={locale} messages={messages} result={state.result} />
-      ) : null}
+      <div className={styles.stageBody}>
+        <div className={styles.diagnosticBody}>
+          {state.kind === "idle" || state.kind === "error" ? (
+            <button
+              className={styles.secondaryAction}
+              onClick={() => void runChecks()}
+              type="button"
+            >
+              {state.kind === "error" ? messages.actions.retry : messages.actions.run}
+            </button>
+          ) : null}
+          {state.kind === "running" ? (
+            <p className={styles.statusCopy} role="status">
+              {messages.analyzing}
+            </p>
+          ) : null}
+          {state.kind === "error" ? (
+            <p className={styles.alert} role="alert">
+              {messages.failures[state.reason]}
+            </p>
+          ) : null}
+          {state.kind === "ready" ? (
+            <CaptureCheckResults locale={locale} messages={messages} result={state.result} />
+          ) : null}
 
-      <div className="space-y-2 text-sm leading-6 text-[var(--muted)]">
-        <p>
-          {formatMessageTemplate(messages.boundedSample, {
-            count: formatLocaleNumber(MAX_CAPTURE_SAMPLE_PIXELS, locale),
-          })}
-        </p>
-        <p>{messages.proxyCaveat}</p>
+          <div className={styles.diagnosticNotes}>
+            <p>
+              {formatMessageTemplate(messages.boundedSample, {
+                count: formatLocaleNumber(MAX_CAPTURE_SAMPLE_PIXELS, locale),
+              })}
+            </p>
+            <p>{messages.proxyCaveat}</p>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -110,8 +118,8 @@ function CaptureCheckResults({
   result: CaptureCheckResult;
 }>) {
   return (
-    <div className="space-y-5" role="status">
-      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className={styles.diagnosticBody} role="status">
+      <dl className={styles.metrics}>
         <Metric
           label={messages.metrics.sourceDimensions}
           value={formatMessageTemplate(messages.metrics.sourceDimensionsValue, {
@@ -136,23 +144,23 @@ function CaptureCheckResults({
         />
       </dl>
 
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">{messages.histogram.title}</h3>
-        <p className="text-sm leading-6 text-[var(--muted)]">{messages.histogram.description}</p>
-        <ol aria-label={messages.histogram.ariaLabel} className="space-y-2 p-0">
+      <div className={styles.histogram}>
+        <h3 className={styles.histogramTitle}>{messages.histogram.title}</h3>
+        <p className={styles.histogramDescription}>{messages.histogram.description}</p>
+        <ol aria-label={messages.histogram.ariaLabel} className={styles.histogramList}>
           {result.luminance_histogram.map((bin) => (
-            <li className="grid grid-cols-[5rem_1fr_5rem] items-center gap-3" key={bin.code_min}>
-              <span className="font-mono text-xs">
+            <li className={styles.histogramBin} key={bin.code_min}>
+              <span>
                 {formatLocaleNumber(bin.code_min, locale)}–
                 {formatLocaleNumber(bin.code_max, locale)}
               </span>
-              <span aria-hidden="true" className="h-2 border border-[var(--border)]">
+              <span aria-hidden="true" className={styles.histogramBar}>
                 <span
-                  className="block h-full bg-[var(--foreground)]"
+                  className={styles.histogramFill}
                   style={{ width: `${Math.min(100, Math.max(0, bin.percentage))}%` }}
                 />
               </span>
-              <span className="text-right text-xs">
+              <span className={styles.histogramValue}>
                 {formatLocaleFixedNumber(bin.percentage, 2, locale)}%
               </span>
             </li>
@@ -160,9 +168,9 @@ function CaptureCheckResults({
         </ol>
       </div>
 
-      <p className="text-sm leading-6 text-[var(--muted)]">{messages.endpointDisclosure}</p>
+      <p className={styles.statusCopy}>{messages.endpointDisclosure}</p>
       {result.non_opaque_sample_pixels > 0 ? (
-        <p className="text-sm text-[var(--muted)]">
+        <p className={styles.statusCopy}>
           {formatCountMessage(messages.nonOpaque, result.non_opaque_sample_pixels, locale)}
         </p>
       ) : null}
@@ -171,9 +179,9 @@ function CaptureCheckResults({
 }
 function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-      <dt className="text-sm text-[var(--muted)]">{label}</dt>
-      <dd className="mt-1 font-semibold">{value}</dd>
+    <div className={styles.metric}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }

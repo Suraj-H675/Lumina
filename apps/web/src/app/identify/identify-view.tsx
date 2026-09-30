@@ -21,6 +21,7 @@ import {
   NOVA_SERVICE_NAME,
 } from "../../lib/identification/provider-display";
 import { CaptureChecksPanel } from "./capture-checks-panel";
+import styles from "./identify-experience.module.css";
 import { IdentifyJournalPanel } from "./identify-journal-panel";
 import { SolutionOverlay } from "./solution-overlay";
 import { SurveyComparisonPanel } from "./survey-comparison-panel";
@@ -271,15 +272,13 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
   }
 
   return (
-    <div className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.remoteEyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.remoteEyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>
           {formatMessageTemplate(messages.header.remoteDescription, {
             service: NOVA_SERVICE_NAME,
           })}
@@ -288,31 +287,25 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
 
       <PrivacyNotice capabilities={capabilities} locale={locale} messages={messages.privacy} />
 
-      <section
-        aria-labelledby="identify-upload-heading"
-        className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-      >
-        <div className="max-w-3xl space-y-2">
-          <h2 className="text-2xl font-semibold" id="identify-upload-heading">
+      <section aria-labelledby="identify-upload-heading" className={styles.stage}>
+        <div className={styles.stageHeader}>
+          <h2 className={styles.stageTitle} id="identify-upload-heading">
             {messages.upload.heading}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.upload.description}</p>
+          <p className={styles.stageDescription}>{messages.upload.description}</p>
         </div>
-        <form className="space-y-5" onSubmit={(event) => void submit(event)}>
-          <div className="space-y-2">
-            <label className="block font-semibold" htmlFor="identify-file">
-              {messages.upload.fileLabel}
-            </label>
+        <form className={styles.uploadForm} onSubmit={(event) => void submit(event)}>
+          <div className={styles.field}>
+            <label htmlFor="identify-file">{messages.upload.fileLabel}</label>
             <input
               accept={(capabilities.accepted_media_types ?? ["image/jpeg", "image/png"]).join(",")}
-              className="block min-h-11 max-w-full"
               disabled={state.kind === "uploading" || state.kind === "active"}
               id="identify-file"
               name="file"
               ref={fileRef}
               type="file"
             />
-            <p className="text-sm leading-6 text-[var(--muted)]">
+            <p className={styles.fieldHelp}>
               {formatMessageTemplate(messages.upload.bound, {
                 maxBytes: formatBytes(capabilities.max_bytes, locale),
                 maxPixels: formatLocaleNumber(capabilities.max_pixels, locale),
@@ -321,10 +314,9 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
             </p>
           </div>
 
-          <label className="flex max-w-4xl items-start gap-3 leading-6">
+          <label className={styles.consent}>
             <input
               checked={consented}
-              className="mt-1 size-5 shrink-0"
               disabled={state.kind === "uploading" || state.kind === "active"}
               onChange={(event) => setConsented(event.target.checked)}
               type="checkbox"
@@ -338,7 +330,7 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
           </label>
 
           <button
-            className="inline-flex min-h-11 items-center border border-[var(--border-strong)] px-5 font-semibold disabled:opacity-50"
+            className={styles.primaryAction}
             disabled={!consented || state.kind === "uploading" || state.kind === "active"}
             type="submit"
           >
@@ -348,7 +340,7 @@ export function IdentifyView({ apiOrigin, capabilities, locale, messages }: Iden
           </button>
         </form>
         <noscript>
-          <p className="mt-4 border border-[var(--border)] p-4">{messages.upload.noScript}</p>
+          <p className={styles.noscript}>{messages.upload.noScript}</p>
         </noscript>
       </section>
 
@@ -422,14 +414,13 @@ function PrivacyNotice({
   messages: IdentifyMessages["privacy"];
 }>) {
   return (
-    <section
-      aria-labelledby="identify-privacy-heading"
-      className="space-y-4 border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7"
-    >
-      <h2 className="text-2xl font-semibold" id="identify-privacy-heading">
-        {messages.remote.title}
-      </h2>
-      <ul className="list-disc space-y-2 pl-5 leading-7 text-[var(--muted)]">
+    <section aria-labelledby="identify-privacy-heading" className={styles.stage}>
+      <div className={styles.stageHeader}>
+        <h2 className={styles.stageTitle} id="identify-privacy-heading">
+          {messages.remote.title}
+        </h2>
+      </div>
+      <ul className={styles.privacyList}>
         <li>
           {formatMessageTemplate(messages.remote.sentToProvider, {
             service: NOVA_SERVICE_NAME,
@@ -498,122 +489,107 @@ function StatusPanel({
 
   const status = state.active.status;
   return (
-    <section
-      aria-labelledby="identify-status-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.status.eyebrow}
-        </p>
-        <h2 className="text-2xl font-semibold" id="identify-status-heading">
+    <section aria-labelledby="identify-status-heading" className={styles.statusPanel}>
+      <div className={styles.stageHeader}>
+        <p className={styles.sectionEyebrow}>{messages.status.eyebrow}</p>
+        <h2 className={styles.stageTitle} id="identify-status-heading">
           {messages.status.heading}
         </h2>
-        <p className="text-sm text-[var(--muted)]">{messages.status.providerIdentifiersPrivate}</p>
+        <p className={styles.stageDescription}>{messages.status.providerIdentifiersPrivate}</p>
       </div>
-      {status === null ? (
-        <p role="status">{messages.status.initialRemote}</p>
-      ) : (
-        <div className="space-y-3">
-          <p role="status">
-            <strong>{messages.status.labels.statusLabel}</strong>{" "}
-            {statusLabel(status.status, messages.status.labels)}
-          </p>
-          {status.progress === null || status.progress === undefined ? null : (
-            <p>
-              <strong>{messages.status.labels.progressLabel}</strong>{" "}
-              {formatLocaleNumber(status.progress, locale, {
-                maximumFractionDigits: 0,
-                style: "percent",
-              })}
-            </p>
-          )}
-          {status.remote_condition === "provider_unavailable" ? (
-            <p role="status">
-              {formatMessageTemplate(messages.status.remoteConditions.unavailable, {
-                provider: ASTROMETRY_PROVIDER_NAME,
-              })}
-            </p>
-          ) : null}
-          {status.remote_condition === "provider_busy" && status.status !== "failed" ? (
-            <p role="status">
-              {formatMessageTemplate(messages.status.remoteConditions.busyRetry, {
-                provider: ASTROMETRY_PROVIDER_NAME,
-              })}
-            </p>
-          ) : null}
-          {status.remote_condition === "provider_busy" && status.status === "failed" ? (
-            <p role="alert">
-              {formatMessageTemplate(messages.status.remoteConditions.busyFailed, {
-                provider: ASTROMETRY_PROVIDER_NAME,
-              })}
-            </p>
-          ) : null}
-          {status.status === "succeeded" ? (
-            <div className="border border-[var(--border)] bg-[var(--surface)] p-4">
-              <p className="font-semibold">{messages.status.results.remoteSuccessTitle}</p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                {messages.status.results.remoteSuccessDescription}
-              </p>
-            </div>
-          ) : null}
-          {status.status === "unsolved" ? (
-            <p role="status">
-              {formatMessageTemplate(messages.status.results.unsolved, {
-                provider: ASTROMETRY_PROVIDER_NAME,
-              })}
-            </p>
-          ) : null}
-          {status.status === "expired" ? (
-            <p role="alert">{messages.status.results.expired}</p>
-          ) : null}
-          {(status.status === "failed" || status.status === "dead_letter") &&
-          status.remote_condition !== "provider_busy" ? (
-            <p role="alert">{messages.status.results.remoteFailure}</p>
-          ) : null}
-        </div>
-      )}
-      {state.pollingWarning ? (
-        <p role="alert" className="text-sm">
-          {messages.status.pollingWarning}
-        </p>
-      ) : null}
-      <div className="space-y-3 border-t border-[var(--border)] pt-5">
-        <p className="text-sm leading-6 text-[var(--muted)]">
-          {formatMessageTemplate(messages.status.deletion.remoteDescription, {
-            provider: ASTROMETRY_PROVIDER_NAME,
-          })}
-        </p>
-        {deleteConfirm ? (
-          <div
-            className="flex flex-wrap gap-3"
-            role="group"
-            aria-label={messages.status.deletion.confirmGroupLabel}
-          >
-            <button
-              className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-              onClick={onConfirmDelete}
-              type="button"
-            >
-              {messages.status.deletion.confirmDelete}
-            </button>
-            <button
-              className="min-h-11 px-4 font-semibold text-[var(--link)] underline"
-              onClick={onCancelDelete}
-              type="button"
-            >
-              {messages.status.deletion.keepSubmission}
-            </button>
-          </div>
+      <div className={styles.statusBody}>
+        {status === null ? (
+          <p role="status">{messages.status.initialRemote}</p>
         ) : (
-          <button
-            className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={onRequestDelete}
-            type="button"
-          >
-            {messages.status.deletion.deleteUpload}
-          </button>
+          <>
+            <p role="status">
+              <strong>{messages.status.labels.statusLabel}</strong>{" "}
+              {statusLabel(status.status, messages.status.labels)}
+            </p>
+            {status.progress === null || status.progress === undefined ? null : (
+              <p>
+                <strong>{messages.status.labels.progressLabel}</strong>{" "}
+                {formatLocaleNumber(status.progress, locale, {
+                  maximumFractionDigits: 0,
+                  style: "percent",
+                })}
+              </p>
+            )}
+            {status.remote_condition === "provider_unavailable" ? (
+              <p role="status">
+                {formatMessageTemplate(messages.status.remoteConditions.unavailable, {
+                  provider: ASTROMETRY_PROVIDER_NAME,
+                })}
+              </p>
+            ) : null}
+            {status.remote_condition === "provider_busy" && status.status !== "failed" ? (
+              <p role="status">
+                {formatMessageTemplate(messages.status.remoteConditions.busyRetry, {
+                  provider: ASTROMETRY_PROVIDER_NAME,
+                })}
+              </p>
+            ) : null}
+            {status.remote_condition === "provider_busy" && status.status === "failed" ? (
+              <p role="alert">
+                {formatMessageTemplate(messages.status.remoteConditions.busyFailed, {
+                  provider: ASTROMETRY_PROVIDER_NAME,
+                })}
+              </p>
+            ) : null}
+            {status.status === "succeeded" ? (
+              <div className={styles.successNotice}>
+                <p>
+                  <strong>{messages.status.results.remoteSuccessTitle}</strong>
+                </p>
+                <p>{messages.status.results.remoteSuccessDescription}</p>
+              </div>
+            ) : null}
+            {status.status === "unsolved" ? (
+              <p role="status">
+                {formatMessageTemplate(messages.status.results.unsolved, {
+                  provider: ASTROMETRY_PROVIDER_NAME,
+                })}
+              </p>
+            ) : null}
+            {status.status === "expired" ? (
+              <p role="alert">{messages.status.results.expired}</p>
+            ) : null}
+            {(status.status === "failed" || status.status === "dead_letter") &&
+            status.remote_condition !== "provider_busy" ? (
+              <p role="alert">{messages.status.results.remoteFailure}</p>
+            ) : null}
+          </>
         )}
+        {state.pollingWarning ? (
+          <p role="alert" className={styles.alert}>
+            {messages.status.pollingWarning}
+          </p>
+        ) : null}
+        <div className={styles.deletion}>
+          <p className={styles.statusCopy}>
+            {formatMessageTemplate(messages.status.deletion.remoteDescription, {
+              provider: ASTROMETRY_PROVIDER_NAME,
+            })}
+          </p>
+          {deleteConfirm ? (
+            <div
+              className={styles.actionRow}
+              role="group"
+              aria-label={messages.status.deletion.confirmGroupLabel}
+            >
+              <button className={styles.dangerAction} onClick={onConfirmDelete} type="button">
+                {messages.status.deletion.confirmDelete}
+              </button>
+              <button className={styles.secondaryAction} onClick={onCancelDelete} type="button">
+                {messages.status.deletion.keepSubmission}
+              </button>
+            </div>
+          ) : (
+            <button className={styles.dangerAction} onClick={onRequestDelete} type="button">
+              {messages.status.deletion.deleteUpload}
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -625,13 +601,9 @@ function StatusMessage({
   title,
 }: Readonly<{ alert?: boolean; children: React.ReactNode; title: string }>) {
   return (
-    <section
-      aria-label={title}
-      className="space-y-2 border border-[var(--border)] p-5 sm:p-7"
-      role={alert ? "alert" : "status"}
-    >
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <p className="leading-7 text-[var(--muted)]">{children}</p>
+    <section aria-label={title} className={styles.statusMessage} role={alert ? "alert" : "status"}>
+      <h2>{title}</h2>
+      <p>{children}</p>
     </section>
   );
 }

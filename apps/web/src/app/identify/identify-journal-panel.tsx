@@ -15,6 +15,7 @@ import {
   saveIdentificationSolutionToJournal,
 } from "../../lib/journal/identification";
 import { MAX_JOURNAL_OBJECTS } from "../../lib/journal/model";
+import styles from "./identify-experience.module.css";
 
 type JournalValidationReason =
   | "coordinatePairRequired"
@@ -109,19 +110,14 @@ export function IdentifyJournalPanel({
   }
 
   return (
-    <section
-      aria-labelledby="identify-journal-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-4xl space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h2 className="text-2xl font-semibold" id="identify-journal-heading">
+    <section aria-labelledby="identify-journal-heading" className={styles.stage}>
+      <div className={styles.stageHeader}>
+        <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
+        <h2 className={styles.stageTitle} id="identify-journal-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">{messages.description}</p>
-        <p className="text-sm leading-6 text-[var(--muted)]">
+        <p className={styles.stageDescription}>{messages.description}</p>
+        <p className={styles.stageNote}>
           {formatMessageTemplate(messages.snapshotDisclosure, {
             count: formatLocaleNumber(MAX_JOURNAL_OBJECTS, locale),
             service: NOVA_SERVICE_SHORT_NAME,
@@ -129,155 +125,155 @@ export function IdentifyJournalPanel({
         </p>
       </div>
 
-      {state.kind === "saved" ? (
-        <div className="space-y-3" role="status">
-          <p className="font-semibold">{messages.savedStatus}</p>
-          <p className="text-sm text-[var(--muted)]">
-            {messages.entryIdLabel} <code>{state.entryId}</code>
-          </p>
-          <Link className="font-semibold text-[var(--link)] underline" href="/journal">
-            {messages.actions.openJournal}
-          </Link>
-        </div>
-      ) : (
-        <form className="grid gap-5 lg:grid-cols-2" onSubmit={(event) => void submit(event)}>
-          <label className="space-y-2 font-semibold lg:col-span-2">
-            <span>{messages.fields.title}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              maxLength={120}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder={messages.fields.titlePlaceholder}
-              required
-              value={title}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold">
-            <span>{messages.fields.observationTime}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              onChange={(event) => setObservationTime(event.target.value)}
-              type="datetime-local"
-              value={observationTime}
-            />
-            <span className="block text-xs font-normal leading-5 text-[var(--muted)]">
-              {messages.fields.observationTimeHelp}
-            </span>
-          </label>
-
-          <label className="space-y-2 font-semibold">
-            <span>{messages.fields.location}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              maxLength={120}
-              onChange={(event) => setLocationLabel(event.target.value)}
-              placeholder={messages.fields.locationPlaceholder}
-              value={locationLabel}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold">
-            <span>{messages.fields.latitude}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              inputMode="decimal"
-              max="90"
-              min="-90"
-              onChange={(event) => setLatitude(event.target.value)}
-              step="any"
-              type="number"
-              value={latitude}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold">
-            <span>{messages.fields.longitude}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              inputMode="decimal"
-              max="180"
-              min="-180"
-              onChange={(event) => setLongitude(event.target.value)}
-              step="any"
-              type="number"
-              value={longitude}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold">
-            <span>{messages.fields.telescope}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              maxLength={140}
-              onChange={(event) => setTelescope(event.target.value)}
-              value={telescope}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold">
-            <span>{messages.fields.camera}</span>
-            <input
-              className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-              maxLength={140}
-              onChange={(event) => setCamera(event.target.value)}
-              value={camera}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold lg:col-span-2">
-            <span>{messages.fields.conditions}</span>
-            <textarea
-              className="min-h-24 w-full border border-[var(--border-strong)] bg-[var(--background)] p-3"
-              maxLength={2_000}
-              onChange={(event) => setConditions(event.target.value)}
-              value={conditions}
-            />
-          </label>
-
-          <label className="space-y-2 font-semibold lg:col-span-2">
-            <span>{messages.fields.notes}</span>
-            <textarea
-              className="min-h-32 w-full border border-[var(--border-strong)] bg-[var(--background)] p-3"
-              maxLength={10_000}
-              onChange={(event) => setNotes(event.target.value)}
-              value={notes}
-            />
-          </label>
-
-          <label className="flex min-h-11 items-start gap-3 lg:col-span-2">
-            <input
-              checked={attachImage}
-              className="mt-1"
-              disabled={sourceImage === null}
-              onChange={(event) => setAttachImage(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              <strong>{messages.attachment.title}</strong>
-              <span className="mt-1 block text-sm leading-6 text-[var(--muted)]">
-                {messages.attachment.description}
-              </span>
-            </span>
-          </label>
-
-          {state.kind === "error" ? (
-            <p className="lg:col-span-2" role="alert">
-              {state.source === "validation"
-                ? messages.validation[state.reason]
-                : messages.failures[state.reason]}
+      <div className={styles.stageBody}>
+        {state.kind === "saved" ? (
+          <div className={styles.journalStatus} role="status">
+            <p>
+              <strong>{messages.savedStatus}</strong>
             </p>
-          ) : null}
+            <p className={styles.journalEntryId}>
+              {messages.entryIdLabel} <code>{state.entryId}</code>
+            </p>
+            <Link className={styles.textAction} href="/journal">
+              {messages.actions.openJournal}
+            </Link>
+          </div>
+        ) : (
+          <form className={styles.journalForm} onSubmit={(event) => void submit(event)}>
+            <label className={`${styles.journalField} ${styles.journalWide}`}>
+              <span>{messages.fields.title}</span>
+              <input
+                className={styles.journalInput}
+                maxLength={120}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder={messages.fields.titlePlaceholder}
+                required
+                value={title}
+              />
+            </label>
 
-          <button
-            className="min-h-11 justify-self-start border border-[var(--border-strong)] px-5 font-semibold disabled:opacity-50 lg:col-span-2"
-            disabled={state.kind === "saving"}
-            type="submit"
-          >
-            {state.kind === "saving" ? messages.actions.saving : messages.actions.save}
-          </button>
-        </form>
-      )}
+            <label className={styles.journalField}>
+              <span>{messages.fields.observationTime}</span>
+              <input
+                className={styles.journalInput}
+                onChange={(event) => setObservationTime(event.target.value)}
+                type="datetime-local"
+                value={observationTime}
+              />
+              <span className={styles.journalHelp}>{messages.fields.observationTimeHelp}</span>
+            </label>
+
+            <label className={styles.journalField}>
+              <span>{messages.fields.location}</span>
+              <input
+                className={styles.journalInput}
+                maxLength={120}
+                onChange={(event) => setLocationLabel(event.target.value)}
+                placeholder={messages.fields.locationPlaceholder}
+                value={locationLabel}
+              />
+            </label>
+
+            <label className={styles.journalField}>
+              <span>{messages.fields.latitude}</span>
+              <input
+                className={styles.journalInput}
+                inputMode="decimal"
+                max="90"
+                min="-90"
+                onChange={(event) => setLatitude(event.target.value)}
+                step="any"
+                type="number"
+                value={latitude}
+              />
+            </label>
+
+            <label className={styles.journalField}>
+              <span>{messages.fields.longitude}</span>
+              <input
+                className={styles.journalInput}
+                inputMode="decimal"
+                max="180"
+                min="-180"
+                onChange={(event) => setLongitude(event.target.value)}
+                step="any"
+                type="number"
+                value={longitude}
+              />
+            </label>
+
+            <label className={styles.journalField}>
+              <span>{messages.fields.telescope}</span>
+              <input
+                className={styles.journalInput}
+                maxLength={140}
+                onChange={(event) => setTelescope(event.target.value)}
+                value={telescope}
+              />
+            </label>
+
+            <label className={styles.journalField}>
+              <span>{messages.fields.camera}</span>
+              <input
+                className={styles.journalInput}
+                maxLength={140}
+                onChange={(event) => setCamera(event.target.value)}
+                value={camera}
+              />
+            </label>
+
+            <label className={`${styles.journalField} ${styles.journalWide}`}>
+              <span>{messages.fields.conditions}</span>
+              <textarea
+                className={styles.journalTextarea}
+                maxLength={2_000}
+                onChange={(event) => setConditions(event.target.value)}
+                value={conditions}
+              />
+            </label>
+
+            <label className={`${styles.journalField} ${styles.journalWide}`}>
+              <span>{messages.fields.notes}</span>
+              <textarea
+                className={styles.journalTextarea}
+                data-large="true"
+                maxLength={10_000}
+                onChange={(event) => setNotes(event.target.value)}
+                value={notes}
+              />
+            </label>
+
+            <label className={`${styles.attachmentChoice} ${styles.journalWide}`}>
+              <input
+                checked={attachImage}
+                disabled={sourceImage === null}
+                onChange={(event) => setAttachImage(event.target.checked)}
+                type="checkbox"
+              />
+              <span>
+                <strong>{messages.attachment.title}</strong>
+                <span className={styles.journalHelp}>{messages.attachment.description}</span>
+              </span>
+            </label>
+
+            {state.kind === "error" ? (
+              <p className={`${styles.alert} ${styles.journalWide}`} role="alert">
+                {state.source === "validation"
+                  ? messages.validation[state.reason]
+                  : messages.failures[state.reason]}
+              </p>
+            ) : null}
+
+            <button
+              className={`${styles.primaryAction} ${styles.journalWide}`}
+              disabled={state.kind === "saving"}
+              type="submit"
+            >
+              {state.kind === "saving" ? messages.actions.saving : messages.actions.save}
+            </button>
+          </form>
+        )}
+      </div>
     </section>
   );
 }

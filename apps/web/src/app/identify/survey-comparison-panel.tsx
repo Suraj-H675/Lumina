@@ -14,6 +14,7 @@ import {
   type AtlasLayerId,
 } from "../../lib/wwt/atlas";
 import type { WwtAtlasSession } from "../../lib/wwt/client";
+import styles from "./identify-experience.module.css";
 
 type SurveyErrorReason = "layerApplyFailed" | "layerUnavailable" | "rendererFailed";
 type SurveyReadyReason = "comparisonReady" | "contextRestored" | "showingLayer";
@@ -147,117 +148,120 @@ export function SurveyComparisonPanel({
   }
 
   return (
-    <section
-      aria-labelledby="survey-comparison-heading"
-      className="space-y-5 border border-[var(--border)] p-5 sm:p-7"
-    >
-      <div className="max-w-4xl space-y-2">
-        <p className="text-xs font-semibold tracking-[0.16em] text-[var(--accent)] uppercase">
-          {messages.eyebrow}
-        </p>
-        <h2 className="text-2xl font-semibold" id="survey-comparison-heading">
+    <section aria-labelledby="survey-comparison-heading" className={styles.stage}>
+      <div className={styles.stageHeader}>
+        <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
+        <h2 className={styles.stageTitle} id="survey-comparison-heading">
           {messages.title}
         </h2>
-        <p className="leading-7 text-[var(--muted)]">
+        <p className={styles.stageDescription}>
           {formatMessageTemplate(messages.description, {
             service: WORLDWIDE_TELESCOPE_NAME,
           })}
         </p>
       </div>
 
-      <label className="block max-w-md space-y-2 font-semibold">
-        <span>{messages.layerLabel}</span>
-        <select
-          className="min-h-11 w-full border border-[var(--border-strong)] bg-[var(--background)] px-3"
-          disabled={state.kind === "checking" || state.kind === "loading"}
-          onChange={(event) => void chooseLayer(event.target.value as AtlasLayerId)}
-          value={layerId}
-        >
-          {ATLAS_LAYERS.map((layer) => (
-            <option key={layer.id} value={layer.id}>
-              {layer.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {canActivate ? (
-        <button
-          className="min-h-11 border border-[var(--border-strong)] px-4 font-semibold"
-          onClick={() => void activate()}
-          type="button"
-        >
-          {messages.action}
-        </button>
-      ) : null}
-      {state.kind === "checking" ? (
-        <p role="status">
-          {formatMessageTemplate(messages.states.checking, { layer: state.layerLabel })}
-        </p>
-      ) : null}
-      {state.kind === "loading" ? <p role="status">{messages.states.loading}</p> : null}
-      {state.kind === "context-lost" ? <p role="alert">{messages.states.contextLost}</p> : null}
-      {state.kind === "error" ? (
-        <p role="alert">{surveyErrorMessage(state, messages.states)}</p>
-      ) : null}
-      {state.kind === "ready" ? (
-        <p role="status">{surveyReadyMessage(state, messages.states)}</p>
-      ) : null}
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        <figure className="min-w-0 space-y-3">
-          <figcaption className="font-semibold">{messages.figures.localCaption}</figcaption>
-          <div className="overflow-auto border border-[var(--border)] bg-[var(--surface)] p-2">
-            {/* A raw img preserves the private browser blob URL; Next image optimization must not proxy it. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              alt={messages.figures.localAlt}
-              className="h-auto max-h-[60vh] w-full object-contain"
-              src={imageUrl}
-            />
+      <div className={styles.stageBody}>
+        <div className={styles.surveyControls}>
+          <label className={styles.selectField}>
+            <span>{messages.layerLabel}</span>
+            <select
+              className={styles.select}
+              disabled={state.kind === "checking" || state.kind === "loading"}
+              onChange={(event) => void chooseLayer(event.target.value as AtlasLayerId)}
+              value={layerId}
+            >
+              {ATLAS_LAYERS.map((layer) => (
+                <option key={layer.id} value={layer.id}>
+                  {layer.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div>
+            {canActivate ? (
+              <button
+                className={styles.primaryAction}
+                onClick={() => void activate()}
+                type="button"
+              >
+                {messages.action}
+              </button>
+            ) : null}
+            {state.kind === "checking" ? (
+              <p className={styles.statusCopy} role="status">
+                {formatMessageTemplate(messages.states.checking, { layer: state.layerLabel })}
+              </p>
+            ) : null}
+            {state.kind === "loading" ? (
+              <p className={styles.statusCopy} role="status">
+                {messages.states.loading}
+              </p>
+            ) : null}
+            {state.kind === "context-lost" ? (
+              <p className={styles.alert} role="alert">
+                {messages.states.contextLost}
+              </p>
+            ) : null}
+            {state.kind === "error" ? (
+              <p className={styles.alert} role="alert">
+                {surveyErrorMessage(state, messages.states)}
+              </p>
+            ) : null}
+            {state.kind === "ready" ? (
+              <p className={styles.statusCopy} role="status">
+                {surveyReadyMessage(state, messages.states)}
+              </p>
+            ) : null}
           </div>
-        </figure>
-        <figure className="min-w-0 space-y-3">
-          <figcaption className="font-semibold">
-            {formatMessageTemplate(messages.figures.surveyCaption, { layer: activeLayer.label })}
-          </figcaption>
-          <div
-            aria-label={formatMessageTemplate(messages.figures.surveyRegionLabel, {
-              service: WORLDWIDE_TELESCOPE_NAME,
+        </div>
+
+        <div className={styles.surveyFigures}>
+          <figure className={styles.figure}>
+            <figcaption>{messages.figures.localCaption}</figcaption>
+            <div className={styles.figureFrame}>
+              {/* A raw img preserves the private browser blob URL; Next image optimization must not proxy it. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img alt={messages.figures.localAlt} src={imageUrl} />
+            </div>
+          </figure>
+          <figure className={styles.figure}>
+            <figcaption>
+              {formatMessageTemplate(messages.figures.surveyCaption, { layer: activeLayer.label })}
+            </figcaption>
+            <div
+              aria-label={formatMessageTemplate(messages.figures.surveyRegionLabel, {
+                service: WORLDWIDE_TELESCOPE_NAME,
+              })}
+              className={styles.surveyCanvas}
+              id="nova-lumina-wwt-atlas"
+              ref={containerRef}
+              role="region"
+            />
+          </figure>
+        </div>
+        <div className={styles.surveyNotes}>
+          <p>
+            {formatMessageTemplate(
+              field.was_clamped ? messages.fieldDescriptionClamped : messages.fieldDescription,
+              {
+                fieldOfView: formatLocaleFixedNumber(field.field_of_view_deg, 3, locale),
+              },
+            )}
+          </p>
+          <p>{activeLayer.interpretation}</p>
+          <p>
+            {formatMessageTemplate(messages.privacy, {
+              serviceShort: WORLDWIDE_TELESCOPE_SHORT_NAME,
             })}
-            className="aspect-square min-h-64 overflow-hidden border border-[var(--border)] bg-black"
-            id="nova-lumina-wwt-atlas"
-            ref={containerRef}
-            role="region"
-          />
-        </figure>
-      </div>
-      <div className="max-w-4xl space-y-2 text-sm leading-6 text-[var(--muted)]">
-        <p>
-          {formatMessageTemplate(
-            field.was_clamped ? messages.fieldDescriptionClamped : messages.fieldDescription,
-            {
-              fieldOfView: formatLocaleFixedNumber(field.field_of_view_deg, 3, locale),
-            },
-          )}
-        </p>
-        <p>{activeLayer.interpretation}</p>
-        <p>
-          {formatMessageTemplate(messages.privacy, {
-            serviceShort: WORLDWIDE_TELESCOPE_SHORT_NAME,
-          })}
-        </p>
-        <p>
-          {messages.creditLabel} {activeLayer.creditText}{" "}
-          <a
-            className="font-semibold text-[var(--link)] underline"
-            href={activeLayer.creditUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            {messages.sourceDetails}
-          </a>
-        </p>
+          </p>
+          <p>
+            {messages.creditLabel} {activeLayer.creditText}{" "}
+            <a href={activeLayer.creditUrl} rel="noreferrer" target="_blank">
+              {messages.sourceDetails}
+            </a>
+          </p>
+        </div>
       </div>
     </section>
   );

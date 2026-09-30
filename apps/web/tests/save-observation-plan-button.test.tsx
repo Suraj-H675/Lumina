@@ -1,6 +1,5 @@
 import "fake-indexeddb/auto";
 
-import Dexie from "dexie";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -9,17 +8,9 @@ import { SaveObservationPlanButton } from "../src/components/save-observation-pl
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { SaveObservationPlanMessages } from "../src/lib/i18n/messages/types";
-import {
-  LUMINA_PERSONAL_DB_NAME,
-  closeJournalDatabase,
-  listSavedObservationPlans,
-} from "../src/lib/journal/database";
+import { listSavedObservationPlans } from "../src/lib/journal/database";
 import { observationPlanFixture, savedPlanTargetFixture } from "./saved-observation-plan-fixture";
-
-async function resetPersonalDatabase(): Promise<void> {
-  await closeJournalDatabase();
-  await Dexie.delete(LUMINA_PERSONAL_DB_NAME);
-}
+import { resetPersonalDatabase } from "./support/personal-database";
 
 beforeEach(resetPersonalDatabase);
 afterEach(resetPersonalDatabase);

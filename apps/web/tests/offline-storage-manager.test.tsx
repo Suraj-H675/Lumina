@@ -1,6 +1,5 @@
 import "fake-indexeddb/auto";
 
-import Dexie from "dexie";
 import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -11,25 +10,19 @@ import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
 import type { OfflineMessages } from "../src/lib/i18n/messages/types";
 import {
-  LUMINA_PERSONAL_DB_NAME,
-  closeJournalDatabase,
   createJournalEntryInDatabase,
   listJournalEntries,
   listSavedObservationPlans,
   putSavedObservationPlan,
 } from "../src/lib/journal/database";
 import { savedObservationPlanFixture } from "./saved-observation-plan-fixture";
+import { resetPersonalDatabase } from "./support/personal-database";
 
 const deleteCache = vi.fn();
 const cacheKeys = vi.fn();
 
 function renderOfflineStorage(messages: OfflineMessages["storage"] = enMessages.offline.storage) {
   return render(<OfflineStorageManager locale={DEFAULT_LOCALE} messages={messages} />);
-}
-
-async function resetPersonalDatabase(): Promise<void> {
-  await closeJournalDatabase();
-  await Dexie.delete(LUMINA_PERSONAL_DB_NAME);
 }
 
 beforeEach(async () => {

@@ -21,6 +21,7 @@ import {
 import { createJournalEntry, validateJournalEntry } from "../src/lib/journal/model";
 import { MAX_SAVED_OBSERVATION_PLANS } from "../src/lib/observation/saved-plan";
 import { savedObservationPlanFixture } from "./saved-observation-plan-fixture";
+import { resetPersonalDatabase } from "./support/personal-database";
 
 const V1_SCHEMA = {
   journalAttachments: "&id, journal_entry_id, created_at",
@@ -32,13 +33,8 @@ const V2_SCHEMA = {
   savedPlans: "&id, updated_at, created_at",
 } as const;
 
-async function deletePersonalDatabase(): Promise<void> {
-  await closeJournalDatabase();
-  await Dexie.delete(LUMINA_PERSONAL_DB_NAME);
-}
-
-beforeEach(deletePersonalDatabase);
-afterEach(deletePersonalDatabase);
+beforeEach(resetPersonalDatabase);
+afterEach(resetPersonalDatabase);
 
 describe("saved observation plans in lumina-personal IndexedDB", () => {
   it("upgrades a populated v1 database to v2 without changing journal rows or attachments", async () => {

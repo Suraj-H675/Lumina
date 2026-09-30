@@ -1,29 +1,20 @@
 import "fake-indexeddb/auto";
 
-import Dexie from "dexie";
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ObserveExperience } from "../src/components/observe-experience";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
-import {
-  LUMINA_PERSONAL_DB_NAME,
-  closeJournalDatabase,
-  putSavedObservationPlan,
-} from "../src/lib/journal/database";
+import { putSavedObservationPlan } from "../src/lib/journal/database";
 import { savedObservationPlanFixture } from "./saved-observation-plan-fixture";
+import { resetPersonalDatabase } from "./support/personal-database";
 
 const { replaceMock } = vi.hoisted(() => ({ replaceMock: vi.fn() }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: replaceMock }),
 }));
-
-async function resetPersonalDatabase(): Promise<void> {
-  await closeJournalDatabase();
-  await Dexie.delete(LUMINA_PERSONAL_DB_NAME);
-}
 
 beforeEach(async () => {
   await resetPersonalDatabase();

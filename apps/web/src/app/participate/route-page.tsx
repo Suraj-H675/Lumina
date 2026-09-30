@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ParticipateEnhanced } from "../../components/participate-enhanced";
+import styles from "../../components/participate-experience.module.css";
 import { ParticipateNoScript } from "../../components/participate-no-script";
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type { ParticipateMessages } from "../../lib/i18n/messages/types";
@@ -21,24 +22,20 @@ export default async function ParticipatePage({
   const outcome = await loadParticipate();
   if (outcome.kind !== "ok") {
     return (
-      <article className="max-w-4xl space-y-6">
-        <header className="space-y-4">
-          <p className="text-sm font-semibold tracking-[0.14em] text-[var(--accent)] uppercase">
-            {messages.eyebrow}
-          </p>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            {messages.metadataTitle}
-          </h1>
+      <article className={styles.unavailable}>
+        <header className={styles.hero}>
+          <div>
+            <p className={styles.eyebrow}>{messages.eyebrow}</p>
+            <h1 className={styles.title}>{messages.metadataTitle}</h1>
+          </div>
         </header>
         <section
           aria-labelledby="participate-unavailable-heading"
-          className="space-y-3"
+          className={styles.unavailableMessage}
           role="alert"
         >
-          <h2 className="text-2xl font-semibold" id="participate-unavailable-heading">
-            {messages.unavailable.title}
-          </h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.unavailable.description}</p>
+          <h2 id="participate-unavailable-heading">{messages.unavailable.title}</h2>
+          <p>{messages.unavailable.description}</p>
         </section>
       </article>
     );

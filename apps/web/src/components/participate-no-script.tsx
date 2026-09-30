@@ -11,6 +11,7 @@ import {
   timeFilterLabel,
   timestampLabel,
 } from "../lib/participate";
+import styles from "./participate-experience.module.css";
 
 export function ParticipateNoScript({
   locale,
@@ -24,15 +25,19 @@ export function ParticipateNoScript({
   const sourceById = new Map(response.sources.map((source) => [source.id, source]));
 
   return (
-    <article className="max-w-6xl space-y-10" data-participate-fallback>
-      <header>
-        <p>{messages.eyebrow}</p>
-        <h1>{response.definition.title}</h1>
-        <p>{response.definition.summary}</p>
-        <p>{response.definition.privacy_note}</p>
+    <article className={styles.noJsPage} data-participate-fallback>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.eyebrow}</p>
+          <h1 className={styles.title}>{response.definition.title}</h1>
+        </div>
+        <div className={styles.heroAside}>
+          <p className={styles.intro}>{response.definition.summary}</p>
+          <p className={styles.privacy}>{response.definition.privacy_note}</p>
+        </div>
       </header>
 
-      <section aria-labelledby="participate-nojs-status-heading">
+      <section aria-labelledby="participate-nojs-status-heading" className={styles.noJsSection}>
         <h2 id="participate-nojs-status-heading">{freshnessHeading(response, messages)}</h2>
         <p>{messages.freshness.noScriptDescription}</p>
         <p>
@@ -57,11 +62,11 @@ export function ParticipateNoScript({
         </p>
       </section>
 
-      <section aria-labelledby="participate-nojs-projects-heading">
+      <section aria-labelledby="participate-nojs-projects-heading" className={styles.noJsSection}>
         <h2 id="participate-nojs-projects-heading">{messages.projects.heading}</h2>
         <p>{messages.projects.noScriptDescription}</p>
         {response.projects.map((project) => (
-          <article key={project.id}>
+          <article className={styles.noJsProject} key={project.id}>
             <h3>{project.title}</h3>
             <p>{project.summary}</p>
             <dl>
@@ -127,11 +132,11 @@ export function ParticipateNoScript({
         ))}
       </section>
 
-      <section aria-labelledby="participate-nojs-challenges-heading">
+      <section aria-labelledby="participate-nojs-challenges-heading" className={styles.noJsSection}>
         <h2 id="participate-nojs-challenges-heading">{messages.challenges.heading}</h2>
         <p>{messages.challenges.noScriptDescription}</p>
         {response.challenges.map((challenge) => (
-          <article key={challenge.id}>
+          <article className={styles.noJsEntry} key={challenge.id}>
             <h3>
               {formatMessageTemplate(messages.challenges.monthTitle, {
                 challengeTitle: challenge.title,
@@ -161,10 +166,10 @@ export function ParticipateNoScript({
         ))}
       </section>
 
-      <section aria-labelledby="participate-nojs-activities-heading">
+      <section aria-labelledby="participate-nojs-activities-heading" className={styles.noJsSection}>
         <h2 id="participate-nojs-activities-heading">{messages.activities.heading}</h2>
         {response.activities.map((activity) => (
-          <article key={activity.id}>
+          <article className={styles.noJsEntry} key={activity.id}>
             <h3>{activity.title}</h3>
             <p>{activity.age_guidance}</p>
             <p>{activity.skill_guidance}</p>
@@ -224,7 +229,7 @@ export function ParticipateNoScript({
         ))}
       </section>
 
-      <section aria-labelledby="participate-nojs-sources-heading">
+      <section aria-labelledby="participate-nojs-sources-heading" className={styles.noJsSection}>
         <h2 id="participate-nojs-sources-heading">{messages.sourcesTitle}</h2>
         <ul>
           {response.sources.map((source) => (

@@ -16,26 +16,14 @@ vi.mock("next/navigation", () => ({
 import { CatalogueSearchBox } from "../src/components/catalogue-search-box";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
+import { starSuggestions } from "./support/catalogue";
 import { jsonOk } from "./support/http";
 
 const DEFAULT_SEARCH_PROPS = {
   locale: DEFAULT_LOCALE,
   messages: enMessages.catalogueSearch,
 } as const;
-
-type SuggestBody = Readonly<{
-  items: Array<{ canonical_name: string; entity_type: string; id: string; slug: string }>;
-}>;
-
-function okSuggestions(items: Array<{ canonical_name: string; slug: string }>): SuggestBody {
-  return {
-    items: items.map((item) => ({
-      ...item,
-      entity_type: "star",
-      id: "12345678-1234-4234-9234-123456789abc",
-    })),
-  };
-}
+type SuggestBody = ReturnType<typeof starSuggestions>;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -59,7 +47,7 @@ afterEach(() => {
 
 describe("CatalogueSearchBox", () => {
   it("coalesces rapid typing into one suggestion request", async () => {
-    fetchMock.mockResolvedValue(jsonOk(okSuggestions([])));
+    fetchMock.mockResolvedValue(jsonOk(starSuggestions([])));
     render(
       <CatalogueSearchBox
         {...DEFAULT_SEARCH_PROPS}
@@ -106,19 +94,19 @@ describe("CatalogueSearchBox", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     expect(fetchMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
 
-    resolvers[1]?.(okSuggestions([{ canonical_name: "Kepler-186", slug: "kepler-186" }]));
+    resolvers[1]?.(starSuggestions([{ canonical_name: "Kepler-186", slug: "kepler-186" }]));
     const option = await screen.findByRole("option", { name: /Kepler-186/ });
     expect(option).toBeVisible();
 
     // The older request finally resolving must NOT repaint the suggestions.
-    resolvers[0]?.(okSuggestions([{ canonical_name: "HD 209458", slug: "hd-209458" }]));
+    resolvers[0]?.(starSuggestions([{ canonical_name: "HD 209458", slug: "hd-209458" }]));
     await sleep(DEBOUNCE_MS);
     expect(screen.getByRole("option", { name: /Kepler-186/ })).toBeVisible();
     expect(screen.queryByRole("option", { name: /HD 209458/ })).not.toBeInTheDocument();
   });
 
   it("does not request suggestions below the public minimum query length", async () => {
-    fetchMock.mockResolvedValue(jsonOk(okSuggestions([])));
+    fetchMock.mockResolvedValue(jsonOk(starSuggestions([])));
     render(
       <CatalogueSearchBox
         {...DEFAULT_SEARCH_PROPS}
@@ -192,13 +180,13 @@ describe("CatalogueSearchBox", () => {
     fetchMock
       .mockResolvedValueOnce(
         jsonOk(
-          okSuggestions([
+          starSuggestions([
             { canonical_name: "K2-18", slug: "k2-18" },
             { canonical_name: "Kepler-186", slug: "kepler-186" },
           ]),
         ),
       )
-      .mockResolvedValue(jsonOk(okSuggestions([])));
+      .mockResolvedValue(jsonOk(starSuggestions([])));
 
     render(
       <CatalogueSearchBox
@@ -241,7 +229,7 @@ describe("CatalogueSearchBox", () => {
 
   it("navigates to the object page when a suggestion is chosen with the keyboard or mouse", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+      jsonOk(starSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
 
     render(
@@ -276,7 +264,7 @@ describe("CatalogueSearchBox", () => {
 
   it("can route the same certified suggestion selection into the observation planner", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+      jsonOk(starSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
 
     render(
@@ -315,7 +303,7 @@ describe("CatalogueSearchBox", () => {
 
   it("announces suggestion availability politely for assistive technology", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+      jsonOk(starSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
     render(
       <CatalogueSearchBox
@@ -333,7 +321,7 @@ describe("CatalogueSearchBox", () => {
 
   it("localizes search chrome and count announcements without rewriting suggestion data", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+      jsonOk(starSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
     const messages = {
       ...enMessages.catalogueSearch,

@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({
 import { CompareAddObject } from "../src/components/compare-add-object";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
+import { starSuggestions } from "./support/catalogue";
 import { jsonOk } from "./support/http";
 
 const COMBOBOX = { name: /add an object to compare/i };
@@ -23,16 +24,6 @@ const DEFAULT_ADD_PROPS = {
   locale: DEFAULT_LOCALE,
   messages: enMessages.compare.add,
 } as const;
-
-function okSuggestions(items: Array<{ canonical_name: string; slug: string }>) {
-  return {
-    items: items.map((item) => ({
-      ...item,
-      entity_type: "star",
-      id: "12345678-1234-4234-9234-123456789abc",
-    })),
-  };
-}
 
 afterEach(() => {
   fetchMock.mockReset();
@@ -42,7 +33,7 @@ afterEach(() => {
 describe("CompareAddObject keyboard and maximum behaviour", () => {
   it("adds the highlighted suggestion with ArrowDown + Enter", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+      jsonOk(starSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
     render(
       <CompareAddObject
@@ -68,7 +59,7 @@ describe("CompareAddObject keyboard and maximum behaviour", () => {
 
   it("closes the listbox on Escape without committing", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
+      jsonOk(starSuggestions([{ canonical_name: "K2-18", slug: "k2-18" }])),
     );
     render(
       <CompareAddObject
@@ -90,7 +81,7 @@ describe("CompareAddObject keyboard and maximum behaviour", () => {
 
   it("disables adding at the three-object maximum", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "HD 209458", slug: "hd-209458" }])),
+      jsonOk(starSuggestions([{ canonical_name: "HD 209458", slug: "hd-209458" }])),
     );
     render(
       <CompareAddObject

@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({
 import { CompareAddObject } from "../src/components/compare-add-object";
 import { DEFAULT_LOCALE } from "../src/lib/i18n/locales";
 import { enMessages } from "../src/lib/i18n/messages/en";
+import { starSuggestions } from "./support/catalogue";
 import { jsonOk } from "./support/http";
 
 const COMBOBOX = { name: /add an object to compare/i };
@@ -24,20 +25,10 @@ const DEFAULT_ADD_PROPS = {
   messages: enMessages.compare.add,
 } as const;
 
-function okSuggestions(items: Array<{ canonical_name: string; slug: string }>) {
-  return {
-    items: items.map((item) => ({
-      ...item,
-      entity_type: "star",
-      id: "12345678-1234-4234-9234-123456789abc",
-    })),
-  };
-}
-
 describe("CompareAddObject", () => {
   it("appends the chosen suggestion to the committed object parameters", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "Kepler-452", slug: "kepler-452" }])),
+      jsonOk(starSuggestions([{ canonical_name: "Kepler-452", slug: "kepler-452" }])),
     );
     render(
       <CompareAddObject
@@ -62,7 +53,7 @@ describe("CompareAddObject", () => {
   it("never offers an already-selected slug and never accepts it", async () => {
     fetchMock.mockResolvedValue(
       jsonOk(
-        okSuggestions([
+        starSuggestions([
           { canonical_name: "K2-18", slug: "k2-18" },
           { canonical_name: "Kepler-186", slug: "kepler-186" },
         ]),
@@ -85,7 +76,7 @@ describe("CompareAddObject", () => {
 
   it("localizes search chrome and count announcements without rewriting suggestion data", async () => {
     fetchMock.mockResolvedValue(
-      jsonOk(okSuggestions([{ canonical_name: "Kepler-452", slug: "kepler-452" }])),
+      jsonOk(starSuggestions([{ canonical_name: "Kepler-452", slug: "kepler-452" }])),
     );
     const messages = {
       ...enMessages.compare.add,

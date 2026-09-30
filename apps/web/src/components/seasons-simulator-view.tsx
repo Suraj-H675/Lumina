@@ -29,6 +29,7 @@ import {
   type SeasonsVisualTransform,
 } from "../lib/simulations/seasons-simulator";
 import type { AudienceMode } from "../lib/learning/content";
+import styles from "./lab-calculation-instrument.module.css";
 import { LearningModeSelector } from "./learning-mode-selector";
 
 type SeasonsSimulatorViewProps = Readonly<{
@@ -131,7 +132,7 @@ function SourceList({
   sourceIds: ReadonlyArray<string>;
 }>) {
   return (
-    <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {sourceIds.map((sourceId) => {
         const source = SEASONS_SOURCES.find((candidate) => candidate.id === sourceId);
         return (
@@ -140,7 +141,7 @@ function SourceList({
               <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
-                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                <a href={source.url} rel="noreferrer">
                   {source.title}
                 </a>{" "}
                 ({source.organization_or_authors}; {source.id})
@@ -187,10 +188,10 @@ function OrbitFigure({
 }>) {
   const orbit = visual.orbit;
   return (
-    <figure className="space-y-3" data-testid="seasons-orbit-figure">
+    <figure className={styles.figure} data-testid="seasons-orbit-figure">
       <svg
         aria-labelledby="seasons-orbit-title seasons-orbit-desc"
-        className="h-auto w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
+        className={styles.figureSvg}
         role="img"
         viewBox="0 0 200 150"
       >
@@ -250,7 +251,7 @@ function OrbitFigure({
           {messages.march}
         </text>
       </svg>
-      <figcaption className="text-sm leading-6 text-[var(--muted)]">
+      <figcaption className={styles.caption}>
         {formatMessageTemplate(messages.caption, {
           distance: formatLocaleFixedNumber(result.distance_over_semimajor_axis, 4, locale),
         })}
@@ -274,10 +275,10 @@ function IlluminationFigure({
 }>) {
   const illumination = visual.illumination;
   return (
-    <figure className="space-y-3" data-testid="seasons-illumination-figure">
+    <figure className={styles.figure} data-testid="seasons-illumination-figure">
       <svg
         aria-labelledby="seasons-illumination-title seasons-illumination-desc"
-        className="h-auto w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
+        className={styles.figureSvg}
         role="img"
         viewBox="0 0 200 150"
       >
@@ -349,7 +350,7 @@ function IlluminationFigure({
           })}
         </text>
       </svg>
-      <figcaption className="text-sm leading-6 text-[var(--muted)]">
+      <figcaption className={styles.caption}>
         {formatMessageTemplate(messages.caption, {
           incidence: formatAngle(result.selected.illumination_incidence_deg, locale),
         })}
@@ -370,71 +371,56 @@ function GeometryTable({
   return (
     <div
       aria-label={messages.table.ariaLabel}
-      className="max-w-full overflow-x-auto rounded-md border border-[var(--border)]"
+      className={styles.tableWrap}
       role="region"
       tabIndex={0}
     >
       <table
-        className="min-w-[48rem] w-full border-collapse text-left text-sm"
+        className={styles.table}
+        style={{ minWidth: 768 }}
         data-testid="seasons-geometry-table"
       >
         <caption className="sr-only">{messages.table.caption}</caption>
-        <thead className="bg-[var(--surface)] text-[var(--muted)]">
+        <thead>
           <tr>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.headers.location}
-            </th>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.headers.latitude}
-            </th>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.headers.noonAltitude}
-            </th>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.headers.incidence}
-            </th>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.headers.dayLength}
-            </th>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.headers.polarState}
-            </th>
+            <th scope="col">{messages.table.headers.location}</th>
+            <th scope="col">{messages.table.headers.latitude}</th>
+            <th scope="col">{messages.table.headers.noonAltitude}</th>
+            <th scope="col">{messages.table.headers.incidence}</th>
+            <th scope="col">{messages.table.headers.dayLength}</th>
+            <th scope="col">{messages.table.headers.polarState}</th>
           </tr>
         </thead>
         <tbody>
-          <tr className="border-t border-[var(--border)]">
-            <th className="px-4 py-3" scope="row">
-              {messages.table.selectedLatitude}
-            </th>
-            <td className="px-4 py-3">{formatAngle(result.selected.latitude_deg, locale)}</td>
-            <td className="px-4 py-3">
+          <tr>
+            <th scope="row">{messages.table.selectedLatitude}</th>
+            <td data-numeric="true">{formatAngle(result.selected.latitude_deg, locale)}</td>
+            <td data-numeric="true">
               {formatAngle(result.selected.noon_sun_altitude_deg, locale)}
             </td>
-            <td className="px-4 py-3">
+            <td data-numeric="true">
               {formatAngle(result.selected.illumination_incidence_deg, locale)}
             </td>
-            <td className="px-4 py-3">
+            <td data-numeric="true">
               {formatDayLength(result.selected.day_length_hours, locale, messages)}
             </td>
-            <td className="px-4 py-3">{result.selected.polar_state}</td>
+            <td>{result.selected.polar_state}</td>
           </tr>
-          <tr className="border-t border-[var(--border)]">
-            <th className="px-4 py-3" scope="row">
-              {messages.table.oppositeLatitude}
-            </th>
-            <td className="px-4 py-3">
+          <tr>
+            <th scope="row">{messages.table.oppositeLatitude}</th>
+            <td data-numeric="true">
               {formatAngle(result.opposite_hemisphere.latitude_deg, locale)}
             </td>
-            <td className="px-4 py-3">
+            <td data-numeric="true">
               {formatAngle(result.opposite_hemisphere.noon_sun_altitude_deg, locale)}
             </td>
-            <td className="px-4 py-3">
+            <td data-numeric="true">
               {formatAngle(result.opposite_hemisphere.illumination_incidence_deg, locale)}
             </td>
-            <td className="px-4 py-3">
+            <td data-numeric="true">
               {formatDayLength(result.opposite_hemisphere.day_length_hours, locale, messages)}
             </td>
-            <td className="px-4 py-3">{result.opposite_hemisphere.polar_state}</td>
+            <td>{result.opposite_hemisphere.polar_state}</td>
           </tr>
         </tbody>
       </table>
@@ -464,12 +450,12 @@ function NumericControl({
   const helpId = `${inputId}-help`;
   const errorId = `${inputId}-error`;
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <label className="font-semibold" htmlFor={inputId}>
+    <div className={styles.rangeField}>
+      <div className={styles.rangeHeader}>
+        <label className={styles.fieldLabel} htmlFor={inputId}>
           {label}
         </label>
-        <span className="text-sm text-[var(--muted)]">
+        <span className={styles.rangeMeta}>
           {formatMessageTemplate(messages.range, {
             maximum: formatLocaleNumber(range.max, locale),
             minimum: formatLocaleNumber(range.min, locale),
@@ -477,11 +463,11 @@ function NumericControl({
           })}
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={styles.rangePair}>
         <input
           aria-describedby={`${helpId}${error === null ? "" : ` ${errorId}`}`}
           aria-invalid={error === null ? undefined : true}
-          className="min-h-11 w-32 rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
+          className={styles.input}
           id={inputId}
           inputMode="decimal"
           max={range.max}
@@ -497,7 +483,7 @@ function NumericControl({
             unit: messages.unitDegrees,
             value,
           })}
-          className="min-h-11 min-w-[12rem] flex-1 accent-[var(--accent)]"
+          className={styles.slider}
           id={rangeId}
           max={range.max}
           min={range.min}
@@ -507,7 +493,7 @@ function NumericControl({
           value={Number.isFinite(Number(value)) ? value : range.min}
         />
       </div>
-      <p className="text-sm text-[var(--muted)]" id={helpId}>
+      <p className={styles.help} id={helpId}>
         {field === "orbital_position_deg"
           ? messages.helps.orbitalPosition
           : field === "latitude_deg"
@@ -515,7 +501,7 @@ function NumericControl({
             : messages.helps.axialTilt}
       </p>
       {error === null ? null : (
-        <p className="text-sm font-semibold text-[var(--focus)]" id={errorId} role="alert">
+        <p className={styles.fieldError} id={errorId} role="alert">
           {error}
         </p>
       )}
@@ -721,23 +707,21 @@ export function SeasonsSimulatorView({
   const copy = modeCopy[mode];
 
   return (
-    <article className="space-y-12">
-      <nav aria-label={messages.header.breadcrumbAriaLabel}>
-        <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
+    <article className={styles.page}>
+      <nav aria-label={messages.header.breadcrumbAriaLabel} className={styles.breadcrumbs}>
+        <ol>
           <li>{messages.header.labBreadcrumb}</li>
           <li aria-hidden="true">/</li>
           <li aria-current="page">{messages.header.title}</li>
         </ol>
       </nav>
 
-      <header className="max-w-4xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       <LearningModeSelector onChange={setMode} />
@@ -745,194 +729,184 @@ export function SeasonsSimulatorView({
       {invalidNotice ? (
         <aside
           aria-labelledby="invalid-seasons-state-heading"
-          className="max-w-4xl space-y-3 rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
+          className={styles.alert}
           role="alert"
         >
           <h2 id="invalid-seasons-state-heading">{messages.invalidState.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.invalidState.description}</p>
-          <button
-            className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={handleReset}
-            type="button"
-          >
+          <p>{messages.invalidState.description}</p>
+          <button className={styles.secondaryButton} onClick={handleReset} type="button">
             {messages.actions.resetDefault}
           </button>
         </aside>
       ) : null}
 
-      <section aria-labelledby="seasons-objective-heading" className="max-w-4xl space-y-4">
-        <h2 id="seasons-objective-heading">{messages.objective.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">{copy.introduction}</p>
-        <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 leading-7 text-[var(--foreground)]">
-          <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
-        </p>
-        <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
-          {SEASONS_DEFINITION.learning_objectives.map((objective) => (
-            <li key={objective}>{objective}</li>
-          ))}
-        </ul>
-        <p className="text-sm leading-6 text-[var(--muted)]">{copy.modelNote}</p>
+      <section aria-labelledby="seasons-objective-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Seasonal question</p>
+          <h2 className={styles.sectionTitle} id="seasons-objective-heading">
+            {messages.objective.title}
+          </h2>
+          <p className={styles.sectionDescription}>{copy.introduction}</p>
+        </div>
+        <div className={styles.modelBody}>
+          <p>
+            <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
+          </p>
+          <ul>
+            {SEASONS_DEFINITION.learning_objectives.map((objective) => (
+              <li key={objective}>{objective}</li>
+            ))}
+          </ul>
+          <p>{copy.modelNote}</p>
+        </div>
       </section>
 
-      <section aria-labelledby="seasons-controls-heading" className="max-w-4xl space-y-6">
-        <div className="space-y-2">
-          <h2 id="seasons-controls-heading">{messages.controls.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
+      <section aria-labelledby="seasons-controls-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>02 · Geometry controls</p>
+          <h2 className={styles.sectionTitle} id="seasons-controls-heading">
+            {messages.controls.title}
+          </h2>
+          <p className={styles.sectionDescription}>{messages.controls.description}</p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          {(Object.keys(numericFieldMessageKeys) as NumericField[]).map((field) => (
-            <NumericControl
-              error={fieldError?.field === field ? fieldError.message : null}
-              field={field}
-              key={field}
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateNumericField(field, value)}
-              value={drafts[field]}
-            />
-          ))}
-        </div>
-        <div className="space-y-2">
-          <label className="font-semibold" htmlFor="seasons-eccentricity-preset">
-            {messages.controls.eccentricityLabel}
-          </label>
-          <select
-            className="min-h-11 w-full max-w-md rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
-            id="seasons-eccentricity-preset"
-            onChange={(event) => updatePreset(event.target.value)}
-            value={state.eccentricity_preset}
+        <div className={styles.sectionBody}>
+          <div className={styles.inputGrid}>
+            {(Object.keys(numericFieldMessageKeys) as NumericField[]).map((field) => (
+              <NumericControl
+                error={fieldError?.field === field ? fieldError.message : null}
+                field={field}
+                key={field}
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateNumericField(field, value)}
+                value={drafts[field]}
+              />
+            ))}
+          </div>
+          <div className={styles.field}>
+            <label className={styles.fieldLabel} htmlFor="seasons-eccentricity-preset">
+              {messages.controls.eccentricityLabel}
+            </label>
+            <select
+              className={styles.select}
+              id="seasons-eccentricity-preset"
+              onChange={(event) => updatePreset(event.target.value)}
+              value={state.eccentricity_preset}
+            >
+              <option value="circular">{messages.controls.presetLabels.circular}</option>
+              <option value="earth">{messages.controls.presetLabels.earth}</option>
+              <option value="exaggerated">{messages.controls.presetLabels.exaggerated}</option>
+            </select>
+            <p className={styles.help}>{messages.controls.eccentricityDescription}</p>
+          </div>
+          <div
+            className={styles.actions}
+            role="group"
+            aria-label={messages.controls.phasePresets.ariaLabel}
           >
-            <option value="circular">{messages.controls.presetLabels.circular}</option>
-            <option value="earth">{messages.controls.presetLabels.earth}</option>
-            <option value="exaggerated">{messages.controls.presetLabels.exaggerated}</option>
-          </select>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            {messages.controls.eccentricityDescription}
-          </p>
-        </div>
-        <div
-          className="flex flex-wrap gap-3"
-          role="group"
-          aria-label={messages.controls.phasePresets.ariaLabel}
-        >
-          {[0, 90, 180, 270].map((position) => (
+            {[0, 90, 180, 270].map((position) => (
+              <button
+                className={styles.secondaryButton}
+                key={position}
+                onClick={() => updateNumericField("orbital_position_deg", String(position))}
+                type="button"
+              >
+                {position === 0
+                  ? messages.controls.phasePresets.march
+                  : position === 90
+                    ? messages.controls.phasePresets.june
+                    : position === 180
+                      ? messages.controls.phasePresets.september
+                      : messages.controls.phasePresets.december}
+              </button>
+            ))}
+          </div>
+          <div className={styles.actions}>
+            <button className={styles.secondaryButton} onClick={handleReset} type="button">
+              {messages.actions.reset}
+            </button>
             <button
-              className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 text-sm font-semibold hover:bg-[var(--surface-hover)]"
-              key={position}
-              onClick={() => updateNumericField("orbital_position_deg", String(position))}
+              className={styles.secondaryButton}
+              onClick={() => void handleShare()}
               type="button"
             >
-              {position === 0
-                ? messages.controls.phasePresets.march
-                : position === 90
-                  ? messages.controls.phasePresets.june
-                  : position === 180
-                    ? messages.controls.phasePresets.september
-                    : messages.controls.phasePresets.december}
+              {messages.actions.share}
             </button>
-          ))}
+            <span aria-live="polite" className={styles.help} role="status">
+              {requestState === "loading"
+                ? messages.status.calculating
+                : requestMessage || shareMessage}
+            </span>
+          </div>
+          {shareUrl === null ? null : (
+            <p className={styles.message}>
+              {messages.share.urlLabel} <a href={shareUrl}>{shareUrl}</a>
+            </p>
+          )}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={handleReset}
-            type="button"
-          >
-            {messages.actions.reset}
-          </button>
-          <button
-            className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={() => void handleShare()}
-            type="button"
-          >
-            {messages.actions.share}
-          </button>
-          <span aria-live="polite" className="text-sm text-[var(--muted)]" role="status">
-            {requestState === "loading"
-              ? messages.status.calculating
-              : requestMessage || shareMessage}
-          </span>
-        </div>
-        {shareUrl === null ? null : (
-          <p className="max-w-4xl break-all rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-            {messages.share.urlLabel}{" "}
-            <a className="text-[var(--link)] underline" href={shareUrl}>
-              {shareUrl}
-            </a>
-          </p>
-        )}
       </section>
 
-      <section aria-labelledby="seasons-results-heading" className="max-w-5xl space-y-6">
-        <div className="space-y-2">
-          <h2 id="seasons-results-heading">{messages.result.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">
+      <section aria-labelledby="seasons-results-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>03 · Seasonal geometry</p>
+          <h2 className={styles.sectionTitle} id="seasons-results-heading">
+            {messages.result.title}
+          </h2>
+          <p className={styles.sectionDescription}>
             {formatMessageTemplate(messages.result.description, {
               modelVersion: calculation?.model_version ?? "seasons-simulator-v1",
             })}
           </p>
         </div>
-        {calculation === null ? (
-          <div
-            className="rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
-            role="alert"
-          >
-            <h3>{messages.result.unavailableTitle}</h3>
-            <p className="mt-2 leading-7 text-[var(--muted)]">
-              {messages.result.unavailableDescription}
-            </p>
-          </div>
-        ) : (
-          <>
-            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">
-                  {messages.result.labels.solarDeclination}
-                </dt>
-                <dd className="mt-2 text-2xl font-semibold">
-                  {formatAngle(calculation.solar_declination_deg, locale)}
-                </dd>
-              </div>
-              <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">
-                  {messages.result.labels.sunAltitude}
-                </dt>
-                <dd className="mt-2 text-2xl font-semibold">
-                  {formatAngle(calculation.selected.noon_sun_altitude_deg, locale)}
-                </dd>
-              </div>
-              <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">{messages.result.labels.dayLength}</dt>
-                <dd className="mt-2 text-2xl font-semibold">
-                  {formatDayLength(calculation.selected.day_length_hours, locale, messages)}
-                </dd>
-              </div>
-              <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4">
-                <dt className="text-sm text-[var(--muted)]">
-                  {messages.result.labels.relativeFlux}
-                </dt>
-                <dd className="mt-2 text-2xl font-semibold">
-                  {formatFlux(calculation.relative_solar_flux, locale)}
-                </dd>
-              </div>
-            </dl>
-            <p className="leading-7 text-[var(--muted)]">
-              {formatMessageTemplate(messages.result.comparisonSummary, {
-                latitude: formatAngle(calculation.comparison_latitude_deg, locale),
-              })}
-            </p>
-            <GeometryTable locale={locale} messages={messages} result={calculation} />
-          </>
-        )}
+        <div className={styles.resultStack}>
+          {calculation === null ? (
+            <div className={styles.unavailable} role="alert">
+              <h3>{messages.result.unavailableTitle}</h3>
+              <p>{messages.result.unavailableDescription}</p>
+            </div>
+          ) : (
+            <>
+              <dl className={styles.summaryGrid}>
+                <div className={styles.summaryCell}>
+                  <dt>{messages.result.labels.solarDeclination}</dt>
+                  <dd>{formatAngle(calculation.solar_declination_deg, locale)}</dd>
+                </div>
+                <div className={styles.summaryCell}>
+                  <dt>{messages.result.labels.sunAltitude}</dt>
+                  <dd>{formatAngle(calculation.selected.noon_sun_altitude_deg, locale)}</dd>
+                </div>
+                <div className={styles.summaryCell}>
+                  <dt>{messages.result.labels.dayLength}</dt>
+                  <dd>
+                    {formatDayLength(calculation.selected.day_length_hours, locale, messages)}
+                  </dd>
+                </div>
+                <div className={styles.summaryCell}>
+                  <dt>{messages.result.labels.relativeFlux}</dt>
+                  <dd>{formatFlux(calculation.relative_solar_flux, locale)}</dd>
+                </div>
+              </dl>
+              <p className={styles.resultNote}>
+                {formatMessageTemplate(messages.result.comparisonSummary, {
+                  latitude: formatAngle(calculation.comparison_latitude_deg, locale),
+                })}
+              </p>
+              <GeometryTable locale={locale} messages={messages} result={calculation} />
+            </>
+          )}
+        </div>
       </section>
 
       {calculation !== null && visual !== null ? (
-        <section aria-labelledby="seasons-visualization-heading" className="max-w-5xl space-y-6">
-          <div className="space-y-2">
-            <h2 id="seasons-visualization-heading">{messages.figures.sectionTitle}</h2>
-            <p className="leading-7 text-[var(--muted)]">{messages.figures.sectionDescription}</p>
+        <section aria-labelledby="seasons-visualization-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionIndex}>04 · Orbital view</p>
+            <h2 className={styles.sectionTitle} id="seasons-visualization-heading">
+              {messages.figures.sectionTitle}
+            </h2>
+            <p className={styles.sectionDescription}>{messages.figures.sectionDescription}</p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className={styles.figureGrid}>
             <OrbitFigure
               locale={locale}
               messages={messages.figures.orbit}
@@ -952,80 +926,78 @@ export function SeasonsSimulatorView({
       ) : null}
 
       {calculation !== null ? (
-        <section aria-labelledby="seasons-distance-heading" className="max-w-4xl space-y-5">
-          <h2 id="seasons-distance-heading">{messages.distance.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">
-            {formatMessageTemplate(messages.distance.description, {
-              distance: formatLocaleFixedNumber(
-                calculation.distance_over_semimajor_axis,
-                4,
-                locale,
-              ),
-              flux: formatFlux(calculation.relative_solar_flux, locale),
-            })}
-          </p>
+        <section aria-labelledby="seasons-distance-heading" className={styles.subsection}>
+          <div className={styles.subsectionHeader}>
+            <h2 id="seasons-distance-heading">{messages.distance.title}</h2>
+          </div>
+          <div className={styles.subsectionBody}>
+            <p className={styles.resultNote}>
+              {formatMessageTemplate(messages.distance.description, {
+                distance: formatLocaleFixedNumber(
+                  calculation.distance_over_semimajor_axis,
+                  4,
+                  locale,
+                ),
+                flux: formatFlux(calculation.relative_solar_flux, locale),
+              })}
+            </p>
+          </div>
         </section>
       ) : null}
 
-      <section aria-labelledby="seasons-model-heading" className="max-w-5xl space-y-6">
+      <section aria-labelledby="seasons-model-heading" className={styles.modelSection}>
         <h2 id="seasons-model-heading">{messages.model.title}</h2>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-4">
-            <h3>{messages.model.equations}</h3>
-            <dl className="space-y-3 text-sm leading-6 text-[var(--muted)]">
-              {Object.entries(SEASONS_DEFINITION.calculation_module.equations).map(
-                ([name, equation]) => (
-                  <div key={name}>
-                    <dt className="font-semibold text-[var(--foreground)]">
-                      {name.replaceAll("_", " ")}
-                    </dt>
-                    <dd className="mt-1 break-words font-mono text-xs">{equation}</dd>
-                  </div>
-                ),
-              )}
-            </dl>
+        <div className={styles.modelBody}>
+          <div className={styles.modelColumns}>
+            <div>
+              <h3>{messages.model.equations}</h3>
+              <dl className={styles.equationList}>
+                {Object.entries(SEASONS_DEFINITION.calculation_module.equations).map(
+                  ([name, equation]) => (
+                    <div key={name}>
+                      <dt>{name.replaceAll("_", " ")}</dt>
+                      <dd>{equation}</dd>
+                    </div>
+                  ),
+                )}
+              </dl>
+            </div>
+            <div>
+              <h3>{messages.model.inputsAndValidity}</h3>
+              <ul>
+                <li>{messages.model.validityItems.axialTilt}</li>
+                <li>{messages.model.validityItems.orbitalPosition}</li>
+                <li>{messages.model.validityItems.latitude}</li>
+                <li>{messages.model.validityItems.eccentricity}</li>
+                <li>{messages.model.validityItems.precision}</li>
+              </ul>
+              <h3>{messages.model.assumptions}</h3>
+              <ul>
+                {SEASONS_DEFINITION.assumptions.map((assumption) => (
+                  <li key={assumption}>{assumption}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="space-y-4">
-            <h3>{messages.model.inputsAndValidity}</h3>
-            <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-              <li>{messages.model.validityItems.axialTilt}</li>
-              <li>{messages.model.validityItems.orbitalPosition}</li>
-              <li>{messages.model.validityItems.latitude}</li>
-              <li>{messages.model.validityItems.eccentricity}</li>
-              <li>{messages.model.validityItems.precision}</li>
-            </ul>
-            <h3>{messages.model.assumptions}</h3>
-            <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-              {SEASONS_DEFINITION.assumptions.map((assumption) => (
-                <li key={assumption}>{assumption}</li>
+          <div>
+            <h3>{messages.model.limitations}</h3>
+            <ul>
+              {SEASONS_DEFINITION.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
               ))}
             </ul>
+            <p>{messages.model.futureMotion}</p>
           </div>
-        </div>
-        <div className="space-y-3">
-          <h3>{messages.model.limitations}</h3>
-          <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-            {SEASONS_DEFINITION.limitations.map((limitation) => (
-              <li key={limitation}>{limitation}</li>
-            ))}
-          </ul>
-          <p className="text-sm leading-6 text-[var(--muted)]">{messages.model.futureMotion}</p>
-        </div>
-        <div className="space-y-3">
-          <h3>{messages.model.reviewedSources}</h3>
-          <SourceList messages={messages.model} sourceIds={SEASONS_DEFINITION.references} />
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            {messages.model.supportingSourceNote}
-          </p>
+          <div>
+            <h3>{messages.model.reviewedSources}</h3>
+            <SourceList messages={messages.model} sourceIds={SEASONS_DEFINITION.references} />
+            <p>{messages.model.supportingSourceNote}</p>
+          </div>
         </div>
       </section>
 
-      <p className="text-sm leading-6 text-[var(--muted)]">
-        {messages.footer.prefix}{" "}
-        <Link className="text-[var(--link)] underline" href="/lab/scale-explorer">
-          {messages.footer.link}
-        </Link>
-        .
+      <p className={styles.footer}>
+        {messages.footer.prefix} <Link href="/lab/scale-explorer">{messages.footer.link}</Link>.
       </p>
     </article>
   );

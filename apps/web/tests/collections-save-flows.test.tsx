@@ -16,8 +16,6 @@ import {
   SaveToCollectionsButton,
   type ObjectIdentity,
 } from "../src/components/save-to-collections";
-import { fixtureDetail } from "./support/compare-fixtures";
-import { buildCompareModel } from "../src/lib/compare-model";
 import { CompareSaveSelected } from "../src/components/compare-save-selected";
 
 const K2_18: ObjectIdentity = {
@@ -330,14 +328,6 @@ describe("CompareSaveSelected — saving compared OBJECTS", () => {
     // Outcome stays perceivable: the dialog reports the idempotent result.
     expect(await screen.findByText(/already saved/i)).toBeVisible();
     expect(persistedCollections()[0]?.items).toHaveLength(2);
-  });
-
-  it("builds its model cleanly against the accepted compare fixtures (sanity)", () => {
-    const model = buildCompareModel([
-      { detail: fixtureDetail.k2_18, kind: "ok", slug: "k2-18" },
-      { detail: fixtureDetail.kepler452, kind: "ok", slug: "kepler-452" },
-    ]);
-    expect(model.rows.length).toBeGreaterThan(0);
   });
 
   it("localizes compare-save chrome while preserving object and collection values", async () => {

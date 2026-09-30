@@ -5,10 +5,12 @@ import { StellarLaboratoryNoScript } from "../../../components/stellar-laborator
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { StellarLaboratoryMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadStellarLaboratoryCalculation } from "../../../lib/server/stellar-laboratory";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_STELLAR_LABORATORY_STATE,
   decodeStellarLaboratoryState,
+  stellarLaboratoryRequestEndpoint,
+  validateStellarLaboratoryCalculationResult,
   type StellarLaboratoryState,
 } from "../../../lib/simulations/stellar-laboratory";
 
@@ -46,9 +48,14 @@ export default async function StellarLaboratoryPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadStellarLaboratoryCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    stellarLaboratoryRequestEndpoint,
+    validateStellarLaboratoryCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

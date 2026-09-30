@@ -5,10 +5,12 @@ import { PlanetarySystemBuilderNoScript } from "../../../components/planetary-sy
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { PlanetarySystemBuilderMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadPlanetarySystemBuilderCalculation } from "../../../lib/server/planetary-system-builder";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_PLANETARY_SYSTEM_BUILDER_STATE,
   decodePlanetarySystemBuilderState,
+  planetarySystemBuilderRequestEndpoint,
+  validatePlanetarySystemBuilderCalculationResult,
   type PlanetarySystemBuilderState,
 } from "../../../lib/simulations/planetary-system-builder";
 
@@ -48,9 +50,14 @@ export default async function PlanetarySystemBuilderPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadPlanetarySystemBuilderCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    planetarySystemBuilderRequestEndpoint,
+    validatePlanetarySystemBuilderCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

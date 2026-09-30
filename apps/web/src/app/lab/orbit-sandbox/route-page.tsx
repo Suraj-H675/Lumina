@@ -5,10 +5,12 @@ import { OrbitSandboxNoScript } from "../../../components/orbit-sandbox-no-scrip
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { OrbitSandboxMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadOrbitSandboxCalculation } from "../../../lib/server/orbit-sandbox";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_ORBIT_SANDBOX_STATE,
   decodeOrbitSandboxState,
+  orbitSandboxRequestEndpoint,
+  validateOrbitSandboxCalculationResult,
   type OrbitSandboxState,
 } from "../../../lib/simulations/orbit-sandbox";
 
@@ -46,9 +48,14 @@ export default async function OrbitSandboxPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadOrbitSandboxCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    orbitSandboxRequestEndpoint,
+    validateOrbitSandboxCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

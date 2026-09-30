@@ -5,10 +5,12 @@ import { ImpactSimulatorNoScript } from "../../../components/impact-simulator-no
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { ImpactSimulatorMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadImpactSimulatorCalculation } from "../../../lib/server/impact-simulator";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_IMPACT_SIMULATOR_STATE,
   decodeImpactSimulatorState,
+  impactSimulatorRequestEndpoint,
+  validateImpactSimulatorCalculationResult,
   type ImpactSimulatorState,
 } from "../../../lib/simulations/impact-simulator";
 
@@ -46,9 +48,14 @@ export default async function ImpactSimulatorPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadImpactSimulatorCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    impactSimulatorRequestEndpoint,
+    validateImpactSimulatorCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

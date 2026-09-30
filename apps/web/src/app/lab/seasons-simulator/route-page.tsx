@@ -10,10 +10,12 @@ import type {
 import {
   DEFAULT_SEASONS_STATE,
   decodeSeasonsState,
+  seasonsEndpointForState,
+  validateSeasonsCalculationResult,
   type SeasonsState,
 } from "../../../lib/simulations/seasons-simulator";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadSeasonsCalculation } from "../../../lib/server/seasons-simulator";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 
 export const dynamic = "force-dynamic";
 
@@ -58,9 +60,14 @@ export default async function SeasonsSimulatorPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadSeasonsCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    seasonsEndpointForState,
+    validateSeasonsCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

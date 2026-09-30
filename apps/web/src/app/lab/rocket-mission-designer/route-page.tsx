@@ -5,10 +5,12 @@ import { RocketMissionDesignerNoScript } from "../../../components/rocket-missio
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { RocketMissionDesignerMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadRocketMissionDesignerCalculation } from "../../../lib/server/rocket-mission-designer";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_ROCKET_MISSION_DESIGNER_STATE,
   decodeRocketMissionDesignerState,
+  rocketMissionDesignerRequestEndpoint,
+  validateRocketMissionDesignerCalculationResult,
   type RocketMissionDesignerState,
 } from "../../../lib/simulations/rocket-mission-designer";
 
@@ -48,9 +50,14 @@ export default async function RocketMissionDesignerPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadRocketMissionDesignerCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    rocketMissionDesignerRequestEndpoint,
+    validateRocketMissionDesignerCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

@@ -5,10 +5,12 @@ import { RelativityVisualizationsNoScript } from "../../../components/relativity
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { RelativityVisualizationsMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadRelativityVisualizationsCalculation } from "../../../lib/server/relativity-visualizations";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_RELATIVITY_VISUALIZATIONS_STATE,
   decodeRelativityVisualizationsState,
+  relativityVisualizationsRequestEndpoint,
+  validateRelativityVisualizationsCalculationResult,
   type RelativityVisualizationsState,
 } from "../../../lib/simulations/relativity-visualizations";
 
@@ -48,9 +50,14 @@ export default async function RelativityVisualizationsPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadRelativityVisualizationsCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    relativityVisualizationsRequestEndpoint,
+    validateRelativityVisualizationsCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

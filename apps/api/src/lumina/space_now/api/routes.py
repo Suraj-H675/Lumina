@@ -793,15 +793,7 @@ def _space_weather_response(projection: SpaceWeatherProjection) -> SpaceWeatherR
         ),
     )
     while (
-        len(
-            json.dumps(
-                response.model_dump(mode="json"),
-                allow_nan=False,
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ).encode("utf-8")
-        )
-        > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
+        _serialized_response_size(response) > _SPACE_NOW_PUBLIC_RESPONSE_MAX_BYTES
         and response.latest_notifications
     ):
         response = response.model_copy(

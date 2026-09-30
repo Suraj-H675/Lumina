@@ -5,10 +5,12 @@ import { RadialVelocityNoScript } from "../../../components/radial-velocity-no-s
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { RadialVelocityMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadRadialVelocityCalculation } from "../../../lib/server/radial-velocity";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_RADIAL_VELOCITY_STATE,
   decodeRadialVelocityState,
+  radialVelocityRequestEndpoint,
+  validateRadialVelocityCalculationResult,
   type RadialVelocityState,
 } from "../../../lib/simulations/radial-velocity";
 
@@ -46,9 +48,14 @@ export default async function RadialVelocityPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadRadialVelocityCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    radialVelocityRequestEndpoint,
+    validateRadialVelocityCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

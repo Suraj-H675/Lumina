@@ -5,10 +5,12 @@ import { TransitMethodNoScript } from "../../../components/transit-method-no-scr
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { TransitMethodMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadTransitMethodCalculation } from "../../../lib/server/transit-method";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_TRANSIT_METHOD_STATE,
   decodeTransitMethodState,
+  transitMethodRequestEndpoint,
+  validateTransitMethodCalculationResult,
   type TransitMethodState,
 } from "../../../lib/simulations/transit-method";
 
@@ -46,9 +48,14 @@ export default async function TransitMethodPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadTransitMethodCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    transitMethodRequestEndpoint,
+    validateTransitMethodCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

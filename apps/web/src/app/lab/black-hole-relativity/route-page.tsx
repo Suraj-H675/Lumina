@@ -5,10 +5,12 @@ import { BlackHoleRelativityNoScript } from "../../../components/black-hole-rela
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { BlackHoleRelativityMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadBlackHoleRelativityCalculation } from "../../../lib/server/black-hole-relativity";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_BLACK_HOLE_RELATIVITY_STATE,
   decodeBlackHoleRelativityState,
+  blackHoleRelativityRequestEndpoint,
+  validateBlackHoleRelativityCalculationResult,
   type BlackHoleRelativityState,
 } from "../../../lib/simulations/black-hole-relativity";
 
@@ -46,9 +48,14 @@ export default async function BlackHoleRelativityPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadBlackHoleRelativityCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    blackHoleRelativityRequestEndpoint,
+    validateBlackHoleRelativityCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

@@ -5,10 +5,12 @@ import { SpectroscopyLabNoScript } from "../../../components/spectroscopy-lab-no
 import type { PublishedLocale } from "../../../lib/i18n/locales";
 import type { SpectroscopyLabMessages } from "../../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../../lib/server/api-origin";
-import { loadSpectroscopyCalculation } from "../../../lib/server/spectroscopy-lab";
+import { loadSimulationCalculation } from "../../../lib/server/simulation-calculation";
 import {
   DEFAULT_SPECTROSCOPY_STATE,
   decodeSpectroscopyState,
+  spectroscopyRequestEndpoint,
+  validateSpectroscopyCalculationResult,
   type SpectroscopyState,
 } from "../../../lib/simulations/spectroscopy-lab";
 
@@ -46,9 +48,14 @@ export default async function SpectroscopyLabPage({
   const requested = stateFromSearchParams(await searchParams);
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
-  const calculation = await loadSpectroscopyCalculation(requested.state, {
-    ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
-  });
+  const calculation = await loadSimulationCalculation(
+    requested.state,
+    {
+      ...(serverApiConfiguration.valid ? { origin: serverApiConfiguration.origin } : {}),
+    },
+    spectroscopyRequestEndpoint,
+    validateSpectroscopyCalculationResult,
+  );
   const initialCalculation = calculation.kind === "ok" ? calculation.data : null;
 
   return (

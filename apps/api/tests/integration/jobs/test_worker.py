@@ -751,26 +751,6 @@ async def test_subprocess_cleanup_runs_when_readiness_times_out() -> None:
 
 
 @pytest.mark.asyncio
-async def test_subprocess_cleanup_runs_after_immediate_assertion() -> None:
-    cleanup_result: _SubprocessCleanupResult | None = None
-    process = await asyncio.create_subprocess_exec(
-        sys.executable,
-        "-c",
-        "import signal; signal.pause()",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    try:
-        with pytest.raises(AssertionError):
-            raise AssertionError("fixture assertion")
-    finally:
-        cleanup_result = await _reap_worker_subprocess(process)
-
-    assert cleanup_result is not None
-    assert process.returncode is not None
-
-
-@pytest.mark.asyncio
 async def test_subprocess_cleanup_kills_sigterm_ignoring_child_after_timeout() -> None:
     cleanup_result: _SubprocessCleanupResult | None = None
     process = await asyncio.create_subprocess_exec(

@@ -20,6 +20,7 @@ import {
   validateEclipseSimulatorState,
   type EclipseSimulatorState,
 } from "../lib/simulations/eclipse-simulator";
+import styles from "./lab-calculation-instrument.module.css";
 
 type EclipseSimulatorViewProps = Readonly<{
   initialState: EclipseSimulatorState;
@@ -59,25 +60,15 @@ function utcInputValue(value: string): string {
 function SafetyNotice({ messages }: Readonly<{ messages: EclipseSimulatorMessages["safety"] }>) {
   const source = ECLIPSE_SIMULATOR_SOURCES.find((item) => item.id === "nasa-eclipse-safety");
   return (
-    <section
-      aria-labelledby="eclipse-safety-heading"
-      className="space-y-2 rounded-md border-2 border-[var(--border-strong)] p-5"
-      role="alert"
-    >
-      <h2 className="text-xl font-semibold" id="eclipse-safety-heading">
-        {messages.title}
-      </h2>
-      <p className="leading-7">
+    <section aria-labelledby="eclipse-safety-heading" className={styles.alert} role="alert">
+      <h2 id="eclipse-safety-heading">{messages.title}</h2>
+      <p>
         Simulator output never determines whether direct Solar viewing is safe. Partial and annular
         phases require proper Solar viewing protection. Cameras, binoculars, and telescopes require
         appropriate Solar filters on the Sun-facing optics.
       </p>
       {source ? (
-        <a
-          className="font-semibold text-[var(--link)] underline"
-          href={source.url}
-          rel="noreferrer"
-        >
+        <a className={styles.primaryButton} href={source.url} rel="noreferrer">
           {messages.link}
         </a>
       ) : null}
@@ -107,12 +98,8 @@ function DiskFigure({
     sunRadius * (result.instant.center_separation_deg / result.instant.sun_angular_radius_deg),
   );
   return (
-    <figure className="space-y-3">
-      <svg
-        aria-hidden="true"
-        className="h-auto w-full max-w-xl rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
-        viewBox="0 0 360 200"
-      >
+    <figure className={styles.figure}>
+      <svg aria-hidden="true" className={styles.figureSvg} viewBox="0 0 360 200">
         <circle cx="170" cy="100" fill="none" r={sunRadius} stroke="currentColor" strokeWidth="5" />
         <circle
           cx={170 + centerOffset}
@@ -123,9 +110,7 @@ function DiskFigure({
           strokeWidth="4"
         />
       </svg>
-      <figcaption className="max-w-xl text-sm leading-6 text-[var(--muted)]">
-        {messages.caption}
-      </figcaption>
+      <figcaption className={styles.caption}>{messages.caption}</figcaption>
     </figure>
   );
 }
@@ -162,14 +147,11 @@ function ResultSummary({
     ],
   ] as const;
   return (
-    <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <dl className={styles.summaryGrid}>
       {rows.map(([label, value]) => (
-        <div
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4"
-          key={label}
-        >
-          <dt className="text-sm text-[var(--muted)]">{label}</dt>
-          <dd className="mt-1 break-words font-semibold">{value}</dd>
+        <div className={styles.summaryCell} key={label}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
         </div>
       ))}
     </dl>
@@ -185,7 +167,7 @@ function EventTimeline({
 }>) {
   const event = result.local_event;
   if (event === null) {
-    return <p className="rounded-md border border-[var(--border)] p-4">{messages.noEvent}</p>;
+    return <p className={styles.resultNote}>{messages.noEvent}</p>;
   }
   const rows = [
     [messages.partialBegin, event.partial_begin_utc],
@@ -199,26 +181,28 @@ function EventTimeline({
     [messages.partialEnd, event.partial_end_utc],
   ];
   return (
-    <section aria-labelledby="eclipse-timeline-heading" className="space-y-4">
-      <h3 className="text-xl font-semibold" id="eclipse-timeline-heading">
-        {formatMessageTemplate(messages.title, { classification: event.classification })}
-      </h3>
-      <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <section aria-labelledby="eclipse-timeline-heading" className={styles.lifecycle}>
+      <div className={styles.lifecycleHeader}>
+        <h3 id="eclipse-timeline-heading">
+          {formatMessageTemplate(messages.title, { classification: event.classification })}
+        </h3>
+        <p>{result.timing_note}</p>
+      </div>
+      <ol className={styles.lifecycleList}>
         {rows.map(([label, value]) => (
-          <li className="rounded-md border border-[var(--border)] p-4" key={label}>
-            <strong className="block">{label}</strong>
-            <span className="mt-1 block font-mono text-sm">{value}</span>
+          <li key={label}>
+            <strong>{label}</strong>
+            <span>{value}</span>
           </li>
         ))}
       </ol>
-      <p className="text-sm leading-6 text-[var(--muted)]">{result.timing_note}</p>
     </section>
   );
 }
 
 function SourceList({ messages }: Readonly<{ messages: EclipseSimulatorMessages["model"] }>) {
   return (
-    <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {ECLIPSE_SIMULATOR_DEFINITION.references.map((sourceId) => {
         const source = ECLIPSE_SIMULATOR_SOURCES.find((candidate) => candidate.id === sourceId);
         return (
@@ -227,7 +211,7 @@ function SourceList({ messages }: Readonly<{ messages: EclipseSimulatorMessages[
               <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
-                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                <a href={source.url} rel="noreferrer">
                   {source.title}
                 </a>{" "}
                 ({source.organization_or_authors}; {source.id})
@@ -368,199 +352,205 @@ export function EclipseSimulatorView({
   }
 
   return (
-    <article className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       <SafetyNotice messages={messages.safety} />
 
       {invalidNotice ? (
-        <aside className="border border-[var(--border-strong)] p-4" role="alert">
+        <aside className={styles.alert} role="alert">
           {messages.invalidState.inline}
         </aside>
       ) : null}
 
-      <section aria-labelledby="eclipse-input-heading" className="space-y-5">
-        <div className="max-w-4xl space-y-2">
-          <h2 className="text-2xl font-semibold" id="eclipse-input-heading">
+      <section aria-labelledby="eclipse-input-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Observer</p>
+          <h2 className={styles.sectionTitle} id="eclipse-input-heading">
             {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">
+          <p className={styles.sectionDescription}>
             {formatMessageTemplate(messages.controls.description, {
               minimumUtc: ECLIPSE_SIMULATOR_LIMITS.minUtc,
               maximumUtc: ECLIPSE_SIMULATOR_LIMITS.maxUtc,
             })}
           </p>
         </div>
-        <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
-          <label className="space-y-2">
-            <span className="block font-semibold">{messages.controls.fields.utc}</span>
-            <input
-              aria-label={messages.controls.fieldAriaLabels.utc}
-              className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
-              disabled={requestState === "loading"}
-              onChange={(event) => {
-                setDraftUtc(event.target.value);
-                setMessage("");
-              }}
-              type="datetime-local"
-              value={draftUtc}
-            />
-          </label>
-          {[
-            {
-              ariaLabel: messages.controls.fieldAriaLabels.latitude,
-              label: messages.controls.fields.latitude,
-              max: ECLIPSE_SIMULATOR_LIMITS.maxLatitudeDeg,
-              min: ECLIPSE_SIMULATOR_LIMITS.minLatitudeDeg,
-              setter: setDraftLatitude,
-              unit: "deg",
-              value: draftLatitude,
-            },
-            {
-              ariaLabel: messages.controls.fieldAriaLabels.longitude,
-              label: messages.controls.fields.longitude,
-              max: ECLIPSE_SIMULATOR_LIMITS.maxLongitudeDeg,
-              min: ECLIPSE_SIMULATOR_LIMITS.minLongitudeDeg,
-              setter: setDraftLongitude,
-              unit: "deg",
-              value: draftLongitude,
-            },
-            {
-              ariaLabel: messages.controls.fieldAriaLabels.elevation,
-              label: messages.controls.fields.elevation,
-              max: ECLIPSE_SIMULATOR_LIMITS.maxElevationM,
-              min: ECLIPSE_SIMULATOR_LIMITS.minElevationM,
-              setter: setDraftElevation,
-              unit: "m",
-              value: draftElevation,
-            },
-          ].map(({ ariaLabel, label, max, min, setter, unit, value }) => (
-            <label className="space-y-2" key={label}>
-              <span className="flex justify-between gap-2 font-semibold">
-                <span>{label}</span>
-                <span className="text-xs font-normal text-[var(--muted)]">{unit}</span>
-              </span>
-              <input
-                aria-label={ariaLabel}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
+        <div className={styles.sectionBody}>
+          <form className={styles.form} onSubmit={submit}>
+            <div className={styles.inputGrid}>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.utc}</span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.utc}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  onChange={(event) => {
+                    setDraftUtc(event.target.value);
+                    setMessage("");
+                  }}
+                  type="datetime-local"
+                  value={draftUtc}
+                />
+              </label>
+              {[
+                {
+                  ariaLabel: messages.controls.fieldAriaLabels.latitude,
+                  label: messages.controls.fields.latitude,
+                  max: ECLIPSE_SIMULATOR_LIMITS.maxLatitudeDeg,
+                  min: ECLIPSE_SIMULATOR_LIMITS.minLatitudeDeg,
+                  setter: setDraftLatitude,
+                  unit: "deg",
+                  value: draftLatitude,
+                },
+                {
+                  ariaLabel: messages.controls.fieldAriaLabels.longitude,
+                  label: messages.controls.fields.longitude,
+                  max: ECLIPSE_SIMULATOR_LIMITS.maxLongitudeDeg,
+                  min: ECLIPSE_SIMULATOR_LIMITS.minLongitudeDeg,
+                  setter: setDraftLongitude,
+                  unit: "deg",
+                  value: draftLongitude,
+                },
+                {
+                  ariaLabel: messages.controls.fieldAriaLabels.elevation,
+                  label: messages.controls.fields.elevation,
+                  max: ECLIPSE_SIMULATOR_LIMITS.maxElevationM,
+                  min: ECLIPSE_SIMULATOR_LIMITS.minElevationM,
+                  setter: setDraftElevation,
+                  unit: "m",
+                  value: draftElevation,
+                },
+              ].map(({ ariaLabel, label, max, min, setter, unit, value }) => (
+                <label className={styles.field} key={label}>
+                  <span className={styles.fieldLabel}>
+                    <span>{label}</span>
+                    <span className={styles.unit}>{unit}</span>
+                  </span>
+                  <input
+                    aria-label={ariaLabel}
+                    className={styles.input}
+                    disabled={requestState === "loading"}
+                    max={max}
+                    min={min}
+                    onChange={(event) => {
+                      setter(event.target.value);
+                      setMessage("");
+                    }}
+                    step="any"
+                    type="number"
+                    value={value}
+                  />
+                </label>
+              ))}
+            </div>
+            <div className={styles.actions}>
+              <button
+                className={styles.primaryButton}
                 disabled={requestState === "loading"}
-                max={max}
-                min={min}
-                onChange={(event) => {
-                  setter(event.target.value);
-                  setMessage("");
-                }}
-                step="any"
-                type="number"
-                value={value}
-              />
-            </label>
-          ))}
-          <div className="flex flex-wrap gap-3 md:col-span-2">
-            <button
-              className="min-h-11 rounded-md bg-[var(--accent)] px-5 font-semibold text-[var(--background)]"
-              disabled={requestState === "loading"}
-              type="submit"
+                type="submit"
+              >
+                {requestState === "loading"
+                  ? messages.actions.calculating
+                  : messages.actions.calculate}
+              </button>
+              <button
+                className={styles.secondaryButton}
+                disabled={requestState === "loading"}
+                onClick={resetDefault}
+                type="button"
+              >
+                {messages.actions.reset}
+              </button>
+            </div>
+          </form>
+          {message ? (
+            <p
+              className={styles.message}
+              role={requestState === "unavailable" ? "alert" : "status"}
             >
-              {requestState === "loading"
-                ? messages.actions.calculating
-                : messages.actions.calculate}
-            </button>
-            <button
-              className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
-              disabled={requestState === "loading"}
-              onClick={resetDefault}
-              type="button"
-            >
-              {messages.actions.reset}
-            </button>
-          </div>
-        </form>
-        {message ? (
-          <p role={requestState === "unavailable" ? "alert" : "status"}>{message}</p>
-        ) : null}
+              {message}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       {calculation === null ? (
-        <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
-          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
+        <section className={styles.unavailable} role="alert">
+          <h2>{messages.result.unavailableTitle}</h2>
+          <p>{messages.result.unavailableDescription}</p>
         </section>
       ) : (
-        <section aria-labelledby="eclipse-result-heading" className="space-y-7">
-          <div className="max-w-4xl space-y-2">
-            <h2 className="text-2xl font-semibold" id="eclipse-result-heading">
+        <section aria-labelledby="eclipse-result-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionIndex}>02 · Geometry</p>
+            <h2 className={styles.sectionTitle} id="eclipse-result-heading">
               {messages.result.title}
             </h2>
-            <p className="leading-7 text-[var(--muted)]">
+            <p className={styles.sectionDescription}>
               {formatMessageTemplate(messages.result.description, {
                 modelVersion: calculation.model_version,
               })}
             </p>
           </div>
-          <ResultSummary locale={locale} messages={messages} result={calculation} />
-          <DiskFigure messages={messages.figure} result={calculation} />
-          <EventTimeline messages={messages.event} result={calculation} />
-          <p className="text-sm leading-6 text-[var(--muted)]">{calculation.ephemeris_note}</p>
+          <div className={styles.resultStack}>
+            <ResultSummary locale={locale} messages={messages} result={calculation} />
+            <DiskFigure messages={messages.figure} result={calculation} />
+            <EventTimeline messages={messages.event} result={calculation} />
+            <p className={styles.resultNote}>{calculation.ephemeris_note}</p>
+          </div>
         </section>
       )}
 
-      <section
-        aria-labelledby="eclipse-why-heading"
-        className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
-      >
-        <h2 className="text-2xl font-semibold" id="eclipse-why-heading">
-          {messages.model.monthlyQuestion}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">
-          NASA explains that the Moon&apos;s orbit is inclined by roughly five degrees to the
-          ecliptic. At most new moons the Moon passes above or below the Sun in our sky, so its
-          shadow misses Earth.
-        </p>
-        <details open>
-          <summary className="cursor-pointer font-semibold">
-            {messages.model.assumptionsAndLimitations}
-          </summary>
-          <div className="mt-3 grid gap-5 md:grid-cols-2">
-            <div>
-              <h3 className="font-semibold">{messages.model.assumptions}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {ECLIPSE_SIMULATOR_DEFINITION.assumptions.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+      <section aria-labelledby="eclipse-why-heading" className={styles.modelSection}>
+        <h2 id="eclipse-why-heading">{messages.model.monthlyQuestion}</h2>
+        <div className={styles.modelBody}>
+          <p>
+            NASA explains that the Moon&apos;s orbit is inclined by roughly five degrees to the
+            ecliptic. At most new moons the Moon passes above or below the Sun in our sky, so its
+            shadow misses Earth.
+          </p>
+          <details className={styles.modelDetails} open>
+            <summary>{messages.model.assumptionsAndLimitations}</summary>
+            <div className={styles.modelDetailsBody}>
+              <div className={styles.modelColumns}>
+                <div>
+                  <h3>{messages.model.assumptions}</h3>
+                  <ul>
+                    {ECLIPSE_SIMULATOR_DEFINITION.assumptions.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3>{messages.model.limitations}</h3>
+                  <ul>
+                    {ECLIPSE_SIMULATOR_DEFINITION.limitations.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">{messages.model.limitations}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {ECLIPSE_SIMULATOR_DEFINITION.limitations.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </details>
-        <div>
-          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
-          <div className="mt-2">
+          </details>
+          <div>
+            <h3>{messages.model.reviewedSources}</h3>
             <SourceList messages={messages.model} />
           </div>
+          <p className={styles.currentState}>
+            {formatMessageTemplate(messages.model.currentState, {
+              utc: state.at_utc,
+              latitude: format(state.latitude_deg, locale),
+              longitude: format(state.longitude_deg, locale),
+            })}
+          </p>
         </div>
-        <p className="text-sm text-[var(--muted)]">
-          {formatMessageTemplate(messages.model.currentState, {
-            utc: state.at_utc,
-            latitude: format(state.latitude_deg, locale),
-            longitude: format(state.longitude_deg, locale),
-          })}
-        </p>
       </section>
     </article>
   );

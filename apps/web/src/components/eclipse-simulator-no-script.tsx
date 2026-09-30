@@ -8,6 +8,7 @@ import {
   ECLIPSE_SIMULATOR_SOURCES,
   type EclipseSimulatorState,
 } from "../lib/simulations/eclipse-simulator";
+import styles from "./lab-calculation-instrument.module.css";
 
 type EclipseSimulatorNoScriptProps = Readonly<{
   initialState: EclipseSimulatorState;
@@ -46,14 +47,16 @@ function SourceList({ messages }: Readonly<{ messages: EclipseSimulatorMessages[
 function Safety({ messages }: Readonly<{ messages: EclipseSimulatorMessages["safety"] }>) {
   const source = ECLIPSE_SIMULATOR_SOURCES.find((item) => item.id === "nasa-eclipse-safety");
   return (
-    <section aria-labelledby="eclipse-nojs-safety">
+    <section aria-labelledby="eclipse-nojs-safety" className={styles.noScriptSection}>
       <h2 id="eclipse-nojs-safety">{messages.title}</h2>
-      <p>
-        Simulator output never determines whether direct Solar viewing is safe. Partial and annular
-        phases require proper Solar viewing protection; cameras, binoculars, and telescopes require
-        appropriate Solar filters on the Sun-facing optics.
-      </p>
-      {source ? <a href={source.url}>{messages.link}</a> : null}
+      <div className={styles.noScriptBody}>
+        <p>
+          Simulator output never determines whether direct Solar viewing is safe. Partial and
+          annular phases require proper Solar viewing protection; cameras, binoculars, and
+          telescopes require appropriate Solar filters on the Sun-facing optics.
+        </p>
+        {source ? <a href={source.url}>{messages.link}</a> : null}
+      </div>
     </section>
   );
 }
@@ -67,131 +70,145 @@ export function EclipseSimulatorNoScript({
 }: EclipseSimulatorNoScriptProps) {
   return (
     <noscript>
-      <article>
-        <header>
-          <p>{messages.noScript.eyebrow}</p>
-          <h1>{messages.header.title}</h1>
-          <p>{messages.noScript.intro}</p>
+      <article className={styles.noScriptPage}>
+        <header className={styles.noScriptHero}>
+          <div>
+            <p className={styles.eyebrow}>{messages.noScript.eyebrow}</p>
+            <h1 className={styles.title}>{messages.header.title}</h1>
+          </div>
+          <p className={styles.intro}>{messages.noScript.intro}</p>
         </header>
         <Safety messages={messages.safety} />
         {initialStateInvalid ? (
-          <section aria-labelledby="eclipse-nojs-invalid">
+          <section aria-labelledby="eclipse-nojs-invalid" className={styles.noScriptSection}>
             <h2 id="eclipse-nojs-invalid">{messages.invalidState.title}</h2>
-            <p>{messages.invalidState.description}</p>
+            <div className={styles.noScriptBody}>
+              <p>{messages.invalidState.description}</p>
+            </div>
           </section>
         ) : null}
-        <section aria-labelledby="eclipse-nojs-input">
+        <section aria-labelledby="eclipse-nojs-input" className={styles.noScriptSection}>
           <h2 id="eclipse-nojs-input">{messages.noScript.observerTitle}</h2>
-          <p>
-            {messages.noScript.utcInstant}: {initialState.at_utc}
-          </p>
-          <p>
-            {formatMessageTemplate(messages.noScript.observerLocation, {
-              latitude: number(initialState.latitude_deg, locale),
-              longitude: number(initialState.longitude_deg, locale),
-              elevation: number(initialState.elevation_m, locale),
-            })}
-          </p>
+          <div className={styles.noScriptBody}>
+            <p>
+              {messages.noScript.utcInstant}: {initialState.at_utc}
+            </p>
+            <p>
+              {formatMessageTemplate(messages.noScript.observerLocation, {
+                latitude: number(initialState.latitude_deg, locale),
+                longitude: number(initialState.longitude_deg, locale),
+                elevation: number(initialState.elevation_m, locale),
+              })}
+            </p>
+          </div>
         </section>
         {initialCalculation === null ? (
-          <section aria-labelledby="eclipse-nojs-unavailable">
+          <section aria-labelledby="eclipse-nojs-unavailable" className={styles.noScriptSection}>
             <h2 id="eclipse-nojs-unavailable">{messages.noScript.unavailableTitle}</h2>
-            <p>{messages.noScript.unavailableDescription}</p>
+            <div className={styles.noScriptBody}>
+              <p>{messages.noScript.unavailableDescription}</p>
+            </div>
           </section>
         ) : (
-          <section aria-labelledby="eclipse-nojs-result">
+          <section aria-labelledby="eclipse-nojs-result" className={styles.noScriptSection}>
             <h2 id="eclipse-nojs-result">{messages.noScript.resultTitle}</h2>
-            <p>
-              {messages.noScript.modelVersion}: {initialCalculation.model_version}
-            </p>
-            <table>
-              <caption>{messages.noScript.resultCaption}</caption>
-              <tbody>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.phase}</th>
-                  <td>{initialCalculation.instant.phase}</td>
-                </tr>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.shadow}</th>
-                  <td>{initialCalculation.instant.shadow_region}</td>
-                </tr>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.sunRadius}</th>
-                  <td>
-                    {number(initialCalculation.instant.sun_angular_radius_deg, locale, "deg")}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.moonRadius}</th>
-                  <td>
-                    {number(initialCalculation.instant.moon_angular_radius_deg, locale, "deg")}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.centerSeparation}</th>
-                  <td>{number(initialCalculation.instant.center_separation_deg, locale, "deg")}</td>
-                </tr>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.obscuration}</th>
-                  <td>
-                    {number(initialCalculation.instant.obscuration_fraction * 100, locale, "%")}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">{messages.noScript.resultLabels.sunAltitude}</th>
-                  <td>{number(initialCalculation.instant.sun_altitude_deg, locale, "deg")}</td>
-                </tr>
-              </tbody>
-            </table>
-            {initialCalculation.local_event ? (
-              <>
-                <h3>{messages.noScript.eventTitle}</h3>
-                <p>
-                  {messages.noScript.eventLabels.partialBegin}:{" "}
-                  {initialCalculation.local_event.partial_begin_utc}
-                </p>
-                {initialCalculation.local_event.central_begin_utc ? (
+            <div className={styles.noScriptBody}>
+              <p>
+                {messages.noScript.modelVersion}: {initialCalculation.model_version}
+              </p>
+              <table>
+                <caption>{messages.noScript.resultCaption}</caption>
+                <tbody>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.phase}</th>
+                    <td>{initialCalculation.instant.phase}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.shadow}</th>
+                    <td>{initialCalculation.instant.shadow_region}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.sunRadius}</th>
+                    <td>
+                      {number(initialCalculation.instant.sun_angular_radius_deg, locale, "deg")}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.moonRadius}</th>
+                    <td>
+                      {number(initialCalculation.instant.moon_angular_radius_deg, locale, "deg")}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.centerSeparation}</th>
+                    <td>
+                      {number(initialCalculation.instant.center_separation_deg, locale, "deg")}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.obscuration}</th>
+                    <td>
+                      {number(initialCalculation.instant.obscuration_fraction * 100, locale, "%")}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{messages.noScript.resultLabels.sunAltitude}</th>
+                    <td>{number(initialCalculation.instant.sun_altitude_deg, locale, "deg")}</td>
+                  </tr>
+                </tbody>
+              </table>
+              {initialCalculation.local_event ? (
+                <>
+                  <h3>{messages.noScript.eventTitle}</h3>
                   <p>
-                    {messages.noScript.eventLabels.centralBegin}:{" "}
-                    {initialCalculation.local_event.central_begin_utc}
+                    {messages.noScript.eventLabels.partialBegin}:{" "}
+                    {initialCalculation.local_event.partial_begin_utc}
                   </p>
-                ) : null}
-                <p>
-                  {messages.noScript.eventLabels.maximum}:{" "}
-                  {initialCalculation.local_event.maximum_utc}
-                </p>
-                {initialCalculation.local_event.central_end_utc ? (
+                  {initialCalculation.local_event.central_begin_utc ? (
+                    <p>
+                      {messages.noScript.eventLabels.centralBegin}:{" "}
+                      {initialCalculation.local_event.central_begin_utc}
+                    </p>
+                  ) : null}
                   <p>
-                    {messages.noScript.eventLabels.centralEnd}:{" "}
-                    {initialCalculation.local_event.central_end_utc}
+                    {messages.noScript.eventLabels.maximum}:{" "}
+                    {initialCalculation.local_event.maximum_utc}
                   </p>
-                ) : null}
-                <p>
-                  {messages.noScript.eventLabels.partialEnd}:{" "}
-                  {initialCalculation.local_event.partial_end_utc}
-                </p>
-              </>
-            ) : (
-              <p>{messages.noScript.noEvent}</p>
-            )}
-            <p>{initialCalculation.ephemeris_note}</p>
-            <p>{initialCalculation.timing_note}</p>
+                  {initialCalculation.local_event.central_end_utc ? (
+                    <p>
+                      {messages.noScript.eventLabels.centralEnd}:{" "}
+                      {initialCalculation.local_event.central_end_utc}
+                    </p>
+                  ) : null}
+                  <p>
+                    {messages.noScript.eventLabels.partialEnd}:{" "}
+                    {initialCalculation.local_event.partial_end_utc}
+                  </p>
+                </>
+              ) : (
+                <p>{messages.noScript.noEvent}</p>
+              )}
+              <p>{initialCalculation.ephemeris_note}</p>
+              <p>{initialCalculation.timing_note}</p>
+            </div>
           </section>
         )}
-        <section aria-labelledby="eclipse-nojs-model">
+        <section aria-labelledby="eclipse-nojs-model" className={styles.noScriptSection}>
           <h2 id="eclipse-nojs-model">{messages.noScript.monthlyQuestion}</h2>
-          <p>
-            NASA explains that the Moon&apos;s orbit is inclined by roughly five degrees to the
-            ecliptic, so at most new moons the lunar shadow passes above or below Earth.
-          </p>
-          <h3>{messages.noScript.modelLimitations}</h3>
-          <ul>
-            {ECLIPSE_SIMULATOR_DEFINITION.limitations.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          <h3>{messages.model.reviewedSources}</h3>
-          <SourceList messages={messages.model} />
+          <div className={styles.noScriptBody}>
+            <p>
+              NASA explains that the Moon&apos;s orbit is inclined by roughly five degrees to the
+              ecliptic, so at most new moons the lunar shadow passes above or below Earth.
+            </p>
+            <h3>{messages.noScript.modelLimitations}</h3>
+            <ul>
+              {ECLIPSE_SIMULATOR_DEFINITION.limitations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <h3>{messages.model.reviewedSources}</h3>
+            <SourceList messages={messages.model} />
+          </div>
         </section>
       </article>
     </noscript>

@@ -14,6 +14,7 @@ import {
 import type { PublishedLocale } from "../lib/i18n/locales";
 import type { TelescopeBuilderMessages } from "../lib/i18n/messages/types";
 import type { TelescopeBuilderCalculationResponse } from "@nova-lumina/api-client";
+import styles from "./lab-calculation-instrument.module.css";
 
 type TelescopeBuilderNoScriptProps = Readonly<{
   initialState: TelescopeBuilderState;
@@ -134,139 +135,168 @@ export function TelescopeBuilderNoScript({
 }: TelescopeBuilderNoScriptProps) {
   return (
     <noscript>
-      <article>
-        <header>
-          <p>{messages.noScript.eyebrow}</p>
-          <h1>{messages.header.title}</h1>
-          <p>{messages.noScript.intro}</p>
+      <article className={styles.noScriptPage}>
+        <header className={styles.noScriptHero}>
+          <div>
+            <p className={styles.eyebrow}>{messages.noScript.eyebrow}</p>
+            <h1 className={styles.title}>{messages.header.title}</h1>
+          </div>
+          <p className={styles.intro}>{messages.noScript.intro}</p>
         </header>
 
         {initialStateInvalid ? (
-          <aside aria-label={messages.invalidState.title} role="alert">
+          <aside aria-label={messages.invalidState.title} className={styles.alert} role="alert">
             <h2 id="no-script-invalid-telescope-state-heading">{messages.invalidState.title}</h2>
             <p>{messages.noScript.invalidDescription}</p>
           </aside>
         ) : null}
 
-        <section aria-labelledby="no-script-telescope-state-heading">
+        <section
+          aria-labelledby="no-script-telescope-state-heading"
+          className={styles.noScriptSection}
+        >
           <h2 id="no-script-telescope-state-heading">{messages.noScript.currentState.title}</h2>
-          <dl>
-            <div>
-              <dt>{messages.noScript.currentState.aperture}</dt>
-              <dd>{format(initialState.aperture_mm, locale)} mm</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.currentState.telescopeFocalLength}</dt>
-              <dd>{format(initialState.telescope_focal_length_mm, locale)} mm</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.currentState.telescopeType}</dt>
-              <dd>{initialState.telescope_type}</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.currentState.eyepieceFocalLength}</dt>
-              <dd>{format(initialState.eyepiece_focal_length_mm, locale)} mm</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.currentState.eyepieceApparentField}</dt>
-              <dd>{format(initialState.eyepiece_apparent_field_deg, locale)}°</dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.currentState.modifier}</dt>
-              <dd>
-                {initialState.optical_modifier_kind},{" "}
-                {format(initialState.optical_modifier_factor, locale, 2)}×
-              </dd>
-            </div>
-            <div>
-              <dt>{messages.noScript.currentState.targetAngularExtent}</dt>
-              <dd>{format(initialState.target_angular_size_arcmin, locale, 2)} arcmin</dd>
-            </div>
-          </dl>
+          <div className={styles.noScriptBody}>
+            <dl>
+              <div>
+                <dt>{messages.noScript.currentState.aperture}</dt>
+                <dd>{format(initialState.aperture_mm, locale)} mm</dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.currentState.telescopeFocalLength}</dt>
+                <dd>{format(initialState.telescope_focal_length_mm, locale)} mm</dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.currentState.telescopeType}</dt>
+                <dd>{initialState.telescope_type}</dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.currentState.eyepieceFocalLength}</dt>
+                <dd>{format(initialState.eyepiece_focal_length_mm, locale)} mm</dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.currentState.eyepieceApparentField}</dt>
+                <dd>{format(initialState.eyepiece_apparent_field_deg, locale)}°</dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.currentState.modifier}</dt>
+                <dd>
+                  {initialState.optical_modifier_kind},{" "}
+                  {format(initialState.optical_modifier_factor, locale, 2)}×
+                </dd>
+              </div>
+              <div>
+                <dt>{messages.noScript.currentState.targetAngularExtent}</dt>
+                <dd>{format(initialState.target_angular_size_arcmin, locale, 2)} arcmin</dd>
+              </div>
+            </dl>
+          </div>
         </section>
 
         {initialCalculation === null ? (
-          <section aria-labelledby="no-script-telescope-unavailable-heading" role="alert">
+          <section
+            aria-labelledby="no-script-telescope-unavailable-heading"
+            className={styles.noScriptSection}
+            role="alert"
+          >
             <h2 id="no-script-telescope-unavailable-heading">
               {messages.noScript.unavailableTitle}
             </h2>
-            <p>{messages.noScript.unavailableDescription}</p>
+            <div className={styles.noScriptBody}>
+              <p>{messages.noScript.unavailableDescription}</p>
+            </div>
           </section>
         ) : (
-          <section aria-labelledby="no-script-telescope-results-heading">
+          <section
+            aria-labelledby="no-script-telescope-results-heading"
+            className={styles.noScriptSection}
+          >
             <h2 id="no-script-telescope-results-heading">{messages.noScript.result.title}</h2>
-            <table>
-              <caption>{messages.noScript.result.caption}</caption>
-              <ResultRows
-                locale={locale}
-                messages={messages.noScript.result}
-                result={initialCalculation}
-              />
-            </table>
-            {initialCalculation.warning_codes.length > 0 ? (
-              <div role="note">
-                <h3>{messages.noScript.result.warningsTitle}</h3>
-                <ul>
-                  {initialCalculation.warning_codes.map((warning) => (
-                    <li key={warning}>
-                      <strong>{warning}:</strong> {TELESCOPE_WARNING_COPY[warning]}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p>{messages.noScript.result.noWarnings}</p>
-            )}
+            <div className={styles.noScriptBody}>
+              <table>
+                <caption>{messages.noScript.result.caption}</caption>
+                <ResultRows
+                  locale={locale}
+                  messages={messages.noScript.result}
+                  result={initialCalculation}
+                />
+              </table>
+              {initialCalculation.warning_codes.length > 0 ? (
+                <div role="note">
+                  <h3>{messages.noScript.result.warningsTitle}</h3>
+                  <ul>
+                    {initialCalculation.warning_codes.map((warning) => (
+                      <li key={warning}>
+                        <strong>{warning}:</strong> {TELESCOPE_WARNING_COPY[warning]}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p>{messages.noScript.result.noWarnings}</p>
+              )}
+            </div>
           </section>
         )}
 
-        <section aria-labelledby="no-script-telescope-model-heading">
+        <section
+          aria-labelledby="no-script-telescope-model-heading"
+          className={styles.noScriptSection}
+        >
           <h2 id="no-script-telescope-model-heading">{messages.noScript.model.title}</h2>
-          <p>
-            <strong>{messages.noScript.model.modelVersionLabel}</strong>{" "}
-            {formatMessageTemplate(messages.noScript.model.modelVersionSummary, {
-              modelVersion: TELESCOPE_DEFINITION.model_version,
-              schemaVersion: formatLocaleNumber(TELESCOPE_DEFINITION.share_schema_version, locale),
-            })}
-          </p>
-          <h3>{messages.noScript.model.equations}</h3>
-          <dl>
-            {Object.entries(TELESCOPE_DEFINITION.calculation_module.equations).map(
-              ([name, equation]) => (
-                <div key={name}>
-                  <dt>{name.replaceAll("_", " ")}</dt>
-                  <dd>{equation}</dd>
-                </div>
-              ),
-            )}
-          </dl>
-          <h3>{messages.noScript.model.validityAndAssumptions}</h3>
-          <ul>
-            {TELESCOPE_DEFINITION.assumptions.map((assumption) => (
-              <li key={assumption}>{assumption}</li>
-            ))}
-          </ul>
-          <p>{TELESCOPE_DEFINITION.telescope_type_disclosure}</p>
-          <p>{TELESCOPE_DEFINITION.modifier_semantics}</p>
-          <p>{TELESCOPE_DEFINITION.target_fit_definition}</p>
-          <h3>{messages.noScript.model.limitations}</h3>
-          <ul>
-            {TELESCOPE_DEFINITION.limitations.map((limitation) => (
-              <li key={limitation}>{limitation}</li>
-            ))}
-          </ul>
-          <p>
-            <strong>{messages.noScript.model.frozenConstantsLabel}</strong>{" "}
-            {Object.entries(TELESCOPE_CONSTANTS)
-              .map(([key, value]) => `${key}=${value}`)
-              .join("; ")}
-            .{" "}
-            {formatMessageTemplate(messages.noScript.model.defaultPresetSummary, {
-              presets: Object.keys(TELESCOPE_PRESETS).join(", "),
-            })}
-          </p>
-          <h3>{messages.noScript.model.references}</h3>
-          <SourceReferences messages={messages.model} sourceIds={TELESCOPE_DEFINITION.references} />
+          <div className={styles.noScriptBody}>
+            <p>
+              <strong>{messages.noScript.model.modelVersionLabel}</strong>{" "}
+              {formatMessageTemplate(messages.noScript.model.modelVersionSummary, {
+                modelVersion: TELESCOPE_DEFINITION.model_version,
+                schemaVersion: formatLocaleNumber(
+                  TELESCOPE_DEFINITION.share_schema_version,
+                  locale,
+                ),
+              })}
+            </p>
+            <h3>{messages.noScript.model.equations}</h3>
+            <dl>
+              {Object.entries(TELESCOPE_DEFINITION.calculation_module.equations).map(
+                ([name, equation]) => (
+                  <div key={name}>
+                    <dt>{name.replaceAll("_", " ")}</dt>
+                    <dd>{equation}</dd>
+                  </div>
+                ),
+              )}
+            </dl>
+            <h3>{messages.noScript.model.validityAndAssumptions}</h3>
+            <ul>
+              {TELESCOPE_DEFINITION.assumptions.map((assumption) => (
+                <li key={assumption}>{assumption}</li>
+              ))}
+            </ul>
+            <p>{TELESCOPE_DEFINITION.telescope_type_disclosure}</p>
+            <p>{TELESCOPE_DEFINITION.modifier_semantics}</p>
+            <p>{TELESCOPE_DEFINITION.target_fit_definition}</p>
+            <h3>{messages.noScript.model.limitations}</h3>
+            <ul>
+              {TELESCOPE_DEFINITION.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+            <p>
+              <strong>{messages.noScript.model.frozenConstantsLabel}</strong>{" "}
+              {Object.entries(TELESCOPE_CONSTANTS)
+                .map(([key, value]) => `${key}=${value}`)
+                .join("; ")}
+              .{" "}
+              {formatMessageTemplate(messages.noScript.model.defaultPresetSummary, {
+                presets: Object.keys(TELESCOPE_PRESETS).join(", "),
+              })}
+            </p>
+            <h3>{messages.noScript.model.references}</h3>
+            <SourceReferences
+              messages={messages.model}
+              sourceIds={TELESCOPE_DEFINITION.references}
+            />
+          </div>
         </section>
       </article>
     </noscript>

@@ -34,6 +34,7 @@ import {
   type TelescopeType,
 } from "../lib/simulations/telescope-builder";
 import type { AudienceMode } from "../lib/learning/content";
+import styles from "./lab-calculation-instrument.module.css";
 import { LearningModeSelector } from "./learning-mode-selector";
 
 type TelescopeBuilderViewProps = Readonly<{
@@ -191,7 +192,7 @@ function SourceList({
   sourceIds: ReadonlyArray<string>;
 }>) {
   return (
-    <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {sourceIds.map((sourceId) => {
         const source = TELESCOPE_SOURCES.find((candidate) => candidate.id === sourceId);
         return (
@@ -200,7 +201,7 @@ function SourceList({
               <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
-                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                <a href={source.url} rel="noreferrer">
                   {source.title}
                 </a>{" "}
                 ({source.organization_or_authors}; {source.id})
@@ -241,12 +242,12 @@ function NumericControl({
   const errorId = `${inputId}-error`;
   const sliderValue = Number(value);
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <label className="font-semibold" htmlFor={inputId}>
+    <div className={styles.rangeField}>
+      <div className={styles.rangeHeader}>
+        <label className={styles.fieldLabel} htmlFor={inputId}>
           {label}
         </label>
-        <span className="text-sm text-[var(--muted)]">
+        <span className={styles.rangeMeta}>
           {formatMessageTemplate(messages.range, {
             maximum: formatLocaleNumber(range.max, locale),
             minimum: formatLocaleNumber(range.min, locale),
@@ -254,11 +255,11 @@ function NumericControl({
           })}
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={styles.rangePair}>
         <input
           aria-describedby={`${helpId}${error === null ? "" : ` ${errorId}`}`}
           aria-invalid={error === null ? undefined : true}
-          className="min-h-11 w-36 rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-60"
+          className={styles.input}
           disabled={disabled}
           id={inputId}
           inputMode="decimal"
@@ -275,7 +276,7 @@ function NumericControl({
             unit: range.unit,
             value,
           })}
-          className="min-h-11 min-w-[12rem] flex-1 accent-[var(--accent)] disabled:opacity-60"
+          className={styles.slider}
           disabled={disabled}
           id={sliderId}
           max={range.max}
@@ -286,11 +287,11 @@ function NumericControl({
           value={Number.isFinite(sliderValue) ? value : range.min}
         />
       </div>
-      <p className="text-sm leading-6 text-[var(--muted)]" id={helpId}>
+      <p className={styles.help} id={helpId}>
         {help}
       </p>
       {error === null ? null : (
-        <p className="text-sm font-semibold text-[var(--focus)]" id={errorId} role="alert">
+        <p className={styles.fieldError} id={errorId} role="alert">
           {error}
         </p>
       )}
@@ -313,10 +314,10 @@ function OpticalTrainFigure({
 }>) {
   const train = visual.opticalTrain;
   return (
-    <figure className="space-y-3" data-testid="telescope-optical-train-figure">
+    <figure className={styles.figure} data-testid="telescope-optical-train-figure">
       <svg
         aria-labelledby="telescope-optical-train-title telescope-optical-train-desc"
-        className="h-auto w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
+        className={styles.figureSvg}
         role="img"
         viewBox="0 0 200 115"
       >
@@ -397,7 +398,7 @@ function OpticalTrainFigure({
           })}
         </text>
       </svg>
-      <figcaption className="text-sm leading-6 text-[var(--muted)]">{messages.caption}</figcaption>
+      <figcaption className={styles.caption}>{messages.caption}</figcaption>
     </figure>
   );
 }
@@ -417,10 +418,10 @@ function FieldFitFigure({
   const fits = !field.target_exceeds_field;
   const targetRadius = (field.target_diameter_percent / 100) * 35;
   return (
-    <figure className="space-y-3" data-testid="telescope-field-fit-figure">
+    <figure className={styles.figure} data-testid="telescope-field-fit-figure">
       <svg
         aria-labelledby="telescope-field-fit-title telescope-field-fit-desc"
-        className="h-auto w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
+        className={styles.figureSvg}
         role="img"
         viewBox="0 0 200 140"
       >
@@ -460,7 +461,7 @@ function FieldFitFigure({
           })}
         </text>
       </svg>
-      <figcaption className="text-sm leading-6 text-[var(--muted)]">{messages.caption}</figcaption>
+      <figcaption className={styles.caption}>{messages.caption}</figcaption>
     </figure>
   );
 }
@@ -524,32 +525,23 @@ function ResultsTable({
   return (
     <div
       aria-label={messages.table.ariaLabel}
-      className="max-w-full overflow-x-auto rounded-md border border-[var(--border)]"
+      className={styles.tableWrap}
       role="region"
       tabIndex={0}
     >
-      <table
-        className="min-w-[34rem] w-full border-collapse text-left text-sm"
-        data-testid="telescope-results-table"
-      >
+      <table className={styles.table} data-testid="telescope-results-table">
         <caption className="sr-only">{messages.table.caption}</caption>
-        <thead className="bg-[var(--surface)] text-[var(--muted)]">
+        <thead>
           <tr>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.quantity}
-            </th>
-            <th className="px-4 py-3" scope="col">
-              {messages.table.value}
-            </th>
+            <th scope="col">{messages.table.quantity}</th>
+            <th scope="col">{messages.table.value}</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr className="border-t border-[var(--border)]" key={row.label}>
-              <th className="px-4 py-3" scope="row">
-                {row.label}
-              </th>
-              <td className="px-4 py-3">{row.value}</td>
+            <tr key={row.label}>
+              <th scope="row">{row.label}</th>
+              <td data-numeric="true">{row.value}</td>
             </tr>
           ))}
         </tbody>
@@ -782,23 +774,21 @@ export function TelescopeBuilderView({
   const factorRange = modifierFactorRange(drafts.optical_modifier_kind);
 
   return (
-    <article className="space-y-12">
-      <nav aria-label={messages.header.breadcrumbAriaLabel}>
-        <ol className="m-0 flex list-none flex-wrap gap-2 p-0 text-sm text-[var(--muted)]">
+    <article className={styles.page}>
+      <nav aria-label={messages.header.breadcrumbAriaLabel} className={styles.breadcrumbs}>
+        <ol>
           <li>{messages.header.labBreadcrumb}</li>
           <li aria-hidden="true">/</li>
           <li aria-current="page">{messages.header.title}</li>
         </ol>
       </nav>
 
-      <header className="max-w-4xl space-y-5">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       <LearningModeSelector onChange={setMode} />
@@ -806,295 +796,293 @@ export function TelescopeBuilderView({
       {invalidNotice ? (
         <aside
           aria-labelledby="invalid-telescope-state-heading"
-          className="max-w-4xl space-y-3 rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
+          className={styles.alert}
           role="alert"
         >
           <h2 id="invalid-telescope-state-heading">{messages.invalidState.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.invalidState.description}</p>
-          <button
-            className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-            onClick={handleReset}
-            type="button"
-          >
+          <p>{messages.invalidState.description}</p>
+          <button className={styles.secondaryButton} onClick={handleReset} type="button">
             {messages.actions.resetDefault}
           </button>
         </aside>
       ) : null}
 
-      <section aria-labelledby="telescope-objective-heading" className="max-w-4xl space-y-4">
-        <h2 id="telescope-objective-heading">{messages.objective.title}</h2>
-        <p className="leading-7 text-[var(--muted)]">{copy.introduction}</p>
-        <p className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-5 py-4 leading-7 text-[var(--foreground)]">
-          <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
-        </p>
-        <ul className="m-0 grid list-disc gap-2 pl-6 leading-7 text-[var(--muted)]">
-          {TELESCOPE_DEFINITION.learning_objectives.map((objective) => (
-            <li key={objective}>{objective}</li>
-          ))}
-        </ul>
-        <p className="text-sm leading-6 text-[var(--muted)]">{copy.modelNote}</p>
-      </section>
-
-      <section aria-labelledby="telescope-controls-heading" className="max-w-5xl space-y-6">
-        <div className="space-y-2">
-          <h2 id="telescope-controls-heading">{messages.controls.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
+      <section aria-labelledby="telescope-objective-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Optical question</p>
+          <h2 className={styles.sectionTitle} id="telescope-objective-heading">
+            {messages.objective.title}
+          </h2>
+          <p className={styles.sectionDescription}>{copy.introduction}</p>
         </div>
-        <form
-          className="space-y-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            applyDraft();
-          }}
-        >
-          <fieldset className="grid gap-6 lg:grid-cols-3">
-            <legend className="sr-only">{messages.controls.fieldsets.telescope}</legend>
-            <NumericControl
-              error={fieldError?.field === "aperture_mm" ? fieldError.message : null}
-              field="aperture_mm"
-              help={messages.controls.helps.aperture}
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateDraft("aperture_mm", value)}
-              range={numericFieldRanges.aperture_mm}
-              value={drafts.aperture_mm}
-            />
-            <NumericControl
-              error={fieldError?.field === "telescope_focal_length_mm" ? fieldError.message : null}
-              field="telescope_focal_length_mm"
-              help={messages.controls.helps.telescopeFocalLength}
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateDraft("telescope_focal_length_mm", value)}
-              range={numericFieldRanges.telescope_focal_length_mm}
-              value={drafts.telescope_focal_length_mm}
-            />
-            <div className="space-y-2">
-              <label className="font-semibold" htmlFor="telescope-type">
-                {messages.controls.telescopeType.label}
-              </label>
-              <select
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
-                id="telescope-type"
-                onChange={(event) =>
-                  updateDraft("telescope_type", event.target.value as TelescopeType)
-                }
-                value={drafts.telescope_type}
-              >
-                <option value="refractor">
-                  {messages.controls.telescopeType.options.refractor}
-                </option>
-                <option value="reflector">
-                  {messages.controls.telescopeType.options.reflector}
-                </option>
-                <option value="catadioptric">
-                  {messages.controls.telescopeType.options.catadioptric}
-                </option>
-              </select>
-              <p className="text-sm leading-6 text-[var(--muted)]">
-                {messages.controls.telescopeType.description}
-              </p>
-            </div>
-          </fieldset>
-
-          <fieldset className="grid gap-6 lg:grid-cols-3">
-            <legend className="sr-only">{messages.controls.fieldsets.eyepieceAndTarget}</legend>
-            <NumericControl
-              error={fieldError?.field === "eyepiece_focal_length_mm" ? fieldError.message : null}
-              field="eyepiece_focal_length_mm"
-              help={messages.controls.helps.eyepieceFocalLength}
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateDraft("eyepiece_focal_length_mm", value)}
-              range={numericFieldRanges.eyepiece_focal_length_mm}
-              value={drafts.eyepiece_focal_length_mm}
-            />
-            <NumericControl
-              error={
-                fieldError?.field === "eyepiece_apparent_field_deg" ? fieldError.message : null
-              }
-              field="eyepiece_apparent_field_deg"
-              help={messages.controls.helps.eyepieceApparentField}
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateDraft("eyepiece_apparent_field_deg", value)}
-              range={numericFieldRanges.eyepiece_apparent_field_deg}
-              value={drafts.eyepiece_apparent_field_deg}
-            />
-            <NumericControl
-              error={fieldError?.field === "target_angular_size_arcmin" ? fieldError.message : null}
-              field="target_angular_size_arcmin"
-              help={messages.controls.helps.targetAngularExtent}
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateDraft("target_angular_size_arcmin", value)}
-              range={numericFieldRanges.target_angular_size_arcmin}
-              value={drafts.target_angular_size_arcmin}
-            />
-          </fieldset>
-
-          <fieldset className="grid gap-6 lg:grid-cols-2">
-            <legend className="sr-only">{messages.controls.fieldsets.modifier}</legend>
-            <div className="space-y-2">
-              <label className="font-semibold" htmlFor="optical-modifier-kind">
-                {messages.controls.modifier.label}
-              </label>
-              <select
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 text-base text-[var(--foreground)]"
-                id="optical-modifier-kind"
-                onChange={(event) => {
-                  const kind = event.target.value as OpticalModifierKind;
-                  updateDraft("optical_modifier_kind", kind);
-                  if (kind === "none") updateDraft("optical_modifier_factor", "1");
-                }}
-                value={drafts.optical_modifier_kind}
-              >
-                {OPTICAL_MODIFIER_KINDS.map((kind) => (
-                  <option key={kind} value={kind}>
-                    {kind === "none"
-                      ? messages.controls.modifier.options.none
-                      : kind === "barlow"
-                        ? messages.controls.modifier.options.barlow
-                        : messages.controls.modifier.options.reducer}
-                  </option>
-                ))}
-              </select>
-              <p className="text-sm leading-6 text-[var(--muted)]">
-                {messages.controls.modifier.description}
-              </p>
-            </div>
-            <NumericControl
-              disabled={drafts.optical_modifier_kind === "none"}
-              error={fieldError?.field === "optical_modifier_factor" ? fieldError.message : null}
-              field="optical_modifier_factor"
-              help={
-                drafts.optical_modifier_kind === "none"
-                  ? messages.controls.helps.modifierFactorNone
-                  : drafts.optical_modifier_kind === "barlow"
-                    ? messages.controls.helps.modifierFactorBarlow
-                    : messages.controls.helps.modifierFactorReducer
-              }
-              locale={locale}
-              messages={messages.controls}
-              onChange={(value) => updateDraft("optical_modifier_factor", value)}
-              range={factorRange}
-              value={drafts.optical_modifier_factor}
-            />
-          </fieldset>
-
-          {fieldError?.field === null ? (
-            <p
-              className="rounded-md border border-[var(--focus)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]"
-              role="alert"
-            >
-              {fieldError.message}
-            </p>
-          ) : null}
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              className="inline-flex min-h-11 items-center rounded-md bg-[var(--accent)] px-4 font-semibold text-[var(--background)]"
-              type="submit"
-            >
-              {messages.actions.calculate}
-            </button>
-            <button
-              className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-              onClick={handleReset}
-              type="button"
-            >
-              {messages.actions.reset}
-            </button>
-            <button
-              className="inline-flex min-h-11 items-center rounded-md border border-[var(--border-strong)] px-4 font-semibold"
-              onClick={() => void handleShare()}
-              type="button"
-            >
-              {messages.actions.share}
-            </button>
-            <span aria-live="polite" className="text-sm text-[var(--muted)]" role="status">
-              {requestState === "loading"
-                ? messages.status.calculating
-                : requestMessage || shareMessage}
-            </span>
-          </div>
-          {shareUrl === null ? null : (
-            <p className="max-w-4xl break-all rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-              {messages.share.urlLabel}{" "}
-              <a className="text-[var(--link)] underline" href={shareUrl}>
-                {shareUrl}
-              </a>
-            </p>
-          )}
-        </form>
+        <div className={styles.modelBody}>
+          <p>
+            <strong>{messages.objective.thinkAbout}</strong> {copy.prompt}
+          </p>
+          <ul>
+            {TELESCOPE_DEFINITION.learning_objectives.map((objective) => (
+              <li key={objective}>{objective}</li>
+            ))}
+          </ul>
+          <p>{copy.modelNote}</p>
+        </div>
       </section>
 
-      <section aria-labelledby="telescope-results-heading" className="max-w-5xl space-y-6">
-        <div className="space-y-2">
-          <h2 id="telescope-results-heading">{messages.result.title}</h2>
-          <p className="leading-7 text-[var(--muted)]">
+      <section aria-labelledby="telescope-controls-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>02 · Optical train</p>
+          <h2 className={styles.sectionTitle} id="telescope-controls-heading">
+            {messages.controls.title}
+          </h2>
+          <p className={styles.sectionDescription}>{messages.controls.description}</p>
+        </div>
+        <div className={styles.sectionBody}>
+          <form
+            className={styles.form}
+            onSubmit={(event) => {
+              event.preventDefault();
+              applyDraft();
+            }}
+          >
+            <fieldset className={styles.inputGrid}>
+              <legend className="sr-only">{messages.controls.fieldsets.telescope}</legend>
+              <NumericControl
+                error={fieldError?.field === "aperture_mm" ? fieldError.message : null}
+                field="aperture_mm"
+                help={messages.controls.helps.aperture}
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateDraft("aperture_mm", value)}
+                range={numericFieldRanges.aperture_mm}
+                value={drafts.aperture_mm}
+              />
+              <NumericControl
+                error={
+                  fieldError?.field === "telescope_focal_length_mm" ? fieldError.message : null
+                }
+                field="telescope_focal_length_mm"
+                help={messages.controls.helps.telescopeFocalLength}
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateDraft("telescope_focal_length_mm", value)}
+                range={numericFieldRanges.telescope_focal_length_mm}
+                value={drafts.telescope_focal_length_mm}
+              />
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="telescope-type">
+                  {messages.controls.telescopeType.label}
+                </label>
+                <select
+                  className={styles.select}
+                  id="telescope-type"
+                  onChange={(event) =>
+                    updateDraft("telescope_type", event.target.value as TelescopeType)
+                  }
+                  value={drafts.telescope_type}
+                >
+                  <option value="refractor">
+                    {messages.controls.telescopeType.options.refractor}
+                  </option>
+                  <option value="reflector">
+                    {messages.controls.telescopeType.options.reflector}
+                  </option>
+                  <option value="catadioptric">
+                    {messages.controls.telescopeType.options.catadioptric}
+                  </option>
+                </select>
+                <p className={styles.help}>{messages.controls.telescopeType.description}</p>
+              </div>
+            </fieldset>
+
+            <fieldset className={styles.inputGrid}>
+              <legend className="sr-only">{messages.controls.fieldsets.eyepieceAndTarget}</legend>
+              <NumericControl
+                error={fieldError?.field === "eyepiece_focal_length_mm" ? fieldError.message : null}
+                field="eyepiece_focal_length_mm"
+                help={messages.controls.helps.eyepieceFocalLength}
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateDraft("eyepiece_focal_length_mm", value)}
+                range={numericFieldRanges.eyepiece_focal_length_mm}
+                value={drafts.eyepiece_focal_length_mm}
+              />
+              <NumericControl
+                error={
+                  fieldError?.field === "eyepiece_apparent_field_deg" ? fieldError.message : null
+                }
+                field="eyepiece_apparent_field_deg"
+                help={messages.controls.helps.eyepieceApparentField}
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateDraft("eyepiece_apparent_field_deg", value)}
+                range={numericFieldRanges.eyepiece_apparent_field_deg}
+                value={drafts.eyepiece_apparent_field_deg}
+              />
+              <NumericControl
+                error={
+                  fieldError?.field === "target_angular_size_arcmin" ? fieldError.message : null
+                }
+                field="target_angular_size_arcmin"
+                help={messages.controls.helps.targetAngularExtent}
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateDraft("target_angular_size_arcmin", value)}
+                range={numericFieldRanges.target_angular_size_arcmin}
+                value={drafts.target_angular_size_arcmin}
+              />
+            </fieldset>
+
+            <fieldset className={styles.inputGrid}>
+              <legend className="sr-only">{messages.controls.fieldsets.modifier}</legend>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="optical-modifier-kind">
+                  {messages.controls.modifier.label}
+                </label>
+                <select
+                  className={styles.select}
+                  id="optical-modifier-kind"
+                  onChange={(event) => {
+                    const kind = event.target.value as OpticalModifierKind;
+                    updateDraft("optical_modifier_kind", kind);
+                    if (kind === "none") updateDraft("optical_modifier_factor", "1");
+                  }}
+                  value={drafts.optical_modifier_kind}
+                >
+                  {OPTICAL_MODIFIER_KINDS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {kind === "none"
+                        ? messages.controls.modifier.options.none
+                        : kind === "barlow"
+                          ? messages.controls.modifier.options.barlow
+                          : messages.controls.modifier.options.reducer}
+                    </option>
+                  ))}
+                </select>
+                <p className={styles.help}>{messages.controls.modifier.description}</p>
+              </div>
+              <NumericControl
+                disabled={drafts.optical_modifier_kind === "none"}
+                error={fieldError?.field === "optical_modifier_factor" ? fieldError.message : null}
+                field="optical_modifier_factor"
+                help={
+                  drafts.optical_modifier_kind === "none"
+                    ? messages.controls.helps.modifierFactorNone
+                    : drafts.optical_modifier_kind === "barlow"
+                      ? messages.controls.helps.modifierFactorBarlow
+                      : messages.controls.helps.modifierFactorReducer
+                }
+                locale={locale}
+                messages={messages.controls}
+                onChange={(value) => updateDraft("optical_modifier_factor", value)}
+                range={factorRange}
+                value={drafts.optical_modifier_factor}
+              />
+            </fieldset>
+
+            {fieldError?.field === null ? (
+              <p className={styles.alert} role="alert">
+                {fieldError.message}
+              </p>
+            ) : null}
+
+            <div className={styles.actions}>
+              <button className={styles.primaryButton} type="submit">
+                {messages.actions.calculate}
+              </button>
+              <button className={styles.secondaryButton} onClick={handleReset} type="button">
+                {messages.actions.reset}
+              </button>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => void handleShare()}
+                type="button"
+              >
+                {messages.actions.share}
+              </button>
+              <span aria-live="polite" className={styles.help} role="status">
+                {requestState === "loading"
+                  ? messages.status.calculating
+                  : requestMessage || shareMessage}
+              </span>
+            </div>
+            {shareUrl === null ? null : (
+              <p className={styles.message}>
+                {messages.share.urlLabel} <a href={shareUrl}>{shareUrl}</a>
+              </p>
+            )}
+          </form>
+        </div>
+      </section>
+
+      <section aria-labelledby="telescope-results-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>03 · Result</p>
+          <h2 className={styles.sectionTitle} id="telescope-results-heading">
+            {messages.result.title}
+          </h2>
+          <p className={styles.sectionDescription}>
             {formatMessageTemplate(messages.result.description, {
               modelVersion: calculation?.model_version ?? TELESCOPE_BUILDER_MODEL_VERSION,
             })}
           </p>
         </div>
-        {calculation === null ? (
-          <div
-            className="rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
-            role="alert"
-          >
-            <h3>{messages.result.unavailableTitle}</h3>
-            <p className="mt-2 leading-7 text-[var(--muted)]">
-              {messages.result.unavailableDescription}
-            </p>
-          </div>
-        ) : (
-          <>
-            <ResultsTable locale={locale} messages={messages} result={calculation} />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <p className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 leading-7">
-                <strong>{messages.result.labels.targetFit}:</strong>{" "}
-                {formatMessageTemplate(
-                  calculation.target_fit === "fits"
-                    ? messages.result.targetFitFits
-                    : messages.result.targetFitDoesNotFit,
-                  { targetFit: calculation.target_fit },
-                )}
-              </p>
-              <p className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-4 leading-7">
-                <strong>{messages.result.typeLabel}:</strong>{" "}
-                {formatMessageTemplate(messages.result.typeSummary, {
-                  telescopeType: calculation.inputs.telescope_type,
-                })}
-              </p>
+        <div className={styles.resultStack}>
+          {calculation === null ? (
+            <div className={styles.unavailable} role="alert">
+              <h3>{messages.result.unavailableTitle}</h3>
+              <p>{messages.result.unavailableDescription}</p>
             </div>
-            {calculation.warning_codes.length > 0 ? (
-              <aside
-                aria-labelledby="telescope-warnings-heading"
-                className="rounded-md border border-[var(--focus)] bg-[var(--surface)] px-5 py-4"
-                role="note"
-              >
-                <h3 id="telescope-warnings-heading">{messages.result.warningsTitle}</h3>
-                <ul className="mt-3 list-disc space-y-2 pl-6 leading-7 text-[var(--muted)]">
-                  {calculation.warning_codes.map((warning) => (
-                    <li key={warning}>{TELESCOPE_WARNING_COPY[warning]}</li>
-                  ))}
-                </ul>
-              </aside>
-            ) : (
-              <p className="text-sm leading-6 text-[var(--muted)]">{messages.result.noWarnings}</p>
-            )}
-          </>
-        )}
+          ) : (
+            <>
+              <ResultsTable locale={locale} messages={messages} result={calculation} />
+              <div className={styles.resultCallouts}>
+                <p>
+                  <strong>{messages.result.labels.targetFit}:</strong>{" "}
+                  {formatMessageTemplate(
+                    calculation.target_fit === "fits"
+                      ? messages.result.targetFitFits
+                      : messages.result.targetFitDoesNotFit,
+                    { targetFit: calculation.target_fit },
+                  )}
+                </p>
+                <p>
+                  <strong>{messages.result.typeLabel}:</strong>{" "}
+                  {formatMessageTemplate(messages.result.typeSummary, {
+                    telescopeType: calculation.inputs.telescope_type,
+                  })}
+                </p>
+              </div>
+              {calculation.warning_codes.length > 0 ? (
+                <aside
+                  aria-labelledby="telescope-warnings-heading"
+                  className={styles.warningPanel}
+                  role="note"
+                >
+                  <h3 id="telescope-warnings-heading">{messages.result.warningsTitle}</h3>
+                  <ul>
+                    {calculation.warning_codes.map((warning) => (
+                      <li key={warning}>{TELESCOPE_WARNING_COPY[warning]}</li>
+                    ))}
+                  </ul>
+                </aside>
+              ) : (
+                <p className={styles.caption}>{messages.result.noWarnings}</p>
+              )}
+            </>
+          )}
+        </div>
       </section>
 
       {calculation !== null && visual !== null ? (
-        <section aria-labelledby="telescope-visualization-heading" className="max-w-5xl space-y-6">
-          <div className="space-y-2">
-            <h2 id="telescope-visualization-heading">{messages.figures.sectionTitle}</h2>
-            <p className="leading-7 text-[var(--muted)]">{messages.figures.sectionDescription}</p>
+        <section aria-labelledby="telescope-visualization-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionIndex}>04 · Optical field</p>
+            <h2 className={styles.sectionTitle} id="telescope-visualization-heading">
+              {messages.figures.sectionTitle}
+            </h2>
+            <p className={styles.sectionDescription}>{messages.figures.sectionDescription}</p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className={styles.figureGrid}>
             <OpticalTrainFigure
               locale={locale}
               messages={messages.figures.opticalTrain}
@@ -1112,95 +1100,87 @@ export function TelescopeBuilderView({
         </section>
       ) : null}
 
-      <section aria-labelledby="telescope-model-heading" className="max-w-5xl space-y-6">
+      <section aria-labelledby="telescope-model-heading" className={styles.modelSection}>
         <h2 id="telescope-model-heading">{messages.model.title}</h2>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-4">
-            <h3>{messages.model.equations}</h3>
-            <dl className="space-y-3 text-sm leading-6 text-[var(--muted)]">
-              {Object.entries(TELESCOPE_DEFINITION.calculation_module.equations).map(
-                ([name, equation]) => (
-                  <div key={name}>
-                    <dt className="font-semibold text-[var(--foreground)]">
-                      {name.replaceAll("_", " ")}
-                    </dt>
-                    <dd className="mt-1 break-words font-mono text-xs">{equation}</dd>
-                  </div>
-                ),
-              )}
-            </dl>
+        <div className={styles.modelBody}>
+          <div className={styles.modelColumns}>
+            <div>
+              <h3>{messages.model.equations}</h3>
+              <dl className={styles.equationList}>
+                {Object.entries(TELESCOPE_DEFINITION.calculation_module.equations).map(
+                  ([name, equation]) => (
+                    <div key={name}>
+                      <dt>{name.replaceAll("_", " ")}</dt>
+                      <dd>{equation}</dd>
+                    </div>
+                  ),
+                )}
+              </dl>
+            </div>
+            <div>
+              <h3>{messages.model.inputsAndValidity}</h3>
+              <ul>
+                {TELESCOPE_DEFINITION.input_schema.fields.map((field) => (
+                  <li key={field.name}>
+                    <strong>{field.name}</strong>:{" "}
+                    {formatMessageTemplate(messages.model.inputFieldDetails, {
+                      defaultValue: String(field.default),
+                      range: field.valid_range ?? field.valid_values?.join(", ") ?? "",
+                      unit: field.unit,
+                    })}
+                  </li>
+                ))}
+              </ul>
+              <p>
+                Native focal ratio is F/D and must be f/2 through f/30. Derived magnification must
+                be at least 1×. Warnings are valid results, not input errors.
+              </p>
+            </div>
           </div>
-          <div className="space-y-4">
-            <h3>{messages.model.inputsAndValidity}</h3>
-            <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-              {TELESCOPE_DEFINITION.input_schema.fields.map((field) => (
-                <li key={field.name}>
-                  <strong>{field.name}</strong>:{" "}
-                  {formatMessageTemplate(messages.model.inputFieldDetails, {
-                    defaultValue: String(field.default),
-                    range: field.valid_range ?? field.valid_values?.join(", ") ?? "",
-                    unit: field.unit,
-                  })}
-                </li>
+          <div>
+            <h3>{messages.model.assumptions}</h3>
+            <ul>
+              {TELESCOPE_DEFINITION.assumptions.map((assumption) => (
+                <li key={assumption}>{assumption}</li>
               ))}
             </ul>
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              Native focal ratio is F/D and must be f/2 through f/30. Derived magnification must be
-              at least 1×. Warnings are valid results, not input errors.
+            <p>{TELESCOPE_DEFINITION.telescope_type_disclosure}</p>
+            <p>{TELESCOPE_DEFINITION.modifier_semantics}</p>
+            <p>{TELESCOPE_DEFINITION.target_fit_definition}</p>
+          </div>
+          <div>
+            <h3>{messages.model.limitations}</h3>
+            <ul>
+              {TELESCOPE_DEFINITION.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3>{messages.model.frozenConstants}</h3>
+            <p>
+              {Object.entries(TELESCOPE_CONSTANTS)
+                .map(([key, value]) => `${key}=${value}`)
+                .join("; ")}
+              .{" "}
+              {formatMessageTemplate(messages.model.defaultPresetSummary, {
+                presets: Object.keys(TELESCOPE_PRESETS).join(", "),
+              })}
+            </p>
+          </div>
+          <div>
+            <h3>{messages.model.reviewedSources}</h3>
+            <SourceList messages={messages.model} sourceIds={TELESCOPE_DEFINITION.references} />
+            <p>
+              The sources support the first-order relationships and their limited interpretations.
+              They do not turn these estimates into guaranteed observing performance.
             </p>
           </div>
         </div>
-        <div className="space-y-3">
-          <h3>{messages.model.assumptions}</h3>
-          <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-            {TELESCOPE_DEFINITION.assumptions.map((assumption) => (
-              <li key={assumption}>{assumption}</li>
-            ))}
-          </ul>
-          <p className="leading-7 text-[var(--muted)]">
-            {TELESCOPE_DEFINITION.telescope_type_disclosure}
-          </p>
-          <p className="leading-7 text-[var(--muted)]">{TELESCOPE_DEFINITION.modifier_semantics}</p>
-          <p className="leading-7 text-[var(--muted)]">
-            {TELESCOPE_DEFINITION.target_fit_definition}
-          </p>
-        </div>
-        <div className="space-y-3">
-          <h3>{messages.model.limitations}</h3>
-          <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
-            {TELESCOPE_DEFINITION.limitations.map((limitation) => (
-              <li key={limitation}>{limitation}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="space-y-3">
-          <h3>{messages.model.frozenConstants}</h3>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            {Object.entries(TELESCOPE_CONSTANTS)
-              .map(([key, value]) => `${key}=${value}`)
-              .join("; ")}
-            .{" "}
-            {formatMessageTemplate(messages.model.defaultPresetSummary, {
-              presets: Object.keys(TELESCOPE_PRESETS).join(", "),
-            })}
-          </p>
-        </div>
-        <div className="space-y-3">
-          <h3>{messages.model.reviewedSources}</h3>
-          <SourceList messages={messages.model} sourceIds={TELESCOPE_DEFINITION.references} />
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            The sources support the first-order relationships and their limited interpretations.
-            They do not turn these estimates into guaranteed observing performance.
-          </p>
-        </div>
       </section>
 
-      <p className="text-sm leading-6 text-[var(--muted)]">
-        {messages.footer.prefix}{" "}
-        <Link className="text-[var(--link)] underline" href="/lab">
-          {messages.footer.link}
-        </Link>
-        .
+      <p className={styles.footer}>
+        {messages.footer.prefix} <Link href="/lab">{messages.footer.link}</Link>.
       </p>
     </article>
   );

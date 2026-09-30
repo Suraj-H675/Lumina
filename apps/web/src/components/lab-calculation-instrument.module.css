@@ -3,6 +3,21 @@
   gap: 5rem;
 }
 
+.breadcrumbs {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 0.64fr) minmax(18rem, 0.36fr);
@@ -118,6 +133,46 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.spanAll {
+  grid-column: 1 / -1;
+}
+
+.choiceFieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 0.9rem 0.95rem;
+}
+
+.choiceFieldset legend {
+  padding: 0;
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.choiceGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  margin-top: 0.55rem;
+}
+
+.choice {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-strong);
+  font-size: 0.74rem;
+}
+
+.choice input {
+  accent-color: var(--accent);
+}
+
 .singleInputGrid {
   display: grid;
   grid-template-columns: minmax(14rem, 0.42fr) minmax(0, 0.58fr);
@@ -132,6 +187,50 @@
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 0.75rem 0.8rem 0.9rem;
+}
+
+.rangeField {
+  display: grid;
+  min-width: 0;
+  gap: 0.55rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 0.9rem 0.95rem;
+}
+
+.rangeHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.rangeMeta,
+.help,
+.fieldError {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.fieldError {
+  color: var(--focus);
+  font-weight: 650;
+}
+
+.rangePair {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.34fr) minmax(0, 0.66fr);
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.slider {
+  width: 100%;
+  min-height: 2.75rem;
+  accent-color: var(--accent);
 }
 
 .singleInputGrid .field {
@@ -282,6 +381,46 @@
   line-height: 1.6;
 }
 
+.resultCallouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.resultCallouts p {
+  margin: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0.85rem;
+  color: var(--muted-strong);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
+.warningPanel {
+  border-top: 1px solid var(--focus);
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 0 0.9rem;
+}
+
+.warningPanel h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.warningPanel ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
 .subsection {
   display: grid;
   grid-template-columns: minmax(11rem, 0.22fr) minmax(0, 0.78fr);
@@ -315,7 +454,21 @@
   margin: 0;
 }
 
+.figureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .figureFrame {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
+  background: var(--background-raised);
+}
+
+.figureScroll {
+  max-width: 100%;
+  overflow-x: auto;
   border-top: 1px solid var(--border-strong);
   border-bottom: 1px solid var(--border);
   background: var(--background-raised);
@@ -598,6 +751,20 @@
   font-size: 0.64rem !important;
 }
 
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.footer a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
 .noScriptPage {
   display: grid;
   gap: 3.5rem;
@@ -730,11 +897,17 @@
   .summaryGrid[data-columns="3"],
   .lifecycleList,
   .modelColumns,
+  .figureGrid,
+  .resultCallouts,
   .noScriptBody dl {
     grid-template-columns: 1fr;
   }
 
   .singleInputGrid .field {
     border-bottom: 1px solid var(--border);
+  }
+
+  .rangePair {
+    grid-template-columns: 1fr;
   }
 }

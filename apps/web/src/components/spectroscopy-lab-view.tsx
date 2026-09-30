@@ -28,6 +28,7 @@ import {
   type SpectroscopyMode,
   type SpectroscopyState,
 } from "../lib/simulations/spectroscopy-lab";
+import styles from "./lab-calculation-instrument.module.css";
 
 type SpectroscopyLabViewProps = Readonly<{
   initialState: SpectroscopyState;
@@ -77,7 +78,7 @@ function format(value: number, locale: PublishedLocale, digits = 6): string {
 
 function SourceList({ messages }: Readonly<{ messages: SpectroscopyLabMessages["model"] }>) {
   return (
-    <ul className="m-0 list-disc space-y-2 pl-6 text-sm leading-6 text-[var(--muted)]">
+    <ul className={styles.sourceList}>
       {SPECTROSCOPY_DEFINITION.references.map((sourceId) => {
         const source = SPECTROSCOPY_SOURCES.find((candidate) => candidate.id === sourceId);
         return (
@@ -86,7 +87,7 @@ function SourceList({ messages }: Readonly<{ messages: SpectroscopyLabMessages["
               <>{formatMessageTemplate(messages.sourceUnavailable, { sourceId })}</>
             ) : (
               <>
-                <a className="text-[var(--link)] underline" href={source.url} rel="noreferrer">
+                <a href={source.url} rel="noreferrer">
                   {source.title}
                 </a>{" "}
                 ({source.organization_or_authors}; {source.id})
@@ -136,11 +137,12 @@ function SpectrumFigure({
     .join(" ");
 
   return (
-    <figure className="space-y-3">
-      <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
+    <figure className={styles.figure}>
+      <div aria-label={messages.scrollAriaLabel} className={styles.figureScroll} tabIndex={0}>
         <svg
           aria-label={messages.plotAriaLabel}
-          className="min-w-[640px] max-w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)]"
+          className={styles.figureSvg}
+          style={{ minWidth: 640 }}
           role="img"
           viewBox={`0 0 ${width} ${height}`}
         >
@@ -180,9 +182,7 @@ function SpectrumFigure({
           </text>
         </svg>
       </div>
-      <figcaption className="max-w-4xl text-sm leading-6 text-[var(--muted)]">
-        {messages.caption}
-      </figcaption>
+      <figcaption className={styles.caption}>{messages.caption}</figcaption>
     </figure>
   );
 }
@@ -218,14 +218,11 @@ function ResultSummary({
     ],
   ] as const;
   return (
-    <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <dl className={styles.summaryGrid}>
       {rows.map(([label, value]) => (
-        <div
-          className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-4"
-          key={label}
-        >
-          <dt className="text-sm text-[var(--muted)]">{label}</dt>
-          <dd className="mt-1 break-words font-semibold">{value}</dd>
+        <div className={styles.summaryCell} key={label}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
         </div>
       ))}
     </dl>
@@ -242,45 +239,29 @@ function ReturnedLines({
   result: SpectroscopyCalculationResponse;
 }>) {
   if (result.representative_lines.length === 0) {
-    return <p className="rounded-md border border-[var(--border)] p-4">{messages.empty}</p>;
+    return <p className={styles.resultNote}>{messages.empty}</p>;
   }
   return (
-    <div aria-label={messages.scrollAriaLabel} className="overflow-x-auto" tabIndex={0}>
-      <table className="w-full min-w-[720px] border-collapse text-sm">
-        <caption className="mb-2 text-left text-[var(--muted)]">{messages.caption}</caption>
+    <div aria-label={messages.scrollAriaLabel} className={styles.tableWrap} tabIndex={0}>
+      <table className={styles.table} style={{ minWidth: 720 }}>
+        <caption>{messages.caption}</caption>
         <thead>
           <tr>
-            <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              {messages.headers.species}
-            </th>
-            <th className="border-b border-[var(--border)] p-2 text-left" scope="col">
-              {messages.headers.feature}
-            </th>
-            <th className="border-b border-[var(--border)] p-2 text-right" scope="col">
-              {messages.headers.rest}
-            </th>
-            <th className="border-b border-[var(--border)] p-2 text-right" scope="col">
-              {messages.headers.shifted}
-            </th>
-            <th className="border-b border-[var(--border)] p-2 text-right" scope="col">
-              {messages.headers.fwhm}
-            </th>
+            <th scope="col">{messages.headers.species}</th>
+            <th scope="col">{messages.headers.feature}</th>
+            <th scope="col">{messages.headers.rest}</th>
+            <th scope="col">{messages.headers.shifted}</th>
+            <th scope="col">{messages.headers.fwhm}</th>
           </tr>
         </thead>
         <tbody>
           {result.representative_lines.map((line) => (
             <tr key={`${line.element}-${line.label}`}>
-              <td className="border-b border-[var(--border)] p-2">{line.element}</td>
-              <td className="border-b border-[var(--border)] p-2">{line.label}</td>
-              <td className="border-b border-[var(--border)] p-2 text-right font-mono">
-                {format(line.rest_wavelength_vacuum_nm, locale, 7)}
-              </td>
-              <td className="border-b border-[var(--border)] p-2 text-right font-mono">
-                {format(line.shifted_wavelength_vacuum_nm, locale, 7)}
-              </td>
-              <td className="border-b border-[var(--border)] p-2 text-right font-mono">
-                {format(line.illustrative_fwhm_nm, locale, 7)}
-              </td>
+              <td>{line.element}</td>
+              <td>{line.label}</td>
+              <td data-numeric="true">{format(line.rest_wavelength_vacuum_nm, locale, 7)}</td>
+              <td data-numeric="true">{format(line.shifted_wavelength_vacuum_nm, locale, 7)}</td>
+              <td data-numeric="true">{format(line.illustrative_fwhm_nm, locale, 7)}</td>
             </tr>
           ))}
         </tbody>
@@ -439,278 +420,277 @@ export function SpectroscopyLabView({
   }
 
   return (
-    <article className="space-y-10">
-      <header className="max-w-4xl space-y-4">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--accent)] uppercase">
-          {messages.header.eyebrow}
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          {messages.header.title}
-        </h1>
-        <p className="text-lg leading-8 text-[var(--muted)]">{messages.header.intro}</p>
+    <article className={styles.page}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>{messages.header.eyebrow}</p>
+          <h1 className={styles.title}>{messages.header.title}</h1>
+        </div>
+        <p className={styles.intro}>{messages.header.intro}</p>
       </header>
 
       {invalidNotice ? (
-        <aside className="border border-[var(--border-strong)] p-4" role="alert">
+        <aside className={styles.alert} role="alert">
           {messages.invalidState.inline}
         </aside>
       ) : null}
 
-      <section aria-labelledby="spectroscopy-input-heading" className="space-y-5">
-        <div className="max-w-4xl space-y-2">
-          <h2 className="text-2xl font-semibold" id="spectroscopy-input-heading">
+      <section aria-labelledby="spectroscopy-input-heading" className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionIndex}>01 · Spectrum model</p>
+          <h2 className={styles.sectionTitle} id="spectroscopy-input-heading">
             {messages.controls.title}
           </h2>
-          <p className="leading-7 text-[var(--muted)]">{messages.controls.description}</p>
+          <p className={styles.sectionDescription}>{messages.controls.description}</p>
         </div>
-        <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
-          <label className="space-y-2">
-            <span className="block font-semibold">{messages.controls.fields.mode}</span>
-            <select
-              className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3"
-              disabled={requestState === "loading"}
-              onChange={(event) => {
-                const mode = event.target.value as SpectroscopyMode;
-                setDraftMode(mode);
-                if (mode === "continuum") {
-                  setDraftElements([]);
-                } else if (draftElements.length === 0) {
-                  setDraftElements(["H I"]);
-                }
-                setMessage("");
-              }}
-              value={draftMode}
-            >
-              {SPECTROSCOPY_MODES.map((mode) => (
-                <option key={mode} value={mode}>
-                  {modeLabel(mode, messages.modes)}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className={styles.sectionBody}>
+          <form className={styles.form} onSubmit={submit}>
+            <div className={styles.inputGrid}>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>{messages.controls.fields.mode}</span>
+                <select
+                  className={styles.select}
+                  disabled={requestState === "loading"}
+                  onChange={(event) => {
+                    const mode = event.target.value as SpectroscopyMode;
+                    setDraftMode(mode);
+                    if (mode === "continuum") {
+                      setDraftElements([]);
+                    } else if (draftElements.length === 0) {
+                      setDraftElements(["H I"]);
+                    }
+                    setMessage("");
+                  }}
+                  value={draftMode}
+                >
+                  {SPECTROSCOPY_MODES.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {modeLabel(mode, messages.modes)}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          <label className="space-y-2">
-            <span className="flex justify-between gap-2 font-semibold">
-              <span>{messages.controls.fields.temperature}</span>
-              <span className="text-xs font-normal text-[var(--muted)]">K</span>
-            </span>
-            <input
-              aria-label={messages.controls.fieldAriaLabels.temperature}
-              className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
-              disabled={requestState === "loading"}
-              max={SPECTROSCOPY_LIMITS.maxTemperatureK}
-              min={SPECTROSCOPY_LIMITS.minTemperatureK}
-              onChange={(event) => {
-                setDraftTemperature(event.target.value);
-                setMessage("");
-              }}
-              step="any"
-              type="number"
-              value={draftTemperature}
-            />
-          </label>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>
+                  <span>{messages.controls.fields.temperature}</span>
+                  <span className={styles.unit}>K</span>
+                </span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.temperature}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  max={SPECTROSCOPY_LIMITS.maxTemperatureK}
+                  min={SPECTROSCOPY_LIMITS.minTemperatureK}
+                  onChange={(event) => {
+                    setDraftTemperature(event.target.value);
+                    setMessage("");
+                  }}
+                  step="any"
+                  type="number"
+                  value={draftTemperature}
+                />
+              </label>
 
-          <fieldset
-            className="space-y-2 rounded-md border border-[var(--border)] p-4 md:col-span-2"
-            disabled={draftMode === "continuum" || requestState === "loading"}
-          >
-            <legend className="px-1 font-semibold">
-              {messages.controls.fields.representativeSpecies}
-            </legend>
-            <div className="flex flex-wrap gap-4">
-              {SPECTROSCOPY_ELEMENTS.map((element) => (
-                <label className="flex min-h-11 items-center gap-2" key={element}>
+              <fieldset
+                className={`${styles.choiceFieldset} ${styles.spanAll}`}
+                disabled={draftMode === "continuum" || requestState === "loading"}
+              >
+                <legend>{messages.controls.fields.representativeSpecies}</legend>
+                <div className={styles.choiceGrid}>
+                  {SPECTROSCOPY_ELEMENTS.map((element) => (
+                    <label className={styles.choice} key={element}>
+                      <input
+                        checked={draftElements.includes(element)}
+                        onChange={() => toggleElement(element)}
+                        type="checkbox"
+                      />
+                      <span>{element}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              {[
+                {
+                  ariaLabel: messages.controls.fieldAriaLabels.radialVelocity,
+                  label: messages.controls.fields.radialVelocity,
+                  maximum: SPECTROSCOPY_LIMITS.maxRadialVelocityKmS,
+                  minimum: SPECTROSCOPY_LIMITS.minRadialVelocityKmS,
+                  setter: setDraftVelocity,
+                  unit: "km/s",
+                  value: draftVelocity,
+                },
+                {
+                  ariaLabel: messages.controls.fieldAriaLabels.resolvingPower,
+                  label: messages.controls.fields.resolvingPower,
+                  maximum: SPECTROSCOPY_LIMITS.maxResolvingPower,
+                  minimum: SPECTROSCOPY_LIMITS.minResolvingPower,
+                  setter: setDraftResolution,
+                  unit: "R",
+                  value: draftResolution,
+                },
+                {
+                  ariaLabel: messages.controls.fieldAriaLabels.displayNoise,
+                  label: messages.controls.fields.displayNoise,
+                  maximum: SPECTROSCOPY_LIMITS.maxNoiseSigma,
+                  minimum: SPECTROSCOPY_LIMITS.minNoiseSigma,
+                  setter: setDraftNoiseSigma,
+                  unit: messages.figure.normalizedFlux,
+                  value: draftNoiseSigma,
+                },
+              ].map(({ ariaLabel, label, maximum, minimum, setter, unit, value }) => (
+                <label className={styles.field} key={label}>
+                  <span className={styles.fieldLabel}>
+                    <span>{label}</span>
+                    <span className={styles.unit}>{unit}</span>
+                  </span>
                   <input
-                    checked={draftElements.includes(element)}
-                    onChange={() => toggleElement(element)}
-                    type="checkbox"
+                    aria-label={ariaLabel}
+                    className={styles.input}
+                    disabled={requestState === "loading"}
+                    max={maximum}
+                    min={minimum}
+                    onChange={(event) => {
+                      setter(event.target.value);
+                      setMessage("");
+                    }}
+                    step="any"
+                    type="number"
+                    value={value}
                   />
-                  <span>{element}</span>
                 </label>
               ))}
+
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>
+                  <span>{messages.controls.fields.noiseSeed}</span>
+                  <span className={styles.unit}>uint32</span>
+                </span>
+                <input
+                  aria-label={messages.controls.fieldAriaLabels.noiseSeed}
+                  className={styles.input}
+                  disabled={requestState === "loading"}
+                  max={SPECTROSCOPY_LIMITS.maxNoiseSeed}
+                  min={SPECTROSCOPY_LIMITS.minNoiseSeed}
+                  onChange={(event) => {
+                    setDraftNoiseSeed(event.target.value);
+                    setMessage("");
+                  }}
+                  step="1"
+                  type="number"
+                  value={draftNoiseSeed}
+                />
+              </label>
             </div>
-          </fieldset>
 
-          {[
-            {
-              ariaLabel: messages.controls.fieldAriaLabels.radialVelocity,
-              label: messages.controls.fields.radialVelocity,
-              maximum: SPECTROSCOPY_LIMITS.maxRadialVelocityKmS,
-              minimum: SPECTROSCOPY_LIMITS.minRadialVelocityKmS,
-              setter: setDraftVelocity,
-              unit: "km/s",
-              value: draftVelocity,
-            },
-            {
-              ariaLabel: messages.controls.fieldAriaLabels.resolvingPower,
-              label: messages.controls.fields.resolvingPower,
-              maximum: SPECTROSCOPY_LIMITS.maxResolvingPower,
-              minimum: SPECTROSCOPY_LIMITS.minResolvingPower,
-              setter: setDraftResolution,
-              unit: "R",
-              value: draftResolution,
-            },
-            {
-              ariaLabel: messages.controls.fieldAriaLabels.displayNoise,
-              label: messages.controls.fields.displayNoise,
-              maximum: SPECTROSCOPY_LIMITS.maxNoiseSigma,
-              minimum: SPECTROSCOPY_LIMITS.minNoiseSigma,
-              setter: setDraftNoiseSigma,
-              unit: messages.figure.normalizedFlux,
-              value: draftNoiseSigma,
-            },
-          ].map(({ ariaLabel, label, maximum, minimum, setter, unit, value }) => (
-            <label className="space-y-2" key={label}>
-              <span className="flex justify-between gap-2 font-semibold">
-                <span>{label}</span>
-                <span className="text-xs font-normal text-[var(--muted)]">{unit}</span>
-              </span>
-              <input
-                aria-label={ariaLabel}
-                className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
+            <div className={styles.actions}>
+              <button
+                className={styles.primaryButton}
                 disabled={requestState === "loading"}
-                max={maximum}
-                min={minimum}
-                onChange={(event) => {
-                  setter(event.target.value);
-                  setMessage("");
-                }}
-                step="any"
-                type="number"
-                value={value}
-              />
-            </label>
-          ))}
-
-          <label className="space-y-2">
-            <span className="flex justify-between gap-2 font-semibold">
-              <span>{messages.controls.fields.noiseSeed}</span>
-              <span className="text-xs font-normal text-[var(--muted)]">uint32</span>
-            </span>
-            <input
-              aria-label={messages.controls.fieldAriaLabels.noiseSeed}
-              className="min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--background-raised)] px-3 font-mono"
-              disabled={requestState === "loading"}
-              max={SPECTROSCOPY_LIMITS.maxNoiseSeed}
-              min={SPECTROSCOPY_LIMITS.minNoiseSeed}
-              onChange={(event) => {
-                setDraftNoiseSeed(event.target.value);
-                setMessage("");
-              }}
-              step="1"
-              type="number"
-              value={draftNoiseSeed}
-            />
-          </label>
-
-          <div className="flex flex-wrap gap-3 md:col-span-2">
-            <button
-              className="min-h-11 rounded-md bg-[var(--accent)] px-5 font-semibold text-[var(--background)]"
-              disabled={requestState === "loading"}
-              type="submit"
+                type="submit"
+              >
+                {requestState === "loading"
+                  ? messages.actions.calculating
+                  : messages.actions.calculate}
+              </button>
+              <button
+                className={styles.secondaryButton}
+                disabled={requestState === "loading"}
+                onClick={resetDefault}
+                type="button"
+              >
+                {messages.actions.reset}
+              </button>
+            </div>
+          </form>
+          {message ? (
+            <p
+              className={styles.message}
+              role={requestState === "unavailable" ? "alert" : "status"}
             >
-              {requestState === "loading"
-                ? messages.actions.calculating
-                : messages.actions.calculate}
-            </button>
-            <button
-              className="min-h-11 rounded-md border border-[var(--border-strong)] px-5 font-semibold"
-              disabled={requestState === "loading"}
-              onClick={resetDefault}
-              type="button"
-            >
-              {messages.actions.reset}
-            </button>
-          </div>
-        </form>
-        {message ? (
-          <p role={requestState === "unavailable" ? "alert" : "status"}>{message}</p>
-        ) : null}
+              {message}
+            </p>
+          ) : null}
+        </div>
       </section>
 
       {calculation === null ? (
-        <section className="border border-[var(--border)] p-5" role="alert">
-          <h2 className="text-2xl font-semibold">{messages.result.unavailableTitle}</h2>
-          <p className="mt-2 text-[var(--muted)]">{messages.result.unavailableDescription}</p>
+        <section className={styles.unavailable} role="alert">
+          <h2>{messages.result.unavailableTitle}</h2>
+          <p>{messages.result.unavailableDescription}</p>
         </section>
       ) : (
-        <section aria-labelledby="spectroscopy-result-heading" className="space-y-7">
-          <div className="max-w-4xl space-y-2">
-            <h2 className="text-2xl font-semibold" id="spectroscopy-result-heading">
+        <section aria-labelledby="spectroscopy-result-heading" className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionIndex}>02 · Spectrum</p>
+            <h2 className={styles.sectionTitle} id="spectroscopy-result-heading">
               {messages.result.title}
             </h2>
-            <p className="leading-7 text-[var(--muted)]">
+            <p className={styles.sectionDescription}>
               {formatMessageTemplate(messages.result.description, {
                 modelVersion: calculation.model_version,
               })}
             </p>
           </div>
-          <ResultSummary locale={locale} messages={messages} result={calculation} />
-          <SpectrumFigure locale={locale} messages={messages.figure} result={calculation} />
-          <ReturnedLines locale={locale} messages={messages.result.lines} result={calculation} />
-          <p className="leading-7 text-[var(--muted)]">{calculation.identification_explanation}</p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              calculation.continuum_note,
-              calculation.line_strength_note,
-              calculation.resolution_note,
-              calculation.noise_note,
-            ].map((note) => (
-              <p
-                className="rounded-md border border-[var(--border)] p-4 text-sm leading-6 text-[var(--muted)]"
-                key={note}
-              >
-                {note}
-              </p>
-            ))}
+          <div className={styles.resultStack}>
+            <ResultSummary locale={locale} messages={messages} result={calculation} />
+            <SpectrumFigure locale={locale} messages={messages.figure} result={calculation} />
+            <ReturnedLines locale={locale} messages={messages.result.lines} result={calculation} />
+            <p className={styles.resultNote}>{calculation.identification_explanation}</p>
+            <div className={styles.resultCallouts}>
+              {[
+                calculation.continuum_note,
+                calculation.line_strength_note,
+                calculation.resolution_note,
+                calculation.noise_note,
+              ].map((note) => (
+                <p key={note}>{note}</p>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      <section
-        aria-labelledby="spectroscopy-model-heading"
-        className="max-w-5xl space-y-5 border-t border-[var(--border)] pt-8"
-      >
-        <h2 className="text-2xl font-semibold" id="spectroscopy-model-heading">
-          {messages.model.title}
-        </h2>
-        <p className="leading-7 text-[var(--muted)]">{SPECTROSCOPY_DEFINITION.sampling_policy}</p>
-        <details open>
-          <summary className="cursor-pointer font-semibold">
-            {messages.model.assumptionsAndLimitations}
-          </summary>
-          <div className="mt-3 grid gap-5 md:grid-cols-2">
-            <div>
-              <h3 className="font-semibold">{messages.model.assumptions}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {SPECTROSCOPY_DEFINITION.assumptions.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+      <section aria-labelledby="spectroscopy-model-heading" className={styles.modelSection}>
+        <h2 id="spectroscopy-model-heading">{messages.model.title}</h2>
+        <div className={styles.modelBody}>
+          <p>{SPECTROSCOPY_DEFINITION.sampling_policy}</p>
+          <details className={styles.modelDetails} open>
+            <summary>{messages.model.assumptionsAndLimitations}</summary>
+            <div className={styles.modelDetailsBody}>
+              <div className={styles.modelColumns}>
+                <div>
+                  <h3>{messages.model.assumptions}</h3>
+                  <ul>
+                    {SPECTROSCOPY_DEFINITION.assumptions.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3>{messages.model.limitations}</h3>
+                  <ul>
+                    {SPECTROSCOPY_DEFINITION.limitations.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">{messages.model.limitations}</h3>
-              <ul className="mt-2 list-disc space-y-2 pl-6 text-sm text-[var(--muted)]">
-                {SPECTROSCOPY_DEFINITION.limitations.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </details>
-        <div>
-          <h3 className="font-semibold">{messages.model.reviewedSources}</h3>
-          <div className="mt-2">
+          </details>
+          <div>
+            <h3>{messages.model.reviewedSources}</h3>
             <SourceList messages={messages.model} />
           </div>
+          <p className={styles.currentState}>
+            {formatMessageTemplate(messages.model.currentState, {
+              mode: modeLabel(state.mode, messages.modes),
+              temperature: format(state.temperature_k, locale),
+              velocity: format(state.radial_velocity_km_s, locale),
+            })}
+          </p>
         </div>
-        <p className="text-sm text-[var(--muted)]">
-          {formatMessageTemplate(messages.model.currentState, {
-            mode: modeLabel(state.mode, messages.modes),
-            temperature: format(state.temperature_k, locale),
-            velocity: format(state.radial_velocity_km_s, locale),
-          })}
-        </p>
       </section>
     </article>
   );

@@ -30,17 +30,17 @@ export function ResultCard({
 }: ResultCardProps) {
   const { entity, matched_alias: matchedAlias } = result;
   return (
-    <li className="list-none">
-      <div className="flex h-full items-stretch rounded-md border border-[var(--border)] bg-[var(--surface)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]">
+    <li className="list-none border-b border-[var(--border)]">
+      <div className="flex min-w-0 items-stretch">
         <Link
-          className="flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-2 px-5 py-4 no-underline"
+          className="group grid min-h-[4.75rem] min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-2 no-underline max-[36rem]:grid-cols-1"
           href={`/objects/${entity.slug}`}
         >
-          <span className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
+          <span className="font-[var(--font-display)] text-[1.2rem] font-medium tracking-[-0.025em] text-[var(--foreground)] underline decoration-transparent underline-offset-[0.18em] transition-colors group-hover:text-[var(--accent-strong)] group-hover:decoration-[var(--border-strong)]">
             {entity.canonical_name}
           </span>
-          <span className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
-            <span className="rounded-sm border border-[var(--border)] px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide">
+          <span className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right text-[0.7rem] text-[var(--muted)] max-[36rem]:justify-start max-[36rem]:text-left">
+            <span className="font-[var(--font-data)] text-[0.65rem] tracking-[0.04em] uppercase">
               {entityTypeMessages[entity.entity_type]}
             </span>
             {matchedAlias !== null && matchedAlias !== "" ? (
@@ -50,7 +50,7 @@ export function ResultCard({
             ) : null}
           </span>
         </Link>
-        <div className="flex items-center pr-1.5">
+        <div className="flex min-w-11 items-center justify-end pl-3">
           <SaveToCollectionsButton
             identity={{
               canonical_name: entity.canonical_name,

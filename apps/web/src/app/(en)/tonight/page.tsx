@@ -17,6 +17,7 @@ export default function EnglishTonightPage({
       entityTypeMessages={enMessages.entityTypes}
       locale={DEFAULT_LOCALE}
       messages={enMessages.tonight}
+      observationWorkspaceMessages={enMessages.observationWorkspace}
       searchParams={searchParams}
     />
   );

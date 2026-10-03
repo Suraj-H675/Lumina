@@ -43,33 +43,22 @@ export function MissionControlHome({
             {messages.title}
           </h1>
           <p className={styles.intro}>{messages.intro}</p>
+        </div>
+        <CurrentMissionEvent
+          launch={currentLaunch}
+          messages={messages.currentMissionEvent}
+          outcome={launchOutcome}
+        />
+        <div className={styles.portalActions}>
           <nav aria-label={messages.pathwaysAriaLabel} className={styles.pathways}>
             <Link className={styles.pathway} href="/explore">
-              <span aria-hidden="true" className={styles.pathwayIndex}>
-                01
-              </span>
-              <span>{messages.exploreCatalogue}</span>
-              <span aria-hidden="true" className={styles.pathwayArrow}>
-                →
-              </span>
+              {messages.exploreCatalogue}
             </Link>
             <Link className={styles.pathway} href="/observe">
-              <span aria-hidden="true" className={styles.pathwayIndex}>
-                02
-              </span>
-              <span>{messages.planObservation}</span>
-              <span aria-hidden="true" className={styles.pathwayArrow}>
-                →
-              </span>
+              {messages.planObservation}
             </Link>
             <Link className={styles.pathway} href="/lab">
-              <span aria-hidden="true" className={styles.pathwayIndex}>
-                03
-              </span>
-              <span>{messages.openSpaceLab}</span>
-              <span aria-hidden="true" className={styles.pathwayArrow}>
-                →
-              </span>
+              {messages.openSpaceLab}
             </Link>
           </nav>
           <div className={styles.utilityLinks}>
@@ -84,11 +73,6 @@ export function MissionControlHome({
             </Link>
           </div>
         </div>
-        <CurrentMissionEvent
-          launch={currentLaunch}
-          messages={messages.currentMissionEvent}
-          outcome={launchOutcome}
-        />
       </section>
       <div className={styles.stream}>
         <MissionBoard
@@ -196,6 +180,33 @@ function CurrentMissionEvent({
           value={launch.site?.pad_name ?? messages.missingValue}
         />
       </dl>
+      {outcome.kind === "ok" ? (
+        <p className={styles.eventSource}>
+          <span>
+            {messages.sourceSnapshotLabel}: {outcome.data.source.name}
+          </span>
+          <span>
+            {messages.retrievedAtLabel}:{" "}
+            {outcome.data.freshness.retrieved_at === null ? (
+              messages.notRecorded
+            ) : (
+              <time dateTime={outcome.data.freshness.retrieved_at}>
+                {outcome.data.freshness.retrieved_at}
+              </time>
+            )}
+          </span>
+          <span>
+            {messages.latestRecordUpdateLabel}:{" "}
+            {outcome.data.freshness.snapshot_latest_updated_utc === null ? (
+              messages.notRecorded
+            ) : (
+              <time dateTime={outcome.data.freshness.snapshot_latest_updated_utc}>
+                {outcome.data.freshness.snapshot_latest_updated_utc}
+              </time>
+            )}
+          </span>
+        </p>
+      ) : null}
       <Link className={styles.eventAction} href={`/now/launches/${launch.launch_id}`}>
         {messages.inspectLaunch}
       </Link>
@@ -214,7 +225,6 @@ function MissionBoard({
   return (
     <section aria-labelledby="mission-board-heading" className={styles.board}>
       <div className={styles.sectionHeader}>
-        <p className={styles.sectionEyebrow}>{messages.title}</p>
         <h2 className={styles.sectionTitle} id="mission-board-heading">
           {messages.title}
         </h2>

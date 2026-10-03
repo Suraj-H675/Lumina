@@ -15,26 +15,42 @@ describe("Lab section navigation", () => {
   it("lists implemented labs", () => {
     const markup = renderToStaticMarkup(<LabPage messages={enMessages.labIndex} />);
 
-    expect(markup).toContain('href="/lab/scale-explorer"');
-    expect(markup).toContain('href="/lab/seasons-simulator"');
-    expect(markup).toContain('href="/lab/telescope-builder"');
-    expect(markup).toContain('href="/lab/hr-diagram-explorer"');
-    expect(markup).toContain('href="/lab/planetary-system-builder"');
-    expect(markup).toContain('href="/lab/rocket-mission-designer"');
-    expect(markup).toContain('href="/lab/impact-simulator"');
-    expect(markup).toContain('href="/lab/black-hole-relativity"');
-    expect(markup).toContain('href="/lab/relativity-visualizations"');
+    for (const href of [
+      "/lab/orbit-sandbox",
+      "/lab/transit-method",
+      "/lab/radial-velocity",
+      "/lab/stellar-laboratory",
+      "/lab/eclipse-simulator",
+      "/lab/spectroscopy-lab",
+      "/lab/planetary-system-builder",
+      "/lab/rocket-mission-designer",
+      "/lab/impact-simulator",
+      "/lab/black-hole-relativity",
+      "/lab/relativity-visualizations",
+      "/lab/scale-explorer",
+      "/lab/seasons-simulator",
+      "/lab/telescope-builder",
+      "/lab/hr-diagram-explorer",
+    ]) {
+      expect(markup).toContain(`href="${href}"`);
+    }
     expect(markup).toContain("H-R Diagram Explorer");
     expect(markup).toContain("Rocket / Mission Designer");
     expect(markup).toContain("Impact Simulator");
     expect(markup).toContain("Black-Hole / Relativity Lab");
     expect(markup).toContain("Relativity Visualizations");
+    expect(markup).toContain("Orbits &amp; detection");
+    expect(markup).toContain("Stars &amp; light");
     expect(markup).not.toContain("Coming soon");
   });
 
   it("localizes the Lab wrapper without rewriting authored lab records", () => {
     const messages = {
       ...enMessages.labIndex,
+      domains: {
+        ...enMessages.labIndex.domains,
+        starsAndLight: "Localized stars and light",
+      },
       navigationLabel: "Localized lab navigation",
       openLab: "Localized lab action",
       title: "Localized Lab title",
@@ -44,6 +60,9 @@ describe("Lab section navigation", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: "Localized Lab title" })).toBeVisible();
     expect(screen.getByRole("navigation", { name: "Localized lab navigation" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Localized stars and light" }),
+    ).toBeVisible();
     expect(screen.getAllByText("Localized lab action")).toHaveLength(15);
     expect(screen.getByText("H-R Diagram Explorer", { exact: true })).toBeVisible();
     expect(

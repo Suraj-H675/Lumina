@@ -1,15 +1,15 @@
 .page {
   display: grid;
-  gap: 4.75rem;
+  gap: 3.1rem;
 }
 
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(2rem, 6vw, 6rem);
+  gap: clamp(1.5rem, 5vw, 4rem);
   align-items: end;
   border-bottom: 1px solid var(--border);
-  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  padding-bottom: 1.65rem;
 }
 
 .eyebrow {
@@ -23,21 +23,21 @@
 }
 
 .heroTitle {
-  max-width: 13ch;
-  margin: 0.75rem 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(3.4rem, 7vw, 6.6rem);
-  font-weight: 500;
-  letter-spacing: -0.055em;
-  line-height: 0.9;
+  max-width: 15ch;
+  margin: 0.55rem 0 0;
+  font-family: var(--font-ui);
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 680;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
 }
 
 .heroDescription {
-  max-width: 43rem;
-  margin: 1.45rem 0 0;
+  max-width: 46rem;
+  margin: 0.85rem 0 0;
   color: var(--muted-strong);
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 0.92rem;
+  line-height: 1.68;
 }
 
 .heroMeta {
@@ -69,8 +69,8 @@
 
 .section {
   display: grid;
-  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 0.72fr);
-  gap: clamp(2rem, 5vw, 5rem);
+  grid-template-columns: minmax(12rem, 0.24fr) minmax(0, 0.76fr);
+  gap: clamp(1.5rem, 4.5vw, 4rem);
   align-items: start;
 }
 
@@ -554,11 +554,11 @@
 
 @media (max-width: 44rem) {
   .page {
-    gap: 4rem;
+    gap: 2.75rem;
   }
 
   .heroTitle {
-    font-size: clamp(3.35rem, 18vw, 5rem);
+    font-size: clamp(2.15rem, 10vw, 2.9rem);
   }
 
   .locationGrid,

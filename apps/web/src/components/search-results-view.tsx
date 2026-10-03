@@ -36,7 +36,7 @@ export function ExploreResultsView({
     return (
       <section
         aria-labelledby="explore-no-results-heading"
-        className="max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--surface)] px-6 py-8"
+        className="max-w-2xl border-y border-[var(--border)] py-6"
       >
         <h2
           className="text-xl font-semibold text-[var(--foreground)]"
@@ -54,7 +54,7 @@ export function ExploreResultsView({
   return (
     <ul
       aria-label={messages.resultsAriaLabel}
-      className="grid gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
+      className="m-0 border-t border-[var(--border-strong)] p-0"
     >
       {items.map((item) => (
         <ResultCard

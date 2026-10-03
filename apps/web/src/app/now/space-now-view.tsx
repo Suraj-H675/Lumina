@@ -1,14 +1,40 @@
 import type { ApodResponse } from "@nova-lumina/api-client";
 import Link from "next/link";
 
+import { formatMessageTemplate } from "../../lib/i18n/format";
 import type { SpaceNowMessages } from "../../lib/i18n/messages/types";
-import type { NowApodOutcome } from "../../lib/server/space-now";
+import type {
+  NowApodOutcome,
+  NowLaunchesOutcome,
+  NowNearEarthOutcome,
+  NowSatellitesOutcome,
+  NowSpaceWeatherOutcome,
+} from "../../lib/server/space-now";
 import styles from "./space-now-view.module.css";
 
+type SpaceNowFeedOutcomes = Readonly<{
+  launches: NowLaunchesOutcome;
+  nearEarth: NowNearEarthOutcome;
+  satellites: NowSatellitesOutcome;
+  spaceWeather: NowSpaceWeatherOutcome;
+}>;
+
+const unavailableFeedOutcomes: SpaceNowFeedOutcomes = {
+  launches: { kind: "unavailable" },
+  nearEarth: { kind: "unavailable" },
+  satellites: { kind: "unavailable" },
+  spaceWeather: { kind: "unavailable" },
+};
+
 export function SpaceNowView({
+  feedOutcomes = unavailableFeedOutcomes,
   messages,
   outcome,
-}: Readonly<{ messages: SpaceNowMessages; outcome: NowApodOutcome }>) {
+}: Readonly<{
+  feedOutcomes?: SpaceNowFeedOutcomes;
+  messages: SpaceNowMessages;
+  outcome: NowApodOutcome;
+}>) {
   return (
     <article className={styles.page}>
       <header className={styles.hero}>
@@ -25,80 +51,92 @@ export function SpaceNowView({
         <UnavailableDailyVisual messages={messages} />
       )}
       <div className={styles.feeds}>
-        <LaunchNavigation messages={messages.navigation.launches} />
-        <SatelliteNavigation messages={messages.navigation.satellites} />
-        <NearEarthNavigation messages={messages.navigation.nearEarth} />
-        <SpaceWeatherNavigation messages={messages.navigation.spaceWeather} />
+        <FeedNavigation
+          href="/now/launches"
+          messages={messages.navigation.launches}
+          outcome={feedOutcomes.launches}
+          statusMessages={messages.feedStatus}
+        />
+        <FeedNavigation
+          href="/now/satellites"
+          messages={messages.navigation.satellites}
+          outcome={feedOutcomes.satellites}
+          statusMessages={messages.feedStatus}
+        />
+        <FeedNavigation
+          href="/now/near-earth"
+          messages={messages.navigation.nearEarth}
+          outcome={feedOutcomes.nearEarth}
+          statusMessages={messages.feedStatus}
+        />
+        <FeedNavigation
+          href="/now/space-weather"
+          messages={messages.navigation.spaceWeather}
+          outcome={feedOutcomes.spaceWeather}
+          statusMessages={messages.feedStatus}
+        />
       </div>
     </article>
   );
 }
 
-function LaunchNavigation({
+type FeedNavigationMessages = SpaceNowMessages["navigation"][keyof SpaceNowMessages["navigation"]];
+type FeedOutcome =
+  NowLaunchesOutcome | NowNearEarthOutcome | NowSatellitesOutcome | NowSpaceWeatherOutcome;
+
+function FeedNavigation({
+  href,
   messages,
-}: Readonly<{ messages: SpaceNowMessages["navigation"]["launches"] }>) {
+  outcome,
+  statusMessages,
+}: Readonly<{
+  href: string;
+  messages: FeedNavigationMessages;
+  outcome: FeedOutcome;
+  statusMessages: SpaceNowMessages["feedStatus"];
+}>) {
   return (
-    <section aria-labelledby="launch-navigation-heading" className={styles.feed}>
-      <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
-      <h2 className={styles.feedTitle} id="launch-navigation-heading">
-        {messages.title}
-      </h2>
+    <section className={styles.feed}>
+      <div className={styles.feedIdentity}>
+        <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
+        <h2 className={styles.feedTitle}>{messages.title}</h2>
+        <FeedStatus messages={statusMessages} outcome={outcome} />
+      </div>
       <p className={styles.feedDescription}>{messages.description}</p>
-      <Link className={styles.feedLink} href="/now/launches">
+      <Link className={styles.feedLink} href={href}>
         {messages.action}
       </Link>
     </section>
   );
 }
 
-function SatelliteNavigation({
+function FeedStatus({
   messages,
-}: Readonly<{ messages: SpaceNowMessages["navigation"]["satellites"] }>) {
-  return (
-    <section aria-labelledby="satellite-navigation-heading" className={styles.feed}>
-      <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
-      <h2 className={styles.feedTitle} id="satellite-navigation-heading">
-        {messages.title}
-      </h2>
-      <p className={styles.feedDescription}>{messages.description}</p>
-      <Link className={styles.feedLink} href="/now/satellites">
-        {messages.action}
-      </Link>
-    </section>
-  );
-}
+  outcome,
+}: Readonly<{
+  messages: SpaceNowMessages["feedStatus"];
+  outcome: FeedOutcome;
+}>) {
+  if (outcome.kind !== "ok") {
+    return (
+      <p className={styles.feedStatus} data-state="unavailable">
+        {messages.states.unavailable}
+      </p>
+    );
+  }
 
-function NearEarthNavigation({
-  messages,
-}: Readonly<{ messages: SpaceNowMessages["navigation"]["nearEarth"] }>) {
+  const state = outcome.data.availability;
+  const retrievedAt = outcome.data.freshness.retrieved_at;
   return (
-    <section aria-labelledby="near-earth-navigation-heading" className={styles.feed}>
-      <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
-      <h2 className={styles.feedTitle} id="near-earth-navigation-heading">
-        {messages.title}
-      </h2>
-      <p className={styles.feedDescription}>{messages.description}</p>
-      <Link className={styles.feedLink} href="/now/near-earth">
-        {messages.action}
-      </Link>
-    </section>
-  );
-}
-
-function SpaceWeatherNavigation({
-  messages,
-}: Readonly<{ messages: SpaceNowMessages["navigation"]["spaceWeather"] }>) {
-  return (
-    <section aria-labelledby="space-weather-navigation-heading" className={styles.feed}>
-      <p className={styles.sectionEyebrow}>{messages.eyebrow}</p>
-      <h2 className={styles.feedTitle} id="space-weather-navigation-heading">
-        {messages.title}
-      </h2>
-      <p className={styles.feedDescription}>{messages.description}</p>
-      <Link className={styles.feedLink} href="/now/space-weather">
-        {messages.action}
-      </Link>
-    </section>
+    <p className={styles.feedStatus} data-state={state}>
+      <span>{messages.states[state]}</span>
+      <span>{formatMessageTemplate(messages.source, { source: outcome.data.source.name })}</span>
+      <span>
+        {retrievedAt === null
+          ? messages.retrievalNotRecorded
+          : formatMessageTemplate(messages.retrieved, { retrievedAt })}
+      </span>
+    </p>
   );
 }
 

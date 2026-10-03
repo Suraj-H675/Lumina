@@ -34,6 +34,12 @@ test.describe("Space Now Daily Visual", () => {
     await expect(page.getByText("2026-09-09")).toBeVisible();
     await expect(page.getByText("Retrieved at (UTC)")).toBeVisible();
     await expect(page.getByText("2026-09-10T12:00:00Z")).toBeVisible();
+    await expect(page.getByText("Source: Launch Library 2 by The Space Devs")).toBeVisible();
+    await expect(page.getByText("Source: CelesTrak Current GP Data")).toBeVisible();
+    await expect(page.getByText("Source: NASA Asteroids NeoWs")).toBeVisible();
+    await expect(
+      page.getByText("Source: NOAA / NWS Space Weather Prediction Center"),
+    ).toBeVisible();
 
     const action = page.getByRole("link", { name: "View today's APOD image" });
     await expect(action).toHaveAttribute("href", "https://apod.nasa.gov/apod/ap260909.html");
@@ -57,6 +63,7 @@ test.describe("Space Now Daily Visual", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Space Now" })).toBeVisible();
     await expect(page.getByRole("link", { name: "View today's APOD image" })).toBeVisible();
+    await expect(page.getByText("Source: Launch Library 2 by The Space Devs")).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -76,6 +83,7 @@ test.describe("Space Now Daily Visual", () => {
       ).toBeVisible();
       await expect(page.getByText("2026-09-09")).toBeVisible();
       await expect(page.getByRole("link", { name: "View today's APOD image" })).toBeVisible();
+      await expect(page.getByText("Source: Launch Library 2 by The Space Devs")).toBeVisible();
       await expect(page.locator("img, video, iframe")).toHaveCount(0);
     } finally {
       await context.close();

@@ -93,7 +93,7 @@ function DefaultComparison({
           })}
         </p>
       </div>
-      <div className={`${styles.tableWrap} ${styles.sectionBody}`}>
+      <div className={`${styles.tableWrap} ${styles.sectionBody}`} tabIndex={0}>
         <table className={styles.table} style={{ minWidth: "52rem" }}>
           <thead>
             <tr>
@@ -177,7 +177,7 @@ function ReferenceInventory({
             unit: SYSTEM_COMPARE_DISTANCE_UNIT,
           })}
         </summary>
-        <div className={styles.tableWrap}>
+        <div className={styles.tableWrap} tabIndex={0}>
           <table className={styles.table} style={{ minWidth: "58rem" }}>
             <thead>
               <tr>

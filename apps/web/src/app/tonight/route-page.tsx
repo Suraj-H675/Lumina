@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 
+import { ObservationWorkspaceNav } from "../../components/observation-workspace-nav";
 import { TonightView } from "../../components/tonight-view";
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type {
   CollectionStateMessages,
   CoordinateDisclosureMessages,
   EntityTypeMessages,
+  ObservationWorkspaceMessages,
   TonightMessages,
 } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
@@ -24,6 +26,7 @@ type TonightPageProps = Readonly<{
   entityTypeMessages: EntityTypeMessages;
   locale: PublishedLocale;
   messages: TonightMessages;
+  observationWorkspaceMessages: ObservationWorkspaceMessages;
   searchParams: Promise<Readonly<{ date?: string | string[] }>>;
 }>;
 
@@ -37,6 +40,7 @@ export default async function TonightPage({
   entityTypeMessages,
   locale,
   messages,
+  observationWorkspaceMessages,
   searchParams,
 }: TonightPageProps) {
   const params = await searchParams;
@@ -46,14 +50,17 @@ export default async function TonightPage({
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   return (
-    <TonightView
-      {...(apiOrigin === undefined ? {} : { apiOrigin })}
-      collectionStateMessages={collectionStateMessages}
-      coordinateDisclosureMessages={coordinateDisclosureMessages}
-      entityTypeMessages={entityTypeMessages}
-      {...(initialDate === undefined ? {} : { initialDate })}
-      locale={locale}
-      messages={messages}
-    />
+    <div className="grid gap-8">
+      <ObservationWorkspaceNav current="tonight" messages={observationWorkspaceMessages} />
+      <TonightView
+        {...(apiOrigin === undefined ? {} : { apiOrigin })}
+        collectionStateMessages={collectionStateMessages}
+        coordinateDisclosureMessages={coordinateDisclosureMessages}
+        entityTypeMessages={entityTypeMessages}
+        {...(initialDate === undefined ? {} : { initialDate })}
+        locale={locale}
+        messages={messages}
+      />
+    </div>
   );
 }

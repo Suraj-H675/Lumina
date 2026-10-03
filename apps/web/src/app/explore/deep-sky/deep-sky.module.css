@@ -1,15 +1,15 @@
 .page {
   display: grid;
-  gap: clamp(4rem, 8vw, 7rem);
+  gap: clamp(3.25rem, 6vw, 5rem);
 }
 
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 0.7fr) minmax(16rem, 0.3fr);
-  gap: clamp(2.5rem, 7vw, 7rem);
+  gap: clamp(2rem, 6vw, 5rem);
   align-items: end;
   border-bottom: 1px solid var(--border);
-  padding-bottom: clamp(2.75rem, 6vw, 5rem);
+  padding-bottom: clamp(2rem, 4vw, 3.5rem);
 }
 
 .heroCopy {
@@ -65,7 +65,7 @@
   max-width: 10ch;
   margin: 0.75rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(3.7rem, 8vw, 7rem);
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
   font-weight: 500;
   letter-spacing: -0.06em;
   line-height: 0.88;
@@ -168,15 +168,12 @@
   padding: 0.9rem 1rem;
   color: var(--foreground);
   text-decoration: none;
-  transition:
-    background-color 160ms ease,
-    padding-inline 160ms ease;
+  transition: background-color 160ms ease;
 }
 
 .objectLink:hover,
 .objectLink[aria-current="page"] {
   background: color-mix(in srgb, var(--surface) 66%, transparent);
-  padding-inline: 1.2rem;
 }
 
 .objectLink[aria-current="page"] {
@@ -553,7 +550,7 @@
   }
 
   .title {
-    font-size: clamp(3.5rem, 18vw, 5.2rem);
+    font-size: clamp(2.8rem, 12vw, 3.8rem);
   }
 
   .objectList,

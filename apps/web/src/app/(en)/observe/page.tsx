@@ -15,6 +15,7 @@ export default function EnglishObservePage({
       coordinateDisclosureMessages={enMessages.coordinateDisclosure}
       entityTypeMessages={enMessages.entityTypes}
       journalEntryMessages={enMessages.journal.entry}
+      observationWorkspaceMessages={enMessages.observationWorkspace}
       plannerLocale={DEFAULT_LOCALE}
       plannerMessages={enMessages.observationPlanner}
       savedPlanLocale={DEFAULT_LOCALE}

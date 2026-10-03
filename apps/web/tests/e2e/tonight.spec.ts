@@ -102,6 +102,16 @@ test("Tonight core compares one local collection with factual geometry and plann
   await page.goto(`/tonight?date=${NIGHT}`);
 
   await expect(page.getByRole("heading", { level: 1, name: "Tonight" })).toBeVisible();
+  const workflowNav = page.getByRole("navigation", { name: "Observing workflows" });
+  await expect(workflowNav).toBeVisible();
+  await expect(workflowNav.getByRole("link", { name: /Plan from a Collection/i })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(workflowNav.getByRole("link", { name: /Plan one target/i })).toHaveAttribute(
+    "href",
+    "/observe",
+  );
   await expect(page.getByRole("combobox", { name: /collection to analyze/i })).toHaveValue(
     COLLECTION_ID,
   );

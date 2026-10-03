@@ -1588,6 +1588,23 @@ export const enMessages = {
       useImported: "Use imported",
     },
   },
+  observationWorkspace: {
+    ariaLabel: "Observing workflows",
+    items: {
+      identify: {
+        description: "Consent to remote plate solving for one astronomical image.",
+        label: "Identify an image",
+      },
+      observe: {
+        description: "Plan one catalogue target for a location, night, and selected time.",
+        label: "Plan one target",
+      },
+      tonight: {
+        description: "Compare one saved Collection for an observer location and selected night.",
+        label: "Plan from a Collection",
+      },
+    },
+  },
   observationPlanner: {
     chart: {
       accessibleHighest: "Highest altitude during astronomical darkness is {altitude} at {time}.",
@@ -2130,6 +2147,13 @@ export const enMessages = {
     },
   },
   labIndex: {
+    domains: {
+      missionsAndImpacts: "Missions & impacts",
+      orbitsAndDetection: "Orbits & detection",
+      relativityAndScale: "Relativity & scale",
+      starsAndLight: "Stars & light",
+      worldsAndObserving: "Worlds & observing",
+    },
     eyebrow: "Space Lab",
     intro:
       "Open a reviewed Nova-Lumina laboratory. Each lab keeps its model, assumptions, and accessible text result visible alongside its interaction.",
@@ -4695,10 +4719,14 @@ export const enMessages = {
       countdownIneligibleExplanation:
         "Mission Control does not turn this source status and precision into an exact countdown.",
       inspectLaunch: "Inspect this launch and its provenance",
+      latestRecordUpdateLabel: "Latest source update",
       launchProviderLabel: "Launch provider",
       missionLabel: "Mission",
       missingValue: "Not provided by source",
+      notRecorded: "Not recorded",
       openLaunchCenter: "Open Launch Center",
+      retrievedAtLabel: "Retrieved",
+      sourceSnapshotLabel: "Source",
       providerDisabled:
         "The launch provider is disabled, so Mission Control is making no current-launch claim.",
       scheduleReferenceLabel: "Schedule reference",
@@ -4714,7 +4742,7 @@ export const enMessages = {
     eyebrow: "Mission Control",
     findSatellitePasses: "Find satellite passes",
     intro:
-      "A small live-and-reviewed home for what is happening in space now: one source-labelled launch event, a bounded upcoming mission board, reviewed discoveries, and your authored learning progress. Unavailable data stays visibly unavailable rather than being replaced with guesses.",
+      "A concise view of current mission data, reviewed discoveries, and learning. Provider limits remain visible, and unavailable data stays visibly unavailable rather than being replaced with guesses.",
     metadataDescription:
       "Nova-Lumina Mission Control combines a cache-backed current launch event, bounded mission board, reviewed discoveries, and authored learning without hiding source freshness or uncertainty.",
     metadataTitle: "Mission Control",
@@ -5147,8 +5175,18 @@ export const enMessages = {
       staleSnapshot: "Stale Daily Visual snapshot",
     },
     eyebrow: "Space Now",
+    feedStatus: {
+      retrievalNotRecorded: "Retrieval time not recorded",
+      retrieved: "Retrieved {retrievedAt}",
+      source: "Source: {source}",
+      states: {
+        fresh: "Fresh snapshot",
+        stale: "Stale snapshot",
+        unavailable: "Unavailable",
+      },
+    },
     intro:
-      "One carefully sourced Daily Visual from NASA Astronomy Picture of the Day, with its content date, credit, and Nova-Lumina retrieval state kept distinct.",
+      "A current-data desk for the Daily Visual, launches, satellite elements, near-Earth approaches, and space weather. Each feed keeps its own source and retrieval state instead of being flattened into one synthetic live status.",
     launches: {
       common: {
         backToLaunchCenter: "Back to Launch Center",
@@ -5585,7 +5623,7 @@ export const enMessages = {
       },
     },
     metadataDescription:
-      "A source-backed Daily Visual from NASA Astronomy Picture of the Day, with clear dates, credit, and retrieval state.",
+      "Current astronomy and spaceflight feeds with independent source, freshness, and retrieval state, plus a source-backed NASA Daily Visual.",
     metadataTitle: "Space Now",
     navigation: {
       launches: {

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { identificationCapabilitiesEndpoint, requestEndpoint } from "@nova-lumina/api-client";
 
+import { ObservationWorkspaceNav } from "../../components/observation-workspace-nav";
 import type { PublishedLocale } from "../../lib/i18n/locales";
-import type { IdentifyMessages } from "../../lib/i18n/messages/types";
+import type { IdentifyMessages, ObservationWorkspaceMessages } from "../../lib/i18n/messages/types";
 import { resolvePublicWebApiOrigin, resolveWebApiOrigin } from "../../lib/server/api-origin";
 import { IdentifyView } from "./identify-view";
 
@@ -17,11 +18,21 @@ export function createIdentifyMetadata(messages: IdentifyMessages): Metadata {
 export default async function IdentifyPage({
   locale,
   messages,
-}: Readonly<{ locale: PublishedLocale; messages: IdentifyMessages }>) {
+  observationWorkspaceMessages,
+}: Readonly<{
+  locale: PublishedLocale;
+  messages: IdentifyMessages;
+  observationWorkspaceMessages: ObservationWorkspaceMessages;
+}>) {
   const serverApiConfiguration = resolveWebApiOrigin();
   const publicApiConfiguration = resolvePublicWebApiOrigin();
   if (!serverApiConfiguration.valid || !publicApiConfiguration.valid) {
-    return <IdentifyUnavailable messages={messages} reason="apiOrigin" />;
+    return (
+      <div className="grid gap-8">
+        <ObservationWorkspaceNav current="identify" messages={observationWorkspaceMessages} />
+        <IdentifyUnavailable messages={messages} reason="apiOrigin" />
+      </div>
+    );
   }
 
   const outcome = await requestEndpoint(
@@ -29,16 +40,24 @@ export default async function IdentifyPage({
     identificationCapabilitiesEndpoint,
   );
   if (outcome.kind !== "ok") {
-    return <IdentifyUnavailable messages={messages} reason="policy" />;
+    return (
+      <div className="grid gap-8">
+        <ObservationWorkspaceNav current="identify" messages={observationWorkspaceMessages} />
+        <IdentifyUnavailable messages={messages} reason="policy" />
+      </div>
+    );
   }
 
   return (
-    <IdentifyView
-      apiOrigin={publicApiConfiguration.origin}
-      capabilities={outcome.data}
-      locale={locale}
-      messages={messages}
-    />
+    <div className="grid gap-8">
+      <ObservationWorkspaceNav current="identify" messages={observationWorkspaceMessages} />
+      <IdentifyView
+        apiOrigin={publicApiConfiguration.origin}
+        capabilities={outcome.data}
+        locale={locale}
+        messages={messages}
+      />
+    </div>
   );
 }
 

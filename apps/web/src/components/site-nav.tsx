@@ -13,6 +13,7 @@ const primaryNavigationItems = [
   { href: "/now", key: "spaceNow" },
   { href: "/observe", key: "observe" },
 ] as const satisfies ReadonlyArray<Readonly<{ href: string; key: NavigationMessageKey }>>;
+const primaryNavigationHrefs = new Set<string>(primaryNavigationItems.map((item) => item.href));
 
 const navigationGroups = [
   {
@@ -100,6 +101,7 @@ export function SiteNav({ messages }: SiteNavProps) {
                       }
                       className={styles.menuLink}
                       data-active={isActive(item.href)}
+                      data-primary-destination={primaryNavigationHrefs.has(item.href) || undefined}
                       href={item.href}
                     >
                       {messages.items[item.key]}

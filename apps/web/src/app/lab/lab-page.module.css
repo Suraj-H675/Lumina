@@ -1,15 +1,15 @@
 .page {
   display: grid;
-  gap: 4.75rem;
+  gap: 2.75rem;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(18rem, 0.28fr);
-  gap: clamp(2.5rem, 7vw, 7rem);
-  align-items: end;
+  grid-template-columns: minmax(12rem, 0.36fr) minmax(0, 0.64fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
   border-bottom: 1px solid var(--border);
-  padding-bottom: clamp(3rem, 6vw, 5rem);
+  padding-bottom: 1.75rem;
 }
 
 .eyebrow {
@@ -23,64 +23,68 @@
 }
 
 .title {
-  margin: 0.75rem 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 9vw, 8rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 0.84;
+  margin: 0.5rem 0 0;
+  font-family: var(--font-ui);
+  font-size: clamp(2rem, 3.4vw, 2.8rem);
+  font-weight: 680;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
 }
 
 .intro {
+  max-width: 46rem;
   margin: 0;
   color: var(--muted-strong);
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.domains {
+  display: grid;
+}
+
+.domain {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.34fr) minmax(0, 0.66fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+  border-top: 1px solid var(--border-strong);
+  padding: 1.2rem 0 1.35rem;
+}
+
+.domainTitle {
+  max-width: 16ch;
+  margin: 0.35rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
 }
 
 .list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
-  border-top: 1px solid var(--border-strong);
+  border-top: 1px solid var(--border);
   padding: 0;
   list-style: none;
 }
 
 .item {
   min-width: 0;
-  border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-}
-
-.item:nth-child(2n) {
-  border-right: 0;
 }
 
 .link {
   display: grid;
-  min-height: 12rem;
-  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
-  gap: 1rem;
-  align-items: start;
-  padding: 1.35rem 1.3rem 1.5rem;
+  min-height: 5.4rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: center;
+  padding: 0.85rem 0;
   color: var(--foreground);
   text-decoration: none;
-  transition:
-    background-color 170ms ease,
-    padding-inline 170ms ease;
-}
-
-.link:hover {
-  background: color-mix(in srgb, var(--surface) 68%, transparent);
-  padding-inline: 1.55rem 1.05rem;
-}
-
-.index {
-  color: var(--accent);
-  font-family: var(--font-data);
-  font-size: 0.67rem;
-  letter-spacing: 0.08em;
 }
 
 .content {
@@ -89,79 +93,74 @@
 
 .labTitle {
   display: block;
-  max-width: 22ch;
+  max-width: 28ch;
   font-family: var(--font-display);
-  font-size: clamp(1.45rem, 2.4vw, 2.15rem);
+  font-size: 1.15rem;
   font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.2em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
 }
 
 .description {
   display: block;
-  max-width: 38rem;
-  margin-top: 0.85rem;
+  max-width: 42rem;
+  margin-top: 0.35rem;
   color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.65;
-}
-
-.arrow {
-  color: var(--muted);
-  font-size: 0.9rem;
-  transition: color 160ms ease;
-}
-
-.link:hover .arrow {
-  color: var(--accent);
+  font-size: 0.78rem;
+  line-height: 1.55;
 }
 
 .openLabel {
   display: block;
-  margin-top: 1.1rem;
   color: var(--link);
-  font-family: var(--font-data);
-  font-size: 0.67rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 620;
+  text-underline-offset: 0.22rem;
+  white-space: nowrap;
+}
+
+.link:hover .labTitle,
+.link:hover .openLabel {
+  color: var(--accent-strong);
+  text-decoration: underline;
 }
 
 @media (max-width: 58rem) {
   .hero {
     grid-template-columns: 1fr;
-    gap: 1.8rem;
+    gap: 1rem;
+    align-items: start;
   }
 
-  .intro {
-    max-width: 42rem;
+  .domain {
+    grid-template-columns: minmax(10rem, 0.3fr) minmax(0, 0.7fr);
+    gap: 1.5rem;
   }
 }
 
 @media (max-width: 42rem) {
   .page {
-    gap: 3.8rem;
+    gap: 2rem;
   }
 
-  .title {
-    font-size: clamp(4rem, 23vw, 6rem);
-  }
-
-  .list {
+  .domain {
     grid-template-columns: 1fr;
+    gap: 0.7rem;
+    padding-block: 1rem 1.15rem;
   }
 
-  .item,
-  .item:nth-child(2n) {
-    border-right: 0;
+  .domainTitle {
+    margin-top: 0;
   }
 
   .link {
-    min-height: 10.5rem;
-    grid-template-columns: 2rem minmax(0, 1fr) auto;
-    padding-inline: 0;
-  }
-
-  .link:hover {
-    padding-inline: 0.25rem 0;
+    min-height: 5rem;
+    gap: 0.65rem;
   }
 }

@@ -1002,6 +1002,16 @@ describe("Localization contract", () => {
     expect(messages.navigationLabel).toBe("Implemented laboratories");
     expect(messages.openLab).toBe("Open lab →");
     expect(messages.intro).toMatch(/reviewed Nova-Lumina laboratory/i);
+    expect(messages.domains.orbitsAndDetection).toBe("Orbits & detection");
+    expect(messages.domains.starsAndLight).toBe("Stars & light");
+  });
+
+  it("keeps the observing-workflow navigation in the typed English dictionary", () => {
+    const messages = enMessages.observationWorkspace;
+    expect(messages.ariaLabel).toBe("Observing workflows");
+    expect(messages.items.observe.label).toBe("Plan one target");
+    expect(messages.items.tonight.label).toBe("Plan from a Collection");
+    expect(messages.items.identify.label).toBe("Identify an image");
   });
 
   it("keeps Collections interface copy separate from local user data and stable store reasons", () => {
@@ -1024,6 +1034,10 @@ describe("Localization contract", () => {
   it("keeps Space Now wrapper/state copy separate from provider APOD payloads", () => {
     const messages = enMessages.spaceNow;
     expect(messages.metadataTitle).toBe("Space Now");
+    expect(messages.feedStatus.states.fresh).toBe("Fresh snapshot");
+    expect(messages.feedStatus.states.stale).toBe("Stale snapshot");
+    expect(messages.feedStatus.source).toContain("{source}");
+    expect(messages.feedStatus.retrieved).toContain("{retrievedAt}");
     expect(messages.dailyVisual.contentDateLabel).toBe("APOD content date");
     expect(messages.retrieval.cacheStates.expired).toBe("expired");
     expect(messages.navigation.launches.action).toBe("Open Launch Center");

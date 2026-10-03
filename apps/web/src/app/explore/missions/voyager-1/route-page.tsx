@@ -260,7 +260,7 @@ function TrajectoryTable({
           })}
         </p>
       </div>
-      <div className={styles.tableWrap}>
+      <div className={styles.tableWrap} tabIndex={0}>
         <table className={styles.table}>
           <thead>
             <tr>

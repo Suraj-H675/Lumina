@@ -1,15 +1,15 @@
 .page {
   display: grid;
-  gap: clamp(4rem, 8vw, 6.5rem);
+  gap: 3.1rem;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.7fr) minmax(17rem, 0.3fr);
-  gap: clamp(2.5rem, 7vw, 7rem);
-  align-items: end;
+  grid-template-columns: minmax(14rem, 0.34fr) minmax(0, 0.66fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
   border-bottom: 1px solid var(--border);
-  padding-bottom: clamp(2.75rem, 6vw, 5rem);
+  padding-bottom: 1.7rem;
 }
 
 .eyebrow,
@@ -26,11 +26,11 @@
 .title {
   max-width: 12ch;
   margin: 0.75rem 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(3.7rem, 8vw, 7rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 0.88;
+  font-family: var(--font-ui);
+  font-size: clamp(2.05rem, 3.5vw, 2.95rem);
+  font-weight: 680;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
 }
 
 .intro {
@@ -548,13 +548,16 @@
 }
 
 @media (max-width: 46rem) {
-  .page,
+  .page {
+    gap: 2.75rem;
+  }
+
   .stack {
     gap: 4rem;
   }
 
   .title {
-    font-size: clamp(3.5rem, 18vw, 5.2rem);
+    font-size: clamp(2.1rem, 10vw, 2.85rem);
   }
 
   .freshness,

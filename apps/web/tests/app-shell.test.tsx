@@ -63,6 +63,71 @@ describe("Nova-Lumina Mission Control home", () => {
     );
   });
 
+  it("keeps current-launch source and freshness context beside the focal event", () => {
+    render(
+      <SiteShell {...EN_SHELL_PROPS}>
+        <MissionControlHome
+          discoveries={loadReviewedDiscoveries().entries}
+          launchOutcome={{
+            kind: "ok",
+            data: {
+              active_mission_launch_ids: [],
+              availability: "fresh",
+              freshness: {
+                cache_state: "fresh",
+                fresh_until: "2026-09-15T00:20:00Z",
+                last_refresh_failure_code: null,
+                retrieved_at: "2026-09-15T00:05:00Z",
+                snapshot_latest_updated_utc: "2026-09-15T00:02:00Z",
+                stale_until: "2026-09-15T00:35:00Z",
+              },
+              launches: [
+                {
+                  agency: { id: 1, name: "Fixture Agency" },
+                  launch_id: "fixture-launch",
+                  mission: null,
+                  name: "Fixture Launch",
+                  official_page_url: null,
+                  official_webcast_url: null,
+                  site: null,
+                  slug: "fixture-launch",
+                  status: { abbreviation: "Go", id: 1, name: "Go for Launch" },
+                  timing: {
+                    calendar_eligible: true,
+                    countdown_eligible: true,
+                    net_utc: "2026-09-20T12:30:00Z",
+                    precision_abbreviation: "MIN",
+                    precision_id: 1,
+                    precision_name: "Minute",
+                    provider_updated_at: "2026-09-15T00:02:00Z",
+                    window_end_utc: null,
+                    window_start_utc: null,
+                  },
+                  vehicle: null,
+                  webcast_live: false,
+                },
+              ],
+              returned_launch_count: 1,
+              source: {
+                attribution_text: "Fixture launch attribution.",
+                name: "Fixture Launch Source",
+                official_documentation_url: "https://example.com/docs",
+                terms_url: "https://example.com/terms",
+              },
+              total_launch_count: 1,
+              unavailable_reason: null,
+            },
+          }}
+          messages={enMessages.missionControl}
+        />
+      </SiteShell>,
+    );
+
+    expect(screen.getByText(/Source: Fixture Launch Source/)).toBeVisible();
+    expect(screen.getByText(/Retrieved:/)).toHaveTextContent("2026-09-15T00:05:00Z");
+    expect(screen.getByText(/Latest source update:/)).toHaveTextContent("2026-09-15T00:02:00Z");
+  });
+
   it("has one top-level heading and semantic landmarks", () => {
     renderHome();
 

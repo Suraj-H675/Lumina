@@ -16,6 +16,36 @@ test("Mission Control home loads with honest availability framing", async ({ pag
   );
 });
 
+test("desktop Navigate keeps primary destinations in the primary row", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+
+  const primaryNav = page.getByRole("navigation", { name: "Primary" });
+  const disclosure = primaryNav.locator("details");
+  await expect(primaryNav).toHaveCount(1);
+  await disclosure.locator("summary").click();
+
+  for (const href of ["/explore", "/learn", "/lab", "/now", "/observe"]) {
+    await expect(disclosure.locator(`a[href="${href}"]`)).toBeHidden();
+  }
+  await expect(disclosure.locator('a[href="/compare"]')).toBeVisible();
+  await expect(primaryNav.getByRole("link", { name: "Explore", exact: true })).toBeVisible();
+});
+
+test("mobile Navigate includes the primary destinations", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const primaryNav = page.getByRole("navigation", { name: "Primary" });
+  const disclosure = primaryNav.locator("details");
+  await expect(primaryNav).toHaveCount(1);
+  await disclosure.locator("summary").click();
+
+  for (const href of ["/explore", "/learn", "/lab", "/now", "/observe"]) {
+    await expect(disclosure.locator(`a[href="${href}"]`)).toBeVisible();
+  }
+});
+
 test("the skip link moves keyboard focus to the main content", async ({ page }) => {
   await page.goto("/");
 

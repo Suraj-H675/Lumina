@@ -36,6 +36,12 @@ test.describe("Private identification", () => {
 
     await page.goto("/identify");
 
+    const workflowNav = page.getByRole("navigation", { name: "Observing workflows" });
+    await expect(workflowNav).toBeVisible();
+    await expect(workflowNav.getByRole("link", { name: /Identify an image/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     await expect(
       page.getByRole("heading", { level: 1, name: "Identify an astronomical image" }),
     ).toBeVisible();

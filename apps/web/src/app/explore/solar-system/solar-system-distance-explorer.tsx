@@ -292,7 +292,7 @@ function DistanceTable({
         </h2>
         <p className={styles.tableDescription}>{messages.description}</p>
       </div>
-      <div className={styles.tableWrap}>
+      <div className={styles.tableWrap} tabIndex={0}>
         <table className={styles.table} style={{ minWidth: "46rem" }}>
           <thead>
             <tr>

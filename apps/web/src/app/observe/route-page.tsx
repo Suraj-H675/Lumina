@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ObserveExperience } from "../../components/observe-experience";
+import { ObservationWorkspaceNav } from "../../components/observation-workspace-nav";
 import type { PublishedLocale } from "../../lib/i18n/locales";
 import type {
   CatalogueSearchMessages,
@@ -8,6 +9,7 @@ import type {
   EntityTypeMessages,
   JournalEntryMessages,
   ObservationPlannerMessages,
+  ObservationWorkspaceMessages,
   SavedObservationPlanMessages,
 } from "../../lib/i18n/messages/types";
 import { isValidNightDate } from "../../lib/observation/domain";
@@ -26,6 +28,7 @@ type ObservePageProps = Readonly<{
   coordinateDisclosureMessages: CoordinateDisclosureMessages;
   entityTypeMessages: EntityTypeMessages;
   journalEntryMessages: JournalEntryMessages;
+  observationWorkspaceMessages: ObservationWorkspaceMessages;
   plannerLocale: PublishedLocale;
   plannerMessages: ObservationPlannerMessages;
   savedPlanLocale: PublishedLocale;
@@ -42,6 +45,7 @@ export default async function ObservePage({
   coordinateDisclosureMessages,
   entityTypeMessages,
   journalEntryMessages,
+  observationWorkspaceMessages,
   plannerLocale,
   plannerMessages,
   savedPlanLocale,
@@ -60,21 +64,24 @@ export default async function ObservePage({
   const apiOrigin = configured.valid ? configured.origin : undefined;
 
   return (
-    <ObserveExperience
-      {...(apiOrigin === undefined ? {} : { apiOrigin })}
-      detail={outcome?.kind === "ok" ? outcome.detail : null}
-      {...(initialDate === undefined ? {} : { initialDate })}
-      {...(initialSavedId === undefined ? {} : { initialSavedId })}
-      catalogueSearchMessages={catalogueSearchMessages}
-      coordinateDisclosureMessages={coordinateDisclosureMessages}
-      entityTypeMessages={entityTypeMessages}
-      journalEntryMessages={journalEntryMessages}
-      locale={plannerLocale}
-      messages={plannerMessages}
-      savedPlanLocale={savedPlanLocale}
-      savedPlanMessages={savedPlanMessages}
-      slug={hasSavedParam ? null : slug}
-      targetUnavailable={outcome !== null && outcome.kind !== "ok"}
-    />
+    <div className="grid gap-8">
+      <ObservationWorkspaceNav current="observe" messages={observationWorkspaceMessages} />
+      <ObserveExperience
+        {...(apiOrigin === undefined ? {} : { apiOrigin })}
+        detail={outcome?.kind === "ok" ? outcome.detail : null}
+        {...(initialDate === undefined ? {} : { initialDate })}
+        {...(initialSavedId === undefined ? {} : { initialSavedId })}
+        catalogueSearchMessages={catalogueSearchMessages}
+        coordinateDisclosureMessages={coordinateDisclosureMessages}
+        entityTypeMessages={entityTypeMessages}
+        journalEntryMessages={journalEntryMessages}
+        locale={plannerLocale}
+        messages={plannerMessages}
+        savedPlanLocale={savedPlanLocale}
+        savedPlanMessages={savedPlanMessages}
+        slug={hasSavedParam ? null : slug}
+        targetUnavailable={outcome !== null && outcome.kind !== "ok"}
+      />
+    </div>
   );
 }

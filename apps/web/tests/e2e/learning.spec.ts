@@ -96,6 +96,8 @@ test.describe("Your First Night Sky", () => {
     await expect(page.getByText(/mastery saved locally/i)).toBeVisible();
 
     await page.goto("/learn");
+    await expect(page.getByRole("heading", { level: 2, name: "Lessons" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /start with the sky/i })).toBeVisible();
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export learning progress" }).click();
     const download = await downloadPromise;

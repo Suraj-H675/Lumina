@@ -69,43 +69,40 @@ export default async function ExplorePage({
           <h1 className={styles.title}>{messages.header.title}</h1>
           <p className={styles.intro}>{messages.header.intro}</p>
         </div>
-        <nav aria-label={messages.header.title} className={styles.modeNav}>
-          {(
-            [
-              ["/explore/deep-sky", messages.header.deepSkyAction],
-              ["/explore/solar-system", messages.header.solarSystemAction],
-              ["/explore/exoplanet-systems", messages.header.exoplanetSystemsAction],
-              ["/explore/missions/voyager-1", messages.header.voyagerAction],
-              ["/explore/system-compare", messages.header.systemCompareAction],
-            ] as const
-          ).map(([href, label], index) => (
-            <Link className={styles.modeLink} href={href} key={href}>
-              <span aria-hidden="true" className={styles.modeIndex}>
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span>{label}</span>
-              <span aria-hidden="true" className={styles.modeArrow}>
-                →
-              </span>
-            </Link>
-          ))}
-        </nav>
+        <div className={styles.searchStage}>
+          <div className={styles.searchContext}>
+            <p className={styles.searchLabel}>{catalogueSearchMessages.inputLabel}</p>
+            <p className={styles.searchHint}>{messages.browse.summary}</p>
+          </div>
+          <div className={styles.searchControl}>
+            <CatalogueSearchBox
+              {...(apiOrigin === undefined ? {} : { apiOrigin })}
+              initialQuery={query}
+              locale={locale}
+              messages={catalogueSearchMessages}
+            />
+          </div>
+        </div>
       </header>
 
-      <section className={styles.searchStage}>
-        <div className={styles.searchContext}>
-          <p className={styles.searchLabel}>{catalogueSearchMessages.inputLabel}</p>
-          <p className={styles.searchHint}>{messages.browse.summary}</p>
-        </div>
-        <div className={styles.searchControl}>
-          <CatalogueSearchBox
-            {...(apiOrigin === undefined ? {} : { apiOrigin })}
-            initialQuery={query}
-            locale={locale}
-            messages={catalogueSearchMessages}
-          />
-        </div>
-      </section>
+      <nav aria-label={messages.header.title} className={styles.modeNav}>
+        {(
+          [
+            ["/explore/deep-sky", messages.header.deepSkyAction],
+            ["/explore/solar-system", messages.header.solarSystemAction],
+            ["/explore/exoplanet-systems", messages.header.exoplanetSystemsAction],
+            ["/explore/missions/voyager-1", messages.header.voyagerAction],
+            ["/explore/system-compare", messages.header.systemCompareAction],
+          ] as const
+        ).map(([href, label]) => (
+          <Link className={styles.modeLink} href={href} key={href}>
+            <span>{label}</span>
+            <span aria-hidden="true" className={styles.modeArrow}>
+              →
+            </span>
+          </Link>
+        ))}
+      </nav>
 
       {committed ? (
         <ExploreSearchSection

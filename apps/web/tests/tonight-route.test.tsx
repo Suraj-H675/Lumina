@@ -34,10 +34,12 @@ describe("Tonight route localization boundary", () => {
       entityTypeMessages: enMessages.entityTypes,
       locale: DEFAULT_LOCALE,
       messages: enMessages.tonight,
+      observationWorkspaceMessages: enMessages.observationWorkspace,
       searchParams: Promise.resolve({ date: ["2026-08-27", "2099-01-01"] }),
     });
 
-    expect(page.props).toMatchObject({
+    const view = page.props.children[1] as { props: Record<string, unknown> };
+    expect(view.props).toMatchObject({
       coordinateDisclosureMessages: enMessages.coordinateDisclosure,
       entityTypeMessages: enMessages.entityTypes,
       initialDate: "2026-08-27",
@@ -54,9 +56,11 @@ describe("Tonight route localization boundary", () => {
       entityTypeMessages: enMessages.entityTypes,
       locale: DEFAULT_LOCALE,
       messages: enMessages.tonight,
+      observationWorkspaceMessages: enMessages.observationWorkspace,
       searchParams: Promise.resolve({ date: "not-a-night" }),
     });
 
-    expect(invalidDatePage.props.initialDate).toBeUndefined();
+    const invalidView = invalidDatePage.props.children[1] as { props: Record<string, unknown> };
+    expect(invalidView.props.initialDate).toBeUndefined();
   });
 });

@@ -7,5 +7,11 @@ export const dynamic = "force-dynamic";
 export const metadata = createIdentifyMetadata(enMessages.identify);
 
 export default function EnglishIdentifyPage() {
-  return <IdentifyPage locale={DEFAULT_LOCALE} messages={enMessages.identify} />;
+  return (
+    <IdentifyPage
+      locale={DEFAULT_LOCALE}
+      messages={enMessages.identify}
+      observationWorkspaceMessages={enMessages.observationWorkspace}
+    />
+  );
 }

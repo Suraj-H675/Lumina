@@ -30,6 +30,7 @@ export type LearnMessages = LuminaMessages["learn"];
 export type MissionControlMessages = LuminaMessages["missionControl"];
 export type ObjectMessages = LuminaMessages["object"];
 export type ObservationPlannerMessages = LuminaMessages["observationPlanner"];
+export type ObservationWorkspaceMessages = LuminaMessages["observationWorkspace"];
 export type OfflineMessages = LuminaMessages["offline"];
 export type ParticipateMessages = LuminaMessages["participate"];
 export type PresentationModeMessages = LuminaMessages["presentationMode"];

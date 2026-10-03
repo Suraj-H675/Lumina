@@ -2,7 +2,7 @@ import { axe } from "jest-axe";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ApodResponse } from "@nova-lumina/api-client";
+import type { ApodResponse, LaunchListResponse } from "@nova-lumina/api-client";
 
 import { SpaceNowView } from "../src/app/now/space-now-view";
 import { SiteShell } from "../src/components/site-shell";
@@ -52,6 +52,29 @@ const videoResponse: ApodResponse = {
     media_type: "video",
     copyright: null,
   },
+};
+
+const launchFeed: LaunchListResponse = {
+  active_mission_launch_ids: [],
+  availability: "stale",
+  freshness: {
+    cache_state: "stale",
+    fresh_until: "2026-09-15T00:20:00Z",
+    last_refresh_failure_code: "provider.timeout",
+    retrieved_at: "2026-09-15T00:05:00Z",
+    snapshot_latest_updated_utc: "2026-09-15T00:02:00Z",
+    stale_until: "2026-09-15T00:35:00Z",
+  },
+  launches: [],
+  returned_launch_count: 0,
+  source: {
+    attribution_text: "Fixture launch attribution.",
+    name: "Fixture Launch Source",
+    official_documentation_url: "https://example.com/docs",
+    terms_url: "https://example.com/terms",
+  },
+  total_launch_count: 0,
+  unavailable_reason: null,
 };
 
 function renderPage(response: ApodResponse, messages: SpaceNowMessages = enMessages.spaceNow) {
@@ -133,6 +156,28 @@ describe("Space Now Daily Visual", () => {
     expect(screen.getByText("The Daily Visual provider is disabled.")).toBeVisible();
     expect(screen.queryByText("Fixture Creator <img src=x>")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /APOD image|APOD video/i })).not.toBeInTheDocument();
+  });
+
+  it("keeps each current feed's independent source and retrieval state visible", () => {
+    render(
+      <SiteShell {...EN_SHELL_PROPS}>
+        <SpaceNowView
+          feedOutcomes={{
+            launches: { data: launchFeed, kind: "ok" },
+            nearEarth: { kind: "unavailable" },
+            satellites: { kind: "unavailable" },
+            spaceWeather: { kind: "unavailable" },
+          }}
+          messages={enMessages.spaceNow}
+          outcome={{ data: imageResponse, kind: "ok" }}
+        />
+      </SiteShell>,
+    );
+
+    expect(screen.getByText("Stale snapshot")).toBeVisible();
+    expect(screen.getByText("Source: Fixture Launch Source")).toBeVisible();
+    expect(screen.getByText("Retrieved 2026-09-15T00:05:00Z")).toBeVisible();
+    expect(screen.getAllByText("Unavailable")).toHaveLength(3);
   });
 
   it("localizes Nova-Lumina chrome without rewriting APOD/provider source values", () => {

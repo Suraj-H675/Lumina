@@ -129,9 +129,10 @@
   min-height: 2.75rem;
   align-items: center;
   gap: 0.55rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0 0.9rem;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 0 0.65rem;
   color: var(--muted-strong);
   cursor: pointer;
   font-size: 0.82rem;
@@ -149,8 +150,7 @@
 
 .navigatorSummary:hover,
 .navigator[open] .navigatorSummary {
-  border-color: var(--border-strong);
-  background: var(--surface);
+  border-bottom-color: var(--border-strong);
   color: var(--foreground);
 }
 
@@ -309,6 +309,10 @@
   .primaryList {
     display: flex;
     align-items: center;
+  }
+
+  .menuLink[data-primary-destination="true"] {
+    display: none;
   }
 
   .main {

@@ -1,12 +1,25 @@
-.landing,
+.landing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+}
+
 .pathPage,
 .lessonPage {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 5rem;
+  gap: 4.25rem;
 }
 
-.landingHero,
+.landingHero {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.36fr) minmax(0, 0.64fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.8rem;
+}
+
 .pathHero,
 .lessonHero {
   display: grid;
@@ -30,18 +43,33 @@
   text-transform: uppercase;
 }
 
-.landingTitle,
+.landingTitle {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-ui);
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 680;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
 .pathTitle,
 .lessonTitle {
   margin: 0.75rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(3.6rem, 8vw, 7rem);
+  font-size: clamp(2.8rem, 5.2vw, 4.8rem);
   font-weight: 500;
   letter-spacing: -0.058em;
   line-height: 0.88;
 }
 
-.landingIntro,
+.landingIntro {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
 .pathSummary,
 .lessonSummary {
   margin: 0;
@@ -52,16 +80,17 @@
 
 .featuredPath {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(12rem, 0.28fr);
+  grid-template-columns: minmax(12rem, 0.28fr) minmax(0, 0.72fr);
   gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
   border-top: 1px solid var(--border-strong);
   border-bottom: 1px solid var(--border);
-  padding: 1.8rem 0 2rem;
+  padding: 1.4rem 0 1.8rem;
 }
 
 .featuredPathTitle {
   max-width: 18ch;
-  margin: 0.7rem 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-size: clamp(2.25rem, 4.5vw, 4.2rem);
   font-weight: 500;
@@ -71,17 +100,17 @@
 
 .featuredPathSummary {
   max-width: 44rem;
-  margin: 1rem 0 0;
+  margin: 0.9rem 0 0;
   color: var(--muted);
-  line-height: 1.75;
+  line-height: 1.72;
 }
 
 .featuredPathMeta {
   display: grid;
   align-content: start;
-  gap: 1.2rem;
-  border-top: 1px solid var(--border-strong);
-  padding-top: 1rem;
+  gap: 0.8rem;
+  border-top: 0;
+  padding-top: 0;
 }
 
 .pathMeta,
@@ -234,14 +263,11 @@
 
 .lessonLink {
   color: var(--foreground);
-  transition:
-    background-color 160ms ease,
-    padding-inline 160ms ease;
+  transition: background-color 160ms ease;
 }
 
 .lessonLink:hover {
   background: color-mix(in srgb, var(--surface) 64%, transparent);
-  padding-inline: 0.45rem;
 }
 
 .lessonLocked {
@@ -834,6 +860,22 @@
   line-height: 1.6;
 }
 
+@media (max-width: 58rem) {
+  .landingHero,
+  .featuredPath {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+
+  .landingIntro {
+    max-width: 42rem;
+  }
+
+  .featuredPathMeta {
+    max-width: 34rem;
+  }
+}
+
 @media (max-width: 64rem) {
   .landingHero,
   .pathHero,
@@ -863,16 +905,22 @@
 }
 
 @media (max-width: 46rem) {
-  .landing,
-  .pathPage,
-  .lessonPage {
-    gap: 4rem;
+  .landing {
+    gap: 2.75rem;
   }
 
-  .landingTitle,
+  .pathPage,
+  .lessonPage {
+    gap: 3.5rem;
+  }
+
+  .landingTitle {
+    font-size: clamp(2.15rem, 10vw, 2.9rem);
+  }
+
   .pathTitle,
   .lessonTitle {
-    font-size: clamp(3.4rem, 18vw, 5.3rem);
+    font-size: clamp(2.8rem, 12vw, 3.8rem);
   }
 
   .lessonListHeader,

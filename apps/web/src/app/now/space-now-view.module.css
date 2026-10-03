@@ -1,15 +1,15 @@
 .page {
   display: grid;
-  gap: 5rem;
+  gap: 3rem;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.68fr) minmax(18rem, 0.32fr);
-  gap: clamp(2.5rem, 7vw, 7rem);
-  align-items: end;
+  grid-template-columns: minmax(14rem, 0.34fr) minmax(0, 0.66fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
   border-bottom: 1px solid var(--border);
-  padding-bottom: clamp(3rem, 6vw, 5rem);
+  padding-bottom: 1.8rem;
 }
 
 .eyebrow,
@@ -24,19 +24,20 @@
 }
 
 .title {
-  margin: 0.75rem 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(3.7rem, 8vw, 7.2rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 0.86;
+  margin: 0.55rem 0 0;
+  font-family: var(--font-ui);
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 680;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
 }
 
 .intro {
+  max-width: 48rem;
   margin: 0;
   color: var(--muted-strong);
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 0.92rem;
+  line-height: 1.7;
 }
 
 .dailySection {
@@ -234,54 +235,74 @@
 
 .feeds {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   border-top: 1px solid var(--border-strong);
 }
 
 .feed {
   display: grid;
   min-width: 0;
-  min-height: 13rem;
-  grid-template-rows: auto auto 1fr auto;
-  border-right: 1px solid var(--border);
+  grid-template-columns: minmax(12rem, 0.3fr) minmax(0, 0.52fr) auto;
+  gap: clamp(1.25rem, 4vw, 3.5rem);
+  align-items: center;
   border-bottom: 1px solid var(--border);
-  padding: 1.25rem 1.35rem 1.4rem;
+  padding: 1rem 0 1.1rem;
 }
 
-.feed:nth-child(2n) {
-  border-right: 0;
+.feedIdentity {
+  min-width: 0;
 }
 
 .feedTitle {
-  margin: 0.55rem 0 0;
+  margin: 0.4rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(1.45rem, 2.6vw, 2.15rem);
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
   font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.feedStatus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.18rem 0.55rem;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 0.61rem;
+  line-height: 1.5;
+}
+
+.feedStatus[data-state="fresh"] span:first-child {
+  color: var(--success);
+}
+
+.feedStatus[data-state="stale"] span:first-child {
+  color: var(--warning);
+}
+
+.feedStatus[data-state="unavailable"] {
+  color: var(--muted);
 }
 
 .feedDescription {
-  max-width: 35rem;
-  margin: 0.8rem 0 0;
+  max-width: 44rem;
+  margin: 0;
   color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.65;
+  font-size: 0.78rem;
+  line-height: 1.6;
 }
 
 .feedLink {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
-  width: fit-content;
-  margin-top: 1rem;
+  justify-self: end;
   color: var(--link);
-  font-family: var(--font-data);
-  font-size: 0.67rem;
-  letter-spacing: 0.04em;
+  font-size: 0.76rem;
+  font-weight: 620;
   text-decoration: underline;
   text-underline-offset: 0.22rem;
-  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .unavailable {
@@ -310,6 +331,10 @@
     grid-template-columns: 1fr;
   }
 
+  .hero {
+    gap: 1.4rem;
+  }
+
   .intro {
     max-width: 42rem;
   }
@@ -317,12 +342,29 @@
   .featureMeta {
     max-width: 34rem;
   }
+
+  .feed {
+    grid-template-columns: minmax(11rem, 0.34fr) minmax(0, 0.66fr);
+  }
+
+  .feedLink {
+    grid-column: 2;
+    justify-self: start;
+  }
 }
 
 @media (max-width: 48rem) {
-  .provenance,
-  .feeds {
+  .provenance {
     grid-template-columns: 1fr;
+  }
+
+  .feed {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .feedLink {
+    grid-column: auto;
   }
 
   .provenanceSection,
@@ -331,21 +373,15 @@
     border-bottom: 1px solid var(--border);
     padding: 1.2rem 0;
   }
-
-  .feed,
-  .feed:nth-child(2n) {
-    border-right: 0;
-    padding-inline: 0;
-  }
 }
 
 @media (max-width: 36rem) {
   .page {
-    gap: 4rem;
+    gap: 2.75rem;
   }
 
   .title {
-    font-size: clamp(3.7rem, 20vw, 5.4rem);
+    font-size: clamp(2.15rem, 10vw, 2.9rem);
   }
 
   .freshnessBanner,
